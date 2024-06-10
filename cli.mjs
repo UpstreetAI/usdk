@@ -338,6 +338,7 @@ const ensureLocalGuid = async () => {
     return guid;
   }
 };
+const generateMnemonic = () => bip39.generateMnemonic(wordlist);
 const ensureLocalMnemonic = async () => {
   const walletFile = await tryReadFileAsync(walletLocation);
   if (walletFile) {
@@ -351,7 +352,7 @@ const ensureLocalMnemonic = async () => {
       );
     }
   } else {
-    const mnemonic = bip39.generateMnemonic(wordlist);
+    const mnemonic = generateMnemonic();
     const o = {
       mnemonic,
     };
