@@ -19,7 +19,8 @@
   ],
   "dependencies": {
     "@chialab/esbuild-plugin-require-resolve": "^0.18.0",
-    "@cloudflare/puppeteer": "^0.0.6",
+    "@supabase/supabase-js": "^2.39.8",
+    "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@iarna/toml": "^2.2.5",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
@@ -32,6 +33,7 @@
     "cli-table3": "^0.6.4",
     "commander": "^12.0.0",
     "cookie": "^0.6.0",
+    "dedent": "^1.5.3",
     "esbuild": "^0.20.2",
     "ethers": "^6.12.0",
     "eventsource": "^2.0.2",
@@ -55,5 +57,9 @@
     "vercel": "^34.2.6",
     "wrangler": "^3.28.3",
     "ws": "^8.17.0"
+  },
+  "overrides": {
+    "@supabase/auth-js": "2.62.0",
+    "whatwg-url": "14.0.0"
   }
 }
