@@ -1,0 +1,31 @@
+name = "upstreet-agent"
+main = "sdk/main.jsx"
+compatibility_date = "2023-11-21"
+node_compat = true
+
+r2_buckets  = [
+  { binding = "DATA", bucket_name = "data"}
+]
+routes = [
+  { pattern = "AGENT_URL", custom_domain = true }
+]
+# tail_consumers = [{service = "upstreet-agent"}]
+# browser = { binding = "BROWSER" }
+# services = [ { binding = "AI_PROXY", service = "ai-proxy" } ]
+
+[[durable_objects.bindings]]
+name = "AGENT"
+class_name = "DurableObject"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["DurableObject"]
+
+[vars]
+GUID = ""
+AGENT_JSON = ""
+WALLET_MNEMONIC = ""
+AGENT_TOKEN = ""
+SUPABASE_URL = "https://friddlbqibjnxjoxeocc.supabase.co"
+SUPABASE_PUBLIC_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaWRkbGJxaWJqbnhqb3hlb2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2NjE3NDIsImV4cCI6MjAxOTIzNzc0Mn0.jnvk5X27yFTcJ6jsCkuXOog1ZN825md4clvWuGQ8DMI"
+# SUPABASE_SERVICE_API_KEY = "="
