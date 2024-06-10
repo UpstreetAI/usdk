@@ -2493,7 +2493,7 @@ const deploy = async (args) => {
       })();
       const j = await new Promise((accept, reject) => {
         req.on('response', async (res) => {
-          console.log('got response', res.statusCode);
+          // console.log('got response', res.statusCode);
 
           const b = await new Promise((accept, reject) => {
             const bs = [];
@@ -2507,7 +2507,7 @@ const deploy = async (args) => {
             res.on('error', reject);
           });
           const s = b.toString('utf8');
-          console.log('got response output', s);
+          // console.log('got response output', s);
 
           if (res.statusCode === 200) {
             const j = JSON.parse(s);
