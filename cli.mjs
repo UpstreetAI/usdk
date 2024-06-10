@@ -1923,7 +1923,17 @@ const create = async (args) => {
   // read all files recursively
   console.log('reading files...');
   // node readdir
-  const files = await fs.promises.readdir(dstDir);
+  const files = await (async () => {
+    try {
+      return await fs.promises.readdir(dstDir);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        return [];
+      } else {
+        throw err;
+      }
+    }
+  })();
   // console.log(`read files (${files.length})`);
   // console.log('files', cwd, files.filter(f => /route/.test(f)));
   if (files.length > 0) {
