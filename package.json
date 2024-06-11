@@ -6,10 +6,6 @@
   "bin": {
     "usdk": "./usdk"
   },
-  "scripts": {
-    "build": "rm -Rf dist && node build.js && node dist/bundle.cjs",
-    "prepublish": "npm run build"
-  },
   "author": "",
   "license": "ISC",
   "files": [
