@@ -4,7 +4,7 @@ import * as esbuild from 'esbuild';
 
 (async () => {
   const result = await esbuild.build({
-    entryPoints: ['cli.mjs'],
+    entryPoints: ['cli.js'],
     bundle: true,
     inject: [
       './util/build/import-meta-url.js',
@@ -19,7 +19,7 @@ import * as esbuild from 'esbuild';
     platform: 'node',
     // format: 'esm',
     format: 'cjs',
-    outfile: 'dist/bundle.js',
+    outfile: 'dist/bundle.cjs',
     external: ['ncc-pure-js'],
   });
   // console.log('got result', result);

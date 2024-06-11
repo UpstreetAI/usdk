@@ -59,7 +59,7 @@ const BASE_DIRNAME = (() => {
     metaUrl = metaUrl.replace(/^[/\\]+/, '');
   }
 
-  // if we're not in dist, use the regular cli.mjs path
+  // if we're not in dist, use the regular cli.js path
   if (path.basename(path.dirname(metaUrl)) !== 'dist') {
     return path.normalize(
       path.join(metaUrl, '..'),

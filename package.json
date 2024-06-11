@@ -2,11 +2,12 @@
   "name": "usdk",
   "version": "0.0.36",
   "description": "",
+  "type": "module",
   "bin": {
     "usdk": "./usdk"
   },
   "scripts": {
-    "build": "rm -Rf dist && node build.mjs && node dist/bundle.js",
+    "build": "rm -Rf dist && node build.js && node dist/bundle.cjs",
     "prepublish": "npm run build"
   },
   "author": "",
