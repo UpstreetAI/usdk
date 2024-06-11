@@ -20,13 +20,8 @@ if [ -f "$README" ]; then
   #   tail -f esbuild_output.log | grep --line-buffered -m 1 "Watcher is ready" &
   #   wait $!
 
-  # echo "running from local repo"
-  pushd $USDK >/dev/null
-  TSX=$(node -e "console.log(path.dirname(require.resolve('tsx')))")/cli.cjs
-  popd >/dev/null
-
   # echo "TSX: $TSX"
-  node "$TSX" "$USDK/cli.mjs" "$@"
+  node "$USDK/cli.mjs" "$@"
 else
   echo "running from installed dist"
   DIST="$USDK/dist"

@@ -32,7 +32,7 @@ import * as ethers from 'ethers';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 
-import packageJson from './package.json';
+import packageJson from './package.json' with { type: 'json' };
 import {
   // makeClient,
   makeAnonymousClient,
