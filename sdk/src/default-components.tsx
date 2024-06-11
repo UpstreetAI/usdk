@@ -31,7 +31,7 @@ import {
   Scheduler,
   Server,
 } from './components';
-import { useCurrentAgent, useAgents, useScene, useActions } from './hooks';
+import { useCurrentAgent, useAgents, useScene, useActions, useActionHistory } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
 
@@ -244,31 +244,38 @@ export const RecentChatHistoryJsonPrompt = ({
 }) => {
   const appContextValue = useContext(AppContext);
 
-  const [historyActions, setHistoryActions] = useState([]);
+  // const [historyActions, setHistoryActions] = useState([]);
+  // const perAgentHistoryActions = await Promise.all(
+  //   agents.map((agent) => agent.getActionHistory()),
+  // );
+  const perAgentHistoryActions = useActionHistory(agents);
+  const historyActions = perAgentHistoryActions
+    .flat()
+    .sort((a, b) => a.timestamp - b.timestamp);
 
-  // console.log('render prompt', historyActions);
-  useEffect(() => {
-    appContextValue.useLoad(
-      (async () => {
-        // console.log('start action history');
-        const perAgentHistoryActions = await Promise.all(
-          agents.map((agent) => agent.getActionHistory()),
-        );
-        /* console.log(
-          'get action history',
-          {
-            perAgentHistoryActions: JSON.stringify(perAgentHistoryActions, null, 2),
-            now: Date.now(),
-          },
-        ); */
-        const newHistoryActions = perAgentHistoryActions
-          .flat()
-          .sort((a, b) => a.timestamp - b.timestamp);
-        // console.log('new action history', newHistoryActions);
-        setHistoryActions(newHistoryActions);
-      })(),
-    );
-  }, [agents, appContextValue]);
+  // // console.log('render prompt', historyActions);
+  // useEffect(() => {
+  //   appContextValue.useLoad(
+  //     (async () => {
+  //       // console.log('start action history');
+  //       const perAgentHistoryActions = await Promise.all(
+  //         agents.map((agent) => agent.getActionHistory()),
+  //       );
+  //       /* console.log(
+  //         'get action history',
+  //         {
+  //           perAgentHistoryActions: JSON.stringify(perAgentHistoryActions, null, 2),
+  //           now: Date.now(),
+  //         },
+  //       ); */
+  //       const newHistoryActions = perAgentHistoryActions
+  //         .flat()
+  //         .sort((a, b) => a.timestamp - b.timestamp);
+  //       // console.log('new action history', newHistoryActions);
+  //       setHistoryActions(newHistoryActions);
+  //     })(),
+  //   );
+  // }, [agents, appContextValue]);
 
   return (
     <Prompt>

@@ -5,6 +5,9 @@ export class Player {
     this.playerId = playerId;
     this.playerSpec = playerSpec;
   }
+  getPlayerSpec() {
+    return this.playerSpec;
+  }
   setPlayerSpec(playerSpec) {
     this.playerSpec = playerSpec;
   }

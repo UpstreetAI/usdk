@@ -220,6 +220,7 @@ export type AppContextValue = {
   useAgents: () => Array<AgentObject>;
   useCurrentAgent: () => ActiveAgentObject;
   useActions: () => Array<ActionProps>;
+  useActionHistory: (agents: Array<AgentObject> | AgentObject) => ActionMessages;
 
   useLoad: (p: Promise<any>) => void;
 
@@ -242,7 +243,6 @@ export type AppContextValue = {
     agent: ActiveAgentObject,
     action: PendingActionMessage,
   ) => Promise<any>;
-  getActionHistory: (agent: AgentObject) => Promise<ActionMessages>;
 
   think: (agent: ActiveAgentObject) => Promise<any>;
   say: (agent: ActiveAgentObject, text: string) => Promise<any>;

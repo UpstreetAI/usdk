@@ -80,6 +80,9 @@ export class DurableObject extends EventTarget {
     };
     _bindConversationContext();
 
+    this.incomingMessageQueueManager = new QueueManager();
+    this.nudgeQueueManager = new QueueManager();
+
     const mnemonic = env.WALLET_MNEMONIC;
     const wallets = getConnectedWalletsFromMnemonic(mnemonic);
     this.agentRenderer = new AgentRenderer({
@@ -90,7 +93,6 @@ export class DurableObject extends EventTarget {
       enabled: false,
     });
 
-    this.queueManager = new QueueManager();
     this.loadPromise = (async () => {
       const enabled = (await this.state.storage.get('enabled')) ?? false;
       this.agentRenderer.setEnabled(enabled);
@@ -183,7 +185,7 @@ export class DurableObject extends EventTarget {
             // this.realms.localPlayer.setKeyValue('voiceSpec', localPlayer.playerMap.get('voiceSpec'));
             realms.localPlayer.setKeyValue(
               'playerSpec',
-              localPlayer.playerSpec,
+              localPlayer.getPlayerSpec(),
             );
           };
           _pushInitialPlayer();
@@ -240,6 +242,7 @@ export class DurableObject extends EventTarget {
         }
 
         const leaveMessage = {
+          userId: guid,
           method: 'leave',
           args: {
             playerId,
@@ -256,7 +259,7 @@ export class DurableObject extends EventTarget {
       const handleRemoteUserMessage = async (message) => {
         this.conversationContext.addLocalMessage(message);
 
-        const { method, args } = message;
+        /* const { method, args } = message;
         switch (method) {
           // case 'say': {
           //   // console.log('got say 1', args);
@@ -274,12 +277,16 @@ export class DurableObject extends EventTarget {
           default: {
             break;
           }
-        }
+        } */
       };
       realms.addEventListener('chat', async (e) => {
-        const { playerId, message } = e.data;
-        if (playerId !== guid) {
-          await handleRemoteUserMessage(message);
+        try {
+          const { playerId, message } = e.data;
+          if (playerId !== guid) {
+            await handleRemoteUserMessage(message);
+          }
+        } catch (err) {
+          console.warn(err.stack);
         }
       });
     };
@@ -319,9 +326,9 @@ export class DurableObject extends EventTarget {
     return agentJson;
   }
 
-  // nudge the agent to do something and return the result
+  // nudge the agent to do think
   async nudge() {
-    return await this.queueManager.waitForTurn(async () => {
+    return await this.nudgeQueueManager.waitForTurn(async () => {
       try {
         await this.typing(async () => {
           console.log('nudge 1');
@@ -614,6 +621,7 @@ export class DurableObject extends EventTarget {
           await this.join(room);
 
           const joinMessage = {
+            userId: guid,
             method: 'join',
             args: {
               guid,
@@ -669,69 +677,87 @@ export class DurableObject extends EventTarget {
     }
   }
   async schedule() {
-    await this.queueManager.waitForTurn(async () => {
-      // wait for the agent to be loaded
-      console.log('schedule 1');
-      await this.waitForLoad();
-      console.log('schedule 2');
+    // wait for the agent to be loaded
+    console.log('schedule 1');
+    await this.waitForLoad();
+    console.log('schedule 2');
 
-      // render the agent's timeout spec
-      const alarmSpec = await renderUserAlarm(this.agentRenderer);
-      const {
-        currentAgent: currentAgentBound,
-        perceptionRegistry,
-        timeout,
-      } = alarmSpec;
+    // render the agent's timeout spec
+    const alarmSpec = await renderUserAlarm(this.agentRenderer);
+    const {
+      perceptionRegistry,
+      timeout,
+    } = alarmSpec;
 
-      // clean up the old scheduler
-      this.scheduleCleanup();
+    // clean up the old scheduler
+    this.scheduleCleanup();
 
-      // bind the perception handlers based on the message type
-      const onConversationContextLocalMessage = async (e) => {
+    // handle conversation remote message re-render
+    const onConversationContextLocalPreMessage = async (e) => {
+      await this.incomingMessageQueueManager.waitForTurn(async () => {
         const { message } = e.data;
-        console.log('got conversation context message 1', message);
+        try {
+          await this.agentRenderer.rerenderAsync();
+        } catch (err) {
+          console.warn(err.stack);
+        }
+        console.log('post local message 1');
+        await this.conversationContext.postLocalMessage(message);
+        console.log('post local message 2');
+      });
+    };
+    this.conversationContext.addEventListener(
+      'localmessagepre',
+      onConversationContextLocalPreMessage,
+    );
+    // bind the perception handlers based on the message type
+    const onConversationContextLocalPostMessage = async (e) => {
+      const { message, waitUntil } = e.data;
+      waitUntil((async () => {
+        console.log('got conversation context message post 1', message, new Error().stack);
         const allPerceptions = Array.from(perceptionRegistry.values());
-        console.log('got conversation context message 2', {
+        console.log('got conversation context message post 2', {
           message,
           allPerceptions,
         });
+        const currentAgent = this.agentRenderer.getCurrentAgent();
         for (const perception of allPerceptions) {
           if (perception.type === message.method) {
-            // console.log('got perception type and message', {
-            //   type: perception.type,
-            //   message,
-            // });
             const e = new ExtendableMessageEvent('perception', {
               data: {
-                agent: currentAgentBound,
+                agent: currentAgent,
                 message,
               },
             });
             await perception.handler(e);
           }
         }
-      };
-      this.conversationContext.addEventListener(
-        'localmessage',
-        onConversationContextLocalMessage,
+      })());
+    };
+    this.conversationContext.addEventListener(
+      'localmessagepost',
+      onConversationContextLocalPostMessage,
+    );
+    this.scheduleCleanup = () => {
+      this.conversationContext.removeEventListener(
+        'localmessagepre',
+        onConversationContextLocalPreMessage,
       );
-      this.scheduleCleanup = () => {
-        this.conversationContext.removeEventListener(
-          'localmessage',
-          onConversationContextLocalMessage,
-        );
-      };
+      this.conversationContext.removeEventListener(
+        'localmessagepost',
+        onConversationContextLocalPostMessage,
+      );
+    };
 
-      // set the next alarm
-      if (isFinite(timeout)) {
-        this.state.storage.setAlarm(timeout);
-      // } else {
-      //   console.warn(
-      //     'invalid alarm timeout -- must be a number',
-      //     alarmSpec,
-      //   );
-      }
-    });
+    // set the next alarm
+    if (isFinite(timeout)) {
+      this.state.storage.setAlarm(timeout);
+    // } else {
+    //   console.warn(
+    //     'invalid alarm timeout -- must be a number',
+    //     alarmSpec,
+    //   );
+    }
   }
   async alarm() {
     // handle the alarm

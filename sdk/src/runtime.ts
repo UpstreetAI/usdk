@@ -155,7 +155,7 @@ const AppComponent = (props: any) => {
 };
 
 // converts raw objects to classes
-const bindObjectClasses = ({
+/* const bindObjectClasses = ({
   scene,
   agents,
   currentAgent,
@@ -173,9 +173,6 @@ const bindObjectClasses = ({
     context: appContextValue,
   }));
   const currentAgentUnboundIndex = agentsBound.findIndex(agent => agent.id === currentAgent.id);
-  if (currentAgentUnboundIndex === -1) {
-    throw new Error('current agent not found in agents: ' + currentAgent.id + ' ' + agents.map(agent => agent.id).join(', '));
-  }
   const currentAgentBound = new ActiveAgentObject(agentsBound[currentAgentUnboundIndex], {
     wallets,
   });
@@ -186,7 +183,7 @@ const bindObjectClasses = ({
     agents: agentsBound,
     currentAgent: currentAgentBound,
   };
-};
+}; */
 const getActionByName = (actionRegistry: Map<symbol, ActionProps>, name: string) => {
   for (const action of Array.from(actionRegistry.values())) {
     if (action.name === name) {
@@ -211,6 +208,8 @@ export class AgentRenderer {
   schedulerRegistry: Map<symbol, SchedulerProps> = new Map();
   serverRegistry: Map<symbol, ServerProps> = new Map();
 
+  rendered: boolean = false;
+
   env: object;
   userRender: UserHandler;
   conversationContext: ConversationContext;
@@ -220,16 +219,15 @@ export class AgentRenderer {
   renderLoader: RenderLoader;
   appContextValue: AppContextValue;
 
-  sceneBound: SceneObject;
-  agentsBound: Array<AgentObject>;
-  currentAgentBound: ActiveAgentObject;
+  // sceneBound: SceneObject;
+  // agentsBound: Array<AgentObject>;
+  // currentAgentBound: ActiveAgentObject;
 
   reconciler: any;
   root: any;
 
   epochValue: number;
   renderQueueManager: QueueManager;
-  rerenderQueued: boolean;
 
   constructor({
     env,
@@ -264,9 +262,6 @@ export class AgentRenderer {
       serverRegistry,
     } = this;
 
-    const currentAgent = conversationContext.getCurrentAgent();
-    const messages = conversationContext.getMessages();
-
     // create the app context
     const renderLoader = new RenderLoader();
     this.renderLoader = renderLoader;
@@ -284,17 +279,41 @@ export class AgentRenderer {
 
       subtleAi,
 
-      useScene: (...args) => {
-        return makeEpochUse(() => sceneBound)(...args);
+      useScene: () => {
+        return makeEpochUse(() => this.getScene())(); // XXX these need to be dynamically bound
       },
-      useAgents: (...args) => {
-        return makeEpochUse(() => agentsBound)(...args);
+      useAgents: () => {
+        return makeEpochUse(() => this.getAgents())();
       },
-      useCurrentAgent: (...args) => {
-        return makeEpochUse(() => currentAgentBound)(...args);
+      useCurrentAgent: () => {
+        return makeEpochUse(() => this.getCurrentAgent())();
       },
-      useActions: (...args) => {
-        return makeEpochUse(() => Array.from(actionRegistry.values()))(...args);
+      useActions: () => {
+        return makeEpochUse(() => Array.from(actionRegistry.values()))();
+      },
+      useActionHistory: (agents) => {
+        if (!Array.isArray(agents)) {
+          agents = [agents];
+        }
+        console.log('use action history 1');
+        const messages = makeEpochUse(() => {
+          console.log('got messages internal 1');
+          const result = [];
+          const messages = conversationContext.getMessages();
+          console.log('got messages internal 2', messages);
+          const agentIds = agents.map((agent) => agent.id);
+          for (const message of messages) {
+            const userId = message.userId ?? '';
+            if (agentIds.includes(userId)) {
+              result.push(message);
+            }
+          }
+          const currentAgentIds = conversationContext.getAgents();
+          console.log('got messages internal 3', messages, agents, currentAgentIds, result);
+          return result;
+        })();
+        console.log('use action history 2', messages);
+        return messages;
       },
 
       useLoad: renderLoader.useLoad.bind(renderLoader),
@@ -352,46 +371,37 @@ export class AgentRenderer {
         agent: AgentObject,
         pendingActionMessage: PendingActionMessage,
       ) => {
-        if (agent.id === currentAgent.id) {
-          const { id: userId, name } = agent;
-          const { method, args, timestamp } = pendingActionMessage;
-          const actionMessage = {
-            userId,
-            name,
-            method,
-            args,
-            timestamp,
-          };
+        const { id: userId, name } = agent;
+        const { method, args, timestamp } = pendingActionMessage;
+        const actionMessage = {
+          userId,
+          name,
+          method,
+          args,
+          timestamp,
+        };
+
+        const currentAgent = conversationContext.getCurrentAgent();
+        const isLocal = agent.id === currentAgent.id;
+        if (isLocal) {
           conversationContext.addLocalAndRemoteMessage(actionMessage);
-          await self.rerenderAsync();
         } else {
-          throw new Error('addAction is not allowed for non-current agents');
+          // conversationContext.addLocalMessage(actionMessage);
+          throw new Error('remote agent actions cannot be added here');
         }
-      },
-      getActionHistory: async (agent: AgentObject) => {
-        const result = [];
-        for (const message of messages) {
-          const userId = message.userId ?? '';
-          if (userId === agent.id) {
-            result.push(message);
-          }
-        }
-        return result;
+        await self.rerenderAsync();
       },
 
       async think(agent: ActiveAgentObject) {
-        console.log('agent renderer think 1');
+        // console.log('agent renderer think 1');
         await conversationContext.typing(async () => {
-          console.log(
-            'agent renderer think 2',
-            self.generateAgentAction.toString(),
-          );
+          // console.log('agent renderer think 2');
           const pendingMessage = await self.generateAgentAction(agent);
-          console.log('agent renderer think 3');
+          // console.log('agent renderer think 3');
           await self.handleAgentAction(agent, pendingMessage);
-          console.log('agent renderer think 4');
+          // console.log('agent renderer think 4');
         });
-        console.log('agent renderer think 5');
+        // console.log('agent renderer think 5');
       },
 
       say: async (agent: ActiveAgentObject, text: string) => {
@@ -429,6 +439,7 @@ export class AgentRenderer {
         return embedding;
       },
       complete: async (messages, opts?: SubtleAiCompleteOpts) => {
+        const currentAgent = conversationContext.getCurrentAgent();
         const { model = currentAgent.model } = opts ?? {};
         const jwt = (env as any).AGENT_TOKEN as string;
         localStorage.setItem('jwt', JSON.stringify(jwt));
@@ -603,21 +614,21 @@ export class AgentRenderer {
     subtleAi.context = appContextValue;
 
     // bind the objects
-    const scene = conversationContext.getScene();
-    const agents = conversationContext.getAgents().concat([currentAgent]);
-    const bindingResult = bindObjectClasses({
-      scene,
-      agents,
-      currentAgent,
-      wallets,
-      appContextValue,
-    });
-    const sceneBound = bindingResult.scene;
-    const agentsBound = bindingResult.agents;
-    const currentAgentBound = bindingResult.currentAgent;
-    this.sceneBound = sceneBound;
-    this.agentsBound = agentsBound;
-    this.currentAgentBound = currentAgentBound;
+    // const bindingResult = bindObjectClasses({
+    //   scene: conversationContext.getScene(),
+    //   agents: conversationContext.getAgents().concat([
+    //     conversationContext.getCurrentAgent(),
+    //   ]),
+    //   currentAgent: conversationContext.getCurrentAgent(),
+    //   wallets,
+    //   appContextValue,
+    // });
+    // const sceneBound = bindingResult.scene;
+    // const agentsBound = bindingResult.agents;
+    // const currentAgentBound = bindingResult.currentAgent;
+    // this.sceneBound = sceneBound;
+    // this.agentsBound = agentsBound;
+    // this.currentAgentBound = currentAgentBound;
 
     // run the module to get the result
     const opts = {
@@ -659,11 +670,52 @@ export class AgentRenderer {
     this.epochValue = 0;
 
     this.renderQueueManager = new QueueManager();
-    this.rerenderQueued = false;
   }
 
-  setEnabled(enabled) {
+  setEnabled(enabled: boolean) {
     this.enabled = enabled;
+  }
+
+  // bound object getters
+  getScene() {
+    const scene = this.conversationContext.getScene();
+    const sceneBound = new SceneObject(scene);
+    return sceneBound;
+  }
+  getAgents() {
+    const currentAgent = this.conversationContext.getCurrentAgent();
+    const agents = this.conversationContext.getAgents()
+      .concat([currentAgent]);
+    const { appContextValue, wallets } = this;
+
+    // if (!appContextValue) {
+    //   throw new Error('app context value not set');
+    // }
+
+    const agentsBound = agents.map((agent) => new AgentObject(agent, {
+      context: appContextValue,
+    }));
+    const currentAgentUnboundIndex = agentsBound.findIndex(agent => agent.id === currentAgent.id);
+    // if (currentAgentUnboundIndex === -1) {
+    //   throw new Error('current agent not found in agents: ' + currentAgent.id + ' : ' + agentsBound.map(agent => agent.id).join(', '));
+    // }
+    const currentAgentBound = new ActiveAgentObject(agentsBound[currentAgentUnboundIndex], {
+      wallets,
+    });
+    agentsBound.splice(currentAgentUnboundIndex, 1, currentAgentBound);
+    return agentsBound;
+  }
+  getCurrentAgent() {
+    const currentAgent = this.conversationContext.getCurrentAgent();
+    const { appContextValue, wallets } = this;
+
+    const currentAgentBound = new AgentObject(currentAgent, {
+      context: appContextValue,
+    });
+    const currentActiveAgentBound = new ActiveAgentObject(currentAgentBound, {
+      wallets,
+    });
+    return currentActiveAgentBound;
   }
 
   async generateAgentAction(agent: ActiveAgentObject) {
@@ -673,7 +725,7 @@ export class AgentRenderer {
       .map((prompt) => prompt.children)
       .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
     const promptString = prompts.join('\n\n');
-    console.log('think 1');
+    console.log('think 1', prompts);
     console.log(promptString);
     console.log('think 2', {
       promptString,
@@ -847,47 +899,46 @@ export class AgentRenderer {
       await this.render(props);
       // console.log('render 4');
     }
+
+    this.rendered = true;
   }
 
   async rerenderAsync() {
-    this.rerenderQueued = true;
-    await Promise.resolve();
+    // console.log('rerender 1');
     await this.renderQueueManager.waitForTurn(async () => {
-      if (this.rerenderQueued) {
-        this.rerenderQueued = false;
-        await this.rerender();
-      }
+      // console.log('rerender 2');
+      await this.rerender();
+      // console.log('rerender 3');
     });
+    // console.log('rerender 4');
   }
 
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
   async ensureOutput() {
-    const { conversationContext } = this;
-    const scene = conversationContext.getScene();
-    const currentAgent = conversationContext.getCurrentAgent();
-    const agents = conversationContext.getAgents().concat([currentAgent]);
+    // const { conversationContext } = this;
+    // const scene = conversationContext.getScene();
+    // const currentAgent = conversationContext.getCurrentAgent();
+    // const agents = conversationContext.getAgents().concat([currentAgent]);
     // const messages = conversationContext.getMessages();
+
+    if (!this.rendered) {
+      await this.renderQueueManager.waitForTurn(async () => {
+        await this.rerender();
+      });
+    }
+
     const {
-      wallets,
-      appContextValue,
       agentRegistry,
       actionRegistry,
-      promptRegistry,
+      promptRegistry, 
       parserRegistry,
       perceptionRegistry,
       schedulerRegistry,
       serverRegistry,
     } = this;
 
-    await this.renderQueueManager.waitForTurn(async () => {
-      await this.rerender();
-    });
-
     return {
-      scene: this.sceneBound,
-      agents: this.agentsBound,
-      currentAgent: this.currentAgentBound,
       agentRegistry,
       actionRegistry,
       promptRegistry,
@@ -916,9 +967,6 @@ export const nudgeUserAgent = async ({
   // enabled: boolean;
 }) => {
   const {
-    scene: sceneBound,
-    agents: agentsBound,
-    currentAgent: currentAgentBound,
     agentRegistry,
     actionRegistry,
     promptRegistry,
@@ -927,22 +975,17 @@ export const nudgeUserAgent = async ({
     schedulerRegistry,
     serverRegistry,
     // actions,
-  } = await agentRenderer.ensureOutput(); /* await compileUserCodeComponents({
-    env,
-    userRender,
-    conversationContext,
-    wallets,
-    enabled,
-  }); */
+  } = await agentRenderer.ensureOutput();
 
   try {
     const nudgePerceptions = Array.from(perceptionRegistry.values()).filter(
       (perception) => perception.type === 'nudge',
     );
+    const currentAgent = agentRenderer.getCurrentAgent();
     for (const nudgePerception of nudgePerceptions) {
       const e = new ExtendableMessageEvent('perception', {
         data: {
-          agent: currentAgentBound,
+          agent: currentAgent,
           message: {
             method: 'nudge',
             args: {},
@@ -985,11 +1028,7 @@ export const compileUserAgentServer = async ({
   agentRenderer: AgentRenderer;
   // enabled: boolean;
 }) => {
-  // console.log('compile user code server components 1');
   const {
-    scene: sceneBound,
-    agents: agentsBound,
-    currentAgent: currentAgentBound,
     agentRegistry,
     actionRegistry,
     promptRegistry,
@@ -997,15 +1036,7 @@ export const compileUserAgentServer = async ({
     perceptionRegistry,
     schedulerRegistry,
     serverRegistry,
-    // actions,
-  } = await agentRenderer.ensureOutput(); /* compileUserCodeComponents({
-    env,
-    userRender,
-    conversationContext,
-    wallets,
-    enabled,
-  }); */
-  // console.log('compile user code server components 2: ' + serverRegistry.size);
+  } = await agentRenderer.ensureOutput();
 
   const serversProps = Array.from(serverRegistry.values());
   const servers = serversProps
@@ -1063,9 +1094,6 @@ export const compileUserAgentAlarm = async ({
   // enabled: boolean;
 }) => {
   const {
-    // scene: sceneBound,
-    // agents: agentsBound,
-    currentAgent: currentAgentBound,
     // agentRegistry,
     // actionRegistry,
     // promptRegistry,
@@ -1073,14 +1101,7 @@ export const compileUserAgentAlarm = async ({
     perceptionRegistry,
     schedulerRegistry,
     // serverRegistry,
-    // actions,
-  } = await agentRenderer.ensureOutput(); /* compileUserCodeComponents({
-    env,
-    userRender,
-    conversationContext,
-    wallets,
-    enabled,
-  }); */
+  } = await agentRenderer.ensureOutput();
 
   // find the earliest timeout
   const timeouts = await Promise.all(
@@ -1096,7 +1117,6 @@ export const compileUserAgentAlarm = async ({
   }
   const alarmSpec = {
     timeout,
-    currentAgent: currentAgentBound,
     perceptionRegistry,
   };
   // console.log('returning alarm spec', alarmSpec);

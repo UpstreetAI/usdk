@@ -4,6 +4,7 @@ import {
   AgentObject,
   ActiveAgentObject,
   ActionProps,
+  ActionMessages,
 } from './types';
 import { AppContext } from './context';
 
@@ -26,4 +27,9 @@ export const useActions: () => Array<ActionProps> = () => {
   // const AppContext = useUpstreetSdkAppContext();
   const appContextValue = useContext(AppContext);
   return appContextValue.useActions();
+};
+export const useActionHistory: (agents: Array<AgentObject> | AgentObject) => ActionMessages = (agents) => {
+  // const AppContext = useUpstreetSdkAppContext();
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useActionHistory(agents);
 };

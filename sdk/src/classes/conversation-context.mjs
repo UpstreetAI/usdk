@@ -12,8 +12,8 @@ export class ConversationContext extends EventTarget {
     super();
 
     this.scene = scene;
-    this.agentsMap = agentsMap;
-    this.currentAgent = currentAgent;
+    this.agentsMap = agentsMap; // Player
+    this.currentAgent = currentAgent; // json object
     this.messages = messages;
 
     if (!currentAgent) {
@@ -36,7 +36,7 @@ export class ConversationContext extends EventTarget {
   }
 
   getAgents() {
-    return Array.from(this.agentsMap.values());
+    return Array.from(this.agentsMap.values()).map(player => player.getPlayerSpec());
   }
   getAgent(agentId) {
     return this.agentsMap.get(agentId);
@@ -79,17 +79,36 @@ export class ConversationContext extends EventTarget {
     }
   }
 
+  // pull a message from the network
   addLocalMessage(message) {
     this.messages.push(message);
+    console.log('add local message', message, this.messages);
 
     this.dispatchEvent(
-      new MessageEvent('localmessage', {
+      new MessageEvent('localmessagepre', {
         data: {
           message,
         },
       }),
     );
   }
+  // signal that a message has been loaded and re-rendered
+  async postLocalMessage(message) {
+    let promises = [];
+    const waitUntil = p => {
+      promises.push(p);
+    };
+    this.dispatchEvent(
+      new MessageEvent('localmessagepost', {
+        data: {
+          message,
+          waitUntil,
+        },
+      }),
+    );
+    await Promise.all(promises);
+  }
+  // push a message to the network
   addLocalAndRemoteMessage(message) {
     this.messages.push(message);
 
