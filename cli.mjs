@@ -868,40 +868,48 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
           return data;
         } else {
           // console.warn('failed to fetch worn avatar', active_asset);
-          throw new Error('failed to fetch worn avatar');
+          // throw new Error('failed to fetch worn avatar');
+          return null;
         }
       } else {
         // console.log(`could not get asset ${userId}: ${error}`);
-        throw new Error('could not get asset');
+        // throw new Error('could not get asset');
+        return null;
       }
     } else {
       // console.log('not wearing an avatar');
-      throw new Error('not wearing an avatar');
+      // throw new Error('not wearing an avatar');
+      return null;
     }
   } else {
-    throw new Error('could not get user');
+    // throw new Error('could not get user');
+    return null;
   }
 };
 const connectMultiplayer = async ({ room, anonymous, debug }) => {
   const getUserAsset = async () => {
     if (!anonymous) {
+      let userAsset = null;
+
+      // try getting the user asset from the login
       const jwt = await getLoginJwt();
       if (jwt !== null) {
         const supabase = makeSupabase(jwt);
-        const userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-        if (!userAsset) {
-          console.warn(`could not find the character you're wearing`);
-          process.exit(1);
-        }
-        return userAsset;
-      } else {
-        const localGuid = await ensureLocalGuid();
-        const devUserAsset = {
-          id: localGuid,
-        };
-        ensureSpecDefaults(devUserAsset);
-        return devUserAsset;
+        userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+        // if (!userAsset) {
+        //   console.warn(`could not find the character you're wearing`);
+        //   process.exit(1);
+        // }
       }
+
+      // use a default asset spec
+      const userId = makeDevGuid();
+      userAsset = {
+        id: userId,
+      };
+      ensureSpecDefaults(userAsset);
+
+      return userAsset;
     } else {
       return null;
     }
