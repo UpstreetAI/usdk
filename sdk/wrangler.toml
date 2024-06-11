@@ -2,6 +2,7 @@ name = "upstreet-agent"
 main = "sdk/main.jsx"
 compatibility_date = "2023-11-21"
 node_compat = true
+workers_dev = true
 
 r2_buckets  = [
   { binding = "DATA", bucket_name = "data"}
