@@ -1405,23 +1405,34 @@ const getGuidFromPath = async (p) => {
   return wranglerToml.vars.GUID;
 };
 const chat = async (args) => {
+  // console.log('got chat args', JSON.stringify(args));
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
+  // ensure guids
   if (guidsOrDevPathIndexes.length === 0) {
-    const guid = await getGuidFromPath(cwd);
-    guidsOrDevPathIndexes = [guid];
+    if (!dev) {
+      const guid = await getGuidFromPath(cwd);
+      guidsOrDevPathIndexes = [guid];
+    } else {
+      guidsOrDevPathIndexes = [{
+        agentDirectory: cwd,
+        portIndex: 0,
+      }];
+    }
   } else {
-    guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-      if (isGuid(guidOrDevPathIndex)) {
-        return guidOrDevPathIndex;
-      } else {
-        const guid = await getGuidFromPath(guidOrDevPathIndex);
-        return guid;
-      }
-    }));
+    if (!dev) {
+      guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        if (isGuid(guidOrDevPathIndex)) {
+          return guidOrDevPathIndex;
+        } else {
+          const guid = await getGuidFromPath(guidOrDevPathIndex);
+          return guid;
+        }
+      }));
+    }
   }
 
   const jwt = await getLoginJwt();
@@ -1463,62 +1474,93 @@ const chat = async (args) => {
   }
 };
 const simulate = async (args) => {
-  const guidsOrDevPathIndexes = args._.slice(0);
+  let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
-  if (guidsOrDevPathIndexes.length >= 1) {
-    // wait for agents to join the multiplayer room
-    const wsPromises = Promise.all(
-      guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        return await join({
-          _: [guidOrDevPathIndex, room],
-          local: args.local,
-          dev,
-          debug,
-        })/* .then(() => {
-          console.log('join promise ok');
-        }).catch((err) => {
-          console.warn('join promise error', err);
-        }); */
-      }),
-    );
-    const webSockets = await wsPromises;
-
-    const { userAsset, realms, playersMap, typingMap } =
-      await connectMultiplayer({
-        room,
-        anonymous: true,
-        debug,
-      });
-    startMultiplayerListener({
-      userAsset,
-      realms,
-      playersMap,
-      typingMap,
-      // startRepl: false,
-    });
-
-    // nudge the first agent
-    const _nudge = async () => {
-      const agentId = shuffle(guids)[0];
-      await nudge(realms, agentId);
-    };
-    await _nudge();
-
-    return {
-      // ws: webSockets[0],
-      close: () => {
-        for (const ws of webSockets) {
-          ws.close();
-        }
-      },
-    };
+  // ensure guids
+  if (guidsOrDevPathIndexes.length === 0) {
+    if (!dev) {
+      const guid = await getGuidFromPath(cwd);
+      guidsOrDevPathIndexes = [guid];
+    } else {
+      guidsOrDevPathIndexes = [{
+        agentDirectory: cwd,
+        portIndex: 0,
+      }];
+    }
   } else {
-    console.log('need at least one guid');
-    process.exit(1);
+    if (!dev) {
+      guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        if (isGuid(guidOrDevPathIndex)) {
+          return guidOrDevPathIndex;
+        } else {
+          const guid = await getGuidFromPath(guidOrDevPathIndex);
+          return guid;
+        }
+      }));
+    }
   }
+
+  // wait for agents to join the multiplayer room
+  const wsPromises = Promise.all(
+    guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+      return await join({
+        _: [guidOrDevPathIndex, room],
+        local: args.local,
+        dev,
+        debug,
+      })/* .then(() => {
+        console.log('join promise ok');
+      }).catch((err) => {
+        console.warn('join promise error', err);
+      }); */
+    }),
+  );
+  const webSockets = await wsPromises;
+
+  const { userAsset, realms, playersMap, typingMap } =
+    await connectMultiplayer({
+      room,
+      anonymous: true,
+      debug,
+    });
+  startMultiplayerListener({
+    userAsset,
+    realms,
+    playersMap,
+    typingMap,
+    // startRepl: false,
+  });
+
+  // collect the guids
+  const guids = await Promise.all(
+    guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+      if (isGuid(guidOrDevPathIndex)) {
+        return guidOrDevPathIndex;
+      } else {
+        const guid = await getGuidFromPath(guidOrDevPathIndex.agentDirectory);
+        return guid;
+      }
+    }),
+  );
+
+  // nudge a random agent
+  const _nudge = async () => {
+    const agentId = shuffle(guids)[0];
+    await nudge(realms, agentId);
+  };
+  await _nudge();
+
+  return {
+    // ws: webSockets[0],
+    close: () => {
+      for (const ws of webSockets) {
+        ws.close();
+      }
+    },
+  };
 };
 const listen = async (args) => {
   const guidOrDevPathIndex = // guid or dev path index
@@ -2756,6 +2798,10 @@ const join = async (args) => {
         dev,
       },
     );
+    // console.log('get agent host', {
+    //   guidOrDevPathIndex,
+    //   agentHost,
+    // });
     const u = `${agentHost}/join`;
     // console.log('join 1', u);
     const headers = {};
@@ -3260,45 +3306,44 @@ const main = async () => {
         await disable(args);
       });
     });
-  program
-    .command('connect')
-    .description(`Connect to a multiplayer room`)
-    .argument(`<room>`, `Name of the room to join`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .option(
-      `-d, --dev`,
-      `Use the local development guid instead of your account guid`,
-    )
-    .option(`-v, --vision`, `Enable webcam vision`)
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (room = '', opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof room === 'string') {
-          args = {
-            _: [room],
-            ...opts,
-          };
-          await connect(args);
-        } else {
-          console.warn(`invalid arguments: ${room}`);
-        }
-      });
-    });
+  // program
+  //   .command('connect')
+  //   .description(`Connect to a multiplayer room`)
+  //   .argument(`<room>`, `Name of the room to join`)
+  //   .option(
+  //     `-l, --local`,
+  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+  //   )
+  //   .option(
+  //     `-d, --dev`,
+  //     `Use the local development guid instead of your account guid`,
+  //   )
+  //   .option(`-v, --vision`, `Enable webcam vision`)
+  //   .option(`-g, --debug`, `Enable debug logging`)
+  //   .action(async (room = '', opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       let args;
+  //       if (typeof room === 'string') {
+  //         args = {
+  //           _: [room],
+  //           ...opts,
+  //         };
+  //         await connect(args);
+  //       } else {
+  //         console.warn(`invalid arguments: ${room}`);
+  //       }
+  //     });
+  //   });
   program
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
-    // .argument(`<room>`, `Name of the room to join`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-r, --room`, `The room name to join`)
-    .option(
-      `-d, --dev`,
-      `Use the local development guid instead of your account guid`,
-    )
+    // .option(
+    //   `-d, --dev`,
+    //   `Chat with a local development agent`,
+    // )
     .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
@@ -3315,7 +3360,13 @@ const main = async () => {
   program
     .command('simulate')
     .description('Simulate an interaction between agents')
-    .argument(`<guids...>`, `The guids of the agents to simulate`)
+    .argument(`[guids...]`, `The guids of the agents to simulate`)
+    .option(`-r, --room`, `The room name to join`)
+    // .option(
+    //   `-d, --dev`,
+    //   `Chat with a local development agent`,
+    // )
+    .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids, opts = {}) => {
       await handleError(async () => {
@@ -3336,12 +3387,12 @@ const main = async () => {
     });
   program
     .command('listen')
-    .description(`Listen for multiplayer room events`)
-    .argument(`<room>`, `Name of the room to join`)
-    .option(
-      `-d, --dev`,
-      `Use the local development guid instead of your account guid`,
-    )
+    .description(`Stream an agent's events`)
+    .argument(`guid`, `Guid of the agent to listen to`)
+    // .option(
+    //   `-d, --dev`,
+    //   `Chat with a local development agent`,
+    // )
     .action(async (room = '', opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
