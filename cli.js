@@ -896,10 +896,6 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
       if (jwt !== null) {
         const supabase = makeSupabase(jwt);
         userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-        // if (!userAsset) {
-        //   console.warn(`could not find the character you're wearing`);
-        //   process.exit(1);
-        // }
       }
 
       // use a default asset spec
