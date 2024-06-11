@@ -1563,34 +1563,88 @@ const simulate = async (args) => {
   };
 };
 const listen = async (args) => {
-  const guidOrDevPathIndex = // guid or dev path index
-    args._[0] ??
-    (dev
-      ? {
-          agentDirectory: cwd,
-          portIndex: 0,
-        }
-      : '');
+  const guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
+  const debug = !!args.debug;
 
-  const agentHost = getAgentHost(
-    !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    {
-      dev,
+  // ensure guids
+  if (guidsOrDevPathIndexes.length === 0) {
+    if (!dev) {
+      const guid = await getGuidFromPath(cwd);
+      guidsOrDevPathIndexes = [guid];
+    } else {
+      guidsOrDevPathIndexes = [{
+        agentDirectory: cwd,
+        portIndex: 0,
+      }];
+    }
+  } else {
+    if (!dev) {
+      guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        if (isGuid(guidOrDevPathIndex)) {
+          return guidOrDevPathIndex;
+        } else {
+          const guid = await getGuidFromPath(guidOrDevPathIndex);
+          return guid;
+        }
+      }));
+    }
+  }
+
+  let webSockets = [];
+  if (dev) {
+    // wait for agents to join the multiplayer 
+    const room = makeRoomName();
+    const wsPromises = Promise.all(
+      guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        return await join({
+          _: [guidOrDevPathIndex, room],
+          local: args.local,
+          dev,
+          debug,
+        })/* .then(() => {
+          console.log('join promise ok');
+        }).catch((err) => {
+          console.warn('join promise error', err);
+        }); */
+      }),
+    );
+    webSockets = await wsPromises;
+  }
+
+
+  const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
+    const agentHost = getAgentHost(
+      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
+      {
+        dev,
+      },
+    );
+
+    const eventSource = new EventSource(`${agentHost}/events`);
+    eventSource.addEventListener('message', (e) => {
+      const j = JSON.parse(e.data);
+      console.log('event source', j);
+    });
+    eventSource.addEventListener('error', (e) => {
+      console.warn('error', e);
+    });
+    eventSource.addEventListener('close', (e) => {
+      process.exit(0);
+    });
+  });
+
+  return {
+    // ws: webSockets[0],
+    close: () => {
+      for (const ws of webSockets) {
+        ws.close();
+      }
+      for (const eventSource of eventSources) {
+        eventSource.close();
+      }
     },
-  );
-
-  const eventSource = new EventSource(`${agentHost}/events`);
-  eventSource.addEventListener('message', (e) => {
-    const j = JSON.parse(e.data);
-    console.log(j);
-  });
-  eventSource.addEventListener('error', (e) => {
-    console.warn('error', e);
-  });
-  eventSource.addEventListener('close', (e) => {
-    process.exit(0);
-  });
+  };
 };
 // XXX rename command to charge or refill
 const fund = async (args) => {
@@ -2272,14 +2326,12 @@ const dev = async (args) => {
 
       break;
     }
-    case 'connect': {
-      // defer to chat mode
-      await connect({
+    case 'listen': {
+      await listen({
         _: [guidsOrDevPathIndexes],
         dev: true,
         local: args.local,
         vision: args.vision,
-        room: args.room,
         debug: args.debug,
       });
 
@@ -3095,7 +3147,7 @@ const main = async () => {
   const devSubcommands = [
     'chat',
     'simulate',
-    'connect',
+    'listen',
     'ls',
     'fund',
     'deposit',
@@ -3368,14 +3420,13 @@ const main = async () => {
     // )
     .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids, opts = {}) => {
+    .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
         if (guids.every((guid) => typeof guid === 'string')) {
           let args;
           args = {
             _: guids,
-            // ...opts,
             opts: {},
           };
           await simulate(args);
@@ -3388,12 +3439,12 @@ const main = async () => {
   program
     .command('listen')
     .description(`Stream an agent's events`)
-    .argument(`guid`, `Guid of the agent to listen to`)
+    .argument(`[guids...]`, `The guids of the agents to listen to`)
     // .option(
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    .action(async (room = '', opts = {}) => {
+    .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
         let args;
