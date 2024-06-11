@@ -831,12 +831,12 @@ export class AgentRenderer {
       conversationContext,
       wallets,
 
-      actionRegistry,
-      promptRegistry,
-      parserRegistry,
-      perceptionRegistry,
-      schedulerRegistry,
-      serverRegistry,
+      // actionRegistry,
+      // promptRegistry,
+      // parserRegistry,
+      // perceptionRegistry,
+      // schedulerRegistry,
+      // serverRegistry,
     } = this;
 
     const scene = conversationContext.getScene();
@@ -869,7 +869,7 @@ export class AgentRenderer {
     await this.render(props);
     // console.log('render 2');
 
-    let needsRerender = false;
+    /* let needsRerender = false;
     if (actionRegistry.size === 0) {
       props.needDefaultActions = true;
       needsRerender = true;
@@ -898,7 +898,7 @@ export class AgentRenderer {
       // console.log('render 3');
       await this.render(props);
       // console.log('render 4');
-    }
+    } */
 
     this.rendered = true;
   }

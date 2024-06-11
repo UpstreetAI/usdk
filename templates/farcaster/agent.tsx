@@ -201,7 +201,7 @@ const WalletActions = () => {
 export default function render() {
   return (
     <Agent>
-      <DefaultActions />
+      <DefaultAgentComponents />
       <WalletActions />
       <FarcasterActions />
     </Agent>
