@@ -1563,7 +1563,7 @@ const simulate = async (args) => {
   };
 };
 const listen = async (args) => {
-  const guidsOrDevPathIndexes = args._[0] ?? [];
+  let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const debug = !!args.debug;
 
@@ -3427,7 +3427,7 @@ const main = async () => {
           let args;
           args = {
             _: guids,
-            opts: {},
+            ...opts,
           };
           await simulate(args);
         } else {
@@ -3448,19 +3448,10 @@ const main = async () => {
       await handleError(async () => {
         commandExecuted = true;
         let args;
-        if (typeof room === 'string') {
-          args = {
-            _: [room],
-            ...opts,
-          };
-        } else {
-          opts = room;
-          room = '';
-          args = {
-            _: [],
-            ...opts,
-          };
-        }
+        args = {
+          _: guids,
+          ...opts,
+        };
         await listen(args);
       });
     });
