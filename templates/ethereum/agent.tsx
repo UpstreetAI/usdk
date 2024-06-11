@@ -1,14 +1,20 @@
 import React from 'react';
 import {
+  Agent,
+  AgentAppProps,
+  DefaultAgentComponents,
+  DefaultActions,
+  DefaultPrompts,
+  DefaultParsers,
+  DefaultPerceptions,
+  DefaultSchedulers,
+  DefaultServers,
+
   useAgents,
   useCurrentAgent,
-  PendingActionEvent,
-  Agent,
-  JsonAction,
 
-  DefaultActions,
-  
-  AgentAppProps,
+  JsonAction,
+  PendingActionEvent,
 } from 'upstreet-sdk/agents';
 
 //
@@ -43,7 +49,7 @@ const SendEthAction = () => {
 export default function render(props: AgentAppProps) {
   return (
     <Agent>
-      <DefaultActions />
+      <DefaultAgentComponents />
       <SendEthAction />
     </Agent>
   );

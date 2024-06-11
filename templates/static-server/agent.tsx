@@ -3,11 +3,11 @@ import {
   useAgents,
   useCurrentAgent,
   PendingActionEvent,
+
   Agent,
+  DefaultAgentComponents,
   StaticServer,
   JsonAction,
-
-  DefaultActions,
 } from 'upstreet-sdk/agents';
 
 //
@@ -15,6 +15,7 @@ import {
 export default function render() {
   return (
     <Agent>
+      <DefaultAgentComponents />
       <StaticServer />
     </Agent>
   );

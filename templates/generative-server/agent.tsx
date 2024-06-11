@@ -2,6 +2,8 @@ import React from 'react';
 import dedent from 'dedent';
 import {
   Agent,
+  DefaultAgentComponents,
+
   GenerativeServer,
   generativeFetchHandler,
   generativeImageFetchHandler,
@@ -14,6 +16,7 @@ import {
 export default function render() {
   return (
     <Agent>
+      <DefaultAgentComponents />
       <GenerativeServer>
         {() => {
           generativeFetchHandler(

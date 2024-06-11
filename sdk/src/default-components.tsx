@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect, useContext } from 'react';
 import dedent from 'dedent';
 import { minimatch } from 'minimatch';
-import jsAgoModule from 'js-ago';
+import jsAgo from 'js-ago';
 import type {
   AppContextValue,
   // AgentProps,
@@ -40,7 +40,6 @@ import { parseCodeBlock } from './util/util.mjs';
 
 // utils
 
-const jsAgo = jsAgoModule.default
 const timeAgo = (timestamp: number) =>
   jsAgo(timestamp / 1000, { format: 'short' });
 const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
