@@ -1362,13 +1362,13 @@ export class NetworkRealm extends EventTarget {
     };
     await Promise.all([
       this.networkedDataClient.connect(ws1).then(() => {
-        console.log('networkedDataClient connected');
+        // console.log('networkedDataClient connected');
       }),
       this.networkedIrcClient.connect(ws1).then(() => {
-        console.log('networkedIrcClient connected');
+        // console.log('networkedIrcClient connected');
       }),
       this.networkedAudioClient.connect(ws1).then(() => {
-        console.log('networkedAudioClient connected');
+        // console.log('networkedAudioClient connected');
       }),
     ]);
     this.connected = true;

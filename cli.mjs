@@ -38,7 +38,7 @@ import {
   makeAnonymousClient,
 } from './sdk/src/util/supabase-client.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
-import { makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
+import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
 
 import {
   providers,
@@ -146,7 +146,8 @@ const getAgentName = (guid) => `user-agent-${guid}`;
 const getAgentHost = (guidOrPortIndex, { dev }) => {
   const agentHost = dev
     ? `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
-    : `https://${getAgentName(guidOrPortIndex)}.upstreet.ai`;
+    // : `https://${getAgentName(guidOrPortIndex)}.upstreet.ai`;
+    : `https://${getAgentName(guidOrPortIndex)}.isekaichat.workers.dev`;
   return agentHost;
 };
 /* const pause = () =>
@@ -313,7 +314,8 @@ const getUserForJwt = async (jwt) => {
   }
 };
 const ensureLocalGuid = async () => {
-  const guidFile = await tryReadFileAsync(guidLocation);
+  throw new Error(`move this to use the agent's guid`);
+  /* const guidFile = await tryReadFileAsync(guidLocation);
   if (guidFile) {
     const o = jsonParse(guidFile);
     if (typeof o === 'object' && typeof o?.guid === 'string') {
@@ -336,7 +338,7 @@ const ensureLocalGuid = async () => {
     await mkdirp(path.dirname(guidLocation));
     await fs.promises.writeFile(guidLocation, s);
     return guid;
-  }
+  } */
 };
 const generateMnemonic = () => bip39.generateMnemonic(wordlist);
 const ensureLocalMnemonic = async () => {
@@ -675,8 +677,8 @@ const status = async (args) => {
     console.log('not logged in');
   }
 
-  const localGuid = await ensureLocalGuid();
-  console.log(`local guid is ${localGuid}`);
+  // const localGuid = await ensureLocalGuid();
+  // console.log(`local guid is ${localGuid}`);
 };
 const login = async (args) => {
   const local = !!args.local;
@@ -1396,53 +1398,67 @@ const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
     //   console.log('got ws message', e);
     // });
   });
+const getGuidFromPath = async (p) => {
+  const wranglerTomlPath = path.join(p, 'wrangler.toml');
+  const wranglerTomString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+  const wranglerToml = toml.parse(wranglerTomString);
+  return wranglerToml.vars.GUID;
+};
 const chat = async (args) => {
-  // console.log('got chat args', JSON.stringify(args, null, 2));
-  const guidsOrDevPathIndexes = args._[0];
+  let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
-  if (guidsOrDevPathIndexes.length >= 1) {
-    const jwt = await getLoginJwt();
-    if (jwt !== null) {
-      // wait for agents to join the multiplayer room
-      const wsPromises = Promise.all(
-        guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-          return await join({
-            _: [guidOrDevPathIndex, room],
-            dev,
-            debug,
-          });
-        }),
-      );
-      // joinPromises.then(() => {
-      //   console.log('joinPromises done');
-      // });
-      const webSockets = await wsPromises;
-
-      // connect to the chat
-      await connect({
-        _: [room],
-        local: args.local,
-        debug: args.debug,
-        vision: args.vision,
-      });
-
-      return {
-        // ws: webSockets[0],
-        close: () => {
-          for (const ws of webSockets) {
-            ws.close();
-          }
-        },
-      };
-    } else {
-      console.log('not logged in');
-      process.exit(1);
-    }
+  if (guidsOrDevPathIndexes.length === 0) {
+    const guid = await getGuidFromPath(cwd);
+    guidsOrDevPathIndexes = [guid];
   } else {
-    console.log('need at least one guid');
+    guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+      if (isGuid(guidOrDevPathIndex)) {
+        return guidOrDevPathIndex;
+      } else {
+        const guid = await getGuidFromPath(guidOrDevPathIndex);
+        return guid;
+      }
+    }));
+  }
+
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // wait for agents to join the multiplayer room
+    const wsPromises = Promise.all(
+      guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        return await join({
+          _: [guidOrDevPathIndex, room],
+          dev,
+          debug,
+        });
+      }),
+    );
+    // joinPromises.then(() => {
+    //   console.log('joinPromises done');
+    // });
+    const webSockets = await wsPromises;
+
+    // connect to the chat
+    await connect({
+      _: [room],
+      local: args.local,
+      debug: args.debug,
+      vision: args.vision,
+    });
+
+    return {
+      // ws: webSockets[0],
+      close: () => {
+        for (const ws of webSockets) {
+          ws.close();
+        }
+      },
+    };
+  } else {
+    console.log('not logged in');
     process.exit(1);
   }
 };
@@ -1542,7 +1558,7 @@ const fund = async (args) => {
     if (!dev) {
       return args._[0] ?? '';
     } else {
-      return await ensureLocalGuid();
+      return await ensureLocalGuid(); // XXX use the agent's local guid
     }
   })();
   let amount = parseFloat(args._[1]) || 0;
@@ -1609,7 +1625,7 @@ const deposit = async (args) => {
     if (!dev) {
       return args._[0] ?? '';
     } else {
-      return await ensureLocalGuid();
+      return await ensureLocalGuid(); // XXX use the agent's local guid
     }
   })();
   let amount = parseFloat(args._[1]) || 0;
@@ -1914,10 +1930,8 @@ const create = async (args) => {
   const force = !!args.force;
   const template = args.template ?? 'basic';
 
-  const [guid, mnemonic] = await Promise.all([
-    ensureLocalGuid(),
-    ensureLocalMnemonic(),
-  ]);
+  const guid = makeDevGuid();
+  const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
 
@@ -2193,27 +2207,6 @@ const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
   const subcommand = args._[0] ?? '';
   const guidsOrDevPathIndexes = args._[1] ?? [];
-
-  // XXX move this to create time, so it does not need to be here
-  // // make up a guid for the agent
-  // const guid = await ensureLocalGuid();
-  // // load the wallet for the agent
-  // const mnemonic = await ensureLocalMnemonic();
-  // const wallet = getWalletFromMnemonic(mnemonic);
-  // const address = wallet.address.toLowerCase();
-  // // log the agent parameters
-  // console.log(`creating agent for development`);
-  // console.log(`guid: ${guid}`);
-  // console.log(`address: ${address}`);
-
-  // {
-  //   // test the server
-  //   const proxyRes = await fetch(`${url}/dist/${agentJsonDstFilename}`);
-  //   const text = await proxyRes.text();
-  //   console.log(`test agent dev server ${agentJsonDstFilename}`, {
-  //     text,
-  //   });
-  // }
 
   switch (subcommand) {
     case 'chat': {
@@ -2745,6 +2738,15 @@ const join = async (args) => {
         cp.stderr.pipe(process.stderr);
       }
       // console.log('dev server started');
+
+      // {
+      //   // test the server
+      //   const proxyRes = await fetch(`${url}/dist/${agentJsonDstFilename}`);
+      //   const text = await proxyRes.text();
+      //   console.log(`test agent dev server ${agentJsonDstFilename}`, {
+      //     text,
+      //   });
+      // }
     }
 
     // cause the agent to join the room
@@ -2755,6 +2757,7 @@ const join = async (args) => {
       },
     );
     const u = `${agentHost}/join`;
+    // console.log('join 1', u);
     const headers = {};
     if (!dev) {
       const jwt = await getLoginJwt();
@@ -2769,7 +2772,7 @@ const join = async (args) => {
     });
     if (joinReq.ok) {
       const joinJson = await joinReq.json();
-      // console.log(joinJson);
+      // console.log('join 2', joinJson);
 
       const ws = await connectAgentWs(guidOrDevPathIndex, {
         dev,
@@ -3290,7 +3293,7 @@ const main = async () => {
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
     // .argument(`<room>`, `Name of the room to join`)
-    .argument(`<guids...>`, `Guids of the agents to join the room`)
+    .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-r, --room`, `The room name to join`)
     .option(
       `-d, --dev`,
@@ -3302,15 +3305,11 @@ const main = async () => {
       await handleError(async () => {
         commandExecuted = true;
         let args;
-        if (typeof room === 'string') {
-          args = {
-            _: [guids],
-            ...opts,
-          };
-          await chat(args);
-        } else {
-          console.warn(`invalid arguments: ${room} ${guids}`);
-        }
+        args = {
+          _: [guids],
+          ...opts,
+        };
+        await chat(args);
       });
     });
   program
