@@ -1091,7 +1091,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
             // const { userId, name, text } = args;
             // console.log(`\r${name}: ${text}`);
             // replServer.displayPrompt(true);
-            log(JSON.stringify(message));
+            log('unhandled method', JSON.stringify(message));
             // console.log(eraseLine + JSON.stringify(args2, null, 2));
           }
           break;
