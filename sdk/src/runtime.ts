@@ -771,12 +771,20 @@ export class AgentRenderer {
         return message;
       })();
       if (completionMessage !== null) {
-        const newMessage = await parser.parseFn(completionMessage.content);
+        let newMessage = null;
+        try {
+          newMessage = await parser.parseFn(completionMessage.content);
+        } catch (err) {
+        }
 
-        const { method } = newMessage;
-        const actionHandler = getActionByName(actionRegistry, method);
-        if (actionHandler) {
-          return newMessage;
+        if (newMessage) {
+          const { method } = newMessage;
+          const actionHandler = getActionByName(actionRegistry, method);
+          if (actionHandler) {
+            return newMessage;
+          } else {
+            continue;
+          }
         } else {
           continue;
         }
