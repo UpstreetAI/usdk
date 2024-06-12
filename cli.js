@@ -37,16 +37,20 @@ import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
 import packageJson from './package.json' with { type: 'json' };
 import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
-import { makeAnonymousClient } from './sdk/src/util/supabase-client.mjs';
+import {
+  // makeClient,
+  makeAnonymousClient,
+  getUserIdForJwt,
+  getUserForJwt,
+} from './sdk/src/util/supabase-client.mjs';
 
 import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './sdk/src/util/ethereum-utils.mjs';
-
-import { aiProxyHost, deployEndpointUrl, multiplayerEndpointUrl } from './sdk/src/util/endpoints.mjs';
-import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import
+import { metamaskHost, deployEndpointUrl, multiplayerEndpointUrl } from './sdk/src/util/endpoints.mjs';
+import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 
@@ -82,11 +86,6 @@ const timeAgo = (timestamp) =>
   jsAgo.default(timestamp / 1000, { format: 'short' });
 
 //
-
-const aiHost = `https://ai.upstreet.ai`;
-// const agentsHost = `https://agents.upstreet.ai`;
-// const localAgentsHost = `http://localhost:4040`;
-const metamaskHost = 'https://metamask.upstreet.ai';
 
 const agentJsonSrcFilename = 'agent.json';
 const agentJsonDstFilename = 'agent.npc';
@@ -281,36 +280,6 @@ const getLoginJwt = async () => {
   }
 
   return null;
-};
-const getUserIdForJwt = async (jwt) => {
-  const res = await fetch(`${aiHost}/checkLogin`, {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  if (res.ok) {
-    const j = await res.json();
-    return j.userId;
-  } else {
-    const text = await res.text();
-    console.warn(text);
-    return null;
-  }
-};
-const getUserForJwt = async (jwt) => {
-  const res = await fetch(`${aiHost}/checkUser`, {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  if (res.ok) {
-    const j = await res.json();
-    return j.data;
-  } else {
-    const text = await res.text();
-    console.warn(text);
-    return null;
-  }
 };
 const ensureLocalGuid = async () => {
   throw new Error(`move this to use the agent's guid`);
