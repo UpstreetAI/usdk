@@ -34,6 +34,7 @@ export type ActionMessage = {
   name: string;
   method: string;
   args: object;
+  hidden: boolean;
   timestamp: number;
 };
 export type PendingActionMessage = {
