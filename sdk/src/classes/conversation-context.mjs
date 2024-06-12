@@ -82,7 +82,7 @@ export class ConversationContext extends EventTarget {
   // pull a message from the network
   addLocalMessage(message) {
     this.messages.push(message);
-    console.log('add local message', message, this.messages);
+    // console.log('add local message', message, this.messages);
 
     this.dispatchEvent(
       new MessageEvent('localmessagepre', {
