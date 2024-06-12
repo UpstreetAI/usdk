@@ -42,6 +42,49 @@ export class DurableObject extends EventTarget {
       currentAgent: this.getAgentJson(),
     });
     const _bindConversationContext = () => {
+      // handle conversation remote message re-render
+      const onConversationContextLocalPreMessage = async (e) => {
+        const { message } = e.data;
+        await this.incomingMessageQueueManager.waitForTurn(async () => {
+          try {
+            await this.agentRenderer.rerenderAsync();
+          } catch (err) {
+            console.warn(err.stack);
+          }
+          await this.conversationContext.postLocalMessage(message);
+        });
+      };
+      this.conversationContext.addEventListener(
+        'localmessagepre',
+        onConversationContextLocalPreMessage,
+      );
+      // bind the perception handlers based on the message type
+      const onConversationContextLocalPostMessage = async (e) => {
+        const { message, waitUntil } = e.data;
+        waitUntil((async () => {
+          const {
+            perceptionRegistry,
+          } = await this.agentRenderer.ensureOutput();
+          const allPerceptions = Array.from(perceptionRegistry.values());
+          const currentAgent = this.agentRenderer.getCurrentAgent();
+          for (const perception of allPerceptions) {
+            if (perception.type === message.method) {
+              const e = new ExtendableMessageEvent('perception', {
+                data: {
+                  agent: currentAgent,
+                  message,
+                },
+              });
+              await perception.handler(e);
+            }
+          }
+        })());
+      };
+      this.conversationContext.addEventListener(
+        'localmessagepost',
+        onConversationContextLocalPostMessage,
+      );
+
       this.conversationContext.addEventListener('remotemessage', (e) => {
         const { message } = e.data;
         if (this.realms?.isConnected()) {
@@ -50,7 +93,6 @@ export class DurableObject extends EventTarget {
       });
       this.conversationContext.addEventListener('typingstart', (e) => {
         if (this.realms) {
-          // const agentJson = this.getAgentJson();
           const { agent } = e.data;
           this.realms.sendChatMessage({
             method: 'typing',
@@ -59,12 +101,12 @@ export class DurableObject extends EventTarget {
             args: {
               typing: true,
             },
+            hidden: true,
           });
         }
       });
       this.conversationContext.addEventListener('typingstop', (e) => {
         if (this.realms) {
-          // const agentJson = this.getAgentJson();
           const { agent, error } = e.data;
           this.realms.sendChatMessage({
             method: 'typing',
@@ -74,6 +116,7 @@ export class DurableObject extends EventTarget {
               typing: false,
               error,
             },
+            hidden: true,
           });
         }
       });
@@ -98,16 +141,15 @@ export class DurableObject extends EventTarget {
       this.agentRenderer.setEnabled(enabled);
     })();
     this.loadPromise = null;
-    this.scheduleCleanup = () => {};
 
-    // initial scheduling
-    (async () => {
+    const _initialSchedule = async () => {
       try {
         await this.schedule();
       } catch (err) {
         console.warn(err.stack);
       }
-    })();
+    };
+    _initialSchedule();
   }
 
   waitForLoad() {
@@ -257,7 +299,9 @@ export class DurableObject extends EventTarget {
       console.log('bind multiplayer chat');
 
       const handleRemoteUserMessage = async (message) => {
-        this.conversationContext.addLocalMessage(message);
+        if (!message.hidden) {
+          this.conversationContext.addLocalMessage(message);
+        }
 
         /* const { method, args } = message;
         switch (method) {
@@ -326,14 +370,14 @@ export class DurableObject extends EventTarget {
     return agentJson;
   }
 
-  // nudge the agent to do think
+  // nudge the agent to think
   async nudge() {
     return await this.nudgeQueueManager.waitForTurn(async () => {
       try {
         await this.typing(async () => {
-          console.log('nudge 1');
+          // console.log('nudge 1');
           await nudgeHandler(this.agentRenderer);
-          console.log('nudge 2');
+          // console.log('nudge 2');
 
           return new Response(JSON.stringify({
             ok: true,
@@ -678,9 +722,9 @@ export class DurableObject extends EventTarget {
   }
   async schedule() {
     // wait for the agent to be loaded
-    console.log('schedule 1');
+    // console.log('schedule 1');
     await this.waitForLoad();
-    console.log('schedule 2');
+    // console.log('schedule 2');
 
     // render the agent's timeout spec
     const alarmSpec = await renderUserAlarm(this.agentRenderer);
@@ -688,66 +732,6 @@ export class DurableObject extends EventTarget {
       perceptionRegistry,
       timeout,
     } = alarmSpec;
-
-    // clean up the old scheduler
-    this.scheduleCleanup();
-
-    // handle conversation remote message re-render
-    const onConversationContextLocalPreMessage = async (e) => {
-      await this.incomingMessageQueueManager.waitForTurn(async () => {
-        const { message } = e.data;
-        try {
-          await this.agentRenderer.rerenderAsync();
-        } catch (err) {
-          console.warn(err.stack);
-        }
-        console.log('post local message 1');
-        await this.conversationContext.postLocalMessage(message);
-        console.log('post local message 2');
-      });
-    };
-    this.conversationContext.addEventListener(
-      'localmessagepre',
-      onConversationContextLocalPreMessage,
-    );
-    // bind the perception handlers based on the message type
-    const onConversationContextLocalPostMessage = async (e) => {
-      const { message, waitUntil } = e.data;
-      waitUntil((async () => {
-        console.log('got conversation context message post 1', message, new Error().stack);
-        const allPerceptions = Array.from(perceptionRegistry.values());
-        console.log('got conversation context message post 2', {
-          message,
-          allPerceptions,
-        });
-        const currentAgent = this.agentRenderer.getCurrentAgent();
-        for (const perception of allPerceptions) {
-          if (perception.type === message.method) {
-            const e = new ExtendableMessageEvent('perception', {
-              data: {
-                agent: currentAgent,
-                message,
-              },
-            });
-            await perception.handler(e);
-          }
-        }
-      })());
-    };
-    this.conversationContext.addEventListener(
-      'localmessagepost',
-      onConversationContextLocalPostMessage,
-    );
-    this.scheduleCleanup = () => {
-      this.conversationContext.removeEventListener(
-        'localmessagepre',
-        onConversationContextLocalPreMessage,
-      );
-      this.conversationContext.removeEventListener(
-        'localmessagepost',
-        onConversationContextLocalPostMessage,
-      );
-    };
 
     // set the next alarm
     if (isFinite(timeout)) {
