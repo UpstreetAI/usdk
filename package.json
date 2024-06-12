@@ -57,6 +57,11 @@
   },
   "overrides": {
     "@supabase/auth-js": "2.62.0",
+    "debug": "4.3.5",
+    "eslint": "9.4.0",
+    "semver": "7.6.2",
+    "tar": "7.2.0",
+    "undici": "6.18.2",
     "whatwg-url": "14.0.0"
   }
 }
