@@ -35,12 +35,7 @@ export class DurableObject extends EventTarget {
     this.env = env;
     this.supabase = makeAnonymousClient(env);
     this.realms = null;
-    this.conversationContext = new ConversationContext({
-      scene: {
-        description: 'A virtual world of embodied virtual characters.',
-      },
-      currentAgent: this.getAgentJson(),
-    });
+    this.conversationContext = null;
     const _bindConversationContext = () => {
       // handle conversation remote message re-render
       const onConversationContextLocalPreMessage = async (e) => {
@@ -137,6 +132,14 @@ export class DurableObject extends EventTarget {
     });
 
     this.loadPromise = (async () => {
+      this.conversationContext = new ConversationContext({
+        scene: {
+          description: 'A virtual world of embodied virtual characters.',
+        },
+        currentAgent: this.getAgentJson(),
+        messages: await loadMessagesFromDatabase(this.supabase),
+      });
+
       const enabled = (await this.state.storage.get('enabled')) ?? false;
       this.agentRenderer.setEnabled(enabled);
     })();
