@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 // import { isStringSignatureValid } from './signature-utils.mjs';
+import { aiHost } from './endpoints.mjs';
 
 // uses the service api key
 export const makeClient = (env, jwt) => {
@@ -122,4 +123,35 @@ export const getClientFromToken = async (env, token) => {
     userId,
     supabase,
   };
+};
+
+export const getUserIdForJwt = async (jwt) => {
+  const res = await fetch(`${aiHost}/checkLogin`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  if (res.ok) {
+    const j = await res.json();
+    return j.userId;
+  } else {
+    const text = await res.text();
+    console.warn(text);
+    return null;
+  }
+};
+export const getUserForJwt = async (jwt) => {
+  const res = await fetch(`${aiHost}/checkUser`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  if (res.ok) {
+    const j = await res.json();
+    return j.data;
+  } else {
+    const text = await res.text();
+    console.warn(text);
+    return null;
+  }
 };
