@@ -376,6 +376,9 @@ const ensureSpecDefaults = (spec) => {
   if (typeof spec.model !== 'string') {
     spec.model = 'openai:gpt-4o';
   }
+  if (typeof spec.previewUrl !== 'string') {
+    spec.previewUrl = '/images/characters/upstreet/small/scillia.png';
+  }
   if (typeof spec.avatarUrl !== 'string') {
     spec.avatarUrl = '/avatars/default_1934.vrm';
   }
