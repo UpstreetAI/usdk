@@ -386,11 +386,16 @@ export const JsonParser = () => {
  * @returns The JSX elements representing the default perceptions components.
  */
 export const DefaultPerceptions = () => {
+  const agent = useCurrentAgent();
+
   return (
     <Perception
       type="nudge"
       handler={async (e) => {
-        await e.data.agent.think();
+        const targetPlayerId = (e.data.message.args as any).targetPlayerId as string;
+        if (targetPlayerId === agent.id) {
+          await e.data.agent.think();
+        }
       }}
     />
   );
