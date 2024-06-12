@@ -361,27 +361,6 @@ const getAgentMnemonic = async (supabase, agentId) => {
     throw new Error(error);
   }
 };
-/* const createAgentMnemonic = async (supabase, userId, agentId) => {
-  const mnemonic = bip39.generateMnemonic(wordlist);
-  const wallet = getWalletFromMnemonic(mnemonic);
-  const address = wallet.address.toLowerCase();
-  const o = {
-    agent_id: agentId,
-    user_id: userId,
-    mnemonic,
-    address,
-  };
-  const walletsResult = await supabase
-    .from('wallets')
-    .upsert(o)
-    .single();
-  const { error } = walletsResult;
-  if (!error) {
-    return mnemonic;
-  } else {
-    throw new Error('error creating wallet: ' + JSON.stringify(error));
-  }
-}; */
 const defaultName = 'An AI Agent';
 const defaultDescription = 'Created by the AI Agent SDK';
 const ensureSpecDefaults = (spec) => {
