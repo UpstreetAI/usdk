@@ -100,12 +100,12 @@ const AppComponent = (props: any) => {
     appContextValue,
     epochValue,
     topLevelRenderPromise,
-    needDefaultActions,
-    needDefaultPrompts,
-    needDefaultParsers,
-    needDefaultPerceptions,
-    needDefaultSchedulers,
-    needDefaultServers,
+    // needDefaultActions,
+    // needDefaultPrompts,
+    // needDefaultParsers,
+    // needDefaultPerceptions,
+    // needDefaultSchedulers,
+    // needDefaultServers,
     ...rest
   } = props;
 
@@ -114,24 +114,24 @@ const AppComponent = (props: any) => {
   }, [topLevelRenderPromise]);
 
   const children = [React.createElement(userRender, rest)];
-  if (needDefaultActions) {
-    children.push(React.createElement(DefaultComponents.DefaultActions));
-  }
-  if (needDefaultPrompts) {
-    children.push(React.createElement(DefaultComponents.DefaultPrompts));
-  }
-  if (needDefaultParsers) {
-    children.push(React.createElement(DefaultComponents.DefaultParsers));
-  }
-  if (needDefaultPerceptions) {
-    children.push(React.createElement(DefaultComponents.DefaultPerceptions));
-  }
-  if (needDefaultSchedulers) {
-    children.push(React.createElement(DefaultComponents.DefaultSchedulers));
-  }
-  if (needDefaultServers) {
-    children.push(React.createElement(DefaultComponents.DefaultServers));
-  }
+  // if (needDefaultActions) {
+  //   children.push(React.createElement(DefaultComponents.DefaultActions));
+  // }
+  // if (needDefaultPrompts) {
+  //   children.push(React.createElement(DefaultComponents.DefaultPrompts));
+  // }
+  // if (needDefaultParsers) {
+  //   children.push(React.createElement(DefaultComponents.DefaultParsers));
+  // }
+  // if (needDefaultPerceptions) {
+  //   children.push(React.createElement(DefaultComponents.DefaultPerceptions));
+  // }
+  // if (needDefaultSchedulers) {
+  //   children.push(React.createElement(DefaultComponents.DefaultSchedulers));
+  // }
+  // if (needDefaultServers) {
+  //   children.push(React.createElement(DefaultComponents.DefaultServers));
+  // }
 
   // create and use the AppContext.Provider
   const result = React.createElement(
@@ -295,12 +295,12 @@ export class AgentRenderer {
         if (!Array.isArray(agents)) {
           agents = [agents];
         }
-        console.log('use action history 1');
+        // console.log('use action history 1');
         const messages = makeEpochUse(() => {
-          console.log('got messages internal 1');
+          // console.log('got messages internal 1');
           const result = [];
           const messages = conversationContext.getMessages();
-          console.log('got messages internal 2', messages);
+          // console.log('got messages internal 2', messages);
           const agentIds = agents.map((agent) => agent.id);
           for (const message of messages) {
             const userId = message.userId ?? '';
@@ -309,10 +309,10 @@ export class AgentRenderer {
             }
           }
           const currentAgentIds = conversationContext.getAgents();
-          console.log('got messages internal 3', messages, agents, currentAgentIds, result);
+          // console.log('got messages internal 3', messages, agents, currentAgentIds, result);
           return result;
         })();
-        console.log('use action history 2', messages);
+        // console.log('use action history 2', messages);
         return messages;
       },
 
@@ -396,10 +396,14 @@ export class AgentRenderer {
         // console.log('agent renderer think 1');
         await conversationContext.typing(async () => {
           // console.log('agent renderer think 2');
-          const pendingMessage = await self.generateAgentAction(agent);
-          // console.log('agent renderer think 3');
-          await self.handleAgentAction(agent, pendingMessage);
-          // console.log('agent renderer think 4');
+          try {
+            const pendingMessage = await self.generateAgentAction(agent);
+            // console.log('agent renderer think 3');
+            await self.handleAgentAction(agent, pendingMessage);
+            // console.log('agent renderer think 4');
+          } catch (err) {
+            console.warn('think error', err);
+          }
         });
         // console.log('agent renderer think 5');
       },
@@ -719,17 +723,15 @@ export class AgentRenderer {
   }
 
   async generateAgentAction(agent: ActiveAgentObject) {
-    console.log('generate agent action');
     const { promptRegistry } = this;
     const prompts = Array.from(promptRegistry.values())
       .map((prompt) => prompt.children)
       .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
     const promptString = prompts.join('\n\n');
-    console.log('think 1', prompts);
-    console.log(promptString);
-    console.log('think 2', {
-      promptString,
-    });
+    // console.log('think 1', promptString);
+    // console.log('think 2', {
+    //   promptString,
+    // });
     const promptMessages = [
       {
         role: 'user',
@@ -748,7 +750,6 @@ export class AgentRenderer {
       .filter((prompt) => typeof prompt === 'string' && prompt.length > 0)
       .concat([instructions]);
     const promptString = prompts.join('\n\n');
-    console.log('think 1', promptString);
     const promptMessages = [
       {
         role: 'user',
@@ -758,10 +759,11 @@ export class AgentRenderer {
     return await this.generateAgentActionFromMessages(promptMessages);
   }
   async generateAgentActionFromMessages(promptMessages: ChatMessages) {
-    const { appContextValue, parserRegistry } = this;
+    const { appContextValue, parserRegistry, actionRegistry } = this;
+
     const parser = Array.from(parserRegistry.values())[0];
 
-    const numCompletionRetries = 3;
+    const numCompletionRetries = 5;
     let i;
     for (i = 0; i < numCompletionRetries; i++) {
       const completionMessage = await (async () => {
@@ -769,10 +771,15 @@ export class AgentRenderer {
         return message;
       })();
       if (completionMessage !== null) {
-        console.log('think 3', JSON.stringify(completionMessage, null, 2));
         const newMessage = await parser.parseFn(completionMessage.content);
-        console.log('think 4', JSON.stringify(newMessage, null, 2));
-        return newMessage;
+
+        const { method } = newMessage;
+        const actionHandler = getActionByName(actionRegistry, method);
+        if (actionHandler) {
+          return newMessage;
+        } else {
+          continue;
+        }
       } else {
         continue;
       }
@@ -783,12 +790,12 @@ export class AgentRenderer {
     agent: ActiveAgentObject,
     newMessage: PendingActionMessage,
   ) {
-    console.log('handle agent action 1');
+    // console.log('handle agent action 1');
     const { actionRegistry } = this;
 
     const { method } = newMessage;
     const actionHandler = getActionByName(actionRegistry, method);
-    console.log('handle agent action 2', actionHandler);
+    // console.log('handle agent action 2', actionHandler);
     if (actionHandler) {
       // handle the pending action
       const e = new MessageEvent('pendingaction', {
@@ -798,13 +805,13 @@ export class AgentRenderer {
         },
       }) as PendingActionEvent;
       e.commit = async () => {
-        console.log('handle agent commit 1', newMessage);
+        // console.log('handle agent commit 1', newMessage);
         await agent.addAction(newMessage);
-        console.log('handle agent commit 2', newMessage);
+        // console.log('handle agent commit 2', newMessage);
       };
-      console.log('handle agent action 3', actionHandler);
+      // console.log('handle agent action 3', actionHandler);
       await actionHandler.handler(e);
-      console.log('handle agent action 4', actionHandler);
+      // console.log('handle agent action 4', actionHandler);
     } else {
       throw new Error('no action handler found for method: ' + method);
     }
@@ -858,12 +865,12 @@ export class AgentRenderer {
       messages,
       wallets,
       DefaultComponents,
-      needDefaultActions: false,
-      needDefaultPrompts: false,
-      needDefaultParsers: false,
-      needDefaultPerceptions: false,
-      needDefaultSchedulers: false,
-      needDefaultServers: false,
+      // needDefaultActions: false,
+      // needDefaultPrompts: false,
+      // needDefaultParsers: false,
+      // needDefaultPerceptions: false,
+      // needDefaultSchedulers: false,
+      // needDefaultServers: false,
     };
     // console.log('render 1');
     await this.render(props);
@@ -923,9 +930,7 @@ export class AgentRenderer {
     // const messages = conversationContext.getMessages();
 
     if (!this.rendered) {
-      await this.renderQueueManager.waitForTurn(async () => {
-        await this.rerender();
-      });
+      await this.rerenderAsync();
     }
 
     const {
