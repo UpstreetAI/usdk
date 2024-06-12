@@ -52,7 +52,7 @@
     "tsx": "^4.8.2",
     "upstreet-agent-ui": "file:./ui",
     "vercel": "^34.2.6",
-    "wrangler": "^3.28.3",
+    "wrangler": "^3.60.2",
     "ws": "^8.17.0"
   },
   "overrides": {

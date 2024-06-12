@@ -32,19 +32,19 @@ import * as ethers from 'ethers';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 
+import { generationModel } from './const.js'
+import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
 import packageJson from './package.json' with { type: 'json' };
-import {
-  // makeClient,
-  makeAnonymousClient,
-} from './sdk/src/util/supabase-client.mjs';
-import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
+import { QueueManager } from './sdk/src/util/queue-manager.mjs';
+import { makeAnonymousClient } from './sdk/src/util/supabase-client.mjs';
 
 import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './sdk/src/util/ethereum-utils.mjs';
+
 import { aiProxyHost, deployEndpointUrl, multiplayerEndpointUrl } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
@@ -73,7 +73,6 @@ const BASE_DIRNAME = (() => {
 const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
 const jestBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'jest');
 
-const generationModel = 'openai:gpt-4o';
 const wranglerTomlPath = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
 const wranglerToml = toml.parse(wranglerTomlString);
@@ -1943,7 +1942,7 @@ const generateTemplateFromPrompt = async (prompt) => {
   const templateDirectory = await makeTempDir();
 
   // copy over the basic template
-  const basicTemplateDirectory = path.join(templatesDirectory, 'basic');
+  const basicTemplateDirectory = path.join(templatesDirectory, 'empty');
   await recursiveCopy(basicTemplateDirectory, templateDirectory);
 
   // generate the agent json
@@ -1988,7 +1987,10 @@ const generateTemplateFromPrompt = async (prompt) => {
       // console.log('got doc nodes 2', nodes);
       // filter to only documented nodes
       ns = ns.filter((node) => !!node.jsDoc);
-      ns = ns.map((node) => node.jsDoc);
+      ns = ns.map((node) => ({
+        ...node.jsDoc,
+        name: node.name,
+      }));
       // add to the nodes
       nodes.push(...ns);
     }
@@ -1997,9 +1999,16 @@ const generateTemplateFromPrompt = async (prompt) => {
 
     return nodes;
   })();
-  console.log('got nodes', JSON.stringify(nodes, null, 2));
+  // console.log('got nodes', JSON.stringify(nodes, null, 2));
 
-  // return the result
+  console.log( 'generating agent React code...' )
+
+  await modifyAgentJSXWithGeneratedCode(
+    path.join( templateDirectory, 'agent.tsx' ),
+    prompt,
+    nodes,
+  )
+
   return {
     templateDirectory,
     agentJson,
