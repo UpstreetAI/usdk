@@ -2003,10 +2003,18 @@ const generateTemplateFromPrompt = async (prompt) => {
 
   console.log( 'generating agent React code...' )
 
-  await modifyAgentJSXWithGeneratedCode(
+  const { imports } = await modifyAgentJSXWithGeneratedCode(
     path.join( templateDirectory, 'agent.tsx' ),
     prompt,
     nodes,
+  )
+
+  console.log( 'assigned the following components:\n' )
+  console.log(
+    imports
+      .map(x => '- ' + x)
+      .join('\n')
+      .trim() + '\n'
   )
 
   return {
