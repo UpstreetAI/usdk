@@ -1085,6 +1085,10 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           typingMap.set(messageUserId, { userId: messageUserId, name, typing });
           break;
         }
+        case 'nudge': {
+          // nothing
+          break;
+        }
         default: {
           if (debug) {
             // console.log('got log message', JSON.stringify(args, null, 2));
