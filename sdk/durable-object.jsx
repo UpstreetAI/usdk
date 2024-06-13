@@ -21,9 +21,6 @@ Error.stackTraceLimit = 300;
 const textEncoder = new TextEncoder();
 // const alarmRate = 10 * 1000;
 
-// const agentRuntime = `https://agent-runtime.upstreet.ai`;
-// const localAgentRuntime = `http://localhost:4041`;
-
 //
 
 // CloudFlare Worker Durable Object class
@@ -441,6 +438,14 @@ export class DurableObject extends EventTarget {
         // store the guid for later calls to reference
         // await this.setGuid(guid);
 
+        const handleAgentJson = async () => {
+          const agentJson = this.getAgentJson();
+          const s = JSON.stringify(agentJson);
+          return new Response(s, {
+            headers,
+            'Content-Type': 'application/json',
+          });
+        };
         const handleWs = async () => {
           // Expect to receive a WebSocket Upgrade request.
           // If there is one, accept the request and return a WebSocket Response.
@@ -689,6 +694,8 @@ export class DurableObject extends EventTarget {
         };
 
         switch (subpath) {
+          case 'agent.json':
+            return await handleAgentJson();
           case 'ws':
             return await handleWs();
           case 'events':

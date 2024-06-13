@@ -31,6 +31,7 @@ import Table from 'cli-table3';
 import * as ethers from 'ethers';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
+import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { generationModel } from './const.js'
 import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
@@ -83,7 +84,13 @@ const wranglerToml = toml.parse(wranglerTomlString);
 const env = wranglerToml.vars;
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
 const timeAgo = (timestamp) =>
-  jsAgo.default(timestamp / 1000, { format: 'short' });
+  jsAgo.default(timestamp, { format: 'short' });
+const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const shortName = () => uniqueNamesGenerator({
+  dictionaries: [adjectives, adjectives, colors, animals],
+  separator: ' ',
+});
+const makeName = () => capitalize(shortName());
 
 //
 
@@ -361,11 +368,10 @@ const getAgentMnemonic = async (supabase, agentId) => {
     throw new Error(error);
   }
 };
-const defaultName = 'An AI Agent';
 const defaultDescription = 'Created by the AI Agent SDK';
 const ensureSpecDefaults = (spec) => {
   if (typeof spec.name !== 'string') {
-    spec.name = defaultName;
+    spec.name = makeName();
   }
   if (typeof spec.description !== 'string') {
     spec.description = defaultDescription;
@@ -412,18 +418,20 @@ const ensureSpecDefaults = (spec) => {
 
   return agentJson;
 }; */
-const ensureAgentJson = (agentJson, { guid, walletAddress, agentUrl }) => {
-  if (!agentUrl) {
-    agentUrl = `https://${guid}.agents.upstreet.ai/`;
-  }
+const ensureAgentJson = (agentJson, { guid, walletAddress, dev }) => {
+  // if (!agentUrl) {
+  //   agentUrl = `https://${guid}.agents.upstreet.ai/`;
+  // }
 
   // const agentJsonSrcPath = path.join(agentDirectory, agentJsonSrcFilename);
   // const agentJsonString = await fs.promises.readFile(agentJsonSrcPath, 'utf8');
   // const agentJson = JSON.parse(agentJsonString);
   ensureSpecDefaults(agentJson);
   agentJson.id = guid;
-  delete agentJson.start_url;
-  agentJson.agentUrl = agentUrl;
+  const agentHost = getAgentHost(guid, { dev });
+  agentJson.startUrl = `${agentHost}/agent.json`;
+  // delete agentJson.start_url;
+  // agentJson.agentUrl = agentUrl;
   agentJson.address = walletAddress;
   // const s = JSON.stringify(agentJson, null, 2);
 
@@ -2000,6 +2008,7 @@ const create = async (args) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
   const force = !!args.force;
+  const dev = !!args.dev;
   const template = args.template ?? 'basic';
 
   const guid = makeDevGuid();
@@ -2105,6 +2114,7 @@ const create = async (args) => {
   ensureAgentJson(agentJson, {
     guid,
     walletAddress,
+    dev,
   });
 
   // copy over the template files
@@ -2600,10 +2610,8 @@ const deploy = async (args) => {
 };
 const ls = async (args) => {
   const network = args.network ?? Object.keys(providers)[0];
-  const local = !!args.local;
+  // const local = !!args.local;
   const dev = !!args.dev;
-
-  const _agentsHost = local ? localAgentsHost : agentsHost;
 
   const queueManager = new QueueManager({
     parallelism: 8,
@@ -2628,14 +2636,19 @@ const ls = async (args) => {
     const promises = [];
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
+      const agentHost = getAgentHost(agent.id, {
+        dev,
+      });
       const p = queueManager.waitForTurn(async () => {
         const statusPromise = (async () => {
-          const u = dev
-            ? `${devAgentUrl}/status`
-            : `${_agentsHost}/agents/${agent.id}/status`;
+          const u = `${agentHost}/status`;
           const proxyRes = await fetch(u);
-          const j = await proxyRes.json();
-          return j;
+          if (proxyRes.ok) {
+            const j = await proxyRes.json();
+            return j;
+          } else {
+            return null;
+          }
         })();
         const creditsPromise = (async () => {
           const creditsResult = await supabase
@@ -2674,16 +2687,14 @@ const ls = async (args) => {
               balancePromise,
             ]);
 
-            const serverUrl = dev
-              ? devAgentUrl
-              : `${_agentsHost}/agents/${agentJson.id}/`; // XXX update this to direct agent url
+            const serverUrl = agentHost;
 
             table.push([
               agentJson.id,
               agentJson.name,
-              status.enabled,
+              status?.enabled ?? false,
               agentJson.address,
-              status.room,
+              status?.room ?? '',
               balance,
               credits,
               // agentJson.bio,
