@@ -38,6 +38,7 @@ import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
 import packageJson from './package.json' with { type: 'json' };
 import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
+import { lembed } from './sdk/src/util/embedding.mjs';
 import {
   // makeClient,
   makeAnonymousClient,
@@ -2367,6 +2368,41 @@ const dev = async (args) => {
     }
   }
 };
+const search = async (args) => {
+  const prompt = args._[0] ?? '';
+
+  const jwt = await getLoginJwt();
+  const userId = jwt && (await getUserIdForJwt(jwt));
+  if (userId) {
+    if (prompt) {
+      const supabase = makeAnonymousClient(env);
+      localStorage.setItem('jwt', JSON.stringify(jwt));
+      const embedding = await lembed(prompt);
+      /*
+        call the supabase function:
+        function match_assets(
+          embedding vector(3072),
+          match_threshold float,
+          match_count int
+        )
+      */
+      const result = await supabase.rpc('match_assets', {
+        embedding,
+        match_threshold: 0.2,
+        match_count: 10,
+      });
+      const { error, data } = result;
+      const assets = data.map((asset) => {
+        return `${asset.id}: ${asset.name ?? ''}: ${asset.description ?? ''}`;
+      });
+      console.log(assets.join('\n'));
+    } else {
+      throw new Error('no prompt');
+    }
+  } else {
+    throw new Error('not logged in');
+  }
+};
 const runJest = async (agentDirectory) => {
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
@@ -3180,18 +3216,32 @@ const main = async () => {
             };
           });
         }
-        // if (typeof subcommand === 'string') {
         args = {
           _: [subcommand, guids],
           ...opts,
         };
-        // } else {
-        //   args = {
-        //     _: [],
-        //     ...opts,
-        //   };
-        // }
         await dev(args);
+      });
+    });
+  program
+    .command('search')
+    .description(
+      'Find an agent to do something',
+    )
+    .argument(
+      `[query]`,
+      `Prompt to search for`,
+    )
+    // .option(`-g, --debug`, `Enable debug logging`)
+    .action(async (prompt = '', opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        args = {
+          _: [prompt],
+          ...opts,
+        };
+        await search(args);
       });
     });
   program
