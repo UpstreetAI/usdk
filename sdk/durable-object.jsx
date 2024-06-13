@@ -39,7 +39,7 @@ export class DurableObject extends EventTarget {
     this.env = env;
     this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
     this.realms = null;
-    this.conversationContext = this.conversationContext = new ConversationContext({
+    this.conversationContext = new ConversationContext({
       scene: {
         description: 'A virtual world of embodied virtual characters.',
       },
