@@ -31,11 +31,11 @@ export function PromptForm({
   const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
 
-  React.useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus()
-    }
-  }, [])
+  // React.useEffect(() => {
+  //   if (inputRef.current) {
+  //     inputRef.current.focus()
+  //   }
+  // }, [])
 
   return (
     <form
@@ -89,7 +89,7 @@ export function PromptForm({
           onKeyDown={onKeyDown}
           placeholder="Send a message."
           className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
-          autoFocus
+          // autoFocus
           spellCheck={false}
           autoComplete="off"
           autoCorrect="off"

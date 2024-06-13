@@ -184,6 +184,22 @@ function IconNextChat({
   )
 }
 
+function IconSearch({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      fill="currentColor"
+      viewBox="0 0 1200 1200"
+      role="img"
+      xmlns="http://www.w3.org/2000/svg"
+      className={cn('size-4', className)}
+      {...props}
+    >
+      <title>Search icon</title>
+      <path d="m746.39 887.86c-64.453 39.422-140.29 62.156-221.39 62.156-234.71 0-425.02-190.31-425.02-425.02 0-234.71 190.31-425.02 425.02-425.02s425.02 190.31 425.02 425.02c0 81.141-22.734 156.94-62.203 221.44l182.9 182.86c39.047 39.047 39.047 102.38 0 141.42-39.047 39.047-102.38 39.047-141.42 0zm3.6094-362.86c0 124.26-100.73 225-225 225s-225-100.73-225-225 100.73-225 225-225 225 100.73 225 225z"/>
+    </svg>
+  )
+}
+
 function IconOpenAI({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
@@ -610,6 +626,7 @@ export {
   IconEdit,
   IconNextChat,
   IconUpstreetChat,
+  IconSearch,
   IconOpenAI,
   IconVercel,
   IconGitHub,
