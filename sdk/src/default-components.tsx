@@ -389,15 +389,24 @@ export const DefaultPerceptions = () => {
   const agent = useCurrentAgent();
 
   return (
-    <Perception
-      type="nudge"
-      handler={async (e) => {
-        const targetPlayerId = (e.data.message.args as any).targetPlayerId as string;
-        if (targetPlayerId === agent.id) {
-          await e.data.agent.think();
-        }
-      }}
-    />
+    <>
+      <Perception
+        type="nudge"
+        handler={async (e) => {
+          const targetPlayerId = (e.data.message.args as any).targetPlayerId as string;
+          if (targetPlayerId === agent.id) {
+            await e.data.agent.think();
+          }
+        }}
+      />
+      <Perception
+        type="say"
+        handler={async (e) => {
+          const { agent } = e.data;
+          await agent.think();
+        }}
+      />
+    </>
   );
 };
 
@@ -415,13 +424,6 @@ export const DefaultScheduler = () => {
 
   return (
     <>
-      <Perception
-        type="say"
-        handler={async (e) => {
-          const { agent } = e.data;
-          await agent.think();
-        }}
-      />
       {appContextValue.isEnabled() && <Scheduler
         scheduleFn={() => Date.now() + 2000} // every 2s
       />}
