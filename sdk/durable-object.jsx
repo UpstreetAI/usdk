@@ -15,8 +15,12 @@ import { getConnectedWalletsFromMnemonic } from './src/util/ethereum-utils.mjs';
 
 import userRender from '../agent';
 import { makePromise } from './src/lib/multiplayer/public/util.mjs';
+import { loadMessagesFromDatabase } from './src/util/loadMessagesFromDatabase.js'
+import { saveMessageToDatabase } from './src/util/saveMessageToDatabase.js'
 
 Error.stackTraceLimit = 300;
+
+const LOADED_MESSAGES_LIMIT = 50
 
 const textEncoder = new TextEncoder();
 // const alarmRate = 10 * 1000;
@@ -30,7 +34,7 @@ export class DurableObject extends EventTarget {
 
     this.state = state;
     this.env = env;
-    this.supabase = makeAnonymousClient(env);
+    this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
     this.realms = null;
     this.conversationContext = new ConversationContext({
       scene: {
@@ -62,8 +66,10 @@ export class DurableObject extends EventTarget {
           const {
             perceptionRegistry,
           } = await this.agentRenderer.ensureOutput();
+
           const allPerceptions = Array.from(perceptionRegistry.values());
           const currentAgent = this.agentRenderer.getCurrentAgent();
+
           for (const perception of allPerceptions) {
             if (perception.type === message.method) {
               const e = new ExtendableMessageEvent('perception', {
@@ -75,6 +81,8 @@ export class DurableObject extends EventTarget {
               await perception.handler(e);
             }
           }
+
+          await saveMessageToDatabase(this.supabase, this.getGuid(), message);
         })());
       };
       this.conversationContext.addEventListener(
@@ -82,10 +90,12 @@ export class DurableObject extends EventTarget {
         onConversationContextLocalPostMessage,
       );
 
-      this.conversationContext.addEventListener('remotemessage', (e) => {
+      this.conversationContext.addEventListener('remotemessage', async (e) => {
         const { message } = e.data;
         if (this.realms?.isConnected()) {
           this.realms.sendChatMessage(message);
+
+          await saveMessageToDatabase(this.supabase, this.getGuid(), message);
         }
       });
       this.conversationContext.addEventListener('typingstart', (e) => {
@@ -134,6 +144,12 @@ export class DurableObject extends EventTarget {
     });
 
     this.loadPromise = (async () => {
+      // Load messages into conversation context.
+      const messages = await loadMessagesFromDatabase(this.supabase, LOADED_MESSAGES_LIMIT)
+
+      this.conversationContext.setMessages( messages )
+
+      // Enable the renderer.
       const enabled = (await this.state.storage.get('enabled')) ?? false;
       this.agentRenderer.setEnabled(enabled);
     })();

@@ -2,7 +2,7 @@ export class ConversationContext extends EventTarget {
   #scene;
   #agentsMap;
   #currentAgent;
-  messages;
+  #messages;
   constructor({
     scene = null,
     agentsMap = new Map(),
@@ -14,7 +14,7 @@ export class ConversationContext extends EventTarget {
     this.#scene = scene;
     this.#agentsMap = agentsMap; // Player
     this.#currentAgent = currentAgent; // json object
-    this.messages = messages;
+    this.#messages = messages;
 
     if (!currentAgent) {
       throw new Error('ConversationContext: currentAgent is required');
@@ -60,7 +60,13 @@ export class ConversationContext extends EventTarget {
   }
 
   getMessages() {
-    return this.messages;
+    return this.#messages;
+  }
+
+  setMessages( messages ) {
+    // Preserve the original reference to agent messages.
+    this.#messages.length = 0;
+    this.#messages.push( ...messages )
   }
 
   async typing(handlerAsyncFn) {
@@ -89,8 +95,8 @@ export class ConversationContext extends EventTarget {
 
   // pull a message from the network
   addLocalMessage(message) {
-    this.messages.push(message);
-    // console.log('add local message', message, this.messages);
+    this.#messages.push(message);
+    // console.log('add local message', message, this.#messages);
 
     this.dispatchEvent(
       new MessageEvent('localmessagepre', {
@@ -119,7 +125,7 @@ export class ConversationContext extends EventTarget {
   }
   // push a message to the network
   addLocalAndRemoteMessage(message) {
-    this.messages.push(message);
+    this.#messages.push(message);
 
     this.dispatchEvent(
       new MessageEvent('remotemessage', {
@@ -130,6 +136,6 @@ export class ConversationContext extends EventTarget {
     );
   }
   clearMessages() {
-    this.messages.length = 0;
+    this.#messages.length = 0;
   }
 }
