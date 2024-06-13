@@ -1,3 +1,7 @@
+const codeBlockRegexA = /^[^\n]*?(\{[\s\S]*})[^\n]*?$/
+const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
+
+
 export function makeId(length) {
   let result = '';
   const characters =
@@ -42,11 +46,10 @@ export const makePromise = () => {
 
 export const parseCodeBlock = (content) => {
   const match =
-    content.match(/^[^\n]*?(\{[\s\S]*\})[^\n]*?$/) ||
-    content.match(/^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/);
+    content.match(codeBlockRegexA) ||
+    content.match(codeBlockRegexB);
   if (match) {
-    const resultString = match[1];
-    return resultString;
+    return match[1];
   } else {
     throw new Error(
       'failed to extract JSON from LLM output: ' +
