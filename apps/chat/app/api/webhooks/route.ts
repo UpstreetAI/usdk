@@ -1,12 +1,12 @@
 import Stripe from 'stripe';
 import { stripe } from '@/utils/stripe/config';
-import {
+/*import {
   upsertProductRecord,
   upsertPriceRecord,
   manageSubscriptionStatusChange,
   deleteProductRecord,
   deletePriceRecord
-} from '@/utils/supabase/admin';
+} from '@/utils/supabase/admin';*/
 
 const relevantEvents = new Set([
   'product.created',
@@ -42,37 +42,37 @@ export async function POST(req: Request) {
       switch (event.type) {
         case 'product.created':
         case 'product.updated':
-          await upsertProductRecord(event.data.object as Stripe.Product);
+          // await upsertProductRecord(event.data.object as Stripe.Product);
           break;
         case 'price.created':
         case 'price.updated':
-          await upsertPriceRecord(event.data.object as Stripe.Price);
+          // await upsertPriceRecord(event.data.object as Stripe.Price);
           break;
         case 'price.deleted':
-          await deletePriceRecord(event.data.object as Stripe.Price);
+          // await deletePriceRecord(event.data.object as Stripe.Price);
           break;
         case 'product.deleted':
-          await deleteProductRecord(event.data.object as Stripe.Product);
+          // await deleteProductRecord(event.data.object as Stripe.Product);
           break;
         case 'customer.subscription.created':
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted':
           const subscription = event.data.object as Stripe.Subscription;
-          await manageSubscriptionStatusChange(
+          /*await manageSubscriptionStatusChange(
             subscription.id,
             subscription.customer as string,
             event.type === 'customer.subscription.created'
-          );
+          );*/
           break;
         case 'checkout.session.completed':
           const checkoutSession = event.data.object as Stripe.Checkout.Session;
           if (checkoutSession.mode === 'subscription') {
             const subscriptionId = checkoutSession.subscription;
-            await manageSubscriptionStatusChange(
+            /*await manageSubscriptionStatusChange(
               subscriptionId as string,
               checkoutSession.customer as string,
               true
-            );
+            );*/
           }
           break;
         default:
