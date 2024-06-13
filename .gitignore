@@ -1,4 +1,5 @@
 .idea
+*.orig
 artifacts
 dist
 node_modules
