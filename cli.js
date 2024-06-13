@@ -1938,6 +1938,10 @@ const generateTemplateFromPrompt = async (prompt) => {
       // console.log('got doc nodes 2', nodes);
       // filter to only documented nodes
       ns = ns.filter((node) => !!node.jsDoc);
+      ns.splice(
+        ns.findIndex(node => node.name === 'DefaultAgentComponents'),
+        1,
+      );
       ns = ns.map((node) => ({
         ...node.jsDoc,
         name: node.name,
