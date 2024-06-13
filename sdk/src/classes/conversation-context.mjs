@@ -1,7 +1,7 @@
 export class ConversationContext extends EventTarget {
-  scene;
-  agentsMap;
-  currentAgent;
+  #scene;
+  #agentsMap;
+  #currentAgent;
   messages;
   constructor({
     scene = null,
@@ -11,9 +11,9 @@ export class ConversationContext extends EventTarget {
   } = {}) {
     super();
 
-    this.scene = scene;
-    this.agentsMap = agentsMap; // Player
-    this.currentAgent = currentAgent; // json object
+    this.#scene = scene;
+    this.#agentsMap = agentsMap; // Player
+    this.#currentAgent = currentAgent; // json object
     this.messages = messages;
 
     if (!currentAgent) {
@@ -22,33 +22,41 @@ export class ConversationContext extends EventTarget {
   }
 
   getScene() {
-    return this.scene;
+    return this.#scene;
   }
+
   setScene(scene) {
-    this.scene = scene;
+    this.#scene = scene;
   }
 
   getCurrentAgent() {
-    return this.currentAgent;
+    return this.#currentAgent;
   }
+
   setCurrentAgent(currentAgent) {
-    this.currentAgent = currentAgent;
+    this.#currentAgent = currentAgent;
   }
 
   getAgents() {
-    return Array.from(this.agentsMap.values()).map(player => player.getPlayerSpec());
+    return Array
+      .from(this.#agentsMap.values())
+      .map(player => player.getPlayerSpec());
   }
+
   getAgent(agentId) {
-    return this.agentsMap.get(agentId);
+    return this.#agentsMap.get(agentId);
   }
+
   addAgent(agentId, agent) {
-    this.agentsMap.set(agentId, agent);
+    this.#agentsMap.set(agentId, agent);
   }
+
   removeAgent(agentId) {
-    this.agentsMap.delete(agentId);
+    this.#agentsMap.delete(agentId);
   }
+
   clearAgents() {
-    this.agentsMap.clear();
+    this.#agentsMap.clear();
   }
 
   getMessages() {
@@ -56,7 +64,7 @@ export class ConversationContext extends EventTarget {
   }
 
   async typing(handlerAsyncFn) {
-    const agent = this.currentAgent;
+    const agent = this.#currentAgent;
 
     this.dispatchEvent(new MessageEvent('typingstart', {
       data: {
@@ -92,6 +100,7 @@ export class ConversationContext extends EventTarget {
       }),
     );
   }
+
   // signal that a message has been loaded and re-rendered
   async postLocalMessage(message) {
     let promises = [];
