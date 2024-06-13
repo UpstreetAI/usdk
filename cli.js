@@ -182,7 +182,7 @@ class TypingMap extends EventTarget {
 }
 
 const certsLocalPath = path.join(BASE_DIRNAME, 'certs-local');
-const templatesDirectory = path.join(BASE_DIRNAME, 'templates');
+const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
 
 const defaultCorsHeaders = [
   // {
