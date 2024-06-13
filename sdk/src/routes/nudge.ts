@@ -5,7 +5,7 @@ import type { AgentObject, ActionMessages, UserHandler, AgentConsole } from '../
 import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
 // import { getStaticAsset } from '../util/static-asset-utils.js';
 import { ConversationContext } from '../classes/conversation-context.mjs';
-import { console } from '../classes/console.mjs';
+// import { console } from '../classes/console.mjs';
 
 //
 
