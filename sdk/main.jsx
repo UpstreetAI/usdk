@@ -15,6 +15,12 @@ export default {
       return await handleAgentRequest(request, env);
     } catch (err) {
       console.warn(err.stack);
+      return new Response(err.stack, {
+        status: 500,
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
     }
   },
   /* async tail(events, env, ctx) {
