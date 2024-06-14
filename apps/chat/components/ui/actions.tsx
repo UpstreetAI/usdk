@@ -86,7 +86,7 @@ const connectMultiplayer = (room: string, {
   // console.log('waiting for initial connection...');
 
   let connected = false;
-  const onConnect = async (e) => {
+  const onConnect = async (e: any) => {
     // console.log('on connect...');
     e.waitUntil(
       (async () => {
@@ -105,13 +105,13 @@ const connectMultiplayer = (room: string, {
             name,
           });
           const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
+            realms.localPlayer?.initializePlayer(
               {
                 realmKey,
               },
               {},
             );
-            realms.localPlayer.setKeyValue(
+            realms.localPlayer?.setKeyValue(
               'playerSpec',
               localPlayer.playerSpec,
             );
@@ -167,7 +167,7 @@ const connectMultiplayer = (room: string, {
   realms.addEventListener('connect', onConnect);
 
   const _trackRemotePlayers = () => {
-    virtualPlayers.addEventListener('join', (e) => {
+    virtualPlayers.addEventListener('join', (e: any) => {
       const { playerId, player } = e.data;
       if (connected) {
         console.log('remote player joined:', playerId);
@@ -185,7 +185,7 @@ const connectMultiplayer = (room: string, {
       }
 
       // Handle remote player state updates
-      player.addEventListener('update', e => {
+      player.addEventListener('update', (e: any) => {
         const { key, val } = e.data;
 
         if (key === 'playerSpec') {
@@ -193,7 +193,7 @@ const connectMultiplayer = (room: string, {
         }
       });
     });
-    virtualPlayers.addEventListener('leave', e => {
+    virtualPlayers.addEventListener('leave', (e: any) => {
       const { playerId } = e.data;
       if (connected) {
         console.log('remote player left:', playerId);
@@ -210,7 +210,7 @@ const connectMultiplayer = (room: string, {
   _trackRemotePlayers();
 
   const _bindMultiplayerChat = () => {
-    const onchat = (e) => {
+    const onchat = (e: any) => {
       const { message } = e.data;
       // console.log('got message', { message });
       const { userId: messageUserId, name, method, args } = message;
