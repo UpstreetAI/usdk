@@ -5,21 +5,24 @@ import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useUIState, useAIState } from 'ai/rsc'
 import { Message, Session } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { toast } from 'sonner'
 
+import { useActions } from '@/components/ui/actions'
+
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
   session?: Session
   missingKeys: string[]
+  room?: string
 }
 
-export function Chat({ id, className, session, missingKeys }: ChatProps) {
+export function Chat({ id, className, session, missingKeys, room }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
@@ -27,6 +30,8 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   const [aiState] = useAIState()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
+
+  const { setRoom } = useActions()
 
   useEffect(() => {
     if (session?.user) {
@@ -52,6 +57,12 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
       toast.error(`Missing ${key} environment variable!`)
     })
   }, [missingKeys])
+
+  useEffect(() => {
+    if (room) {
+      setRoom(room);
+    }
+  }, [room, setRoom]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor()
