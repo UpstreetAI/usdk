@@ -430,7 +430,7 @@ const ensureAgentJson = (agentJson, { guid, walletAddress, dev }) => {
   ensureSpecDefaults(agentJson);
   agentJson.id = guid;
   const agentHost = getAgentHost(guid, { dev });
-  agentJson.startUrl = `${agentHost}/agent.json`;
+  agentJson.startUrl = agentHost;
   // delete agentJson.start_url;
   // agentJson.agentUrl = agentUrl;
   agentJson.address = walletAddress;
