@@ -1,5 +1,6 @@
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
+import { Suspense } from 'react'
 
 import '@/app/globals.css'
 import { cn } from '@/lib/utils'
@@ -66,11 +67,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex flex-col flex-1 bg-muted/50">{children}</main>
-          </div>
-          <TailwindIndicator />
+          <Suspense fallback={<div>Loading...</div>}>
+            <div className="flex flex-col min-h-screen">
+              <Header/>
+              <main className="flex flex-col flex-1 bg-muted/50">{children}</main>
+            </div>
+          </Suspense>
+
+          <TailwindIndicator/>
         </Providers>
       </body>
     </html>
