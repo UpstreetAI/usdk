@@ -9,8 +9,8 @@ import { createClient } from '@/utils/supabase/client';
 
 
 const authTokenParam = 'auth_token'
-// const aiHost = 'https://ai.upstreet.ai'
-const aiHost = 'http://localhost:7998'
+const aiHost = 'https://ai.upstreet.ai'
+// const aiHost = 'http://localhost:7998'
 const otpURL = `${aiHost}/api/otp`
 
 
@@ -39,13 +39,17 @@ async function getJWT() {
       const jwt = await res.text();
 
       if (jwt) {
-        // saveJWT(jwt);
-        const client = createClient();
+        localStorage.setItem('jwt', jwt);
 
-        const user = await client.auth.getUser(jwt)
+        // // saveJWT(jwt);
+        // const client = createClient();
 
-        console.log( 'USER:', user )
+        // const user = await client.auth.getUser(jwt)
 
+        // console.log( 'USER:', user )
+
+      } else {
+        console.warn('Failed to get JWT.')
       }
     } else {
       console.warn('Failed to get JWT.')
