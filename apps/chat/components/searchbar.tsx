@@ -1,13 +1,17 @@
 'use client';
 import * as React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 import { cn } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { createClient } from '@/utils/supabase/client';
+import { buttonVariants } from '@/components/ui/button'
 
 import {
   IconClose,
+  IconSearch,
+  IconPlus,
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
@@ -46,6 +50,7 @@ type AgentObject = {
 
 export function SearchBar() {
   const [value, setValue] = React.useState('');
+  const [focus, setFocus] = React.useState(false);
   const [results, setResults] = React.useState<AgentObject[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -84,7 +89,11 @@ export function SearchBar() {
   }, [value])
 
   return (
-    <div className={cn("absolute hidden md:flex flex-col inset-0 pointer-events-none", isSearchOpen && 'block')}>
+    <div className={cn("absolute hidden md:flex flex-col inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
+      setFocus(true);
+    }} onBlur={e => {
+      setFocus(false);
+    }} tabIndex={-1}>
       <div className="relative flex flex-col m-auto size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
         <div className={cn("absolute px-8 items-center inset-y-0 right-0 flex md:hidden")} onClick={e => {
           toggleSearch();
@@ -94,15 +103,22 @@ export function SearchBar() {
         <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find something..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className="absolute left-0 top-16 px-4 w-full sm:max-w-2xl">
+        <div className={cn("absolute left-0 top-16 px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
                 <Image src={resolveUrl(agent.preview_url)} width={100} height={100} alt="Avatar" />
-                <div className="flex flex-col">
+                <div className="flex flex-col flex-1">
                   <div className="text-lg font-bold">{agent.name}</div>
                   <div className="text-base">{agent.description}</div>
                   <div className="text-sm text-zinc-600">{agent.id}</div>
+                </div>
+                <div className="flex flex-col">
+                  <Link href="#" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'outline' }))} onClick={e => {
+                    console.log('join agent', agent.id);
+                  }}>
+                    <IconPlus />
+                  </Link>
                 </div>
               </div>
             ))}
