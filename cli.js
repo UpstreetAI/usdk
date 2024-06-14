@@ -2705,7 +2705,7 @@ const ls = async (args) => {
           }
         })();
 
-        const res = await fetch(agent.start_url);
+        const res = await fetch(`${agent.start_url}/agent.json`);
         if (res.ok) {
           const agentJson = await res.json();
           if (
