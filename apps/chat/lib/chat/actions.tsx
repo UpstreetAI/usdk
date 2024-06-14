@@ -130,7 +130,7 @@ async function submitUserMessage(content: string) {
     model: openai('gpt-3.5-turbo'),
     initial: <SpinnerMessage />,
     system: `\
-    You know everything in this world and your name is Cock the second.`,
+    You know everything in this world and you are the ultimate AI assistant. Your name is John Doe.`,
     messages: [
       ...aiState.get().messages.map((message: any) => ({
         role: message.role,
