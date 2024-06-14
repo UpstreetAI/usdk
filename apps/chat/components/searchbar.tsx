@@ -38,9 +38,10 @@ async function search(query: string, opts: { signal: AbortSignal; }) {
 }
 
 type AgentObject = {
+  id: string;
   name: string;
   description: string;
-  previewUrl: string;
+  preview_url: string;
 };
 
 export function SearchBar() {
@@ -97,7 +98,6 @@ export function SearchBar() {
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
-                {/* {JSON.stringify(agent)} */}
                 <Image src={resolveUrl(agent.preview_url)} width={100} height={100} alt="Avatar" />
                 <div className="flex flex-col">
                   <div className="text-lg font-bold">{agent.name}</div>
