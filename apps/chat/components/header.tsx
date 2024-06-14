@@ -9,12 +9,15 @@ import {
   IconNextChat,
   IconSeparator,
   IconUpstreetChat,
+  IconSearch,
   IconUser,
   IconVercel
 } from '@/components/ui/icons'
 import { UserMenu } from '@/components/user-menu'
 import { SidebarMobile } from './sidebar-mobile'
 import { SidebarToggle } from './sidebar-toggle'
+import { SearchBar } from './searchbar'
+import { SearchToggle } from './searchtoggle'
 import { ChatHistory } from './chat-history'
 import { Session } from '@/lib/types'
 
@@ -47,7 +50,9 @@ export function Header() {
           <UserOrLogin />
         </React.Suspense>
       </div>
+      <SearchBar />
       <div className="flex items-center justify-end space-x-2">
+        <SearchToggle />
         <Link href="/login" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'outline' }))}>
           <IconUser />
           <span className="hidden ml-2 md:flex">Login</span>
