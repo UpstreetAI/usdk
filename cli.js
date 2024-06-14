@@ -2537,11 +2537,10 @@ const test = async (args) => {
     await testTemplate(template);
   }
 };
-const deploymentTypes = ['agent', 'ui'];
+// const deploymentTypes = ['agent', 'ui'];
 const deploy = async (args) => {
   try {
     const agentDirectory = args._[0] ?? cwd;
-    const type = args._[1] ?? deploymentTypes[0];
 
     // log in
     const jwt = await getLoginJwt();
@@ -2558,7 +2557,7 @@ const deploy = async (args) => {
       // console.log('got temp dir', tempDir);
 
       // upload the agent
-      const u = `${deployEndpointUrl}/${type}`;
+      const u = `${deployEndpointUrl}/agent`;
       // const proxyRes = await fetch(u, {
       //   method: 'PUT',
       //   headers: {
@@ -2810,20 +2809,40 @@ const rm = async (args) => {
     const jwt = await getLoginJwt();
     const userId = jwt && (await getUserIdForJwt(jwt));
     if (userId) {
-      const supabase = makeSupabase(jwt);
-      const assetsResult = await supabase
-        .from('assets')
-        .delete()
-        .eq('id', guid)
-        .eq('type', 'npc')
-        .single();
-
-      const { error, data } = assetsResult;
-      if (!error) {
+      const u = `${deployEndpointUrl}/agent`;
+      const req = await fetch(u, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          'Content-Type': 'application/zip',
+          // 'Content-Length': uint8Array.byteLength,
+        },
+        body: JSON.stringify({
+          guid,
+        }),
+      });
+      if (req.ok) {
+        await req.json();
         console.log(`deleted agent ${guid}`);
       } else {
-        console.warn(`could not delete agent ${guid}: ${JSON.stringify(error)}`);
+        const text = await req.text();
+        console.warn(`could not delete agent ${guid}: ${text}`);
       }
+
+      // const supabase = makeSupabase(jwt);
+      // const assetsResult = await supabase
+      //   .from('assets')
+      //   .delete()
+      //   .eq('id', guid)
+      //   .eq('type', 'npc')
+      //   .single();
+
+      // const { error, data } = assetsResult;
+      // if (!error) {
+      //   console.log(`deleted agent ${guid}`);
+      // } else {
+      //   console.warn(`could not delete agent ${guid}: ${JSON.stringify(error)}`);
+      // }
     } else {
       console.log('not logged in');
       process.exit(1);
@@ -3257,21 +3276,16 @@ const main = async () => {
     .command('deploy')
     .description('Deploy an agent to the network')
     .argument(`[directory]`, `Directory containing the agent project to deploy`)
-    .argument(
-      `[type]`,
-      `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
-    )
-    .action(async (directory, type, opts = {}) => {
+    // .argument(
+    //   `[type]`,
+    //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
+    // )
+    .action(async (directory, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
 
         let args;
-        if (typeof type === 'string') {
-          args = {
-            _: [directory, type],
-            ...opts,
-          };
-        } else if (typeof directory === 'string') {
+        if (typeof directory === 'string') {
           args = {
             _: [directory],
             ...opts,
@@ -3316,11 +3330,11 @@ const main = async () => {
     .command('rm')
     .description('Remove a deployed agent from the network')
     .argument(`<guid>`, `Guid of the agent to delete`)
-    .action(async (opts) => {
+    .action(async (guid = '', opts) => {
       await handleError(async () => {
         commandExecuted = true;
         const args = {
-          _: [],
+          _: [guid],
           ...opts,
         };
         await rm(args);
