@@ -107,14 +107,17 @@ export function SearchBar() {
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
-                <Image src={resolveUrl(agent.preview_url)} width={100} height={100} alt="Avatar" />
+                <Image src={resolveUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
                 <div className="flex flex-col flex-1">
                   <div className="text-lg font-bold">{agent.name}</div>
                   <div className="text-base">{agent.description}</div>
                   <div className="text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
-                  <Link href="#" rel="noopener noreferrer" className={cn(buttonVariants({ variant: 'outline' }))} onClick={e => {
+                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }))} onMouseDown={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
                     console.log('join agent', agent.id);
                   }}>
                     <IconPlus />
