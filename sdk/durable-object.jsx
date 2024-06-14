@@ -439,7 +439,12 @@ export class DurableObject extends EventTarget {
   // Handle HTTP requests from clients.
   async fetch(request) {
     try {
-      console.log('agent durable object got request', request.url);
+      // cors
+      if (request.method === 'OPTIONS') {
+        return new Response('', {
+          headers,
+        });
+      }
 
       await this.waitForLoad();
 
