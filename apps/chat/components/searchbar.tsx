@@ -86,7 +86,7 @@ export function SearchBar() {
   return (
     <div className={cn("absolute hidden md:flex flex-col inset-0 pointer-events-none", isSearchOpen && 'block')}>
       <div className="relative flex flex-col m-auto size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
-        <div className={cn("absolute px-8 items-center top-0 right-0 bottom-0 flex md:hidden")} onClick={e => {
+        <div className={cn("absolute px-8 items-center inset-y-0 right-0 flex md:hidden")} onClick={e => {
           toggleSearch();
         }}>
           <IconClose />
