@@ -28,7 +28,8 @@ async function search(query: string, opts: { signal: AbortSignal; }) {
   const embedding = await lembed(query, {
     signal,
   });
-  const result = await supabase.rpc('match_assets', {
+  const rpc = supabase.rpc.bind(supabase) as any;
+  const result = await rpc('match_assets', {
     embedding,
     match_threshold: 0.2,
     match_count: 10,
