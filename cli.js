@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 import https from 'https';
 import os from 'os';
-// import crypto from 'crypto';
 import child_process from 'child_process';
 import stream from 'stream';
 import repl from 'repl';
@@ -12,19 +11,17 @@ import { program } from 'commander';
 import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
 import EventSource from 'eventsource';
-import { doc } from 'tsdoc-extractor';
 import toml from '@iarna/toml';
 import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
 import recursiveReaddir from 'recursive-readdir';
-// import recursiveReaddirFiles from 'recursive-readdir-files';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
 import jsAgo from 'js-ago';
 import 'localstorage-polyfill';
-// import FormData from 'form-data';
 import JSZip from 'jszip';
+import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -51,7 +48,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './sdk/src/util/ethereum-utils.mjs';
-import { metamaskHost, deployEndpointUrl, multiplayerEndpointUrl } from './sdk/src/util/endpoints.mjs';
+import { aiHost, metamaskHost, deployEndpointUrl, multiplayerEndpointUrl, r2EndpointUrl } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
@@ -239,7 +236,7 @@ const getServerOpts = () => {
     cert: tryReadFile(path.join(certsLocalPath, 'fullchain.pem')) || '',
   };
 };
-/* const putFile = async (pathname, file) => {
+const putFile = async (pathname, file) => {
   const u = `https://r2.upstreet.ai/${pathname}`;
   const headers = {};
   if (file.type) {
@@ -257,7 +254,7 @@ const getServerOpts = () => {
   const j = await res.json();
   return j;
 };
-const getFiles = async (agentDirectory) => {
+/* const getFiles = async (agentDirectory) => {
   let files = await recursiveReaddir(agentDirectory);
   // filter out directories
   const filterDirectories = ['node_modules', '.git'];
@@ -370,7 +367,7 @@ const getAgentMnemonic = async (supabase, agentId) => {
   }
 };
 const defaultDescription = 'Created by the AI Agent SDK';
-const ensureSpecDefaults = (spec) => {
+const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.name !== 'string') {
     spec.name = makeName();
   }
@@ -396,49 +393,11 @@ const ensureSpecDefaults = (spec) => {
     spec.voicePack = 'ShiShi voice pack';
   }
 };
-/* const buildAgentJson = async (
-  guid,
-  { agentDirectory, walletAddress, agentUrl },
-) => {
-  if (!agentUrl) {
-    agentUrl = `https://${guid}.agents.upstreet.ai/`;
-  }
-
-  const agentJsonSrcPath = path.join(agentDirectory, agentJsonSrcFilename);
-  const agentJsonString = await fs.promises.readFile(agentJsonSrcPath, 'utf8');
-  const agentJson = JSON.parse(agentJsonString);
-  ensureSpecDefaults(agentJson);
+const compileAgentJson = (agentJson, { guid, walletAddress, dev }) => {
   agentJson.id = guid;
-  delete agentJson.start_url;
-  agentJson.agentUrl = agentUrl;
+  agentJson.startUrl = getAgentHost(guid, { dev });
   agentJson.address = walletAddress;
-  const s = JSON.stringify(agentJson, null, 2);
-
-  const agentJsonDstPath = path.join(cwd, 'dist', agentJsonDstFilename);
-  await fs.promises.writeFile(agentJsonDstPath, s);
-
-  return agentJson;
-}; */
-const ensureAgentJson = (agentJson, { guid, walletAddress, dev }) => {
-  // if (!agentUrl) {
-  //   agentUrl = `https://${guid}.agents.upstreet.ai/`;
-  // }
-
-  // const agentJsonSrcPath = path.join(agentDirectory, agentJsonSrcFilename);
-  // const agentJsonString = await fs.promises.readFile(agentJsonSrcPath, 'utf8');
-  // const agentJson = JSON.parse(agentJsonString);
-  ensureSpecDefaults(agentJson);
-  agentJson.id = guid;
-  const agentHost = getAgentHost(guid, { dev });
-  agentJson.startUrl = agentHost;
-  // delete agentJson.start_url;
-  // agentJson.agentUrl = agentUrl;
-  agentJson.address = walletAddress;
-  // const s = JSON.stringify(agentJson, null, 2);
-
-  // const agentJsonDstPath = path.join(cwd, 'dist', agentJsonDstFilename);
-  // await fs.promises.writeFile(agentJsonDstPath, s);
-
+  ensureAgentJsonDefaults(agentJson);
   return agentJson;
 };
 const bindProcess = (cp) => {
@@ -862,7 +821,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
       userAsset = {
         id: userId,
       };
-      ensureSpecDefaults(userAsset);
+      ensureAgentJsonDefaults(userAsset);
 
       return userAsset;
     } else {
@@ -1847,10 +1806,10 @@ const mergeJson = async (
   const s = JSON.stringify(j, null, 2);
   await fs.promises.writeFile(dstPath, s);
 };
-const generateAgentJsonFromPrompt = async (prompt) => {
+const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime style with strong lines and bold colors.') => {
   const jwt = await getLoginJwt();
   if (jwt) {
-    const numRetries = 3;
+    const numRetries = 5;
     for (let i = 0; i < numRetries; i++) {
       const messages = [
         {
@@ -1864,7 +1823,8 @@ const generateAgentJsonFromPrompt = async (prompt) => {
             {
               "name": "A name for the agent",
               "description": "A short description of the agent. This will be used in search results, meta tags, and profile pages. It can be a few sentences long.",
-              "bio": "A more in-depth simulated biography for the agent. It can be up to a few paragraphs long."
+              "bio": "A more in-depth simulated biography for the agent. It can be up to a few paragraphs long.",
+              "visualDescription": "A visual description of what the agent looks like, as a short image prompt.",
             }
             \`\`\`
           `,
@@ -1884,7 +1844,9 @@ const generateAgentJsonFromPrompt = async (prompt) => {
         const content = j.choices[0].message.content;
         try {
           const codeBlock = parseCodeBlock(content);
-          return JSON.parse(codeBlock);
+          const j = JSON.parse(codeBlock);
+          j.visualDescription = `${style} ${prompt}`;
+          return j;
         } catch (err) {
           // console.warn('could not parse generated agent json', content);
           continue;
@@ -1899,21 +1861,56 @@ const generateAgentJsonFromPrompt = async (prompt) => {
     throw new Error('not logged in');
   }
 };
-const generateTemplateFromPrompt = async (prompt) => {
-  // create a temporary directory
-  const templateDirectory = await makeTempDir();
-
-  // copy over the basic template
-  const basicTemplateDirectory = path.join(templatesDirectory, 'empty');
-  await recursiveCopy(basicTemplateDirectory, templateDirectory);
-
-  // generate the agent json
-  const agentJson = await generateAgentJsonFromPrompt(prompt);
-  await fs.promises.writeFile(
-    path.join(templateDirectory, agentJsonSrcFilename),
-    JSON.stringify(agentJson, null, 2),
-  );
-
+const generateImage = async (prompt, opts = {}) => {
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    const {
+      model = 'dall-e-3',
+      width = 1024, // [1024, 1792]
+      height = 1024,
+      quality = 'hd', // ['hd', 'standard']
+    } = opts;
+    // localStorage.setItem('jwt', JSON.stringify(jwt));
+    const u = `${aiHost}/api/ai/images/generations`;
+    const j = {
+      prompt,
+      model,
+      size: `${width}x${height}`,
+      quality,
+      n: 1,
+    };
+    const res = await fetch(u, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(j),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const imageUrl = json.data[0].url;
+      const res2 = await fetch(imageUrl);
+      if (res2.ok) {
+        const arrayBuffer = await res2.arrayBuffer();
+        return arrayBuffer;
+      } else {
+        const text = await res2.text();
+        console.warn('generate image fetch error', text);
+        throw new Error(`image generation error: ${text}`);
+      }
+    } else {
+      const json = await res.json();
+      const { error } = json;
+      console.log('got generate image error error', error);
+      throw new Error(`image generation error: ${error}`);
+    }
+  } else {
+    throw new Error('not logged in');
+  }
+};
+const getCodeGenContext = async () => {
+  // load the component jsdoc nodes
   const nodes = await (async () => {
     // generate new components based on the actions the agent should be allowed to take
     const defaultComponentsPath = path.join(
@@ -1934,13 +1931,13 @@ const generateTemplateFromPrompt = async (prompt) => {
     ];
     
     const nodes = [];
-    const tmpDir = await makeTempDir();
     for (const p of paths) {
       // read the file
       let s = await fs.promises.readFile(p, 'utf8');
       // remove everything up to and including the line "// END IMPORTS", including newlines
       s = s.replace(/[\s\S]*?\/\/ END IMPORTS\n/, '');
       // write the file to tmp dir
+      const tmpDir = await makeTempDir();
       const p2 = path.join(tmpDir, path.basename(p));
       await fs.promises.writeFile(p2, s);
       // convert to data url
@@ -1959,29 +1956,59 @@ const generateTemplateFromPrompt = async (prompt) => {
       }));
       // add to the nodes
       nodes.push(...ns);
+      await rimraf(tmpDir);
     }
     // console.log('got doc nodes 3', JSON.stringify(nodes, null, 2));
-    await rimraf(tmpDir);
 
     return nodes;
   })();
   // console.log('got nodes', JSON.stringify(nodes, null, 2));
 
-  console.log( 'generating agent React code...' )
-
-  const { imports } = await modifyAgentJSXWithGeneratedCode(
-    path.join( templateDirectory, 'agent.tsx' ),
-    prompt,
+  return {
     nodes,
-  )
+  };
+};
+const generateTemplateFromPrompt = async (prompt) => {
+  // create a temporary directory
+  const templateDirectory = await makeTempDir();
 
-  console.log( 'assigned the following components:\n' )
+  // copy over the basic template
+  const basicTemplateDirectory = path.join(templatesDirectory, 'empty');
+  await recursiveCopy(basicTemplateDirectory, templateDirectory);
+
+  // generate the agent json
+  const agentJson = await generateAgentJsonFromPrompt(prompt);
+
+  console.log( 'generating code...' )
+  const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
+  const codeGenContext = await getCodeGenContext();
+  const { imports } = await modifyAgentJSXWithGeneratedCode({
+    agentJSXPath,
+    prompt,
+    codeGenContext,
+  });
+  console.log( 'using components:' )
   console.log(
     imports
       .map(x => '- ' + x)
       .join('\n')
       .trim() + '\n'
   )
+
+  console.log( 'generating avatar...' )
+  // generate the agent preview_url
+  const imageArrayBuffer = await generateImage(agentJson.visualDescription);
+  // upload to r2
+  const imageGuid = crypto.randomUUID();
+  const previewUrl = await putFile(`previews/${imageGuid}.png`, imageArrayBuffer);
+  // set the agentJson preview url
+  agentJson.previewUrl = previewUrl;
+
+  // write back the generated the agent json
+  await fs.promises.writeFile(
+    path.join(templateDirectory, agentJsonSrcFilename),
+    JSON.stringify(agentJson, null, 2),
+  );
 
   return {
     templateDirectory,
@@ -2023,9 +2050,8 @@ const create = async (args) => {
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
 
-  // read all files recursively
+  // read agent files
   console.log('reading files...');
-  // node readdir
   const files = await (async () => {
     try {
       return await fs.promises.readdir(dstDir);
@@ -2037,7 +2063,6 @@ const create = async (args) => {
       }
     }
   })();
-  // console.log(`read files (${files.length})`);
   // console.log('files', cwd, files.filter(f => /route/.test(f)));
   if (files.length > 0) {
     if (force) {
@@ -2052,43 +2077,12 @@ const create = async (args) => {
       process.exit(1);
     }
   }
+
+  // bootstrap destination directory
   await mkdirp(dstDir);
 
-  // construct the template from prompt, if needed
-  let srcTemplateDir;
-  if (prompt) {
-    console.log('generating agent...');
-    const { templateDirectory, agentJson } =
-      await generateTemplateFromPrompt(prompt);
-    srcTemplateDir = templateDirectory;
-    console.log('done generating agent:');
-    console.log(JSON.stringify(agentJson, null, 2));
-  } else {
-    srcTemplateDir = path.join(templatesDirectory, template);
-  }
-  const srcTemplateFilter = (p) => !/^(?:package\.json|agent\.json)$/.test(p);
-
-  const srcPackageJsonPaths = [
-    path.join(BASE_DIRNAME, 'sdk', 'package.json'), // sdk base package.json
-    path.join(srcTemplateDir, 'package.json'), // template package.json
-  ];
-  const dstPackageJsonPath = path.join(dstDir, 'package.json');
-
-  const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
-  const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
-
-  const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
-
-  const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
-  const srcDstDir = path.join(dstDir, 'sdk');
-
-  const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
-  const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
-
-  const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
-  const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
-
-  // get the agent token
+  // load agent login token
+  console.log('authenticating...');
   const jwt = await getLoginJwt();
   let agentToken = null;
   if (jwt !== null) {
@@ -2115,10 +2109,48 @@ const create = async (args) => {
     }
   }
 
+  // generate the agent if necessary
+  let srcTemplateDir;
+  if (prompt) {
+    if (jwt) {
+      console.log('generating agent...');
+      const { templateDirectory, agentJson } = await generateTemplateFromPrompt(prompt);
+      srcTemplateDir = templateDirectory; 
+      console.log('done generating agent:');
+      console.log(JSON.stringify(agentJson, null, 2));
+    } else {
+      throw new Error('not logged in: cannot generate agent from prompt');
+    }
+  } else {
+    srcTemplateDir = path.join(templatesDirectory, template);
+  }
+  const srcTemplateFilter = (p) => !/^(?:package\.json|agent\.json)$/.test(p);
+
+  // copy over files
+  const srcPackageJsonPaths = [
+    path.join(BASE_DIRNAME, 'sdk', 'package.json'), // sdk base package.json
+    path.join(srcTemplateDir, 'package.json'), // template package.json
+  ];
+  const dstPackageJsonPath = path.join(dstDir, 'package.json');
+
+  const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
+  const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
+
+  const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
+
+  const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
+  const srcDstDir = path.join(dstDir, 'sdk');
+
+  const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
+  const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
+
+  const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
+  const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
+
   // compile the agent json
   const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
   const agentJson = JSON.parse(agentJsonString);
-  ensureAgentJson(agentJson, {
+  compileAgentJson(agentJson, {
     guid,
     walletAddress,
     dev,
@@ -2127,10 +2159,6 @@ const create = async (args) => {
   // copy over the template files
   console.log('copying files...');
   const name = getAgentName(guid);
-  // const url = getAgentHost(guid, {
-  //   dev: false,
-  // });
-  // const domain = url.replace(/^[a-z0-9]+?:\/\//i, '');
   const opts = {
     // overwrite: force,
   };
@@ -2186,110 +2214,6 @@ const create = async (args) => {
     agentJson,
   };
 };
-// returns whether the build occurred
-/* const build = async (
-  args = {
-    _: [],
-  },
-) => {
-  // collect the files to upload
-  const agentDirectory = cwd;
-  const buildDirectoryPath = path.join(agentDirectory, 'build');
-  const distDirectoryPath = path.join(agentDirectory, 'dist');
-  const files = await getFiles(agentDirectory);
-
-  // find the agent json file
-  const agentJsonFile = files.find(
-    (filePath) =>
-      // filePath.endsWith(`/${agentJsonSrcFilename}`),
-      filePath === agentJsonSrcFilename,
-  );
-  if (agentJsonFile) {
-    // clean the build directory
-    await rimraf(buildDirectoryPath);
-    await mkdirp(buildDirectoryPath);
-    // copy over the files from the root to build
-    await recursiveCopy(agentDirectory, buildDirectoryPath);
-
-    const agentJsonString = await fs.promises.readFile(agentJsonFile, 'utf8');
-    const agentJson = JSON.parse(agentJsonString);
-    const { start_url } = agentJson;
-    // const srcDirectoryPath = path.dirname(agentJsonFile);
-
-    // // copy over the new the main file
-    const mainJsSrcPath = path.join(buildDirectoryPath, 'sdk', 'main.jsx');
-    // const mainJsDstPath = mainJsSrcPath;
-    // let mainJsString = await fs.promises.readFile(mainJsSrcPath, 'utf8');
-    // mainJsString = mainJsString.replace(
-    //   /((?:import|export) (\S*) from ['"].\/)(durable-object)/g,
-    //   `$1_$2`,
-    // );
-    await fs.promises.writeFile(mainJsDstPath, mainJsString);
-
-    // rewrite the durable object file
-    const durableObjectJsSrcPath = path.join(
-      buildDirectoryPath,
-      'sdk',
-      'durable-object.jsx',
-    );
-    // const durableObjectJsDstPath = path.join(
-    //   buildDirectoryPath,
-    //   'durable-object.jsx',
-    // );
-    const durableObjectJsDstPath = durableObjectJsSrcPath;
-    let durableObjectJsString = await fs.promises.readFile(
-      durableObjectJsSrcPath,
-      'utf8',
-    );
-    durableObjectJsString = durableObjectJsString.replace(
-      /import (\S+) from '.'/,
-      `import $1 from ${JSON.stringify(path.join('..', start_url))}`,
-    );
-    await fs.promises.writeFile(durableObjectJsDstPath, durableObjectJsString);
-
-    // compile code to dist
-    console.log('compiling code...');
-    let codeResult = null;
-    let codeError = null;
-    try {
-      codeResult = await ncc(mainJsSrcPath, {
-        quiet: true,
-      });
-    } catch (e) {
-      codeError = e;
-    }
-    if (codeError) {
-      throw codeError;
-    }
-
-    console.log('got code error', {
-      codeError,
-      codeResult,
-    });
-
-    const code = codeResult?.code;
-    if (code) {
-      // clean the dist directory
-      await rimraf(distDirectoryPath);
-      await mkdirp(distDirectoryPath);
-      // write to dist/index.js
-      const indexJsDistFilePath = path.join(distDirectoryPath, 'index.js');
-      await fs.promises.writeFile(indexJsDistFilePath, code);
-
-      // copy over the agent json file to dist
-      const agentJsonSrcPath = path.join(agentDirectory, agentJsonFile);
-      const agentJsonDistPath = path.join(
-        distDirectoryPath,
-        agentJsonDstFilename,
-      );
-      await recursiveCopy(agentJsonSrcPath, agentJsonDistPath);
-    } else {
-      throw new Error('could not compile code');
-    }
-  } else {
-    throw new Error(`could not find ${agentJsonSrcFilename}`);
-  }
-}; */
 const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
 const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
@@ -3179,19 +3103,6 @@ const main = async () => {
         await create(args);
       });
     });
-  /* program
-    .command('build')
-    .description('Build the agent project in the current working directory')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await build(args);
-      });
-    }); */
   const devSubcommands = [
     'chat',
     'simulate',
