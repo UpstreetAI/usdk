@@ -3,7 +3,7 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
+import { cn, resolveRelativeUrl } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { createClient } from '@/utils/supabase/client';
 import { buttonVariants } from '@/components/ui/button'
@@ -15,10 +15,6 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
-
-function resolveUrl(url: string) {
-  return new URL(url, `https://nota.upstreet.ai`) + '';
-}
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
   // console.log('search', query, opts);
@@ -121,6 +117,19 @@ type AgentObject = {
   preview_url: string;
 };
 
+function AgentLink(props: any) {
+  const { name } = props;
+  return (
+    <Link href={`/agents/${encodeURIComponent(name)}`} onMouseDown={e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // open the link in the current window
+      location.href = e.currentTarget.href;
+    }} {...props} />
+  )
+}
+
 export function SearchBar() {
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
@@ -180,9 +189,11 @@ export function SearchBar() {
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
-                <Image src={resolveUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
+                <AgentLink name={agent.name}>
+                  <Image src={resolveRelativeUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
+                </AgentLink>
                 <div className="flex flex-col flex-1">
-                  <div className="text-lg font-bold">{agent.name}</div>
+                  <AgentLink name={agent.name} className="text-lg font-bold hover:underline">{agent.name}</AgentLink>
                   <div className="text-base">{agent.description}</div>
                   <div className="text-sm text-zinc-600">{agent.id}</div>
                 </div>
