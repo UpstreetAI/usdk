@@ -7,7 +7,13 @@ module.exports = {
         hostname: 'avatars.githubusercontent.com',
         port: '',
         pathname: '**'
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: '*.upstreet.ai',
+        port: '',
+        pathname: '**'
+      },
     ]
   }
 }
