@@ -11,7 +11,7 @@ import { Message, Session } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { toast } from 'sonner'
-import { UserMessage } from './stocks/message'
+import { UIState } from '@/lib/chat/actions'
 
 import { useActions } from '@/components/ui/actions'
 
@@ -32,8 +32,8 @@ export function Chat({ id, className, session, missingKeys, room }: ChatProps) {
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
-  const { setRoom, messages: rawMessages } = useActions()
-  const messages = rawMessages.map((rawMessage, index) => {
+  const { setRoom, messages: rawMessages, sendChatMessage } = useActions()
+  const messages = rawMessages.map((rawMessage: any, index: number) => {
     if (rawMessage.method === 'say') {
       return {
         id: index,
@@ -47,7 +47,7 @@ export function Chat({ id, className, session, missingKeys, room }: ChatProps) {
     } else {
       return null;
     }
-  }).filter((message) => message !== null);
+  }).filter((message) => message !== null) as unknown as UIState;
 
   useEffect(() => {
     if (session?.user) {
@@ -105,6 +105,9 @@ export function Chat({ id, className, session, missingKeys, room }: ChatProps) {
         setInput={setInput}
         isAtBottom={isAtBottom}
         scrollToBottom={scrollToBottom}
+        room={room}
+        messages={messages}
+        sendChatMessage={sendChatMessage}
       />
     </div>
   )
