@@ -178,7 +178,7 @@ export function SearchBar() {
   }, [value])
 
   return (
-    <div className={cn("absolute hidden md:flex flex-col inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
+    <div className={cn("flex flex-1 flex-col h-full inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
       setFocus(true);
     }} onBlur={e => {
       setFocus(false);
