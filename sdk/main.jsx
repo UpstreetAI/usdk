@@ -1,5 +1,6 @@
 export { DurableObject } from './durable-object.jsx';
 // import { makeAnonymousClient } from './src/util/supabase-client.mjs';
+import { headers } from './src/constants.js';
 
 async function handleAgentRequest(request, env) {
   const guid = env.GUID;
@@ -19,6 +20,7 @@ export default {
         status: 500,
         headers: {
           'Content-Type': 'text/plain',
+          ...headers,
         },
       });
     }
