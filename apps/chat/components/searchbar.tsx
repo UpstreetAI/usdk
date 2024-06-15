@@ -1,6 +1,5 @@
 'use client';
 
-import { loadJWT } from '@/lib/loadJWT'
 import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -22,7 +21,7 @@ async function search(query: string, opts: { signal: AbortSignal; }) {
   // console.log('search', query, opts);
   const { signal } = opts;
 
-  const supabase = createClient(loadJWT());
+  const supabase = createClient();
   const embedding = await lembed(query, {
     signal,
   });
