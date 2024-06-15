@@ -3,6 +3,7 @@
 import { createClient } from '@/utils/supabase/client';
 import { type Provider } from '@supabase/supabase-js';
 import { getURL } from '@/utils/helpers';
+import cookie from 'cookie'
 import { redirectToPath } from './server';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
