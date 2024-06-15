@@ -16,8 +16,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
 
-import { useActions } from '@/components/ui/actions'
-
+import { PlayerSpec, useActions } from '@/components/ui/actions'
 
 type Message = {
   args: {
@@ -51,7 +50,12 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
-  const { setRoom, playersMap, messages: rawMessages, sendChatMessage } = useActions()
+  const {
+    setMultiplayerConnectionParameters,
+    playersMap,
+    messages: rawMessages,
+    sendChatMessage,
+  } = useActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     // if (rawMessage.method === 'say') {
@@ -95,10 +99,18 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   }, [missingKeys])
 
   useEffect(() => {
-    if (room) {
-      setRoom(room);
+    if (room && user) {
+      const localPlayerSpec: PlayerSpec = {
+        id: user.id,
+        name: user.user_metadata.full_name,
+        previewUrl: user.user_metadata.avatar_url,
+      };
+      setMultiplayerConnectionParameters({
+        room,
+        localPlayerSpec,
+      });
     }
-  }, [room, setRoom]);
+  }, [room, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor()

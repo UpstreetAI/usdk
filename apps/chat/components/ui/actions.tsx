@@ -11,7 +11,7 @@ interface ActionsContext {
   playersMap: Map<string, Player>
   messages: object[]
   getRoom: () => string
-  setRoom: (room: string) => void
+  setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
   sendChatMessage: (text: string) => void
 }
 
@@ -31,17 +31,23 @@ interface ActionsProviderProps {
   children: React.ReactNode
 }
 
+export type PlayerSpec = {
+  id: string
+  name: string
+  previewUrl: string
+};
+
 class Player {
   playerId: string;
-  playerSpec: object;
-  constructor(playerId = '', playerSpec: object = {}) {
+  playerSpec: PlayerSpec;
+  constructor(playerId = '', playerSpec: PlayerSpec) {
     this.playerId = playerId;
     this.playerSpec = playerSpec;
   }
   getPlayerSpec() {
     return this.playerSpec;
   }
-  setPlayerSpec(playerSpec: object) {
+  setPlayerSpec(playerSpec: PlayerSpec) {
     this.playerSpec = playerSpec;
   }
 }
@@ -67,13 +73,10 @@ class TypingMap extends EventTarget {
   }
 }
 
-const connectMultiplayer = (room: string, {
-  userId,
-  name,
-}: {
-  userId: string;
-  name: string;
-}) => {
+const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
+  const userId = playerSpec.id;
+  const name = playerSpec.name;
+
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
@@ -104,10 +107,8 @@ const connectMultiplayer = (room: string, {
 
         {
           // Initialize network realms player.
-          const localPlayer = new Player(userId, {
-            id: userId,
-            name,
-          });
+          const localPlayer = new Player(userId, playerSpec);
+
           playersMap.set(userId, localPlayer);
           realms.dispatchEvent(new MessageEvent('playerschange', {
             data: playersMap,
@@ -181,7 +182,12 @@ const connectMultiplayer = (room: string, {
         console.log('remote player joined:', playerId);
       }
 
-      const remotePlayer = new Player(playerId);
+      const remotePlayer = new Player(playerId, {
+        id: '',
+        name: '',
+        previewUrl: '',
+      });
+
       playersMap.set(playerId, remotePlayer);
       realms.dispatchEvent(new MessageEvent('playerschange', {
         data: playersMap,
@@ -333,12 +339,30 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
     let userId = '';
     let name = '';
     let room = '';
+
+    let localPlayerSpec: PlayerSpec = {
+      id: '',
+      name: '',
+      previewUrl: '',
+    };
+
     let realms: NetworkRealms | null = null;
     return {
       getRoom: () => room,
-      setRoom: (newRoom: string) => {
+      setMultiplayerConnectionParameters: ({
+        room: newRoom,
+        localPlayerSpec: newLocalPlayerSpec,
+      }: {
+        room: string,
+        localPlayerSpec: PlayerSpec,
+      }) => {
+        if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
+          throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
+        }
+
         if (room !== newRoom) {
           room = newRoom;
+          localPlayerSpec = newLocalPlayerSpec;
           if (realms) {
             realms.disconnect();
             realms = null;
@@ -348,10 +372,8 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
           userId = crypto.randomUUID();
           name = 'Anonymous';
-          realms = connectMultiplayer(room, {
-            userId,
-            name,
-          });
+          realms = connectMultiplayer(room, localPlayerSpec);
+
           realms.addEventListener('chat', (e) => {
             const { message } = (e as any).data;
             // console.log('got chat message', message);
@@ -368,6 +390,8 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
       },
       sendChatMessage: (text: string) => {
         if (realms) {
+          const { id: userId, name } = localPlayerSpec;
+
           const message = {
             method: 'say',
             userId,
@@ -384,7 +408,8 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
       },
     };
   }, []);
-  const { getRoom, setRoom, sendChatMessage } = realmsSpec;
+
+  const { getRoom, setMultiplayerConnectionParameters, sendChatMessage } = realmsSpec;
 
   const toggleSearch = () => {
     setSearchOpen(value => !value)
@@ -392,7 +417,7 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
   return (
     <ActionsContext.Provider
-      value={{ isSearchOpen, toggleSearch, playersMap, messages, getRoom, setRoom, sendChatMessage }}
+      value={{ isSearchOpen, toggleSearch, playersMap, messages, getRoom, setMultiplayerConnectionParameters, sendChatMessage }}
     >
       {children}
     </ActionsContext.Provider>
