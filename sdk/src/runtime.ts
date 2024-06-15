@@ -494,7 +494,7 @@ export class AgentRenderer {
         } else {
           const json = await res.json();
           const { error } = json;
-          console.log('got generate image error error', error);
+          console.log('got generate image error', error);
           throw new Error(`image generation error: ${error}`);
         }
       },
