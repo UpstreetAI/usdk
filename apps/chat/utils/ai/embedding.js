@@ -1,10 +1,10 @@
 import { aiProxyHost } from '../const/endpoints.js';
+import { getJWT } from '@/lib/getJWT'
 
-const getJwt = () => localStorage.getItem('jwt');
 
 const numRetries = 5;
 export const embed = async (s, { signal, overridenJwt = null } = {}, ) => {
-  const jwt = overridenJwt == null ? getJwt() : overridenJwt;
+  const jwt = overridenJwt == null ? await getJWT() : overridenJwt;
   const fd = new FormData();
   fd.append('s', s);
   for (let i = 0; i < numRetries; i++) {
@@ -37,7 +37,7 @@ export const embed = async (s, { signal, overridenJwt = null } = {}, ) => {
 };
 
 export const oembed = async (s, { signal, overridenJwt = null } = {}, ) => {
-  const jwt = overridenJwt == null ? getJwt() : overridenJwt;
+  const jwt = overridenJwt == null ? await getJWT() : overridenJwt;
   const body = {
     input: s,
     model: 'text-embedding-3-small',
@@ -74,7 +74,7 @@ export const oembed = async (s, { signal, overridenJwt = null } = {}, ) => {
   throw new Error(`failed to embed after ${numRetries} retries`);
 };
 export const lembed = async (s, { signal, overridenJwt = null } = {}, ) => {
-  const jwt = overridenJwt == null ? getJwt() : overridenJwt;
+  const jwt = overridenJwt == null ? await getJWT() : overridenJwt;
   const body = {
     input: s,
     model: 'text-embedding-3-large',
@@ -112,7 +112,7 @@ export const lembed = async (s, { signal, overridenJwt = null } = {}, ) => {
 };
 
 export const split = async (s, { signal } = {}) => {
-  const jwt = getJwt();
+  const jwt = await getJWT();
   const fd = new FormData();
   fd.append('s', s);
   for (let i = 0; i < numRetries; i++) {
