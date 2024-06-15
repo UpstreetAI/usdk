@@ -8,6 +8,7 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 interface ActionsContext {
   isSearchOpen: boolean
   toggleSearch: () => void
+  playersMap: Map<string, Player>
   messages: object[]
   getRoom: () => string
   setRoom: (room: string) => void
@@ -76,7 +77,7 @@ const connectMultiplayer = (room: string, {
     audioManager: null,
   });
 
-  const playersMap = new Map();
+  const playersMap = new Map<string, Player>();
   const typingMap = new TypingMap();
 
   const virtualWorld = realms.getVirtualWorld();
@@ -104,6 +105,10 @@ const connectMultiplayer = (room: string, {
             id: userId,
             name,
           });
+          playersMap.set(userId, localPlayer);
+          realms.dispatchEvent(new MessageEvent('playerschange', {
+            data: playersMap,
+          }));
           const _pushInitialPlayer = () => {
             realms.localPlayer?.initializePlayer(
               {
@@ -175,6 +180,9 @@ const connectMultiplayer = (room: string, {
 
       const remotePlayer = new Player(playerId);
       playersMap.set(playerId, remotePlayer);
+      realms.dispatchEvent(new MessageEvent('playerschange', {
+        data: playersMap,
+      }));
 
       // apply initial remote player state
       {
@@ -285,6 +293,7 @@ const connectMultiplayer = (room: string, {
 export function ActionsProvider({ children }: ActionsProviderProps) {
   const [isSearchOpen, setSearchOpen] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<object[]>([] as object[])
+  const [playersMap, setPlayersMap] = React.useState<Map<string, Player>>(new Map());
   
   const realmsSpec = React.useMemo(() => {
     let userId = '';
@@ -318,6 +327,9 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
               return newMessages;
             });
           });
+          realms.addEventListener('playerschange', (e) => {
+            setPlayersMap((e as any).data);
+          });
         }
       },
       sendChatMessage: (text: string) => {
@@ -346,7 +358,7 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
   return (
     <ActionsContext.Provider
-      value={{ isSearchOpen, toggleSearch, messages, getRoom, setRoom, sendChatMessage }}
+      value={{ isSearchOpen, toggleSearch, playersMap, messages, getRoom, setRoom, sendChatMessage }}
     >
       {children}
     </ActionsContext.Provider>
