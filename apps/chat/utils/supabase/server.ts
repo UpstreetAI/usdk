@@ -43,7 +43,7 @@ export const createClient = (jwt?: string|null) => {
 
       global: {
         headers: {
-          ... _jwt ? {
+          ..._jwt ? {
             Authorization: `Bearer ${_jwt}`
           } : {},
         }
