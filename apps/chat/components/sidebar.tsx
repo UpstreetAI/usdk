@@ -1,6 +1,7 @@
 'use client'
 
-import { createClient, getUser } from '@/utils/supabase/client'
+import type { User } from '@supabase/supabase-js'
+import { getUser } from '@/utils/supabase/client'
 import { useEffect, useState } from 'react'
 import * as React from 'react'
 
@@ -14,7 +15,7 @@ export interface SidebarProps extends React.ComponentProps<'div'> {}
 export function Sidebar({ className, children }: SidebarProps) {
   const
     { isSidebarOpen, isLoading } = useSidebar(),
-    [ user, setUser ] = useState()
+    [ user, setUser ] = useState<User|null>(null)
 
   let isGettingUser = false
 
@@ -22,7 +23,9 @@ export function Sidebar({ className, children }: SidebarProps) {
     if (!isGettingUser) {
       isGettingUser = true;
       getUser()
-        .then( u => setUser( u ))
+        .then( user => {
+          if ( user ) setUser( user )
+        })
         .catch(console.error);
     }
   }, [])

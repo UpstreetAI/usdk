@@ -5,6 +5,7 @@ import { AI } from '@/lib/chat/actions'
 import { auth } from '@/auth'
 import { Session } from '@/lib/types'
 import { getMissingKeys } from '@/app/actions'
+import { getUser } from '@/utils/supabase/server'
 
 // import { type Metadata } from 'next';
 // import { Room } from '@/components/room';
@@ -75,14 +76,14 @@ type Params = {
 
 export default async function RoomPage({ params }: Params) {
   const id = nanoid()
-  const session = (await auth()) as Session
+  const user = await getUser()
   const missingKeys = await getMissingKeys()
 
   const roomName = decodeURIComponent(params.id)
 
   return (
     <AI initialAIState={{ chatId: id, messages: [] }}>
-      <Chat id={id} session={session} missingKeys={missingKeys} room={roomName} />
+      <Chat id={id} user={user} missingKeys={missingKeys} room={roomName} />
     </AI>
   )
 }
