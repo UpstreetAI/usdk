@@ -7,14 +7,13 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 export interface ChatList {
   messages: UIState
   // user?: User | null
- // isShared: boolean
+  // isShared: boolean
 }
 
 export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
   if (!messages.length) {
     return null
   }
-
   return (
     <div className="relative mx-auto max-w-2xl px-4">
       {/* {!isShared && !user ? (
@@ -41,12 +40,19 @@ export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
         </>
       ) : null} */}
 
-      {messages.map((message, index) => (
-        <div key={message.id}>
-          {message.display}
-          {index < messages.length - 1 && <Separator className="my-4" />}
-        </div>
-      ))}
+      {messages.map((message: any, index) => {
+
+        // Empty messages apear in the array, return null when that happens.
+        // remove this line when fixed.
+        if(!message?.display?.props?.children) return null;
+
+        return (
+          <div key={message.id}>
+            {message.display}
+            {index < messages.length - 1 && <Separator className="my-4" />}
+          </div>
+        )
+      })}
     </div>
   )
 }
