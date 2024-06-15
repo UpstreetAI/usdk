@@ -8,6 +8,7 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 interface ActionsContext {
   isSearchOpen: boolean
   toggleSearch: () => void
+  localPlayerSpec: PlayerSpec
   playersMap: Map<string, Player>
   messages: object[]
   getRoom: () => string
@@ -37,7 +38,7 @@ export type PlayerSpec = {
   previewUrl: string
 };
 
-class Player {
+export class Player {
   playerId: string;
   playerSpec: PlayerSpec;
   constructor(playerId = '', playerSpec: PlayerSpec) {
@@ -353,19 +354,15 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 export function ActionsProvider({ children }: ActionsProviderProps) {
   const [isSearchOpen, setSearchOpen] = React.useState<boolean>(false)
   const [messages, setMessages] = React.useState<object[]>([] as object[])
+  const [localPlayerSpec, setLocalPlayerSpec] = React.useState<PlayerSpec>({
+    id: '',
+    name: '',
+    previewUrl: '',
+  });
   const [playersMap, setPlayersMap] = React.useState<Map<string, Player>>(new Map());
   
   const realmsSpec = React.useMemo(() => {
-    let userId = '';
-    let name = '';
     let room = '';
-
-    let localPlayerSpec: PlayerSpec = {
-      id: '',
-      name: '',
-      previewUrl: '',
-    };
-
     let realms: NetworkRealms | null = null;
     return {
       getRoom: () => room,
@@ -382,26 +379,19 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
         if (room !== newRoom) {
           room = newRoom;
-          localPlayerSpec = newLocalPlayerSpec;
           if (realms) {
             realms.disconnect();
             realms = null;
           }
 
+          setLocalPlayerSpec(newLocalPlayerSpec);
           setMessages([]);
 
-          userId = crypto.randomUUID();
-          name = 'Anonymous';
-          realms = connectMultiplayer(room, localPlayerSpec);
+          realms = connectMultiplayer(room, newLocalPlayerSpec);
 
           realms.addEventListener('chat', (e) => {
             const { message } = (e as any).data;
-            // console.log('got chat message', message);
-            setMessages((prev: object[]) => {
-              const newMessages = [...prev, message];
-              // console.log('got new messages', newMessages);
-              return newMessages;
-            });
+            setMessages((prev: object[]) => [...prev, message]);
           });
           realms.addEventListener('playerschange', (e) => {
             setPlayersMap((e as any).data);
@@ -437,7 +427,7 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
   return (
     <ActionsContext.Provider
-      value={{ isSearchOpen, toggleSearch, playersMap, messages, getRoom, setMultiplayerConnectionParameters, sendChatMessage }}
+      value={{ isSearchOpen, toggleSearch, localPlayerSpec, playersMap, messages, getRoom, setMultiplayerConnectionParameters, sendChatMessage }}
     >
       {children}
     </ActionsContext.Provider>
