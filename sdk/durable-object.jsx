@@ -296,9 +296,11 @@ export class DurableObject extends EventTarget {
           debugger;
         }
 
+        const agentJson = this.getAgentJson();
         const leaveMessage = {
           userId: guid,
           method: 'leave',
+          name: agentJson.name,
           args: {
             playerId,
           },
@@ -684,12 +686,13 @@ export class DurableObject extends EventTarget {
           }
           await this.join(room);
 
+          const agentJson = this.getAgentJson();
           const joinMessage = {
             userId: guid,
             method: 'join',
-            name: this.agent.name,
+            name: agentJson.name,
             args: {
-              guid,
+              playerId: guid,
             },
           };
           await this.conversationContext.addLocalAndRemoteMessage(joinMessage);
