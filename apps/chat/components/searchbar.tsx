@@ -16,27 +16,33 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
+import { getJWT } from '@/lib/getJWT';
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
   const { signal } = opts;
 
-  const supabase = createClient();
-  const embedding = await lembed(query, {
-    signal,
-  });
-  const rpc = supabase.rpc.bind(supabase) as any;
+  const jwt = await getJWT();
+  if (jwt) {
+    const supabase = createClient();
+    const embedding = await lembed(query, {
+      signal,
+    });
+    const rpc = supabase.rpc.bind(supabase) as any;
 
-  const result = await rpc('match_assets', {
-    embedding,
-    match_threshold: 0.2,
-    match_count: 10,
-  });
+    const result = await rpc('match_assets', {
+      embedding,
+      match_threshold: 0.2,
+      match_count: 10,
+    });
 
-  const { error, data } = result;
-  if (!error) {
-    return data;
+    const { error, data } = result;
+    if (!error) {
+      return data;
+    } else {
+      throw new Error(JSON.stringify(error));
+    }
   } else {
-    throw new Error(JSON.stringify(error));
+    return [];
   }
 }
 
