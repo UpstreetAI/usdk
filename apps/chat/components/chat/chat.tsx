@@ -64,7 +64,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
         display: (
           <>
             {/*{ JSON.stringify(rawMessage)}*/}
-            { getMessageComponent(user, rawMessage, playersMap)}
+            { getMessageComponent(room, user, rawMessage, playersMap)}
           </>
         ),
       };
@@ -148,7 +148,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   )
 }
 
-function getMessageComponent(user: User, message: Message, playersMap: any) {
+function getMessageComponent(room: string, user: User|null, message: Message, playersMap: any) {
   switch(message.method) {
     case 'join': return (
       <div className="opacity-60">
@@ -188,6 +188,7 @@ function getMessageComponent(user: User, message: Message, playersMap: any) {
           name={ message.name }
           media={ media }
           player={ playersMap.get(message.userId)}
+          room={room}
           timestamp={message.timestamp}
           user={user}
         />
