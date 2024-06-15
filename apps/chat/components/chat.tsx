@@ -1,7 +1,6 @@
 'use client'
+
 import { type User } from '@supabase/supabase-js';
-import { useUIState, useAIState } from 'ai/rsc'
-import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -9,12 +8,14 @@ import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-
+import { useAIState } from 'ai/rsc'
 import { Message } from '@/lib/types'
+import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
 
 import { useActions } from '@/components/ui/actions'
+
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
