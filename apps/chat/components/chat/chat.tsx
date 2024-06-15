@@ -1,11 +1,13 @@
 'use client'
 
+import { ChatMessage } from '@/components/chat/chat-message'
+import { ChatMessageOld } from '@/components/chat/chat-message-old'
 import { type User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { ChatList } from '@/components/chat-list'
-import { ChatPanel } from '@/components/chat-panel'
+import { ChatList } from '@/components/chat/chat-list'
+import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 // import { useAIState } from 'ai/rsc'
@@ -41,8 +43,10 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
         id: index,
         display: (
           <>
-            <div>{rawMessage.name}</div>
-            <div>{rawMessage.args.text}</div>
+            <ChatMessage
+              name={ rawMessage.name }
+              content={rawMessage.args.text}
+            />
           </>
         ),
       };

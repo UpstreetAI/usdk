@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils'
 import { CodeBlock } from '@/components/ui/codeblock'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { IconOpenAI, IconUser } from '@/components/ui/icons'
-import { ChatMessageActions } from '@/components/chat-message-actions'
+import { ChatMessageActions } from '@/components/chat/chat-message-actions'
 
-export interface ChatMessageProps {
+export interface ChatMessageOldProps {
   message: Message
 }
 
-export function ChatMessage({ message, ...props }: ChatMessageProps) {
+export function ChatMessageOld( { message, ...props }: ChatMessageOldProps) {
   return (
     <div
       className={cn('group relative mb-4 flex items-start md:-ml-12')}

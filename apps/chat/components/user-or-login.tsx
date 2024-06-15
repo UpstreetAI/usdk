@@ -1,6 +1,6 @@
 import * as React from 'react'
 // import { auth } from '@/auth'
-import { ChatHistory } from '@/components/chat-history'
+import { ChatHistory } from '@/components/chat/chat-history'
 import { HeaderLoginButton } from '@/components/header-login-button'
 import { SidebarMobile } from '@/components/sidebar-mobile'
 import { SidebarToggle } from '@/components/sidebar-toggle'
