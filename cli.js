@@ -694,6 +694,34 @@ const login = async (args) => {
 const logout = async (args) => {
   await rimraf(loginLocation);
 };
+const authorize = async (args) => {
+  const appDirectory = args._[0] ?? cwd;
+
+  const wranglerTomlPath = path.join(appDirectory, 'wrangler.toml');
+  let s = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    let t = toml.parse(s);
+
+    const guid = t.vars.GUID;
+    const agentToken = await getAgentToken(jwt, guid);
+    if (agentToken) {
+      t = setWranglerTomlAgentToken(t, { agentToken });
+      s = toml.stringify(t);
+
+      await fs.promises.writeFile(wranglerTomlPath, s);
+
+      console.log('agent authorized');
+    } else {
+      console.warn('could not get agent token');
+      process.exit(1);
+    }
+  } else {
+    console.warn('you are not logged in!');
+    process.exit(1);
+  }
+};
 const wear = async (args) => {
   const guid = args._[0] ?? '';
 
@@ -2030,10 +2058,43 @@ const buildWranglerToml = (
     t.vars.AGENT_TOKEN = agentToken;
   } else {
     console.warn(
-      'note: you are not logged in, so the agent token will not be set',
+      dedent`
+        Note: you are not logged in, so the agent token will not be set. You can set this later by doing:
+          usdk login
+          usdk authorize
+      `,
     );
   }
   return t;
+};
+const setWranglerTomlAgentToken = (
+  t,
+  { agentToken },
+) => {
+  t.vars.AGENT_TOKEN = agentToken;
+  return t;
+};
+const getAgentToken = async (jwt, guid) => {
+  const jwtRes = await fetch(`${metamaskHost}/agent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify({
+      agentId: guid,
+      supabaseJwt: jwt,
+    }),
+  });
+  if (jwtRes.ok) {
+    const j = await jwtRes.json();
+    return j;
+  } else {
+    const text = await jwtRes.text();
+    console.warn(
+      `Failed to get agent token: ${text}`,
+    );
+  }
 };
 const create = async (args) => {
   if (args.prompt && args.template) {
@@ -2084,31 +2145,16 @@ const create = async (args) => {
   await mkdirp(dstDir);
 
   // load agent login token
-  console.log('authenticating...');
+  console.log('authorizing agent...');
   const jwt = await getLoginJwt();
   let agentToken = null;
   if (jwt !== null) {
-    // console.log('getting jwt 1');
-    const jwtRes = await fetch(`${metamaskHost}/agent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Authorization: `Bearer ${jwt}`,
-      },
-      body: JSON.stringify({
-        agentId: guid,
-        supabaseJwt: jwt,
-      }),
-    });
-    if (jwtRes.ok) {
-      const j = await jwtRes.json();
-      agentToken = j;
-    } else {
-      const text = await jwtRes.text();
-      console.warn(
-        `agent login failed; this means your agent will not be allowed to able to run inference: ${text}`,
-      );
+    agentToken = await getAgentToken(jwt, guid);
+    if (!agentToken) {
+      console.warn('Note: could not authorize agent; this means your agent will not be allowed to run inference.')
     }
+  } else {
+    console.warn('Note: you are not logged in; this means your agent will not be allowed to run inference.');
   }
 
   // generate the agent if necessary
@@ -3007,6 +3053,20 @@ const main = async () => {
           ...opts,
         };
         await login(args);
+      });
+    });
+  program
+    .command('authorize')
+    .description('Authorize an agent of the SDK')
+    .argument(`[directory]`, `The directory to create the project in`)
+    .action(async (directory = '',opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [directory],
+          ...opts,
+        };
+        await authorize(args);
       });
     });
   program
