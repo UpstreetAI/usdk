@@ -1,11 +1,11 @@
 'use client'
 
-import { useSuspense } from '@rest-hooks/react';
-import { Endpoint } from '@rest-hooks/endpoint';
+// import { Endpoint } from '@rest-hooks/endpoint';
 import { redirect } from 'next/navigation'
 import { loadJWT } from '@/lib/loadJWT'
 import { saveJWT } from '@/lib/saveJWT'
 import { createClient } from '@/utils/supabase/client';
+import { useEffect, useState } from 'react'
 
 
 const authTokenParam = 'auth_token'
@@ -14,11 +14,19 @@ const aiHost = 'https://ai.upstreet.ai'
 const otpURL = `${aiHost}/api/otp`
 
 
-const endpoint = new Endpoint(getJWT);
+// const endpoint = new Endpoint(getJWT);
 
 
 export default function LoginAuthToken() {
-  useSuspense(endpoint);
+  let isLoading = false
+
+  useEffect( () => {
+    console.log( 'LOADING:', isLoading)
+    if (!isLoading) {
+      isLoading = true;
+      getJWT().catch(console.error);
+    }
+  }, [] )
 
   return null
 }
