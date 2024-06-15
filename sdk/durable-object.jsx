@@ -687,6 +687,7 @@ export class DurableObject extends EventTarget {
           const joinMessage = {
             userId: guid,
             method: 'join',
+            name: this.agent.name,
             args: {
               guid,
             },
