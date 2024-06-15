@@ -1,8 +1,7 @@
 import React from 'react';
-// import * as ethers from 'ethers';
+import dedent from 'dedent';
 import 'localstorage-polyfill';
 import ReactReconciler from 'react-reconciler';
-// import format from 'format-util';
 import {
   Agent,
   Action,
