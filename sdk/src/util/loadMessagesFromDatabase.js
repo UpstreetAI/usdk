@@ -18,6 +18,7 @@ function transformMessage(messages) {
     method: message.method,
     userId: message.src_user_id,
     name: message.src_name,
+    timestamp: message.created_at,
     args: message.args,
   }));
 }
