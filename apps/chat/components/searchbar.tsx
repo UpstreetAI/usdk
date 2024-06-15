@@ -183,7 +183,7 @@ export function SearchBar() {
     }} onBlur={e => {
       setFocus(false);
     }} tabIndex={-1}>
-      <div className="relative flex flex-col m-auto size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
+      <div className="relative flex flex-col m-auto translate-x-[-44px] size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
         <div className={cn("absolute px-8 items-center inset-y-0 right-0 flex md:hidden")} onClick={e => {
           toggleSearch();
         }}>
