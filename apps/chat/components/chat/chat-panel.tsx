@@ -37,21 +37,9 @@ export function ChatPanel({
   // const [messages, setMessages] = useUIState<typeof AI>()
   // const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-  const [roomValue, setRoomValue] = React.useState('')
-  const inputRef = React.useRef<HTMLInputElement>(null)
 
   function joinRoom() {
-    location.href = `/rooms/${encodeURIComponent(roomValue)}`
-  }
-  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (
-      event.key === 'Enter' &&
-      !event.shiftKey // &&
-      // !event.nativeEvent.isComposing
-    ) {
-      joinRoom();
-      event.preventDefault()
-    }
+    location.href = `/rooms/${crypto.randomUUID()}`;
   }
 
   const exampleMessages = [
@@ -150,22 +138,6 @@ export function ChatPanel({
         {!room && (
           <div className="flex items-center justify-center">
             <div className="flex flex-col gap-2 w-full rounded-t-lg border bg-background p-8">
-              <input
-                type="text"
-                ref={inputRef}
-                tabIndex={0}
-                onKeyDown={onKeyDown}
-                placeholder="Join a room"
-                className="w-full resize-none bg-zinc-900 px-4 py-2 rounded-lg focus-within:outline-none sm:text-sm"
-                // autoFocus
-                spellCheck={false}
-                autoComplete="off"
-                autoCorrect="off"
-                name="message"
-                // rows={1}
-                value={roomValue}
-                onChange={e => setRoomValue(e.target.value)}
-              />
               <Button
                 variant="outline"
                 onClick={() => {
@@ -173,7 +145,7 @@ export function ChatPanel({
                 }}
               >
                 {/* <IconShare className="mr-2" /> */}
-                Join
+                Create chat
               </Button>
               {/* <p className="text-muted-foreground text-lg font-semibold">
                 Please select a chat to start chatting

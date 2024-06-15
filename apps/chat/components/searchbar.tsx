@@ -18,7 +18,6 @@ import {
 import { lembed } from '@/utils/ai/embedding';
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
-  // console.log('search', query, opts);
   const { signal } = opts;
 
   const supabase = createClient();
@@ -185,7 +184,7 @@ export function SearchBar() {
         }}>
           <IconClose />
         </div>
-        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find something..." onChange={e => {
+        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
         <div className={cn("absolute left-0 top-16 px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
@@ -201,21 +200,24 @@ export function SearchBar() {
                   <div className="text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
-                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }))} onMouseDown={e => {
+                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }))} onMouseDown={async e => {
                     e.preventDefault();
                     e.stopPropagation();
 
-                    console.log('join agent', agent.id);
+                    // console.log('join agent', agent.id);
 
-                    const room = getRoom();
+                    const oldRoom = getRoom();
+                    const room = oldRoom || crypto.randomUUID();
                     const guid = agent.id;
-
-                    joinAgent({
+                    await joinAgent({
                       room,
                       guid,
-                    }).catch( console.error );
-                  }}>
+                    });
 
+                    if (!/\/rooms\//.test(location.pathname)) {
+                      location.href = `/rooms/${room}`;
+                    }
+                  }}>
                     <IconPlus />
                   </Link>
                 </div>
