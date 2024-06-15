@@ -17,7 +17,7 @@ export interface ChatMessageProps {
   player: any
   room: string
   timestamp: number
-  user: User|null
+  user: User | null
 }
 
 export function ChatMessage({
@@ -42,9 +42,9 @@ export function ChatMessage({
     <div>
       {/*{ JSON.stringify( player )}*/}
       <div className={"grid grid-cols-message bt-0"}>
-      <div className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+        <div className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
-    {avatarURL ? (
+          {avatarURL ? (
             <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
@@ -108,7 +108,7 @@ export function ChatMessageVideo({
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
         <source src={url} type="video/mp4" />
-          Your browser does not support the video tag.
+        Your browser does not support the video tag.
       </video>
     </div>
   )
