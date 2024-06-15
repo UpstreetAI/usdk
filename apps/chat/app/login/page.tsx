@@ -1,13 +1,12 @@
-import { auth } from '@/auth'
 import AuthToken from '@/components/login-auth-token'
 // import LoginForm from '@/components/login-form'
-import { Session } from '@/lib/types'
+import { getUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function LoginPage() {
-  const session = (await auth()) as Session
+  const user = await getUser()
 
-  if (session) {
+  if (user) {
     redirect('/')
   }
 

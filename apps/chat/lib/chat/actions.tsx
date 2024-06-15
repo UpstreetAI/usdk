@@ -1,4 +1,5 @@
 import 'server-only'
+import { getUser } from '@/utils/supabase/server'
 
 import {
   createAI,
@@ -490,9 +491,9 @@ export const AI = createAI<AIState, UIState>({
   onGetUIState: async () => {
     'use server'
 
-    const session = await auth()
+    const user = await getUser()
 
-    if (session && session.user) {
+    if (user) {
       const aiState = getAIState()
 
       if (aiState) {
@@ -506,13 +507,13 @@ export const AI = createAI<AIState, UIState>({
   onSetAIState: async ({ state }) => {
     'use server'
 
-    const session = await auth()
+    const user = await getUser()
 
-    if (session && session.user) {
+    if (user) {
       const { chatId, messages } = state
 
       const createdAt = new Date()
-      const userId = session.user.id as string
+      const userId = user.id as string
       const path = `/chat/${chatId}`
 
       const firstMessageContent = messages[0].content as string
