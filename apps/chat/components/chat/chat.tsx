@@ -36,7 +36,7 @@ type Message = {
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
-  user?: User|null
+  user: User|null
   missingKeys: string[]
   room?: string
 }
