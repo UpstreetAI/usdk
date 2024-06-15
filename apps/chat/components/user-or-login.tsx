@@ -1,3 +1,4 @@
+import { getUser } from '@/utils/auth-helpers/getUser'
 import * as React from 'react'
 import { cookies } from 'next/headers'
 // import { auth } from '@/auth'
@@ -13,7 +14,7 @@ export async function UserOrLogin() {
   // const session = (await auth()) as Session
   const
     client = createClient(),
-    user = await client.auth.getUser();
+    user = await getUser(client);
 
   return (
     <>
