@@ -3,6 +3,8 @@ import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
 import { resolveRelativeUrl } from '@/lib/utils'
 
+import type { User } from '@supabase/supabase-js'
+
 
 TimeAgo.addDefaultLocale(en)
 const timeAgo = new TimeAgo('en-US')
@@ -14,6 +16,7 @@ export interface ChatMessageProps {
   name: string
   player: any
   timestamp: number
+  user: User
 }
 
 export function ChatMessage({
@@ -22,7 +25,17 @@ export function ChatMessage({
   name,
   player,
   timestamp,
+  user,
 }: ChatMessageProps) {
+  const isUser = player.playerId === user.id
+
+  const avatarURL =
+    player.playerSpec.previewUrl
+    || isUser
+      ? user?.user_metadata?.avatar_url
+      : null
+
+
 
   return (
     <div>
