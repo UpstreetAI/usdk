@@ -14,6 +14,12 @@ module.exports = {
         port: '',
         pathname: '**'
       },
+      {
+        protocol: 'https',
+        hostname: '*.discordapp.com',
+        port: '',
+        pathname: '**'
+      },
     ]
   }
 }
