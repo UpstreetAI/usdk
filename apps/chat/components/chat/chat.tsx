@@ -22,6 +22,9 @@ import { useActions } from '@/components/ui/actions'
 type Message = {
   args: {
     text: string
+    audio?: string
+    image?: string
+    video?: string
   }
 
   method: string
@@ -133,7 +136,6 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   )
 }
 
-
 function getMessageComponent(message: Message, playersMap: any) {
   switch(message.method) {
     case 'join': return (
@@ -147,15 +149,32 @@ function getMessageComponent(message: Message, playersMap: any) {
         { message.name } left the room.
       </div>
     )
+    
+    case 'say': {
 
-    case 'say': return (
-      <ChatMessage
-        content={message.args.text}
-        name={ message.name }
-        player={ playersMap.get(message.userId)}
-        timestamp={message.timestamp}
-      />
-    )
+      let media = {};
+
+      if(message.args.audio) media = { type: 'audio', media: message.args.audio };
+      if(message.args.video) media = { type: 'video', media: message.args.video };
+      if(message.args.image) media = { type: 'image', media: message.args.image };
+
+      // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED
+      // to use just send: test audio, test video or test image as a message
+      if(message.args.text === 'test audio') media = { type: 'audio', media: message.args.audio };
+      if(message.args.text === 'test video') media = { type: 'video', media: message.args.video };
+      if(message.args.text === 'test image') media = { type: 'image', media: message.args.image };
+      // TEST MESSAGE COMPONENTS END
+
+      return (
+        <ChatMessage
+          content={message.args.text}
+          name={ message.name }
+          media={ media }
+          player={ playersMap.get(message.userId)}
+          timestamp={message.timestamp}
+        />
+      )
+    }
 
     default: return null
   }
