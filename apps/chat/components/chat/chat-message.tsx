@@ -15,6 +15,7 @@ export interface ChatMessageProps {
   media: any
   name: string
   player: any
+  room: string
   timestamp: number
   user: User|null
 }
@@ -24,6 +25,7 @@ export function ChatMessage({
   media,
   name,
   player,
+  room,
   timestamp,
   user,
 }: ChatMessageProps) {
@@ -31,19 +33,19 @@ export function ChatMessage({
 
   const avatarURL =
     player.playerSpec.previewUrl
-    || isUser
-      ? user?.user_metadata?.avatar_url
-      : null
-
-
+      ? resolveRelativeUrl(player.playerSpec.previewUrl)
+      : isUser
+        ? user?.user_metadata?.avatar_url
+        : null
 
   return (
     <div>
-      {/*{ JSON.stringify( player )}*/}
+      { JSON.stringify( player )}
       <div className={"grid grid-cols-message bt-0"}>
-        <div className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
-          {player.playerSpec.previewUrl ? (
-            <Image src={resolveRelativeUrl(player.playerSpec.previewUrl)} alt="" className="s-300" width={48} height={48} />
+      <div className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+
+    {avatarURL ? (
+            <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
           )}
@@ -130,5 +132,3 @@ export function ChatMessageImage({
     </div>
   )
 }
-
-
