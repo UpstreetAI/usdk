@@ -18,6 +18,8 @@ import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 
+import { useActions as useUiActions } from '@/components/ui/actions'
+
 export function PromptForm({
   input,
   setInput
@@ -30,6 +32,8 @@ export function PromptForm({
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
+
+  const { sendChatMessage } = useUiActions()
 
   // React.useEffect(() => {
   //   if (inputRef.current) {
@@ -52,18 +56,20 @@ export function PromptForm({
         setInput('')
         if (!value) return
 
-        // Optimistically add user message UI
-        setMessages(currentMessages => [
-          ...currentMessages,
-          {
-            id: nanoid(),
-            display: <UserMessage>{value}</UserMessage>
-          }
-        ])
+        // // Optimistically add user message UI
+        // setMessages(currentMessages => [
+        //   ...currentMessages,
+        //   {
+        //     id: nanoid(),
+        //     display: <UserMessage>{value}</UserMessage>
+        //   }
+        // ])
 
         // Submit and get response message
-        const responseMessage = await submitUserMessage(value)
-        setMessages(currentMessages => [...currentMessages, responseMessage])
+        // const responseMessage = await submitUserMessage(value)
+        // setMessages(currentMessages => [...currentMessages, responseMessage])
+        console.log('submit chat message', value);
+        sendChatMessage(value);
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">

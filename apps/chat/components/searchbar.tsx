@@ -5,7 +5,7 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { cn } from '@/lib/utils'
+import { cn, resolveRelativeUrl } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { createClient } from '@/utils/supabase/client';
 import { buttonVariants } from '@/components/ui/button'
@@ -17,10 +17,6 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
-
-function resolveUrl(url: string) {
-  return new URL(url, `https://nota.upstreet.ai`) + '';
-}
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
   // console.log('search', query, opts);
@@ -44,6 +40,78 @@ async function search(query: string, opts: { signal: AbortSignal; }) {
   }
 }
 
+//
+
+const getAgentName = (guid: string) => `user-agent-${guid}`;
+const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
+const connectAgentWs = (guid: string) =>
+  new Promise((accept, reject) => {
+    const agentHost = getAgentHost(guid);
+    // console.log('got agent host', guidOrDevPathIndex, agentHost);
+    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
+    // console.log('handle websocket', u);
+    // await pause();
+    const ws = new WebSocket(u);
+    ws.addEventListener('open', () => {
+      accept(ws);
+    });
+    ws.addEventListener('message', (e) => {
+      // const message = e.data;
+      // console.log('got ws message', guid, message);
+    });
+    ws.addEventListener('error', (err) => {
+      console.warn('unhandled ws rejection', err);
+      reject(err);
+    });
+    // ws.addEventListener('message', (e) => {
+    //   console.log('got ws message', e);
+    // });
+  });
+const joinAgent = async ({
+  room,
+  guid,
+}: {
+  room: string;
+  guid: string;
+}) => {
+  // cause the agent to join the room
+  const agentHost = getAgentHost(guid);
+  // console.log('get agent host', {
+  //   guidOrDevPathIndex,
+  //   agentHost,
+  // });
+  const u = `${agentHost}/join`;
+  // console.log('join 1', u);
+  const headers = {};
+  // if (!dev) {
+    // const jwt = await getLoginJwt();
+    const jwt = localStorage.getItem('jwt');
+    (headers as any).Authorization = `Bearer ${jwt}`;
+  // }
+  const joinReq = await fetch(u, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      room,
+    }),
+  });
+  if (joinReq.ok) {
+    const joinJson = await joinReq.json();
+    // console.log('join 2', joinJson);
+
+    const ws = await connectAgentWs(guid);
+    return ws;
+  } else {
+    const text = await joinReq.text();
+    console.warn(
+      'failed to join, status code: ' + joinReq.status + ': ' + text,
+    );
+    process.exit(1);
+  }
+};
+
+//
+
 type AgentObject = {
   id: string;
   name: string;
@@ -51,13 +119,26 @@ type AgentObject = {
   preview_url: string;
 };
 
+function AgentLink(props: any) {
+  const { name } = props;
+  return (
+    <Link href={`/agents/${encodeURIComponent(name)}`} onMouseDown={e => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // open the link in the current window
+      location.href = e.currentTarget.href;
+    }} {...props} />
+  )
+}
+
 export function SearchBar() {
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
   const [results, setResults] = React.useState<AgentObject[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const { isSearchOpen, toggleSearch } = useActions();
+  const { isSearchOpen, toggleSearch, getRoom } = useActions();
 
   // focus search
   React.useEffect(() => {
@@ -110,9 +191,11 @@ export function SearchBar() {
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
-                <Image src={resolveUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
+                <AgentLink name={agent.name}>
+                  <Image src={resolveRelativeUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
+                </AgentLink>
                 <div className="flex flex-col flex-1">
-                  <div className="text-lg font-bold">{agent.name}</div>
+                  <AgentLink name={agent.name} className="text-lg font-bold hover:underline">{agent.name}</AgentLink>
                   <div className="text-base">{agent.description}</div>
                   <div className="text-sm text-zinc-600">{agent.id}</div>
                 </div>
@@ -122,6 +205,13 @@ export function SearchBar() {
                     e.stopPropagation();
 
                     console.log('join agent', agent.id);
+
+                    const room = getRoom();
+                    const guid = agent.id;
+                    joinAgent({
+                      room,
+                      guid,
+                    });
                   }}>
                     <IconPlus />
                   </Link>

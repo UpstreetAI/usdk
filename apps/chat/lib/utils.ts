@@ -87,3 +87,7 @@ export const getMessageFromCode = (resultCode: string) => {
       return 'Logged in!'
   }
 }
+
+export function resolveRelativeUrl(url: string) {
+  return url && new URL(url, `https://nota.upstreet.ai`) + '';
+}

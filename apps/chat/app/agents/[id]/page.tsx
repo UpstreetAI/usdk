@@ -5,7 +5,7 @@ import { createClient } from '@/utils/supabase/server';
 
 type Params = {
   params: {
-    agent: string;
+    id: string;
   };
 };
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
   } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
-  const agentName = decodeURIComponent(params.agent)
+  const agentName = decodeURIComponent(params.id)
 
   const { data: agentData } = await supabase
     .from('assets')
@@ -67,14 +67,13 @@ export async function generateMetadata({
 }
 
 export default async function AgentProfilePage({ params }: Params) {
-
   const supabase = createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
-  const agentName = decodeURIComponent(params.agent)
+  const agentName = decodeURIComponent(params.id)
 
   const { data: agentData } = await supabase
     .from('assets')

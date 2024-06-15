@@ -9,24 +9,49 @@ import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { Message } from '@/lib/types'
+import { useEffect, useMemo, useState } from 'react'
+import { useUIState, useAIState } from 'ai/rsc'
+import { Message, Session } from '@/lib/types'
+import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
+import { toast } from 'sonner'
+import { UIState } from '@/lib/chat/actions'
+
+import { useActions } from '@/components/ui/actions'
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
   user?: User|null
   missingKeys: string[]
+  room?: string
 }
 
-export function Chat({ id, className, user, missingKeys }: ChatProps) {
+export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
-  const [messages] = useUIState()
+  // const [messages] = useUIState()
   const [aiState] = useAIState()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
+
+  const { setRoom, messages: rawMessages, sendChatMessage } = useActions()
+  const messages = rawMessages.map((rawMessage: any, index: number) => {
+    if (rawMessage.method === 'say') {
+      return {
+        id: index,
+        display: (
+          <>
+            <div>{rawMessage.name}</div>
+            <div>{rawMessage.args.text}</div>
+          </>
+        ),
+      };
+    } else {
+      return null;
+    }
+  }).filter((message) => message !== null) as unknown as UIState;
 
   useEffect(() => {
     if (user) {
@@ -53,6 +78,12 @@ export function Chat({ id, className, user, missingKeys }: ChatProps) {
     })
   }, [missingKeys])
 
+  useEffect(() => {
+    if (room) {
+      setRoom(room);
+    }
+  }, [room, setRoom]);
+
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor()
 
@@ -78,6 +109,9 @@ export function Chat({ id, className, user, missingKeys }: ChatProps) {
         setInput={setInput}
         isAtBottom={isAtBottom}
         scrollToBottom={scrollToBottom}
+        room={room}
+        messages={messages}
+        sendChatMessage={sendChatMessage}
       />
     </div>
   )
