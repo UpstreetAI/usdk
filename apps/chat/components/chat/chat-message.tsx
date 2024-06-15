@@ -28,8 +28,12 @@ export function ChatMessage({
     <div>
       {/*{ JSON.stringify( player )}*/}
       <div className={"grid grid-cols-message"}>
-        <div className="mr-4">
-          <Image src={resolveRelativeUrl(player.playerSpec.previewUrl)} alt="" className="s-300" width={48} height={48} />
+        <div className="mr-4 h-12 w-12 min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+          {player.playerSpec.previewUrl ? (
+            <Image src={resolveRelativeUrl(player.playerSpec.previewUrl)} alt="" className="s-300" width={48} height={48} />
+          ) : (
+            <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
+          )}
         </div>
         <div className="">
           <span className="font-bold mr-2">
