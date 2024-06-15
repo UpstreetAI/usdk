@@ -55,24 +55,23 @@ export function PromptForm({
     console.log('submit chat message', value);
     sendChatMessage(value);
   };
+
   const onKeyDown = (
     event: React.KeyboardEvent<HTMLTextAreaElement>
   ): void => {
-    if (
-      event.key === 'Enter' &&
-      !event.shiftKey
-    ) {
+    if (event.key === 'Enter' && !event.shiftKey) {
       // formRef.current?.requestSubmit()
-      event.preventDefault()
-
+      event.preventDefault();
+  
       // Blur focus on mobile
       if (window.innerWidth < 600) {
-        event.target['message']?.blur()
+        const target = event.target as HTMLTextAreaElement;
+        target.blur();
       }
-
+  
       submitMessage();
     }
-  }
+  };
 
   // React.useEffect(() => {
   //   if (inputRef.current) {
@@ -85,6 +84,7 @@ export function PromptForm({
       // ref={formRef}
       onSubmit={async (e: any) => {
         e.preventDefault()
+        submitMessage()
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">

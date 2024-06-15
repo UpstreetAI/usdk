@@ -11,7 +11,7 @@ import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 // import { useAIState } from 'ai/rsc'
-import { Message } from '@/lib/types'
+// import { Message } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
@@ -22,6 +22,9 @@ import { useActions } from '@/components/ui/actions'
 type Message = {
   args: {
     text: string
+    audio?: string
+    image?: string
+    video?: string
   }
 
   method: string
@@ -133,7 +136,6 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   )
 }
 
-
 function getMessageComponent(message: Message, playersMap: any) {
   switch(message.method) {
     case 'join': return (
@@ -147,15 +149,37 @@ function getMessageComponent(message: Message, playersMap: any) {
         { message.name } left the room.
       </div>
     )
+    
+    case 'say': {
 
-    case 'say': return (
-      <ChatMessage
-        content={message.args.text}
-        name={ message.name }
-        player={ playersMap.get(message.userId)}
-        timestamp={message.timestamp}
-      />
-    )
+      let media = null;
+
+      if(message.args.audio) media = { type: 'audio', url: message.args.audio };
+      if(message.args.video) media = { type: 'video', url: message.args.video };
+      if(message.args.image) media = { type: 'image', url: message.args.image };
+
+      // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
+      // Usage:
+      // test audio [AUDIO_URL]
+      // test video [VIDEO_URL]
+      // test image [IMAGE_URL]
+      const match = message.args.text.match(/\[([^\]]+)\]/);
+      const url = match && match[1]
+      if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
+      if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
+      if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
+      // TEST MESSAGE COMPONENTS END
+
+      return (
+        <ChatMessage
+          content={message.args.text}
+          name={ message.name }
+          media={ media }
+          player={ playersMap.get(message.userId)}
+          timestamp={message.timestamp}
+        />
+      )
+    }
 
     default: return null
   }

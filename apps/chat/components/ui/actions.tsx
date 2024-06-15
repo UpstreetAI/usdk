@@ -162,7 +162,7 @@ const connectMultiplayer = (room: string, {
           ${`You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.`}
           In the room (${room}):
           ${agentJsons
-            .map((agent) => {
+            .map((agent: any) => {
               return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
             })
             .join('\n')
