@@ -19,6 +19,18 @@ import { UIState } from '@/lib/chat/actions'
 import { useActions } from '@/components/ui/actions'
 
 
+type Message = {
+  args: {
+    text: string
+  }
+
+  method: string
+  name: string
+  timestamp: number
+  userId: string
+}
+
+
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -37,22 +49,21 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   const { setRoom, playersMap, messages: rawMessages, sendChatMessage } = useActions()
+
   const messages = rawMessages.map((rawMessage: any, index: number) => {
-    if (rawMessage.method === 'say') {
+    // if (rawMessage.method === 'say') {
       return {
         id: index,
         display: (
           <>
-            <ChatMessage
-              name={ rawMessage.name }
-              content={rawMessage.args.text}
-            />
+            {/*{ JSON.stringify(rawMessage)}*/}
+            { getMessageComponent(rawMessage, playersMap)}
           </>
         ),
       };
-    } else {
-      return null;
-    }
+    // } else {
+    //   return null;
+    // }
   }).filter((message) => message !== null) as unknown as UIState;
 
   /*useEffect(() => {
@@ -120,4 +131,32 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
       />
     </div>
   )
+}
+
+
+function getMessageComponent(message: Message, playersMap: any) {
+  switch(message.method) {
+    case 'join': return (
+      <div className="opacity-60">
+        { message.name } joined the room.
+      </div>
+    )
+
+    case 'leave': return (
+      <div className="opacity-60">
+        { message.name } left the room.
+      </div>
+    )
+
+    case 'say': return (
+      <ChatMessage
+        content={message.args.text}
+        name={ message.name }
+        player={ playersMap.get(message.userId)}
+        timestamp={message.timestamp}
+      />
+    )
+
+    default: return null
+  }
 }
