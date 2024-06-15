@@ -197,11 +197,11 @@ export function SearchBar() {
             {results.map((agent, i) => (
               <div className="flex p-4" key={i}>
                 <AgentLink name={agent.name}>
-                  <Image src={resolveRelativeUrl(agent.preview_url)} className="size-[100px]" width={100} height={100} alt="Avatar" />
+                  <Image src={resolveRelativeUrl(agent.preview_url)} className="size-[80px] mr-2 rounded" width={80} height={80} alt="Avatar" />
                 </AgentLink>
                 <div className="flex flex-col flex-1">
                   <AgentLink name={agent.name} className="text-lg font-bold hover:underline">{agent.name}</AgentLink>
-                  <div className="text-base">{agent.description}</div>
+                  <div className="text-base max-h-[52px] overflow-hidden">{agent.description}</div>
                   <div className="text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
