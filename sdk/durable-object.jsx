@@ -296,7 +296,7 @@ export class DurableObject extends EventTarget {
           debugger;
         }
 
-        const agentJson = this.getAgentJson();
+        /* const agentJson = this.getAgentJson();
         const leaveMessage = {
           userId: guid,
           method: 'leave',
@@ -305,7 +305,7 @@ export class DurableObject extends EventTarget {
             playerId,
           },
         };
-        await this.conversationContext.addLocalAndRemoteMessage(leaveMessage);
+        await this.conversationContext.addLocalAndRemoteMessage(leaveMessage); */
       });
     };
     _trackRemotePlayers();
@@ -686,7 +686,7 @@ export class DurableObject extends EventTarget {
           }
           await this.join(room);
 
-          const agentJson = this.getAgentJson();
+          /* const agentJson = this.getAgentJson();
           const joinMessage = {
             userId: guid,
             method: 'join',
@@ -695,7 +695,7 @@ export class DurableObject extends EventTarget {
               playerId: guid,
             },
           };
-          await this.conversationContext.addLocalAndRemoteMessage(joinMessage);
+          await this.conversationContext.addLocalAndRemoteMessage(joinMessage); */
 
           return new Response(JSON.stringify({ ok: true }), {
             headers,
