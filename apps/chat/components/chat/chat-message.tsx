@@ -10,6 +10,7 @@ const timeAgo = new TimeAgo('en-US')
 
 export interface ChatMessageProps {
   content: string
+  media: object
   name: string
   player: any
   timestamp: number
@@ -17,6 +18,7 @@ export interface ChatMessageProps {
 
 export function ChatMessage({
   content,
+  media,
   name,
   player,
   timestamp,
