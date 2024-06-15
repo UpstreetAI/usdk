@@ -34,3 +34,10 @@ export const createClient = (jwt?: string|null) => {
     }
   );
 }
+
+
+export async function getUser(jwt?: string|null) {
+  return jwt
+    ? ( await createClient().auth.getUser(jwt))?.data?.user
+    : ( await createClient().auth.getUser())?.data?.user
+}
