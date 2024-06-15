@@ -112,7 +112,6 @@ const joinAgent = async ({
     console.warn(
       'failed to join, status code: ' + joinReq.status + ': ' + text,
     );
-    process.exit(1);
   }
 };
 
