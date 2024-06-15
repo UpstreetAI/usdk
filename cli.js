@@ -847,11 +847,13 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
       }
 
       // use a default asset spec
-      const userId = makeDevGuid();
-      userAsset = {
-        id: userId,
-      };
-      ensureAgentJsonDefaults(userAsset);
+      if (!userAsset) {
+        const userId = makeDevGuid();
+        userAsset = {
+          id: userId,
+        };
+        ensureAgentJsonDefaults(userAsset);
+      }
 
       return userAsset;
     } else {
