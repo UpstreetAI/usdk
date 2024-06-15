@@ -36,7 +36,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
-  const { setRoom, messages: rawMessages, sendChatMessage } = useActions()
+  const { setRoom, playersMap, messages: rawMessages, sendChatMessage } = useActions()
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     if (rawMessage.method === 'say') {
       return {
@@ -100,7 +100,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
       >
         {room ? (
           messages.length ? (
-            <ChatList messages={messages} isShared={false} user={user} />
+            <ChatList messages={messages} /*isShared={false} user={user}*/ />
           ) : (
             null
           )
