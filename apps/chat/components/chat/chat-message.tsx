@@ -30,8 +30,15 @@ export function ChatMessage({
   timestamp,
   user,
 }: ChatMessageProps) {
-  const isUser = player.playerId === user.id
+  if (!player) {
+    throw new Error('Player is required')
+  }
+  if (!user) {
+    throw new Error('User is required')
+  }
 
+  const isUser = player.playerId === user.id
+  const agentUrl = `/agents/${encodeURIComponent(name)}`;
   const avatarURL =
     player.playerSpec.previewUrl
       ? resolveRelativeUrl(player.playerSpec.previewUrl)
@@ -43,16 +50,16 @@ export function ChatMessage({
     <div>
       {/*{ JSON.stringify( player )}*/}
       <div className={"grid grid-cols-message bt-0"}>
-        <div className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+        <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
           {avatarURL ? (
             <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
           )}
-        </div>
+        </Link>
         <div className="">
-          <Link href={`/agents/${encodeURIComponent(name)}`} className="font-bold mr-2 hover:underline">
+          <Link href={agentUrl} className="font-bold mr-2 hover:underline">
             {name}
           </Link>
           <span className="opacity-75 text-xs font-medium">
