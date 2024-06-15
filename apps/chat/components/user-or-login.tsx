@@ -12,9 +12,7 @@ import { createClient } from '@/utils/supabase/server'
 export async function UserOrLogin() {
   // const session = (await auth()) as Session
   const
-    cookieStore = cookies(),
-    jwt = cookieStore.get('auth-jwt')?.value,
-    client = createClient(jwt),
+    client = createClient(),
     user = await client.auth.getUser();
 
   return (

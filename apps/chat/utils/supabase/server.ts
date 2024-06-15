@@ -5,7 +5,9 @@ import { Database } from '@/types_db';
 // Define a function to create a Supabase client for server-side operations
 // The function takes a cookie store created with next/headers cookies as an argument
 export const createClient = (jwt?: string|null) => {
-  const cookieStore = cookies();
+  const
+    cookieStore = cookies(),
+    _jwt = jwt || cookieStore.get('auth-jwt')?.value;
 
   return createServerClient<Database>(
     // Pass Supabase URL and anonymous key from the environment to the client
@@ -41,7 +43,9 @@ export const createClient = (jwt?: string|null) => {
 
       global: {
         headers: {
-          Authorization: `Bearer ${jwt}`
+          ... _jwt ? {
+            Authorization: `Bearer ${_jwt}`
+          } : {},
         }
       }
     }
