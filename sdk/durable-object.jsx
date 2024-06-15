@@ -439,16 +439,10 @@ export class DurableObject extends EventTarget {
   // Handle HTTP requests from clients.
   async fetch(request) {
     try {
-      // cors
-      if (request.method === 'OPTIONS') {
-        return new Response('', {
-          headers,
-        });
-      }
+      const u = new URL(request.url);
+      console.log('worker request', request.method, u.href);
 
       await this.waitForLoad();
-
-      const u = new URL(request.url);
 
       // parse the url
       let match;

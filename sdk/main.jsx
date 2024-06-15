@@ -12,6 +12,12 @@ async function handleAgentRequest(request, env) {
 export default {
   async fetch(request, env, ctx) {
     try {
+      if (request.method === 'OPTIONS') {
+        return new Response('', {
+          headers,
+        });
+      }
+
       // console.log('worker main request', request?.url);
       return await handleAgentRequest(request, env);
     } catch (err) {
