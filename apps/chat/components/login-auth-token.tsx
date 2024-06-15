@@ -1,10 +1,5 @@
 'use client'
 
-// import { Endpoint } from '@rest-hooks/endpoint';
-import { redirect } from 'next/navigation'
-import { loadJWT } from '@/lib/loadJWT'
-import { saveJWT } from '@/lib/saveJWT'
-import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react'
 
 
@@ -21,7 +16,6 @@ export default function LoginAuthToken() {
   let isLoading = false
 
   useEffect( () => {
-    console.log( 'LOADING:', isLoading)
     if (!isLoading) {
       isLoading = true;
       getJWT().catch(console.error);
@@ -41,28 +35,23 @@ async function getJWT() {
 
   if ( authToken ){
     // Get JWT.
-    const res = await fetch( `${otpURL}/${authToken}` )
+    try {
+      const res = await fetch( `${otpURL}/${authToken}` )
 
-    if (res.ok) {
-      const jwt = await res.text();
+      if (res.ok) {
+        const jwt = await res.text();
 
-      if (jwt) {
-        localStorage.setItem('jwt', jwt);
-
-        // // saveJWT(jwt);
-        // const client = createClient();
-
-        // const user = await client.auth.getUser(jwt)
-
-        // console.log( 'USER:', user )
-
-      } else {
-        console.warn('Failed to get JWT.')
+        if ( jwt ) {
+          const cookies = document.cookie
+          document.cookie = `auth-jwt=${jwt}`
+        } else {
+          throw new Error()
+        }
       }
-    } else {
+    } catch(e) {
       console.warn('Failed to get JWT.')
     }
 
-    if (location.pathname !== '/') redirect('/')
+    if (location.pathname !== '/') location.href = '/'
   }
 }
