@@ -99,6 +99,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
         ) : (
           <EmptyScreen />
         )}
+
         <div className="w-full h-px" ref={visibilityRef} />
       </div>
       <ChatPanel
