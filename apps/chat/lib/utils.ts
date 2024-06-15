@@ -89,5 +89,18 @@ export const getMessageFromCode = (resultCode: string) => {
 }
 
 export function resolveRelativeUrl(url: string) {
+  // XXX should be changed to chat.upstreet.ai, when the default images are hosted there
   return url && new URL(url, `https://nota.upstreet.ai`) + '';
+}
+
+export function getAgentUrl(agentObject: any) {
+  return `/agents/${agentObject.name}`;
+}
+
+export function getAgentPreviewImageUrl(agentObject: any) {
+  return resolveRelativeUrl(agentObject.previewUrl);
+}
+
+export function getAgentEndpointUrl(agentObject: any) {
+  return `https://user-agent-${agentObject.id}.isekaichat.workers.dev/`;
 }
