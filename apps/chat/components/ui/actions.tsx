@@ -182,38 +182,56 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         console.log('remote player joined:', playerId);
       }
 
+      // construct the remote player
       const remotePlayer = new Player(playerId, {
         id: '',
         name: '',
         previewUrl: '',
       });
 
-      playersMap.set(playerId, remotePlayer);
-      realms.dispatchEvent(new MessageEvent('playerschange', {
-        data: playersMap,
-      }));
+      // helpers
+      const emitJoin = () => {
+        playersMap.set(playerId, remotePlayer);
+        realms.dispatchEvent(new MessageEvent('playerschange', {
+          data: playersMap,
+        }));
+
+        const agentJson = remotePlayer.getPlayerSpec() as any;
+        realms.dispatchEvent(new MessageEvent('chat', {
+          data: {
+            message: {
+              userId: playerId,
+              method: 'join',
+              name: agentJson.name,
+              args: {
+                playerId,
+              },
+            },
+          },
+        }));
+      };
+      const ensureJoin = (() => {
+        let emitted = false;
+        return () => {
+          if (!emitted) {
+            const playerSpec = remotePlayer.getPlayerSpec();
+            if (playerSpec) {
+              emitted = true;
+              emitJoin();
+            }
+          }
+        }
+      })();
+
 
       // apply initial remote player state
       {
         const playerSpec = player.getKeyValue('playerSpec');
         if (playerSpec) {
           remotePlayer.setPlayerSpec(playerSpec);
+          ensureJoin();
         }
       }
-
-      const agentJson = remotePlayer.getPlayerSpec() as any;
-      realms.dispatchEvent(new MessageEvent('chat', {
-        data: {
-          message: {
-            userId: playerId,
-            method: 'join',
-            name: agentJson.name,
-            args: {
-              playerId,
-            },
-          },
-        },
-      }));
 
       // Handle remote player state updates
       player.addEventListener('update', (e: any) => {
@@ -222,6 +240,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         if (key === 'playerSpec') {
           remotePlayer.setPlayerSpec(val);
         }
+
+        ensureJoin();
       });
     });
     virtualPlayers.addEventListener('leave', (e: any) => {
