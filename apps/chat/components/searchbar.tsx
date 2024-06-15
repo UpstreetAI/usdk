@@ -209,11 +209,13 @@ export function SearchBar() {
 
                     const room = getRoom();
                     const guid = agent.id;
+
                     joinAgent({
                       room,
                       guid,
-                    });
+                    }).catch( console.error );
                   }}>
+
                     <IconPlus />
                   </Link>
                 </div>

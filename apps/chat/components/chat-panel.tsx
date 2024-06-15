@@ -8,7 +8,7 @@ import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
 import { IconShare } from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
-import { useAIState, useActions, useUIState } from 'ai/rsc'
+// import { useAIState, useActions, useUIState } from 'ai/rsc'
 
 export interface ChatPanelProps {
   id?: string
@@ -33,7 +33,7 @@ export function ChatPanel({
   messages,
   sendChatMessage,
 }: ChatPanelProps) {
-  const [aiState] = useAIState()
+  // const [aiState] = useAIState()
   // const [messages, setMessages] = useUIState<typeof AI>()
   // const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
@@ -125,7 +125,7 @@ export function ChatPanel({
                       <IconShare className="mr-2" />
                       Share
                     </Button>
-                    <ChatShareDialog
+                    {/*<ChatShareDialog
                       open={shareDialogOpen}
                       onOpenChange={setShareDialogOpen}
                       onCopy={() => setShareDialogOpen(false)}
@@ -135,7 +135,7 @@ export function ChatPanel({
                         title,
                         messages: aiState.messages
                       }}
-                    />
+                    />*/}
                   </>
                 ) : null}
               </div>

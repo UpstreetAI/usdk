@@ -8,7 +8,7 @@ import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { useAIState } from 'ai/rsc'
+// import { useAIState } from 'ai/rsc'
 import { Message } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
@@ -30,7 +30,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   const path = usePathname()
   const [input, setInput] = useState('')
   // const [messages] = useUIState()
-  const [aiState] = useAIState()
+  // const [aiState] = useAIState()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
@@ -51,20 +51,20 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
     }
   }).filter((message) => message !== null) as unknown as UIState;
 
-  useEffect(() => {
+  /*useEffect(() => {
     if (user) {
       if (!path.includes('chat') && messages.length === 1) {
         window.history.replaceState({}, '', `/chat/${id}`)
       }
     }
-  }, [id, path, user, messages])
+  }, [id, path, user, messages])*/
 
-  useEffect(() => {
+  /*useEffect(() => {
     const messagesLength = aiState.messages?.length
     if (messagesLength === 2) {
       router.refresh()
     }
-  }, [aiState.messages, router])
+  }, [aiState.messages, router])*/
 
   useEffect(() => {
     setNewChatId(id)

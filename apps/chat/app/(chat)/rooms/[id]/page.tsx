@@ -1,9 +1,7 @@
 
 import { nanoid } from '@/lib/utils'
 import { Chat } from '@/components/chat'
-import { AI } from '@/lib/chat/actions'
-import { auth } from '@/auth'
-import { Session } from '@/lib/types'
+// import { AI } from '@/lib/chat/actions'
 import { getMissingKeys } from '@/app/actions'
 import { getUser } from '@/utils/supabase/server'
 
@@ -82,8 +80,8 @@ export default async function RoomPage({ params }: Params) {
   const roomName = decodeURIComponent(params.id)
 
   return (
-    <AI initialAIState={{ chatId: id, messages: [] }}>
+    // <AI initialAIState={{ chatId: id, messages: [] }}>
       <Chat id={id} user={user} missingKeys={missingKeys} room={roomName} />
-    </AI>
+    // </AI>
   )
 }
