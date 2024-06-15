@@ -38,6 +38,9 @@ class Player {
     this.playerId = playerId;
     this.playerSpec = playerSpec;
   }
+  getPlayerSpec() {
+    return this.playerSpec;
+  }
   setPlayerSpec(playerSpec: object) {
     this.playerSpec = playerSpec;
   }
@@ -192,6 +195,20 @@ const connectMultiplayer = (room: string, {
         }
       }
 
+      const agentJson = remotePlayer.getPlayerSpec() as any;
+      realms.dispatchEvent(new MessageEvent('chat', {
+        data: {
+          message: {
+            userId: playerId,
+            method: 'join',
+            name: agentJson.name,
+            args: {
+              playerId,
+            },
+          },
+        },
+      }));
+
       // Handle remote player state updates
       player.addEventListener('update', (e: any) => {
         const { key, val } = e.data;
@@ -208,7 +225,24 @@ const connectMultiplayer = (room: string, {
       }
       const remotePlayer = playersMap.get(playerId);
       if (remotePlayer) {
+        const agentJson = remotePlayer.getPlayerSpec() as any;
+        realms.dispatchEvent(new MessageEvent('chat', {
+          data: {
+            message: {
+              userId: playerId,
+              method: 'leave',
+              name: agentJson.name,
+              args: {
+                playerId,
+              },
+            },
+          },
+        }));
+
         playersMap.delete(playerId);
+        realms.dispatchEvent(new MessageEvent('playerschange', {
+          data: playersMap,
+        }));
       } else {
         console.log('remote player not found', playerId);
         debugger;
