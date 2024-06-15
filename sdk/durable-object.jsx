@@ -374,8 +374,8 @@ export class DurableObject extends EventTarget {
   }
   // leave the multiplayer room
   async leave() {
-    if (this.realm) {
-      this.realm.disconnect();
+    if (this.realms) {
+      this.realms.disconnect();
     }
   }
 
