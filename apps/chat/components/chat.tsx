@@ -11,6 +11,7 @@ import { Message, Session } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { toast } from 'sonner'
+import { UserMessage } from './stocks/message'
 
 import { useActions } from '@/components/ui/actions'
 
@@ -26,12 +27,27 @@ export function Chat({ id, className, session, missingKeys, room }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
-  const [messages] = useUIState()
+  // const [messages] = useUIState()
   const [aiState] = useAIState()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
-  const { setRoom } = useActions()
+  const { setRoom, messages: rawMessages } = useActions()
+  const messages = rawMessages.map((rawMessage, index) => {
+    if (rawMessage.method === 'say') {
+      return {
+        id: index,
+        display: (
+          <>
+            <div>{rawMessage.name}</div>
+            <div>{rawMessage.args.text}</div>
+          </>
+        ),
+      };
+    } else {
+      return null;
+    }
+  }).filter((message) => message !== null);
 
   useEffect(() => {
     if (session?.user) {

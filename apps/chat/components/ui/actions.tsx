@@ -4,7 +4,6 @@ import * as React from 'react'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
-import { set } from 'date-fns';
 
 interface ActionsContext {
   isSearchOpen: boolean
@@ -12,6 +11,7 @@ interface ActionsContext {
   messages: object[]
   getRoom: () => string
   setRoom: (room: string) => void
+  sendChatMessage: (text: string) => void
 }
 
 const ActionsContext = React.createContext<ActionsContext | undefined>(
@@ -287,11 +287,12 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
   const [messages, setMessages] = React.useState<object[]>([] as object[])
   
   const realmsSpec = React.useMemo(() => {
+    let userId = '';
+    let name = '';
     let room = '';
     let realms: NetworkRealms | null = null;
     return {
       getRoom: () => room,
-      // getRealms: () => realms,
       setRoom: (newRoom: string) => {
         if (room !== newRoom) {
           room = newRoom;
@@ -302,21 +303,42 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
           setMessages([]);
 
-          const userId = crypto.randomUUID();
-          const name = 'Anonymous';
+          userId = crypto.randomUUID();
+          name = 'Anonymous';
           realms = connectMultiplayer(room, {
             userId,
             name,
           });
           realms.addEventListener('chat', (e) => {
             const { message } = (e as any).data;
-            setMessages((prev: object[]) => [...prev, message]);
+            // console.log('got chat message', message);
+            setMessages((prev: object[]) => {
+              const newMessages = [...prev, message];
+              // console.log('got new messages', newMessages);
+              return newMessages;
+            });
           });
+        }
+      },
+      sendChatMessage: (text: string) => {
+        if (realms) {
+          const message = {
+            method: 'say',
+            userId,
+            name,
+            args: {
+              text,
+            },
+            timestamp: Date.now(),
+          };
+          realms.sendChatMessage(message);
+        } else {
+          console.warn('realms not connected');
         }
       },
     };
   }, []);
-  const { getRoom, setRoom } = realmsSpec;
+  const { getRoom, setRoom, sendChatMessage } = realmsSpec;
 
   const toggleSearch = () => {
     setSearchOpen(value => !value)
@@ -324,7 +346,7 @@ export function ActionsProvider({ children }: ActionsProviderProps) {
 
   return (
     <ActionsContext.Provider
-      value={{ isSearchOpen, toggleSearch, messages, getRoom, setRoom }}
+      value={{ isSearchOpen, toggleSearch, messages, getRoom, setRoom, sendChatMessage }}
     >
       {children}
     </ActionsContext.Provider>
