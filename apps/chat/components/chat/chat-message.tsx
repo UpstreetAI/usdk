@@ -1,7 +1,7 @@
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
-import { resolveRelativeUrl } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 
 import type { User } from '@supabase/supabase-js'
@@ -37,14 +37,9 @@ export function ChatMessage({
     throw new Error('User is required')
   }
 
-  const isUser = player.playerId === user.id
-  const agentUrl = `/agents/${encodeURIComponent(name)}`;
-  const avatarURL =
-    player.playerSpec.previewUrl
-      ? resolveRelativeUrl(player.playerSpec.previewUrl)
-      : isUser
-        ? user?.user_metadata?.avatar_url
-        : null
+  const playerSpec = player.getPlayerSpec()
+  const agentUrl = getAgentUrl(playerSpec)
+  const avatarURL = getAgentPreviewImageUrl(playerSpec)
 
   return (
     <div>
