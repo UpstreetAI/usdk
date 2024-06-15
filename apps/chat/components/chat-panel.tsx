@@ -156,7 +156,7 @@ export function ChatPanel({
                 tabIndex={0}
                 onKeyDown={onKeyDown}
                 placeholder="Join a room"
-                className="w-full resize-none bg-transparent px-4 py-2 rounded-lg bg-zinc-900 focus-within:outline-none sm:text-sm"
+                className="w-full resize-none bg-zinc-900 px-4 py-2 rounded-lg focus-within:outline-none sm:text-sm"
                 // autoFocus
                 spellCheck={false}
                 autoComplete="off"
