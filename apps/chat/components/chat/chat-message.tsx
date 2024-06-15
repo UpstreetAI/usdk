@@ -2,6 +2,7 @@ import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
 import { resolveRelativeUrl } from '@/lib/utils'
+import Link from 'next/link'
 
 import type { User } from '@supabase/supabase-js'
 
@@ -51,9 +52,9 @@ export function ChatMessage({
           )}
         </div>
         <div className="">
-          <span className="font-bold mr-2">
+          <Link href={`/agents/${encodeURIComponent(name)}`} className="font-bold mr-2 hover:underline">
             {name}
-          </span>
+          </Link>
           <span className="opacity-75 text-xs font-medium">
             {timestamp ? timeAgo.format(timestamp) : null}
           </span>
