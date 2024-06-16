@@ -65,12 +65,7 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: (
-          <>
-            {/*{ JSON.stringify(rawMessage)}*/}
-            {getMessageComponent(room, user, rawMessage, playersCache, sendRawMessage)}
-          </>
-        ),
+        display: getMessageComponent(room, user, rawMessage, playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
@@ -153,7 +148,12 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
 }
 
 function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
+ 
   switch (message.method) {
+
+    // TODO Move the typing logic to form component, over send message?
+    case 'typing': return null;
+
     case 'join': return (
       <div className="opacity-60">
         { message.name } joined the room.
