@@ -207,22 +207,6 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
 
       let media = null;
 
-      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
-      // if(message.args.video) media = { type: 'video', url: message.args.video };
-      // if(message.args.image) media = { type: 'image', url: message.args.image };
-
-      // // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
-      // // Usage:
-      // // test audio [AUDIO_URL]
-      // // test video [VIDEO_URL]
-      // // test image [IMAGE_URL]
-      // const match = message.args.text.match(/\[([^\]]+)\]/);
-      // const url = match && match[1]
-      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
-      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
-      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
-      // // TEST MESSAGE COMPONENTS END
-
       return (
         <ChatMessage
           content={
@@ -255,22 +239,6 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
       const player = playersCache.get(message.userId);
 
       let media = null;
-
-      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
-      // if(message.args.video) media = { type: 'video', url: message.args.video };
-      // if(message.args.image) media = { type: 'image', url: message.args.image };
-
-      // // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
-      // // Usage:
-      // // test audio [AUDIO_URL]
-      // // test video [VIDEO_URL]
-      // // test image [IMAGE_URL]
-      // const match = message.args.text.match(/\[([^\]]+)\]/);
-      // const url = match && match[1]
-      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
-      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
-      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
-      // // TEST MESSAGE COMPONENTS END
 
       return (
         <ChatMessage
