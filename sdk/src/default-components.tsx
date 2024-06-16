@@ -332,6 +332,22 @@ export const InstructionsJsonPrompt = ({
   );
 };
 
+export const Personality = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const currentAgent = useCurrentAgent();
+  return (
+    <Prompt>
+      {dedent`
+        # Additional note
+        ${currentAgent.id} (${currentAgent.name}) has the following personality:
+      ` + children}
+    </Prompt>
+  );
+};
+
 // parsers
 
 /**
