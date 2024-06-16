@@ -12,7 +12,7 @@ const timeAgo = new TimeAgo('en-US')
 
 
 export interface ChatMessageProps {
-  content: string
+  content: React.ReactNode
   media: any
   name: string
   player: any
