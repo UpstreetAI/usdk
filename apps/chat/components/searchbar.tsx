@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { cn, resolveRelativeUrl } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
+import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { createClient } from '@/utils/supabase/client';
 import { buttonVariants } from '@/components/ui/button'
 
@@ -143,7 +144,8 @@ export function SearchBar() {
   const [results, setResults] = React.useState<AgentObject[]>([]);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const { isSearchOpen, toggleSearch, getRoom } = useActions();
+  const { isSearchOpen, toggleSearch } = useActions();
+  const { getRoom } = useMultiplayerActions();
 
   // focus search
   React.useEffect(() => {

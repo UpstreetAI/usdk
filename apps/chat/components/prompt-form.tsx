@@ -18,7 +18,7 @@ import {
 import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 
-import { useActions as useUiActions } from '@/components/ui/actions'
+import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 export function PromptForm({
   input,
@@ -33,7 +33,7 @@ export function PromptForm({
   // const { submitUserMessage } = useActions()
   // const [_, setMessages] = useUIState<typeof AI>()
 
-  const { sendChatMessage } = useUiActions()
+  const { sendChatMessage } = useMultiplayerActions()
 
   const submitMessage = () => {
     const value = input.trim()
