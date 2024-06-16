@@ -17,7 +17,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
 
-import { PlayerSpec, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
+import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 type Message = {
   args: {
@@ -149,7 +149,7 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
   )
 }
 
-function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, PlayerSpec>) {
+function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, Player>) {
   switch (message.method) {
     case 'join': return (
       <div className="opacity-60">
