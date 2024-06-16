@@ -16,7 +16,7 @@ export async function UserOrLogin() {
       {user ? (
         <>
           <SidebarMobile>
-            <ChatHistory userId={user.id} />
+            <ChatHistory />
           </SidebarMobile>
           <SidebarToggle />
         </>
