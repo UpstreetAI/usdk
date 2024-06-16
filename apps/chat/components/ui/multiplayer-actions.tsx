@@ -414,6 +414,12 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           });
           realms.addEventListener('playerschange', (e) => {
             playersMap = (e as any).data;
+
+            // ensure all players are in the players cache
+            for (const [playerId, player] of playersMap) {
+              playersCache.set(playerId, player);
+            }
+
             refresh();
           });
 
