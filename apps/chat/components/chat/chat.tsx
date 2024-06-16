@@ -201,6 +201,97 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
       )
     }
 
+    case 'paymentRequest': {
+
+      const player = playersCache.get(message.userId);
+
+      let media = null;
+
+      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
+      // if(message.args.video) media = { type: 'video', url: message.args.video };
+      // if(message.args.image) media = { type: 'image', url: message.args.image };
+
+      // // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
+      // // Usage:
+      // // test audio [AUDIO_URL]
+      // // test video [VIDEO_URL]
+      // // test image [IMAGE_URL]
+      // const match = message.args.text.match(/\[([^\]]+)\]/);
+      // const url = match && match[1]
+      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
+      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
+      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
+      // // TEST MESSAGE COMPONENTS END
+
+      return (
+        <ChatMessage
+          content={
+            <>
+              <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
+                <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
+                <div className="mb-4">{(message.args as any).description}</div>
+                <Button onClick={e => {
+                  sendRawMessage('paymentResponse', {
+                    description: 'Payment accepted',
+                    amount: (message.args as any).amount,
+                    currency: (message.args as any).currency,
+                  });
+                }}>Pay {(message.args as any).amount / 100} {(message.args as any).currency}</Button>
+              </div>
+            </>
+          }
+          name={ message.name }
+          media={ media }
+          player={player}
+          room={room}
+          timestamp={message.timestamp}
+          user={user}
+        />
+      )
+    }
+
+    case 'paymentResponse': {
+
+      const player = playersCache.get(message.userId);
+
+      let media = null;
+
+      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
+      // if(message.args.video) media = { type: 'video', url: message.args.video };
+      // if(message.args.image) media = { type: 'image', url: message.args.image };
+
+      // // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
+      // // Usage:
+      // // test audio [AUDIO_URL]
+      // // test video [VIDEO_URL]
+      // // test image [IMAGE_URL]
+      // const match = message.args.text.match(/\[([^\]]+)\]/);
+      // const url = match && match[1]
+      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
+      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
+      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
+      // // TEST MESSAGE COMPONENTS END
+
+      return (
+        <ChatMessage
+          content={
+            <>
+              <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
+                <div className="text-zinc-700 text-sm mb-2 font-bold">[payment response]</div>
+                <div>{(message.args as any).description}</div>
+              </div>
+            </>
+          }
+          name={ message.name }
+          media={ media }
+          player={player}
+          room={room}
+          timestamp={message.timestamp}
+          user={user}
+        />
+      )
+    }
+
     default: return null
   }
 }
