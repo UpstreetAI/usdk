@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { ChatMessage } from '@/components/chat/chat-message'
 import { ChatMessageOld } from '@/components/chat/chat-message-old'
 import { type User } from '@supabase/supabase-js';
