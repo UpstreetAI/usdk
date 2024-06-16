@@ -21,7 +21,6 @@ export interface ChatPanelProps {
   room?: string
   messages: Array<{ id: string; display: React.ReactNode }>
   sendChatMessage: (message: string) => void
-  user: User
 }
 
 export function ChatPanel({
