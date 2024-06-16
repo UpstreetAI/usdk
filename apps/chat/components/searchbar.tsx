@@ -194,8 +194,8 @@ export function SearchBar() {
         <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className={cn("fixed md:absolute left-0 top-16 px-0 md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
-          <div className="rounded-lg border bg-zinc-900">
+        <div className={cn("fixed md:absolute left-0 top-16 bg-white px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
+          <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {results.map((agent, i) => (
               <div className={`flex p-4 border-b`} key={i}>
                 <AgentLink name={agent.name}>
