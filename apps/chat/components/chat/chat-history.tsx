@@ -8,14 +8,14 @@ import { cn, getAgentUrl, getAgentPreviewImageUrl, getAgentEndpointUrl } from '@
 import { buttonVariants } from '@/components/ui/button'
 import { IconPlus, IconClose } from '@/components/ui/icons'
 
-import { Player, useActions } from '@/components/ui/actions';
+import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 
 // interface ChatHistoryProps {
 //   userId?: string
 // }
 
 export function ChatHistory() {
-  const { localPlayerSpec, playersMap } = useActions();
+  const { localPlayerSpec, playersMap } = useMultiplayerActions();
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name);
   });
