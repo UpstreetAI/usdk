@@ -49,7 +49,6 @@ const SendEthAction = () => {
 export default function render(props: AgentAppProps) {
   return (
     <Agent>
-      <DefaultAgentComponents />
       <SendEthAction />
     </Agent>
   );

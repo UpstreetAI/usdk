@@ -16,7 +16,6 @@ import {
 export default function render() {
   return (
     <Agent>
-      <DefaultAgentComponents />
       <GenerativeServer>
         {() => {
           generativeFetchHandler(

@@ -8,7 +8,7 @@ import {
   DefaultParsers,
   DefaultPerceptions,
   DefaultSchedulers,
-  DefaultServers,  
+  DefaultServers,
 } from 'upstreet-sdk/agents';
 
 //
@@ -16,15 +16,7 @@ import {
 export default function render(props: AgentAppProps) {
   return (
     <Agent>
-      <DefaultAgentComponents />
-      {/* equivalent to
-        <DefaultActions />
-        <DefaultPrompts />
-        <DefaultParsers />
-        <DefaultPerceptions />
-        <DefaultSchedulers />
-        <DefaultServers />
-      */}
+      {/* ... */}
     </Agent>
   );
 }
