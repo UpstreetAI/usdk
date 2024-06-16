@@ -75,13 +75,13 @@ type Params = {
 export default async function RoomPage({ params }: Params) {
   const id = nanoid()
   const user = await getUser()
-  const missingKeys = await getMissingKeys()
+  // const missingKeys = await getMissingKeys()
 
   const roomName = decodeURIComponent(params.id)
 
   return (
     // <AI initialAIState={{ chatId: id, messages: [] }}>
-      <Chat id={id} user={user} missingKeys={missingKeys} room={roomName} />
+      <Chat id={id} user={user} /* missingKeys={missingKeys} */ room={roomName} />
     // </AI>
   )
 }
