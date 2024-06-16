@@ -21,6 +21,7 @@ interface MultiplayerActionsContextType {
   playersCache: Map<string, Player>
   messages: object[]
   setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
+  sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
   epoch: number
 }
@@ -378,6 +379,24 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       setEpoch((prev) => prev + 1);
     };
 
+    const sendRawMessage = (method: string, args: object) => {
+      if (realms) {
+        const { id: userId, name } = localPlayerSpec;
+
+        const message = {
+          method,
+          userId,
+          name,
+          args,
+          timestamp: Date.now(),
+        };
+        console.log('send chat message', message);
+        realms.sendChatMessage(message);
+      } else {
+        console.warn('realms not connected');
+      }
+    };
+
     const multiplayerState = {
       getRoom: () => room,
       getLocalPlayerSpec: () => localPlayerSpec,
@@ -426,24 +445,11 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           refresh();
         }
       },
-      sendChatMessage: (text: string) => {
-        if (realms) {
-          const { id: userId, name } = localPlayerSpec;
-
-          const message = {
-            method: 'say',
-            userId,
-            name,
-            args: {
-              text,
-            },
-            timestamp: Date.now(),
-          };
-          realms.sendChatMessage(message);
-        } else {
-          console.warn('realms not connected');
-        }
-      },
+      sendRawMessage,
+      sendChatMessage: (text: string) =>
+        sendRawMessage('say', {
+          text,
+        }),
     };
     return multiplayerState;
   });
@@ -453,11 +459,12 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const playersCache = multiplayerState.getPlayersCache();
   const messages = multiplayerState.getMessages();
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
+  const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
 
   return (
     <MultiplayerActionsContext.Provider
-      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendChatMessage, epoch }}
+      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch }}
     >
       {children}
     </MultiplayerActionsContext.Provider>

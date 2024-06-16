@@ -19,6 +19,8 @@ import { UIState } from '@/lib/chat/actions'
 
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
+import { Button } from '@/components/ui/button'
+
 type Message = {
   args: {
     text: string
@@ -55,6 +57,7 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
+    sendRawMessage,
     sendChatMessage,
   } = useMultiplayerActions()
 
@@ -65,7 +68,7 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
         display: (
           <>
             {/*{ JSON.stringify(rawMessage)}*/}
-            {getMessageComponent(room, user, rawMessage, playersCache)}
+            {getMessageComponent(room, user, rawMessage, playersCache, sendRawMessage)}
           </>
         ),
       };
@@ -149,7 +152,7 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
   )
 }
 
-function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, Player>) {
+function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
   switch (message.method) {
     case 'join': return (
       <div className="opacity-60">
