@@ -19,6 +19,9 @@ import {
   AppContext,
   EpochContext,
 } from './context';
+import {
+  DefaultAgentComponents,
+} from './default-components';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -45,6 +48,25 @@ const makeSymbol = () => Symbol('propsKey');
  * ```
  */
 export const Agent: React.FC<AgentProps> = (props: AgentProps) => {
+  const [symbol, setSymbol] = useState(makeSymbol);
+  // bind to app context
+  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  useEffect(() => {
+    // console.log('Agent component useEffect', props, appContext);
+    return () => {
+      // console.log('Agent component cleanup', props, appContext);
+      appContext.unregisterAgent(symbol);
+    };
+  }, [appContext]);
+
+  appContext.registerAgent(symbol, props);
+
+  return React.createElement(React.Fragment, {}, [
+    React.createElement(DefaultAgentComponents, { key: 0 }),
+    React.createElement(React.Fragment, { key: 1 }, props.children),
+  ]);
+};
+export const RawAgent: React.FC<AgentProps> = (props: AgentProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
   const appContext = (useContext(AppContext) as unknown) as AppContextValue;
