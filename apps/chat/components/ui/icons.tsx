@@ -590,8 +590,9 @@ function IconChevronUpDown({
 
 function IconUpstreet({
   className,
+  inverted,
   ...props
-}: React.ComponentProps<'svg'>) {
+}: React.ComponentProps<'svg'> & { inverted?: boolean }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
