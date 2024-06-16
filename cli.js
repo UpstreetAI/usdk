@@ -1007,7 +1007,6 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
       const { message } = e.data;
-      // console.log('got message', { message });
       const { userId: messageUserId, name, method, args } = message;
 
       switch (method) {
@@ -1042,14 +1041,14 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           break;
         }
         default: {
-          if (debug) {
+          // if (debug) {
             // console.log('got log message', JSON.stringify(args, null, 2));
             // const { userId, name, text } = args;
             // console.log(`\r${name}: ${text}`);
             // replServer.displayPrompt(true);
-            log('unhandled method', JSON.stringify(message));
+            log(`${name}: ${JSON.stringify(message)}`);
             // console.log(eraseLine + JSON.stringify(args2, null, 2));
-          }
+          // }
           break;
         }
       }
