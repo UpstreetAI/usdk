@@ -1034,6 +1034,11 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           typingMap.set(messageUserId, { userId: messageUserId, name, typing });
           break;
         }
+        case 'paymentRequest': {
+          const { amount, currency } = args;
+          log(`[${name} requests ${amount} ${currency}]`);
+          break;
+        }
         case 'nudge':
         case 'join':
         case 'leave': {
