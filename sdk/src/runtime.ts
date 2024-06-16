@@ -817,7 +817,11 @@ export class AgentRenderer {
         // console.log('handle agent commit 2', newMessage);
       };
       // console.log('handle agent action 3', actionHandler);
-      await actionHandler.handler(e);
+      if (actionHandler.handler) {
+        await actionHandler.handler(e);
+      } else {
+        await e.commit();
+      }
       // console.log('handle agent action 4', actionHandler);
     } else {
       throw new Error('no action handler found for method: ' + method);
