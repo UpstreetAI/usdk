@@ -185,7 +185,7 @@ export function SearchBar() {
     }} onBlur={e => {
       setFocus(false);
     }} tabIndex={-1}>
-      <div className="relative flex flex-col m-auto size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
+      <div className="relative flex flex-col m-auto md:translate-x-[-74px] size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
         <div className={cn("absolute px-8 items-center inset-y-0 right-0 flex md:hidden")} onClick={e => {
           toggleSearch();
         }}>
@@ -194,20 +194,26 @@ export function SearchBar() {
         <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className={cn("absolute left-0 top-16 px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
+        <div className={cn("fixed md:absolute left-0 top-16 px-0 md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
           <div className="rounded-lg border bg-zinc-900">
             {results.map((agent, i) => (
-              <div className="flex p-4" key={i}>
+              <div className={`flex p-4 border-b`} key={i}>
                 <AgentLink name={agent.name}>
-                  <Image src={resolveRelativeUrl(agent.preview_url)} className="size-[80px] mr-2 rounded" width={80} height={80} alt="Avatar" />
+                  <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                    {agent.preview_url ? (
+                      <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
+                    ) : (
+                      <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
+                    )}
+                  </div>
                 </AgentLink>
                 <div className="flex flex-col flex-1">
-                  <AgentLink name={agent.name} className="text-lg font-bold hover:underline">{agent.name}</AgentLink>
-                  <div className="text-base max-h-[52px] overflow-hidden">{agent.description}</div>
-                  <div className="text-sm text-zinc-600">{agent.id}</div>
+                  <AgentLink name={agent.name} className="text-lg line-clamp-1 font-bold hover:underline">{agent.name}</AgentLink>
+                  <div className="text-base line-clamp-2">{agent.description}</div>
+                  <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
-                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }))} onMouseDown={async e => {
+                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }),"block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -220,12 +226,12 @@ export function SearchBar() {
                       room,
                       guid,
                     });
-
+                    setFocus(false);
                     if (!/\/rooms\//.test(location.pathname)) {
                       location.href = `/rooms/${room}`;
                     }
                   }}>
-                    <IconPlus />
+                    <IconPlus className='size-8 opacity-[0.4]'/>
                   </Link>
                 </div>
               </div>
