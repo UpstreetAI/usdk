@@ -17,7 +17,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
 
-import { PlayerSpec, useActions } from '@/components/ui/actions'
+import { PlayerSpec, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 type Message = {
   args: {
@@ -38,11 +38,11 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
   user: User|null
-  missingKeys: string[]
-  room?: string
+  // missingKeys: string[]
+  room: string
 }
 
-export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
+export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
@@ -52,11 +52,11 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   const {
-    setMultiplayerConnectionParameters,
-    playersMap,
+    playersCache,
     messages: rawMessages,
+    setMultiplayerConnectionParameters,
     sendChatMessage,
-  } = useActions()
+  } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     // if (rawMessage.method === 'say') {
@@ -65,7 +65,7 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
         display: (
           <>
             {/*{ JSON.stringify(rawMessage)}*/}
-            { getMessageComponent(room, user, rawMessage, playersMap)}
+            {getMessageComponent(room, user, rawMessage, playersCache)}
           </>
         ),
       };
@@ -93,11 +93,11 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
     setNewChatId(id)
   })
 
-  useEffect(() => {
-    missingKeys.map(key => {
-      toast.error(`Missing ${key} environment variable!`)
-    })
-  }, [missingKeys])
+  // useEffect(() => {
+  //   missingKeys.map(key => {
+  //     toast.error(`Missing ${key} environment variable!`)
+  //   })
+  // }, [missingKeys])
 
   useEffect(() => {
     if (room && user) {
@@ -149,8 +149,8 @@ export function Chat({ id, className, user, missingKeys, room }: ChatProps) {
   )
 }
 
-function getMessageComponent(room: string, user: User|null, message: Message, playersMap: any) {
-  switch(message.method) {
+function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, PlayerSpec>) {
+  switch (message.method) {
     case 'join': return (
       <div className="opacity-60">
         { message.name } joined the room.
@@ -164,6 +164,8 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
     )
     
     case 'say': {
+
+      const player = playersCache.get(message.userId);
 
       let media = null;
 
@@ -188,7 +190,7 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
           content={message.args.text}
           name={ message.name }
           media={ media }
-          player={ playersMap.get(message.userId)}
+          player={player}
           room={room}
           timestamp={message.timestamp}
           user={user}
