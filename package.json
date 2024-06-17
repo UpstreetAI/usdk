@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.36",
+  "version": "0.0.37a",
   "description": "",
   "type": "module",
   "bin": {
