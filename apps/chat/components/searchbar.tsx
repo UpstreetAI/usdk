@@ -138,7 +138,7 @@ function AgentLink(props: any) {
   )
 }
 
-export function SearchBar({ user }) {
+export function SearchBar() {
 
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
@@ -154,6 +154,8 @@ export function SearchBar({ user }) {
       inputRef.current?.focus()
     }
   }, [isSearchOpen])
+
+  const user = true;
 
   // updates
   React.useEffect(() => {
