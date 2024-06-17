@@ -91,9 +91,9 @@ const joinAgent = async ({
   // console.log('join 1', u);
   const headers = {};
   // if (!dev) {
-    // const jwt = await getLoginJwt();
-    const jwt = localStorage.getItem('jwt');
-    (headers as any).Authorization = `Bearer ${jwt}`;
+  // const jwt = await getLoginJwt();
+  const jwt = localStorage.getItem('jwt');
+  (headers as any).Authorization = `Bearer ${jwt}`;
   // }
   const joinReq = await fetch(u, {
     method: 'POST',
@@ -138,7 +138,8 @@ function AgentLink(props: any) {
   )
 }
 
-export function SearchBar() {
+export function SearchBar({ user }) {
+
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
   const [results, setResults] = React.useState<AgentObject[]>([]);
@@ -191,10 +192,18 @@ export function SearchBar() {
         }}>
           <IconClose />
         </div>
-        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
-          setValue(e.target.value);
-        }} ref={inputRef} />
-        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
+        <input
+          type="text"
+          disabled={user ? false : true}
+          className={cn("size-full rounded-lg px-2")}
+          value={value}
+          placeholder={user ? "Find an agent..." : "Login to find an agent..."}
+          onChange={e => {
+            setValue(e.target.value);
+          }}
+          ref={inputRef}
+        />
+        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !user && "hidden")}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {results.map((agent, i) => (
               <div className={`flex p-4 border-b`} key={i}>
@@ -213,7 +222,7 @@ export function SearchBar() {
                   <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
-                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }),"block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
+                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }), "block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
                     e.preventDefault();
                     e.stopPropagation();
 
@@ -231,7 +240,7 @@ export function SearchBar() {
                       location.href = `/rooms/${room}`;
                     }
                   }}>
-                    <IconPlus className='size-8 opacity-[0.4]'/>
+                    <IconPlus className='size-8 opacity-[0.4]' />
                   </Link>
                 </div>
               </div>
