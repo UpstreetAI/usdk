@@ -7,8 +7,10 @@ import Link from 'next/link'
 import { cn, resolveRelativeUrl } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
-import { createClient } from '@/utils/supabase/client';
+// import { createClient } from '@/utils/supabase/client';
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { buttonVariants } from '@/components/ui/button'
+// import { useSupabase } from '@/components/ui/providers'
 
 import {
   IconClose,
@@ -17,14 +19,14 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
-import { getJWT } from '@/lib/getJWT';
+import { getJWT } from '@/lib/jwt';
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
   const { signal } = opts;
 
   const jwt = await getJWT();
   if (jwt) {
-    const supabase = createClient();
+    const supabase = makeAnonymousClient(process.env, jwt);
     const embedding = await lembed(query, {
       signal,
     });
