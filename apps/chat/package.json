@@ -41,6 +41,7 @@
     "@stripe/stripe-js": "2.4.0",
     "@supabase/ssr": "0.1.0",
     "@supabase/supabase-js": "2.39.3",
+    "@tsndr/cloudflare-worker-jwt": "^2.5.3",
     "@upstreet/multiplayer": "*",
     "@vercel/analytics": "1.1.2",
     "@vercel/kv": "1.0.1",
@@ -90,7 +91,6 @@
     "@types/react-syntax-highlighter": "15.5.11",
     "@typescript-eslint/parser": "6.19.0",
     "autoprefixer": "10.4.17",
-    "dotenv": "^16.4.5",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
     "eslint-config-prettier": "^9.1.0",
@@ -104,5 +104,9 @@
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "@supabase/auth-js": "2.62.0",
+    "whatwg-url": "14.0.0"
   }
 }
