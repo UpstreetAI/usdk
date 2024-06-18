@@ -54,10 +54,11 @@ import { getUserForJwt } from '@/utils/supabase/supabase-client';
 }; */
 
 export async function getUser(jwt: string) {
-  if (!jwt) {
-    throw new Error('getUserForJwt with no jwt');
+  if (jwt) {
+    return await getUserForJwt(jwt);
+  } else {
+    return null;
   }
-  return await getUserForJwt(jwt);
 }
 
 export function getJWT() {

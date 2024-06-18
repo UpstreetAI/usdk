@@ -9,6 +9,7 @@ import { useActions } from '@/components/ui/actions'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { createClient } from '@/utils/supabase/client';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { getSupabase } from '@/lib/hooks/use-supabase';
 import { buttonVariants } from '@/components/ui/button'
 // import { useSupabase } from '@/components/ui/providers'
 
@@ -19,14 +20,16 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
-import { getJWT } from '@/lib/jwt';
+// import { getJWT } from '@/lib/jwt';
+// import { env } from '@/lib/env';
 
 async function search(query: string, opts: { signal: AbortSignal; }) {
   const { signal } = opts;
 
-  const jwt = await getJWT();
-  if (jwt) {
-    const supabase = makeAnonymousClient(process.env, jwt);
+  const { supabase } = await getSupabase({
+    signal,
+  });
+  if (supabase) {
     const embedding = await lembed(query, {
       signal,
     });
