@@ -228,7 +228,6 @@ export function SearchBar() {
                     href="#" 
                     className={cn(buttonVariants({ variant: 'outline' }),
                     'block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2')} 
-                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onMouseDown={async e => {
                       e.preventDefault();
                       e.stopPropagation();
