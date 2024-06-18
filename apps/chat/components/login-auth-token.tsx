@@ -9,16 +9,13 @@ const aiHost = 'https://ai.upstreet.ai'
 const otpURL = `${aiHost}/api/otp`
 
 
-// const endpoint = new Endpoint(getJWT);
-
-
 export default function LoginAuthToken() {
   let isLoading = false
 
   useEffect( () => {
     if (!isLoading) {
       isLoading = true;
-      getJWT().catch(console.error);
+      getJWTFromOtp().catch(console.error);
     }
   }, [] )
 
@@ -26,7 +23,7 @@ export default function LoginAuthToken() {
 }
 
 
-async function getJWT() {
+async function getJWTFromOtp() {
   const
     searchParams = new URL(location.href).searchParams,
     authToken = searchParams.get(authTokenParam)
