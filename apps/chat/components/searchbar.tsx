@@ -206,7 +206,7 @@ export function SearchBar() {
         <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {loadingResults ? (
-                <div className="text-center p-4 text-xl">Searching for agents...</div>
+                <div className="animate-pulse text-center p-4 text-xl">Searching for agents...</div>
             ) : results.map((agent, i) => (
               <div className={`flex p-4 border-b`} key={i}>
                 <AgentLink name={agent.name}>
