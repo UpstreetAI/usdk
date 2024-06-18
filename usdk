@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --no-warnings
 
 // import './packages/cli/src/index.js'
 import './cli.js'
