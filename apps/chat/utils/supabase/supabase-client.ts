@@ -115,7 +115,7 @@ export const getClientFromToken = async (env, token) => {
     } */
   } else { // jwt format
     const out = jwt.decode(token);
-    userId = out?.payload?.id ?? null;
+    userId = out?.payload?.id ?? out?.payload?.sub ?? null;
     supabase = makeAnonymousClient(env, token);
 
     if (!userId) {
