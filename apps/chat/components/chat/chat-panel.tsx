@@ -20,7 +20,7 @@ export interface ChatPanelProps {
   scrollToBottom: () => void
   room?: string
   messages: Array<{ id: string; display: React.ReactNode }>
-  sendChatMessage: (message: string) => void
+  // sendChatMessage: (message: string) => void
 }
 
 export function ChatPanel({
@@ -32,7 +32,7 @@ export function ChatPanel({
   scrollToBottom,
   room,
   messages,
-  sendChatMessage,
+  // sendChatMessage,
 }: ChatPanelProps) {
   // const [aiState] = useAIState()
   // const [messages, setMessages] = useUIState<typeof AI>()

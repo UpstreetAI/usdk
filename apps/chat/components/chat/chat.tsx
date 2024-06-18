@@ -2,20 +2,23 @@
 
 import React from 'react'
 import { ChatMessage } from '@/components/chat/chat-message'
-import { ChatMessageOld } from '@/components/chat/chat-message-old'
+// import { ChatMessageOld } from '@/components/chat/chat-message-old'
 import { type User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+// import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat/chat-list'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { defaultUserPreviewUrl } from '@/utils/const/defaults'
 // import { useAIState } from 'ai/rsc'
 // import { Message } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { UIState } from '@/lib/chat/actions'
+// import { resolveRelativeUrl } from '@/lib/utils'
+import { useSupabase } from '@/lib/hooks/use-supabase';
 
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
@@ -44,12 +47,13 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
 }
 
-export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps) {
+export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
   const [input, setInput] = useState('')
   // const [messages] = useUIState()
   // const [aiState] = useAIState()
+  const { user } = useSupabase()
 
   const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
@@ -99,10 +103,11 @@ export function Chat({ id, className, user, /*missingKeys, */ room }: ChatProps)
 
   useEffect(() => {
     if (room && user) {
+      console.log('got user', user);
       const localPlayerSpec: PlayerSpec = {
         id: user.id,
-        name: user.user_metadata.full_name,
-        previewUrl: user.user_metadata.avatar_url,
+        name: user.name,
+        previewUrl: user.preview_url || defaultUserPreviewUrl,
       };
       setMultiplayerConnectionParameters({
         room,

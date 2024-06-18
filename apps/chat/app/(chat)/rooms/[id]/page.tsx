@@ -2,8 +2,9 @@ import React from 'react'
 import { nanoid } from '@/lib/utils'
 import { Chat } from '@/components/chat/chat'
 // import { AI } from '@/lib/chat/actions'
-import { getMissingKeys } from '@/app/actions'
-import { getUser } from '@/utils/supabase/server'
+// import { getMissingKeys } from '@/app/actions'
+// import { getUser } from '@/utils/supabase/server'
+// import { getSupabase } from '@/lib/hooks/use-supabase'
 
 // import { type Metadata } from 'next';
 // import { Room } from '@/components/room';
@@ -74,14 +75,13 @@ type Params = {
 
 export default async function RoomPage({ params }: Params) {
   const id = nanoid()
-  const user = await getUser()
-  // const missingKeys = await getMissingKeys()
-
   const roomName = decodeURIComponent(params.id)
+  // const user = await getUser()
+  // const missingKeys = await getMissingKeys()
 
   return (
     // <AI initialAIState={{ chatId: id, messages: [] }}>
-      <Chat id={id} user={user} /* missingKeys={missingKeys} */ room={roomName} />
+      <Chat id={id} /* user={user} missingKeys={missingKeys} */ room={roomName} />
     // </AI>
   )
 }
