@@ -1,5 +1,5 @@
 import { aiProxyHost } from '../const/endpoints.js';
-import { getJWT } from '@/lib/getJWT'
+import { getJWT } from '@/lib/jwt'
 
 
 const numRetries = 5;
