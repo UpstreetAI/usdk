@@ -141,7 +141,10 @@ function AgentLink(props: any) {
 export function SearchBar() {
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
+
   const [results, setResults] = React.useState<AgentObject[]>([]);
+  const [loadingResults, setLoadingResults] = React.useState<boolean>(false);
+
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const { isSearchOpen, toggleSearch } = useActions();
@@ -157,15 +160,20 @@ export function SearchBar() {
   // updates
   React.useEffect(() => {
     if (value) {
+
+      setLoadingResults(true);
+      
       const abortController = new AbortController();
       const { signal } = abortController;
 
       (async () => {
+        setLoadingResults(true);
         try {
           const agents = await search(value, {
             signal,
           });
           setResults(agents);
+          setLoadingResults(false);
         } catch (err) {
           console.warn(err);
         }
@@ -176,11 +184,12 @@ export function SearchBar() {
       };
     } else {
       setResults([]);
+      setLoadingResults(false);
     }
-  }, [value])
+  }, [value]);
 
   return (
-    <div className={cn("flex flex-1 flex-col h-full inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
+    <div className={cn('flex flex-1 flex-col h-full inset-0 pointer-events-none', isSearchOpen && 'block')} onFocus={e => {
       setFocus(true);
     }} onBlur={e => {
       setFocus(false);
@@ -196,7 +205,9 @@ export function SearchBar() {
         }} ref={inputRef} />
         <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
-            {results.map((agent, i) => (
+            {loadingResults ? (
+                <div className="text-center p-4 text-xl">Searching for agents...</div>
+            ) : results.map((agent, i) => (
               <div className={`flex p-4 border-b`} key={i}>
                 <AgentLink name={agent.name}>
                   <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
@@ -213,7 +224,11 @@ export function SearchBar() {
                   <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
                 </div>
                 <div className="flex flex-col">
-                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }),"block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
+                  <Link 
+                    href="#" 
+                    className={cn(buttonVariants({ variant: 'outline' }),
+                    'block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2')} 
+                    onMouseDown={async e => {
                     e.preventDefault();
                     e.stopPropagation();
 
