@@ -1,11 +1,11 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types_db';
-
+import { getUserForJwt } from '@/utils/supabase/supabase-client';
 
 // Define a function to create a Supabase client for server-side operations
 // The function takes a cookie store created with next/headers cookies as an argument
-export const createClient = (jwt?: string|null) => {
+/* export const createClient = (jwt?: string|null) => {
   const
     cookieStore = cookies(),
     _jwt = jwt || getJWT();
@@ -51,18 +51,16 @@ export const createClient = (jwt?: string|null) => {
       }
     }
   );
-};
+}; */
 
-
-export async function getUser(jwt?: string|null) {
-  return jwt
-    ? ( await createClient().auth.getUser(jwt))?.data?.user
-    : ( await createClient().auth.getUser())?.data?.user
+export async function getUser(jwt: string) {
+  if (!jwt) {
+    throw new Error('getUserForJwt with no jwt');
+  }
+  return await getUserForJwt(jwt);
 }
 
-
 export function getJWT() {
-  const cookieStore = cookies()
-
-  return cookieStore.get('auth-jwt')?.value
+  const cookieStore = cookies();
+  return cookieStore.get('auth-jwt')?.value;
 }
