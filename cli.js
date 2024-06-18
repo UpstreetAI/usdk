@@ -48,7 +48,14 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './sdk/src/util/ethereum-utils.mjs';
-import { aiHost, metamaskHost, deployEndpointUrl, multiplayerEndpointUrl, r2EndpointUrl } from './sdk/src/util/endpoints.mjs';
+import {
+  aiHost,
+  metamaskHost,
+  deployEndpointUrl,
+  multiplayerEndpointUrl,
+  r2EndpointUrl,
+  chatEndpointUrl,
+} from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
@@ -1293,6 +1300,7 @@ const createWebcamSource = ({ local }) => {
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
+  const ui = !!args.ui;
   const debug = !!args.debug;
   const vision = !!args.vision;
 
@@ -1303,13 +1311,20 @@ const connect = async (args) => {
         room,
         debug,
       });
-    startMultiplayerListener({
-      userAsset,
-      realms,
-      playersMap,
-      typingMap,
-      startRepl: true,
-    });
+    if (ui) {
+      startMultiplayerListener({
+        userAsset,
+        realms,
+        playersMap,
+        typingMap,
+        startRepl: true,
+      });
+    } else {
+      const _chatEndpointUrl = local
+        ? `http://localhost:3000`
+        : chatEndpointUrl;
+      open(`${chatEndpointUrl}/rooms/${room}`);
+    }
 
     // set up the webcam, if needed
     if (vision) {
@@ -1373,6 +1388,7 @@ const chat = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
+  const ui = args.ui;
   const debug = !!args.debug;
 
   // ensure guids
@@ -2291,6 +2307,7 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         dev: true,
         vision: args.vision,
+        ui: args.ui,
         debug: args.debug,
       });
 
@@ -3201,6 +3218,7 @@ const main = async () => {
     .option(`-l, --local`, `Connect to local servers`)
     .option(`-r, --room <room>`, `Room to join`)
     .option(`-v, --vision`, `Enable webcam vision`)
+    .option(`-u, --ui`, `Open browser UI`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (subcommand = '', guids = [], opts = {}) => {
       // console.log(
