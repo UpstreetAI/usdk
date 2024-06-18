@@ -153,9 +153,9 @@ export function SearchBar() {
   // focus search
   React.useEffect(() => {
     if (isSearchOpen) {
-      inputRef.current?.focus()
+      inputRef.current?.focus();
     }
-  }, [isSearchOpen])
+  }, [isSearchOpen]);
 
   // updates
   React.useEffect(() => {
@@ -195,15 +195,15 @@ export function SearchBar() {
       setFocus(false);
     }} tabIndex={-1}>
       <div className="relative flex flex-col m-auto md:translate-x-[-74px] size-full px-4 py-2 sm:max-w-2xl sm:px-4 pointer-events-auto">
-        <div className={cn("absolute px-8 items-center inset-y-0 right-0 flex md:hidden")} onClick={e => {
-          toggleSearch();
+        <div className={cn('absolute opacity-0 px-8 items-center inset-y-0 right-0 flex', value && 'opacity-1')} onClick={e => {
+          setValue('');
         }}>
           <IconClose />
         </div>
-        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
+        <input type="text" className={cn('size-full rounded-lg px-2')} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
+        <div className={cn('fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl', !focus && 'hidden')}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {loadingResults ? (
                 <div className="animate-pulse text-center p-4 text-xl">Searching for agents...</div>
@@ -228,24 +228,26 @@ export function SearchBar() {
                     href="#" 
                     className={cn(buttonVariants({ variant: 'outline' }),
                     'block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2')} 
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
                     onMouseDown={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                      e.preventDefault();
+                      e.stopPropagation();
 
-                    // console.log('join agent', agent.id);
+                      // console.log('join agent', agent.id);
 
-                    const oldRoom = getRoom();
-                    const room = oldRoom || crypto.randomUUID();
-                    const guid = agent.id;
-                    await joinAgent({
-                      room,
-                      guid,
-                    });
-                    setFocus(false);
-                    if (!/\/rooms\//.test(location.pathname)) {
-                      location.href = `/rooms/${room}`;
-                    }
-                  }}>
+                      const oldRoom = getRoom();
+                      const room = oldRoom || crypto.randomUUID();
+                      const guid = agent.id;
+                      await joinAgent({
+                        room,
+                        guid,
+                      });
+                      setFocus(false);
+                      if (!/\/rooms\//.test(location.pathname)) {
+                        location.href = `/rooms/${room}`;
+                      }
+                    }}
+                  >
                     <IconPlus className='size-8 opacity-[0.4]'/>
                   </Link>
                 </div>
