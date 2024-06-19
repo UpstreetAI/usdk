@@ -227,24 +227,32 @@ export function SearchBar() {
                       <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
                     </div>
                     <div className="flex flex-col">
-                      <Link href="#" className={cn(buttonVariants({ variant: 'outline' }), "block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                      <Link 
+                        href="#" 
+                        className={
+                          cn(
+                            buttonVariants({ variant: 'outline' }), 
+                            'block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2'
+                          )
+                        } 
+                        onMouseDown={async e => {
+                          e.preventDefault();
+                          e.stopPropagation();
 
-                        // console.log('join agent', agent.id);
+                          // console.log('join agent', agent.id);
 
-                        const oldRoom = getRoom();
-                        const room = oldRoom || crypto.randomUUID();
-                        const guid = agent.id;
-                        await joinAgent({
-                          room,
-                          guid,
-                        });
-                        setFocus(false);
-                        if (!/\/rooms\//.test(location.pathname)) {
-                          location.href = `/rooms/${room}`;
-                        }
-                      }}>
+                          const oldRoom = getRoom();
+                          const room = oldRoom || crypto.randomUUID();
+                          const guid = agent.id;
+                          await joinAgent({
+                            room,
+                            guid,
+                          });
+                          setFocus(false);
+                          if (!/\/rooms\//.test(location.pathname)) {
+                            location.href = `/rooms/${room}`;
+                          }
+                        }}>
                         <IconPlus className='size-8 opacity-[0.4]' />
                       </Link>
                     </div>
