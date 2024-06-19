@@ -1,8 +1,9 @@
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl, resolveRelativeUrl } from '@/lib/utils'
 import Link from 'next/link'
+import { isValidUrl } from '@/utils/helpers/urls'
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -37,18 +38,21 @@ export function ChatMessage({
   //   throw new Error('User is required')
   // }
 
-  const playerSpec = player.getPlayerSpec()
-  const agentUrl = getAgentUrl(playerSpec)
-  const avatarURL = getAgentPreviewImageUrl(playerSpec)
+  const playerSpec = player.getPlayerSpec();
+  const agentUrl = getAgentUrl(playerSpec);
+  const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
+  // check if the avatarURL is a valid url
+  const isExternalURL = isValidUrl(avatarURL);
+  
   return (
     <div>
       {/*{ JSON.stringify( player )}*/}
-      <div className={"grid grid-cols-message bt-0"}>
+      <div className={'grid grid-cols-message bt-0'}>
         <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
-          {avatarURL ? (
-            <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
+          {avatarURL && isExternalURL ? (
+            <Image src={resolveRelativeUrl(avatarURL)} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
           )}

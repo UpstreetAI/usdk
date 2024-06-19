@@ -5,8 +5,16 @@ import { getJWT } from '@/lib/jwt'
 import { env } from '@/lib/env'
 import { makeAnonymousClient, getUserForJwt } from '@/utils/supabase/supabase-client'
 
+interface User {
+  id: string;
+  name: string;
+  ftu: boolean;
+  gender: number;
+  preview_url: string;
+}
+
 interface SupabaseContext {
-  user: object | null;
+  user: User | null;
   supabase: any | null;
 }
 
