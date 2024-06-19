@@ -4,10 +4,17 @@ import { useSupabase } from "@/lib/hooks/use-supabase";
 
 export default function Home() {
   const {user} = useSupabase();
-  
+  console.log(user)
   return (
     <div className="mx-auto max-w-2xl px-4 mt-4">
-      <div className="flex flex-col gap-2 rounded-lg border bg-background p-8">
+      {user ? (
+        <div className="flex flex-col gap-2 rounded-lg border bg-background p-8">
+        <h1 className="text-lg font-semibold">
+          Welcome back {user.name}!
+        </h1>
+      </div>
+      ) : (
+        <div className="flex flex-col gap-2 rounded-lg border bg-background p-8">
         <h1 className="text-lg font-semibold">
           Welcome to Upstreet chat!
         </h1>
@@ -18,6 +25,7 @@ export default function Home() {
           Login or create an account to start looking for agents and forming relationships!{' '}
         </p>
       </div>
+      )}
     </div>
   );
 }
