@@ -205,50 +205,54 @@ export function SearchBar() {
         <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden')}>
+        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !value && 'hidden')}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {loadingResults ? (
               <div className="animate-pulse text-center p-4 text-xl">Searching for agents...</div>
-            ) : results.map((agent, i) => (
-              <div className={`flex p-4 border-b`} key={i}>
-                <AgentLink name={agent.name}>
-                  <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
-                    {agent.preview_url ? (
-                      <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
-                    ) : (
-                      <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
-                    )}
+            ) : (
+              <>
+                {results.length > 0 ? results.map((agent, i) => (
+                  <div className={`flex p-4 border-b`} key={i}>
+                    <AgentLink name={agent.name}>
+                      <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                        {agent.preview_url ? (
+                          <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
+                        ) : (
+                          <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
+                        )}
+                      </div>
+                    </AgentLink>
+                    <div className="flex flex-col flex-1">
+                      <AgentLink name={agent.name} className="text-lg line-clamp-1 font-bold hover:underline">{agent.name}</AgentLink>
+                      <div className="text-base line-clamp-2">{agent.description}</div>
+                      <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
+                    </div>
+                    <div className="flex flex-col">
+                      <Link href="#" className={cn(buttonVariants({ variant: 'outline' }), "block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // console.log('join agent', agent.id);
+
+                        const oldRoom = getRoom();
+                        const room = oldRoom || crypto.randomUUID();
+                        const guid = agent.id;
+                        await joinAgent({
+                          room,
+                          guid,
+                        });
+                        setFocus(false);
+                        if (!/\/rooms\//.test(location.pathname)) {
+                          location.href = `/rooms/${room}`;
+                        }
+                      }}>
+                        <IconPlus className='size-8 opacity-[0.4]' />
+                      </Link>
+                    </div>
                   </div>
-                </AgentLink>
-                <div className="flex flex-col flex-1">
-                  <AgentLink name={agent.name} className="text-lg line-clamp-1 font-bold hover:underline">{agent.name}</AgentLink>
-                  <div className="text-base line-clamp-2">{agent.description}</div>
-                  <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
-                </div>
-                <div className="flex flex-col">
-                  <Link href="#" className={cn(buttonVariants({ variant: 'outline' }), "block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2")} onMouseDown={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // console.log('join agent', agent.id);
-
-                    const oldRoom = getRoom();
-                    const room = oldRoom || crypto.randomUUID();
-                    const guid = agent.id;
-                    await joinAgent({
-                      room,
-                      guid,
-                    });
-                    setFocus(false);
-                    if (!/\/rooms\//.test(location.pathname)) {
-                      location.href = `/rooms/${room}`;
-                    }
-                  }}>
-                    <IconPlus className='size-8 opacity-[0.4]' />
-                  </Link>
-                </div>
-              </div>
-            ))}
+                )) : <div className="text-center p-4 text-xl">Agents not found.</div>}
+              </>
+            )}
           </div>
         </div>
       </div>
