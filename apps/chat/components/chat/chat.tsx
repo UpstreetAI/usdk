@@ -3,7 +3,7 @@
 import React from 'react'
 import { ChatMessage } from '@/components/chat/chat-message'
 // import { ChatMessageOld } from '@/components/chat/chat-message-old'
-import { type User } from '@supabase/supabase-js';
+// import { type User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react'
 // import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -16,7 +16,7 @@ import { defaultUserPreviewUrl } from '@/utils/const/defaults'
 // import { Message } from '@/lib/types'
 import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
-import { UIState } from '@/lib/chat/actions'
+// import { UIState } from '@/lib/chat/actions'
 // import { resolveRelativeUrl } from '@/lib/utils'
 import { useSupabase } from '@/lib/hooks/use-supabase';
 
@@ -42,7 +42,7 @@ type Message = {
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
-  user: User|null
+  // user: User|null
   // missingKeys: string[]
   room: string
 }
@@ -69,12 +69,12 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, user, rawMessage, playersCache, sendRawMessage),
+        display: getMessageComponent(room, rawMessage, playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
     // }
-  }).filter((message) => message !== null) as unknown as UIState;
+  }).filter((message) => message !== null) as unknown as any[];
 
   /*useEffect(() => {
     if (user) {
@@ -105,9 +105,9 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     if (room && user) {
       console.log('got user', user);
       const localPlayerSpec: PlayerSpec = {
-        id: user.id,
-        name: user.name,
-        previewUrl: user.preview_url || defaultUserPreviewUrl,
+        id: (user as any).id as string,
+        name: (user as any).name as string,
+        previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
       };
       setMultiplayerConnectionParameters({
         room,
@@ -146,13 +146,13 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
         scrollToBottom={scrollToBottom}
         room={room}
         messages={messages}
-        sendChatMessage={sendChatMessage}
+        // sendChatMessage={sendChatMessage}
       />
     </div>
   )
 }
 
-function getMessageComponent(room: string, user: User|null, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
+function getMessageComponent(room: string, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
  
   switch (message.method) {
 
@@ -201,7 +201,7 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
           player={player}
           room={room}
           timestamp={message.timestamp}
-          user={user}
+          // user={user}
         />
       )
     }
@@ -234,7 +234,7 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
           player={player}
           room={room}
           timestamp={message.timestamp}
-          user={user}
+          // user={user}
         />
       )
     }
@@ -260,7 +260,7 @@ function getMessageComponent(room: string, user: User|null, message: Message, pl
           player={player}
           room={room}
           timestamp={message.timestamp}
-          user={user}
+          // user={user}
         />
       )
     }

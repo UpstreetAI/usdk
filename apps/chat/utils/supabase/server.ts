@@ -65,3 +65,12 @@ export function getJWT() {
   const cookieStore = cookies();
   return cookieStore.get('auth-jwt')?.value;
 }
+
+export async function waitForUser() {
+  const jwt = getJWT()
+  if (jwt) {
+    return await getUser(jwt)
+  } else {
+    return null
+  }
+}

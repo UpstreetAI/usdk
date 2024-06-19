@@ -6,7 +6,7 @@ import { aiHost } from '@/utils/const/endpoints';
 Error.stackTraceLimit = 300;
 
 // uses the service api key
-export const makeClient = (env, jwt) => {
+export const makeClient = (env: any, jwt?: string) => {
   if (!env) {
     throw new Error('cannot make client for blank env');
   }
@@ -31,7 +31,7 @@ export const makeClient = (env, jwt) => {
   return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_SUPABASE_SERVICE_API_KEY, o);
 };
 // uses the public api key
-export const makeAnonymousClient = (env, jwt) => {
+export const makeAnonymousClient = (env: any, jwt?: string) => {
   if (!env) {
     throw new Error('cannot make anonymous client for blank env');
   }
@@ -56,7 +56,7 @@ export const makeAnonymousClient = (env, jwt) => {
   return createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, o);
 };
 
-export const getTokenFromRequest = (request) => {
+export const getTokenFromRequest = (request: any) => {
   let authHeader;
   if (request.headers.get) {
     authHeader = request.headers.get('authorization');
@@ -71,7 +71,7 @@ export const getTokenFromRequest = (request) => {
     return '';
   }
 };
-export const getClientFromToken = async (env, token) => {
+export const getClientFromToken = async (env: any, token?: string) => {
   if (!env.SUPABASE_SERVICE_API_KEY) {
     throw new Error('no service api key');
   }
@@ -114,7 +114,7 @@ export const getClientFromToken = async (env, token) => {
       throw new Error('signature is not valid: ' + token);
     } */
   } else { // jwt format
-    const out = jwt.decode(token);
+    const out = jwt.decode(token) as any;
     userId = out?.payload?.id ?? out?.payload?.sub ?? null;
     supabase = makeAnonymousClient(env, token);
 
@@ -133,7 +133,7 @@ export const getClientFromToken = async (env, token) => {
   };
 };
 
-export const getUserIdForJwt = async (jwt) => {
+export const getUserIdForJwt = async (jwt: string) => {
   const res = await fetch(`${aiHost}/checkLogin`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
@@ -148,7 +148,7 @@ export const getUserIdForJwt = async (jwt) => {
     return null;
   }
 };
-export const getUserForJwt = async (jwt) => {
+export const getUserForJwt = async (jwt: string) => {
   const res = await fetch(`${aiHost}/checkUser`, {
     headers: {
       Authorization: `Bearer ${jwt}`,

@@ -1,6 +1,6 @@
 'use server'
 
-import { getUser } from '@/utils/supabase/server'
+import { getJWT, getUser, waitForUser } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { kv } from '@vercel/kv'
@@ -41,7 +41,7 @@ export async function getChat(id: string, userId: string) {
 }
 
 export async function removeChat({ id, path }: { id: string; path: string }) {
-  const user = await getUser()
+  const user = await waitForUser()
 
   if (!user) {
     return {
@@ -66,7 +66,7 @@ export async function removeChat({ id, path }: { id: string; path: string }) {
 }
 
 export async function clearChats() {
-  const user = await getUser()
+  const user = await waitForUser()
 
   if (!user?.id) {
     return {
@@ -102,7 +102,7 @@ export async function getSharedChat(id: string) {
 }
 
 export async function shareChat(id: string) {
-  const user = await getUser()
+  const user = await waitForUser()
 
   if (!user?.id) {
     return {
@@ -129,7 +129,7 @@ export async function shareChat(id: string) {
 }
 
 export async function saveChat(chat: Chat) {
-  const user = await getUser()
+  const user = await waitForUser()
 
   if (user) {
     const pipeline = kv.pipeline()

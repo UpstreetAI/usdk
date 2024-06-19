@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 
-import type { User } from '@supabase/supabase-js'
+// import type { User } from '@supabase/supabase-js'
 
 
 TimeAgo.addDefaultLocale(en)
@@ -18,7 +18,7 @@ export interface ChatMessageProps {
   player: any
   room: string
   timestamp: number
-  user: User | null
+  // user: User | null
 }
 
 export function ChatMessage({
@@ -28,14 +28,14 @@ export function ChatMessage({
   player,
   room,
   timestamp,
-  user,
+  // user,
 }: ChatMessageProps) {
   if (!player) {
     throw new Error('Player is required')
   }
-  if (!user) {
-    throw new Error('User is required')
-  }
+  // if (!user) {
+  //   throw new Error('User is required')
+  // }
 
   const playerSpec = player.getPlayerSpec()
   const agentUrl = getAgentUrl(playerSpec)

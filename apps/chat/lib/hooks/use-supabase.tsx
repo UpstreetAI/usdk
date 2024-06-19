@@ -31,7 +31,7 @@ const setGlobalValue = (o: SupabaseContext) => {
   globalSupabasePromiseWithResolvers.resolve(o);
 };
 // await with a signal; Promise.race but if the signal aborts first then return the default and clean up the listener
-const awaitWithAbort = async (p: Promise<any>, signal: AbortSignal, defaultValue: any) => {
+const awaitWithAbort = async (p: Promise<any>, signal: AbortSignal | null, defaultValue: any) => {
   if (signal) {
     let cleanup = () => {};
     const result = await Promise.race([p, new Promise((resolve, reject) => {

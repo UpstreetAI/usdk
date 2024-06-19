@@ -1,7 +1,9 @@
 
 import { type Metadata } from 'next';
 import { AgentProfile } from '@/components/agent-profile';
-import { createClient } from '@/utils/supabase/server';
+// import { createClient } from '@/utils/supabase/server';
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { env } from '@/lib/env'
 
 type Params = {
   params: {
@@ -12,11 +14,11 @@ type Params = {
 export async function generateMetadata({
   params
 }: Params): Promise<Metadata> {
-
-  const supabase = createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  // const supabase = createClient();
+  const supabase = makeAnonymousClient(env);
+  // const {
+  //   data: { user }
+  // } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
   const agentName = decodeURIComponent(params.id)
@@ -67,10 +69,10 @@ export async function generateMetadata({
 }
 
 export default async function AgentProfilePage({ params }: Params) {
-  const supabase = createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  const supabase = makeAnonymousClient(env);
+  // const {
+  //   data: { user }
+  // } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
   const agentName = decodeURIComponent(params.id)

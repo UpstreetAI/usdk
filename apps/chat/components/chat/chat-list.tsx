@@ -1,11 +1,11 @@
 import { type User } from '@supabase/supabase-js'
 import { Separator } from '@/components/ui/separator'
-import { UIState } from '@/lib/chat/actions'
-import Link from 'next/link'
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+// import { UIState } from '@/lib/chat/actions'
+// import Link from 'next/link'
+// import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 
 export interface ChatList {
-  messages: UIState
+  messages: any
   // user?: User | null
   // isShared: boolean
 }
@@ -41,7 +41,7 @@ export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
         </>
       ) : null} */}
 
-      {messages.map((message, index) => message.display &&
+      {messages.map((message: any, index: number) => message.display &&
         <div key={message.id}>
           {message.display}
           {index < messages.length - 1 && <Separator className="my-4" />}
