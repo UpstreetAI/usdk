@@ -4,7 +4,7 @@ import { useSupabase } from "@/lib/hooks/use-supabase";
 
 export default function Home() {
   const {user} = useSupabase();
-  console.log(user)
+  
   return (
     <div className="mx-auto max-w-2xl px-4 mt-4">
       {user ? (
