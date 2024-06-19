@@ -169,7 +169,6 @@ export function SearchBar() {
       const { signal } = abortController;
 
       (async () => {
-        setLoadingResults(true);
         try {
           const agents = await search(value, {
             signal,
