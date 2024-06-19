@@ -1,1 +1,1 @@
-export const defaultUserPreviewUrl = `/images/user.png`;
+export const defaultUserPreviewUrl = `/images/user-small.png`;
