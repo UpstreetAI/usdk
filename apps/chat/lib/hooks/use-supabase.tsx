@@ -26,7 +26,21 @@ interface SidebarProviderProps {
   children: React.ReactNode
 }
 
-const globalSupabasePromiseWithResolvers = Promise.withResolvers<SupabaseContext>();
+// implement Promise.withResolvers as a polyfill:
+const promiseWithResolvers = <T,>() => {
+  let resolve: (value: T) => void;
+  let reject: (reason?: any) => void;
+  const promise = new Promise<T>((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return {
+    promise,
+    resolve: resolve!,
+    reject: reject!,
+  };
+};
+const globalSupabasePromiseWithResolvers = promiseWithResolvers<SupabaseContext>();
 const setGlobalValue = (o: SupabaseContext) => {
   globalSupabasePromiseWithResolvers.resolve(o);
 };
