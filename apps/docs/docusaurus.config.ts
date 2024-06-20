@@ -64,7 +64,7 @@ const config: Config = {
         src: 'img/upstreet_logo_dark.svg',
       },
       items: [
-        {to: '/sdk/intro', label: 'SDK', position: 'left'},
+        {to: '/docs/sdk', label: 'SDK', position: 'left'},
         {
           href: 'https://chat.upstreet.ai',
           label: 'Chat',
