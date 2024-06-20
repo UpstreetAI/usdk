@@ -611,7 +611,7 @@ const login = async (args) => {
       id,
       jwt,
     }));
-    console.log('logged in successfully');
+    console.log('Successfully logged in.');
   };
 
   // if (!anonymous) {
