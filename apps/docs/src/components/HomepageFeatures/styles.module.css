@@ -1,11 +1,17 @@
 .features {
   display: flex;
   align-items: center;
-  padding: 2rem 0;
+  padding: 4rem 0;
   width: 100%;
+  border-top:1px solid rgba(0,0,0,0.2);
+  display: none;
 }
 
-.featureSvg {
-  height: 200px;
-  width: 200px;
+[data-theme='dark'] .features {
+    border-top:1px solid rgba(255,255,255,0.2);
+}
+
+.featureImg {
+  height: 160px;
+  width: auto;
 }

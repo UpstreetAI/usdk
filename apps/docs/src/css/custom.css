@@ -29,11 +29,21 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
-.navbar .navbar__logo {
-  margin-right: 16px;
+/* CUSTOM STYLES FROM UPSTREET */
+
+[data-theme='dark']  body {
+  background: #18181a;
 }
 
 /* Changes the logo in dark mode to a white one (QUICK FIX) */
 [data-theme='dark'] .navbar .navbar__logo {
   content: url('/img/upstreet_logo_light.svg')
+}
+
+[data-theme='dark'] .navbar {
+  background: #000000;
+}
+
+.navbar .navbar__logo {
+  margin-right: 16px;
 }
