@@ -20,5 +20,5 @@ Lets get started and install the SDK with your favorite package manager.
 ## Installation
 
 ```bash
-npm install - usdk
+npm install -g usdk
 ```
