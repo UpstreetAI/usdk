@@ -42,6 +42,7 @@
     "@supabase/ssr": "0.1.0",
     "@supabase/supabase-js": "2.39.3",
     "@tsndr/cloudflare-worker-jwt": "^2.5.3",
+    "@upstreet/api": "*",
     "@upstreet/multiplayer": "*",
     "@vercel/analytics": "1.1.2",
     "@vercel/kv": "1.0.1",
