@@ -6,7 +6,7 @@ import { useSupabase } from '@/lib/hooks/use-supabase'
 import * as React from 'react'
 
 import { LogoutButton } from '@/components/logout-button'
-import { useSidebar } from '@/lib/hooks/use-sidebar'
+import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 import { cn } from '@/lib/utils'
 
 
