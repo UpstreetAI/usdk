@@ -1,3 +1,5 @@
+'use server'
+
 import * as React from 'react'
 // import { auth } from '@/auth'
 import { ChatHistory } from '@/components/chat/chat-history'
