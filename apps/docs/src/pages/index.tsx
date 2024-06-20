@@ -34,8 +34,8 @@ export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={``}
+      description="Your technical guide through the world of Upstreet!">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
