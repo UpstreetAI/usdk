@@ -693,6 +693,7 @@ const login = async (args) => {
 };
 const logout = async (args) => {
   await rimraf(loginLocation);
+  console.log('Successfully logged out.')
 };
 const authorize = async (args) => {
   const appDirectory = args._[0] ?? cwd;
