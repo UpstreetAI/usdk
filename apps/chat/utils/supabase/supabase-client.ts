@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from '@tsndr/cloudflare-worker-jwt';
+import { aiProxyAPI } from '@upstreet/api';
 // import { isStringSignatureValid } from './signature-utils.mjs';
 import { aiHost } from '@/utils/const/endpoints';
 
@@ -149,7 +150,7 @@ export const getUserIdForJwt = async (jwt: string) => {
   }
 };
 export const getUserForJwt = async (jwt: string) => {
-  const res = await fetch(`${aiHost}/checkUser`, {
+  const res = await fetch(`${aiHost}/${aiProxyAPI.getUser}`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
