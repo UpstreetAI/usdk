@@ -2112,6 +2112,20 @@ const getAgentToken = async (jwt, guid) => {
   }
 };
 const create = async (args) => {
+  // Ensure user is logged in.
+  const jwt = await getLoginJwt();
+  let agentToken = null;
+  if (jwt !== null) {
+    agentToken = await getAgentToken(jwt, guid);
+    if (!agentToken) {
+      console.warn('Authorization error. Please try logging in again.')
+      process.exit(1)
+    }
+  } else {
+    console.warn('You must be logged in to create an agent.');
+    process.exit(1)
+  }
+
   if (args.prompt && args.template) {
     console.warn('cannot use both prompt and --template');
     process.exit(1);
@@ -2158,19 +2172,6 @@ const create = async (args) => {
 
   // bootstrap destination directory
   await mkdirp(dstDir);
-
-  // load agent login token
-  console.log('authorizing agent...');
-  const jwt = await getLoginJwt();
-  let agentToken = null;
-  if (jwt !== null) {
-    agentToken = await getAgentToken(jwt, guid);
-    if (!agentToken) {
-      console.warn('Note: could not authorize agent; this means your agent will not be allowed to run inference.')
-    }
-  } else {
-    console.warn('Note: you are not logged in; this means your agent will not be allowed to run inference.');
-  }
 
   // generate the agent if necessary
   let srcTemplateDir;
