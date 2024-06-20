@@ -5,6 +5,7 @@ import { getJWT } from '@/lib/jwt'
 import { env } from '@/lib/env'
 import { makeAnonymousClient, getUserForJwt } from '@/utils/supabase/supabase-client'
 
+
 interface User {
   id: string;
   name: string;
@@ -16,6 +17,7 @@ interface User {
 interface SupabaseContext {
   user: User | null;
   supabase: any | null;
+  isFetchingUser: boolean;
 }
 
 const SupabaseContext = React.createContext<SupabaseContext | undefined>(
@@ -88,6 +90,7 @@ export function SupabaseProvider({ children }: SidebarProviderProps) {
   const [value, setValue] = React.useState<SupabaseContext>({
     user: null,
     supabase: null,
+    isFetchingUser: true,
   });
 
   React.useEffect(() => {
@@ -100,6 +103,7 @@ export function SupabaseProvider({ children }: SidebarProviderProps) {
         if (!live) return;
         const supabase = makeAnonymousClient(env, jwt);
         const o = {
+          isFetchingUser: false,
           user,
           supabase,
         };
@@ -107,6 +111,13 @@ export function SupabaseProvider({ children }: SidebarProviderProps) {
         setGlobalValue(o);
       } else {
         // not logged in
+        const o = {
+          isFetchingUser: false,
+          user: null,
+          supabase: null,
+        };
+        setValue(o);
+        setGlobalValue(o);
       }
     })();
     return () => {
