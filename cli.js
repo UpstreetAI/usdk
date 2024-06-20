@@ -2103,8 +2103,7 @@ const getAgentToken = async (jwt, guid) => {
     }),
   });
   if (jwtRes.ok) {
-    const j = await jwtRes.json();
-    return j;
+    return jwtRes.json();
   } else {
     const text = await jwtRes.text();
     console.warn(
