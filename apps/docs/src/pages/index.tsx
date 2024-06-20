@@ -22,7 +22,7 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs/sdk">
-            SDK Documentation
+            Upstreet SDK
           </Link>
         </div>
       </div>

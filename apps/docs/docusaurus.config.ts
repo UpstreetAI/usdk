@@ -72,7 +72,7 @@ const config: Config = {
         },
         {
           href: 'https://www.npmjs.com/package/usdk',
-          label: 'SDK',
+          label: 'USDK',
           position: 'right',
         },
         {
