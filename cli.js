@@ -3257,7 +3257,7 @@ const main = async () => {
         await search(args);
       });
     });
-  program
+  /*program
     .command('test')
     .description('Run the test suite')
     .action(async (subcommand = '', opts = {}) => {
@@ -3265,7 +3265,7 @@ const main = async () => {
         commandExecuted = true;
         await test();
       });
-    });
+    });*/
   program
     .command('deploy')
     .description('Deploy an agent to the network')
