@@ -89,9 +89,13 @@ export const getMessageFromCode = (resultCode: string) => {
 }
 
 export function resolveRelativeUrl(url: string) {
-  // XXX should be changed to chat.upstreet.ai, when the default images are hosted there
-  // return url && new URL(url, `https://nota.upstreet.ai`) + '';
-  return url;
+  if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
+    return url
+  } else {
+    // XXX should be changed to chat.upstreet.ai, when the default images are hosted there
+    return url && new URL(url, `https://nota.upstreet.ai`) + '';
+    // return url;
+  }
 }
 
 export function getAgentUrl(agentObject: any) {
