@@ -2116,6 +2116,7 @@ const getAgentToken = async (jwt, guid) => {
 };
 const create = async (args) => {
   // Ensure user is logged in.
+  const guid = makeDevGuid();
   const jwt = await getLoginJwt();
   let agentToken = null;
   if (jwt !== null) {
@@ -2140,7 +2141,6 @@ const create = async (args) => {
   const dev = !!args.dev;
   const template = args.template ?? 'basic';
 
-  const guid = makeDevGuid();
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
@@ -3074,7 +3074,7 @@ const main = async () => {
         await login(args);
       });
     });
-  program
+  /*program
     .command('authorize')
     .description('Authorize an agent of the SDK')
     .argument(`[directory]`, `The directory to create the project in`)
@@ -3087,7 +3087,7 @@ const main = async () => {
         };
         await authorize(args);
       });
-    });
+    });*/
   program
     .command('logout')
     .description('Log out of the SDK')
