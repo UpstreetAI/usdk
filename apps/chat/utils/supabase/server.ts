@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types_db';
-import { getUserForJwt } from '@/utils/supabase/supabase-client';
+import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client'
 
 // Define a function to create a Supabase client for server-side operations
 // The function takes a cookie store created with next/headers cookies as an argument
@@ -53,12 +53,6 @@ import { getUserForJwt } from '@/utils/supabase/supabase-client';
   );
 }; */
 
-export async function getUser(jwt: string) {
-  if (jwt) {
-    return await getUserForJwt(jwt);
-  } else {
-    return null;
-  }
 }
 
 export function getJWT() {
@@ -69,7 +63,7 @@ export function getJWT() {
 export async function waitForUser() {
   const jwt = getJWT()
   if (jwt) {
-    return await getUser(jwt)
+    return await getUserForJwt(jwt)
   } else {
     return null
   }
