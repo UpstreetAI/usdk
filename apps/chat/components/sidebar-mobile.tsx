@@ -5,20 +5,23 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from '@/components/sidebar'
 import { Button } from '@/components/ui/button'
 
-import { IconSidebar } from '@/components/ui/icons'
+import { IconMenu, IconSidebar } from '@/components/ui/icons'
+import { useSupabase } from '@/lib/hooks/use-supabase'
 
 interface SidebarMobileProps {
   children: React.ReactNode
 }
 
 export function SidebarMobile({ children }: SidebarMobileProps) {
+  const { user } = useSupabase()
+
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="-ml-2 flex size-9 p-0 lg:hidden">
-          <IconSidebar className="size-6" />
+        {user && <Button variant="ghost" className="aspect-square flex h-full p-0 rounded-none">
+          <IconMenu className="size-6" />
           <span className="sr-only">Toggle Sidebar</span>
-        </Button>
+        </Button>}
       </SheetTrigger>
       <SheetContent
         side="left"

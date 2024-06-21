@@ -1,5 +1,7 @@
 'use server'
 
+import { AccountButton } from '@/components/account-button'
+import { getUserForJwt } from '@/utils/supabase/supabase-client'
 import * as React from 'react'
 // import { auth } from '@/auth'
 import { ChatHistory } from '@/components/chat/chat-history'
@@ -7,15 +9,14 @@ import { HeaderLoginButton } from '@/components/header-login-button'
 import { SidebarMobile } from '@/components/sidebar-mobile'
 import { SidebarToggle } from '@/components/sidebar-toggle'
 // import { Session } from '@/lib/types'
-import { getJWT, getUser } from '@/utils/supabase/server'
+import { getJWT } from '@/utils/supabase/server'
 
 
-export async function UserOrLogin() {
+export async function AccountOrLogin() {
   const user = await (async () => {
     const jwt = getJWT();
     if (jwt) {
-      const user = await getUser(jwt);
-      return user;
+      return getUserForJwt(jwt);
     } else {
       return null;
     }
@@ -25,13 +26,11 @@ export async function UserOrLogin() {
     <>
       {user ? (
         <>
-          <SidebarMobile>
-            <ChatHistory />
-          </SidebarMobile>
-          <SidebarToggle />
+          {/*<SidebarToggle />*/}
+          <AccountButton user={user}/>
         </>
       ) : (
-        <HeaderLoginButton/>
+        <HeaderLoginButton />
       )}
     </>
   )

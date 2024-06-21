@@ -605,8 +605,26 @@ function IconUpstreet({
   )
 }
 
+function IconMenu({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 512 512"
+      {...props}
+    >
+      <path d="M32 96v64h448V96H32zm0 128v64h448v-64H32zm0 128v64h448v-64H32z" />
+    </svg>
+  )
+}
+
 export {
   IconEdit,
+  IconMenu,
   IconNextChat,
   IconUpstreetChat,
   IconSearch,

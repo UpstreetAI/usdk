@@ -17,25 +17,25 @@ export function HeaderLoginButton({
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       onClick={async () => {
         setIsLoading( true )
         // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
         await redirectToLoginTool()
       }}
       disabled={isLoading}
-      className={cn(buttonVariants({ variant: 'outline' }))}
+      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-none")}
       {...props}
     >
-      {
-        isLoading
-          ? <IconSpinner className="mr-2 animate-spin"/>
-          : <IconUser/>
-      }
+      <div className="mr-2">
+        {
+          isLoading
+            ? <IconSpinner className="animate-spin"/>
+            : <IconUser/>
+        }
+      </div>
 
-      <span className="ml-2 md:flex">
-        Login
-      </span>
+      <span>Login</span>
     </Button>
   )
 }
