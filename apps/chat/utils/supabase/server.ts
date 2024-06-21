@@ -1,3 +1,4 @@
+import { env } from '@/lib/env'
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { Database } from '@/types_db';
@@ -53,6 +54,15 @@ import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-cl
   );
 }; */
 
+export async function getUserAccount(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('accounts')
+    .select(select)
+    .eq( 'id', id )
+    .limit(1)
+    // .single()
+
+  return data?.[0]
 }
 
 export function getJWT() {
