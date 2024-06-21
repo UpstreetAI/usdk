@@ -3101,7 +3101,7 @@ const main = async () => {
         await logout(args);
       });
     });
-  program
+  /*program
     .command('wear')
     .description('Wear the character with the given guid')
     .argument('<guid>', 'The guid of the agent to wear')
@@ -3124,8 +3124,8 @@ const main = async () => {
         }
         await wear(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('unwear')
     .description('Unwear the currently worn character')
     .action(async (opts = {}) => {
@@ -3141,7 +3141,7 @@ const main = async () => {
         };
         await unwear(args);
       });
-    });
+    });*/
 
   // agents
   const templateNames = await getTemplateNames();
@@ -3506,7 +3506,7 @@ const main = async () => {
     });
 
   // wallet
-  program
+  /*program
     .command('fund')
     .description('Fund an agent on the network')
     .argument(`<guid>`, `Guid of the agent to deposit to`)
@@ -3528,8 +3528,8 @@ const main = async () => {
         };
         await fund(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('deposit')
     .description('Deposit funds to an agent on the network')
     .argument(`<guid>`, `Guid of the agent to deposit to`)
@@ -3551,8 +3551,8 @@ const main = async () => {
         };
         await deposit(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('withdraw')
     .description('Withdraw funds from an agent on the network')
     .argument(`<guid>`, `Guid of the agent to withdraw from`)
@@ -3571,7 +3571,7 @@ const main = async () => {
         };
         await withdraw(args);
       });
-    });
+    });*/
   await program.parseAsync();
 };
 // handle uncaught exceptions
