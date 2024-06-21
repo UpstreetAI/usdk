@@ -17,21 +17,23 @@ export function Header() {
         <SidebarMobile>
           <ChatHistory />
         </SidebarMobile>
-        <div className='m-w-12'>
-        <Link href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
-          <IconUpstreetChat className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
-          <IconUpstreetChat className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
-        </Link>
-        <Link href="/" rel="nofollow" className='block md:hidden w-10'>
-          <IconUpstreet className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
-          <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
-        </Link>
+        <div className='md:m-w-[200px] md:w-[200px]'>
+          <Link href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
+            <IconUpstreetChat className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
+            <IconUpstreetChat className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
+          </Link>
+          <Link href="/" rel="nofollow" className='block md:hidden w-10'>
+            <IconUpstreet className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
+            <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
+          </Link>
         </div>
       </div>
       <SearchBar/>
-      <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
-        <AccountOrLogin/>
-      </React.Suspense>
+      <div className='md:m-w-[200px] md:w-[200px]'>
+        <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
+          <AccountOrLogin/>
+        </React.Suspense>
+      </div>
     </header>
   )
 }
