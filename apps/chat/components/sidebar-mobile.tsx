@@ -13,12 +13,12 @@ interface SidebarMobileProps {
 }
 
 export function SidebarMobile({ children }: SidebarMobileProps) {
-  const { user } = useSupabase()
+  const { user } = useSupabase();
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        {user && <Button variant="ghost" className="aspect-square flex h-full p-0 rounded-none">
+        {user && <Button variant="ghost" className="block md:hidden aspect-square flex h-full p-0 rounded-none">
           <IconMenu className="size-6" />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>}
