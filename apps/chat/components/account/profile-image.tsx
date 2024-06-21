@@ -49,9 +49,16 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
                   })
                 } catch(e) {
                   if (e) {
-                    if (e.message! !== 'NetworkError when attempting to fetch resource.') {
-                      throw new Error(e.message!)
+                    if ( typeof e === 'string' ) {
+                      if (e !== 'NetworkError when attempting to fetch resource.') {
+                        throw new Error(e)
+                      }
+                    } else if (e instanceof Error) {
+                      if (e.message !== 'NetworkError when attempting to fetch resource.') {
+                        throw new Error(e.message)
+                      }
                     }
+
                   }
                 }
 

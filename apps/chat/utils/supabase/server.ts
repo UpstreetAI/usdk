@@ -62,7 +62,7 @@ export async function getUserAccount(id: string, select = '*', supabaseClient = 
     .limit(1)
     // .single()
 
-  return data?.[0]
+  return data?.[0] as any|null
 }
 
 export function getJWT() {
