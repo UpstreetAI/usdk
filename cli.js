@@ -3295,7 +3295,7 @@ const main = async () => {
       });
     });
   const networkOptions = ['baseSepolia', 'opMainnet'];
-  program
+  /*program
     .command('ls')
     .description('List the currently deployed agents')
     .option(
@@ -3319,7 +3319,7 @@ const main = async () => {
         };
         await ls(args);
       });
-    });
+    });*/
   program
     .command('rm')
     .description('Remove a deployed agent from the network')
