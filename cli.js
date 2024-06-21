@@ -838,25 +838,28 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
 const connectMultiplayer = async ({ room, anonymous, debug }) => {
   const getUserAsset = async () => {
     if (!anonymous) {
-      let userAsset = null;
+      let user = null;
 
       // try getting the user asset from the login
       const jwt = await getLoginJwt();
       if (jwt !== null) {
         const supabase = makeSupabase(jwt);
-        userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+        // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+        user = await getUserForJwt(jwt);
       }
 
       // use a default asset spec
-      if (!userAsset) {
+      if (!user) {
         const userId = makeDevGuid();
-        userAsset = {
+        user = {
           id: userId,
+          name: makeName(),
+          description: '',
         };
-        ensureAgentJsonDefaults(userAsset);
+        // ensureAgentJsonDefaults(userAsset);
       }
 
-      return userAsset;
+      return user;
     } else {
       return null;
     }
