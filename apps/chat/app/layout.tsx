@@ -8,7 +8,7 @@ import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
-import { Main } from '@/components/main'
+import { Body } from '@/components/body'
 
 
 export const metadata = {
@@ -71,8 +71,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
         >
           {/*<Suspense fallback={<div>Loading...</div>}>*/}
             <div className="flex flex-col min-h-screen">
-              <Header/>
-              <Main>{children}</Main>
+              <Body>
+                <Header/>
+                {children}
+              </Body>
             </div>
           {/*</Suspense>*/}
 

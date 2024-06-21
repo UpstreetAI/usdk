@@ -10,7 +10,7 @@ interface MainProps {
 }
 
 
-export function Main( {children}: MainProps) {
+export function Body( {children}: MainProps) {
   const {isFetchingUser} = useSupabase();
 
   return (
