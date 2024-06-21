@@ -1,5 +1,5 @@
 import SignupForm from '@/components/signup-form'
-import { getUser, waitForUser } from '@/utils/supabase/server'
+import { waitForUser } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
 export default async function SignupPage() {

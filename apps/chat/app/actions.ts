@@ -1,6 +1,6 @@
 'use server'
 
-import { getJWT, getUser, waitForUser } from '@/utils/supabase/server'
+import {  waitForUser } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { kv } from '@vercel/kv'
