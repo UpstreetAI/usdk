@@ -1,4 +1,7 @@
-const prefix = 'api';
+import { aiHost } from './util/endpoints.mjs'
+
+
+const prefix = `${aiHost}/api`;
 
 
 export const aiProxyAPI = {
