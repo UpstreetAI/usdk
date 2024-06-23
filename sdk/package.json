@@ -4,6 +4,7 @@
   "dependencies": {
     "@aws-sdk/util-format-url": "^3.577.0",
     "@cloudflare/kv-asset-handler": "^0.3.2",
+    "@cloudflare/puppeteer": "^0.0.11",
     "@supabase/supabase-js": "^2.39.8",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "browser-util-inspect": "^0.2.0",
@@ -16,7 +17,9 @@
     "minimatch": "^9.0.4",
     "react": "18.3.1",
     "react-reconciler": "^0.29.0",
-    "ses": "^1.5.0"
+    "ses": "^1.5.0",
+    "zod": "^3.23.8",
+    "zod-to-ts": "^1.2.0"
   },
   "overrides": {
     "@supabase/auth-js": "2.62.0",
