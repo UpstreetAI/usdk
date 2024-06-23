@@ -618,7 +618,7 @@ const login = async (args) => {
       id,
       jwt,
     }));
-    console.log('logged in successfully');
+    console.log('Successfully logged in.');
   };
 
   // if (!anonymous) {
@@ -700,6 +700,7 @@ const login = async (args) => {
 };
 const logout = async (args) => {
   await rimraf(loginLocation);
+  console.log('Successfully logged out.')
 };
 const authorize = async (args) => {
   const appDirectory = args._[0] ?? cwd;
@@ -844,25 +845,28 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
 const connectMultiplayer = async ({ room, anonymous, debug }) => {
   const getUserAsset = async () => {
     if (!anonymous) {
-      let userAsset = null;
+      let user = null;
 
       // try getting the user asset from the login
       const jwt = await getLoginJwt();
       if (jwt !== null) {
         const supabase = makeSupabase(jwt);
-        userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+        // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+        user = await getUserForJwt(jwt);
       }
 
       // use a default asset spec
-      if (!userAsset) {
+      if (!user) {
         const userId = makeDevGuid();
-        userAsset = {
+        user = {
           id: userId,
+          name: makeName(),
+          description: '',
         };
-        ensureAgentJsonDefaults(userAsset);
+        // ensureAgentJsonDefaults(userAsset);
       }
 
-      return userAsset;
+      return user;
     } else {
       return null;
     }
@@ -2118,8 +2122,7 @@ const getAgentToken = async (jwt, guid) => {
     }),
   });
   if (jwtRes.ok) {
-    const j = await jwtRes.json();
-    return j;
+    return jwtRes.json();
   } else {
     const text = await jwtRes.text();
     console.warn(
@@ -2128,6 +2131,21 @@ const getAgentToken = async (jwt, guid) => {
   }
 };
 const create = async (args) => {
+  // Ensure user is logged in.
+  const guid = makeDevGuid();
+  const jwt = await getLoginJwt();
+  let agentToken = null;
+  if (jwt !== null) {
+    agentToken = await getAgentToken(jwt, guid);
+    if (!agentToken) {
+      console.warn('Authorization error. Please try logging in again.')
+      process.exit(1)
+    }
+  } else {
+    console.warn('You must be logged in to create an agent.');
+    process.exit(1)
+  }
+
   if (args.prompt && args.template) {
     console.warn('cannot use both prompt and --template');
     process.exit(1);
@@ -2139,7 +2157,6 @@ const create = async (args) => {
   const dev = !!args.dev;
   const template = args.template ?? 'basic';
 
-  const guid = makeDevGuid();
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
@@ -2174,19 +2191,6 @@ const create = async (args) => {
 
   // bootstrap destination directory
   await mkdirp(dstDir);
-
-  // load agent login token
-  console.log('authorizing agent...');
-  const jwt = await getLoginJwt();
-  let agentToken = null;
-  if (jwt !== null) {
-    agentToken = await getAgentToken(jwt, guid);
-    if (!agentToken) {
-      console.warn('Note: could not authorize agent; this means your agent will not be allowed to run inference.')
-    }
-  } else {
-    console.warn('Note: you are not logged in; this means your agent will not be allowed to run inference.');
-  }
 
   // generate the agent if necessary
   let srcTemplateDir;
@@ -3087,7 +3091,7 @@ const main = async () => {
         await login(args);
       });
     });
-  program
+  /*program
     .command('authorize')
     .description('Authorize an agent of the SDK')
     .argument(`[directory]`, `The directory to create the project in`)
@@ -3100,7 +3104,7 @@ const main = async () => {
         };
         await authorize(args);
       });
-    });
+    });*/
   program
     .command('logout')
     .description('Log out of the SDK')
@@ -3114,7 +3118,7 @@ const main = async () => {
         await logout(args);
       });
     });
-  program
+  /*program
     .command('wear')
     .description('Wear the character with the given guid')
     .argument('<guid>', 'The guid of the agent to wear')
@@ -3137,8 +3141,8 @@ const main = async () => {
         }
         await wear(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('unwear')
     .description('Unwear the currently worn character')
     .action(async (opts = {}) => {
@@ -3154,7 +3158,7 @@ const main = async () => {
         };
         await unwear(args);
       });
-    });
+    });*/
 
   // agents
   const templateNames = await getTemplateNames();
@@ -3271,7 +3275,7 @@ const main = async () => {
         await search(args);
       });
     });
-  program
+  /*program
     .command('test')
     .description('Run the test suite')
     .action(async (subcommand = '', opts = {}) => {
@@ -3279,7 +3283,7 @@ const main = async () => {
         commandExecuted = true;
         await test();
       });
-    });
+    });*/
   program
     .command('deploy')
     .description('Deploy an agent to the network')
@@ -3309,7 +3313,7 @@ const main = async () => {
       });
     });
   const networkOptions = ['baseSepolia', 'opMainnet'];
-  program
+  /*program
     .command('ls')
     .description('List the currently deployed agents')
     .option(
@@ -3333,7 +3337,7 @@ const main = async () => {
         };
         await ls(args);
       });
-    });
+    });*/
   program
     .command('rm')
     .description('Remove a deployed agent from the network')
@@ -3520,7 +3524,7 @@ const main = async () => {
     });
 
   // wallet
-  program
+  /*program
     .command('fund')
     .description('Fund an agent on the network')
     .argument(`<guid>`, `Guid of the agent to deposit to`)
@@ -3542,8 +3546,8 @@ const main = async () => {
         };
         await fund(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('deposit')
     .description('Deposit funds to an agent on the network')
     .argument(`<guid>`, `Guid of the agent to deposit to`)
@@ -3565,8 +3569,8 @@ const main = async () => {
         };
         await deposit(args);
       });
-    });
-  program
+    });*/
+  /*program
     .command('withdraw')
     .description('Withdraw funds from an agent on the network')
     .argument(`<guid>`, `Guid of the agent to withdraw from`)
@@ -3585,7 +3589,7 @@ const main = async () => {
         };
         await withdraw(args);
       });
-    });
+    });*/
   await program.parseAsync();
 };
 // handle uncaught exceptions

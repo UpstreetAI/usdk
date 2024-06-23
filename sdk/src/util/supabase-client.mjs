@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import jwt from '@tsndr/cloudflare-worker-jwt';
 // import { isStringSignatureValid } from './signature-utils.mjs';
 import { aiHost } from './endpoints.mjs';
+import { aiProxyAPI } from '../api.mjs';
+
 
 // uses the service api key
 export const makeClient = (env, jwt) => {
@@ -23,6 +25,7 @@ export const makeClient = (env, jwt) => {
       },
     };
   }
+
   return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_API_KEY, o);
 };
 // uses the public api key
@@ -141,7 +144,7 @@ export const getUserIdForJwt = async (jwt) => {
   }
 };
 export const getUserForJwt = async (jwt) => {
-  const res = await fetch(`${aiHost}/checkUser`, {
+  const res = await fetch(aiProxyAPI.getUser, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
