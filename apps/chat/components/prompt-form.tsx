@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { newChat } from '@/lib/chat/actions'
+import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 
 export function PromptForm({
   input,
@@ -28,11 +29,10 @@ export function PromptForm({
   input: string
   setInput: (value: string) => void
 }) {
-  const router = useRouter()
-  // const { formRef, onKeyDown } = useEnterSubmit()
+
+  const { toggleSidebar, isSidebarOpen } = useSidebar();
+
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  // const { submitUserMessage } = useActions()
-  // const [_, setMessages] = useUIState<typeof AI>()
 
   const { sendChatMessage } = useMultiplayerActions()
 
@@ -94,23 +94,23 @@ export function PromptForm({
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-0 top-[14px] size-8 rounded-full bg-background p-0 sm:left-4"
+              className={`absolute left-4 top-[14px] size-8 rounded-full p-0 ${isSidebarOpen ? "bg-white text-black" : "bg-background"}`}
               onClick={() => {
-                router.push('/new')
+                toggleSidebar();
               }}
             >
               <IconUsers />
               <span className="sr-only">Show Members</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Show Members</TooltipContent>
+          <TooltipContent>{isSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
               size="icon"
-              className="absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0"
+              className={`absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0`}
               onClick={() => {
                 newChat();
               }}
