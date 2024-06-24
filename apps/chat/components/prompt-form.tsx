@@ -19,6 +19,7 @@ import { nanoid } from 'nanoid'
 import { useRouter } from 'next/navigation'
 
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
+import { newChat } from '@/lib/chat/actions'
 
 export function PromptForm({
   input,
@@ -111,7 +112,7 @@ export function PromptForm({
               size="icon"
               className="absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0"
               onClick={() => {
-                router.push('/new')
+                newChat();
               }}
             >
               <IconPlus />
