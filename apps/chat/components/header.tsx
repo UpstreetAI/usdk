@@ -1,12 +1,9 @@
-import { ChatHistory } from '@/components/chat/chat-history'
-import { SidebarMobile } from '@/components/sidebar-mobile'
-import * as React from 'react'
-import Link from 'next/link'
+import * as React from 'react';
+import Link from 'next/link';
 
-import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons'
-import { AccountOrLogin } from '@/components/account-or-login'
-import { SearchBar } from '@/components/searchbar'
-
+import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons';
+import { AccountOrLogin } from '@/components/account-or-login';
+import { SearchBar } from '@/components/searchbar';
 
 
 export function Header() {

@@ -21,6 +21,8 @@ import { useRouter } from 'next/navigation'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { newChat } from '@/lib/chat/actions'
 import { useSidebar } from '@/lib/client/hooks/use-sidebar'
+import { SidebarMobile } from './sidebar-mobile'
+import { ChatHistory } from './chat/chat-history'
 
 export function PromptForm({
   input,
@@ -89,6 +91,17 @@ export function PromptForm({
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
+        <div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <SidebarMobile>
+              <ChatHistory />
+            </SidebarMobile>
+          </TooltipTrigger>
+          <TooltipContent>{isSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
+        </Tooltip>
+        </div>
+        <div className='hidden md:block'>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -98,13 +111,14 @@ export function PromptForm({
               onClick={() => {
                 toggleSidebar();
               }}
-            >
+            > 
               <IconUsers />
               <span className="sr-only">Show Members</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>{isSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
         </Tooltip>
+        </div>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

@@ -5,8 +5,9 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Sidebar } from '@/components/sidebar'
 import { Button } from '@/components/ui/button'
 
-import { IconMenu, IconSidebar } from '@/components/ui/icons'
+import { IconMenu, IconSidebar, IconUsers } from '@/components/ui/icons'
 import { useSupabase } from '@/lib/hooks/use-supabase'
+import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 
 interface SidebarMobileProps {
   children: React.ReactNode
@@ -18,10 +19,14 @@ export function SidebarMobile({ children }: SidebarMobileProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        {user && <Button variant="ghost" className="flex md:hidden aspect-square h-full p-0 rounded-none">
-          <IconMenu className="size-6" />
-          <span className="sr-only">Toggle Sidebar</span>
-        </Button>}
+        {user && <Button
+              variant="outline"
+              size="icon"
+              className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0`}
+            > 
+              <IconUsers />
+              <span className="sr-only">Show Members</span>
+            </Button>}
       </SheetTrigger>
       <SheetContent
         side="left"
