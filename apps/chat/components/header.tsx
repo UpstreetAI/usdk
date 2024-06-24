@@ -35,5 +35,5 @@ export function Header() {
         </React.Suspense>
       </div>
     </header>
-  )
+  );
 }
