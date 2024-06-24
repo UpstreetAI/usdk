@@ -1,15 +1,12 @@
-import * as React from 'react'
-import { type KeyboardEvent } from 'react'
+import * as React from 'react';
+import { type KeyboardEvent } from 'react';
 
-import { shareChat } from '@/app/actions'
-import { Button } from '@/components/ui/button'
-import { PromptForm } from '@/components/prompt-form'
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import { IconShare } from '@/components/ui/icons'
-import { FooterText } from '@/components/footer'
-import { ChatShareDialog } from '@/components/chat/chat-share-dialog'
-// import { useAIState, useActions, useUIState } from 'ai/rsc'
-import { type User } from '@supabase/supabase-js'
+import { shareChat } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { PromptForm } from '@/components/prompt-form';
+import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
+import { IconShare } from '@/components/ui/icons';
+import { FooterText } from '@/components/footer';
 
 export interface ChatPanelProps {
   id?: string
@@ -138,5 +135,5 @@ export function ChatPanel({
         </>)}
       </div>
     </div>
-  )
+  );
 }
