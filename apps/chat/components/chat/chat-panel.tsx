@@ -136,24 +136,6 @@ export function ChatPanel({
             <FooterText className="hidden sm:block" />
           </div>
         </>)}
-        {!room && (
-          <div className="flex items-center justify-center">
-            <div className="flex flex-col gap-2 w-full rounded-t-lg border bg-background p-8">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  joinRoom();
-                }}
-              >
-                {/* <IconShare className="mr-2" /> */}
-                Create chat
-              </Button>
-              {/* <p className="text-muted-foreground text-lg font-semibold">
-                Please select a chat to start chatting
-              </p> */}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )
