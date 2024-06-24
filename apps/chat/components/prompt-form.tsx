@@ -8,7 +8,7 @@ import Textarea from 'react-textarea-autosize'
 // import { UserMessage } from './stocks/message'
 // import { type AI } from '@/lib/chat/actions'
 import { Button } from '@/components/ui/button'
-import { IconArrowElbow, IconPlus, IconUpstreet } from '@/components/ui/icons'
+import { IconArrowElbow, IconPlus, IconUpstreet, IconUsers } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
@@ -98,6 +98,22 @@ export function PromptForm({
                 router.push('/new')
               }}
             >
+              <IconUsers />
+              <span className="sr-only">Show Members</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Show Members</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0"
+              onClick={() => {
+                router.push('/new')
+              }}
+            >
               <IconPlus />
               <span className="sr-only">New Chat</span>
             </Button>
@@ -109,7 +125,7 @@ export function PromptForm({
           tabIndex={0}
           onKeyDown={onKeyDown}
           placeholder="Send a message."
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-14 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}
           autoComplete="off"
