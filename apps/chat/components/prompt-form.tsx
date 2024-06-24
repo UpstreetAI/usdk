@@ -94,7 +94,7 @@ export function PromptForm({
             <Button
               variant="outline"
               size="icon"
-              className={`absolute left-4 top-[14px] size-8 rounded-full p-0 ${isSidebarOpen ? "bg-white text-black" : "bg-background"}`}
+              className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0 ${isSidebarOpen ? "bg-white text-black" : "bg-background"}`}
               onClick={() => {
                 toggleSidebar();
               }}
