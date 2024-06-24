@@ -11,6 +11,8 @@ import { SidebarToggle } from '@/components/sidebar-toggle'
 // import { Session } from '@/lib/types'
 import { getJWT } from '@/utils/supabase/server'
 
+import { logout } from '@/lib/logout'
+
 
 export async function AccountOrLogin() {
   const user = await (async () => {
@@ -26,7 +28,6 @@ export async function AccountOrLogin() {
     <>
       {user ? (
         <>
-          {/*<SidebarToggle />*/}
           <AccountButton user={user}/>
         </>
       ) : (
