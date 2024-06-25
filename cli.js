@@ -62,6 +62,7 @@ import {
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
+import { isYes } from './lib/isYes.js'
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2158,6 +2159,7 @@ const create = async (args) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
   const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
   const dev = !!args.dev;
   const template = args.template ?? 'basic';
 
@@ -2180,8 +2182,21 @@ const create = async (args) => {
   })();
   // console.log('files', cwd, files.filter(f => /route/.test(f)));
   if (files.length > 0) {
-    if (force) {
-      // remove all files
+    if (force || forceNoConfirm) {
+      if (!forceNoConfirm) {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        const answer = await rl.question(`\nDelete the contents of "${path.resolve(dstDir)}"? ${pc.cyan('y/N')}: `)
+        rl.close();
+        console.log();
+
+        if (!isYes(answer)) process.exit(1);
+      }
+
+      // Remove all files.
       await Promise.all(
         files.map((filePath) => rimraf(path.join(dstDir, filePath))),
       );
@@ -3104,7 +3119,7 @@ const main = async () => {
         await login(args);
       });
     });
-  /*program
+  program
     .command('authorize')
     .description('Authorize an agent of the SDK')
     .argument(`[directory]`, `The directory to create the project in`)
@@ -3117,7 +3132,7 @@ const main = async () => {
         };
         await authorize(args);
       });
-    });*/
+    });
   program
     .command('logout')
     .description('Log out of the SDK')
@@ -3181,6 +3196,7 @@ const main = async () => {
     .argument(`[directory]`, `The directory to create the project in`)
     .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
     .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
