@@ -1,3 +1,4 @@
+import readline from 'node:readline/promises'
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
@@ -7,6 +8,7 @@ import stream from 'stream';
 import repl from 'repl';
 import util from 'util';
 
+import ansi from 'ansi-escapes';
 import { program } from 'commander';
 import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
@@ -15,6 +17,7 @@ import toml from '@iarna/toml';
 import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
+import pc from 'picocolors'
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -2045,7 +2048,7 @@ const generateTemplateFromPrompt = async (prompt) => {
   // generate the agent json
   const agentJson = await generateAgentJsonFromPrompt(prompt);
 
-  console.log( 'generating code...' )
+  console.log(pc.italic('Generating code...'));
   const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
   const codeGenContext = await getCodeGenContext();
   const { imports } = await modifyAgentJSXWithGeneratedCode({
@@ -2053,15 +2056,15 @@ const generateTemplateFromPrompt = async (prompt) => {
     prompt,
     codeGenContext,
   });
-  console.log( 'using components:' )
+  console.log('\nUsing components:');
   console.log(
     imports
-      .map(x => '- ' + x)
+      .map(x => '- ' + pc.cyan(x))
       .join('\n')
       .trim() + '\n'
-  )
+  );
 
-  console.log( 'generating avatar...' )
+  console.log(pc.italic('Generating avatar...'));
   // generate the agent preview_url
   const imageArrayBuffer = await generateImage(agentJson.visualDescription);
   // upload to r2
@@ -2163,7 +2166,7 @@ const create = async (args) => {
   const walletAddress = wallet.address.toLowerCase();
 
   // read agent files
-  console.log('reading files...');
+  console.log(pc.italic('\nReading files...'));
   const files = await (async () => {
     try {
       return await fs.promises.readdir(dstDir);
@@ -2195,13 +2198,17 @@ const create = async (args) => {
 
   // generate the agent if necessary
   let srcTemplateDir;
+  let agentJson = {};
   if (prompt) {
     if (jwt) {
-      console.log('generating agent...');
-      const { templateDirectory, agentJson } = await generateTemplateFromPrompt(prompt);
-      srcTemplateDir = templateDirectory; 
-      console.log('done generating agent:');
-      console.log(JSON.stringify(agentJson, null, 2));
+      console.log(pc.italic('Generating agent...'));
+      const generateTemplateResponse =
+        await generateTemplateFromPrompt(prompt);
+
+      agentJson = generateTemplateResponse.agentJson;
+      srcTemplateDir = generateTemplateResponse.templateDirectory;
+
+      console.log(pc.italic('Generated agent.'));
     } else {
       throw new Error('not logged in: cannot generate agent from prompt');
     }
@@ -2220,7 +2227,7 @@ const create = async (args) => {
   const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
   const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
-  const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
+  // const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
 
   const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
   const srcDstDir = path.join(dstDir, 'sdk');
@@ -2232,8 +2239,8 @@ const create = async (args) => {
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
 
   // compile the agent json
-  const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
-  const agentJson = JSON.parse(agentJsonString);
+  // const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
+  // const agentJson = JSON.parse(agentJsonString);
   compileAgentJson(agentJson, {
     guid,
     walletAddress,
@@ -2241,7 +2248,7 @@ const create = async (args) => {
   });
 
   // copy over the template files
-  console.log('copying files...');
+  console.log(pc.italic('Copying files...'));
   const name = getAgentName(guid);
   const opts = {
     // overwrite: force,
@@ -2280,7 +2287,7 @@ const create = async (args) => {
   ]);
 
   // npm install
-  console.log('running npm install...');
+  console.log(pc.italic('Installing dependencies...'));
   try {
     const execFile = util.promisify(child_process.execFile);
     await execFile('npm', ['install'], {
@@ -2290,7 +2297,12 @@ const create = async (args) => {
   } catch (err) {
     console.warn(err.stack);
   }
-  console.log('done creating project: ' + dstDir);
+
+  console.log('\nCreated agent directory at', ansi.link(path.resolve(dstDir)), '\n');
+  console.log(pc.green('Name:'), agentJson.name);
+  // console.log(pc.green('ID:'), agentJson.id, '\n');
+  console.log(pc.green('Description:'), agentJson.description);
+  console.log(pc.green('Bio:'), agentJson.bio, '\n');
 
   return {
     guid,
@@ -3053,7 +3065,7 @@ const main = async () => {
     .action(async () => {
       await handleError(async () => {
         commandExecuted = true;
-        console.log(packageJson.version);
+        console.log(pc.cyan(packageJson.version));
       });
     });
   /* program
