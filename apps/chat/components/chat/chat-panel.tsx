@@ -1,15 +1,12 @@
-import * as React from 'react'
-import { type KeyboardEvent } from 'react'
+import * as React from 'react';
+import { type KeyboardEvent } from 'react';
 
-import { shareChat } from '@/app/actions'
-import { Button } from '@/components/ui/button'
-import { PromptForm } from '@/components/prompt-form'
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
-import { IconShare } from '@/components/ui/icons'
-import { FooterText } from '@/components/footer'
-import { ChatShareDialog } from '@/components/chat/chat-share-dialog'
-// import { useAIState, useActions, useUIState } from 'ai/rsc'
-import { type User } from '@supabase/supabase-js'
+import { shareChat } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { PromptForm } from '@/components/prompt-form';
+import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
+import { IconShare } from '@/components/ui/icons';
+import { FooterText } from '@/components/footer';
 
 export interface ChatPanelProps {
   id?: string
@@ -136,25 +133,7 @@ export function ChatPanel({
             <FooterText className="hidden sm:block" />
           </div>
         </>)}
-        {!room && (
-          <div className="flex items-center justify-center">
-            <div className="flex flex-col gap-2 w-full rounded-t-lg border bg-background p-8">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  joinRoom();
-                }}
-              >
-                {/* <IconShare className="mr-2" /> */}
-                Create chat
-              </Button>
-              {/* <p className="text-muted-foreground text-lg font-semibold">
-                Please select a chat to start chatting
-              </p> */}
-            </div>
-          </div>
-        )}
       </div>
     </div>
-  )
+  );
 }

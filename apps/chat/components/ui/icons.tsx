@@ -622,6 +622,42 @@ function IconMenu({
   )
 }
 
+function IconLogin({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 32 32"
+      {...props}
+    >
+      <path d="M26,30H14a2,2,0,0,1-2-2V25h2v3H26V4H14V7H12V4a2,2,0,0,1,2-2H26a2,2,0,0,1,2,2V28A2,2,0,0,1,26,30Z"/>
+      <polygon points="14.59 20.59 18.17 17 4 17 4 15 18.17 15 14.59 11.41 16 10 22 16 16 22 14.59 20.59"/>
+    </svg>
+  );
+}
+
+function IconLogout({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 32 32"
+      {...props}
+    >
+      <path d="M6,30H18a2.0023,2.0023,0,0,0,2-2V25H18v3H6V4H18V7h2V4a2.0023,2.0023,0,0,0-2-2H6A2.0023,2.0023,0,0,0,4,4V28A2.0023,2.0023,0,0,0,6,30Z"/>
+      <polygon points="20.586 20.586 24.172 17 10 17 10 15 24.172 15 20.586 11.414 22 10 28 16 22 22 20.586 20.586"/>
+    </svg>
+  );
+}
+
 export {
   IconEdit,
   IconMenu,
@@ -653,5 +689,7 @@ export {
   IconUsers,
   IconExternalLink,
   IconChevronUpDown,
-  IconUpstreet
-}
+  IconUpstreet,
+  IconLogin,
+  IconLogout
+};

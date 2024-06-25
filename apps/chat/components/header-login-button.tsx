@@ -5,7 +5,7 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 import { Button, type ButtonProps, buttonVariants } from '@/components/ui/button'
-import { IconSpinner, IconUser } from '@/components/ui/icons'
+import { IconLogin, IconSpinner, IconUser } from '@/components/ui/icons'
 
 interface LoginButtonProps extends ButtonProps {}
 
@@ -31,7 +31,7 @@ export function HeaderLoginButton({
         {
           isLoading
             ? <IconSpinner className="animate-spin"/>
-            : <IconUser/>
+            : <IconLogin className='mr-2 size-5' />
         }
       </div>
 
