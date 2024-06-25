@@ -1304,7 +1304,6 @@ const createWebcamSource = ({ local }) => {
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
-  const ui = !!args.ui;
   const debug = !!args.debug;
   const vision = !!args.vision;
 
@@ -1315,7 +1314,14 @@ const connect = async (args) => {
         room,
         debug,
       });
-    if (ui) {
+    if (args.browser) {
+      const _chatEndpointUrl = local
+        ? `http://localhost:3000`
+        : chatEndpointUrl;
+
+      open(`${_chatEndpointUrl}/rooms/${room}`)
+        .catch( console.error );
+    } else {
       startMultiplayerListener({
         userAsset,
         realms,
@@ -1323,11 +1329,6 @@ const connect = async (args) => {
         typingMap,
         startRepl: true,
       });
-    } else {
-      const _chatEndpointUrl = local
-        ? `http://localhost:3000`
-        : chatEndpointUrl;
-      open(`${chatEndpointUrl}/rooms/${room}`);
     }
 
     // set up the webcam, if needed
@@ -1392,7 +1393,6 @@ const chat = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
-  const ui = args.ui;
   const debug = !!args.debug;
 
   // ensure guids
@@ -1439,8 +1439,9 @@ const chat = async (args) => {
     // connect to the chat
     await connect({
       _: [room],
-      local: args.local,
+      browser: args.browser,
       debug: args.debug,
+      local: args.local,
       vision: args.vision,
     });
 
@@ -2309,9 +2310,9 @@ const dev = async (args) => {
       // defer to conversation mode
       await chat({
         _: [guidsOrDevPathIndexes],
+        browser: args.browser,
         dev: true,
         vision: args.vision,
-        ui: args.ui,
         debug: args.debug,
       });
 
@@ -3221,7 +3222,7 @@ const main = async () => {
     .argument(`[guids...]`, `Guids of the agents to connect to`)
     .option(`-l, --local`, `Connect to local servers`)
     .option(`-r, --room <room>`, `Room to join`)
-    .option(`-u, --ui`, `Open browser UI`)
+    .option(`-b, --browser`, `Open the chat room in a browser window`)
     // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (subcommand = '', guids = [], opts = {}) => {
@@ -3458,6 +3459,7 @@ const main = async () => {
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
+    .option(`-b, --browser`, `Open the chat room in a browser window`)
     .option(`-r, --room`, `The room name to join`)
     // .option(
     //   `-d, --dev`,
