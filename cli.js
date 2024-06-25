@@ -382,7 +382,7 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.description = defaultDescription;
   }
   if (typeof spec.bio !== 'string') {
-    spec.bio = 'She is a cool person';
+    spec.bio = 'A cool person';
   }
   if (typeof spec.model !== 'string') {
     spec.model = 'openai:gpt-4o';
