@@ -157,6 +157,7 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await fs.promises.writeFile(dst, s);
 };
 const getAgentName = (guid) => `user-agent-${guid}`;
+const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
 const getAgentHost = (guidOrPortIndex, { dev }) => {
   const agentHost = dev
     ? `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
@@ -2671,11 +2672,17 @@ const deploy = async (args) => {
       });
       const { guid, url, wranglerToml } = j;
 
+      
       // write back the new wrangler.toml
       const wranglerTomlPath = path.join(agentDirectory, 'wrangler.toml');
       await fs.promises.writeFile(wranglerTomlPath, wranglerToml);
+      
+      console.log();
+      console.group(pc.green('Agent Deployed Successfully:'), '\n');
+      console.log(pc.cyan('✓ Host:'), url, '\n');
+      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
 
-      console.log(url);
     } else {
       console.log('not logged in');
       process.exit(1);
