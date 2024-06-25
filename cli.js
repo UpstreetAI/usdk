@@ -3221,8 +3221,8 @@ const main = async () => {
     .argument(`[guids...]`, `Guids of the agents to connect to`)
     .option(`-l, --local`, `Connect to local servers`)
     .option(`-r, --room <room>`, `Room to join`)
-    .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-u, --ui`, `Open browser UI`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (subcommand = '', guids = [], opts = {}) => {
       // console.log(
@@ -3463,7 +3463,7 @@ const main = async () => {
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    .option(`-v, --vision`, `Enable webcam vision`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
@@ -3485,7 +3485,7 @@ const main = async () => {
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    .option(`-v, --vision`, `Enable webcam vision`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
