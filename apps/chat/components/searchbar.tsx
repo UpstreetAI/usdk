@@ -130,9 +130,9 @@ type AgentObject = {
 };
 
 function AgentLink(props: any) {
-  const { name } = props;
+  const { id } = props;
   return (
-    <Link href={`/agents/${encodeURIComponent(name)}`} onMouseDown={e => {
+    <Link href={`/agents/${id}`} onMouseDown={e => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -212,7 +212,7 @@ export function SearchBar() {
               <>
                 {results.length > 0 ? results.map((agent, i) => (
                   <div className={`flex p-4 border-b`} key={i}>
-                    <AgentLink name={agent.name}>
+                    <AgentLink name={agent.name} id={agent.id}>
                       <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                         {agent.preview_url ? (
                           <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
@@ -222,7 +222,7 @@ export function SearchBar() {
                       </div>
                     </AgentLink>
                     <div className="flex flex-col flex-1">
-                      <AgentLink name={agent.name} className="text-lg line-clamp-1 font-bold hover:underline">{agent.name}</AgentLink>
+                      <AgentLink name={agent.name} id={agent.id} className="text-lg line-clamp-1 font-bold hover:underline">{agent.name}</AgentLink>
                       <div className="text-base line-clamp-2">{agent.description}</div>
                       <div className="hidden md:block text-sm text-zinc-600">{agent.id}</div>
                     </div>
