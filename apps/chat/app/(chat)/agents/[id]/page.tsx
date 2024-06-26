@@ -21,12 +21,13 @@ export async function generateMetadata({
   // } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
-  const agentName = decodeURIComponent(params.id)
+  // const agentName = decodeURIComponent(params.id)
+  const agentId = decodeURIComponent(params.id)
 
   const { data: agentData } = await supabase
     .from('assets')
     .select('*')
-    .eq('name', agentName)
+    .eq('id', agentId)
     .single();
 
   const meta = {
@@ -75,12 +76,15 @@ export default async function AgentProfilePage({ params }: Params) {
   // } = await supabase.auth.getUser();
 
   // decode the uri for usernames that have spaces in them
-  const agentName = decodeURIComponent(params.id)
+  // const agentName = decodeURIComponent(params.id)
+  const agentId = decodeURIComponent(params.id)
+
+  console.log(agentId)
 
   const { data: agentData } = await supabase
     .from('assets')
     .select('*')
-    .eq('name', agentName)
+    .eq('id', agentId)
     .single();
 
   if(!agentData?.start_url) return null;
