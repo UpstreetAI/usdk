@@ -30,3 +30,17 @@ From the root directory run:
 ```bash
 npm run docs start
 ```
+
+# Development
+
+## Install New Packages
+
+#### Chat
+```bash
+npm i PACKAGE_NAME --workspace=@upstreet/chat
+```
+
+#### Docs
+```bash
+npm i PACKAGE_NAME --workspace=@upstreet/docs
+```
