@@ -1,8 +1,10 @@
 import React from 'react';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
+import { z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
+import puppeteer from '@cloudflare/puppeteer';
 import type {
   AppContextValue,
   // AgentProps,
@@ -28,10 +30,12 @@ import {
   Prompt,
   Parser,
   Perception,
-  Scheduler,
+  Task,
+  TaskResult,
+  // Scheduler,
   Server,
 } from './components';
-import { useCurrentAgent, useAgents, useScene, useActions, useActionHistory } from './hooks';
+import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useActionHistory } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
 
@@ -55,9 +59,10 @@ export const DefaultAgentComponents = () => {
     <>
       <DefaultActions />
       <DefaultPrompts />
-      <DefaultParsers />
       <DefaultPerceptions />
-      <DefaultSchedulers />
+      <DefaultTasks />
+      <DefaultParsers />
+      {/* <DefaultSchedulers /> */}
       <DefaultServers />
     </>
   );
@@ -75,9 +80,16 @@ export const DefaultActions = () => {
     <JsonAction
       name="say"
       description={`A character says something. The \`userId\` and \`name\` must match one of the characters.`}
-      args={{
-        text: 'Hello, there! How are you doing?',
-      }}
+      schema={
+        z.object({
+          text: z.string(),
+        })
+      }
+      examples={[
+        {
+          text: 'Hello, there! How are you doing?',
+        },
+      ]}
       handler={async (e: PendingActionEvent) => {
         await currentAgent.addAction(e.data.message);
       }}
@@ -92,24 +104,26 @@ export const DefaultActions = () => {
 export const JsonAction = ({
   name,
   description,
-  args,
+  schema,
+  examples,
   handler,
 }: {
   name: string;
-  description: string;
-  args: object;
-  handler: (e: PendingActionEvent) => Promise<void>;
+  description?: string;
+  schema?: z.ZodType<object>,
+  examples?: Array<object>;
+  handler: (e: PendingActionEvent) => void | Promise<void>;
 }) => {
   const agents = useAgents();
   const randomAgent = shuffle(agents.slice())[0];
-  const exampleJsonString = JSON.stringify(
+  const examplesJsonString = examples.map((args) => JSON.stringify(
     {
       userId: randomAgent.id,
       name: randomAgent.name, // helps with dialogue inference
       method: name,
       args,
-    },
-  );
+    }
+  )).join('\n');
   return (
     <Action
       name={name}
@@ -121,13 +135,12 @@ export const JsonAction = ({
           \`\`\`
         ` +
         '\n' +
-        exampleJsonString +
+        examplesJsonString +
         '\n' +
         dedent`
           \`\`\`
         `
       }
-      example={exampleJsonString}
       handler={handler}
     />
   );
@@ -151,7 +164,7 @@ export const DefaultPrompts = () => {
       <CharactersPrompt agents={agents} />
       <RAGMemoriesPrompt agents={[currentAgent]} />
       <ActionsJsonPrompt agent={currentAgent} />
-      <RecentChatHistoryJsonPrompt agents={agents} />
+      <RecentChatHistoryJsonPrompt />
       <InstructionsJsonPrompt agent={currentAgent} actions={actions} />
     </>
   );
@@ -237,21 +250,18 @@ export const ActionsJsonPrompt = ({ agent }: { agent: AgentObject }) => {
     </Prompt>
   );
 };
-export const RecentChatHistoryJsonPrompt = ({
-  agents,
-}: {
-  agents: Array<AgentObject>;
-}) => {
-  const appContextValue = useContext(AppContext);
+export const RecentChatHistoryJsonPrompt = () => {
+  // const appContextValue = useContext(AppContext);
 
   // const [historyActions, setHistoryActions] = useState([]);
   // const perAgentHistoryActions = await Promise.all(
   //   agents.map((agent) => agent.getActionHistory()),
   // );
-  const perAgentHistoryActions = useActionHistory(agents);
+  const perAgentHistoryActions = useActionHistory();
+  // console.log('got per agent', perAgentHistoryActions);
   const historyActions = perAgentHistoryActions
-    .flat()
-    .sort((a, b) => a.timestamp - b.timestamp);
+    // .flat()
+    .sort((a, b) => +a.timestamp - +b.timestamp);
 
   // // console.log('render prompt', historyActions);
   // useEffect(() => {
@@ -426,26 +436,26 @@ export const DefaultPerceptions = () => {
   );
 };
 
-// scheduler
+// // scheduler
 
-/**
- * Renders the default scheduler components.
- * @returns The JSX elements representing the default scheduler components.
- */
-export const DefaultSchedulers = () => {
-  return <DefaultScheduler />;
-};
-export const DefaultScheduler = () => {
-  const appContextValue = useContext(AppContext);
+// /**
+//  * Renders the default scheduler components.
+//  * @returns The JSX elements representing the default scheduler components.
+//  */
+// export const DefaultSchedulers = () => {
+//   return <DefaultScheduler />;
+// };
+// export const DefaultScheduler = () => {
+//   const appContextValue = useContext(AppContext);
 
-  return (
-    <>
-      {appContextValue.isEnabled() && <Scheduler
-        scheduleFn={() => Date.now() + 2000} // every 2s
-      />}
-    </>
-  );
-};
+//   return (
+//     <>
+//       {appContextValue.isEnabled() && <Scheduler
+//         scheduleFn={() => Date.now() + 2000} // every 2s
+//       />}
+//     </>
+//   );
+// };
 
 // server
 
@@ -455,6 +465,78 @@ export const DefaultScheduler = () => {
  */
 export const DefaultServers = () => {
   return <StaticServer />;
+};
+
+// task
+
+/**
+ * Renders the default server components.
+ * @returns The JSX elements representing the default server components.
+ */
+export const DefaultTasks = () => {
+  return <StatusTask />
+};
+export const StatusTask = () => {
+  const agent = useCurrentAgent();
+  // const agents = useAgents();
+  const lastActions = useActionHistory({
+    filter: {
+      limit: 1,
+    },
+  });
+
+  const symbol = useMemo(() => Symbol('task'), []);
+  // const [enabled, setEnabled] = useState(false);
+  // const [timestampOfLastRemoteChatMessage, setTimestampOfLastRemoteChatMessage] = useState(0);
+
+  return (
+    // <>
+    //   <Server>
+    //     {() => {
+    //       return {
+    //         async fetch(request: Request, env: object) {
+    //           if (request.method === 'POST' && request.url === '/status') {
+    //             const j = await request.json();
+    //             const enabled = j?.enabled;
+    //             if (typeof enabled === 'boolean') {
+    //               setEnabled(enabled);
+    //               return new Response(JSON.stringify({
+    //                 ok: true,
+    //               }));
+    //             } else {
+    //               return new Response(JSON.stringify({
+    //                 error: `Invalid value for 'enabled'.`,
+    //               }));
+    //             }
+    //           } else {
+    //             return null;
+    //           }
+    //         },
+    //       };
+    //     }}
+    //   </Server>
+    //   {enabled && <Task
+    //     id={symbol}
+    //     handler={async (e) => {
+    //       await agent.think();
+    //       return new TaskResult(TaskResult.SCHEDULE, {
+    //         timestamp: Date.now() + 2000,
+    //       });
+    //     }}
+    //   />}
+    // </>
+    <>
+      <Task
+        id={symbol}
+        handler={async (e) => {
+          await agent.think();
+          return new TaskResult(TaskResult.SCHEDULE, {
+            timestamp: Date.now() + 2000,
+          });
+        }}
+      />
+    </>
+  );
 };
 
 // const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -1121,4 +1203,89 @@ export const GenerativeServer = ({
       }}
     </Server>
   );
+};
+
+export type WebBrowserProps = {
+  hint: string,
+  maxSteps: number,
+  navigationTimeout: number,
+};
+export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
+  const agent = useCurrentAgent();
+  const authToken = useAuthToken();
+  const hint = props.hint ?? '';
+  return (
+    <JsonAction
+      name="webBrowser"
+      description={`Browse the web and return some result. Specify the url to navigate to, the data type of result we are looking for, and the action to perform on the page to get the result.${hint ? ` ${hint}` : ''}`}
+      schema={
+        z.object({
+          url: z.string(),
+          resultType: z.enum([
+            'text',
+            'image',
+            'data',
+          ]),
+          action: z.string(),
+        })
+      }
+      examples={[
+        {
+          url: `https://imgur.com/`,
+          action: 'Return the most interesting image',
+          resultType: 'image',
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const { message } = e.data;
+        const { args } = message;
+        const { url, action, resultType } = args;
+
+        const browserWSEndpoint = await (async () => {
+          const res = await fetch(`https://ai.upstreet.ai/api/browserBase/connectUrl`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          const j = await res.json();
+          const { url } = j;
+          return url;
+        })();
+        let browser = null;
+        let page = null;
+        try {
+          browser = await puppeteer.connect({
+            browserWSEndpoint,
+          });
+          const pages = await browser.pages();
+          page = pages[0];
+          await page.goto(url);
+
+          const [
+            extractedHtml,
+            extractedText,
+          ] = await Promise.all([
+            page.$eval('*', (el: any) => el.outerHtml),
+            page.$eval('*', (el: any) => {
+              const selection = window.getSelection();
+              const range = document.createRange();
+              range.selectNode(el);
+              selection.removeAllRanges();
+              selection.addRange(range);
+              return window.getSelection().toString();
+            }),
+          ]);
+
+          const response = await agent.ponder(dedent`
+          `, {
+            // XXX zod schema
+          });
+          // XXX finish this
+        } finally {
+          page && page.close();
+          browser && browser.close();
+        }
+      }}
+    />
+  )
 };

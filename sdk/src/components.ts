@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
+import type { ZodTypeAny } from 'zod';
 import type {
   ActionMessages,
   AppContextValue,
@@ -12,8 +13,12 @@ import type {
   PromptProps,
   ParserProps,
   PerceptionProps,
-  SchedulerProps,
+  TaskProps,
+  // SchedulerProps,
   ServerProps,
+} from './types';
+import {
+  TaskResultEnum,
 } from './types';
 import {
   AppContext,
@@ -146,7 +151,23 @@ export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) =>
 
   return null;
 };
-export const Scheduler: React.FC<SchedulerProps> = (props: SchedulerProps) => {
+export const Task: React.FC<TaskProps> = (props: TaskProps) => {
+  const [symbol, setSymbol] = useState(makeSymbol);
+  // bind to app context
+  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  useEffect(() => {
+    // console.log('Schedule component useEffect', props, appContext);
+    return () => {
+      // console.log('Schedule component cleanup', props, appContext);
+      appContext.unregisterTask(symbol);
+    };
+  }, [appContext]);
+
+  appContext.registerTask(symbol, props);
+
+  return null;
+};
+/* export const Scheduler: React.FC<SchedulerProps> = (props: SchedulerProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
   const appContext = (useContext(AppContext) as unknown) as AppContextValue;
@@ -161,7 +182,7 @@ export const Scheduler: React.FC<SchedulerProps> = (props: SchedulerProps) => {
   appContext.registerScheduler(symbol, props);
 
   return null;
-};
+}; */
 
 export const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
@@ -240,9 +261,6 @@ export class AgentObject extends EventTarget {
     this.address = address;
     this.ctx = context;
   }
-  getActionHistory(): Promise<ActionMessages> {
-    return this.ctx.getActionHistory(this);
-  }
   async getMemory(query: string, opts?: GetMemoryOpts) {
     const result = await this.ctx.getMemory(this, query, opts);
     return result;
@@ -281,43 +299,55 @@ export class ActiveAgentObject extends AgentObject {
   }
 
   async addAction(action: PendingActionMessage) {
-    // console.log('active agent object add action 1', {
-    //   agent: this,
-    //   action,
-    // });
     await this.ctx.addAction(this, action);
-    // console.log('active agent object add action 2');
   }
 
   async addMemory(text: string, content?: any) {
-    console.log('active agent object addMemory 1', {
-      agent: this,
-      text,
-    });
+    // console.log('active agent object addMemory 1', {
+    //   agent: this,
+    //   text,
+    // });
     const result = await this.ctx.addMemory(this, text, content);
-    console.log('active agent object addMemory 2', result);
+    // console.log('active agent object addMemory 2', result);
     return result;
   }
 
   async say(text: string) {
-    // console.log('active agent object monologue 1', {
-    //   agent: this,
-    //   text,
-    // });
     const result = await this.ctx.say(this, text);
-    // console.log('active agent object monologue 2', result);
     return result;
   }
   async monologue(text: string) {
-    // console.log('active agent object monologue 1', {
-    //   agent: this,
-    //   text,
-    // });
     const result = await this.ctx.monologue(this, text);
-    // console.log('active agent object monologue 2', result);
     return result;
   }
-  async think(): Promise<void> {
-    return await this.ctx.think(this);
+  async think(hint?: string): Promise<void> {
+    return await this.ctx.think(this, hint);
+  }
+  async ponder(hint?: string, schema?: ZodTypeAny): Promise<void> {
+    return await this.ctx.ponder(this, hint, schema);
+  }
+}
+export class TaskObject {
+  id: any;
+  name: string;
+  description: string;
+  timeout: number;
+  constructor(id: any = null, name: string = '', description: string = '') {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.timeout = 0;
+  }
+}
+export class TaskResult {
+  type: TaskResultEnum;
+  args: object;
+
+  static SCHEDULE = TaskResultEnum.Schedule;
+  static DONE = TaskResultEnum.Done;
+
+  constructor(type: TaskResultEnum, args: object) {
+    this.type = type;
+    this.args = args;
   }
 }
