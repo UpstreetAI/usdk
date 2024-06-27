@@ -1,3 +1,4 @@
+import readline from 'node:readline/promises'
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
@@ -7,6 +8,7 @@ import stream from 'stream';
 import repl from 'repl';
 import util from 'util';
 
+import ansi from 'ansi-escapes';
 import { program } from 'commander';
 import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
@@ -15,6 +17,7 @@ import toml from '@iarna/toml';
 import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
+import pc from 'picocolors'
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -59,6 +62,7 @@ import {
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
+import { isYes } from './lib/isYes.js'
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -153,6 +157,7 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await fs.promises.writeFile(dst, s);
 };
 const getAgentName = (guid) => `user-agent-${guid}`;
+const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
 const getAgentHost = (guidOrPortIndex, { dev }) => {
   const agentHost = dev
     ? `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
@@ -382,7 +387,7 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.description = defaultDescription;
   }
   if (typeof spec.bio !== 'string') {
-    spec.bio = 'She is a cool person';
+    spec.bio = 'A cool person';
   }
   if (typeof spec.model !== 'string') {
     spec.model = 'openai:gpt-4o';
@@ -1304,7 +1309,6 @@ const createWebcamSource = ({ local }) => {
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
-  const ui = !!args.ui;
   const debug = !!args.debug;
   const vision = !!args.vision;
 
@@ -1315,7 +1319,14 @@ const connect = async (args) => {
         room,
         debug,
       });
-    if (ui) {
+    if (args.browser) {
+      const _chatEndpointUrl = local
+        ? `http://localhost:3000`
+        : chatEndpointUrl;
+
+      open(`${_chatEndpointUrl}/rooms/${room}`)
+        .catch( console.error );
+    } else {
       startMultiplayerListener({
         userAsset,
         realms,
@@ -1323,11 +1334,6 @@ const connect = async (args) => {
         typingMap,
         startRepl: true,
       });
-    } else {
-      const _chatEndpointUrl = local
-        ? `http://localhost:3000`
-        : chatEndpointUrl;
-      open(`${chatEndpointUrl}/rooms/${room}`);
     }
 
     // set up the webcam, if needed
@@ -1392,7 +1398,6 @@ const chat = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
-  const ui = args.ui;
   const debug = !!args.debug;
 
   // ensure guids
@@ -1439,8 +1444,9 @@ const chat = async (args) => {
     // connect to the chat
     await connect({
       _: [room],
-      local: args.local,
+      browser: args.browser,
       debug: args.debug,
+      local: args.local,
       vision: args.vision,
     });
 
@@ -2044,7 +2050,7 @@ const generateTemplateFromPrompt = async (prompt) => {
   // generate the agent json
   const agentJson = await generateAgentJsonFromPrompt(prompt);
 
-  console.log( 'generating code...' )
+  console.log(pc.italic('Generating code...'));
   const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
   const codeGenContext = await getCodeGenContext();
   const { imports } = await modifyAgentJSXWithGeneratedCode({
@@ -2052,15 +2058,15 @@ const generateTemplateFromPrompt = async (prompt) => {
     prompt,
     codeGenContext,
   });
-  console.log( 'using components:' )
+  console.log('\nUsing components:');
   console.log(
     imports
-      .map(x => '- ' + x)
+      .map(x => '- ' + pc.cyan(x))
       .join('\n')
       .trim() + '\n'
-  )
+  );
 
-  console.log( 'generating avatar...' )
+  console.log(pc.italic('Generating avatar...'));
   // generate the agent preview_url
   const imageArrayBuffer = await generateImage(agentJson.visualDescription);
   // upload to r2
@@ -2154,6 +2160,7 @@ const create = async (args) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
   const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
   const dev = !!args.dev;
   const template = args.template ?? 'basic';
 
@@ -2162,7 +2169,7 @@ const create = async (args) => {
   const walletAddress = wallet.address.toLowerCase();
 
   // read agent files
-  console.log('reading files...');
+  console.log(pc.italic('\nReading files...'));
   const files = await (async () => {
     try {
       return await fs.promises.readdir(dstDir);
@@ -2176,8 +2183,21 @@ const create = async (args) => {
   })();
   // console.log('files', cwd, files.filter(f => /route/.test(f)));
   if (files.length > 0) {
-    if (force) {
-      // remove all files
+    if (force || forceNoConfirm) {
+      if (!forceNoConfirm) {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        const answer = await rl.question(`\nDelete the contents of "${path.resolve(dstDir)}"? ${pc.cyan('y/N')}: `)
+        rl.close();
+        console.log();
+
+        if (!isYes(answer)) process.exit(1);
+      }
+
+      // Remove all files.
       await Promise.all(
         files.map((filePath) => rimraf(path.join(dstDir, filePath))),
       );
@@ -2194,13 +2214,17 @@ const create = async (args) => {
 
   // generate the agent if necessary
   let srcTemplateDir;
+  let agentJson = {};
   if (prompt) {
     if (jwt) {
-      console.log('generating agent...');
-      const { templateDirectory, agentJson } = await generateTemplateFromPrompt(prompt);
-      srcTemplateDir = templateDirectory; 
-      console.log('done generating agent:');
-      console.log(JSON.stringify(agentJson, null, 2));
+      console.log(pc.italic('Generating agent...'));
+      const generateTemplateResponse =
+        await generateTemplateFromPrompt(prompt);
+
+      agentJson = generateTemplateResponse.agentJson;
+      srcTemplateDir = generateTemplateResponse.templateDirectory;
+
+      console.log(pc.italic('Generated agent.'));
     } else {
       throw new Error('not logged in: cannot generate agent from prompt');
     }
@@ -2219,7 +2243,7 @@ const create = async (args) => {
   const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
   const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
-  const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
+  // const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
 
   const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
   const srcDstDir = path.join(dstDir, 'sdk');
@@ -2231,8 +2255,8 @@ const create = async (args) => {
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
 
   // compile the agent json
-  const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
-  const agentJson = JSON.parse(agentJsonString);
+  // const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
+  // const agentJson = JSON.parse(agentJsonString);
   compileAgentJson(agentJson, {
     guid,
     walletAddress,
@@ -2240,7 +2264,7 @@ const create = async (args) => {
   });
 
   // copy over the template files
-  console.log('copying files...');
+  console.log(pc.italic('Copying files...'));
   const name = getAgentName(guid);
   const opts = {
     // overwrite: force,
@@ -2279,7 +2303,7 @@ const create = async (args) => {
   ]);
 
   // npm install
-  console.log('running npm install...');
+  console.log(pc.italic('Installing dependencies...'));
   try {
     const execFile = util.promisify(child_process.execFile);
     await execFile('npm', ['install'], {
@@ -2289,7 +2313,12 @@ const create = async (args) => {
   } catch (err) {
     console.warn(err.stack);
   }
-  console.log('done creating project: ' + dstDir);
+
+  console.log('\nCreated agent directory at', ansi.link(path.resolve(dstDir)), '\n');
+  console.log(pc.green('Name:'), agentJson.name);
+  // console.log(pc.green('ID:'), agentJson.id, '\n');
+  console.log(pc.green('Description:'), agentJson.description);
+  console.log(pc.green('Bio:'), agentJson.bio, '\n');
 
   return {
     guid,
@@ -2309,9 +2338,9 @@ const dev = async (args) => {
       // defer to conversation mode
       await chat({
         _: [guidsOrDevPathIndexes],
+        browser: args.browser,
         dev: true,
         vision: args.vision,
-        ui: args.ui,
         debug: args.debug,
       });
 
@@ -2643,11 +2672,17 @@ const deploy = async (args) => {
       });
       const { guid, url, wranglerToml } = j;
 
+      
       // write back the new wrangler.toml
       const wranglerTomlPath = path.join(agentDirectory, 'wrangler.toml');
       await fs.promises.writeFile(wranglerTomlPath, wranglerToml);
+      
+      console.log();
+      console.group(pc.green('Agent Deployed Successfully:'), '\n');
+      console.log(pc.cyan('✓ Host:'), url, '\n');
+      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
 
-      console.log(url);
     } else {
       console.log('not logged in');
       process.exit(1);
@@ -3052,7 +3087,7 @@ const main = async () => {
     .action(async () => {
       await handleError(async () => {
         commandExecuted = true;
-        console.log(packageJson.version);
+        console.log(pc.cyan(packageJson.version));
       });
     });
   /* program
@@ -3091,7 +3126,7 @@ const main = async () => {
         await login(args);
       });
     });
-  /*program
+  program
     .command('authorize')
     .description('Authorize an agent of the SDK')
     .argument(`[directory]`, `The directory to create the project in`)
@@ -3104,7 +3139,7 @@ const main = async () => {
         };
         await authorize(args);
       });
-    });*/
+    });
   program
     .command('logout')
     .description('Log out of the SDK')
@@ -3168,6 +3203,7 @@ const main = async () => {
     .argument(`[directory]`, `The directory to create the project in`)
     .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
     .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
@@ -3221,8 +3257,8 @@ const main = async () => {
     .argument(`[guids...]`, `Guids of the agents to connect to`)
     .option(`-l, --local`, `Connect to local servers`)
     .option(`-r, --room <room>`, `Room to join`)
-    .option(`-v, --vision`, `Enable webcam vision`)
-    .option(`-u, --ui`, `Open browser UI`)
+    .option(`-b, --browser`, `Open the chat room in a browser window`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (subcommand = '', guids = [], opts = {}) => {
       // console.log(
@@ -3458,12 +3494,13 @@ const main = async () => {
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
+    .option(`-b, --browser`, `Open the chat room in a browser window`)
     .option(`-r, --room`, `The room name to join`)
     // .option(
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    .option(`-v, --vision`, `Enable webcam vision`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
@@ -3485,7 +3522,7 @@ const main = async () => {
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    .option(`-v, --vision`, `Enable webcam vision`)
+    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
