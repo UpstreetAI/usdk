@@ -297,6 +297,7 @@ export class AgentRenderer {
     const renderLoader = new RenderLoader();
     this.renderLoader = renderLoader;
     const subtleAi = new SubtleAi();
+    const thinkQueueManager = new QueueManager();
     const appContextValue: AppContextValue = {
       userRender,
 
@@ -428,22 +429,24 @@ export class AgentRenderer {
       },
 
       async think(agent: ActiveAgentObject, hint?: string) {
-        // console.log('agent renderer think 1');
-        await conversationContext.typing(async () => {
-          // console.log('agent renderer think 2');
-          try {
-            const pendingMessage = await (hint
-              ? self.generateAgentActionFromInstructions(agent, hint)
-              : self.generateAgentAction(agent)
-            );
-            // console.log('agent renderer think 3');
-            await self.handleAgentAction(agent, pendingMessage);
-            // console.log('agent renderer think 4');
-          } catch (err) {
-            console.warn('think error', err);
-          }
+        await thinkQueueManager.waitForTurn(async () => {
+          // console.log('agent renderer think 1');
+          await conversationContext.typing(async () => {
+            // console.log('agent renderer think 2');
+            try {
+              const pendingMessage = await (hint
+                ? self.generateAgentActionFromInstructions(agent, hint)
+                : self.generateAgentAction(agent)
+              );
+              // console.log('agent renderer think 3');
+              await self.handleAgentAction(agent, pendingMessage);
+              // console.log('agent renderer think 4');
+            } catch (err) {
+              console.warn('think error', err);
+            }
+          });
+          // console.log('agent renderer think 5');
         });
-        // console.log('agent renderer think 5');
       },
 
       async generate(agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) {
