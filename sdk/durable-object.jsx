@@ -3,13 +3,14 @@ import { QueueManager } from './src/util/queue-manager.mjs';
 import { makeAnonymousClient } from './src/util/supabase-client.mjs';
 import { NetworkRealms } from './src/lib/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
-import { ConversationContext } from './src/classes/conversation-context.mjs';
-import { Player } from './src/classes/player.mjs';
+import { ConversationContext } from './src/classes/conversation-context';
+import { Player } from './src/classes/player';
 // import { AgentConsole } from './src/classes/agent-console.mjs';
 import { AgentRenderer } from './src/runtime.ts';
 import nudgeHandler from './src/routes/nudge.ts';
 import serverHandler from './src/routes/server.ts';
-import renderUserAlarm from './src/renderers/alarm.ts';
+// import renderUserAlarm from './src/renderers/alarm.ts';
+import renderUserTasks from './src/renderers/task.ts';
 import { ExtendableMessageEvent } from './src/components.ts';
 import { getConnectedWalletsFromMnemonic } from './src/util/ethereum-utils.mjs';
 
@@ -145,24 +146,25 @@ export class DurableObject extends EventTarget {
 
     this.loadPromise = (async () => {
       // Load messages into conversation context.
-      const messages = await loadMessagesFromDatabase(this.supabase, LOADED_MESSAGES_LIMIT)
-
-      this.conversationContext.setMessages( messages )
+      const messages = await loadMessagesFromDatabase(this.supabase, LOADED_MESSAGES_LIMIT);
+      this.conversationContext.setMessages(messages);
 
       // Enable the renderer.
-      const enabled = (await this.state.storage.get('enabled')) ?? false;
-      this.agentRenderer.setEnabled(enabled);
+      // const enabled = (await this.state.storage.get('enabled')) ?? false;
+      // this.agentRenderer.setEnabled(enabled);
+
+      await this.updateTasks();
     })();
     this.loadPromise = null;
 
-    const _initialSchedule = async () => {
-      try {
-        await this.schedule();
-      } catch (err) {
-        console.warn(err.stack);
-      }
-    };
-    _initialSchedule();
+    // const _initialSchedule = async () => {
+    //   try {
+    //     await this.schedule();
+    //   } catch (err) {
+    //     console.warn(err.stack);
+    //   }
+    // };
+    // _initialSchedule();
   }
 
   waitForLoad() {
@@ -625,17 +627,17 @@ export class DurableObject extends EventTarget {
         const handleStatus = async () => {
           if (request.method === 'GET') {
             // return the enabled status as well as the room state
-            const enabled = (await this.state.storage.get('enabled')) ?? false;
+            // const enabled = (await this.state.storage.get('enabled')) ?? false;
             const room = this.realms
               ? Array.from(this.realms.connectedRealms)?.[0].key ?? null
               : null;
             return new Response(JSON.stringify({
-              enabled,
+              // enabled,
               room,
             }), {
               headers,
             });
-          } else if (request.method === 'POST') {
+          /* } else if (request.method === 'POST') {
             const j = await request.json();
 
             const _updateEnabled = async () => {
@@ -659,7 +661,7 @@ export class DurableObject extends EventTarget {
             await _updateEnabled();
             return new Response(JSON.stringify({ ok: true }), {
               headers,
-            });
+            }); */
           } else {
             return new Response(JSON.stringify({
               error: 'method not allowed',
@@ -746,7 +748,7 @@ export class DurableObject extends EventTarget {
       });
     }
   }
-  async schedule() {
+  /* async schedule() {
     // wait for the agent to be loaded
     // console.log('schedule 1');
     await this.waitForLoad();
@@ -768,9 +770,16 @@ export class DurableObject extends EventTarget {
     //     alarmSpec,
     //   );
     }
+  } */
+  async updateTasks() {
+    const taskUpdater = await renderUserTasks(this.agentRenderer);
+    const timeout = await taskUpdater.update();
+    return timeout;
   }
   async alarm() {
-    // handle the alarm
+    await this.updateTasks();
+
+    /* // handle the alarm
     const [guid, enabled] = await Promise.all([
       this.getGuid(),
       this.state.storage.get('enabled'),
@@ -793,6 +802,6 @@ export class DurableObject extends EventTarget {
       await this.schedule();
     } else {
       console.warn(`skipping spurious alarm for guid ${guid} enabled ${enabled}`);
-    }
+    } */
   }
 }
