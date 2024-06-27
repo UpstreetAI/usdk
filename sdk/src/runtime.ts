@@ -404,7 +404,7 @@ export class AgentRenderer {
         };
 
         const currentAgent = conversationContext.getCurrentAgent();
-        const isLocal = agent.id === currentAgent.id;
+        const isLocal = agent.id === (currentAgent as any).id;
         if (isLocal) {
           conversationContext.addLocalAndRemoteMessage(actionMessage);
         } else {
@@ -1268,11 +1268,14 @@ export const compileUserAgentTasks = async ({
       if (task) {
         return task;
       } else {
-        const task = new TaskObject(id);
+        const task = new TaskObject({
+          id,
+        });
         agentRenderer.tasks.set(id, task);
+        return task;
       }
     };
-    const currentAgent = agentRenderer.conversationContext.getCurrentAgent();
+    const currentAgent = agentRenderer.getCurrentAgent();
     const makeTaskEvent = (task: TaskObject) => {
       return new ExtendableMessageEvent('task', {
         data: {
@@ -1284,44 +1287,60 @@ export const compileUserAgentTasks = async ({
 
     // initialize and run tasks
     const seenTasks = new Set<any>();
-    const now = Date.now();
+    const now = new Date()
     await Promise.all(
       Array.from(taskRegistry.values()).map(async (taskProps) => {
         const { id } = taskProps;
+        // console.log('got task props id 1', {
+        //   id,
+        // });
         const task = ensureTask(id);
         task.name = taskProps.name;
         task.description = taskProps.description;
+        // console.log('got task props id 2', {
+        //   id,
+        //   name: task.name,
+        //   description: task.description,
+        // });
         if (!seenTasks.has(id)) {
           seenTasks.add(id);
 
-          if (task.timeout <= now) {
+          // console.log('check task timeout', {
+          //   timestamp: task.timestamp,
+          //   now,
+          // });
+          if (task.timestamp <= now) {
             // time to run the task
             const e = makeTaskEvent(task);
             let taskResult = null;
+            let taskErr = null;
             let hadError = false;
             try {
+              // console.log('task handler 1');
               taskResult = await taskProps.handler(e);
+              // console.log('task handler 2');
               if (taskResult instanceof TaskResult) {
                 // ok
               } else {
                 throw new Error('task handler must return a TaskResult');
               }
             } catch (err) {
+              taskErr = err;
               hadError = true;
             }
-            if (hadError) {
+            if (!hadError) {
               const { type, args } = taskResult;
               switch (type) {
                 case 'schedule': {
-                  const { timeout } = args;
-                  task.timeout = timeout;
+                  const { timestamp } = args;
+                  task.timestamp = timestamp;
                   break;
                 }
                 case 'done': {
                   if (taskProps.onDone) {
-                    task.timeout = Infinity;
+                    task.timestamp = new Date(Infinity);
                     const e = makeTaskEvent(task);
-                    taskProps.onDone(e);
+                    taskProps.onDone && taskProps.onDone(e);
                   }
                   break;
                 }
@@ -1329,6 +1348,8 @@ export const compileUserAgentTasks = async ({
                   throw new Error('unknown task result type: ' + type);
                 }
               }
+            } else {
+              console.warn('task error: ' + taskErr);
             }
           } else {
             // else it's not time to run the task yet
@@ -1345,11 +1366,11 @@ export const compileUserAgentTasks = async ({
       }
     }
     // compute the earliest timeout
-    const timeouts = Array.from(agentRenderer.tasks.values()).map((task) => {
-      return task.timeout;
-    });
-    const minTimeout = Math.min(...timeouts);
-    return minTimeout;
+    const timestamps = Array.from(agentRenderer.tasks.values()).map((task) => {
+      return +task.timestamp;
+    }).filter(n => !isNaN(n)).concat([Infinity]);
+    const minTimestamp = Math.min(...timestamps);
+    return minTimestamp;
   };
   return {
     update,
