@@ -2284,7 +2284,7 @@ const create = async (args) => {
         dependencies: {
           ...a.dependencies,
           ...b.dependencies,
-          'upstreet-sdk': 'file:./sdk/src',
+          'react-agents': 'file:./sdk/src',
         },
       };
     }),
