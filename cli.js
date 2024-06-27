@@ -421,7 +421,7 @@ const bindProcess = (cp) => {
     }
   });
 };
-const waitForProcessIo = async (cp, matcher, timeout = 10 * 1000) => {
+const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
   const matcherFn = (() => {
     if (typeof matcher === 'string') {
       const s = matcher;
