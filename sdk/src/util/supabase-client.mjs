@@ -139,7 +139,7 @@ export const getUserIdForJwt = async (jwt) => {
     return j.userId;
   } else {
     const text = await res.text();
-    console.warn(text);
+    console.warn('getUserIdForJwt: ' + text);
     return null;
   }
 };
@@ -154,7 +154,7 @@ export const getUserForJwt = async (jwt) => {
     return j.data;
   } else {
     const text = await res.text();
-    console.warn(text);
+    console.warn('getUserForJwt: ' + text);
     return null;
   }
 };
