@@ -331,12 +331,17 @@ export class TaskObject {
   id: any;
   name: string;
   description: string;
-  timeout: number;
-  constructor(id: any = null, name: string = '', description: string = '') {
+  timestamp: Date;
+  constructor({
+    id = null,
+    name = '',
+    description = '',
+    timestamp = new Date(0),
+  } = {}) {
     this.id = id;
     this.name = name;
     this.description = description;
-    this.timeout = 0;
+    this.timestamp = timestamp;
   }
 }
 export class TaskResult {
