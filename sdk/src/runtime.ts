@@ -1,20 +1,26 @@
 import React from 'react';
 import dedent from 'dedent';
 import 'localstorage-polyfill';
+import { z } from 'zod';
+import type { ZodTypeAny } from 'zod';
+import { zodToTs, printNode } from 'zod-to-ts';
 import ReactReconciler from 'react-reconciler';
+import { parseCodeBlock } from './util/util.mjs';
 import {
   Agent,
   Action,
   Prompt,
   Parser,
   Perception,
-  Scheduler,
+  // Scheduler,
   Server,
   SceneObject,
   AgentObject,
   ActiveAgentObject,
   ExtendableMessageEvent,
   SubtleAi,
+  TaskObject,
+  TaskResult,
 } from './components';
 import { AppContext, EpochContext } from './context';
 import type {
@@ -30,25 +36,47 @@ import type {
   ChatMessage,
   ChatMessages,
   Memory,
-  SdkDefaultComponentArgs,
+  // SdkDefaultComponentArgs,
   AgentProps,
   ActionProps,
   PromptProps,
   ParserProps,
   PerceptionProps,
-  SchedulerProps,
+  TaskProps,
+  // SchedulerProps,
   ServerProps,
+  UserHandler,
 } from '../types';
-import { ConversationContext } from './classes/conversation-context.mjs';
-import { RenderLoader } from './classes/render-loader.ts';
+import { ConversationContext } from './classes/conversation-context';
+import { RenderLoader } from './classes/render-loader';
 import { fetchChatCompletion } from './util/fetch.mjs';
 import * as DefaultComponents from './default-components.jsx';
 import { aiProxyHost } from './util/endpoints.mjs';
 import { lembed } from './util/embedding.mjs';
 import { QueueManager } from './util/queue-manager.mjs';
 import { makeAnonymousClient } from './util/supabase-client.mjs';
-import { UserHandler, AgentConsole } from 'sdk/types';
+// import { UserHandler, AgentConsole } from 'sdk/types';
 import { makePromise } from './util/util.mjs';
+import { ActionHistoryOpts } from './types';
+
+//
+
+const retry = async (fn: (() => any) | (() => Promise<any>), numRetries = 5) => {
+  for (let i = 0; i < numRetries; i++) {
+    try {
+      const result = await fn();
+      if (result !== null) {
+        return result;
+      } else {
+        continue;
+      }
+    } catch (err) {
+      console.warn(err);
+      continue;
+    }
+  }
+  throw new Error(`failed after ${numRetries} retries`);
+}
 
 //
 
@@ -204,7 +232,8 @@ export class AgentRenderer {
   promptRegistry: Map<symbol, PromptProps> = new Map();
   parserRegistry: Map<symbol, ParserProps> = new Map();
   perceptionRegistry: Map<symbol, PerceptionProps> = new Map();
-  schedulerRegistry: Map<symbol, SchedulerProps> = new Map();
+  taskRegistry: Map<symbol, TaskProps> = new Map();
+  // schedulerRegistry: Map<symbol, SchedulerProps> = new Map();
   serverRegistry: Map<symbol, ServerProps> = new Map();
 
   rendered: boolean = false;
@@ -213,6 +242,7 @@ export class AgentRenderer {
   userRender: UserHandler;
   conversationContext: ConversationContext;
   wallets: any;
+  tasks: Map<any, TaskObject> = new Map();
   enabled: boolean;
 
   renderLoader: RenderLoader;
@@ -257,7 +287,8 @@ export class AgentRenderer {
       promptRegistry,
       parserRegistry,
       perceptionRegistry,
-      schedulerRegistry,
+      taskRegistry,
+      // schedulerRegistry,
       serverRegistry,
     } = this;
 
@@ -273,11 +304,14 @@ export class AgentRenderer {
       Prompt,
       Parser,
       Perception,
-      Scheduler,
+      // Scheduler,
       Server,
 
       subtleAi,
 
+      useAuthToken: () => {
+        return (this.env as any).AGENT_TOKEN;
+      },
       useScene: () => {
         return makeEpochUse(() => this.getScene())(); // XXX these need to be dynamically bound
       },
@@ -290,32 +324,15 @@ export class AgentRenderer {
       useActions: () => {
         return makeEpochUse(() => Array.from(actionRegistry.values()))();
       },
-      useActionHistory: (agents) => {
-        if (!Array.isArray(agents)) {
-          agents = [agents];
-        }
+      useActionHistory: (opts?: ActionHistoryOpts) => {
+        const filter = opts?.filter;
         // console.log('use action history 1');
-        const messages = makeEpochUse(() => {
-          // console.log('got messages internal 1');
-          const result = [];
-          const messages = conversationContext.getMessages();
-          // console.log('got messages internal 2', messages);
-          const agentIds = agents.map((agent) => agent.id);
-          for (const message of messages) {
-            const userId = message.userId ?? '';
-            if (agentIds.includes(userId)) {
-              result.push(message);
-            }
-          }
-          const currentAgentIds = conversationContext.getAgents();
-          // console.log('got messages internal 3', messages, agents, currentAgentIds, result);
-          return result;
-        })();
+        const messages = makeEpochUse(() => conversationContext.getMessages(filter))();
         // console.log('use action history 2', messages);
         return messages;
       },
 
-      useLoad: renderLoader.useLoad.bind(renderLoader),
+      // useLoad: renderLoader.useLoad.bind(renderLoader),
 
       registerAgent: (key: symbol, props: AgentProps) => {
         agentRegistry.set(key, props);
@@ -348,12 +365,18 @@ export class AgentRenderer {
       unregisterPerception: (key: symbol) => {
         perceptionRegistry.delete(key);
       },
-      registerScheduler: (key: symbol, props: SchedulerProps) => {
-        schedulerRegistry.set(key, props);
+      registerTask: (key: symbol, props: TaskProps) => {
+        taskRegistry.set(key, props);
       },
-      unregisterScheduler: (key: symbol) => {
-        schedulerRegistry.delete(key);
+      unregisterTask: (key: symbol) => {
+        taskRegistry.delete(key);
       },
+      // registerScheduler: (key: symbol, props: SchedulerProps) => {
+      //   schedulerRegistry.set(key, props);
+      // },
+      // unregisterScheduler: (key: symbol) => {
+      //   schedulerRegistry.delete(key);
+      // },
 
       registerServer: (key: symbol, props: ServerProps) => {
         serverRegistry.set(key, props);
@@ -391,15 +414,38 @@ export class AgentRenderer {
         await self.rerenderAsync();
       },
 
-      async think(agent: ActiveAgentObject) {
+      async think(agent: ActiveAgentObject, hint?: string) {
         // console.log('agent renderer think 1');
         await conversationContext.typing(async () => {
           // console.log('agent renderer think 2');
           try {
-            const pendingMessage = await self.generateAgentAction(agent);
+            const pendingMessage = await (hint
+              ? self.generateAgentActionFromInstructions(agent, hint)
+              : self.generateAgentAction(agent, hint)
+            );
             // console.log('agent renderer think 3');
             await self.handleAgentAction(agent, pendingMessage);
             // console.log('agent renderer think 4');
+          } catch (err) {
+            console.warn('think error', err);
+          }
+        });
+        // console.log('agent renderer think 5');
+      },
+
+      async ponder(agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) {
+        // console.log('agent renderer think 1');
+        await conversationContext.typing(async () => {
+          // console.log('agent renderer think 2');
+          try {
+            const pendingMessage = await (schema
+              ? self.generateJsonMatchingSchema(hint, schema)
+              : self.generateString(hint)
+            );
+            // console.log('agent renderer think 3');
+            // await self.handleAgentAction(agent, pendingMessage);
+            // console.log('agent renderer think 4');
+            return pendingMessage;
           } catch (err) {
             console.warn('think error', err);
           }
@@ -412,12 +458,13 @@ export class AgentRenderer {
           console.log('say text', {
             text,
           });
+          const timestamp = Date.now();
           const pendingMessage = {
             method: 'say',
             args: {
               text,
             },
-            timestamp: Date.now(),
+            timestamp,
           }
           await self.handleAgentAction(agent, pendingMessage);
         });
@@ -549,21 +596,23 @@ export class AgentRenderer {
         });
         const { error, data } = readResult;
         if (!error) {
-          const replace = await (async () => {
+          const replaceIndexes = await (async () => {
             if (data) {
-              const numCompletionRetries = 3;
-              let i;
-              for (i = 0; i < numCompletionRetries; i++) {
+              const numRetries = 5;
+              return await retry(async () => {
                 const promptMessages = [
                   {
                     role: 'assistant',
                     content: dedent`
                       You are a memory relevance evaluator for an AI agent.
                       The user will provide an list of old memories and a new memory, as text strings.
-                      Your job is to evaluate which memories the new memory should replace.
+                      Evaluate which memories the new memory should replace and reply with a list of the memory indexes that the new memory should replace from the list of old memories (splice). The indexes you should return are the 0-indexed position of the memory to replace. The replacement list you return may be the empty array.
                       For example, if the previous memories state that ["A is B", "C is D"], and the new memory states that "A is E", the replacement list would be [0].
-                      Reply with a json list of the memory indexes that the new memory should replace in the list of old memories (splice). The indexes you should return are the 0-indexed position of the memory to replace. The replacement list you return may be the empty array.
                       When in doubt, keep the old memory and do not include it in the replacement list.
+                      Wrap your response in code blocks e.g.
+                      \`\`\`json
+                      [0, 1, 2]
+                      \`\`\`
                     `,
                   },
                   {
@@ -592,9 +641,17 @@ export class AgentRenderer {
                   },
                 ];
                 const message = await appContextValue.complete(promptMessages);
-              }
+                // extract the code block
+                const s = parseCodeBlock(message.content);
+                // parse the json in the code block
+                const rawJson = JSON.parse(s);
+                // validate that the json matches the expected schema
+                const schema = z.array(z.number());
+                const parsedJson = schema.parse(rawJson);
+                return parsedJson;
+              }, numRetries);
             } else {
-              return false;
+              return [];
             }
           })();
 
@@ -675,9 +732,9 @@ export class AgentRenderer {
     this.renderQueueManager = new QueueManager();
   }
 
-  setEnabled(enabled: boolean) {
-    this.enabled = enabled;
-  }
+  // setEnabled(enabled: boolean) {
+  //   this.enabled = enabled;
+  // }
 
   // bound object getters
   getScene() {
@@ -721,7 +778,7 @@ export class AgentRenderer {
     return currentActiveAgentBound;
   }
 
-  async generateAgentAction(agent: ActiveAgentObject) {
+  async generateAgentAction(agent: ActiveAgentObject, hint?: string) {
     const { promptRegistry } = this;
     const prompts = Array.from(promptRegistry.values())
       .map((prompt) => prompt.children)
@@ -762,9 +819,8 @@ export class AgentRenderer {
 
     const parser = Array.from(parserRegistry.values())[0];
 
-    const numCompletionRetries = 5;
-    let i;
-    for (i = 0; i < numCompletionRetries; i++) {
+    const numRetries = 5;
+    return await retry(async () => {
       const completionMessage = await (async () => {
         const message = await appContextValue.complete(promptMessages);
         return message;
@@ -782,17 +838,78 @@ export class AgentRenderer {
           if (actionHandler) {
             return newMessage;
           } else {
-            continue;
+            return null;
           }
         } else {
-          continue;
+          return null;
         }
       } else {
-        continue;
+        return null;
       }
-    }
-    throw new Error(`failed to complete after ${numCompletionRetries} retries`);
+    }, numRetries);
   }
+
+  async generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
+    const numRetries = 5;
+    return await retry(async () => {
+      // const { promptRegistry } = this;
+      const prompts = [
+        dedent`
+          Respond with the following:
+        ` + '\n' + hint,
+        dedent`
+          Output the result as valid JSON matching the following schema:
+        ` + '\n' + printNode(zodToTs(schema).node) + '\n' + dedent`
+          Wrap your response in a code block e.g.
+          \`\`\`json
+          "...response goes here..."
+          \`\`\`
+        `,
+      ];
+      const promptString = prompts.join('\n\n');
+      const promptMessages = [
+        {
+          role: 'user',
+          content: promptString,
+        },
+      ];
+      const completionMessage = await (async () => {
+        const message = await this.appContextValue.complete(promptMessages);
+        return message;
+      })();
+      // extract the json string
+      const s = parseCodeBlock(completionMessage.content);
+      // parse the json
+      const rawJson = JSON.parse(s);
+      // check that the json matches the schema
+      const parsedJson = schema.parse(rawJson);
+      return parsedJson;
+    }, numRetries);
+  }
+  async generateString(hint: string) {
+    const numRetries = 5;
+    return await retry(async () => {
+      // const { promptRegistry } = this;
+      const prompts = [
+        dedent`
+          Respond with the following:
+        ` + '\n' + hint,
+      ];
+      const promptString = prompts.join('\n\n');
+      const promptMessages = [
+        {
+          role: 'user',
+          content: promptString,
+        },
+      ];
+      const completionMessage = await (async () => {
+        const message = await this.appContextValue.complete(promptMessages);
+        return message;
+      })();
+      return completionMessage.content;
+    }, numRetries);
+  }
+
   async handleAgentAction(
     agent: ActiveAgentObject,
     newMessage: PendingActionMessage,
@@ -950,7 +1067,8 @@ export class AgentRenderer {
       promptRegistry, 
       parserRegistry,
       perceptionRegistry,
-      schedulerRegistry,
+      taskRegistry,
+      // schedulerRegistry,
       serverRegistry,
     } = this;
 
@@ -960,7 +1078,8 @@ export class AgentRenderer {
       promptRegistry,
       parserRegistry,
       perceptionRegistry,
-      schedulerRegistry,
+      taskRegistry,
+      // schedulerRegistry,
       serverRegistry,
     };
   }
@@ -988,7 +1107,7 @@ export const nudgeUserAgent = async ({
     promptRegistry,
     parserRegistry,
     perceptionRegistry,
-    schedulerRegistry,
+    // schedulerRegistry,
     serverRegistry,
     // actions,
   } = await agentRenderer.ensureOutput();
@@ -1050,7 +1169,7 @@ export const compileUserAgentServer = async ({
     promptRegistry,
     parserRegistry,
     perceptionRegistry,
-    schedulerRegistry,
+    // schedulerRegistry,
     serverRegistry,
   } = await agentRenderer.ensureOutput();
 
@@ -1094,13 +1213,8 @@ export const compileUserAgentServer = async ({
   };
 };
 
-export const compileUserAgentAlarm = async ({
-  // env,
-  // userRender,
-  // conversationContext,
-  // wallets,
+/* export const compileUserAgentAlarm = async ({
   agentRenderer,
-  // enabled,
 }: {
   // env: object;
   // userRender: UserHandler;
@@ -1115,7 +1229,7 @@ export const compileUserAgentAlarm = async ({
     // promptRegistry,
     // parserRegistry,
     perceptionRegistry,
-    schedulerRegistry,
+    // schedulerRegistry,
     // serverRegistry,
   } = await agentRenderer.ensureOutput();
 
@@ -1137,4 +1251,107 @@ export const compileUserAgentAlarm = async ({
   };
   // console.log('returning alarm spec', alarmSpec);
   return alarmSpec;
+}; */
+
+export const compileUserAgentTasks = async ({
+  agentRenderer,
+}: {
+  agentRenderer: AgentRenderer;
+}) => {
+  const {
+    taskRegistry,
+  } = await agentRenderer.ensureOutput();
+
+  const update = async () => {
+    const ensureTask = (id: any) => {
+      const task = agentRenderer.tasks.get(id);
+      if (task) {
+        return task;
+      } else {
+        const task = new TaskObject(id);
+        agentRenderer.tasks.set(id, task);
+      }
+    };
+    const currentAgent = agentRenderer.conversationContext.getCurrentAgent();
+    const makeTaskEvent = (task: TaskObject) => {
+      return new ExtendableMessageEvent('task', {
+        data: {
+          agent: currentAgent,
+          task,
+        },
+      });
+    };
+
+    // initialize and run tasks
+    const seenTasks = new Set<any>();
+    const now = Date.now();
+    await Promise.all(
+      Array.from(taskRegistry.values()).map(async (taskProps) => {
+        const { id } = taskProps;
+        const task = ensureTask(id);
+        task.name = taskProps.name;
+        task.description = taskProps.description;
+        if (!seenTasks.has(id)) {
+          seenTasks.add(id);
+
+          if (task.timeout <= now) {
+            // time to run the task
+            const e = makeTaskEvent(task);
+            let taskResult = null;
+            let hadError = false;
+            try {
+              taskResult = await taskProps.handler(e);
+              if (taskResult instanceof TaskResult) {
+                // ok
+              } else {
+                throw new Error('task handler must return a TaskResult');
+              }
+            } catch (err) {
+              hadError = true;
+            }
+            if (hadError) {
+              const { type, args } = taskResult;
+              switch (type) {
+                case 'schedule': {
+                  const { timeout } = args;
+                  task.timeout = timeout;
+                  break;
+                }
+                case 'done': {
+                  if (taskProps.onDone) {
+                    task.timeout = Infinity;
+                    const e = makeTaskEvent(task);
+                    taskProps.onDone(e);
+                  }
+                  break;
+                }
+                default: {
+                  throw new Error('unknown task result type: ' + type);
+                }
+              }
+            }
+          } else {
+            // else it's not time to run the task yet
+          }
+        } else {
+          throw new Error('duplicate task id: ' + id);
+        }
+      }),
+    );
+    // filter to only the seen tasks
+    for (const [id, task] of Array.from(agentRenderer.tasks.entries())) {
+      if (!seenTasks.has(id)) {
+        agentRenderer.tasks.delete(id);
+      }
+    }
+    // compute the earliest timeout
+    const timeouts = Array.from(agentRenderer.tasks.values()).map((task) => {
+      return task.timeout;
+    });
+    const minTimeout = Math.min(...timeouts);
+    return minTimeout;
+  };
+  return {
+    update,
+  };
 };
