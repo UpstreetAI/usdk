@@ -1,3 +1,5 @@
+import type { ZodTypeAny } from 'zod';
+
 // events
 
 export type ExtendableMessageEvent = MessageEvent & {
@@ -15,7 +17,6 @@ export interface AgentObject extends EventTarget {
   model: string;
   address: string;
   ctx: AppContextValue;
-  getActionHistory: () => Promise<ActionMessages>;
   getMemory: (query: string, opts?: GetMemoryOpts) => Promise<Array<Memory>>;
 }
 
@@ -35,17 +36,17 @@ export type ActionMessage = {
   method: string;
   args: object;
   hidden: boolean;
-  timestamp: number;
+  timestamp: Date;
 };
 export type PendingActionMessage = {
   method: string;
   args: object;
-  timestamp: number;
+  timestamp: Date;
 };
 export type PerceptionMessage = {
   method: string;
   args: object;
-  timestamp: number;
+  timestamp: Date;
 };
 export type ActionMessages = Array<ActionMessage>;
 export type AgentActionMessage = {
@@ -97,9 +98,10 @@ export interface ActiveAgentObject extends AgentObject {
     content?: any,
     opts?: AddMemoryOpts,
   ) => Promise<void>;
-  say: (text: string, opts?: { timestamp?: number }) => Promise<any>;
+  say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
-  think: () => Promise<any>;
+  think: (hint?: string) => Promise<any>;
+  ponder: (hint: string, schema?: ZodTypeAny) => Promise<any>;
 }
 
 // action events
@@ -136,6 +138,19 @@ export interface PerceptionEvent extends ExtendableMessageEvent {
   data: PerceptionEventData;
 }
 
+export type TaskObject = {
+  id: any;
+  name: string;
+  description: string;
+};
+export type TaskEventData = {
+  agent: ActiveAgentObject;
+  task: TaskObject;
+};
+export interface TaskEvent extends MessageEvent {
+  data: TaskEventData;
+}
+
 // scenes
 
 export interface SceneObject extends EventTarget {
@@ -163,8 +178,8 @@ export type AgentProps = {
 export type ActionProps = {
   name: string;
   description: string;
-  example: string;
-  handler: (e: PendingActionEvent) => Promise<any>;
+  // example: string;
+  handler: (e: PendingActionEvent) => void | Promise<void>;
 };
 export type PromptProps = {
   children: React.ReactNode;
@@ -176,14 +191,27 @@ export type PerceptionProps = {
   type: string;
   handler: (e: PerceptionEvent) => Promise<any>;
 };
-type ScheduleFnReturnType = number;
-type AgentConsole = {
-  log: (args: Array<any>) => void;
-  warn: (args: Array<any>) => void;
+// type ScheduleFnReturnType = number;
+// export type SchedulerProps = {
+//   scheduleFn: () => ScheduleFnReturnType | Promise<ScheduleFnReturnType>;
+// };
+export enum TaskResultEnum {
+  Schedule = 'schedule',
+  Done = 'done',
+}
+export type TaskResult = {
+  type: TaskResultEnum;
+  args: object;
 };
-export type SchedulerProps = {
-  scheduleFn: () => ScheduleFnReturnType | Promise<ScheduleFnReturnType>;
+export type TaskProps = {
+  id: any;
+  handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
 };
+
+// type AgentConsole = {
+//   log: (args: Array<any>) => void;
+//   warn: (args: Array<any>) => void;
+// };
 
 export type ServerProps = {
   children: React.ReactNode | (() => void);
@@ -195,7 +223,7 @@ export type SdkDefaultComponentArgs = {
   DefaultPrompts: React.FC<void>;
   DefaultParsers: React.FC<void>;
   DefaultPerceptions: React.FC<void>;
-  DefaultSchedulers: React.FC<void>;
+  // DefaultSchedulers: React.FC<void>;
   DefaultServers: React.FC<void>;
 };
 
@@ -212,18 +240,20 @@ export type AppContextValue = {
   Prompt: React.FC<PromptProps>;
   Parser: React.FC<ParserProps>;
   Perception: React.FC<PerceptionProps>;
-  Scheduler: React.FC<SchedulerProps>;
+  // Scheduler: React.FC<SchedulerProps>;
   Server: React.FC<ServerProps>;
 
   subtleAi: SubtleAi;
+
+  useAuthToken: () => string;
 
   useScene: () => SceneObject;
   useAgents: () => Array<AgentObject>;
   useCurrentAgent: () => ActiveAgentObject;
   useActions: () => Array<ActionProps>;
-  useActionHistory: (agents: Array<AgentObject> | AgentObject) => ActionMessages;
+  useActionHistory: (opts?: ActionHistoryOpts) => ActionMessages;
 
-  useLoad: (p: Promise<any>) => void;
+  // useLoad: (p: Promise<any>) => void;
 
   registerAgent: (key: symbol, props: AgentProps) => void;
   unregisterAgent: (key: symbol) => void;
@@ -235,17 +265,20 @@ export type AppContextValue = {
   unregisterParser: (key: symbol) => void;
   registerPerception: (key: symbol, props: PerceptionProps) => void;
   unregisterPerception: (key: symbol) => void;
-  registerScheduler: (key: symbol, props: SchedulerProps) => void;
-  unregisterScheduler: (key: symbol) => void;
+  // registerScheduler: (key: symbol, props: SchedulerProps) => void;
+  // unregisterScheduler: (key: symbol) => void;
   registerServer: (key: symbol, props: ServerProps) => void;
   unregisterServer: (key: symbol) => void;
+  registerTask: (key: symbol, props: TaskProps) => void;
+  unregisterTask: (key: symbol) => void;
 
   addAction: (
     agent: ActiveAgentObject,
     action: PendingActionMessage,
   ) => Promise<any>;
 
-  think: (agent: ActiveAgentObject) => Promise<any>;
+  think: (agent: ActiveAgentObject, hint?: string) => Promise<any>;
+  ponder: (agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) => Promise<any>;
   say: (agent: ActiveAgentObject, text: string) => Promise<any>;
   monologue: (agent: ActiveAgentObject, text: string) => Promise<any>;
 
@@ -270,6 +303,18 @@ export type AppContextValue = {
     text: string,
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
+};
+
+// messages
+
+export type MessageFilter = {
+  agentIds?: string[],
+  before?: Date,
+  after?: Date,
+  limit?: number,
+};
+export type ActionHistoryOpts = {
+  filter?: MessageFilter,
 };
 
 // user handler
