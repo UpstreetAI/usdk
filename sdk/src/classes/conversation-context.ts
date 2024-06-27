@@ -1,24 +1,41 @@
+import {
+  SceneObject,
+  AgentObject,
+  ActiveAgentObject,
+  ActionMessage,
+  MessageFilter,
+} from '../types'
+import { Player } from './player';
+
 export class ConversationContext extends EventTarget {
-  #scene;
-  #agentsMap;
-  #currentAgent;
-  #messages;
+  #scene: SceneObject | null;
+  #agentsMap: Map<string, Player>;
+  #currentAgent: object | null;
+  #messages: Array<ActionMessage>;
   constructor({
     scene = null,
     agentsMap = new Map(),
     currentAgent = null,
     messages = [],
+  }: {
+    scene?: SceneObject | null,
+    agentsMap?: Map<string, Player>,
+    currentAgent?: object | null,
+    messages?: Array<ActionMessage>,
   } = {}) {
     super();
 
-    this.#scene = scene;
-    this.#agentsMap = agentsMap; // Player
-    this.#currentAgent = currentAgent; // json object
-    this.#messages = messages;
-
+    if (!scene) {
+      throw new Error('ConversationContext: scene is required');
+    }
     if (!currentAgent) {
       throw new Error('ConversationContext: currentAgent is required');
     }
+
+    this.#scene = scene;
+    this.#agentsMap = agentsMap;
+    this.#currentAgent = currentAgent;
+    this.#messages = messages;
   }
 
   getScene() {
@@ -59,8 +76,32 @@ export class ConversationContext extends EventTarget {
     this.#agentsMap.clear();
   }
 
-  getMessages() {
-    return this.#messages;
+  getMessages(filter?: MessageFilter) {
+    const agentIds = filter?.agentIds;
+    const before = filter?.before;
+    const after = filter?.after;
+    const limit = filter?.limit;
+    const filterFns: ((m: ActionMessage) => boolean)[] = [];
+    if (agentIds) {
+      filterFns.push((m: ActionMessage) => {
+        return agentIds.includes(m.userId);
+      });
+    }
+    if (before) {
+      filterFns.push((m: ActionMessage) => {
+        return m.timestamp < before;
+      });
+    }
+    if (after) {
+      filterFns.push((m: ActionMessage) => {
+        return m.timestamp > after;
+      });
+    }
+    let messages = this.#messages.filter(m => filterFns.every(fn => fn(m)));
+    if (limit) {
+      messages = messages.slice(-limit);
+    }
+    return messages;
   }
 
   setMessages( messages ) {
