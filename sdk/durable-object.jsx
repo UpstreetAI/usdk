@@ -92,15 +92,15 @@ export class DurableObject extends EventTarget {
       );
 
       this.conversationContext.addEventListener('remotemessage', async (e) => {
-        const { message } = e.data;
         if (this.realms?.isConnected()) {
+          const { message } = e.data;
           this.realms.sendChatMessage(message);
 
           await saveMessageToDatabase(this.supabase, this.getGuid(), message);
         }
       });
       this.conversationContext.addEventListener('typingstart', (e) => {
-        if (this.realms) {
+        if (this.realms?.isConnected()) {
           const { agent } = e.data;
           this.realms.sendChatMessage({
             method: 'typing',
@@ -114,7 +114,7 @@ export class DurableObject extends EventTarget {
         }
       });
       this.conversationContext.addEventListener('typingstop', (e) => {
-        if (this.realms) {
+        if (this.realms?.isConnected()) {
           const { agent, error } = e.data;
           this.realms.sendChatMessage({
             method: 'typing',
