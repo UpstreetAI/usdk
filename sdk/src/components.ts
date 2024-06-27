@@ -351,7 +351,23 @@ export class TaskResult {
   static SCHEDULE = TaskResultEnum.Schedule;
   static DONE = TaskResultEnum.Done;
 
-  constructor(type: TaskResultEnum, args: object) {
+  constructor(type: TaskResultEnum, args: object = null) {
+    switch (type) {
+      case TaskResult.SCHEDULE: {
+        const timestamp = (args as any)?.timestamp;
+        if (!(timestamp instanceof Date)) {
+          throw new Error('Invalid timestamp: ' + timestamp);
+        }
+        break;
+      }
+      case TaskResult.DONE: {
+        break;
+      }
+      default: {
+        throw new Error('Invalid task result type: ' + type);
+      }
+    }
+
     this.type = type;
     this.args = args;
   }
