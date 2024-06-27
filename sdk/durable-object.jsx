@@ -774,9 +774,14 @@ export class DurableObject extends EventTarget {
     }
   } */
   async updateTasks() {
+    // console.log('update tasks');
     const taskUpdater = await renderUserTasks(this.agentRenderer);
     const timeout = await taskUpdater.update();
-    return timeout;
+    if (isFinite(timeout)) {
+      // const now = Date.now();
+      // console.log('set new task timeout in ' + (timeout - now) + 'ms');
+      this.state.storage.setAlarm(timeout);
+    }
   }
   async alarm() {
     await this.updateTasks();
