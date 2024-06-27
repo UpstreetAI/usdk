@@ -102,7 +102,7 @@ export interface ActiveAgentObject extends AgentObject {
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
   think: (hint?: string) => Promise<any>;
-  ponder: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
 }
 
 // action events
@@ -280,7 +280,7 @@ export type AppContextValue = {
   ) => Promise<any>;
 
   think: (agent: ActiveAgentObject, hint?: string) => Promise<any>;
-  ponder: (agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) => Promise<any>;
+  generate: (agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) => Promise<any>;
   say: (agent: ActiveAgentObject, text: string) => Promise<any>;
   monologue: (agent: ActiveAgentObject, text: string) => Promise<any>;
 

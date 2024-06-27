@@ -323,8 +323,8 @@ export class ActiveAgentObject extends AgentObject {
   async think(hint?: string): Promise<void> {
     return await this.ctx.think(this, hint);
   }
-  async ponder(hint?: string, schema?: ZodTypeAny): Promise<void> {
-    return await this.ctx.ponder(this, hint, schema);
+  async generate(hint?: string, schema?: ZodTypeAny): Promise<void> {
+    return await this.ctx.generate(this, hint, schema);
   }
 }
 export class TaskObject {

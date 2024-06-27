@@ -1276,7 +1276,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
             }),
           ]);
 
-          const response = await agent.ponder(dedent`
+          const response = await agent.generate(dedent`
           `, {
             // XXX zod schema
           });
