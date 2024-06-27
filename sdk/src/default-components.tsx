@@ -60,12 +60,12 @@ const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
 export const DefaultAgentComponents = () => {
   return (
     <>
+      <DefaultFormatters />
+      <DefaultParsers />
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
       <DefaultTasks />
-      <DefaultFormatters />
-      <DefaultParsers />
       {/* <DefaultSchedulers /> */}
       <DefaultServers />
     </>
