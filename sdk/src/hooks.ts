@@ -5,31 +5,31 @@ import {
   ActiveAgentObject,
   ActionProps,
   ActionMessages,
+  ActionHistoryOpts,
 } from './types';
 import { AppContext } from './context';
 
+export const useAuthToken: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useAuthToken();
+};
 export const useScene: () => SceneObject = () => {
-  // const AppContext = useUpstreetSdkAppContext();
   const appContextValue = useContext(AppContext);
   return appContextValue.useScene();
 };
 export const useAgents: () => Array<AgentObject> = () => {
-  // const AppContext = useUpstreetSdkAppContext();
   const appContextValue = useContext(AppContext);
   return appContextValue.useAgents();
 };
 export const useCurrentAgent: () => ActiveAgentObject = () => {
-  // const AppContext = useUpstreetSdkAppContext();
   const appContextValue = useContext(AppContext);
   return appContextValue.useCurrentAgent();
 };
 export const useActions: () => Array<ActionProps> = () => {
-  // const AppContext = useUpstreetSdkAppContext();
   const appContextValue = useContext(AppContext);
   return appContextValue.useActions();
 };
-export const useActionHistory: (agents: Array<AgentObject> | AgentObject) => ActionMessages = (agents) => {
-  // const AppContext = useUpstreetSdkAppContext();
+export const useActionHistory: (opts?: ActionHistoryOpts) => ActionMessages = (opts) => {
   const appContextValue = useContext(AppContext);
-  return appContextValue.useActionHistory(agents);
+  return appContextValue.useActionHistory(opts);
 };
