@@ -252,21 +252,19 @@ export const ActionsFormatPrompt = ({
   actions: Array<ActionProps>;
   formatters: Array<FormatterProps>;
 }) => {
+  let s = '';
   if (actions.length > 0 && formatters.length > 0) {
     const formatter = formatters[0];
-    return (
-      <Prompt>
-        {dedent`
-          # Actions
-          Here are the allowed actions that characters can take:
-        ` +
-          '\n\n' +
-          actions.map((action) => formatter.formatFn(action)).join('\n\n')}
-      </Prompt>
-    );
-  } else {
-    return null;
+    s = dedent`
+      # Actions
+      Here are the allowed actions that characters can take:
+    ` +
+    '\n\n' +
+    actions.map((action) => formatter.formatFn(action)).join('\n\n');
   }
+  return (
+    <Prompt>{s}</Prompt>
+  );
 };
 export const RecentChatHistoryJsonPrompt = () => {
   // const appContextValue = useContext(AppContext);
