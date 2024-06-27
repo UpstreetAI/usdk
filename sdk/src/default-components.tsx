@@ -526,15 +526,15 @@ export const StatusTask = () => {
     //   />}
     // </>
     <>
-      <Task
+      {/* <Task
         id={symbol}
         handler={async (e) => {
           await agent.think();
           return new TaskResult(TaskResult.SCHEDULE, {
-            timestamp: Date.now() + 2000,
+            timestamp: new Date(Date.now() + 2000),
           });
         }}
-      />
+      /> */}
     </>
   );
 };
