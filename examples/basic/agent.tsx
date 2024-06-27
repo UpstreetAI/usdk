@@ -9,7 +9,7 @@ import {
   DefaultPerceptions,
   DefaultSchedulers,
   DefaultServers,
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 
 //
 

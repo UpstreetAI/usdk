@@ -23,7 +23,7 @@ import {
   DefaultParsers,
   DefaultPerceptions,
   DefaultSchedulers,
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 import { IdGatewayABI } from './abi/IdGatewayABI';
 
 //

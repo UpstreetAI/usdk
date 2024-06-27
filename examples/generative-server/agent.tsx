@@ -9,7 +9,7 @@ import {
   generativeImageFetchHandler,
   generativeJsonFetchHandler,
   generativeFarcasterFrameFetchHandler,
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 
 //
 

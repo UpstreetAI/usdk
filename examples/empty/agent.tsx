@@ -3,9 +3,9 @@ import React from 'react';
 import {
   RawAgent,
 /* IMPORTS REGEX HOOK */
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 
-import type { AgentAppProps } from 'upstreet-sdk/agents'
+import type { AgentAppProps } from 'react-agents'
 
 
 export default function render(props: AgentAppProps) {

@@ -8,7 +8,7 @@ import {
   DefaultAgentComponents,
   StaticServer,
   JsonAction,
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 
 //
 

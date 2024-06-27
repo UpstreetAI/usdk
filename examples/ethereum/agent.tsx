@@ -15,7 +15,7 @@ import {
 
   JsonAction,
   PendingActionEvent,
-} from 'upstreet-sdk/agents';
+} from 'react-agents';
 
 //
 
