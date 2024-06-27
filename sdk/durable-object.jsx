@@ -154,7 +154,9 @@ export class DurableObject extends EventTarget {
       // this.agentRenderer.setEnabled(enabled);
 
       await this.updateTasks();
-    })();
+    })().catch(err => {
+      console.warn(err);
+    });
     this.loadPromise = null;
 
     // const _initialSchedule = async () => {
