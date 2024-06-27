@@ -66,13 +66,13 @@ const retry = async (fn: (() => any) | (() => Promise<any>), numRetries = 5) => 
   for (let i = 0; i < numRetries; i++) {
     try {
       const result = await fn();
-      if (result !== null) {
-        return result;
-      } else {
-        continue;
-      }
+      // if (result !== null) {
+      return result;
+      // } else {
+      //   continue;
+      // }
     } catch (err) {
-      console.warn(err);
+      console.warn('retry error', err);
       continue;
     }
   }
@@ -357,7 +357,7 @@ export class AgentRenderer {
         promptRegistry.set(key, props);
       },
       unregisterPrompt: (key: symbol) => {
-        promptRegistry.delete(key);
+        promptRegistry.set(key, null);
       },
       registerFormatter: (key: symbol, props: FormatterProps) => {
         formatterRegistry.set(key, props);
@@ -406,7 +406,8 @@ export class AgentRenderer {
         pendingActionMessage: PendingActionMessage,
       ) => {
         const { id: userId, name } = agent;
-        const { method, args, timestamp } = pendingActionMessage;
+        const { method, args } = pendingActionMessage;
+        const timestamp = new Date();
         const actionMessage = {
           userId,
           name,
@@ -433,7 +434,7 @@ export class AgentRenderer {
           try {
             const pendingMessage = await (hint
               ? self.generateAgentActionFromInstructions(agent, hint)
-              : self.generateAgentAction(agent, hint)
+              : self.generateAgentAction(agent)
             );
             // console.log('agent renderer think 3');
             await self.handleAgentAction(agent, pendingMessage);
@@ -459,7 +460,7 @@ export class AgentRenderer {
             // console.log('agent renderer think 4');
             return pendingMessage;
           } catch (err) {
-            console.warn('think error', err);
+            console.warn('generate error', err);
           }
         });
         // console.log('agent renderer think 5');
@@ -790,10 +791,10 @@ export class AgentRenderer {
     return currentActiveAgentBound;
   }
 
-  async generateAgentAction(agent: ActiveAgentObject, hint?: string) {
+  async generateAgentAction(agent: ActiveAgentObject) {
     const { promptRegistry } = this;
     const prompts = Array.from(promptRegistry.values())
-      .map((prompt) => prompt.children)
+      .map((prompt) => prompt?.children)
       .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
     const promptString = prompts.join('\n\n');
     // console.log('think 1', promptString);
@@ -814,7 +815,7 @@ export class AgentRenderer {
   ) {
     const { promptRegistry } = this;
     const prompts = Array.from(promptRegistry.values())
-      .map((prompt) => prompt.children)
+      .map((prompt) => prompt?.children)
       .filter((prompt) => typeof prompt === 'string' && prompt.length > 0)
       .concat([instructions]);
     const promptString = prompts.join('\n\n');
@@ -839,23 +840,32 @@ export class AgentRenderer {
       })();
       if (completionMessage !== null) {
         let newMessage: PendingActionMessage = null;
-        try {
+        // try {
           newMessage = await parser.parseFn(completionMessage.content);
-        } catch (err) {
-        }
+        // } catch (err) {}
 
-        if (newMessage) {
+        // if (newMessage) {
           const { method } = newMessage;
           const actionHandler = getActionByName(actionRegistry, method);
           if (actionHandler) {
-            newMessage.timestamp = new Date();
+            if (actionHandler.schema) {
+              try {
+                const schema = z.object({
+                  method: z.string(),
+                  args: actionHandler.schema,
+                });
+                const parsedMessage = schema.parse(newMessage);
+              } catch (err) {
+                console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+              }
+            }
             return newMessage;
           } else {
-            return null;
+            throw new Error('no action handler found for method: ' + method);
           }
-        } else {
-          return null;
-        }
+        // } else {
+        //   return null;
+        // }
       } else {
         return null;
       }
@@ -865,7 +875,6 @@ export class AgentRenderer {
   async generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
     const numRetries = 5;
     return await retry(async () => {
-      // const { promptRegistry } = this;
       const prompts = [
         dedent`
           Respond with the following:
@@ -902,7 +911,6 @@ export class AgentRenderer {
   async generateString(hint: string) {
     const numRetries = 5;
     return await retry(async () => {
-      // const { promptRegistry } = this;
       const prompts = [
         dedent`
           Respond with the following:

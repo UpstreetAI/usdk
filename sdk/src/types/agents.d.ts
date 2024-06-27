@@ -18,7 +18,7 @@ export interface AgentObject extends EventTarget {
   model: string;
   address: string;
   ctx: AppContextValue;
-  getMemory: (query: string, opts?: GetMemoryOpts) => Promise<Array<Memory>>;
+  getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
 }
 
 // messages
@@ -42,7 +42,6 @@ export type ActionMessage = {
 export type PendingActionMessage = {
   method: string;
   args: object;
-  timestamp: Date;
 };
 export type PerceptionMessage = {
   method: string;
@@ -86,18 +85,17 @@ export type SubtleAi = {
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
-export type GetMemoryOpts = {
+export type MemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
 };
-export type AddMemoryOpts = GetMemoryOpts;
 export interface ActiveAgentObject extends AgentObject {
   wallets: any;
   addAction: (action: PendingActionMessage) => Promise<any>;
   addMemory: (
     text: string,
     content?: any,
-    opts?: AddMemoryOpts,
+    opts?: MemoryOpts,
   ) => Promise<void>;
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
@@ -293,12 +291,12 @@ export type AppContextValue = {
     agent: ActiveAgentObject,
     text: string,
     content?: any,
-    opts?: AddMemoryOpts,
+    opts?: MemoryOpts,
   ) => Promise<void>;
   getMemory: (
     agent: AgentObject,
     query: string,
-    opts?: GetMemoryOpts,
+    opts?: MemoryOpts,
   ) => Promise<Array<Memory>>;
 
   embed: (text: string) => Promise<Array<number>>;

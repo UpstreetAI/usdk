@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 import puppeteer from '@cloudflare/puppeteer';
+import type { ZodTypeAny } from 'zod';
 import { zodToTs, printNode } from 'zod-to-ts';
 import type {
   AppContextValue,
@@ -50,6 +51,11 @@ import { parseCodeBlock } from './util/util.mjs';
 const timeAgo = (timestamp: Date) =>
   jsAgo(+timestamp / 1000, { format: 'short' });
 const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
+const printZodNode = (z: any) => {
+  let s = printNode(z);
+  s = s.replace(/    /g, '  ');
+  return s;
+};
 
 // defaults
 
@@ -83,7 +89,7 @@ export const DefaultActions = () => {
   return (
     <Action
       name="say"
-      description={`A character says something. The \`userId\` and \`name\` must match one of the characters.`}
+      description={`A character says something.`}
       schema={
         z.object({
           text: z.string(),
@@ -138,7 +144,7 @@ export const DefaultActions = () => {
         '\n' +
         description +
         '\n' +
-        printNode(zodToTs(schema).node) +
+        printZodNode(zodToTs(schema).node) +
         '\n' +
         dedent`
           e.g.
@@ -347,9 +353,9 @@ export const InstructionsJsonPrompt = ({
       {dedent`
         # Instructions
         Continue the conversation.
-        Method/args must be one of the allowed action formats. If an action method is most appropriate, use that instead of saying something.
-        The next character to act is ${agent.name} [${JSON.stringify(agent.id)}].
-        `}
+        Method/args must be one of the allowed action formats.
+        The next character to act is ${agent.name} (${JSON.stringify(agent.id)}).
+      `}
     </Prompt>
   );
 };
@@ -392,17 +398,23 @@ export const JsonParser = () => {
           error = e;
         }
         if (!error) {
-          if (
-            typeof resultJson.method === 'string' &&
-            typeof resultJson.args === 'object' &&
-            resultJson.args !== null
-          ) {
-            return resultJson as ActionMessage;
-          } else {
-            throw new Error(
-              'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
-            );
+          const schema = makeJsonSchema();
+          try {
+            const parsedResultJson = schema.parse(resultJson);
+          } catch (err) {
+            throw new Error('zod schema parse error: ' + JSON.stringify(resultJson) + '\n' + JSON.stringify(err.issues));
           }
+          // if (
+          //   typeof resultJson.method === 'string' &&
+          //   typeof resultJson.args === 'object' &&
+          //   resultJson.args !== null
+          // ) {
+          return resultJson as ActionMessage;
+          // } else {
+          //   throw new Error(
+          //     'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
+          //   );
+          // }
         } else {
           throw new Error(
             'failed to parse LLM output: ' +
@@ -421,6 +433,14 @@ export const JsonParser = () => {
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
+const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
+  return z.object({
+    // userId: z.string(),
+    // name: z.string(),
+    method: z.string(),
+    args,
+  });
+};
 export const JsonFormatter = () => {
   return (
     <Formatter
@@ -428,17 +448,19 @@ export const JsonFormatter = () => {
         const {
           name,
           description,
-          schema,
+          schema: argsSchema,
           examples,
         } = action;
 
-        const agents = useAgents();
+        const schema = argsSchema && makeJsonSchema(argsSchema);
+
+        // const agents = useAgents();
         const examplesJsonString = (examples ?? []).map((args) => {
-          const randomAgent = shuffle(agents.slice())[0];
+          // const randomAgent = shuffle(agents.slice())[0];
           return JSON.stringify(
             {
-              userId: randomAgent.id,
-              name: randomAgent.name, // helps with dialogue inference
+              // userId: randomAgent.id,
+              // name: randomAgent.name, // helps with dialogue inference
               method: name,
               args,
             }
@@ -454,11 +476,23 @@ export const JsonFormatter = () => {
           ) : ''
         ) +
         (description ? (description + '\n') : '') +
-        (schema ? (printNode(zodToTs(schema).node) + '\n') : '') +
+        (schema ? (
+          dedent`
+            Schema:
+            \`\`\`
+          ` +
+          '\n' +
+          printZodNode(zodToTs(schema).node) +
+          '\n' +
+          dedent`
+            \`\`\`
+          ` +
+          '\n'
+        ) : '') +
         (examplesJsonString
           ? (
             dedent`
-              e.g.
+              Examples:
               \`\`\`
             ` +
             '\n' +
@@ -470,35 +504,6 @@ export const JsonFormatter = () => {
           )
           : ''
         );
-        /* let resultJson = null;
-        let error = null;
-        try {
-          const codeString = parseCodeBlock(content);
-          resultJson = JSON.parse(codeString);
-        } catch (e) {
-          error = e;
-        }
-        if (!error) {
-          if (
-            typeof resultJson.method === 'string' &&
-            typeof resultJson.args === 'object' &&
-            resultJson.args !== null
-          ) {
-            return resultJson as ActionMessage;
-          } else {
-            throw new Error(
-              'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
-            );
-          }
-        } else {
-          throw new Error(
-            'failed to parse LLM output: ' +
-              JSON.stringify({
-                content,
-                error,
-              }),
-          );
-        } */
       }}
     />
   );
