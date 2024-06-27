@@ -61,7 +61,7 @@ export const Agent: React.FC<AgentProps> = (props: AgentProps) => {
 
   appContext.registerAgent(symbol, props);
 
-  return React.createElement(React.Fragment, {}, [
+  return React.createElement(RawAgent, {}, [
     React.createElement(DefaultAgentComponents, { key: 0 }),
     React.createElement(React.Fragment, { key: 1 }, props.children),
   ]);
