@@ -5,11 +5,13 @@ import { z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 import puppeteer from '@cloudflare/puppeteer';
+import { zodToTs, printNode } from 'zod-to-ts';
 import type {
   AppContextValue,
   // AgentProps,
   ActionProps,
   // PromptProps,
+  FormatterProps,
   // ParserProps,
   // PerceptionProps,
   // SchedulerProps,
@@ -28,6 +30,7 @@ import {
   Agent,
   Action,
   Prompt,
+  Formatter,
   Parser,
   Perception,
   Task,
@@ -35,7 +38,7 @@ import {
   // Scheduler,
   Server,
 } from './components';
-import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useActionHistory } from './hooks';
+import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useFormatters, useActionHistory } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
 
@@ -44,8 +47,8 @@ import { parseCodeBlock } from './util/util.mjs';
 
 // utils
 
-const timeAgo = (timestamp: number) =>
-  jsAgo(timestamp / 1000, { format: 'short' });
+const timeAgo = (timestamp: Date) =>
+  jsAgo(+timestamp / 1000, { format: 'short' });
 const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
 
 // defaults
@@ -61,6 +64,7 @@ export const DefaultAgentComponents = () => {
       <DefaultPrompts />
       <DefaultPerceptions />
       <DefaultTasks />
+      <DefaultFormatters />
       <DefaultParsers />
       {/* <DefaultSchedulers /> */}
       <DefaultServers />
@@ -77,7 +81,7 @@ export const DefaultAgentComponents = () => {
 export const DefaultActions = () => {
   const currentAgent = useCurrentAgent();
   return (
-    <JsonAction
+    <Action
       name="say"
       description={`A character says something. The \`userId\` and \`name\` must match one of the characters.`}
       schema={
@@ -101,7 +105,7 @@ export const DefaultActions = () => {
  * Renders a JSON action component for sending ETH to a specified user ID.
  * @returns The JSX element representing the JSON action component.
  */
-export const JsonAction = ({
+/* export const JsonAction = ({
   name,
   description,
   schema,
@@ -130,7 +134,13 @@ export const JsonAction = ({
       description={
         dedent`
           * ${name}
-          ${description}
+        ` +
+        '\n' +
+        description +
+        '\n' +
+        printNode(zodToTs(schema).node) +
+        '\n' +
+        dedent`
           e.g.
           \`\`\`
         ` +
@@ -144,7 +154,7 @@ export const JsonAction = ({
       handler={handler}
     />
   );
-};
+}; */
 
 // prompts
 
@@ -157,15 +167,16 @@ export const DefaultPrompts = () => {
   const agents = useAgents();
   const currentAgent = useCurrentAgent();
   const actions = useActions();
+  const formatters = useFormatters();
   return (
     <>
       <DefaultHeaderPrompt />
       <ScenePrompt scene={scene} />
       <CharactersPrompt agents={agents} />
       <RAGMemoriesPrompt agents={[currentAgent]} />
-      <ActionsJsonPrompt agent={currentAgent} />
+      <ActionsFormatPrompt actions={actions} formatters={formatters} />
       <RecentChatHistoryJsonPrompt />
-      <InstructionsJsonPrompt agent={currentAgent} actions={actions} />
+      <InstructionsJsonPrompt agent={currentAgent} />
     </>
   );
 };
@@ -234,21 +245,28 @@ export const RAGMemoriesPrompt = ({
   //   </Prompt>
   // );
 };
-export const ActionsJsonPrompt = ({ agent }: { agent: AgentObject }) => {
-  // const AppContext = useUpstreetSdkAppContext();
-  const upstreetSdk = useContext(AppContext);
-  const actions = upstreetSdk.useActions();
-
-  return (
-    <Prompt>
-      {dedent`
-        # Actions
-        Here are the allowed actions that characters can take:
-      ` +
-        '\n\n' +
-        actions.map((action) => action.description).join('\n\n')}
-    </Prompt>
-  );
+export const ActionsFormatPrompt = ({
+  actions,
+  formatters,
+}: {
+  actions: Array<ActionProps>;
+  formatters: Array<FormatterProps>;
+}) => {
+  if (actions.length > 0 && formatters.length > 0) {
+    const formatter = formatters[0];
+    return (
+      <Prompt>
+        {dedent`
+          # Actions
+          Here are the allowed actions that characters can take:
+        ` +
+          '\n\n' +
+          actions.map((action) => formatter.formatFn(action)).join('\n\n')}
+      </Prompt>
+    );
+  } else {
+    return null;
+  }
 };
 export const RecentChatHistoryJsonPrompt = () => {
   // const appContextValue = useContext(AppContext);
@@ -257,9 +275,7 @@ export const RecentChatHistoryJsonPrompt = () => {
   // const perAgentHistoryActions = await Promise.all(
   //   agents.map((agent) => agent.getActionHistory()),
   // );
-  const perAgentHistoryActions = useActionHistory();
-  // console.log('got per agent', perAgentHistoryActions);
-  const historyActions = perAgentHistoryActions
+  const historyActions = useActionHistory()
     // .flat()
     .sort((a, b) => +a.timestamp - +b.timestamp);
 
@@ -325,10 +341,8 @@ export const RecentChatHistoryJsonPrompt = () => {
 };
 export const InstructionsJsonPrompt = ({
   agent,
-  actions,
 }: {
   agent: AgentObject;
-  actions: Array<ActionProps>;
 }) => {
   return (
     <Prompt>
@@ -400,6 +414,93 @@ export const JsonParser = () => {
               }),
           );
         }
+      }}
+    />
+  );
+};
+
+// formatters
+export const DefaultFormatters = () => {
+  return <JsonFormatter />;
+};
+export const JsonFormatter = () => {
+  return (
+    <Formatter
+      formatFn={(action: ActionProps) => {
+        const {
+          name,
+          description,
+          schema,
+          examples,
+        } = action;
+
+        const agents = useAgents();
+        const examplesJsonString = (examples ?? []).map((args) => {
+          const randomAgent = shuffle(agents.slice())[0];
+          return JSON.stringify(
+            {
+              userId: randomAgent.id,
+              name: randomAgent.name, // helps with dialogue inference
+              method: name,
+              args,
+            }
+          );
+        }).join('\n');
+
+        return (
+          name ? (
+            dedent`
+              * ${name}
+            ` +
+            '\n'
+          ) : ''
+        ) +
+        (description ? (description + '\n') : '') +
+        (schema ? (printNode(zodToTs(schema).node) + '\n') : '') +
+        (examplesJsonString
+          ? (
+            dedent`
+              e.g.
+              \`\`\`
+            ` +
+            '\n' +
+            examplesJsonString +
+            '\n' +
+            dedent`
+              \`\`\`
+            `
+          )
+          : ''
+        );
+        /* let resultJson = null;
+        let error = null;
+        try {
+          const codeString = parseCodeBlock(content);
+          resultJson = JSON.parse(codeString);
+        } catch (e) {
+          error = e;
+        }
+        if (!error) {
+          if (
+            typeof resultJson.method === 'string' &&
+            typeof resultJson.args === 'object' &&
+            resultJson.args !== null
+          ) {
+            return resultJson as ActionMessage;
+          } else {
+            throw new Error(
+              'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
+            );
+          }
+        } else {
+          throw new Error(
+            'failed to parse LLM output: ' +
+              JSON.stringify({
+                content,
+                error,
+              }),
+          );
+        } */
       }}
     />
   );
@@ -484,8 +585,10 @@ export const StatusTask = () => {
       limit: 1,
     },
   });
+  // console.log('got last actions', lastActions);
+  // XXX use exponential backoff
 
-  const symbol = useMemo(() => Symbol('task'), []);
+  // const symbol = useMemo(() => Symbol('task'), []);
   // const [enabled, setEnabled] = useState(false);
   // const [timestampOfLastRemoteChatMessage, setTimestampOfLastRemoteChatMessage] = useState(0);
 
@@ -1215,7 +1318,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const authToken = useAuthToken();
   const hint = props.hint ?? '';
   return (
-    <JsonAction
+    <Action
       name="webBrowser"
       description={`Browse the web and return some result. Specify the url to navigate to, the data type of result we are looking for, and the action to perform on the page to get the result.${hint ? ` ${hint}` : ''}`}
       schema={

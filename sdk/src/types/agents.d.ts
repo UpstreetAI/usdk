@@ -180,11 +180,15 @@ export type AgentProps = {
 export type ActionProps = {
   name: string;
   description: string;
-  // example: string;
+  schema: ZodTypeAny;
+  examples: Array<object>,
   handler: (e: PendingActionEvent) => void | Promise<void>;
 };
 export type PromptProps = {
   children: ReactNode;
+};
+export type FormatterProps = {
+  formatFn: (m: ActionProps) => string;
 };
 export type ParserProps = {
   parseFn: (s: string) => PendingActionMessage | Promise<PendingActionMessage>;
@@ -240,9 +244,9 @@ export type AppContextValue = {
   Agent: FC<AgentProps>;
   Action: FC<ActionProps>;
   Prompt: FC<PromptProps>;
+  Formatter: FC<FormatterProps>;
   Parser: FC<ParserProps>;
   Perception: FC<PerceptionProps>;
-  // Scheduler: FC<SchedulerProps>;
   Server: FC<ServerProps>;
 
   subtleAi: SubtleAi;
@@ -253,7 +257,8 @@ export type AppContextValue = {
   useAgents: () => Array<AgentObject>;
   useCurrentAgent: () => ActiveAgentObject;
   useActions: () => Array<ActionProps>;
-  useActionHistory: (opts?: ActionHistoryOpts) => ActionMessages;
+  useFormatters: () => Array<FormatterProps>;
+  useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
 
   // useLoad: (p: Promise<any>) => void;
 
@@ -263,12 +268,12 @@ export type AppContextValue = {
   unregisterAction: (key: symbol) => void;
   registerPrompt: (key: symbol, props: PromptProps) => void;
   unregisterPrompt: (key: symbol) => void;
+  registerFormatter: (key: symbol, props: FormatterProps) => void;
+  unregisterFormatter: (key: symbol) => void;
   registerParser: (key: symbol, props: ParserProps) => void;
   unregisterParser: (key: symbol) => void;
   registerPerception: (key: symbol, props: PerceptionProps) => void;
   unregisterPerception: (key: symbol) => void;
-  // registerScheduler: (key: symbol, props: SchedulerProps) => void;
-  // unregisterScheduler: (key: symbol) => void;
   registerServer: (key: symbol, props: ServerProps) => void;
   unregisterServer: (key: symbol) => void;
   registerTask: (key: symbol, props: TaskProps) => void;
@@ -315,7 +320,7 @@ export type MessageFilter = {
   after?: Date,
   limit?: number,
 };
-export type ActionHistoryOpts = {
+export type ActionHistoryQuery = {
   filter?: MessageFilter,
 };
 

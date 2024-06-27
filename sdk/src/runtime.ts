@@ -40,6 +40,7 @@ import type {
   AgentProps,
   ActionProps,
   PromptProps,
+  FormatterProps,
   ParserProps,
   PerceptionProps,
   TaskProps,
@@ -57,7 +58,7 @@ import { QueueManager } from './util/queue-manager.mjs';
 import { makeAnonymousClient } from './util/supabase-client.mjs';
 // import { UserHandler, AgentConsole } from 'sdk/types';
 import { makePromise } from './util/util.mjs';
-import { ActionHistoryOpts } from './types';
+import { ActionHistoryQuery } from './types';
 
 //
 
@@ -229,11 +230,11 @@ const makeEpochUse = (getterFn: () => any) => () => {
 export class AgentRenderer {
   agentRegistry: Map<symbol, AgentProps> = new Map();
   actionRegistry: Map<symbol, ActionProps> = new Map();
+  formatterRegistry: Map<symbol, FormatterProps> = new Map();
   promptRegistry: Map<symbol, PromptProps> = new Map();
   parserRegistry: Map<symbol, ParserProps> = new Map();
   perceptionRegistry: Map<symbol, PerceptionProps> = new Map();
   taskRegistry: Map<symbol, TaskProps> = new Map();
-  // schedulerRegistry: Map<symbol, SchedulerProps> = new Map();
   serverRegistry: Map<symbol, ServerProps> = new Map();
 
   rendered: boolean = false;
@@ -285,10 +286,10 @@ export class AgentRenderer {
       agentRegistry,
       actionRegistry,
       promptRegistry,
+      formatterRegistry,
       parserRegistry,
       perceptionRegistry,
       taskRegistry,
-      // schedulerRegistry,
       serverRegistry,
     } = this;
 
@@ -304,7 +305,6 @@ export class AgentRenderer {
       Prompt,
       Parser,
       Perception,
-      // Scheduler,
       Server,
 
       subtleAi,
@@ -312,6 +312,7 @@ export class AgentRenderer {
       useAuthToken: () => {
         return (this.env as any).AGENT_TOKEN;
       },
+
       useScene: () => {
         return makeEpochUse(() => this.getScene())(); // XXX these need to be dynamically bound
       },
@@ -321,11 +322,16 @@ export class AgentRenderer {
       useCurrentAgent: () => {
         return makeEpochUse(() => this.getCurrentAgent())();
       },
+
       useActions: () => {
         return makeEpochUse(() => Array.from(actionRegistry.values()))();
       },
-      useActionHistory: (opts?: ActionHistoryOpts) => {
-        const filter = opts?.filter;
+      useFormatters: () => {
+        return makeEpochUse(() => Array.from(formatterRegistry.values()))();
+      },
+
+      useActionHistory: (query?: ActionHistoryQuery) => {
+        const filter = query?.filter;
         // console.log('use action history 1');
         const messages = makeEpochUse(() => conversationContext.getMessages(filter))();
         // console.log('use action history 2', messages);
@@ -352,6 +358,12 @@ export class AgentRenderer {
       },
       unregisterPrompt: (key: symbol) => {
         promptRegistry.delete(key);
+      },
+      registerFormatter: (key: symbol, props: FormatterProps) => {
+        formatterRegistry.set(key, props);
+      },
+      unregisterFormatter: (key: symbol) => {
+        formatterRegistry.delete(key);
       },
       registerParser: (key: symbol, props: ParserProps) => {
         parserRegistry.set(key, props);
@@ -433,7 +445,7 @@ export class AgentRenderer {
         // console.log('agent renderer think 5');
       },
 
-      async ponder(agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) {
+      async generate(agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) {
         // console.log('agent renderer think 1');
         await conversationContext.typing(async () => {
           // console.log('agent renderer think 2');
@@ -826,7 +838,7 @@ export class AgentRenderer {
         return message;
       })();
       if (completionMessage !== null) {
-        let newMessage = null;
+        let newMessage: PendingActionMessage = null;
         try {
           newMessage = await parser.parseFn(completionMessage.content);
         } catch (err) {
@@ -836,6 +848,7 @@ export class AgentRenderer {
           const { method } = newMessage;
           const actionHandler = getActionByName(actionRegistry, method);
           if (actionHandler) {
+            newMessage.timestamp = new Date();
             return newMessage;
           } else {
             return null;

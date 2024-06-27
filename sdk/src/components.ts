@@ -11,6 +11,7 @@ import type {
   AgentProps,
   ActionProps,
   PromptProps,
+  FormatterProps,
   ParserProps,
   PerceptionProps,
   TaskProps,
@@ -118,6 +119,22 @@ export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
   appContext.registerPrompt(symbol, props);
 
   return React.createElement(React.Fragment, {}, props.children);
+};
+export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
+  const [symbol, setSymbol] = useState(makeSymbol);
+  // bind to app context
+  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  useEffect(() => {
+    // console.log('Parser component useEffect', props, appContext);
+    return () => {
+      // console.log('Parser component cleanup', props, appContext);
+      appContext.unregisterFormatter(symbol);
+    };
+  }, [appContext]);
+
+  appContext.registerFormatter(symbol, props);
+
+  return null;
 };
 export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);

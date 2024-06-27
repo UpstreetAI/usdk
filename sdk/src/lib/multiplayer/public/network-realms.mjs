@@ -1822,7 +1822,7 @@ export class NetworkRealms extends EventTarget {
     if (headRealm) {
       headRealm.sendChatMessage(message);
     } else {
-      throw new Error('no connected realm to send chat message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(','));
+      throw new Error('no connected realm to send chat message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(',') + '\n' + new Error().stack);
     }
   }
 

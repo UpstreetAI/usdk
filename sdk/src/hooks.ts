@@ -4,8 +4,9 @@ import {
   AgentObject,
   ActiveAgentObject,
   ActionProps,
+  FormatterProps,
   ActionMessages,
-  ActionHistoryOpts,
+  ActionHistoryQuery,
 } from './types';
 import { AppContext } from './context';
 
@@ -29,7 +30,11 @@ export const useActions: () => Array<ActionProps> = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useActions();
 };
-export const useActionHistory: (opts?: ActionHistoryOpts) => ActionMessages = (opts) => {
+export const useFormatters: () => Array<FormatterProps> = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useFormatters();
+};
+export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useActionHistory(opts);
 };
