@@ -1,3 +1,4 @@
+import type { ReactNode, FC } from 'react';
 import type { ZodTypeAny } from 'zod';
 
 // events
@@ -142,6 +143,7 @@ export type TaskObject = {
   id: any;
   name: string;
   description: string;
+  timestamp: Date,
 };
 export type TaskEventData = {
   agent: ActiveAgentObject;
@@ -168,11 +170,11 @@ export type ActionInit = {
 // props
 
 export type AgentAppProps = {
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 export type AgentProps = {
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 export type ActionProps = {
@@ -182,7 +184,7 @@ export type ActionProps = {
   handler: (e: PendingActionEvent) => void | Promise<void>;
 };
 export type PromptProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 export type ParserProps = {
   parseFn: (s: string) => PendingActionMessage | Promise<PendingActionMessage>;
@@ -214,17 +216,17 @@ export type TaskProps = {
 // };
 
 export type ServerProps = {
-  children: React.ReactNode | (() => void);
+  children: ReactNode | (() => void);
 };
 
 export type SdkDefaultComponentArgs = {
-  DefaultAgentComponents: React.FC<void>;
-  DefaultActions: React.FC<void>;
-  DefaultPrompts: React.FC<void>;
-  DefaultParsers: React.FC<void>;
-  DefaultPerceptions: React.FC<void>;
-  // DefaultSchedulers: React.FC<void>;
-  DefaultServers: React.FC<void>;
+  DefaultAgentComponents: FC<void>;
+  DefaultActions: FC<void>;
+  DefaultPrompts: FC<void>;
+  DefaultParsers: FC<void>;
+  DefaultPerceptions: FC<void>;
+  // DefaultSchedulers: FC<void>;
+  DefaultServers: FC<void>;
 };
 
 // contexts
@@ -235,13 +237,13 @@ type Compartment = {
 export type AppContextValue = {
   // UserCompartment: new (...args: any[]) => Compartment;
 
-  Agent: React.FC<AgentProps>;
-  Action: React.FC<ActionProps>;
-  Prompt: React.FC<PromptProps>;
-  Parser: React.FC<ParserProps>;
-  Perception: React.FC<PerceptionProps>;
-  // Scheduler: React.FC<SchedulerProps>;
-  Server: React.FC<ServerProps>;
+  Agent: FC<AgentProps>;
+  Action: FC<ActionProps>;
+  Prompt: FC<PromptProps>;
+  Parser: FC<ParserProps>;
+  Perception: FC<PerceptionProps>;
+  // Scheduler: FC<SchedulerProps>;
+  Server: FC<ServerProps>;
 
   subtleAi: SubtleAi;
 
@@ -319,7 +321,7 @@ export type ActionHistoryOpts = {
 
 // user handler
 
-export type UserHandler = React.FC<void>;
+export type UserHandler = FC<void>;
 
 // hooks
 
