@@ -13,7 +13,7 @@ import {
   useAgents,
   useCurrentAgent,
 
-  JsonAction,
+  Action,
   PendingActionEvent,
 } from 'react-agents';
 
@@ -23,7 +23,7 @@ const SendEthAction = () => {
   const agents = useAgents();
   const currentAgent = useCurrentAgent();
   return (
-    <JsonAction
+    <Action
       name="sendEth"
       description={`Send an amount of ETH to the specified user id.`}
       args={{

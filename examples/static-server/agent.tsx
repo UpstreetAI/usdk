@@ -7,7 +7,6 @@ import {
   Agent,
   DefaultAgentComponents,
   StaticServer,
-  JsonAction,
 } from 'react-agents';
 
 //

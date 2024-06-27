@@ -16,7 +16,7 @@ import {
   useAgents,
   useCurrentAgent,
 
-  JsonAction,
+  Action,
   PendingActionEvent,
 } from 'react-agents';
 
@@ -24,7 +24,7 @@ import {
 
 const PaymentRequestAction = () => {
   return (
-    <JsonAction
+    <Action
       name="paymentRequest"
       description={`Request a payment of a specific amount. Amount is in cents.`}
       args={{

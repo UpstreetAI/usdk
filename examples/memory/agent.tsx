@@ -15,7 +15,6 @@ import {
   // Scene,
   Agent,
   Action,
-  JsonAction,
   Perception,
   AgentAppProps,
   DefaultAgentComponents,
@@ -30,7 +29,7 @@ import {
 
 const AddMemoryAction = () => {
   return (
-    <JsonAction
+    <Action
       name="add_memory"
       description={`Add the given memory string to the embedded database. Always use this whenever the user requests it.`}
       args={{
@@ -57,7 +56,7 @@ const AddMemoryAction = () => {
 };
 const GetMemoryAction = () => {
   return (
-    <JsonAction
+    <Action
       name="get_memory"
       description={`Get a memory that was previously stored in the embedded database, based on the query string. Always use this whenever the user requests it.`}
       args={{

@@ -14,7 +14,6 @@ import {
   // Scene,
   Agent,
   Action,
-  JsonAction,
   Perception,
   AgentAppProps,
   DefaultAgentComponents,
@@ -33,7 +32,7 @@ const CreateFarcasterAccountAction = () => {
   // const currentAgent = useCurrentAgent();
   // const agents = useAgents();
   return (
-    <JsonAction
+    <Action
       name="createFarcasterAccount"
       description={`Create a Farcaster account and print the id.`}
       args={{}}
@@ -106,7 +105,7 @@ const FarcasterActions = () => {
 
 const GetBalanceAction = () => {
   return (
-    <JsonAction
+    <Action
       name="getBalanceAction"
       description={`Get the current blockchain account balance.`}
       args={{}}
