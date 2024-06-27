@@ -240,7 +240,6 @@ const homedir = os.homedir();
 const usdkProfileLocation = path.join(homedir, '.usdk');
 const loginLocation = path.join(usdkProfileLocation, 'login.json');
 const walletLocation = path.join(usdkProfileLocation, 'wallet.json');
-const guidLocation = path.join(usdkProfileLocation, 'guid.json');
 
 const getServerOpts = () => {
   return {
