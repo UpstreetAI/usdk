@@ -1,6 +1,7 @@
-'use client'
-import Image from 'next/image'
-import { resolveRelativeUrl } from '@/lib/utils'
+'use client';
+
+import Image from 'next/image';
+import { resolveRelativeUrl } from '@/lib/utils';
 
 export interface AgentProps extends React.ComponentProps<'div'> {
   agent?: any
@@ -16,6 +17,10 @@ export function AgentProfile({ agent }: AgentProps) {
       <h2 className="text-[28px]">{agent?.name}</h2>
       <h3 className="text-sm mb-6">{agent?.id}</h3>
       <Image src={resolveRelativeUrl(agent?.preview_url)} alt="Profile picture" className="s-300" width={300} height={300} />
+      
+      <div className='bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] px-4 py-2 rounded-lg'>
+        usdk chat {agent?.id}
+      </div>
     </div>
   )
 }
