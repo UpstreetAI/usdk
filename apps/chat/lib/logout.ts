@@ -1,6 +1,12 @@
 // import { redirect } from 'next/navigation'
 
 export function logout() {
-  document.cookie = 'auth-jwt=; Max-Age=0';
-  location.reload();
+  return new Promise<void>((resolve) => {
+    if (typeof document !== 'undefined') {
+      document.cookie = 'auth-jwt=; Max-Age=0';
+      resolve();
+    }
+  }).then(() => {
+    location.replace('/');
+  });
 }
