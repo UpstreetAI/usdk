@@ -1896,11 +1896,20 @@ const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime styl
         },
       ];
       localStorage.setItem('jwt', JSON.stringify(jwt));
-      const proxyRes = await fetchChatCompletion({
-        model: generationModel,
-        messages,
-      });
-      if (proxyRes.ok) {
+      try {
+        const content = await fetchChatCompletion({
+          model: generationModel,
+          messages,
+        });
+        const codeBlock = parseCodeBlock(content);
+        const j = JSON.parse(codeBlock);
+        j.visualDescription = `${style} ${prompt}`;
+        return j;
+      } catch (err) {
+        console.warn('chat completion error', err);
+        continue;
+      }
+      /* if (proxyRes.ok) {
         const j = await proxyRes.json();
         const content = j.choices[0].message.content;
         try {
@@ -1916,7 +1925,7 @@ const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime styl
         const text = await proxyRes.text();
         console.warn('chat completion failed', proxyRes.status, text);
         continue;
-      }
+      } */
     }
   } else {
     throw new Error('not logged in');

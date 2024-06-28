@@ -509,22 +509,14 @@ export class AgentRenderer {
         const { model = currentAgent.model } = opts ?? {};
         const jwt = (env as any).AGENT_TOKEN as string;
         localStorage.setItem('jwt', JSON.stringify(jwt));
-        const res = await fetchChatCompletion({
+        const content = await fetchChatCompletion({
           model,
           messages,
         });
-        if (res.ok) {
-          const result = await res.json();
-          const message = result.choices?.[0]?.message;
-          if (message) {
-            return message as ChatMessage;
-          } else {
-            throw new Error('failed to get message');
-          }
-        } else {
-          const text = await res.text();
-          throw new Error('failed to complete: ' + text);
-        }
+        return {
+          role: 'assistant',
+          content,
+        };
       },
       generateImage: async (prompt: string, opts?: SubtleAiImageOpts) => {
         const {

@@ -31,7 +31,40 @@ const fetchChatCompletionFns = {
       }),
       signal,
     });
-    return res;
+    if (res.ok) {
+      const j = await res.json();
+      const content = j.choices[0].message.content;
+      return content;
+    } else {
+      const text = await res.text();
+      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+    }
+  },
+  anthropic: async ({ model, max_tokens, messages, stream, signal }) => {
+    const res = await aiFetch(`https://${aiProxyHost}/api/claude/messages`, {
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+
+      body: JSON.stringify({
+        model,
+        max_tokens,
+        messages,
+        stream,
+      }),
+      signal,
+    });
+    if (res.ok) {
+      const j = await res.json();
+      const text = j.content[0].text;
+      return text;
+    } else {
+      const text = await res.text();
+      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+    }
   },
   together: async ({ model, messages, stream, signal }) => {
     // const systemMessages = messages.filter(m => m.role === 'system');
@@ -248,7 +281,7 @@ export const fetchChatCompletion = async ({
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
 };
-export const getAnonUser = async () => {
+/* export const getAnonUser = async () => {
   const id = crypto.randomUUID();
   // curl -X POST -H "Content-Type: application/json" -d '{"id": "lol"}' https://metamask.upstreet.ai/anon
   const res = await fetch('https://metamask.upstreet.ai/anon', {
@@ -262,4 +295,4 @@ export const getAnonUser = async () => {
   });
   const jwtString = await res.json();
   return jwtString;
-};
+}; */
