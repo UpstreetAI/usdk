@@ -14,7 +14,7 @@ export function Name({user, userIsCurrentUser}: NameProps) {
   const { supabase } = useSupabase()
 
   return (
-    <div className="flex m-auto mb-4 text-2xl">
+    <div className="flex m-auto mb-2 text-2xl">
       {userIsCurrentUser ? (
         <EditableText
           callback={async name => {

@@ -18,11 +18,11 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
   const { supabase } = useSupabase()
 
   return (
-    <div className="m-auto mb-3 relative">
+    <div className="m-auto mb-3 relative w-32">
       <Image
         alt=""
-        className="border-2 rounded-3xl drop-shadow-xl"
-        src={resolveRelativeUrl( user.preview_url )}
+        className="border-2 rounded-2xl drop-shadow-xl"
+        src={resolveRelativeUrl( user?.preview_url )}
         height={100}
         width={100}
       />
