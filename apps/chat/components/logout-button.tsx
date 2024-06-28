@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react'
 import { logout } from '@/lib/logout'
 import { cn } from '@/lib/utils'
@@ -16,7 +18,7 @@ export function LogoutButton({
   return (
     <Button
       variant="ghost"
-      onClick={() => {logout()}}
+      onClick={logout}
       className={cn(className)}
       {...props}
     >
