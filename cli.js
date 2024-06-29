@@ -912,6 +912,9 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           const localPlayer = new Player(userId, {
             id: userId,
             name,
+            capabilities: [
+              'human',
+            ],
           });
           const _pushInitialPlayer = () => {
             realms.localPlayer.initializePlayer(
