@@ -314,9 +314,13 @@ export type AppContextValue = {
 
 // messages
 
+export type AgentFilter = {
+  idMatches?: string[],
+  capabilityMatches?: string[],
+};
 export type MessageFilter = {
-  agentIds?: string[],
-  human?: boolean,
+  agent?: AgentFilter,
+  query?: string,
   before?: Date,
   after?: Date,
   limit?: number,

@@ -77,21 +77,21 @@ export class ConversationContext extends EventTarget {
   }
 
   getMessages(filter?: MessageFilter) {
-    const agentIds = filter?.agentIds;
-    const human = filter?.human;
+    const agent = filter?.agent;
+    const idMatches = agent?.idMatches;
+    const capabilityMatches = agent?.capabilityMatches;
+    const query = filter?.query;
     const before = filter?.before;
     const after = filter?.after;
     const limit = filter?.limit;
     const filterFns: ((m: ActionMessage) => boolean)[] = [];
-    if (Array.isArray(agentIds)) {
+    if (Array.isArray(idMatches)) {
       filterFns.push((m: ActionMessage) => {
-        return agentIds.includes(m.userId);
+        return idMatches.includes(m.userId);
       });
     }
-    if (typeof human === 'boolean') {
-      filterFns.push((m: ActionMessage) => {
-        return m.human === human;
-      });
+    if (Array.isArray(capabilityMatches)) {
+      // XXX implement this to detect e.g. voice capability
     }
     if (before instanceof Date) {
       filterFns.push((m: ActionMessage) => {
@@ -103,6 +103,7 @@ export class ConversationContext extends EventTarget {
         return m.timestamp > after;
       });
     }
+    // XXX support query
     let messages = this.#messages.filter(m => filterFns.every(fn => fn(m)));
     if (typeof limit === 'number') {
       messages = messages.slice(-limit);
