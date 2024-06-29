@@ -78,27 +78,33 @@ export class ConversationContext extends EventTarget {
 
   getMessages(filter?: MessageFilter) {
     const agentIds = filter?.agentIds;
+    const human = filter?.human;
     const before = filter?.before;
     const after = filter?.after;
     const limit = filter?.limit;
     const filterFns: ((m: ActionMessage) => boolean)[] = [];
-    if (agentIds) {
+    if (Array.isArray(agentIds)) {
       filterFns.push((m: ActionMessage) => {
         return agentIds.includes(m.userId);
       });
     }
-    if (before) {
+    if (typeof human === 'boolean') {
+      filterFns.push((m: ActionMessage) => {
+        return m.human === human;
+      });
+    }
+    if (before instanceof Date) {
       filterFns.push((m: ActionMessage) => {
         return m.timestamp < before;
       });
     }
-    if (after) {
+    if (after instanceof Date) {
       filterFns.push((m: ActionMessage) => {
         return m.timestamp > after;
       });
     }
     let messages = this.#messages.filter(m => filterFns.every(fn => fn(m)));
-    if (limit) {
+    if (typeof limit === 'number') {
       messages = messages.slice(-limit);
     }
     return messages;
