@@ -5,15 +5,6 @@ import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
-// type MultiplayerState = {
-//   getRoom: () => string
-//   getLocalPlayerSpec: () => PlayerSpec
-//   getPlayersMap: () => PlayerSpec
-//   getPlayersCache: () => PlayerSpec
-//   getMesages: () => object[]
-//   setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
-//   sendChatMessage: (text: string) => void
-// };
 interface MultiplayerActionsContextType {
   getRoom: () => string
   localPlayerSpec: PlayerSpec
