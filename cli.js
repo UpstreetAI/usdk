@@ -403,6 +403,9 @@ const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.voicePack !== 'string') {
     spec.voicePack = 'ShiShi voice pack';
   }
+  if (!Array.isArray(spec.capabilities)) {
+    spec.capabilities = [];
+  }
 };
 const compileAgentJson = (agentJson, { guid, walletAddress, dev }) => {
   agentJson.id = guid;
