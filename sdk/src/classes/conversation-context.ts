@@ -103,7 +103,7 @@ export class ConversationContext extends EventTarget {
         return m.timestamp > after;
       });
     }
-    // XXX support query
+    // XXX support query via embedding
     let messages = this.#messages.filter(m => filterFns.every(fn => fn(m)));
     if (typeof limit === 'number') {
       messages = messages.slice(-limit);
