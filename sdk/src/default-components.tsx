@@ -72,7 +72,6 @@ export const DefaultAgentComponents = () => {
       <DefaultPrompts />
       <DefaultPerceptions />
       <DefaultTasks />
-      {/* <DefaultSchedulers /> */}
       <DefaultServers />
     </>
   );
@@ -539,27 +538,6 @@ export const DefaultPerceptions = () => {
     </>
   );
 };
-
-// // scheduler
-
-// /**
-//  * Renders the default scheduler components.
-//  * @returns The JSX elements representing the default scheduler components.
-//  */
-// export const DefaultSchedulers = () => {
-//   return <DefaultScheduler />;
-// };
-// export const DefaultScheduler = () => {
-//   const appContextValue = useContext(AppContext);
-
-//   return (
-//     <>
-//       {appContextValue.isEnabled() && <Scheduler
-//         scheduleFn={() => Date.now() + 2000} // every 2s
-//       />}
-//     </>
-//   );
-// };
 
 // server
 
