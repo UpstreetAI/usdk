@@ -36,6 +36,7 @@ export type ActionMessage = {
   name: string;
   method: string;
   args: object;
+  human: boolean;
   hidden: boolean;
   timestamp: Date;
 };
@@ -315,6 +316,7 @@ export type AppContextValue = {
 
 export type MessageFilter = {
   agentIds?: string[],
+  human?: boolean,
   before?: Date,
   after?: Date,
   limit?: number,
