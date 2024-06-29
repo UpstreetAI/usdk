@@ -201,6 +201,7 @@ export type PerceptionProps = {
 // };
 export enum TaskResultEnum {
   Schedule = 'schedule',
+  Idle = 'idle',
   Done = 'done',
 }
 export type TaskResult = {

@@ -366,6 +366,7 @@ export class TaskResult {
   args: object;
 
   static SCHEDULE = TaskResultEnum.Schedule;
+  static IDLE = TaskResultEnum.Idle;
   static DONE = TaskResultEnum.Done;
 
   constructor(type: TaskResultEnum, args: object = null) {
