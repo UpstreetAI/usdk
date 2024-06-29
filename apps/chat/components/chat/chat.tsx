@@ -108,6 +108,9 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
         id: (user as any).id as string,
         name: (user as any).name as string,
         previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
+        capabilities: [
+          'human',
+        ],
       };
       setMultiplayerConnectionParameters({
         room,

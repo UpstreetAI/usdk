@@ -34,9 +34,10 @@ interface MultiplayerActionsProviderProps {
 }
 
 export type PlayerSpec = {
-  id: string
-  name: string
-  previewUrl: string
+  id: string;
+  name: string;
+  previewUrl: string;
+  capabilities: string[];
 };
 
 export class Player {
@@ -189,6 +190,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         id: '',
         name: '',
         previewUrl: '',
+        capabilities: [],
       });
 
       // helpers
@@ -361,6 +363,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       id: '',
       name: '',
       previewUrl: '',
+      capabilities: [],
     };
     let playersMap: Map<string, Player> = new Map();
     let playersCache: Map<string, Player> = new Map();
