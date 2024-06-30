@@ -1,0 +1,8 @@
+{
+  "label": "Primitive Components",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "At the most basic level, `react-agents` lets you manage the prompts for your agent. More generally, `react-agents` breaks down the problem of agent development into four primitive components:"
+  }
+}

@@ -1,20 +1,11 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
+slug: /sdk/getting-started
+description: "Create and deploy your first agent!"
+sidebar_label: Getting Started
 ---
 
-# Upstreet SDK
-
-## Intro
-
-Upstreet SDK ( usdk ) is the first react-based SDK for building and deploying headless AI agents, locally and in the cloud.
-
-Agents are intelligent entities implemented as a React renderer, allowing them to perceive events and perform actions. React components allow for easy composition, customization, and sharing of every part of the stack, while retaining the full flexibility of Typescript to dig down to a lower level.
-
-## Getting Started
-
-Lets get started and install the SDK with your favorite package manager.
-
-## Quick Start
+# Quick Start
 
 ### What you'll need
 

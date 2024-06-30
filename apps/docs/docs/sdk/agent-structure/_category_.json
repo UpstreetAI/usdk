@@ -1,0 +1,8 @@
+{
+  "label": "Agent Blueprints",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Lets look into how the agents are coded."
+  }
+}
