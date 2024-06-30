@@ -63,6 +63,7 @@ import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.m
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
+import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -3040,7 +3041,7 @@ const leave = async (args) => {
     process.exit(1);
   }
 };
-const enableDisable = (enabled) => async (args) => {
+/* const enableDisable = (enabled) => async (args) => {
   const guid = args._[0] ?? '';
   const local = !!args.local;
   const _agentsHost = local ? localAgentsHost : agentsHost;
@@ -3072,7 +3073,160 @@ const enableDisable = (enabled) => async (args) => {
   }
 };
 const enable = enableDisable(true);
-const disable = enableDisable(false);
+const disable = enableDisable(false); */
+const voice = async (args) => {
+  const subcommand = args._[0] ?? '';
+  const subcommandArgs = args._[1] ?? [];
+
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    const userId = await getUserIdForJwt(jwt);
+
+    const voiceTrainer = new VoiceTrainer();
+    switch (subcommand) {
+      case 'ls': {
+        // XXX move to assets
+        const voices =  await voiceTrainer.getVoices({
+          jwt,
+        });
+        console.log(JSON.stringify(voices, null, 2));
+        break;
+      }
+      case 'get': {
+        // XXX move to assets
+        const voiceName = subcommandArgs[0] ?? '';
+        if (voiceName) {
+          const voice = await voiceTrainer.getVoice(voiceName, {
+            jwt,
+          });
+          console.log(JSON.stringify(voice, null, 2));
+        } else {
+          console.warn('invalid arguments');
+          process.exit(1);
+        }
+        break;
+      }
+      case 'sample': {
+        // XXX move to assets
+        const voiceName = subcommandArgs[0] ?? '';
+        const voiceSample = subcommandArgs[1] ?? '';
+        const filePath = subcommandArgs[2] ?? '';
+        if (voiceName && voiceSample && filePath) {
+          const ab = await voiceTrainer.getVoiceSample(voiceName, voiceSample, {
+            jwt,
+          });
+          await fs.promises.writeFile(filePath, Buffer.from(ab));
+        } else {
+          console.warn('invalid arguments');
+          process.exit(1);
+        }
+        break;
+      }
+      case 'add': {
+        const voiceName = subcommandArgs[0] ?? '';
+        const voiceFilePaths = subcommandArgs.slice(1);
+        if (voiceName && voiceFilePaths.length > 0) {
+          const voiceFiles = await Promise.all(voiceFilePaths.map(async (p, i) => {
+            const data = await fs.promises.readFile(p);
+            const blob = new Blob([data], { type: 'audio/mp3' });
+            blob.name = `${voiceName}-${i}-${path.basename(p)}`;
+            return blob;
+          }));
+
+          // XXX move this to the voices api
+          const id = crypto.randomUUID();
+          const [
+            { voice_id },
+            voiceUrls,
+          ] = await Promise.all([
+            voiceTrainer.addVoice(voiceName, voiceFiles, {
+              jwt,
+            }),
+            Promise.all(voiceFiles.map(async (blob) => {
+              const keyPath = ['assets', id, blob.name].join('/');
+              const res = await fetch(`${r2EndpointUrl}/${keyPath}`, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${jwt}`,
+                },
+                body: blob,
+              });
+              if (res.ok) {
+                const j = await res.json();
+                return j;
+              } else {
+                const text = await res.text();
+                throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+              }
+            })),
+          ]);
+          const newVoiceEndpoint = `elevenlabs:${voiceName}:${voice_id}`;
+          const voice = {
+            name: voiceName,
+            voiceEndpoint: newVoiceEndpoint,
+            voiceUrls,
+          };
+
+          //
+
+          const keyPath = ['assets', id, `${id}.voice`].join('/');
+          const s = JSON.stringify(voice, null, 2);
+          const res = await fetch(`${r2EndpointUrl}/${keyPath}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${jwt}`,
+            },
+            body: s,
+          });
+          if (res.ok) {
+            const asset = {
+              id,
+              user_id: userId,
+              type: 'voice',
+              name: voiceName,
+              description: 'Created with agents sdk',
+              start_url,
+              preview_url: '/images/voice-inv.svg',
+            };
+            const supabase = makeSupabase(jwt);
+            const { error } = await supabase.from('assets').upsert(asset);
+            if (!error) {
+               console.log(JSON.stringify(asset, null, 2));
+            } else {
+              console.warn('could not upsert asset:', error);
+              process.exit(1);
+            }
+          } else {
+            const text = await res.text();
+            console.warn('could not upload voice:', text);
+            process.exit(1);
+          }
+        } else {
+          console.warn('invalid arguments');
+          process.exit(1);
+        }
+        break;
+      }
+      case 'remove': {
+        // XXX remove the asset
+        const voiceName = subcommandArgs[0] ?? '';
+        if (voiceName) {
+          await voiceTrainer.removeVoice(voiceName, {
+            jwt,
+          });
+        } else {
+          console.warn('invalid arguments');
+          process.exit(1);
+        }
+        break;
+      }
+      default: {
+        console.warn(`unknown subcommand: ${subcommand}`);
+        process.exit(1);
+      }
+    }
+  }
+};
 
 const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
 const handleError = async (fn) => {
@@ -3439,7 +3593,7 @@ const main = async () => {
         await leave(args);
       });
     });
-  program
+  /* program
     .command('enable')
     .description(`Enable an agent for autonomous operation`)
     .argument(`<guid>`, `Guid of the agent`)
@@ -3473,6 +3627,36 @@ const main = async () => {
           ...opts,
         };
         await disable(args);
+      });
+    }); */
+  const voiceSubCommands = [
+    'ls',
+    'get',
+    'sample',
+    'add',
+    'remove',
+  ];
+  program
+    .command('voice')
+    .description(
+      'Manage agent voices',
+    )
+    .argument(
+      `[subcommand]`,
+      `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
+    )
+    .argument(
+      `[args...]`,
+      `Arguments to pass to the subcommand`,
+    )
+    .action(async (subcommand = '', args = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        args = {
+          _: [subcommand, args],
+          ...opts,
+        };
+        await voice(args);
       });
     });
   // program
