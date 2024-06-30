@@ -85,7 +85,7 @@ const config: Config = {
           items: [
             {
               label: 'Upstreet SDK',
-              to: '/docs/sdk',
+              to: '/docs/category/usdk',
             },
           ],
         },
