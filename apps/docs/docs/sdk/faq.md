@@ -7,7 +7,7 @@ sidebar_label: FAQs
 
 # FAQs
 
-:::tip
+:::note
 
 If you’re looking to contribute or have feedback about our product, join us on [Discord](https://discord.gg/r2U2gkNq9j).
 

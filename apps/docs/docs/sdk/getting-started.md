@@ -11,6 +11,12 @@ sidebar_label: Getting Started
 - [Node.js](https://nodejs.org/en/download/) version 21 or above:
   - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
 
+:::tip
+
+Intall [NVM (node version manager)](https://github.com/nvm-sh/nvm) for quick install and use of different node versions via the command line.
+
+:::
+
 ### Install
 Lets start by installing the sdk globally:
 ```
