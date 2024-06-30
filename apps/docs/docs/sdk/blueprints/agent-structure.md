@@ -2,7 +2,7 @@
 sidebar_position: 3
 slug: /sdk/agent-structure
 description: "Lets look into how the agents are coded."
-sidebar_label: Main Structure
+sidebar_label: Agent Structure
 ---
 
 # Main Structure

@@ -1,0 +1,8 @@
+{
+  "label": "Agent Interfaces",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "For our agents to be useful, we need to be able to interface with them. Agents are implemented as CloudFlare Workers, meaning they are independent JavaScript isolates. They run locally via wrangler dev, but you can deploy them to your own servers or CloudFlare. Once deployed, there are several options available out of the box to connect to your agent."
+  }
+}
