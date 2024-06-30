@@ -86,7 +86,10 @@ const BASE_DIRNAME = (() => {
   }
 })();
 const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
+const multiplayerDirectory = path.join(BASE_DIRNAME, 'multiplayer');
 const jestBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'jest');
+
+const multiplayerPort = 2222;
 
 const wranglerTomlPath = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
@@ -521,6 +524,21 @@ const startWebcamServer = async () => {
       }
     });
   });
+};
+const startMultiplayerServer = async () => {
+  // spawn the wrangler child process
+  const cp = child_process.spawn(
+    wranglerBin,
+    ['dev', '--ip', '0.0.0.0', '--port', multiplayerPort],
+    {
+      stdio: 'pipe',
+      // stdio: 'inherit',
+      cwd: multiplayerDirectory,
+    },
+  );
+  bindProcess(cp);
+  await waitForProcessIo(cp, /ready/i);
+  return cp;
 };
 const getAssetJson = async (supabase, guid) => {
   const assetResult = await supabase
