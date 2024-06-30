@@ -6,8 +6,6 @@ sidebar_label: Intro & Quick Start
 
 # Upstreet SDK
 
-## Intro
-
 Upstreet SDK ( usdk ) is the first react-based SDK for building and deploying headless AI agents, locally and in the cloud.
 
 Agents are intelligent entities implemented as a React renderer, allowing them to perceive events and perform actions. React components allow for easy composition, customization, and sharing of every part of the stack, while retaining the full flexibility of Typescript to dig down to a lower level.
