@@ -64,12 +64,7 @@ const config: Config = {
         src: 'img/upstreet_logo_dark.svg',
       },
       items: [
-        {to: '/docs/sdk', label: 'SDK', position: 'left'},
-        {
-          href: 'https://chat.upstreet.ai',
-          label: 'Chat',
-          position: 'right',
-        },
+        {to: '/docs/category/usdk', label: 'USDK', position: 'left'},
         {
           href: 'https://www.npmjs.com/package/usdk',
           label: 'USDK',
@@ -77,7 +72,7 @@ const config: Config = {
         },
         {
           href: 'https://upstreet.ai',
-          label: 'Website',
+          label: 'UPSTREET',
           position: 'right',
         },
       ],
@@ -90,7 +85,7 @@ const config: Config = {
           items: [
             {
               label: 'Upstreet SDK',
-              to: '/docs/sdk',
+              to: '/docs/category/usdk',
             },
           ],
         },
