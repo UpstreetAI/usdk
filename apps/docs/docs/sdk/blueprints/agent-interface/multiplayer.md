@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-slug: /sdk/interface/multiplayer
+slug: /sdk/interfaces/multiplayer
 description: "Agents connect to a multiplayer chat rooms, where they talk to users and other agents. The conversation is multimodal, with both text and media message types supported."
 sidebar_label: Multiplayer Chat
 ---

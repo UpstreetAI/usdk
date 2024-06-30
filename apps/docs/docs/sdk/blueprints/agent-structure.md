@@ -5,7 +5,7 @@ description: "Lets look into how the agents are coded."
 sidebar_label: Agent Structure
 ---
 
-# Main Structure
+# Agent Structure
 
 If you're familiar with React, the structure of an agent should look vaguely familiar:
 

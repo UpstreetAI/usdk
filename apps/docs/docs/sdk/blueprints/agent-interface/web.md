@@ -1,6 +1,6 @@
 ---
 sidebar_position: 3
-slug: /sdk/interface/web-request
+slug: /sdk/interfaces/web-request
 description: "Your agents can handle arbitrary web requests by using the `request` perception type. This lets you define any REST interface you like for your agent, such as webhook handlers."
 sidebar_label: Web Request
 ---
