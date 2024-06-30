@@ -1,11 +1,10 @@
 ---
 sidebar_position: 2
 slug: /sdk/getting-started
-description: "Create and deploy your first agent!"
 sidebar_label: Getting Started
 ---
 
-# Quick Start
+# Getting Started
 
 ### What you'll need
 
