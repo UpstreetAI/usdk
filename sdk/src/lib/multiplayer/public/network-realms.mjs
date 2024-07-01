@@ -702,22 +702,22 @@ class VirtualPlayersArray extends EventTarget {
     _linkData();
 
     const _linkAudio = () => {
-      const audiostreamstart = e => {
-        this.dispatchEvent(new MessageEvent('audiostreamstart', {
+      const audio = e => {
+        this.dispatchEvent(new MessageEvent('audio', {
           data: e.data,
         }));
       };
-      networkedAudioClient.addEventListener('audiostreamstart', audiostreamstart);
-      const audiostreamend = e => {
-        this.dispatchEvent(new MessageEvent('audiostreamend', {
+      networkedAudioClient.addEventListener('audio', audio);
+      const audioend = e => {
+        this.dispatchEvent(new MessageEvent('audioend', {
           data: e.data,
         }));
       };
-      networkedAudioClient.addEventListener('audiostreamend', audiostreamend);
+      networkedAudioClient.addEventListener('audioend', audioend);
 
       this.cleanupFns.set(networkedAudioClient, () => {
-        networkedAudioClient.removeEventListener('audiostreamstart', audiostreamstart);
-        networkedAudioClient.removeEventListener('audiostreamend', audiostreamend);
+        networkedAudioClient.removeEventListener('audio', audio);
+        networkedAudioClient.removeEventListener('audioend', audioend);
       });
     };
     _linkAudio();
