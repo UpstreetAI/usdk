@@ -6,17 +6,17 @@ import {handlesMethod} from './networked-audio-client-utils.mjs';
 export class NetworkedAudioClient extends EventTarget {
   constructor({
     playerId = makeId(),
-    audioManager,
+    // audioManager,
   }) {
     super();
 
     this.playerId = playerId;
-    this.audioManager = audioManager;
+    // this.audioManager = audioManager;
 
     this.ws = null;
 
     this.audioSourceCleanups = new Map(); // playerId:streamId -> function
-    this.outputAudioStreams = new Map(); // playerId:streamId -> stream
+    // this.outputAudioStreams = new Map(); // playerId:streamId -> stream
   }
 
   addAudioSource(audioSource) {
@@ -63,7 +63,7 @@ export class NetworkedAudioClient extends EventTarget {
   }
 
   removeAudioSource(microphoneSource) {
-    console.log('remove audio source');
+    // console.log('remove audio source');
     this.audioSourceCleanups.get(microphoneSource.id)();
     this.audioSourceCleanups.delete(microphoneSource.id);
   }
