@@ -1,4 +1,6 @@
 import {DataClient, NetworkedDataClient, DCMap, DCArray} from './data-client.mjs';
+import {NetworkedCrdtClient} from './crdt-client.mjs';
+import {NetworkedLockClient} from './lock-client.mjs';
 import {NetworkedIrcClient} from './irc-client.mjs';
 // import {createOpusMicrophoneSource, createOpusReadableStreamSource} from './audio/audio-client.mjs';
 import {NetworkedAudioClient} from './audio/networked-audio-client.mjs';
@@ -1328,6 +1330,8 @@ export class NetworkRealm extends EventTarget {
         realm: this,
       },
     });
+    this.networkedCrdtClient = new NetworkedCrdtClient();
+    this.networkedLockClient = new NetworkedLockClient();
     this.networkedIrcClient = new NetworkedIrcClient(this.parent.playerId);
     this.networkedAudioClient = new NetworkedAudioClient({
       playerId: this.parent.playerId,
@@ -1363,6 +1367,12 @@ export class NetworkRealm extends EventTarget {
     await Promise.all([
       this.networkedDataClient.connect(ws1).then(() => {
         // console.log('networkedDataClient connected');
+      }),
+      this.networkedCrdtClient.connect(ws1).then(() => {
+        // console.log('networkedIrcClient connected');
+      }),
+      this.networkedLockClient.connect(ws1).then(() => {
+        // console.log('networkedIrcClient connected');
       }),
       this.networkedIrcClient.connect(ws1).then(() => {
         // console.log('networkedIrcClient connected');
