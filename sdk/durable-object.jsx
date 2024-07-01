@@ -7,7 +7,7 @@ import { ConversationContext } from './src/classes/conversation-context';
 import { Player } from './src/classes/player';
 // import { AgentConsole } from './src/classes/agent-console.mjs';
 import { AgentRenderer } from './src/runtime.ts';
-import nudgeHandler from './src/routes/nudge.ts';
+// import nudgeHandler from './src/routes/nudge.ts';
 import serverHandler from './src/routes/server.ts';
 // import renderUserAlarm from './src/renderers/alarm.ts';
 import renderUserTasks from './src/renderers/task.ts';
@@ -134,7 +134,7 @@ export class DurableObject extends EventTarget {
     _bindConversationContext();
 
     this.incomingMessageQueueManager = new QueueManager();
-    this.nudgeQueueManager = new QueueManager();
+    // this.nudgeQueueManager = new QueueManager();
 
     const mnemonic = env.WALLET_MNEMONIC;
     const wallets = getConnectedWalletsFromMnemonic(mnemonic);
@@ -391,7 +391,7 @@ export class DurableObject extends EventTarget {
     return agentJson;
   }
 
-  // nudge the agent to think
+  /* // nudge the agent to think
   async nudge() {
     return await this.nudgeQueueManager.waitForTurn(async () => {
       try {
@@ -430,7 +430,7 @@ export class DurableObject extends EventTarget {
         });
       }
     });
-  }
+  } */
   async handleUserAgentServerRequest(request) {
     const serverResponse = await serverHandler(request, this.agentRenderer);
     const arrayBuffer = await serverResponse.arrayBuffer();
@@ -519,10 +519,10 @@ export class DurableObject extends EventTarget {
                   await this.leave();
                   break;
                 }
-                case 'nudge': {
-                  await this.nudge();
-                  break;
-                }
+                // case 'nudge': {
+                //   await this.nudge();
+                //   break;
+                // }
               }
             });
 
@@ -675,9 +675,9 @@ export class DurableObject extends EventTarget {
             });
           }
         };
-        const handleNudge = async () => {
-          await this.nudge();
-        };
+        // const handleNudge = async () => {
+        //   await this.nudge();
+        // };
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
@@ -727,8 +727,8 @@ export class DurableObject extends EventTarget {
             return await handleEvents();
           case 'status':
             return await handleStatus();
-          case 'nudge':
-            return await handleNudge();
+          // case 'nudge':
+          //   return await handleNudge();
           case 'join':
             return await handleJoin();
           case 'leave':
