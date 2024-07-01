@@ -185,13 +185,14 @@ export class DurableObject extends EventTarget {
   }
 
   // join a multiplayer room
-  async join(room) {
-    console.log('connect to url', multiplayerEndpointUrl);
-
+  async join({
+    room,
+    endpointUrl = multiplayerEndpointUrl,
+  }) {
     const guid = this.getGuid();
 
     const realms = new NetworkRealms({
-      endpointUrl: multiplayerEndpointUrl,
+      endpointUrl,
       playerId: guid,
       audioManager: null,
     });
@@ -512,7 +513,10 @@ export class DurableObject extends EventTarget {
               const { method, args } = j;
               switch (method) {
                 case 'join': {
-                  await this.join(args.room);
+                  await this.join({
+                    room: args.room,
+                    endpointUrl: args.endpointUrl,
+                  });
                   break;
                 }
                 case 'leave': {
@@ -681,8 +685,28 @@ export class DurableObject extends EventTarget {
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
-          const { room } = body ?? {};
-          if (typeof room !== 'string') {
+          const { room, endpointUrl } = body ?? {};
+          if (typeof room === 'string') {
+            await this.join({
+              room,
+              endpointUrl,
+            });
+
+            /* const agentJson = this.getAgentJson();
+            const joinMessage = {
+              userId: guid,
+              method: 'join',
+              name: agentJson.name,
+              args: {
+                playerId: guid,
+              },
+            };
+            await this.conversationContext.addLocalAndRemoteMessage(joinMessage); */
+
+            return new Response(JSON.stringify({ ok: true }), {
+              headers,
+            });
+          } else {
             return new Response(JSON.stringify({
               error: 'invalid request',
             }), {
@@ -690,22 +714,6 @@ export class DurableObject extends EventTarget {
               headers,
             });
           }
-          await this.join(room);
-
-          /* const agentJson = this.getAgentJson();
-          const joinMessage = {
-            userId: guid,
-            method: 'join',
-            name: agentJson.name,
-            args: {
-              playerId: guid,
-            },
-          };
-          await this.conversationContext.addLocalAndRemoteMessage(joinMessage); */
-
-          return new Response(JSON.stringify({ ok: true }), {
-            headers,
-          });
         };
         const handleLeave = async () => {
           await this.leave();
