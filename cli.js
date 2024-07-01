@@ -1454,19 +1454,29 @@ const chat = async (args) => {
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
+    // start the dev agents, if applicable
+    if (dev) {
+      const devServerPromises = guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+        const cp = await startDevServer(guidOrDevPathIndex);
+        if (debug) {
+          cp.stdout.pipe(process.stdout);
+          cp.stderr.pipe(process.stderr);
+        }
+        return cp;
+      });
+      await devServerPromises;
+    }
+
     // wait for agents to join the multiplayer room
     const wsPromises = Promise.all(
       guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
         return await join({
           _: [guidOrDevPathIndex, room],
           dev,
-          debug,
+          // debug,
         });
       }),
     );
-    // joinPromises.then(() => {
-    //   console.log('joinPromises done');
-    // });
     const webSockets = await wsPromises;
 
     // connect to the chat
@@ -2941,32 +2951,9 @@ const join = async (args) => {
       : '');
   const room = args._[1] ?? makeRoomName();
   const dev = !!args.dev;
-  const debug = !!args.debug;
+  // const debug = !!args.debug;
 
   const _joinAgent = async () => {
-    // start the dev agent, if applicable
-    if (dev) {
-      // console.log('starting dev server...');
-      const cp = await startDevServer({
-        agentDirectory: guidOrDevPathIndex.agentDirectory,
-        portIndex: guidOrDevPathIndex.portIndex,
-      });
-      if (debug) {
-        cp.stdout.pipe(process.stdout);
-        cp.stderr.pipe(process.stderr);
-      }
-      // console.log('dev server started');
-
-      // {
-      //   // test the server
-      //   const proxyRes = await fetch(`${url}/dist/${agentJsonDstFilename}`);
-      //   const text = await proxyRes.text();
-      //   console.log(`test agent dev server ${agentJsonDstFilename}`, {
-      //     text,
-      //   });
-      // }
-    }
-
     // cause the agent to join the room
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
