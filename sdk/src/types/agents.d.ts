@@ -311,6 +311,10 @@ export type AppContextValue = {
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
+export type ConfigurationContextValue = {
+  get: (key: string) => any;
+  set: (key: string, value: any) => void;
+};
 
 // messages
 
