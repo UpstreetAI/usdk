@@ -58,6 +58,7 @@ import {
   multiplayerEndpointUrl,
   r2EndpointUrl,
   chatEndpointUrl,
+  workersHost,
 } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
@@ -166,7 +167,7 @@ const getAgentHost = (guidOrPortIndex, { dev }) => {
   const agentHost = dev
     ? `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
     // : `https://${getAgentName(guidOrPortIndex)}.upstreet.ai`;
-    : `https://${getAgentName(guidOrPortIndex)}.isekaichat.workers.dev`;
+    : `https://${getAgentName(guidOrPortIndex)}.${workersHost}`;
   return agentHost;
 };
 /* const pause = () =>
