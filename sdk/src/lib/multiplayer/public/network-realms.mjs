@@ -1331,7 +1331,7 @@ export class NetworkRealm extends EventTarget {
     this.networkedIrcClient = new NetworkedIrcClient(this.parent.playerId);
     this.networkedAudioClient = new NetworkedAudioClient({
       playerId: this.parent.playerId,
-      audioManager: this.parent.audioManager,
+      // audioManager: this.parent.audioManager,
     });
 
     // this.microphoneSource = null;
