@@ -1,4 +1,4 @@
-import {MULTIPLAYER_PORT} from './constants.mjs';
+// import {MULTIPLAYER_PORT} from './constants.mjs';
 import {zbencode, zbdecode} from './encoding.mjs';
 import {UPDATE_METHODS} from './update-types.mjs';
 
@@ -113,9 +113,22 @@ function serializeMessage(m) {
         ],
       });
     }
-    case 'sync': {
+    case 'syn': {
+      const {synId} = parsedMessage;
       return zbencode({
-        method: UPDATE_METHODS.SYNC,
+        method: UPDATE_METHODS.SYN,
+        args: [
+          synId,
+        ],
+      });
+    }
+    case 'synAck': {
+      const {synId} = parsedMessage;
+      return zbencode({
+        method: UPDATE_METHODS.SYN_ACK,
+        args: [
+          synId,
+        ],
       });
     }
     case 'set': {
@@ -153,6 +166,14 @@ function serializeMessage(m) {
         ],
       });
     }
+    case 'removeArray': {
+      return zbencode({
+        method: UPDATE_METHODS.REMOVE_ARRAY,
+        args: [
+          arrayId,
+        ],
+      });
+    }
     case 'rollback': {
       const {arrayId, arrayIndexId, key, oldEpoch, oldVal} = m.data;
       return zbencode({
@@ -163,6 +184,28 @@ function serializeMessage(m) {
           key,
           oldEpoch,
           oldVal,
+        ],
+      });
+    }
+    case 'deadhand': {
+      // console.log('serialize dead hand');
+      const {keys, deadHand} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.DEAD_HAND,
+        args: [
+          keys,
+          deadHand,
+        ],
+      });
+    }
+    case 'livehand': {
+      // console.log('serialize live hand');
+      const {keys, liveHand} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LIVE_HAND,
+        args: [
+          keys,
+          liveHand,
         ],
       });
     }
@@ -190,6 +233,51 @@ function serializeMessage(m) {
         method: UPDATE_METHODS.LEAVE,
         args: [
           playerId,
+        ],
+      });
+    }
+    case 'register': {
+      const {playerId} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.REGISTER,
+        args: [
+          playerId,
+        ],
+      });
+    }
+    case 'crdtUpdate': {
+      const {update} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.CRDT_UPDATE,
+        args: [
+          update,
+        ],
+      });
+    }
+    case 'lockRequest': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_REQUEST,
+        args: [
+          lockName,
+        ],
+      });
+    }
+    case 'lockResponse': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_RESPONSE,
+        args: [
+          lockName,
+        ],
+      });
+    }
+    case 'lockRelease': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_RELEASE,
+        args: [
+          lockName,
         ],
       });
     }
