@@ -1,6 +1,6 @@
 /* this module is responsible for mapping a remote TTS endpoint to the character. */
 
-import { createMp3DecodeTransformStream } from '../../../multiplayer/public/audio/audio-client.mjs';
+import { createMp3DecodeTransformStream } from '../multiplayer/public/audio/audio-client.mjs';
 // import Rvc from '../rvc.js';
 import { aiProxyHost } from '../../endpoints.js';
 import { abortableRead, makePromise } from '../../util.js';
