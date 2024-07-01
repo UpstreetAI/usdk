@@ -37,12 +37,14 @@ export class DurableObject extends EventTarget {
     this.env = env;
     this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
     this.realms = null;
+    const agentJson = this.getAgentJson();
     this.conversationContext = new ConversationContext({
       scene: {
         description: 'A virtual world of embodied virtual characters.',
       },
-      currentAgent: this.getAgentJson(),
+      currentAgent: agentJson,
     });
+
     const _bindConversationContext = () => {
       // handle conversation remote message re-render
       const onConversationContextLocalPreMessage = async (e) => {
