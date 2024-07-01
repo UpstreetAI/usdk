@@ -38,3 +38,11 @@ export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (
   const appContextValue = useContext(AppContext);
   return appContextValue.useActionHistory(opts);
 };
+export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useTts(opts);
+};
+export const useChat: (opts?: ChatArgs) => Chat = (opts) => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useChat(opts);
+};
