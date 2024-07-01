@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button'
 import { IconSidebar } from '@/components/ui/icons'
 
 export function SidebarToggle() {
-  const { toggleSidebar } = useSidebar()
+  const { toggleLeftSidebar } = useSidebar()
 
   return (
     <Button
       variant="ghost"
       className="size-9 p-0 lg:flex"
       onClick={() => {
-        toggleSidebar()
+        toggleLeftSidebar()
       }}
     >
       <IconSidebar className="size-6" />

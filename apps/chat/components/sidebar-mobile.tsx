@@ -13,7 +13,7 @@ interface SidebarMobileProps {
   children: React.ReactNode
 }
 
-export function SidebarMobile({ children }: SidebarMobileProps) {
+export function SidebarMobileLeft({ children }: SidebarMobileProps) {
   const { user } = useSupabase();
 
   return (
@@ -26,6 +26,31 @@ export function SidebarMobile({ children }: SidebarMobileProps) {
             > 
               <IconUsers />
               <span className="sr-only">Show Members</span>
+            </Button>}
+      </SheetTrigger>
+      <SheetContent
+        side="left"
+        className="inset-y-0 flex h-auto w-[300px] flex-col p-0"
+      >
+        <Sidebar className="flex">{children}</Sidebar>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+export function SidebarMobileRight({ children }: SidebarMobileProps) {
+  const { user } = useSupabase();
+
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        {user && <Button
+              variant="outline"
+              size="icon"
+              className={`absolute right-0 md:right-4 top-[14px] size-8 rounded-full p-0`}
+            > 
+              <IconUsers />
+              <span className="sr-only">Show Scene</span>
             </Button>}
       </SheetTrigger>
       <SheetContent
