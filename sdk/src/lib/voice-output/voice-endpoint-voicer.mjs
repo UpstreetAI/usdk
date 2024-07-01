@@ -442,30 +442,32 @@ const startStream = async (stream, opts) => {
 };
 
 export class VoiceEndpointVoicer {
-  constructor({ voiceEndpoint, audioManager }) {
-    if (!voiceEndpoint || !audioManager) {
+  constructor({ voiceEndpoint, sampleRate }) {
+    if (!voiceEndpoint || !sampleRate) {
       console.warn('bad args', {
         voiceEndpoint,
-        audioManager,
+        // audioManager,
       });
       debugger;
     }
 
     this.voiceEndpoint = voiceEndpoint;
-    this.audioManager = audioManager;
+    this.sampleRate = sampleRate;
+    // this.audioManager = audioManager;
 
-    this.running = false;
-    this.queue = [];
-    this.cancel = null;
-    this.endPromise = null;
+    // this.running = false;
+    // this.queue = [];
+    // this.cancel = null;
+    // this.endPromise = null;
   }
-  setVolume(value) {
-    this.audioManager.setVolume(value);
-  }
+  // setVolume(value) {
+  //   this.audioManager.setVolume(value);
+  // }
   getStream(text, opts) {
     return this.voiceEndpoint.getStream(text, {
-      ...opts,
-      sampleRate: this.audioManager.audioContext.sampleRate,
+      ...opts, // signal
+      sampleRate: this.sampleRate,
+      // sampleRate: this.audioManager.audioContext.sampleRate,
     });
   }
   async start(stream, opts) {
