@@ -1491,7 +1491,7 @@ const chat = async (args) => {
     process.exit(1);
   }
 };
-const simulate = async (args) => {
+/* const simulate = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
@@ -1529,11 +1529,7 @@ const simulate = async (args) => {
         local: args.local,
         dev,
         debug,
-      })/* .then(() => {
-        console.log('join promise ok');
-      }).catch((err) => {
-        console.warn('join promise error', err);
-      }); */
+      })
     }),
   );
   const webSockets = await wsPromises;
@@ -1579,7 +1575,7 @@ const simulate = async (args) => {
       }
     },
   };
-};
+}; */
 const listen = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
@@ -2383,7 +2379,7 @@ const dev = async (args) => {
 
       break;
     }
-    case 'simulate': {
+    /* case 'simulate': {
       await simulate({
         _: [guidsOrDevPathIndexes],
         dev: true,
@@ -2392,7 +2388,7 @@ const dev = async (args) => {
       });
 
       break;
-    }
+    } */
     case 'listen': {
       await listen({
         _: [guidsOrDevPathIndexes],
@@ -3429,7 +3425,7 @@ const main = async () => {
     });
   const devSubcommands = [
     'chat',
-    'simulate',
+    // 'simulate',
     'listen',
     'ls',
     'fund',
@@ -3733,7 +3729,7 @@ const main = async () => {
         await chat(args);
       });
     });
-  program
+  /* program
     .command('simulate')
     .description('Simulate an interaction between agents')
     .argument(`[guids...]`, `The guids of the agents to simulate`)
@@ -3759,7 +3755,7 @@ const main = async () => {
           process.exit(1);
         }
       });
-    });
+    }); */
   program
     .command('listen')
     .description(`Stream an agent's events`)
