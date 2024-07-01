@@ -17,6 +17,8 @@ export class NetworkedCrdtClient extends EventTarget {
   constructor({
     initialUpdate = null,
   } = {}) {
+    super();
+
     this.doc = new Y.Doc();
     if (initialUpdate) {
       Y.applyUpdateV2(this.doc, initialUpdate);
