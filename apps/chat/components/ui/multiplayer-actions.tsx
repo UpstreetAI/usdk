@@ -83,7 +83,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
-    audioManager: null,
+    // audioManager: null,
   });
 
   const playersMap = new Map<string, Player>();
