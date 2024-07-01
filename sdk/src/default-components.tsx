@@ -9,6 +9,7 @@ import type { ZodTypeAny } from 'zod';
 import { zodToTs, printNode } from 'zod-to-ts';
 import type {
   AppContextValue,
+  ConfigurationContextValue,
   // AgentProps,
   ActionProps,
   // PromptProps,
@@ -26,6 +27,7 @@ import type {
 } from './types';
 import {
   AppContext,
+  ConfigurationContext,
 } from './context';
 import {
   Agent,
@@ -39,7 +41,7 @@ import {
   // Scheduler,
   Server,
 } from './components';
-import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useFormatters, useActionHistory } from './hooks';
+import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useFormatters, useActionHistory, useTts, useChat } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
 
@@ -77,6 +79,47 @@ export const DefaultAgentComponents = () => {
   );
 };
 
+// action modifiers
+
+type ActionHandlerModifier = {
+  // preload: (e: MessageEvent) => void;
+  // lock: <T>(fn: () => Promise<T>) => T;
+  handle: (e: MessageEvent) => Promise<any>;
+};
+const actionHandlerModifiersKey = 'actionHandlerModifiers';
+const getActionModifiers = (configuration: ConfigurationContextValue, method: string) => {
+  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
+  if (actionHandlerModifiers) {
+    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
+    if (methodActionHandlerModifiers) {
+      return Array.from(methodActionHandlerModifiers.values());
+    }
+  }
+  return [];
+};
+const addActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
+  let actionHandlerModifiers = configuration.get(actionHandlerModifiersKey) ?? new Map();
+  let methodActionHandlerModifiers = actionHandlerModifiers.get(method);
+  if (!methodActionHandlerModifiers) {
+    methodActionHandlerModifiers = new Set();
+    actionHandlerModifiers.set(method, methodActionHandlerModifiers);
+  }
+
+  methodActionHandlerModifiers.add(modifier);
+
+  configuration.set(actionHandlerModifiersKey, actionHandlerModifiers);
+};
+const removeActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
+  const key = 'actionHandlerModifiers';
+  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
+  if (actionHandlerModifiers) {
+    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
+    if (methodActionHandlerModifiers) {
+      methodActionHandlerModifiers.delete(modifier);
+    }
+  }
+};
+
 // actions
 
 /**
@@ -84,7 +127,7 @@ export const DefaultAgentComponents = () => {
  * @returns The JSX elements representing the default actions components.
  */
 export const DefaultActions = () => {
-  const currentAgent = useCurrentAgent();
+  const configuration = useContext(ConfigurationContext);
   return (
     <Action
       name="say"
@@ -100,7 +143,10 @@ export const DefaultActions = () => {
         },
       ]}
       handler={async (e: PendingActionEvent) => {
-        await currentAgent.addAction(e.data.message);
+        const modifiers = getActionModifiers(configuration, 'say') as Array<ActionHandlerModifier>;
+        await Promise.all(modifiers.map((modifier) => modifier.handle(e)));
+
+        await e.commit();
       }}
     />
   );
@@ -1372,4 +1418,124 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
       }}
     />
   )
+};
+export type TTSProps = {
+  voiceEndpoint?: string; // voice to use
+};
+export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
+  const voiceEndpoint = props?.voiceEndpoint;
+  const configuration = useContext(ConfigurationContext);
+
+  const tts = useTts({
+    voiceEndpoint,
+  });
+  const chat = useChat();
+
+  useEffect(() => {
+    const actionHandlerModifier = (() => {
+      // let readableAudioStream = null;
+      return {
+        // preload: (e) => {
+        //   const { message } = e.data;
+        //   const { args } = message;
+        //   const text = (args as any).text as string;
+        //   readableAudioStream = tts.getAudioStream(text);
+        // },
+        // lock: async (fn: () => Promise<any>) => {
+        //   return await chat.lock('chatAudio', async () => {
+        //     return await fn();
+        //   });
+        // },
+        handle: async (e) => {
+          const { message } = e.data;
+          const { args } = message;
+          const text = (args as any).text as string;
+          const readableAudioStream = tts.getAudioStream(text);
+          const { id: audioStreamId } = chat.playAudioStream(readableAudioStream);
+          if (args.media) {
+            args.media = [];
+          }
+          args.media.push({
+            type: 'audio/mp3',
+            ref: audioStreamId,
+          });
+        },
+      };
+    })();
+    addActionModifier(configuration, 'say', actionHandlerModifier);
+
+    return () => {
+      removeActionModifier(configuration, 'say', actionHandlerModifier);
+    };
+  }, [
+    tts,
+    chat,
+  ]);
+
+  return null;
+
+  /* // XXX move this to useTts
+  {
+    // XXX get the sampleRate for decode
+    const sampleRate = 48000;
+    const stream = tts.getStream(text, {
+      ...opts,
+      // sampleRate: this.audioManager.audioContext.sampleRate,
+      sampleRate,
+    });
+    const readableStream = stream.readable;
+    const audioSource = createOpusReadableStreamSource({
+      readableStream,
+      // audioContext,
+    });
+    chat.addAudioSource(audioSource);
+
+    audioSource.output.addEventListener('end', e => {
+      chat.removeAudioSource(audioSource);
+    });
+
+    // frontend
+    const ensureAudioStream = (playerId, streamId) => {
+      const key = `${playerId}:${streamId}`;
+      let audioStream = this.outputAudioStreams.get(key);
+      if (!audioStream) {
+        const {
+          audioContext,
+        } = this.audioManager;
+        const stream = createOpusAudioOutputStream({
+          audioContext,
+        });
+        
+        const audioManagerInput = this.audioManager.getInput();
+        stream.outputNode.connect(audioManagerInput);
+        console.log('connect node', stream.outputNode);
+
+        audioStreams.set(key, stream);
+        audioStream = stream;
+
+        // connect to avatar
+        (async () => {
+          const remotePlayer = this.playersMap.get(playerId);
+          if (remotePlayer) {
+            await remotePlayer.waitForAvatar();
+            // handle the race condition where the audio stream ends before the avatar is loaded
+            if (!audioStreams.has(key)) return;
+
+            remotePlayer.avatar.setAudioEnabled({
+              audioContext: this.audioManager.audioContext,
+            });
+            const audioInput = remotePlayer.avatar.getAudioInput();
+            stream.outputNode.connect(audioInput);
+          } else {
+            console.warn('remote player not found', {
+              playerId,
+              playersMap: this.playersMap,
+            });
+            debugger;
+          }
+        })();
+      }
+      return audioStream;
+    };
+  } */
 };
