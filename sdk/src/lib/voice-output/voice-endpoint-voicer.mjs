@@ -17,6 +17,7 @@ export const getVoiceRequest = {
     const baseUrl = `https://${aiProxyHost}/api/ai/text-to-speech`;
     const j = {
       text,
+      model_id: 'eleven_turbo_v2',
       voice_settings: {
         stability: 0.15,
         similarity_boost: 1,
