@@ -1,4 +1,4 @@
-import {MULTIPLAYER_PORT} from './constants.mjs';
+// import {MULTIPLAYER_PORT} from './constants.mjs';
 import {zbencode, zbdecode} from './encoding.mjs';
 import {UPDATE_METHODS} from './update-types.mjs';
 
