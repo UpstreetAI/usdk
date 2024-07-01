@@ -63,6 +63,7 @@ export class NetworkedLockClient extends EventTarget {
   ws = null; // client
   locks = new Map(); // server; string -> LockRealm
   constructor() {
+    super();
   }
 
   // client request lock
