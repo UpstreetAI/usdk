@@ -194,7 +194,7 @@ export type ParserProps = {
 };
 export type PerceptionProps = {
   type: string;
-  handler: (e: PerceptionEvent) => Promise<any>;
+  handler: (e: PerceptionEvent) => any | Promise<any>;
 };
 // type ScheduleFnReturnType = number;
 // export type SchedulerProps = {
