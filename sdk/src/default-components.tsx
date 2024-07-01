@@ -1433,19 +1433,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
 
   useEffect(() => {
     const actionHandlerModifier = (() => {
-      // let readableAudioStream = null;
       return {
-        // preload: (e) => {
-        //   const { message } = e.data;
-        //   const { args } = message;
-        //   const text = (args as any).text as string;
-        //   readableAudioStream = tts.getAudioStream(text);
-        // },
-        // lock: async (fn: () => Promise<any>) => {
-        //   return await chat.lock('chatAudio', async () => {
-        //     return await fn();
-        //   });
-        // },
         handle: async (e) => {
           const { message } = e.data;
           const { args } = message;
