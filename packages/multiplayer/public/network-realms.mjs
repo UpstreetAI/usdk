@@ -1487,7 +1487,7 @@ export class NetworkRealms extends EventTarget {
   constructor({
     endpointUrl,
     playerId,
-    // audioManager,
+    // audioManager
   }) {
     super();
 
