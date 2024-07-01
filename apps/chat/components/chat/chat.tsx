@@ -124,8 +124,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     useScrollAnchor();
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
-
-  console.log(isRightSidebarOpen)
+  
   return (
     <div
       className={`group w-full overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
