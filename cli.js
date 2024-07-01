@@ -1446,6 +1446,9 @@ const chat = async (args) => {
           return guid;
         }
       }));
+    } else {
+      console.warn('guid is required');
+      process.exit(1);
     }
   }
 
