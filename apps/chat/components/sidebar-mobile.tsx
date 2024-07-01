@@ -32,7 +32,7 @@ export function SidebarMobileLeft({ children }: SidebarMobileProps) {
         side="left"
         className="inset-y-0 flex h-auto w-[300px] flex-col p-0"
       >
-        <Sidebar className="flex">{children}</Sidebar>
+        <Sidebar position="left" className="flex">{children}</Sidebar>
       </SheetContent>
     </Sheet>
   )
@@ -57,7 +57,7 @@ export function SidebarMobileRight({ children }: SidebarMobileProps) {
         side="left"
         className="inset-y-0 flex h-auto w-[300px] flex-col p-0"
       >
-        <Sidebar className="flex">{children}</Sidebar>
+        <Sidebar position="right" className="flex">{children}</Sidebar>
       </SheetContent>
     </Sheet>
   )

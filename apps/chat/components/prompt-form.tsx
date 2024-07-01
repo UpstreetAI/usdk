@@ -3,27 +3,15 @@
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
-// import { useActions, useUIState } from 'ai/rsc'
-
-// import { UserMessage } from './stocks/message'
-// import { type AI } from '@/lib/chat/actions'
 import { Button } from '@/components/ui/button'
-import { IconArrowElbow, IconPlus, IconUpstreet, IconUsers, IconScene } from '@/components/ui/icons'
+import { IconPlus, IconUpstreet } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-// import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
-// import { nanoid } from 'nanoid'
-// import { useRouter } from 'next/navigation'
-
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { newChat } from '@/lib/chat/actions'
-import { useSidebar } from '@/lib/client/hooks/use-sidebar'
-import { SidebarMobileLeft, SidebarMobileRight } from './sidebar-mobile'
-import { ChatHistory } from './chat/chat-history'
-import { RoomUi } from './chat/room-ui'
 
 export function PromptForm({
   input,
@@ -32,8 +20,6 @@ export function PromptForm({
   input: string
   setInput: (value: string) => void
 }) {
-
-  const { toggleLeftSidebar, isLeftSidebarOpen, toggleRightSidebar, isRightSidebarOpen } = useSidebar();
 
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
@@ -86,72 +72,12 @@ export function PromptForm({
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
-        {/* left sidebar */}
-        <div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SidebarMobileLeft>
-                <ChatHistory />
-              </SidebarMobileLeft>
-            </TooltipTrigger>
-            <TooltipContent>{isLeftSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
-          </Tooltip>
-        </div>
-        <div className='hidden md:block'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0 ${isLeftSidebarOpen ? "bg-white text-black" : "bg-background"}`}
-                onClick={() => {
-                  toggleLeftSidebar();
-                }}
-              > 
-                <IconUsers />
-                <span className="sr-only">Show Members</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{isLeftSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
-          </Tooltip>
-        </div>
-
-        {/* right sidebar */}
-        <div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SidebarMobileRight>
-                <RoomUi />
-              </SidebarMobileRight>
-            </TooltipTrigger>
-            <TooltipContent>{isRightSidebarOpen ? "Hide" : "Show"} Scene</TooltipContent>
-          </Tooltip>
-        </div>
-        <div className='hidden md:block'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0 ${isRightSidebarOpen ? "bg-white text-black" : "bg-background"}`}
-                onClick={() => {
-                  toggleRightSidebar();
-                }}
-              > 
-                <IconScene />
-                <span className="sr-only">Show Scene</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{isRightSidebarOpen ? "Hide" : "Show"} Scene</TooltipContent>
-          </Tooltip>
-        </div>
-
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
               size="icon"
-              className={`absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0`}
+              className={`absolute left-00 md:left-4 top-[14px] size-8 rounded-full bg-background p-0`}
               onClick={() => {
                 newChat();
               }}
@@ -167,7 +93,7 @@ export function PromptForm({
           tabIndex={0}
           onKeyDown={onKeyDown}
           placeholder="Send a message."
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-14 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}
           autoComplete="off"

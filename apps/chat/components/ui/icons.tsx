@@ -675,6 +675,41 @@ function IconLogout({
   );
 }
 
+function IconCaretRight({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 800 800"
+      {...props}
+    >
+      <path className="st0" d="M689,374.3v51.3L207.2,766.6l-57.8,32l-38.5-38.5l40.9-334.5v-51.3L111,39.9l38.5-38.5l57.8,32L689,374.3
+	L689,374.3z"/>
+    </svg>
+  );
+}
+
+function IconCaretLeft({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 800 800"
+      {...props}
+    >
+      <path className="st0" d="M110,374.2v51.5l483.6,342.1l58,32.1l38.6-38.6l-41-335.6v-51.5l41-335.6L651.6,0l-58,32.1L110,374.2z"/>
+    </svg>
+  );
+}
+
 export {
   IconEdit,
   IconMenu,
@@ -709,5 +744,7 @@ export {
   IconChevronUpDown,
   IconUpstreet,
   IconLogin,
-  IconLogout
+  IconLogout,
+  IconCaretLeft,
+  IconCaretRight
 };
