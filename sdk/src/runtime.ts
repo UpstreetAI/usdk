@@ -22,9 +22,10 @@ import {
   TaskObject,
   TaskResult,
 } from './components';
-import { AppContext, EpochContext } from './context';
+import { AppContext, EpochContext, ConfigurationContext } from './context';
 import type {
   AppContextValue,
+  ConfigurationContextValue,
   ActionMessages,
   PendingActionEvent,
   PendingActionMessage,
@@ -47,6 +48,8 @@ import type {
   // SchedulerProps,
   ServerProps,
   UserHandler,
+  TtsArgs,
+  ChatArgs,
 } from '../types';
 import { ConversationContext } from './classes/conversation-context';
 import { RenderLoader } from './classes/render-loader';
@@ -59,6 +62,12 @@ import { makeAnonymousClient } from './util/supabase-client.mjs';
 // import { UserHandler, AgentConsole } from 'sdk/types';
 import { makePromise } from './util/util.mjs';
 import { ActionHistoryQuery } from './types';
+import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './lib/voice-output/voice-endpoint-voicer.mjs';
+import { createOpusReadableStreamSource } from './lib/multiplayer/public/audio/audio-client.mjs';
+
+//
+
+const defaultSampleRate = 48000;
 
 //
 
@@ -121,6 +130,31 @@ class ErrorBoundary extends React.Component<
     return this.props.children;
   }
 }
+const ConfigurationComponent = ({
+  children,
+}: {
+  children?: React.ReactNode[],
+}) => {
+  const [configurationValue, setConfigurationValue] = React.useState(() => {
+    const data = {};
+    const result = {
+      get: (key: string) => data[key],
+      set: (key: string, value: any) => {
+        data[key] = value;
+        setConfigurationValue(result);
+      },
+    };
+    return result;
+  });
+
+  return React.createElement(
+    ConfigurationContext.Provider,
+    {
+      value: configurationValue,
+    },
+    ...children,
+  );
+};
 const AppComponent = (props: any) => {
   const {
     userRender,
@@ -171,11 +205,15 @@ const AppComponent = (props: any) => {
         value: appContextValue,
       },
       React.createElement(
-        EpochContext.Provider,
-        {
-          value: epochValue,
-        },
-        ...children,
+        ConfigurationComponent,
+        {},
+        React.createElement(
+          EpochContext.Provider,
+          {
+            value: epochValue,
+          },
+          ...children,
+        ),
       ),
     ),
   );
@@ -248,6 +286,7 @@ export class AgentRenderer {
 
   renderLoader: RenderLoader;
   appContextValue: AppContextValue;
+  epochValue: number;
 
   // sceneBound: SceneObject;
   // agentsBound: Array<AgentObject>;
@@ -256,7 +295,6 @@ export class AgentRenderer {
   reconciler: any;
   root: any;
 
-  epochValue: number;
   renderQueueManager: QueueManager;
 
   constructor({
@@ -337,6 +375,63 @@ export class AgentRenderer {
         const messages = makeEpochUse(() => conversationContext.getMessages(filter))();
         // console.log('use action history 2', messages);
         return messages;
+      },
+      useTts: (opts?: TtsArgs) => { // XXX memoize this
+        const voiceEndpoint = (() => {
+          if (opts?.voiceEndpoint) {
+            return opts?.voiceEndpoint;
+          } else {
+            const agentJsonString = (env as any).AGENT_JSON as string;
+            const agentJson = JSON.parse(agentJsonString);
+            return agentJson?.voiceEndpoint;
+          }
+        })();
+        const sampleRate = opts?.sampleRate ?? defaultSampleRate;
+        if (voiceEndpoint) {
+          const match = voiceEndpoint.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
+          if (match) {
+            const [_, model, voiceName, voiceId] = match;
+            const voiceEndpoint = new AutoVoiceEndpoint({
+              model,
+              voiceId,
+            });
+            const voiceEndpointVoicer = new VoiceEndpointVoicer({
+              voiceEndpoint,
+              // audioManager: null,
+              sampleRate,
+            });
+            return {
+              getAudioStream: (text: string, opts: any) => {
+                const transformStream = voiceEndpointVoicer.getStream(text, opts);
+                return transformStream.readable;
+              },
+            };
+          } else {
+            throw new Error('invalid voice endpoint: ' + voiceEndpoint);
+          }
+        } else {
+          throw new Error('no voice endpoint');
+        }
+      },
+      useChat: (opts?: ChatArgs) => {
+        return {
+          playAudioStream: (readableStream) => {
+            const audioSource = createOpusReadableStreamSource({
+              readableStream,
+              // audioContext,
+            });
+            // XXX make this bind to the realms
+            realms.addAudioSource(audioSource);
+
+            audioSource.output.addEventListener('end', e => {
+              realms.removeAudioSource(audioSource);
+            });
+
+            return {
+              id: audioSource.id,
+            };
+          },
+        };
       },
 
       // useLoad: renderLoader.useLoad.bind(renderLoader),
