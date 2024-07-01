@@ -85,12 +85,10 @@ export default async function RoomPage({ params }: Params) {
     // <AI initialAIState={{ chatId: id, messages: [] }}>
     <>
       <SidebarDesktopLeft />
-      <LeftSidebarToggle />
-
-      <SidebarDesktopRight />
-      <RightSidebarToggle />
       
       <Chat id={id} /* user={user} missingKeys={missingKeys} */ room={roomName} />
+
+      <SidebarDesktopRight />
     </>
     // </AI>
   );

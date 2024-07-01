@@ -12,7 +12,7 @@ export function LeftSidebarToggle() {
   return (
     <Button
       variant="ghost"
-      className={`opacity-[0.6] hover:opacity-[1] absolute top-1/2 ${isLeftSidebarOpen ? "lg:left-[250px] xl:left-[300px]" : "left-0"} transform -translate-y-1/2`}
+      className={`opacity-[0.6] hover:opacity-[1] absolute top-1/2 right-[-40px] px-2 transform -translate-y-1/2`}
       onClick={() => {
         toggleLeftSidebar();
       }}
@@ -29,7 +29,7 @@ export function RightSidebarToggle() {
   return (
     <Button
       variant="ghost"
-      className={`opacity-[0.6] hover:opacity-[1] absolute top-1/2 ${isRightSidebarOpen ? "lg:right-[250px] xl:right-[300px]" : "right-0"} transform -translate-y-1/2`}
+      className={`opacity-[0.6] hover:opacity-[1] absolute top-1/2 left-[-40px] px-2 transform -translate-y-1/2`}
       onClick={() => {
         toggleRightSidebar();
       }}

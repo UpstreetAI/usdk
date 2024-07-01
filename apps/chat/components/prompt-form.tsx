@@ -77,7 +77,7 @@ export function PromptForm({
             <Button
               variant="outline"
               size="icon"
-              className={`absolute left-00 md:left-4 top-[14px] size-8 rounded-full bg-background p-0`}
+              className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full bg-background p-0`}
               onClick={() => {
                 newChat();
               }}
