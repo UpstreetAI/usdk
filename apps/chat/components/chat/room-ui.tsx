@@ -29,8 +29,8 @@ const maxIdleMessages = 10;
 export function RoomUi() {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [temperature, setTemperature] = useState<number>(1);
-  const [decay, setDecay] = useState<number>(1);
+  const [temperature, setTemperature] = useState<number>(temperatureDefault);
+  const [decay, setDecay] = useState<number>(decayDefault);
 
   /* const lastHumanMessageTime = 0;
   const now = Date.now();
