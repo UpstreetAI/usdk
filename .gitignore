@@ -4,4 +4,3 @@ artifacts
 dist
 node_modules
 .DS_Store
-/voice_test_agent
