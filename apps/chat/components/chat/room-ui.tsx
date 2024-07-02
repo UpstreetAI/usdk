@@ -156,9 +156,9 @@ export function RoomUi() {
         <div className="text-sm whitespace-pre">{(() => {
           const result = [];
           for (let i = 1; i < maxIdleMessages; i++) {
-            const n = getTimeOfNthMessage(i, temperature, decay).toFixed(2);
+            const n = getTimeOfNthMessage(i, temperature, decay);
             if (isFinite(n)) {
-              result.push(`${n}s`);
+              result.push(`${n.toFixed(2)}s`);
             } else {
               return '';
             }
