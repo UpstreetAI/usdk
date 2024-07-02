@@ -135,7 +135,7 @@ class ErrorBoundary extends React.Component<
 const ConfigurationComponent = ({
   children,
 }: {
-  children?: React.ReactNode[],
+  children: React.ReactNode[],
 }) => {
   const [configurationValue, setConfigurationValue] = React.useState(() => {
     const data = {};
@@ -154,7 +154,7 @@ const ConfigurationComponent = ({
     {
       value: configurationValue,
     },
-    ...children,
+    children,
   );
 };
 const AppComponent = (props: any) => {
@@ -208,7 +208,7 @@ const AppComponent = (props: any) => {
       },
       React.createElement(
         ConfigurationComponent,
-        {},
+        null,
         React.createElement(
           EpochContext.Provider,
           {
