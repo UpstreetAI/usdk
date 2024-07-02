@@ -1461,7 +1461,7 @@ const chat = async (args) => {
         }
         return cp;
       });
-      await devServerPromises;
+      await Promise.all(devServerPromises);
     }
 
     // wait for agents to join the multiplayer room
