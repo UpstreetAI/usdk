@@ -9,6 +9,7 @@ import { parseCodeBlock } from './util/util.mjs';
 import {
   Agent,
   Action,
+  Formatter,
   Prompt,
   Parser,
   Perception,
@@ -32,8 +33,7 @@ import type {
   PerceptionEvent,
   SubtleAiCompleteOpts,
   SubtleAiImageOpts,
-  GetMemoryOpts,
-  AddMemoryOpts,
+  MemoryOpts,
   ChatMessage,
   ChatMessages,
   Memory,
@@ -50,7 +50,8 @@ import type {
   UserHandler,
   TtsArgs,
   ChatArgs,
-} from '../types';
+} from './types';
+
 import { ConversationContext } from './classes/conversation-context';
 import { RenderLoader } from './classes/render-loader';
 import { fetchChatCompletion } from './util/fetch.mjs';
@@ -64,6 +65,7 @@ import { makePromise } from './util/util.mjs';
 import { ActionHistoryQuery } from './types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './lib/voice-output/voice-endpoint-voicer.mjs';
 import { createOpusReadableStreamSource } from './lib/multiplayer/public/audio/audio-client.mjs';
+import { NetworkRealms } from "./lib/multiplayer/public/network-realms.mjs";
 
 //
 
@@ -337,10 +339,11 @@ export class AgentRenderer {
     const subtleAi = new SubtleAi();
     const thinkQueueManager = new QueueManager();
     const appContextValue: AppContextValue = {
-      userRender,
+      // userRender,
 
       Agent,
       Action,
+      Formatter,
       Prompt,
       Parser,
       Perception,
@@ -420,6 +423,16 @@ export class AgentRenderer {
               readableStream,
               // audioContext,
             });
+
+            const virPlayerEndpointUrl = opts.endpointUrl;
+            const virPlayerId = opts.playerId;
+
+            const realms = new NetworkRealms({
+              virPlayerEndpointUrl,
+              playerId: virPlayerId,
+              audioManager: null,
+            });
+            
             // XXX make this bind to the realms
             realms.addAudioSource(audioSource);
 
@@ -651,7 +664,7 @@ export class AgentRenderer {
       getMemory: async (
         agent: AgentObject,
         query: string,
-        opts?: GetMemoryOpts,
+        opts?: MemoryOpts,
       ) => {
         console.log('app context value recall 1', {
           agent,
@@ -681,7 +694,7 @@ export class AgentRenderer {
         agent: ActiveAgentObject,
         text: string,
         content?: any,
-        opts?: AddMemoryOpts,
+        opts?: MemoryOpts,
       ) => {
         const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 

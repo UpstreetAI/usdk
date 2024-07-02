@@ -29,6 +29,18 @@ export type ChatMessage = {
 };
 export type ChatMessages = Array<ChatMessage>;
 
+export type ChatArgs = {
+  endpointUrl: string;
+  playerId: string;
+};
+
+// tts
+
+export type TtsArgs = {
+  voiceEndpoint: string;
+  sampleRate: number;
+}
+
 // actions
 
 export type ActionMessage = {
@@ -259,6 +271,8 @@ export type AppContextValue = {
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
   useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
+  useTts: () => any;
+  useChat: () => any;
 
   // useLoad: (p: Promise<any>) => void;
 
@@ -278,7 +292,9 @@ export type AppContextValue = {
   unregisterServer: (key: symbol) => void;
   registerTask: (key: symbol, props: TaskProps) => void;
   unregisterTask: (key: symbol) => void;
-
+  
+  isEnabled: () => boolean;
+  
   addAction: (
     agent: ActiveAgentObject,
     action: PendingActionMessage,
