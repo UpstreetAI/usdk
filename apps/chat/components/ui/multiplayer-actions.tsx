@@ -350,7 +350,9 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       rootRealmKey: room,
     });
     // console.log('update realms keys 2');
-  })();
+  })().catch(err => {
+    console.warn(err);
+  });
 
   return realms;
 };
