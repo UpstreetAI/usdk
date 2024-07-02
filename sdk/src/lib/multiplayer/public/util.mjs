@@ -72,6 +72,32 @@ function parseMessage(m) {
             type: 'import',
             crdtExport: m.data.crdtExport,
           };
+        } else if (m.type === 'syn') {
+          const {synId} = m.data;
+          return {
+            type: 'syn',
+            synId,
+          };
+        } else if (m.type === 'synAck') {
+          const {synId} = m.data;
+          return {
+            type: 'synAck',
+            synId,
+          };
+        } else if (m.type === 'deadhand') {
+          const {keys, deadHand} = m.data;
+          return {
+            type: 'deadhand',
+            keys,
+            deadHand,
+          };
+        } else if (m.type === 'livehand') {
+          const {keys, liveHand} = m.data;
+          return {
+            type: 'livehand',
+            keys,
+            liveHand,
+          };
         } else if (m.type === 'networkinit') {
           return {
             type: 'networkinit',
@@ -87,9 +113,35 @@ function parseMessage(m) {
             type: 'leave',
             playerId: m.data.playerId,
           };
-        } else if (m.type === 'sync') {
+        } else if (m.type === 'register') {
+          const {playerId} = m.data;
           return {
-            type: 'sync',
+            type: 'register',
+            playerId,
+          };
+        } else if (m.type === 'crdtUpdate') {
+          const {update} = m.data;
+          return {
+            type: 'crdtUpdate',
+            update,
+          };
+        } else if (m.type === 'lockRequest') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockRequest',
+            lockName,
+          };
+        } else if (m.type === 'lockResponse') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockResponse',
+            lockName,
+          };
+        } else if (m.type === 'lockRelease') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockRelease',
+            lockName,
           };
         } else {
           console.warn('failed to parse', m);
