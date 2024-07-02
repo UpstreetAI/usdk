@@ -117,7 +117,7 @@ export function RoomUi() {
   }, [crdt, decay]);
 
   return (
-    <form className="m-4 flex flex-col">
+    <form className="m-4 flex flex-col overflow-y-auto h-full">
       <h1 className="text-sm font-medium mb-4">Room</h1>
       <label className="block mb-4">
         <div className="text-sm font-medium mb-1">Name</div>
