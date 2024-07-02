@@ -22,7 +22,7 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
       <Image
         alt=""
         className="border-2 rounded-3xl drop-shadow-xl"
-        src={resolveRelativeUrl( user.preview_url )}
+        src={resolveRelativeUrl( user.preview_url ?? '' )}
         height={100}
         width={100}
       />
