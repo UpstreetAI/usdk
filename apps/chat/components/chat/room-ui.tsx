@@ -94,31 +94,41 @@ export function RoomUi() {
   }, [crdt, decay]);
 
   return (
-    <form>
-      <h1>Room</h1>
-      <label>
-        <div>Name</div>
-        <input type="text" value={name} onChange={e => {
+    <form className="m-4 flex flex-col">
+      <h1 className="text-sm font-medium mb-4">Room</h1>
+      <label className="block mb-4">
+        <div className="text-sm font-medium mb-1">Name</div>
+        <input className="border rounded p-1 w-full" type="text" value={name} onChange={e => {
           setName(e.target.value);
         }} disabled={!crdt} />
       </label>
-      <label>
-        <div>Description</div>
-        <textarea value={description} onChange={(e) => {
+      <label className="block mb-4">
+        <div className="text-sm font-medium mb-1">Description</div>
+        <textarea className="border rounded p-1 w-full" value={description} onChange={(e) => {
           setDescription(e.target.value);
         }} disabled={!crdt} />
       </label>
-      <label>
-        <div>Temperature</div>
-        <input type="number" min={1} max={2} value={temperature} onChange={(e) => {
-          setTemperature(e.target.value);
-        }} disabled={!crdt} />
+      <label className="block mb-4">
+        <div className="text-sm font-medium mb-1">Temperature</div>
+        <div className="flex">
+          <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
+            setTemperature(e.target.value);
+          }} disabled={!crdt} />
+          <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
+            setTemperature(e.target.value);
+          }} disabled={!crdt} />
+        </div>
       </label>
-      <label>
-        <div>Decay</div>
-        <input type="number" min={1} max={2} value={decay} onChange={(e) => {
-          setDecay(e.target.value);
-        }} disabled={!crdt} />
+      <label className="block mb-4">
+        <div className="text-sm font-medium mb-1">Decay</div>
+        <div className="flex">
+          <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
+            setDecay(e.target.value);
+          }} disabled={!crdt} />
+          <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
+            setDecay(e.target.value);
+          }} disabled={!crdt} />
+        </div>
       </label>
     </form>
   );
