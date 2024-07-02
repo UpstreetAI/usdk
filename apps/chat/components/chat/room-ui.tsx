@@ -3,6 +3,29 @@
 import { useEffect, useState } from 'react';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 
+const getNumExpectedMessages = (timeS: number, temperature: number, decay: number) => {
+  return Math.pow(timeS * temperature, 1 / decay);
+};
+const getTimeOfNthMessage = (n: number, temperature: number, decay: number) => {
+  if (temperature !== 0) {
+    return Math.pow(n, decay) / temperature;
+  } else {
+    return Infinity;
+  }
+};
+
+const temperatureDefault = 0;
+const temperatureMin = 0;
+const temperatureMax = 1;
+const temperatureStep = 0.01;
+
+const decayDefault = 2;
+const decayMin = 1;
+const decayMax = 10;
+const decayStep = 0.1;
+
+const maxIdleMessages = 10;
+
 export function RoomUi() {
   const [name, setName] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -25,9 +48,9 @@ export function RoomUi() {
       setName(_name);
       const _description = crdt.getText('description').toString();
       setDescription(_description);
-      const _temperature = Number(crdt.getText('temperature').toString()) || 1;
+      const _temperature = Number(crdt.getText('temperature').toString()) || temperatureDefault;
       setTemperature(_temperature);
-      const _decay = Number(crdt.getText('decay').toString()) || 1;
+      const _decay = Number(crdt.getText('decay').toString()) || decayDefault;
       setDecay(_decay);
 
       const onname = (value: any) => {
@@ -111,24 +134,37 @@ export function RoomUi() {
       <label className="block mb-4">
         <div className="text-sm font-medium mb-1">Temperature</div>
         <div className="flex">
-          <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
+          <input className="flex-1 mr-4" type="range" min={temperatureMin} max={temperatureMax} step={temperatureStep} value={temperature} onChange={(e) => {
             setTemperature(parseFloat(e.target.value));
           }} disabled={!crdt} />
-          <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
+          <input className="p-1 border rounded" type="number" min={temperatureMin} max={temperatureMax} step={temperatureStep} value={temperature} onChange={(e) => {
             setTemperature(parseFloat(e.target.value));
           }} disabled={!crdt} />
         </div>
+        <div className="text-sm">{getNumExpectedMessages(1, temperature, decay).toFixed(2)} msg/s</div>
       </label>
       <label className="block mb-4">
         <div className="text-sm font-medium mb-1">Decay</div>
         <div className="flex">
-          <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
+          <input className="flex-1 mr-4" type="range" min={decayMin} max={decayMax} step={decayStep} value={decay} onChange={(e) => {
             setDecay(parseFloat(e.target.value));
           }} disabled={!crdt} />
-          <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
+          <input className="p-1 border rounded" type="number" min={decayMin} max={decayMax} step={decayStep} value={decay} onChange={(e) => {
             setDecay(parseFloat(e.target.value));
           }} disabled={!crdt} />
         </div>
+        <div className="text-sm whitespace-pre">{(() => {
+          const result = [];
+          for (let i = 1; i < maxIdleMessages; i++) {
+            const n = getTimeOfNthMessage(i, temperature, decay).toFixed(2);
+            if (isFinite(n)) {
+              result.push(`${n}s`);
+            } else {
+              return '';
+            }
+          }
+          return result.filter(n => n !== '').join('\n');
+        })()}</div>
       </label>
     </form>
   );
