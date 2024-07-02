@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
+import type { Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 import type {
   ActionMessages,
@@ -53,7 +54,7 @@ const makeSymbol = () => Symbol('propsKey');
  * </Agent>
  * ```
  */
-export const Agent: React.FC<AgentProps> = (props: AgentProps) => {
+export const Agent: React.FC<AgentProps> = forwardRef((props: AgentProps, ref: Ref<any>) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
   const appContext = (useContext(AppContext) as unknown) as AppContextValue;
@@ -64,14 +65,16 @@ export const Agent: React.FC<AgentProps> = (props: AgentProps) => {
       appContext.unregisterAgent(symbol);
     };
   }, [appContext]);
-
   appContext.registerAgent(symbol, props);
+
+  const currentAgent = appContext.useCurrentAgent();
+  useImperativeHandle(ref, () => currentAgent, [currentAgent]);
 
   return React.createElement(RawAgent, {}, [
     React.createElement(DefaultAgentComponents, { key: 0 }),
     React.createElement(React.Fragment, { key: 1 }, props.children),
   ]);
-};
+});
 export const RawAgent: React.FC<AgentProps> = (props: AgentProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
