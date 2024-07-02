@@ -6,7 +6,7 @@ import { r2Endpoint } from '@/utils/const/endpoints'
 import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { resolveRelativeUrl } from '@/lib/utils'
+import { isValidUrl, resolveRelativeUrl } from '@/lib/utils'
 
 
 export interface ProfileImageProps {
@@ -15,14 +15,14 @@ export interface ProfileImageProps {
 }
 
 export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
-  const { supabase } = useSupabase()
+  const { supabase } = useSupabase();
 
   return (
     <div className="m-auto mb-3 relative">
       <Image
         alt=""
         className="border-2 rounded-3xl drop-shadow-xl"
-        src={resolveRelativeUrl( user.preview_url ?? '' )}
+        src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}
         height={100}
         width={100}
       />
