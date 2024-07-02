@@ -19,6 +19,7 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.3.4",
     "yjs": "^13.6.18"
   }
 }
