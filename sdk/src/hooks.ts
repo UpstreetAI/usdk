@@ -7,6 +7,10 @@ import {
   FormatterProps,
   ActionMessages,
   ActionHistoryQuery,
+  ChatArgs,
+  TtsArgs,
+  Tts,
+  Chat,
 } from './types';
 import { AppContext } from './context';
 

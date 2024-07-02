@@ -38,7 +38,7 @@ export type ChatArgs = {
 
 export type TtsArgs = {
   voiceEndpoint: string;
-  sampleRate: number;
+  sampleRate?: number;
 }
 
 // actions
@@ -250,6 +250,15 @@ export type SdkDefaultComponentArgs = {
 type Compartment = {
   evaluate: (s: string) => any;
 };
+
+type Tts = {
+  getAudioStream: (text: string, opts?: any) => ReadableStream<any>;
+}
+
+type Chat = {
+  playAudioStream: (readableStream: ReadableStream) => { id: string };
+};
+
 export type AppContextValue = {
   // UserCompartment: new (...args: any[]) => Compartment;
 
@@ -271,8 +280,8 @@ export type AppContextValue = {
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
   useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
-  useTts: () => any;
-  useChat: () => any;
+  useTts: (ttsArgs: TtsArgs) => Tts;
+  useChat: (chatArgs: ChatArgs) => Chat;
 
   // useLoad: (p: Promise<any>) => void;
 
