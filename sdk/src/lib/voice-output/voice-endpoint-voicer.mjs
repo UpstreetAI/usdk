@@ -2,9 +2,10 @@
 
 import { createMp3DecodeTransformStream } from '../multiplayer/public/audio/audio-client.mjs';
 // import Rvc from '../rvc.js';
-import { aiProxyHost } from '../../endpoints.js';
-import { abortableRead, makePromise } from '../../util.js';
-import { getCleanJwt } from '../../utils/jwt-util.js';
+import {aiProxyHost} from '../../util/endpoints.mjs'
+// import { abortableRead, makePromise } from '../../util.js';
+import { makePromise } from '../multiplayer/public/util.mjs';
+import {getCleanJwt} from '../../util/jwt-util.mjs';
 //
 
 export const getVoiceRequest = {
