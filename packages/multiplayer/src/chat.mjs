@@ -410,7 +410,7 @@ export class ChatRoom {
         const crdtClient = new NetworkedCrdtClient({
           initialUpdate,
         });
-        initialUpdate.addEventListener('update', async e => {
+        crdtClient.addEventListener('update', async e => {
           const uint8array = crdtClient.getStateAsUpdate();
           const arrayBuffer = new ArrayBuffer(uint8array.length);
           new Uint8Array(arrayBuffer).set(uint8array);

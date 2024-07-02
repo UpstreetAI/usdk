@@ -536,6 +536,23 @@ function IconUsers({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
+function IconScene({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 1200 1200"
+      {...props}
+    >
+      <g>
+      <path d="m1123.1 1029.6c0.9375 11.062-7.6875 20.438-18.562 20.438h-271.12l-28.312-257.62c-0.5625-6-4.125-11.25-9.375-14.25l-38.25-21.562c-4.3125-2.4375-7.5-6.375-8.8125-11.25l-25.125-88.312c-1.6875-6-6.1875-10.688-12-12.75l-117.56-39.562c-7.3125-2.4375-15.188-0.375-20.25 5.4375l-147.56 170.06c-2.8125 3-4.3125 7.125-4.6875 11.25l-12.375 258.56h-313.31c-11.062 0-19.875-9.5625-18.562-20.625l40.688-390c0.5625-5.625 3.75-10.875 8.625-13.875l95.25-60.375c3-1.875 5.625-4.875 7.125-8.25l92.625-212.44c2.0625-4.6875 5.8125-8.25 10.688-10.125l108.75-40.5c3.75-1.5 6.9375-4.125 9.1875-7.5l73.125-114c3.1875-4.875 8.0625-7.875 13.688-8.625l111.75-12.375c6.75-0.75 13.5 2.25 17.438 7.875l0.5625 0.75c-6.9375 4.6875-12.188 11.625-14.812 20.062-9.1875 30.938-51.188 188.44 36.75 235.5 16.312 8.8125 19.125 18.562 24.75 42.188 6.5625 28.125 16.5 70.5 71.062 93.375 10.5 4.5 19.5 8.0625 27.75 11.438 45.562 18.562 47.438 19.312 67.125 55.875 17.438 32.625 54.75 51.938 99.375 51.938 37.312 0 73.688-13.5 100.12-37.125 2.625-2.25 4.6875-4.6875 6.375-7.5 0.9375 2.0625 1.875 4.3125 2.0625 6.5625z"/>
+      <path d="m1053.9 605.25c-42.938 38.438-119.25 36.75-141.56-4.6875-30.375-56.438-41.438-53.625-113.25-84-71.812-30.188-27.188-98.812-92.625-134.06-65.438-35.062-18.562-191.81-18.562-191.81h0.1875l105.75 152.44c1.5 2.25 3.75 4.3125 6.1875 5.625l93.562 52.312c3.5625 1.875 6.375 5.0625 8.0625 9l61.875 143.44c1.6875 4.125 4.6875 7.3125 8.625 9.375z"/>
+    </g>
+    </svg>
+  )
+}
+
 function IconExternalLink({
   className,
   ...props
@@ -658,6 +675,41 @@ function IconLogout({
   );
 }
 
+function IconCaretRight({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 800 800"
+      {...props}
+    >
+      <path className="st0" d="M689,374.3v51.3L207.2,766.6l-57.8,32l-38.5-38.5l40.9-334.5v-51.3L111,39.9l38.5-38.5l57.8,32L689,374.3
+	L689,374.3z"/>
+    </svg>
+  );
+}
+
+function IconCaretLeft({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 800 800"
+      {...props}
+    >
+      <path className="st0" d="M110,374.2v51.5l483.6,342.1l58,32.1l38.6-38.6l-41-335.6v-51.5l41-335.6L651.6,0l-58,32.1L110,374.2z"/>
+    </svg>
+  );
+}
+
 export {
   IconEdit,
   IconMenu,
@@ -687,9 +739,12 @@ export {
   IconClose,
   IconShare,
   IconUsers,
+  IconScene,
   IconExternalLink,
   IconChevronUpDown,
   IconUpstreet,
   IconLogin,
-  IconLogout
+  IconLogout,
+  IconCaretLeft,
+  IconCaretRight
 };
