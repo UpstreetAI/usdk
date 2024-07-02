@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 
 export function RoomUi() {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [temperature, setTemperature] = useState(1);
-  const [decay, setDecay] = useState(1);
+  const [name, setName] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [temperature, setTemperature] = useState<number>(1);
+  const [decay, setDecay] = useState<number>(1);
 
   /* const lastHumanMessageTime = 0;
   const now = Date.now();
@@ -112,10 +112,10 @@ export function RoomUi() {
         <div className="text-sm font-medium mb-1">Temperature</div>
         <div className="flex">
           <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
-            setTemperature(e.target.value);
+            setTemperature(parseFloat(e.target.value));
           }} disabled={!crdt} />
           <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={temperature} onChange={(e) => {
-            setTemperature(e.target.value);
+            setTemperature(parseFloat(e.target.value));
           }} disabled={!crdt} />
         </div>
       </label>
@@ -123,10 +123,10 @@ export function RoomUi() {
         <div className="text-sm font-medium mb-1">Decay</div>
         <div className="flex">
           <input className="flex-1 mr-4" type="range" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
-            setDecay(e.target.value);
+            setDecay(parseFloat(e.target.value));
           }} disabled={!crdt} />
           <input className="p-1 border rounded" type="number" min={1} max={2} step={0.01} value={decay} onChange={(e) => {
-            setDecay(e.target.value);
+            setDecay(parseFloat(e.target.value));
           }} disabled={!crdt} />
         </div>
       </label>
