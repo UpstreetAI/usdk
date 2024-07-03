@@ -95,9 +95,12 @@ export class DurableObject extends EventTarget {
         if (this.realms?.isConnected()) {
           const { message } = e.data;
           this.realms.sendChatMessage(message);
-
-          await saveMessageToDatabase(this.supabase, this.getGuid(), message);
         }
+
+        (async () => {
+          const guid = this.getGuid();
+          await saveMessageToDatabase(this.supabase, env.AGENT_TOKEN, guid, message);
+        })();
       });
       this.conversationContext.addEventListener('typingstart', (e) => {
         if (this.realms?.isConnected()) {
