@@ -10,6 +10,7 @@ import type {
   SubtleAiCompleteOpts,
   MemoryOpts,
   AgentProps,
+  RawAgentProps,
   ActionProps,
   PromptProps,
   FormatterProps,
@@ -54,7 +55,27 @@ const makeSymbol = () => Symbol('propsKey');
  * </Agent>
  * ```
  */
-export const Agent: React.FC<AgentProps> = forwardRef((props: AgentProps, ref: Ref<any>) => {
+export const Agent = forwardRef((props: AgentProps, ref: Ref<any>) => {
+  // const [symbol, setSymbol] = useState(makeSymbol);
+  // bind to app context
+  // const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  // useEffect(() => {
+  //   // console.log('Agent component useEffect', props, appContext);
+  //   return () => {
+  //     // console.log('Agent component cleanup', props, appContext);
+  //     appContext.unregisterAgent(symbol);
+  //   };
+  // }, [appContext]);
+  // appContext.registerAgent(symbol, props);
+
+  return React.createElement(RawAgent, {
+    ref,
+  }, [
+    React.createElement(DefaultAgentComponents, { key: 0 }),
+    React.createElement(React.Fragment, { key: 1 }, props.children),
+  ]);
+});
+export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
   const appContext = (useContext(AppContext) as unknown) as AppContextValue;
@@ -70,27 +91,8 @@ export const Agent: React.FC<AgentProps> = forwardRef((props: AgentProps, ref: R
   const currentAgent = appContext.useCurrentAgent();
   useImperativeHandle(ref, () => currentAgent, [currentAgent]);
 
-  return React.createElement(RawAgent, {}, [
-    React.createElement(DefaultAgentComponents, { key: 0 }),
-    React.createElement(React.Fragment, { key: 1 }, props.children),
-  ]);
-});
-export const RawAgent: React.FC<AgentProps> = (props: AgentProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Agent component useEffect', props, appContext);
-    return () => {
-      // console.log('Agent component cleanup', props, appContext);
-      appContext.unregisterAgent(symbol);
-    };
-  }, [appContext]);
-
-  appContext.registerAgent(symbol, props);
-
   return React.createElement(React.Fragment, {}, props.children);
-};
+});
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context

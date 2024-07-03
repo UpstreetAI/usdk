@@ -1,4 +1,4 @@
-import type { ReactNode, FC } from 'react';
+import type { ReactNode, FC, Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 
 // events
@@ -186,6 +186,11 @@ export type AgentAppProps = {
 
 export type AgentProps = {
   children?: ReactNode;
+  ref?: Ref<any>;
+};
+export type RawAgentProps = {
+  children?: ReactNode;
+  ref?: Ref<any>;
 };
 
 export type ActionProps = {
