@@ -3,6 +3,7 @@ import {
   AgentObject,
   ActiveAgentObject,
   ActionMessage,
+  // ActionMessages,
   MessageFilter,
 } from '../types'
 import { Player } from './player';
@@ -11,7 +12,7 @@ export class ConversationContext extends EventTarget {
   #scene: SceneObject | null;
   #agentsMap: Map<string, Player>;
   #currentAgent: object | null;
-  #messages: Array<ActionMessage>;
+  #messages: ActionMessage[];
   constructor({
     scene = null,
     agentsMap = new Map(),
@@ -21,7 +22,7 @@ export class ConversationContext extends EventTarget {
     scene?: SceneObject | null,
     agentsMap?: Map<string, Player>,
     currentAgent?: object | null,
-    messages?: Array<ActionMessage>,
+    messages?: ActionMessage[],
   } = {}) {
     super();
 
@@ -80,7 +81,7 @@ export class ConversationContext extends EventTarget {
     const agent = filter?.agent;
     const idMatches = agent?.idMatches;
     const capabilityMatches = agent?.capabilityMatches;
-    const query = filter?.query;
+    const query = filter?.query; // XXX implement this
     const before = filter?.before;
     const after = filter?.after;
     const limit = filter?.limit;
@@ -111,10 +112,10 @@ export class ConversationContext extends EventTarget {
     return messages;
   }
 
-  setMessages( messages ) {
+  setMessages( messages: ActionMessage[] ) {
     // Preserve the original reference to agent messages.
     this.#messages.length = 0;
-    this.#messages.push( ...messages )
+    this.#messages.push( ...messages );
   }
 
   async typing(handlerAsyncFn) {

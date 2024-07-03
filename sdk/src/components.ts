@@ -8,7 +8,7 @@ import type {
   ChatMessages,
   SubtleAiImageOpts,
   SubtleAiCompleteOpts,
-  GetMemoryOpts,
+  MemoryOpts,
   AgentProps,
   ActionProps,
   PromptProps,
@@ -281,7 +281,7 @@ export class AgentObject extends EventTarget {
     this.address = address;
     this.ctx = context;
   }
-  async getMemory(query: string, opts?: GetMemoryOpts) {
+  async getMemory(query: string, opts?: MemoryOpts) {
     const result = await this.ctx.getMemory(this, query, opts);
     return result;
   }
