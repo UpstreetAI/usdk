@@ -142,27 +142,15 @@ export class ConversationContext extends EventTarget {
   }
 
   // pull a message from the network
-  addLocalMessage(message) {
+  async addLocalMessage(message) {
     this.#messages.push(message);
-    // console.log('add local message', message, this.#messages);
 
-    this.dispatchEvent(
-      new MessageEvent('localmessagepre', {
-        data: {
-          message,
-        },
-      }),
-    );
-  }
-
-  // signal that a message has been loaded and re-rendered
-  async postLocalMessage(message) {
     let promises = [];
     const waitUntil = p => {
       promises.push(p);
     };
     this.dispatchEvent(
-      new MessageEvent('localmessagepost', {
+      new MessageEvent('localmessage', {
         data: {
           message,
           waitUntil,

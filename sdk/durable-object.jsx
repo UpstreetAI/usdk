@@ -47,50 +47,48 @@ export class DurableObject extends EventTarget {
 
     const _bindConversationContext = () => {
       // handle conversation remote message re-render
-      const onConversationContextLocalPreMessage = async (e) => {
-        const { message } = e.data;
-        await this.incomingMessageQueueManager.waitForTurn(async () => {
-          try {
-            await this.agentRenderer.rerenderAsync();
-          } catch (err) {
-            console.warn(err.stack);
-          }
-          await this.conversationContext.postLocalMessage(message);
-        });
-      };
-      this.conversationContext.addEventListener(
-        'localmessagepre',
-        onConversationContextLocalPreMessage,
-      );
-      // bind the perception handlers based on the message type
-      const onConversationContextLocalPostMessage = async (e) => {
+      const onConversationContextLocalMessage = (e) => {
         const { message, waitUntil } = e.data;
         waitUntil((async () => {
-          const {
-            perceptionRegistry,
-          } = await this.agentRenderer.ensureOutput();
-
-          const allPerceptions = Array.from(perceptionRegistry.values());
-          const currentAgent = this.agentRenderer.getCurrentAgent();
-
-          for (const perception of allPerceptions) {
-            if (perception.type === message.method) {
-              const e = new ExtendableMessageEvent('perception', {
-                data: {
-                  agent: currentAgent,
-                  message,
-                },
+          await this.incomingMessageQueueManager.waitForTurn(async () => {
+            try {
+              await this.agentRenderer.rerenderAsync();
+              const {
+                perceptionRegistry,
+              } = await this.agentRenderer.ensureOutput();
+    
+              const allPerceptions = Array.from(perceptionRegistry.values());
+              const currentAgent = this.agentRenderer.getCurrentAgent();
+              const perceptionPromises = [];
+              for (const perception of allPerceptions) {
+                if (perception.type === message.method) {
+                  const e = new ExtendableMessageEvent('perception', {
+                    data: {
+                      agent: currentAgent,
+                      message,
+                    },
+                  });
+                  const p = perception.handler(e);
+                  perceptionPromises.push(p);
+                }
+              }
+              await Promise.all(perceptionPromises);
+    
+              (async () => {
+                const guid = this.getGuid();
+                await saveMessageToDatabase(this.supabase, env.AGENT_TOKEN, guid, message);
+              })().catch(err => {
+                console.warn(err.stack);
               });
-              await perception.handler(e);
+            } catch (err) {
+              console.warn(err.stack);
             }
-          }
-
-          await saveMessageToDatabase(this.supabase, this.getGuid(), message);
+          });
         })());
       };
       this.conversationContext.addEventListener(
-        'localmessagepost',
-        onConversationContextLocalPostMessage,
+        'localmessage',
+        onConversationContextLocalMessage,
       );
 
       this.conversationContext.addEventListener('remotemessage', async (e) => {
