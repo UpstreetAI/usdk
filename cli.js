@@ -3226,14 +3226,16 @@ const voice = async (args) => {
 
           const keyPath = ['assets', id, `${id}.voice`].join('/');
           const s = JSON.stringify(voice, null, 2);
-          const res = await fetch(`${r2EndpointUrl}/${keyPath}`, {
-            method: 'POST',
+          const u = `${r2EndpointUrl}/${keyPath}`;
+          const res = await fetch(u, {
+            method: 'PUT',
             headers: {
               'Authorization': `Bearer ${jwt}`,
             },
             body: s,
           });
           if (res.ok) {
+            const start_url = await res.json();
             const asset = {
               id,
               user_id: userId,
@@ -3253,7 +3255,7 @@ const voice = async (args) => {
             }
           } else {
             const text = await res.text();
-            console.warn('could not upload voice:', text);
+            console.warn('could not upload voice: ' + u + ': ' + text);
             process.exit(1);
           }
         } else {
