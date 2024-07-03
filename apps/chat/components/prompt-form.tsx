@@ -4,7 +4,7 @@ import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button } from '@/components/ui/button'
-import { IconPlus, IconImage, IconAudio, IconCapture, IconUpstreet } from '@/components/ui/icons'
+import { IconPlus, IconImage, IconDocument, IconAudio, IconCapture, IconUpstreet } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
@@ -94,6 +94,16 @@ export function PromptForm({
               <IconImage className="mr-2" />
               <div>Image</div>
             </Button>
+            {/* <Button
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              onClick={() => {
+                console.log('click document');
+              }}
+            >
+              <IconDocument className="mr-2" />
+              <div>Document</div>
+            </Button> */}
             {/* <Button
               variant="secondary"
               className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"

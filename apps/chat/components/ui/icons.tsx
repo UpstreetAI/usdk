@@ -445,6 +445,7 @@ function IconCopy({ className, ...props }: React.ComponentProps<'svg'>) {
     </svg>
   )
 }
+
 function IconImage({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
@@ -459,6 +460,20 @@ function IconImage({ className, ...props }: React.ComponentProps<'svg'>) {
         <path d="m881.26 442.5c0 41.438-33.562 75-75 75s-75-33.562-75-75 33.562-75 75-75 75 33.562 75 75"/>
         <path d="m433.5 409.87c13.875-21.75 49.875-22.125 63.75 0l388.87 621.37h126.37c61.875 0 112.5-50.625 112.5-112.5v-637.5c0-61.875-50.625-112.5-112.5-112.5h-825c-61.875 0-112.5 50.625-112.5 112.5v637.5c0 16.875 3.75 33 10.875 47.25zm372.74-117.38c82.875 0 150 67.5 150 150 0 82.875-67.125 150-150 150s-150-67.125-150-150c0-82.5 67.125-150 150-150z"/>
       </g>
+    </svg>
+  )
+}
+
+function IconDocument({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1200 1200"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      {...props}
+    >
+      <path d="m599.81 74.953c289.69 0 524.81 235.18 524.81 524.86 0 289.68-235.18 524.81-524.81 524.81-289.69 0-524.86-235.18-524.86-524.81 0-289.69 235.18-524.86 524.86-524.86zm0 337.4c-103.45 0-187.45 84-187.45 187.45s84 187.45 187.45 187.45 187.45-84 187.45-187.45-84-187.45-187.45-187.45z" fill-rule="evenodd"/>
     </svg>
   )
 }
@@ -794,6 +809,7 @@ export {
   IconSun,
   IconCopy,
   IconImage,
+  IconDocument,
   IconAudio,
   IconVideo,
   IconCapture,
