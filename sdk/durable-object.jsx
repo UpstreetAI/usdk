@@ -151,24 +151,10 @@ export class DurableObject extends EventTarget {
       const messages = await loadMessagesFromDatabase(this.supabase, LOADED_MESSAGES_LIMIT);
       this.conversationContext.setMessages(messages);
 
-      // Enable the renderer.
-      // const enabled = (await this.state.storage.get('enabled')) ?? false;
-      // this.agentRenderer.setEnabled(enabled);
-
       await this.updateTasks();
     })().catch(err => {
       console.warn(err);
     });
-    this.loadPromise = null;
-
-    // const _initialSchedule = async () => {
-    //   try {
-    //     await this.schedule();
-    //   } catch (err) {
-    //     console.warn(err.stack);
-    //   }
-    // };
-    // _initialSchedule();
   }
 
   waitForLoad() {
