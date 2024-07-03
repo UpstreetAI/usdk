@@ -1,19 +1,17 @@
 export async function loadMessagesFromDatabase(supabaseClient, limit) {
-  const { data, error } = await supabaseClient
+  const { error, data } = await supabaseClient
     .from( 'agent_messages' )
     .select( '*' )
     .order( 'created_at', { ascending: false })
     .limit( limit )
-
-  if ( error ) {
+  if (!error) {
+    return decodeMessage(data);
+  } else {
     throw new Error(`${error.code} ${error.message}`);
   }
-
-  return transformMessage(data);
 }
 
-
-function transformMessage(messages) {
+function decodeMessage(messages) {
   return messages.map( message => ({
     method: message.method,
     userId: message.src_user_id,
