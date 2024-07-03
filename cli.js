@@ -1418,14 +1418,7 @@ const getGuidFromPath = async (p) => {
   const wranglerToml = toml.parse(wranglerTomString);
   return wranglerToml.vars.GUID;
 };
-const chat = async (args) => {
-  // console.log('got chat args', JSON.stringify(args));
-  let guidsOrDevPathIndexes = args._[0] ?? [];
-  const dev = !!args.dev;
-  const room = args.room ?? makeRoomName();
-  const debug = !!args.debug;
-
-  // ensure guids
+const normalizeGuidInputs = async (guidsOrDevPathIndexes, { dev }) => {
   if (guidsOrDevPathIndexes.length === 0) {
     if (!dev) {
       const guid = await getGuidFromPath(cwd);
@@ -1448,6 +1441,17 @@ const chat = async (args) => {
       }));
     }
   }
+  return guidsOrDevPathIndexes;
+};
+const chat = async (args) => {
+  // console.log('got chat args', JSON.stringify(args));
+  let guidsOrDevPathIndexes = args._[0] ?? [];
+  const dev = !!args.dev;
+  const room = args.room ?? makeRoomName();
+  const debug = !!args.debug;
+
+  // ensure guids
+  guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, { dev });
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
@@ -1583,6 +1587,49 @@ const chat = async (args) => {
     },
   };
 }; */
+const logs = async (args) => {
+  let guidsOrDevPathIndexes = args._[0] ?? [];
+
+  guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, {
+    dev: false,
+  });
+
+  const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
+    // const agentHost = getAgentHost(
+    //   !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
+    //   {
+    //     dev,
+    //   },
+    // );
+
+    const u = `${deployEndpointUrl}/agents/${guidOrDevPathIndex}/logs`;
+    // console.log('got u', u);
+    const eventSource = new EventSource(u);
+    eventSource.addEventListener('message', (e) => {
+      const j = JSON.parse(e.data);
+      if (typeof j === 'string') {
+        // console.log(JSON.stringify(j));
+        process.stdout.write(j);
+      } else {
+        console.log(j);
+      }
+    });
+    eventSource.addEventListener('error', (e) => {
+      console.warn('error', e);
+    });
+    eventSource.addEventListener('close', (e) => {
+      process.exit(0);
+    });
+  });
+
+  return {
+    close: () => {
+      for (const eventSource of eventSources) {
+        eventSource.close();
+      }
+    },
+  };
+};
 const listen = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
   const dev = !!args.dev;
@@ -3808,8 +3855,27 @@ const main = async () => {
       });
     }); */
   program
+    .command('logs')
+    .description(`Stream an agent's logs`)
+    .argument(`[guids...]`, `The guids of the agents to listen to`)
+    // .option(
+    //   `-d, --dev`,
+    //   `Chat with a local development agent`,
+    // )
+    .action(async (guids = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        args = {
+          _: [guids],
+          ...opts,
+        };
+        await logs(args);
+      });
+    });
+  program
     .command('listen')
-    .description(`Stream an agent's events`)
+    .description(`Stream an agent's action events`)
     .argument(`[guids...]`, `The guids of the agents to listen to`)
     // .option(
     //   `-d, --dev`,
