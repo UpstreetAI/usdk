@@ -224,7 +224,7 @@ export const DefaultPrompts = () => {
       <DefaultHeaderPrompt />
       <ScenePrompt scene={scene} />
       <CharactersPrompt agents={agents} />
-      <RAGMemoriesPrompt agents={[currentAgent]} />
+      {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsFormatPrompt actions={actions} formatters={formatters} />
       <RecentChatHistoryJsonPrompt />
       <InstructionsJsonPrompt agent={currentAgent} />
@@ -235,7 +235,9 @@ export const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
-        Generate dialogue and character actions for a video game. I will give you a description of the scene, characters, and actions that can be taken. You will need to respond with a JSON object that contains the method and arguments for the action the next character should take (such as saying something).
+        # System
+        Role-play as a character in a chat. I will give you the context, characters, and the possible actions you can take.
+        Respond with a JSON object specifying the action method and arguments in the given format.
       `}
     </Prompt>
   );
@@ -245,8 +247,6 @@ export const ScenePrompt = ({ scene }: { scene: SceneObject }) => {
     <Prompt>
       {dedent`
         # Scene
-        Here is a description of the scene where the action is taking place:
-
         ${scene.description}
       `}
     </Prompt>
@@ -275,7 +275,7 @@ export const CharactersPrompt = ({
     </Prompt>
   );
 };
-export const RAGMemoriesPrompt = ({
+/* export const RAGMemoriesPrompt = ({
   agents,
 }: {
   agents: Array<AgentObject>;
@@ -284,7 +284,7 @@ export const RAGMemoriesPrompt = ({
   return null;
   // return (
   //   <Prompt>
-  //     {/* {dedent`
+  //     {dedent`
   //       ## Memories
   //       ${agents.map((agent) => {
   //         return dedent`
@@ -292,10 +292,10 @@ export const RAGMemoriesPrompt = ({
   //           ${agent.memory.text}
   //         `;
   //       })}
-  //     `} */}
+  //     `}
   //   </Prompt>
   // );
-};
+}; */
 export const ActionsFormatPrompt = ({
   actions,
   formatters,
@@ -308,7 +308,7 @@ export const ActionsFormatPrompt = ({
     const formatter = formatters[0];
     s = dedent`
       # Actions
-      Here are the allowed actions that characters can take:
+      Here are the allowed actions that your character can take:
     ` +
     '\n\n' +
     actions.map((action) => formatter.formatFn(action)).join('\n\n');
@@ -397,9 +397,8 @@ export const InstructionsJsonPrompt = ({
     <Prompt>
       {dedent`
         # Instructions
-        Continue the conversation.
-        Method/args must be one of the allowed action formats.
-        The next character to act is ${agent.name} (${JSON.stringify(agent.id)}).
+        Respond with the next action for ${agent.name} (${JSON.stringify(agent.id)}).
+        The method/args of your response must match one of the allowed actions.
       `}
     </Prompt>
   );
