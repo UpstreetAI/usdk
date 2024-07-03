@@ -3088,42 +3088,90 @@ const voice = async (args) => {
     switch (subcommand) {
       case 'ls': {
         // XXX move to assets
-        const voices =  await voiceTrainer.getVoices({
-          jwt,
-        });
-        console.log(JSON.stringify(voices, null, 2));
+        const supabase = makeSupabase(jwt);
+        const result = await supabase.from('assets')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('type', 'voice');
+        const { error, data } = result;
+        if (!error) {
+          // const voices =  await voiceTrainer.getVoices({
+          //   jwt,
+          // });
+          console.log(JSON.stringify(data, null, 2));
+        } else {
+          console.warn('error getting voices:', error);
+          process.exit(1);
+        }
         break;
       }
       case 'get': {
         // XXX move to assets
         const voiceName = subcommandArgs[0] ?? '';
         if (voiceName) {
-          const voice = await voiceTrainer.getVoice(voiceName, {
-            jwt,
-          });
-          console.log(JSON.stringify(voice, null, 2));
+          const supabase = makeSupabase(jwt);
+          const result = await supabase.from('assets')
+            .select('*')
+            .eq('name', voiceName)
+            .eq('user_id', userId)
+            .eq('type', 'voice')
+            .maybeSingle();
+          const { error, data } = result;
+          if (!error) {
+            // const voice = await voiceTrainer.getVoice(voiceName, {
+            //   jwt,
+            // });
+            console.log(JSON.stringify(data, null, 2));
+            if (data) {
+              const { start_url } = data;
+              const res = await fetch(start_url);
+              if (res.ok) {
+                const voiceJson = await res.json();
+                console.log(JSON.stringify(voiceJson, null, 2));
+              } else {
+                console.warn('could not get voice json:', res.status);
+              }
+            }
+          } else {
+            console.warn('error getting voice:', error);
+            process.exit(1);
+          }
         } else {
           console.warn('invalid arguments');
           process.exit(1);
         }
         break;
       }
-      case 'sample': {
+      /* case 'sample': {
         // XXX move to assets
         const voiceName = subcommandArgs[0] ?? '';
         const voiceSample = subcommandArgs[1] ?? '';
         const filePath = subcommandArgs[2] ?? '';
         if (voiceName && voiceSample && filePath) {
-          const ab = await voiceTrainer.getVoiceSample(voiceName, voiceSample, {
-            jwt,
-          });
-          await fs.promises.writeFile(filePath, Buffer.from(ab));
+          const supabase = makeSupabase(jwt);
+          const result = await supabase.from('assets')
+            .select('*')
+            .eq('name', voiceName)
+            .eq('user_id', userId)
+            .eq('type', 'voice')
+            .maybeSingle();
+          const { error, data } = result;
+          if (!error) {
+            // XXX read the real data
+            // const ab = await voiceTrainer.getVoiceSample(voiceName, voiceSample, {
+            //   jwt,
+            // });
+            await fs.promises.writeFile(filePath, Buffer.from(ab));
+          } else {
+            console.warn('error getting voice sample:', error);
+            process.exit(1);
+          }
         } else {
           console.warn('invalid arguments');
           process.exit(1);
         }
         break;
-      }
+      } */
       case 'add': {
         const voiceName = subcommandArgs[0] ?? '';
         const voiceFilePaths = subcommandArgs.slice(1);
@@ -3146,19 +3194,24 @@ const voice = async (args) => {
             }),
             Promise.all(voiceFiles.map(async (blob) => {
               const keyPath = ['assets', id, blob.name].join('/');
-              const res = await fetch(`${r2EndpointUrl}/${keyPath}`, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${jwt}`,
-                },
-                body: blob,
-              });
-              if (res.ok) {
-                const j = await res.json();
-                return j;
-              } else {
-                const text = await res.text();
-                throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+              const u = `${r2EndpointUrl}/${keyPath}`;
+              try {
+                const res = await fetch(u, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${jwt}`,
+                  },
+                  body: blob,
+                });
+                if (res.ok) {
+                  const j = await res.json();
+                  return j;
+                } else {
+                  const text = await res.text();
+                  throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+                }
+              } catch (err) {
+                throw new Error('failed to put voice: ' + u + ': ' + err.stack);
               }
             })),
           ]);
@@ -3210,14 +3263,26 @@ const voice = async (args) => {
         break;
       }
       case 'remove': {
-        // XXX remove the asset
-        const voiceName = subcommandArgs[0] ?? '';
-        if (voiceName) {
-          await voiceTrainer.removeVoice(voiceName, {
-            jwt,
-          });
+        // XXX move this to the voice api
+        const supabase = makeSupabase(jwt);
+        const result = await supabase.from('assets')
+          .delete()
+          .eq('name', voiceName)
+          .eq('user_id', userId)
+          .eq('type', 'voice');
+        const { error } = result;
+        if (!error) {
+          const voiceName = subcommandArgs[0] ?? '';
+          if (voiceName) {
+            await voiceTrainer.removeVoice(voiceName, {
+              jwt,
+            });
+          } else {
+            console.warn('invalid arguments');
+            process.exit(1);
+          }
         } else {
-          console.warn('invalid arguments');
+          console.warn('error deleting voice: ' + error);
           process.exit(1);
         }
         break;
@@ -3634,7 +3699,7 @@ const main = async () => {
   const voiceSubCommands = [
     'ls',
     'get',
-    'sample',
+    // 'sample',
     'add',
     'remove',
   ];
