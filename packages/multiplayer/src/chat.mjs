@@ -407,14 +407,14 @@ export class ChatRoom {
     if (!crdtClientPromise) {
       crdtClientPromise = (async () => {
         let initialUpdate = await this.storage.get('crdt');
+        console.log('get room crdt', initialUpdate);
         const crdtClient = new NetworkedCrdtClient({
           initialUpdate,
         });
         crdtClient.addEventListener('update', async e => {
           const uint8array = crdtClient.getStateAsUpdate();
-          const arrayBuffer = new ArrayBuffer(uint8array.length);
-          new Uint8Array(arrayBuffer).set(uint8array);
-          await this.storage.put('crdt', arrayBuffer);
+          // console.log('put room crdt', uint8array);
+          await this.storage.put('crdt', uint8array);
         });
         return crdtClient;
       })();
