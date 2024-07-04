@@ -520,6 +520,20 @@ function IconCapture({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
+function IconChat({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 1200 1200"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      {...props}
+    >
+      <path d="m745.22 265.22h-290.44c-184.78 0-334.78 150-334.78 334.78v316.78c0 9.6094 8.3906 18 18 18h607.22c184.78 0 334.78-150 334.78-334.78s-150-334.78-334.78-334.78zm-336 400.78c-37.219 0-66-30-66-66s30-66 66-66 66 30 66 66-30 66-66 66zm190.78 0c-36 0-66-30-66-66s30-66 66-66 66 30 66 66-30 66-66 66zm190.78 0c-36 0-66-30-66-66s30-66 66-66c37.219 0 66 30 66 66s-28.781 66-66 66z"/>
+    </svg>
+  )
+}
+
 function IconCheck({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
@@ -813,6 +827,7 @@ export {
   IconAudio,
   IconVideo,
   IconCapture,
+  IconChat,
   IconCheck,
   IconDownload,
   IconClose,
