@@ -897,9 +897,9 @@ export class AgentRenderer {
     return sceneBound;
   }
   getAgents() {
-    const currentAgent = this.conversationContext.getCurrentAgent();
+    // const currentAgent = this.conversationContext.getCurrentAgent();
     const agents = this.conversationContext.getAgents()
-      .concat([currentAgent]);
+      // .concat([currentAgent]);
     const { appContextValue, wallets } = this;
 
     // if (!appContextValue) {
@@ -909,14 +909,11 @@ export class AgentRenderer {
     const agentsBound = agents.map((agent) => new AgentObject(agent, {
       context: appContextValue,
     }));
-    const currentAgentUnboundIndex = agentsBound.findIndex(agent => agent.id === currentAgent.id);
-    // if (currentAgentUnboundIndex === -1) {
-    //   throw new Error('current agent not found in agents: ' + currentAgent.id + ' : ' + agentsBound.map(agent => agent.id).join(', '));
-    // }
-    const currentAgentBound = new ActiveAgentObject(agentsBound[currentAgentUnboundIndex], {
-      wallets,
-    });
-    agentsBound.splice(currentAgentUnboundIndex, 1, currentAgentBound);
+    // const currentAgentUnboundIndex = agentsBound.findIndex(agent => agent.id === currentAgent.id);
+    // const currentAgentBound = new ActiveAgentObject(agentsBound[currentAgentUnboundIndex], {
+    //   wallets,
+    // });
+    // agentsBound.splice(currentAgentUnboundIndex, 1, currentAgentBound);
     return agentsBound;
   }
   getCurrentAgent() {
