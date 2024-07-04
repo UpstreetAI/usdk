@@ -63,7 +63,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     messages: rawMessages,
     setMultiplayerConnectionParameters,
     sendRawMessage,
-    sendChatMessage,
+    // sendChatMessage,
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
