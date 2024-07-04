@@ -1594,41 +1594,51 @@ const logs = async (args) => {
     dev: false,
   });
 
-  const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
-    // const agentHost = getAgentHost(
-    //   !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    //   {
-    //     dev,
-    //   },
-    // );
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
+      // const agentHost = getAgentHost(
+      //   !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
+      //   {
+      //     dev,
+      //   },
+      // );
 
-    const u = `${deployEndpointUrl}/agents/${guidOrDevPathIndex}/logs`;
-    // console.log('got u', u);
-    const eventSource = new EventSource(u);
-    eventSource.addEventListener('message', (e) => {
-      const j = JSON.parse(e.data);
-      if (typeof j === 'string') {
-        // console.log(JSON.stringify(j));
-        process.stdout.write(j);
-      } else {
-        console.log(j);
-      }
+      const u = `${deployEndpointUrl}/agents/${guidOrDevPathIndex}/logs`;
+      // console.log('got u', u);
+      const eventSource = new EventSource(u, {
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        },
+      });
+      eventSource.addEventListener('message', (e) => {
+        const j = JSON.parse(e.data);
+        if (typeof j === 'string') {
+          // console.log(JSON.stringify(j));
+          process.stdout.write(j);
+        } else {
+          console.log(j);
+        }
+      });
+      eventSource.addEventListener('error', (e) => {
+        console.warn('error', e);
+      });
+      eventSource.addEventListener('close', (e) => {
+        process.exit(0);
+      });
     });
-    eventSource.addEventListener('error', (e) => {
-      console.warn('error', e);
-    });
-    eventSource.addEventListener('close', (e) => {
-      process.exit(0);
-    });
-  });
 
-  return {
-    close: () => {
-      for (const eventSource of eventSources) {
-        eventSource.close();
-      }
-    },
-  };
+    return {
+      close: () => {
+        for (const eventSource of eventSources) {
+          eventSource.close();
+        }
+      },
+    };
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
 };
 const listen = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
