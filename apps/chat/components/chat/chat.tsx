@@ -104,7 +104,6 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
 
   useEffect(() => {
     if (room && user) {
-      console.log('got user', user);
       const localPlayerSpec: PlayerSpec = {
         id: (user as any).id as string,
         name: (user as any).name as string,
