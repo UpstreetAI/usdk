@@ -1597,15 +1597,7 @@ const logs = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt) {
     const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
-      // const agentHost = getAgentHost(
-      //   !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-      //   {
-      //     dev,
-      //   },
-      // );
-
       const u = `${deployEndpointUrl}/agents/${guidOrDevPathIndex}/logs`;
-      // console.log('got u', u);
       const eventSource = new EventSource(u, {
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -1614,7 +1606,6 @@ const logs = async (args) => {
       eventSource.addEventListener('message', (e) => {
         const j = JSON.parse(e.data);
         if (typeof j === 'string') {
-          // console.log(JSON.stringify(j));
           process.stdout.write(j);
         } else {
           console.log(j);
