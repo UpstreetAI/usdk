@@ -8,6 +8,7 @@ import { SupabaseProvider } from '@/lib/hooks/use-supabase'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ActionsProvider } from '@/components/ui/actions'
 import { MultiplayerActionsProvider } from '@/components/ui/multiplayer-actions'
+import { DirectMessageActionsProvider } from '@/components/ui/direct-message-actions'
 
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
@@ -18,7 +19,9 @@ export function Providers({ children, ...props }: ThemeProviderProps) {
           <TooltipProvider>
             <ActionsProvider>
               <MultiplayerActionsProvider>
-                {children}
+                <DirectMessageActionsProvider>
+                  {children}
+                </DirectMessageActionsProvider>
               </MultiplayerActionsProvider>
             </ActionsProvider>
           </TooltipProvider>
