@@ -195,13 +195,23 @@ export function SearchBar() {
     }} onBlur={e => {
       setFocus(false);
     }} tabIndex={-1}>
-      <div className="relative flex flex-col m-auto size-full py-2 sm:max-w-2xl px-4 pointer-events-auto">
+      <label htmlFor="search" className="rounded-lg relative flex flex-row m-auto size-full py-2 sm:max-w-2xl px-4 pointer-events-auto">
         <div className={cn('absolute opacity-0 px-8 items-center inset-y-0 right-0 flex', value && 'opacity-1')} onClick={e => {
           setValue('');
         }}>
           <IconClose />
         </div>
-        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
+        <div className={cn('px-2 items-center inset-y-0 right-0 flex opacity-1')}>
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.75 23.75C19.2728 23.75 23.75 19.2728 23.75 13.75C23.75 8.22715 19.2728 3.75 13.75 3.75C8.22715 3.75 3.75 8.22715 3.75 13.75C3.75 19.2728 8.22715 23.75 13.75 23.75Z" stroke="#B8B8B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M26.25 26.25L20.875 20.875" stroke="#B8B8B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+        </div>
+
+        <input id='search' name='search' type="text" className={cn(
+          "size-full px-2 font-black outline-none border-none",
+          !value && "italic uppercase"
+        )} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
         <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !value && 'hidden')}>
@@ -262,7 +272,7 @@ export function SearchBar() {
             )}
           </div>
         </div>
-      </div>
+      </label>
     </div>
   );
 }

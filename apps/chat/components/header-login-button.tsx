@@ -24,18 +24,17 @@ export function HeaderLoginButton({
         await redirectToLoginTool()
       }}
       disabled={isLoading}
-      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-none")}
+      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-none bg-[#5313A3] font-black")}
       {...props}
     >
+      {
+        isLoading &&
       <div className="mr-2">
-        {
-          isLoading
-            ? <IconSpinner className="animate-spin"/>
-            : <IconLogin className='mr-2 size-5' />
-        }
+            <IconSpinner className="animate-spin"/>
       </div>
+}
 
-      <span>Login</span>
+      <span>SIGN UP - IT'S FREE</span>
     </Button>
   )
 }

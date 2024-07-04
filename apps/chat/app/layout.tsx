@@ -10,6 +10,14 @@ import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 import { Body } from '@/components/body'
 
+import { Poppins } from 'next/font/google';
+ 
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700', '800'],
+  subsets: ['latin'],
+  display: 'swap',
+});
+
 
 export const metadata = {
   metadataBase: process.env.VERCEL_URL
@@ -58,7 +66,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body
         className={cn(
           'font-sans antialiased',
-          GeistSans.variable,
+          poppins.className,
           GeistMono.variable
         )}
       >

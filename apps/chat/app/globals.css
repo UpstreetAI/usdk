@@ -65,7 +65,11 @@
     --ring: 240 4.9% 83.9%;
   }
 }
- 
+
+html {
+  font-family: 'Poppins', sans-serif;
+}
+
 @layer base {
   * {
     @apply border-border;

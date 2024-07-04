@@ -19,7 +19,13 @@ module.exports = {
     extend: {
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
+        'accordion-up': 'accordion-up 0.2s ease-out',
+        'borders': 'borders 2s linear infinite',
+        'transform': 'transform 400ms ease-in-out',
+        'background-transform': 'background-transform 400ms ease-in-out',
+      },
+      backgroundSize: {
+        '120%': '120%',
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -76,7 +82,21 @@ module.exports = {
         'accordion-up': {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' }
-        }
+        },
+        'borders': {
+            '0%, 100%': { 'border-width': '0.4rem 0.2rem 0.04rem 0.04rem' },
+            '25%': { 'border-width': '0.2rem 0.04rem 0.04rem 0.4rem' },
+            '50%': { 'border-width': '0.04rem 0.04rem 0.4rem 0.2rem' },
+            '75%': { 'border-width': '0.04rem 0.4rem 0.2rem 0.04rem' },
+        },
+        'transform': {
+          '0%, 100%': { transform: 'translateX(0px) opacity: 1', opacity: '1' },
+          '50%': { transform: 'translateX(40px)', opacity: '0' },
+        },
+        'background-transform': {
+          '0%': { backgroundSize: '120%' },
+          '100%': { backgroundSize: '100%' },
+        },
       }
     }
   },
