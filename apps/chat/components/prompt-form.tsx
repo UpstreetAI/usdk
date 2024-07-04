@@ -34,15 +34,6 @@ export function PromptForm({
     setInput('')
     if (!value) return
 
-    // // Optimistically add user message UI
-    // setMessages(currentMessages => [
-    //   ...currentMessages,
-    //   {
-    //     id: nanoid(),
-    //     display: <UserMessage>{value}</UserMessage>
-    //   }
-    // ])
-
     // Submit and get response message
     // const responseMessage = await submitUserMessage(value)
     // setMessages(currentMessages => [...currentMessages, responseMessage])
@@ -76,6 +67,7 @@ export function PromptForm({
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
+        {/* // XXX abstract this out to a component */}
         {mediaPickerOpen && (
           <div className="absolute left-0 bottom-16 py-2 flex flex-col bg-background border rounded">
             <div className="mx-4 my-2 text-xs text-muted-foreground">Add media...</div>
@@ -146,7 +138,7 @@ export function PromptForm({
           ref={inputRef}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          placeholder="Send a message."
+          placeholder="Send a message"
           className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}

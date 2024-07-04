@@ -39,7 +39,8 @@ export function DirectMessageActionsProvider({ children }: DirectMessageActionsP
   const toggleOpenDm = (userId: string) => {
     const index = dmsOpen.indexOf(userId);
     if (index !== -1) {
-      setDmsOpen(dmsOpen.filter((id) => id !== userId));
+      // nothing
+      // setDmsOpen(dmsOpen.filter((id) => id !== userId));
     } else {
       setDmsOpen([...dmsOpen, userId]);
     }
