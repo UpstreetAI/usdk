@@ -160,7 +160,7 @@ export type TaskEventData = {
   agent: ActiveAgentObject;
   task: TaskObject;
 };
-export interface TaskEvent extends MessageEvent {
+export interface TaskEvent extends ExtendableMessageEvent {
   data: TaskEventData;
 }
 
@@ -229,26 +229,35 @@ export type TaskResult = {
 export type TaskProps = {
   id: any;
   handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
+  onDone?: (e: TaskEvent) => void | Promise<void>;
 };
 
-// type AgentConsole = {
-//   log: (args: Array<any>) => void;
-//   warn: (args: Array<any>) => void;
-// };
+//
+
+export type NameProps = {
+  children: string;
+};
+export type PersonalityProps = {
+  children: string;
+};
+
+//
 
 export type ServerProps = {
   children: ReactNode | (() => void);
 };
 
-export type SdkDefaultComponentArgs = {
-  DefaultAgentComponents: FC<void>;
-  DefaultActions: FC<void>;
-  DefaultPrompts: FC<void>;
-  DefaultParsers: FC<void>;
-  DefaultPerceptions: FC<void>;
-  // DefaultSchedulers: FC<void>;
-  DefaultServers: FC<void>;
-};
+//
+
+// export type SdkDefaultComponentArgs = {
+//   DefaultAgentComponents: FC<void>;
+//   DefaultActions: FC<void>;
+//   DefaultPrompts: FC<void>;
+//   DefaultParsers: FC<void>;
+//   DefaultPerceptions: FC<void>;
+//   // DefaultSchedulers: FC<void>;
+//   DefaultServers: FC<void>;
+// };
 
 // contexts
 
@@ -267,13 +276,13 @@ type Chat = {
 export type AppContextValue = {
   // UserCompartment: new (...args: any[]) => Compartment;
 
-  Agent: FC<AgentProps>;
-  Action: FC<ActionProps>;
-  Prompt: FC<PromptProps>;
-  Formatter: FC<FormatterProps>;
-  Parser: FC<ParserProps>;
-  Perception: FC<PerceptionProps>;
-  Server: FC<ServerProps>;
+  // Agent: FC<AgentProps>;
+  // Action: FC<ActionProps>;
+  // Prompt: FC<PromptProps>;
+  // Formatter: FC<FormatterProps>;
+  // Parser: FC<ParserProps>;
+  // Perception: FC<PerceptionProps>;
+  // Server: FC<ServerProps>;
 
   subtleAi: SubtleAi;
 
@@ -282,13 +291,20 @@ export type AppContextValue = {
   useScene: () => SceneObject;
   useAgents: () => Array<AgentObject>;
   useCurrentAgent: () => ActiveAgentObject;
+
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
+
+  useNames: () => Array<NameProps>;
+  usePersonalities: () => Array<PersonalityProps>;
+  
+  useName: () => string;
+  usePersonality: () => string;
+
   useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
+
   useTts: (ttsArgs: TtsArgs) => Tts;
   useChat: (chatArgs: ChatArgs) => Chat;
-
-  // useLoad: (p: Promise<any>) => void;
 
   registerAgent: (key: symbol, props: AgentProps) => void;
   unregisterAgent: (key: symbol) => void;
@@ -302,10 +318,16 @@ export type AppContextValue = {
   unregisterParser: (key: symbol) => void;
   registerPerception: (key: symbol, props: PerceptionProps) => void;
   unregisterPerception: (key: symbol) => void;
-  registerServer: (key: symbol, props: ServerProps) => void;
-  unregisterServer: (key: symbol) => void;
   registerTask: (key: symbol, props: TaskProps) => void;
   unregisterTask: (key: symbol) => void;
+
+  registerName: (key: symbol, props: NameProps) => void;
+  unregisterName: (key: symbol) => void;
+  registerPersonality: (key: symbol, props: PersonalityProps) => void;
+  unregisterPersonality: (key: symbol) => void;
+
+  registerServer: (key: symbol, props: ServerProps) => void;
+  unregisterServer: (key: symbol) => void;
   
   isEnabled: () => boolean;
   
