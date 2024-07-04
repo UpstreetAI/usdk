@@ -5,6 +5,8 @@ import {
   ActiveAgentObject,
   ActionProps,
   FormatterProps,
+  NameProps,
+  PersonalityProps,
   ActionMessages,
   ActionHistoryQuery,
   ChatArgs,
@@ -30,6 +32,7 @@ export const useCurrentAgent: () => ActiveAgentObject = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useCurrentAgent();
 };
+
 export const useActions: () => Array<ActionProps> = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useActions();
@@ -38,10 +41,30 @@ export const useFormatters: () => Array<FormatterProps> = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useFormatters();
 };
+
+export const useNames: () => Array<NameProps> = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useNames();
+};
+export const usePersonalities: () => Array<PersonalityProps> = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.usePersonalities();
+};
+
+export const useName: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useName();
+};
+export const usePersonality: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.usePersonality();
+};
+
 export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useActionHistory(opts);
 };
+
 export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useTts(opts);

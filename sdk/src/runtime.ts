@@ -45,7 +45,8 @@ import type {
   ParserProps,
   PerceptionProps,
   TaskProps,
-  // SchedulerProps,
+  NameProps,
+  PersonalityProps,
   ServerProps,
   UserHandler,
   TtsArgs,
@@ -101,7 +102,7 @@ class ErrorBoundary extends React.Component<
     hasError: boolean;
   }
 > {
-  props: ChildrenProps;
+  localProps: ChildrenProps;
   state: {
     hasError: boolean,
   } = {
@@ -109,7 +110,7 @@ class ErrorBoundary extends React.Component<
   };
   constructor(props: ChildrenProps) {
     super(props);
-    this.props = props;
+    this.localProps = props;
     this.state = { hasError: false };
   }
 
@@ -129,7 +130,7 @@ class ErrorBoundary extends React.Component<
       return React.createElement(React.Fragment);
     }
 
-    return this.props.children;
+    return this.localProps.children;
   }
 }
 const ConfigurationComponent = ({
@@ -170,14 +171,14 @@ const AppComponent = (props: any) => {
     // needDefaultPerceptions,
     // needDefaultSchedulers,
     // needDefaultServers,
-    ...rest
+    // ...rest
   } = props;
 
   React.useEffect(() => {
     topLevelRenderPromise.resolve(null);
   }, [topLevelRenderPromise]);
 
-  const children = [React.createElement(userRender, rest)];
+  const children = [React.createElement(userRender/*, rest*/)];
   // if (needDefaultActions) {
   //   children.push(React.createElement(DefaultComponents.DefaultActions));
   // }
@@ -275,6 +276,10 @@ export class AgentRenderer {
   parserRegistry: Map<symbol, ParserProps> = new Map();
   perceptionRegistry: Map<symbol, PerceptionProps> = new Map();
   taskRegistry: Map<symbol, TaskProps> = new Map();
+
+  nameRegistry: Map<symbol, NameProps> = new Map();
+  personalityRegistry: Map<symbol, PersonalityProps> = new Map();
+
   serverRegistry: Map<symbol, ServerProps> = new Map();
 
   rendered: boolean = false;
@@ -330,6 +335,8 @@ export class AgentRenderer {
       parserRegistry,
       perceptionRegistry,
       taskRegistry,
+      nameRegistry,
+      personalityRegistry,
       serverRegistry,
     } = this;
 
@@ -341,13 +348,13 @@ export class AgentRenderer {
     const appContextValue: AppContextValue = {
       // userRender,
 
-      Agent,
-      Action,
-      Formatter,
-      Prompt,
-      Parser,
-      Perception,
-      Server,
+      // Agent,
+      // Action,
+      // Formatter,
+      // Prompt,
+      // Parser,
+      // Perception,
+      // Server,
 
       subtleAi,
 
@@ -370,6 +377,24 @@ export class AgentRenderer {
       },
       useFormatters: () => {
         return makeEpochUse(() => Array.from(formatterRegistry.values()))();
+      },
+
+      useNames: () => {
+        return makeEpochUse(() => Array.from(nameRegistry.values()))();
+      },
+      usePersonalities: () => {
+        return makeEpochUse(() => Array.from(personalityRegistry.values()))();
+      },
+
+      useName: () => {
+        const currentAgent = this.getCurrentAgent();
+        const names = Array.from(nameRegistry.values());
+        return names.length > 0 ? names[0].children : currentAgent.name;
+      },
+      usePersonality: () => {
+        const currentAgent = this.getCurrentAgent();
+        const personalities = Array.from(personalityRegistry.values());
+        return personalities.length > 0 ? personalities[0].children : currentAgent.bio;
       },
 
       useActionHistory: (query?: ActionHistoryQuery) => {
@@ -447,7 +472,7 @@ export class AgentRenderer {
         };
       },
 
-      // useLoad: renderLoader.useLoad.bind(renderLoader),
+      //
 
       registerAgent: (key: symbol, props: AgentProps) => {
         agentRegistry.set(key, props);
@@ -455,6 +480,8 @@ export class AgentRenderer {
       unregisterAgent: (key: symbol) => {
         agentRegistry.delete(key);
       },
+
+      //
 
       registerAction: (key: symbol, props: ActionProps) => {
         actionRegistry.set(key, props);
@@ -492,12 +519,23 @@ export class AgentRenderer {
       unregisterTask: (key: symbol) => {
         taskRegistry.delete(key);
       },
-      // registerScheduler: (key: symbol, props: SchedulerProps) => {
-      //   schedulerRegistry.set(key, props);
-      // },
-      // unregisterScheduler: (key: symbol) => {
-      //   schedulerRegistry.delete(key);
-      // },
+
+      //
+
+      registerName: (key: symbol, props: NameProps) => {
+        nameRegistry.set(key, props);
+      },
+      unregisterName: (key: symbol) => {
+        nameRegistry.delete(key);
+      },
+      registerPersonality: (key: symbol, props: PersonalityProps) => {
+        personalityRegistry.set(key, props);
+      },
+      unregisterPersonality: (key: symbol) => {
+        personalityRegistry.delete(key);
+      },
+
+      //
 
       registerServer: (key: symbol, props: ServerProps) => {
         serverRegistry.set(key, props);
