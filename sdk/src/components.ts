@@ -17,7 +17,8 @@ import type {
   ParserProps,
   PerceptionProps,
   TaskProps,
-  // SchedulerProps,
+  NameProps,
+  PersonalityProps,
   ServerProps,
 } from './types';
 import {
@@ -189,7 +190,10 @@ export const Task: React.FC<TaskProps> = (props: TaskProps) => {
 
   return null;
 };
-/* export const Scheduler: React.FC<SchedulerProps> = (props: SchedulerProps) => {
+
+//
+
+export const Name: React.FC<NameProps> = (props: NameProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
   // bind to app context
   const appContext = (useContext(AppContext) as unknown) as AppContextValue;
@@ -197,14 +201,30 @@ export const Task: React.FC<TaskProps> = (props: TaskProps) => {
     // console.log('Schedule component useEffect', props, appContext);
     return () => {
       // console.log('Schedule component cleanup', props, appContext);
-      appContext.unregisterScheduler(symbol);
+      appContext.unregisterName(symbol);
     };
   }, [appContext]);
-
-  appContext.registerScheduler(symbol, props);
+  appContext.registerName(symbol, props);
 
   return null;
-}; */
+};
+export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps) => {
+  const [symbol, setSymbol] = useState(makeSymbol);
+  // bind to app context
+  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  useEffect(() => {
+    // console.log('Schedule component useEffect', props, appContext);
+    return () => {
+      // console.log('Schedule component cleanup', props, appContext);
+      appContext.unregisterPersonality(symbol);
+    };
+  }, [appContext]);
+  appContext.registerPersonality(symbol, props);
+
+  return null;
+};
+
+//
 
 export const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const [symbol, setSymbol] = useState(makeSymbol);
