@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 import puppeteer from '@cloudflare/puppeteer';
-import type { ZodTypeAny } from 'zod';
+// import type { ZodTypeAny } from 'zod';
 import { zodToTs, printNode } from 'zod-to-ts';
 import type {
   AppContextValue,
@@ -23,7 +23,6 @@ import type {
   ActiveAgentObject,
   PendingActionEvent,
   ActionMessage,
-  SdkDefaultComponentArgs,
 } from './types';
 import {
   AppContext,
@@ -41,7 +40,21 @@ import {
   // Scheduler,
   Server,
 } from './components';
-import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useFormatters, useActionHistory, useTts, useChat } from './hooks';
+import {
+  useCurrentAgent,
+  useAuthToken,
+  useAgents,
+  useScene,
+  useActions,
+  useFormatters,
+  // useNames,
+  useName,
+  // usePersonalities,
+  usePersonality,
+  useActionHistory,
+  useTts,
+  useChat,
+} from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
 
@@ -223,7 +236,7 @@ export const DefaultPrompts = () => {
     <>
       <DefaultHeaderPrompt />
       <ScenePrompt scene={scene} />
-      <CharactersPrompt agents={agents} />
+      <CharactersPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsFormatPrompt actions={actions} formatters={formatters} />
       <RecentChatHistoryJsonPrompt />
@@ -252,25 +265,35 @@ export const ScenePrompt = ({ scene }: { scene: SceneObject }) => {
     </Prompt>
   );
 };
-export const CharactersPrompt = ({
-  agents,
-}: {
-  agents: Array<AgentObject>;
-}) => {
+const formatAgent = (agent: any) => {
+  return `Name: ${agent.name}\n` +
+    // `UserId: ${agent.id}\n` +
+    `Bio: ${agent.bio}`;
+};
+export const CharactersPrompt = () => {
+  const agents = useAgents();
+  const name = useName();
+  const bio = usePersonality();
+  const currentAgentSpec = {
+    name,
+    // id,
+    bio,
+  };
+
   return (
     <Prompt>
       {dedent`
-        # Characters
+        # Your Character
       ` +
-        '\n' +
+        '\n\n' +
+        formatAgent(currentAgentSpec) +
+        '\n\n' +
+        dedent`
+          # Other Characters
+        ` +
+        '\n\n' +
         agents
-          .map((agent) => {
-            return dedent`
-              Name: ${agent.name}
-              UserId: ${agent.id}
-              Bio: ${agent.bio}
-            `;
-          })
+          .map(formatAgent)
           .join('\n\n')}
     </Prompt>
   );
@@ -368,7 +391,7 @@ export const RecentChatHistoryJsonPrompt = () => {
                 .map((action) => {
                   const { userId, name, method, args, timestamp } = action;
                   const j = {
-                    userId,
+                    // userId,
                     name,
                     method,
                     args,
@@ -397,14 +420,14 @@ export const InstructionsJsonPrompt = ({
     <Prompt>
       {dedent`
         # Instructions
-        Respond with the next action for ${agent.name} (${JSON.stringify(agent.id)}).
+        Respond with the next action taken by your character: ${agent.name}
         The method/args of your response must match one of the allowed actions.
       `}
     </Prompt>
   );
 };
 
-export const Personality = ({
+/* export const Personality = ({
   children,
 }: {
   children: React.ReactNode;
@@ -414,11 +437,11 @@ export const Personality = ({
     <Prompt>
       {dedent`
         # Additional note
-        ${currentAgent.id} (${currentAgent.name}) has the following personality:
+        ${currentAgent.name} has the following personality:
       ` + children}
     </Prompt>
   );
-};
+}; */
 
 // parsers
 
