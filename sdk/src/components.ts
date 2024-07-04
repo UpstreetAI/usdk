@@ -371,18 +371,18 @@ export class ActiveAgentObject extends AgentObject {
 }
 export class TaskObject {
   id: any;
-  name: string;
-  description: string;
+  // name: string;
+  // description: string;
   timestamp: Date;
   constructor({
     id = null,
-    name = '',
-    description = '',
+    // name = '',
+    // description = '',
     timestamp = new Date(0),
   } = {}) {
     this.id = id;
-    this.name = name;
-    this.description = description;
+    // this.name = name;
+    // this.description = description;
     this.timestamp = timestamp;
   }
 }
