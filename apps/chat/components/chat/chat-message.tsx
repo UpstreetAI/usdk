@@ -50,8 +50,8 @@ export function ChatMessage({
   return (
     <div>
       <div className={'relative grid grid-cols-message bt-0'}>
-        {popoverUserId && (
-          <div className="absolute top-6 left-16 p-2 flex flex-col bg-background border rounded">
+        {(popoverUserId === playerSpec.id) && (
+          <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
               href={`/agents/${playerSpec.name}`}
