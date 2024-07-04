@@ -21,7 +21,7 @@ export class NetworkedCrdtClient extends EventTarget {
 
     this.doc = new Y.Doc();
     if (initialUpdate) {
-      Y.applyUpdateV2(this.doc, initialUpdate);
+      Y.applyUpdateV2(this.doc, initialUpdate, 'constructor');
     }
     this.doc.on('updateV2', (update, origin, doc) => {
       this.dispatchEvent(new MessageEvent('update', {
