@@ -1122,21 +1122,14 @@ export class AgentRenderer {
     const {
       userRender,
       appContextValue,
-      conversationContext,
-      wallets,
-
-      // actionRegistry,
-      // promptRegistry,
-      // parserRegistry,
-      // perceptionRegistry,
-      // schedulerRegistry,
-      // serverRegistry,
+      // conversationContext,
+      // wallets,
     } = this;
 
-    const scene = conversationContext.getScene();
-    const currentAgent = conversationContext.getCurrentAgent();
-    const agents = conversationContext.getAgents().concat([currentAgent]);
-    const messages = conversationContext.getMessages();
+    // const scene = conversationContext.getScene();
+    // const currentAgent = conversationContext.getCurrentAgent();
+    // const agents = conversationContext.getAgents().concat([currentAgent]);
+    // const messages = conversationContext.getMessages();
 
     this.epochValue++;
 
@@ -1146,12 +1139,12 @@ export class AgentRenderer {
       appContextValue,
       epochValue: this.epochValue,
       topLevelRenderPromise: null,
-      scene,
-      agents,
-      currentAgent,
-      messages,
-      wallets,
-      DefaultComponents,
+      // scene,
+      // agents,
+      // currentAgent,
+      // messages,
+      // wallets,
+      // DefaultComponents,
       // needDefaultActions: false,
       // needDefaultPrompts: false,
       // needDefaultParsers: false,
@@ -1454,8 +1447,8 @@ export const compileUserAgentTasks = async ({
         //   id,
         // });
         const task = ensureTask(id);
-        task.name = taskProps.name;
-        task.description = taskProps.description;
+        // task.name = taskProps.name;
+        // task.description = taskProps.description;
         // console.log('got task props id 2', {
         //   id,
         //   name: task.name,
