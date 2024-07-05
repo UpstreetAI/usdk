@@ -7,7 +7,6 @@ import { ConversationContext } from './src/classes/conversation-context';
 import { Player } from './src/classes/player';
 // import { AgentConsole } from './src/classes/agent-console.mjs';
 import { AgentRenderer } from './src/runtime.ts';
-// import nudgeHandler from './src/routes/nudge.ts';
 import serverHandler from './src/routes/server.ts';
 // import renderUserAlarm from './src/renderers/alarm.ts';
 import renderUserTasks from './src/renderers/task.ts';
@@ -135,7 +134,6 @@ export class DurableObject extends EventTarget {
     _bindConversationContext();
 
     this.incomingMessageQueueManager = new QueueManager();
-    // this.nudgeQueueManager = new QueueManager();
 
     const mnemonic = env.WALLET_MNEMONIC;
     const wallets = getConnectedWalletsFromMnemonic(mnemonic);
@@ -162,10 +160,7 @@ export class DurableObject extends EventTarget {
     return this.loadPromise;
   }
 
-  // get the currently configured guid, with check
-  getGuid() {
-    return this.env.GUID;
-  }
+  
 
   setRealms(realms) {
     this.realms = realms;
@@ -186,9 +181,6 @@ export class DurableObject extends EventTarget {
 
     const virtualWorld = realms.getVirtualWorld();
     const virtualPlayers = realms.getVirtualPlayers();
-
-    // const pingRate = 10 * 1000;
-    // let pingInterval = null;
 
     const cleanupFns = [];
     const cleanup = () => {
@@ -218,36 +210,12 @@ export class DurableObject extends EventTarget {
               },
               {},
             );
-            // const transformAndTimestamp = localTransformAndTimestamp;
-            // localPlayer.position.toArray(transformAndTimestamp, 0);
-            // localPlayer.quaternion.toArray(transformAndTimestamp, 3);
-            // localPlayer.scale.toArray(transformAndTimestamp, 7);
-            // const now = performance.now();
-            // transformAndTimestamp[10] = now;
-            // this.realms.localPlayer.setKeyValue('transform', transformAndTimestamp);
-            // this.realms.localPlayer.setKeyValue('velocity', [0, 0, 0, 0]);
-            // const avatarPoseBuffer = localPlayer.avatarPose ?
-            //   localPlayer.avatarPose.serialize(localAvatarPoseBuffer)
-            // :
-            //   null;
-            // this.realms.localPlayer.setKeyValue('avatarPose', avatarPoseBuffer);
-            // this.realms.localPlayer.setKeyValue('voiceSpec', localPlayer.playerMap.get('voiceSpec'));
             realms.localPlayer.setKeyValue(
               'playerSpec',
               localPlayer.getPlayerSpec(),
             );
           };
           _pushInitialPlayer();
-
-          // const _bindPing = () => {
-          //   pingInterval = setInterval(() => {
-          //     realms.sendChatMessage({
-          //       method: 'ping',
-          //       args: {},
-          //     });
-          //   }, pingRate);
-          // };
-          // _bindPing();
 
           connectPromise.resolve();
         })(),
@@ -289,17 +257,6 @@ export class DurableObject extends EventTarget {
           console.warn('remote player not found', playerId);
           debugger;
         }
-
-        /* const agentJson = this.getAgentJson();
-        const leaveMessage = {
-          userId: guid,
-          method: 'leave',
-          name: agentJson.name,
-          args: {
-            playerId,
-          },
-        };
-        await this.conversationContext.addLocalAndRemoteMessage(leaveMessage); */
       });
     };
     _trackRemotePlayers();
@@ -311,26 +268,6 @@ export class DurableObject extends EventTarget {
         if (!message.hidden) {
           this.conversationContext.addLocalMessage(message);
         }
-
-        /* const { method, args } = message;
-        switch (method) {
-          // case 'say': {
-          //   // console.log('got say 1', args);
-          //   await this.nudge();
-          //   // console.log('got say 2', args);
-          //   break;
-          // }
-          case 'nudge': {
-            const { targetPlayerId } = args;
-            if (targetPlayerId === guid) {
-              await this.nudge();
-            }
-            break;
-          }
-          default: {
-            break;
-          }
-        } */
       };
       realms.addEventListener('chat', async (e) => {
         try {
@@ -373,52 +310,15 @@ export class DurableObject extends EventTarget {
     }
   }
 
+  getGuid() {
+    return this.env.GUID;
+  }
   getAgentJson() {
     const agentJsonString = this.env.AGENT_JSON;
     const agentJson = JSON.parse(agentJsonString);
     return agentJson;
   }
 
-  /* // nudge the agent to think
-  async nudge() {
-    return await this.nudgeQueueManager.waitForTurn(async () => {
-      try {
-        await this.typing(async () => {
-          // console.log('nudge 1');
-          await nudgeHandler(this.agentRenderer);
-          // console.log('nudge 2');
-
-          return new Response(JSON.stringify({
-            ok: true,
-          }), {
-            headers: {
-              ...headers,
-              'Content-Type': 'application/json',
-            },
-          });
-        });
-      } catch (err) {
-        console.warn(err.stack);
-
-        const j = {
-          error: err.stack,
-        };
-        const errorMessage = new MessageEvent('error', {
-          data: j,
-        });
-        this.dispatchEvent(errorMessage);
-
-        const s = JSON.stringify(j);
-        return new Response(s, {
-          status: 500,
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-          },
-        });
-      }
-    });
-  } */
   async handleUserAgentServerRequest(request) {
     const serverResponse = await serverHandler(request, this.agentRenderer);
     const arrayBuffer = await serverResponse.arrayBuffer();
@@ -446,9 +346,6 @@ export class DurableObject extends EventTarget {
         const subpath = match[1];
         const guid = this.getGuid();
 
-        // store the guid for later calls to reference
-        // await this.setGuid(guid);
-
         const handleAgentJson = async () => {
           const agentJson = this.getAgentJson();
           const s = JSON.stringify(agentJson);
@@ -475,25 +372,6 @@ export class DurableObject extends EventTarget {
             // and allowing the WebSocket to send and receive messages.
             server.accept();
 
-            /* // ongoing tick messages
-            let interval = null;
-            {
-              let i = 0;
-              interval = setInterval(() => {
-                const j = {
-                  method: 'tick',
-                  args: {
-                    guid,
-                    tick: i++,
-                    source: 'ws',
-                  },
-                };
-                // console.log('websocket tick', j);
-                const s = JSON.stringify(j);
-                server.send(s);
-              }, pingRate);
-            } */
-
             // input from the websocket
             server.addEventListener('message', async (event) => {
               const j = JSON.parse(event.data);
@@ -510,10 +388,6 @@ export class DurableObject extends EventTarget {
                   await this.leave();
                   break;
                 }
-                // case 'nudge': {
-                //   await this.nudge();
-                //   break;
-                // }
               }
             });
 
@@ -574,25 +448,6 @@ export class DurableObject extends EventTarget {
             // clearInterval(interval);
           };
 
-          /* // ongoing tick messages
-          let interval = null;
-          {
-            let i = 0;
-            interval = setInterval(() => {
-              const j = {
-                guid,
-                tick: i++,
-                source: 'events',
-              };
-              // console.log('emit tick');
-              self.dispatchEvent(
-                new MessageEvent('message', {
-                  data: j,
-                }),
-              );
-            }, pingRate);
-          } */
-
           // response stream
           let controller = null;
           const readable = new ReadableStream({
@@ -632,31 +487,6 @@ export class DurableObject extends EventTarget {
             }), {
               headers,
             });
-          /* } else if (request.method === 'POST') {
-            const j = await request.json();
-
-            const _updateEnabled = async () => {
-              const { enabled } = j ?? {};
-              if (typeof enabled === 'boolean') {
-                if (enabled) {
-                  await this.state.storage.put('enabled', true);
-                  this.agentRenderer.setEnabled(true);
-
-                  // refresh the scheduler
-                  await this.schedule();
-                } else {
-                  await this.state.storage.delete('enabled');
-                  this.agentRenderer.setEnabled(false);
-
-                  console.log(`disable alarm ${guid}`);
-                  this.state.storage.deleteAlarm();
-                }
-              }
-            };
-            await _updateEnabled();
-            return new Response(JSON.stringify({ ok: true }), {
-              headers,
-            }); */
           } else {
             return new Response(JSON.stringify({
               error: 'method not allowed',
@@ -666,9 +496,6 @@ export class DurableObject extends EventTarget {
             });
           }
         };
-        // const handleNudge = async () => {
-        //   await this.nudge();
-        // };
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
@@ -722,8 +549,6 @@ export class DurableObject extends EventTarget {
             return await handleEvents();
           case 'status':
             return await handleStatus();
-          // case 'nudge':
-          //   return await handleNudge();
           case 'join':
             return await handleJoin();
           case 'leave':
@@ -747,29 +572,6 @@ export class DurableObject extends EventTarget {
       });
     }
   }
-  /* async schedule() {
-    // wait for the agent to be loaded
-    // console.log('schedule 1');
-    await this.waitForLoad();
-    // console.log('schedule 2');
-
-    // render the agent's timeout spec
-    const alarmSpec = await renderUserAlarm(this.agentRenderer);
-    const {
-      perceptionRegistry,
-      timeout,
-    } = alarmSpec;
-
-    // set the next alarm
-    if (isFinite(timeout)) {
-      this.state.storage.setAlarm(timeout);
-    // } else {
-    //   console.warn(
-    //     'invalid alarm timeout -- must be a number',
-    //     alarmSpec,
-    //   );
-    }
-  } */
   async updateTasks() {
     // console.log('update tasks');
     const taskUpdater = await renderUserTasks(this.agentRenderer);
@@ -782,30 +584,5 @@ export class DurableObject extends EventTarget {
   }
   async alarm() {
     await this.updateTasks();
-
-    /* // handle the alarm
-    const [guid, enabled] = await Promise.all([
-      this.getGuid(),
-      this.state.storage.get('enabled'),
-    ]);
-    if (enabled) {
-      console.log('alarm for guid', {
-        guid,
-      });
-
-      // trigger the next message
-      const messageResponse = await this.nudge();
-      if (messageResponse.ok) {
-        const message = await messageResponse.json();
-        console.log('got alarm message', JSON.stringify(message, null, 2));
-      } else {
-        throw new Error(`got alarm message error ${messageResponse.status}`);
-      }
-
-      // schedule the next alarm
-      await this.schedule();
-    } else {
-      console.warn(`skipping spurious alarm for guid ${guid} enabled ${enabled}`);
-    } */
   }
 }
