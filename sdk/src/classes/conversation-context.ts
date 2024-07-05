@@ -1,11 +1,11 @@
 import {
-  SceneObject,
   AgentObject,
   ActiveAgentObject,
   ActionMessage,
   // ActionMessages,
   MessageFilter,
 } from '../types'
+import { SceneObject } from '../components';
 import { Player } from './player';
 
 export class ConversationContext extends EventTarget {
@@ -14,14 +14,14 @@ export class ConversationContext extends EventTarget {
   #currentAgent: object | null;
   #messages: ActionMessage[];
   constructor({
-    scene = null,
+    scene = new SceneObject(),
     agentsMap = new Map(),
-    currentAgent = null,
+    currentAgent = {},
     messages = [],
   }: {
-    scene?: SceneObject | null,
+    scene?: SceneObject,
     agentsMap?: Map<string, Player>,
-    currentAgent?: object | null,
+    currentAgent?: object,
     messages?: ActionMessage[],
   } = {}) {
     super();

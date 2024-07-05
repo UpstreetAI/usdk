@@ -167,6 +167,7 @@ export interface TaskEvent extends ExtendableMessageEvent {
 // scenes
 
 export interface SceneObject extends EventTarget {
+  name: string;
   description: string;
 }
 

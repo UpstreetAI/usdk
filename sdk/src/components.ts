@@ -259,11 +259,15 @@ export class ExtendableMessageEvent extends MessageEvent<object> {
   }
 }
 export class SceneObject extends EventTarget {
+  name: string;
   description: string;
   constructor({
-    description = 'A parallel virtual world populated by humans + AIs',
-  }) {
+    name = '',
+    description = '',
+  } = {}) {
     super();
+
+    this.name = name;
     this.description = description;
   }
 }
