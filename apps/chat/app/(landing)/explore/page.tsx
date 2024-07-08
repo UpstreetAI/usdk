@@ -1,6 +1,7 @@
 "use client";
 
 import Icon from '@/components/ui/icon';
+import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 
 const slides = [
@@ -100,7 +101,7 @@ const Carousel = () => {
 
 const Button = () => {
   return (
-    <button className="bg-[#FF38AE] relative font-black flex h-fit px-12 py-8 items-center justify-center text-center border-none font-sans text-2xl rounded-[calc(2rem*0.6)] p-[calc(2rem*0.5)] m-0 leading-none text-white shadow-[inset_0_0_0_0_rgba(248,249,255,0.5),inset_0_0_0_0_rgba(248,249,255,0.3),0_0_0_rgba(248,249,255,0.2)] transition-all ease-[0.2s] hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] group">
+    <button className="bg-[#FF38AE] relative font-black flex h-fit px-6 md:px-12 py-4 md:py-8 items-center justify-center text-center border-none font-sans text-2xl rounded-[calc(2rem*0.6)] p-[calc(2rem*0.5)] m-0 leading-none text-white shadow-[inset_0_0_0_0_rgba(248,249,255,0.5),inset_0_0_0_0_rgba(248,249,255,0.3),0_0_0_rgba(248,249,255,0.2)] transition-all ease-[0.2s] hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] group">
       CHAT NOW
       <Icon name='arrowRight' className='flex group-hover:translate-x-1 ml-2 transition-all' />
 
@@ -118,10 +119,10 @@ const Page = () => {
 
     {/* Banner */}
 
-    <div className="relative -mt-16 top-16 left-0 z-60 overflow-visible !aspect-[2] w-screen h-auto flex select-none" 
+    <div className="relative -mt-16 mb-16 top-16 left-0 z-60 overflow-visible !aspect-[2] md:!aspect-[3] w-screen h-auto flex select-none" 
     style={{
       // background: 'radial-gradient(108.15% 725.07% at 100% 0%, rgba(21, 21, 21, 0.42) 0%, #151515 100%), #FF38AE',
-      backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.73)), 
+      backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)), 
       url("/images/chatbackground.png")`,
       backgroundSize: 'cover',
       backgroundRepeat: 'no-repeat',
@@ -131,26 +132,61 @@ const Page = () => {
     >
       {/* <div className='absolute top-0 left-0 w-full h-full'> */}
 
-      <div className='h-full w-full flex md:justify-center md:items-start items-end flex-col pt-20 md:pt-0 px-10 md:px-40 gap-2'>
-        <div className='flex justify-center items-start flex-col -gap-2'>
-          <span className="text-4xl font-bold">Chat with</span>
-          <span className="text-9xl font-['Impact'] -mt-3">LUCY</span>
+      <div className='md:z-1 z-10 drop-shadow-lg md:drop-shadow-none h-full w-full flex md:justify-center md:items-start items-end flex-col py-10 md:pt-20 md:pt-0 px-10 md:px-40 gap-2'>
+        <div className='  flex justify-center items-start flex-col -gap-2'>
+          <span className="text-4xl md:text-[2vw] font-bold">Chat with</span>
+          <span className="text-9xl md:text-[10vw] font-['Impact'] -mt-3">LUCY</span>
         </div>
 
           <span className="text-xl pb-3">Your guide to the Upstreet world.</span>
 
         <Button />
       </div>
-      <img className='absolute z-60 bottom-0 right-28 h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none' src="/images/avatar.png" />
+      <img className='absolute z-0 bottom-0 right-0 md:right-28 -left-8 md:left-auto transition-all h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none' src="/images/avatar.png" />
       {/* </div> */}
     </div>
 
-  <section className='w-full py-3 px-12'>
-    <span className='uppercase text-3xl font-black italic py-14'>From Upstreet</span>
-    <div className='h-fit w-full'>
+  <section className='w-full py-8 px-12 h-full flex gap-2 flex-col'>
+    <Link href="#" className='w-fit px-2 py-1 flex flex-row justify-center items-center hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] mb-2 rounded-lg'>
+      <span className='uppercase text-2xl font-black italic flex flex-row items-center group w-fit'>News <Icon name='arrowRight' className='flex group-hover:translate-x-1 ml-2 transition-all' /></span>
+    </Link>
+    <div className='h-fit w-full flex flex-row gap-4'>
       <Carousel />
+      <Link href="#">
+        <div className='rounded-3xl w-80 h-64 flex flex-col bg-black hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]'>
+          hello
+        </div>
+      </Link>
+      <Link href="#">
+        <div className='rounded-3xl w-80 h-64 flex flex-col bg-black hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]'>
+          hello
+        </div>
+      </Link>
     </div>
     </section>
+
+    <section className='w-full py-2 h-full flex gap-2 flex-col'>
+    <span className='uppercase pl-12 text-2xl font-black italic mb-2 px-2 py-1'>From Upstreet</span>
+    <div className='h-fit w-full flex flex-row gap-4'>
+      <Link href="#">
+        <div className='rounded-3xl ml-12 w-80 h-64 flex flex-col bg-black hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]'>
+          hello
+        </div>
+      </Link>
+      <Link href="#">
+        <div className='rounded-3xl w-80 h-64 flex flex-col bg-black hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]'>
+          hello
+        </div>
+      </Link>
+      <Link href="#">
+        <div className='rounded-3xl w-80 h-64 flex flex-col bg-black hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]'>
+          hello
+        </div>
+      </Link>
+    </div>
+    </section>
+
+
 
     </div>
   );
