@@ -1,5 +1,6 @@
 "use client";
 
+import Icon from '@/components/ui/icon';
 import React, { useEffect, useState } from 'react';
 
 const slides = [
@@ -101,9 +102,7 @@ const Button = () => {
   return (
     <button className="bg-[#FF38AE] relative font-black flex h-fit px-12 py-8 items-center justify-center text-center border-none font-sans text-2xl rounded-[calc(2rem*0.6)] p-[calc(2rem*0.5)] m-0 leading-none text-white shadow-[inset_0_0_0_0_rgba(248,249,255,0.5),inset_0_0_0_0_rgba(248,249,255,0.3),0_0_0_rgba(248,249,255,0.2)] transition-all ease-[0.2s] hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] group">
       CHAT NOW
-      <svg className='flex group-hover:ml-3 ml-2 transition-all' width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 8H15M15 8L8 1M15 8L8 15" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+      <Icon name='arrowRight' className='flex group-hover:translate-x-1 ml-2 transition-all' />
 
       <span className="absolute h-full w-full overflow-hidden flex rounded-[calc(2rem*0.6)] z-0">
         <span className="absolute h-full w-full bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-100 group-hover:translate-x-full transition-all ease-[1s] duration-300 group-hover:duration-800"></span>
@@ -115,13 +114,19 @@ const Button = () => {
 
 const Page = () => {
   return (
-    <div className='h-screen w-full flex justify-center items-center flex-col overflow-scroll'>
+    <div className='h-fit w-full flex justify-center items-center flex-col overflow-visible'>
 
     {/* Banner */}
 
-    <div className="fixed top-16 left-0 z-60 overflow-visible !aspect-[2] w-screen h-auto flex select-none" 
+    <div className="relative -mt-16 top-16 left-0 z-60 overflow-visible !aspect-[2] w-screen h-auto flex select-none" 
     style={{
-      background: 'radial-gradient(108.15% 725.07% at 100% 0%, rgba(21, 21, 21, 0.42) 0%, #151515 100%), #FF38AE',
+      // background: 'radial-gradient(108.15% 725.07% at 100% 0%, rgba(21, 21, 21, 0.42) 0%, #151515 100%), #FF38AE',
+      backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.73)), 
+      url("/images/chatbackground.png")`,
+      backgroundSize: 'cover',
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed',
+      backgroundPosition: 'center',
     }}  
     >
       {/* <div className='absolute top-0 left-0 w-full h-full'> */}
@@ -136,16 +141,16 @@ const Page = () => {
 
         <Button />
       </div>
-      <img className='absolute z-60 bottom-0 right-28 h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none' src="https://cdn.prod.website-files.com/664c01975468c5f003a47c01/665d9ca1995c3a6e9bb0b4de_00131-712386453.png" />
+      <img className='absolute z-60 bottom-0 right-28 h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none' src="/images/avatar.png" />
       {/* </div> */}
     </div>
 
-  {/* <section className='w-full py-3 px-12'>
+  <section className='w-full py-3 px-12'>
     <span className='uppercase text-3xl font-black italic py-14'>From Upstreet</span>
     <div className='h-fit w-full'>
       <Carousel />
     </div>
-    </section> */}
+    </section>
 
     </div>
   );

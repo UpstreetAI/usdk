@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/icons'
 
 import { lembed } from '@/utils/ai/embedding';
+import Icon from './ui/icon';
 // import { getJWT } from '@/lib/jwt';
 // import { env } from '@/lib/env';
 
@@ -199,13 +200,10 @@ export function SearchBar() {
         <div className={cn('absolute opacity-0 px-8 items-center inset-y-0 right-0 flex', value && 'opacity-1')} onClick={e => {
           setValue('');
         }}>
-          <IconClose />
+          <Icon name="close" />
         </div>
         <div className={cn('px-2 items-center inset-y-0 right-0 flex opacity-1')}>
-        <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13.75 23.75C19.2728 23.75 23.75 19.2728 23.75 13.75C23.75 8.22715 19.2728 3.75 13.75 3.75C8.22715 3.75 3.75 8.22715 3.75 13.75C3.75 19.2728 8.22715 23.75 13.75 23.75Z" stroke="#B8B8B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M26.25 26.25L20.875 20.875" stroke="#B8B8B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
+          <Icon name="search" />
         </div>
 
         <input id='search' name='search' type="text" className={cn(
