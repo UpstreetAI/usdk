@@ -2514,15 +2514,20 @@ const search = async (args) => {
         )
       */
       const result = await supabase.rpc('match_assets', {
-        embedding,
+        query_embedding: embedding,
         match_threshold: 0.2,
         match_count: 10,
       });
       const { error, data } = result;
-      const assets = data.map((asset) => {
-        return `${asset.id}: ${asset.name ?? ''}: ${asset.description ?? ''}`;
-      });
-      console.log(assets.join('\n'));
+      if (!error) {
+        const assets = data.map((asset) => {
+          return `${asset.id}: ${asset.name ?? ''}: ${asset.description ?? ''}`;
+        });
+        console.log(assets.join('\n'));
+      } else {
+        console.warn(error);
+        process.exit(1);
+      }
     } else {
       throw new Error('no prompt');
     }
