@@ -501,7 +501,7 @@ export class ActiveAgentObject extends AgentObject {
       timestamp,
     };
 
-    // XXX get his from the pending action
+    // XXX get this from the pending action
     conversationContext.addLocalAndRemoteMessage(actionMessage);
     // XXX emit update method and handle externally
     await self.rerenderAsync();
