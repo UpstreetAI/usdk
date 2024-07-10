@@ -36,10 +36,12 @@ import {
   Parser,
   Perception,
   Task,
-  TaskResult,
   // Scheduler,
   Server,
 } from './components';
+import {
+  TaskResult,
+} from './classes/task-object';
 import {
   useCurrentAgent,
   useAuthToken,
@@ -227,15 +229,13 @@ export const DefaultActions = () => {
  * @returns The JSX elements representing the default prompts components.
  */
 export const DefaultPrompts = () => {
-  const scene = useScene();
-  const agents = useAgents();
   const currentAgent = useCurrentAgent();
   const actions = useActions();
   const formatters = useFormatters();
   return (
     <>
       <DefaultHeaderPrompt />
-      <ScenePrompt scene={scene} />
+      <ScenePrompt />
       <CharactersPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsFormatPrompt actions={actions} formatters={formatters} />
@@ -255,10 +255,11 @@ export const DefaultHeaderPrompt = () => {
     </Prompt>
   );
 };
-export const ScenePrompt = ({ scene }: { scene: SceneObject }) => {
+export const ScenePrompt = () => {
+  const scene = useScene();
   return (
     <Prompt>
-      {dedent`
+      {scene && dedent`
         # Scene
         ${scene.description}
       `}
@@ -287,14 +288,20 @@ export const CharactersPrompt = () => {
       ` +
         '\n\n' +
         formatAgent(currentAgentSpec) +
-        '\n\n' +
-        dedent`
-          # Other Characters
-        ` +
-        '\n\n' +
-        agents
-          .map(formatAgent)
-          .join('\n\n')}
+        (agents.length > 0
+          ? (
+            '\n\n' +
+            dedent`
+              # Other Characters
+            ` +
+            '\n\n' +
+            agents
+              .map(formatAgent)
+              .join('\n\n')
+          )
+          : ''
+        )
+      }
     </Prompt>
   );
 };
@@ -1305,7 +1312,7 @@ export const StaticServer = () => {
             const { pathname } = u;
             // XXX finish this to serve the agent's public directory
             if (pathname === '/agent.npc') {
-              const s = env.AGENT_JSON;
+              const s = (env as any).AGENT_JSON as string;
               console.log('returning agent json', { s, env });
               return new Response(s);
             } else {
