@@ -5,74 +5,93 @@ import {
   // ActionMessages,
   MessageFilter,
 } from '../types'
-import { SceneObject } from '../components';
+import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
+import {
+  loadMessagesFromDatabase,
+} from '../util/loadMessagesFromDatabase';
+
+//
+
+const LOADED_MESSAGES_LIMIT = 50
+
+//
 
 export class ConversationContext extends EventTarget {
+  // #currentAgent: object | null;
+  #agent: ActiveAgentObject;
   #scene: SceneObject | null;
   #agentsMap: Map<string, Player>;
-  #currentAgent: object | null;
+  // #room: string;
+  // #endpointUrl: string;
   #messages: ActionMessage[];
+  #loadPromise: Promise<void>;
   constructor({
-    scene = new SceneObject(),
-    agentsMap = new Map(),
-    currentAgent = {},
-    messages = [],
+    agent,
+    room,
+    endpointUrl,
   }: {
-    scene?: SceneObject,
-    agentsMap?: Map<string, Player>,
-    currentAgent?: object,
-    messages?: ActionMessage[],
-  } = {}) {
+    agent: ActiveAgentObject;
+    room: string;
+    endpointUrl: string;
+  }) {
+    if (!agent) {
+      throw new Error('ConversationContext: agent is required');
+    }
+    if (!room) {
+      throw new Error('ConversationContext: room is required');
+    }
+    if (!endpointUrl) {
+      throw new Error('ConversationContext: endpointUrl is required');
+    }
+
     super();
 
-    if (!scene) {
-      throw new Error('ConversationContext: scene is required');
-    }
-    if (!currentAgent) {
-      throw new Error('ConversationContext: currentAgent is required');
-    }
+    this.#agent = agent;
+    this.#room = room;
+    this.#endpointUrl = endpointUrl;
+    this.#messages = [];
+    this.#loadPromise = (async () => {
+      const supabase = this.#agent.useSupabase();
+      // Load messages into conversation context.
+      const messages = await loadMessagesFromDatabase(supabase, LOADED_MESSAGES_LIMIT);
+      // this.conversationContext.setMessages(messages);
+      this.#messages = messages;
+    })();
+  }
 
-    this.#scene = scene;
-    this.#agentsMap = agentsMap;
-    this.#currentAgent = currentAgent;
-    this.#messages = messages;
+  waitForLoad() {
+    return this.#loadPromise;
   }
 
   getScene() {
     return this.#scene;
   }
-
   setScene(scene) {
     this.#scene = scene;
   }
 
-  getCurrentAgent() {
+  /* getCurrentAgent() {
     return this.#currentAgent;
   }
-
   setCurrentAgent(currentAgent) {
     this.#currentAgent = currentAgent;
-  }
+  } */
 
   getAgents() {
     return Array
       .from(this.#agentsMap.values())
       .map(player => player.getPlayerSpec());
   }
-
-  getAgent(agentId) {
+  getAgent(agentId: string) {
     return this.#agentsMap.get(agentId);
   }
-
-  addAgent(agentId, agent) {
-    this.#agentsMap.set(agentId, agent);
+  addAgent(agentId: string, player: Player) {
+    this.#agentsMap.set(agentId, player);
   }
-
-  removeAgent(agentId) {
+  removeAgent(agentId: string) {
     this.#agentsMap.delete(agentId);
   }
-
   clearAgents() {
     this.#agentsMap.clear();
   }
@@ -112,14 +131,14 @@ export class ConversationContext extends EventTarget {
     return messages;
   }
 
-  setMessages( messages: ActionMessage[] ) {
+  /* setMessages( messages: ActionMessage[] ) {
     // Preserve the original reference to agent messages.
     this.#messages.length = 0;
     this.#messages.push( ...messages );
-  }
+  } */
 
   async typing(handlerAsyncFn) {
-    const agent = this.#currentAgent;
+    const agent = this.#agent;
 
     this.dispatchEvent(new MessageEvent('typingstart', {
       data: {
@@ -172,7 +191,7 @@ export class ConversationContext extends EventTarget {
       }),
     );
   }
-  clearMessages() {
+  /* clearMessages() {
     this.#messages.length = 0;
-  }
+  } */
 }
