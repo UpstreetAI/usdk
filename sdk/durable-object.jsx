@@ -1,29 +1,24 @@
 import { headers } from './src/constants.js';
-import { QueueManager } from './src/util/queue-manager.mjs';
+// import { QueueManager } from './src/util/queue-manager.mjs';
 import { makeAnonymousClient } from './src/util/supabase-client.mjs';
-import { NetworkRealms } from './src/lib/multiplayer/public/network-realms.mjs';
+// import { NetworkRealms } from './src/lib/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
-import { ConversationContext } from './src/classes/conversation-context';
-import { Player } from './src/classes/player';
-// import { AgentConsole } from './src/classes/agent-console.mjs';
-import { AgentRenderer } from './src/runtime.ts';
+// import { ConversationContext } from './src/classes/conversation-context';
+// import { Player } from './src/classes/player';
+import { AgentRenderer } from './src/classes/agent-renderer';
 import serverHandler from './src/routes/server.ts';
-// import renderUserAlarm from './src/renderers/alarm.ts';
 import renderUserTasks from './src/renderers/task.ts';
-import { ExtendableMessageEvent } from './src/components.ts';
-import { getConnectedWalletsFromMnemonic } from './src/util/ethereum-utils.mjs';
+// import { ExtendableMessageEvent } from './src/util/extendable-message-event.ts';
+// import { getConnectedWalletsFromMnemonic } from './src/util/ethereum-utils.mjs';
 
 import userRender from '../agent';
-import { makePromise } from './src/lib/multiplayer/public/util.mjs';
-import { loadMessagesFromDatabase } from './src/util/loadMessagesFromDatabase.js'
-import { saveMessageToDatabase } from './src/util/saveMessageToDatabase.js'
+// import { makePromise } from './src/lib/multiplayer/public/util.mjs';
+// import { loadMessagesFromDatabase } from './src/util/loadMessagesFromDatabase.js'
+// import { saveMessageToDatabase } from './src/util/saveMessageToDatabase.js'
 
 Error.stackTraceLimit = 300;
 
-const LOADED_MESSAGES_LIMIT = 50
-
 const textEncoder = new TextEncoder();
-// const alarmRate = 10 * 1000;
 
 //
 
@@ -31,125 +26,23 @@ const textEncoder = new TextEncoder();
 export class DurableObject extends EventTarget {
   constructor(state, env) {
     super();
-
+    
     this.state = state;
     this.env = env;
     this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
-    this.realms = null;
-    const agentJson = this.getAgentJson();
-    this.conversationContext = new ConversationContext({
-      scene: {
-        description: 'A virtual world of embodied virtual characters.',
-      },
-      currentAgent: agentJson,
-    });
 
-    const _bindConversationContext = () => {
-      // handle conversation remote message re-render
-      const onConversationContextLocalMessage = (e) => {
-        const { message, waitUntil } = e.data;
-        waitUntil((async () => {
-          await this.incomingMessageQueueManager.waitForTurn(async () => {
-            try {
-              await this.agentRenderer.rerenderAsync();
-              const {
-                perceptionRegistry,
-              } = await this.agentRenderer.ensureOutput();
-    
-              const allPerceptions = Array.from(perceptionRegistry.values());
-              const currentAgent = this.agentRenderer.getCurrentAgent();
-              const perceptionPromises = [];
-              for (const perception of allPerceptions) {
-                if (perception.type === message.method) {
-                  const e = new ExtendableMessageEvent('perception', {
-                    data: {
-                      agent: currentAgent,
-                      message,
-                    },
-                  });
-                  const p = perception.handler(e);
-                  perceptionPromises.push(p);
-                }
-              }
-              await Promise.all(perceptionPromises);
-    
-              (async () => {
-                const guid = this.getGuid();
-                await saveMessageToDatabase(this.supabase, env.AGENT_TOKEN, guid, message);
-              })().catch(err => {
-                console.warn(err.stack);
-              });
-            } catch (err) {
-              console.warn(err.stack);
-            }
-          });
-        })());
-      };
-      this.conversationContext.addEventListener(
-        'localmessage',
-        onConversationContextLocalMessage,
-      );
-
-      this.conversationContext.addEventListener('remotemessage', async (e) => {
-        if (this.realms?.isConnected()) {
-          const { message } = e.data;
-          this.realms.sendChatMessage(message);
-        }
-
-        (async () => {
-          const guid = this.getGuid();
-          await saveMessageToDatabase(this.supabase, env.AGENT_TOKEN, guid, message);
-        })();
-      });
-      this.conversationContext.addEventListener('typingstart', (e) => {
-        if (this.realms?.isConnected()) {
-          const { agent } = e.data;
-          this.realms.sendChatMessage({
-            method: 'typing',
-            userId: agent.id,
-            name: agent.name,
-            args: {
-              typing: true,
-            },
-            hidden: true,
-          });
-        }
-      });
-      this.conversationContext.addEventListener('typingstop', (e) => {
-        if (this.realms?.isConnected()) {
-          const { agent, error } = e.data;
-          this.realms.sendChatMessage({
-            method: 'typing',
-            userId: agent.id,
-            name: agent.name,
-            args: {
-              typing: false,
-              error,
-            },
-            hidden: true,
-          });
-        }
-      });
-    };
-    _bindConversationContext();
-
-    this.incomingMessageQueueManager = new QueueManager();
-
-    const mnemonic = env.WALLET_MNEMONIC;
-    const wallets = getConnectedWalletsFromMnemonic(mnemonic);
     this.agentRenderer = new AgentRenderer({
-      env: this.env,
+      env,
       userRender,
-      conversationContext: this.conversationContext,
-      wallets,
-      enabled: false,
     });
 
     this.loadPromise = (async () => {
-      // Load messages into conversation context.
-      const messages = await loadMessagesFromDatabase(this.supabase, LOADED_MESSAGES_LIMIT);
-      this.conversationContext.setMessages(messages);
+      await this.agentRenderer.rerenderAsync();
+    })().catch(err => {
+      console.warn(err);
+    });
 
+    (async () => {
       await this.updateTasks();
     })().catch(err => {
       console.warn(err);
@@ -160,155 +53,64 @@ export class DurableObject extends EventTarget {
     return this.loadPromise;
   }
 
-  
+  //
 
-  setRealms(realms) {
-    this.realms = realms;
-  }
-
-  // join a multiplayer room
   async join({
+    agentId = null,
     room,
     endpointUrl = multiplayerEndpointUrl,
   }) {
-    const guid = this.getGuid();
-
-    const realms = new NetworkRealms({
-      endpointUrl,
-      playerId: guid,
-      audioManager: null,
-    });
-
-    const virtualWorld = realms.getVirtualWorld();
-    const virtualPlayers = realms.getVirtualPlayers();
-
-    const cleanupFns = [];
-    const cleanup = () => {
-      for (const fn of cleanupFns) {
-        fn();
-      }
-    };
-    cleanupFns.push(() => {
-      this.setRealms(null);
-      this.conversationContext.clearAgents();
-    });
-
-    // Initiate network realms connection.
-    const connectPromise = makePromise();
-    const onConnect = async (e) => {
-      e.waitUntil(
-        (async () => {
-          const realmKey = e.data.rootRealmKey;
-
-          // Initialize network realms player.
-          const agentJson = this.getAgentJson();
-          const localPlayer = new Player(guid, agentJson);
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.getPlayerSpec(),
-            );
-          };
-          _pushInitialPlayer();
-
-          connectPromise.resolve();
-        })(),
-      );
-    };
-    realms.addEventListener('connect', onConnect);
-
-    // console.log('track remote players');
-    const _trackRemotePlayers = () => {
-      virtualPlayers.addEventListener('join', (e) => {
-        const { playerId, player } = e.data;
-        console.log('remote player joined:', playerId);
-
-        const remotePlayer = new Player(playerId);
-        this.conversationContext.addAgent(playerId, remotePlayer);
-
-        // apply initial remote player state
-        {
-          const playerSpec = player.getKeyValue('playerSpec');
-          if (playerSpec) {
-            remotePlayer.setPlayerSpec(playerSpec);
-          }
-        }
-        // Handle remote player state updates
-        player.addEventListener('update', (e) => {
-          const { key, val } = e.data;
-          if (key === 'playerSpec') {
-            remotePlayer.setPlayerSpec(val);
-          }
+    const promises = [];
+    const agents = Array.from(this.agentRenderer.agentRegistry.values());
+    if (agentId !== null) {
+      const agent = agents.find(a => a.id === agentId);
+      if (agent) {
+        const p = agent.join({
+          room,
+          endpointUrl,
         });
-      });
-      virtualPlayers.addEventListener('leave', async (e) => {
-        const { playerId } = e.data;
-        console.log('remote player left:', playerId);
-        const remotePlayer = this.conversationContext.getAgent(playerId);
-        if (remotePlayer) {
-          this.conversationContext.removeAgent(playerId);
-        } else {
-          console.warn('remote player not found', playerId);
-          debugger;
-        }
-      });
-    };
-    _trackRemotePlayers();
-
-    const _bindMultiplayerChat = () => {
-      console.log('bind multiplayer chat');
-
-      const handleRemoteUserMessage = async (message) => {
-        if (!message.hidden) {
-          this.conversationContext.addLocalMessage(message);
-        }
-      };
-      realms.addEventListener('chat', async (e) => {
-        try {
-          const { playerId, message } = e.data;
-          if (playerId !== guid) {
-            await handleRemoteUserMessage(message);
-          }
-        } catch (err) {
-          console.warn(err.stack);
-        }
-      });
-    };
-    _bindMultiplayerChat();
-
-    const _bindDisconnect = () => {
-      realms.addEventListener('disconnect', (e) => {
-        console.log('realms emitted disconnect');
-        cleanup();
-        // clearInterval(pingInterval);
-      });
-    };
-    _bindDisconnect();
-
-    if (this.realms) {
-      this.realms.disconnect();
+        promises.push(p);
+      } else {
+        throw new Error('agent not found');
+      }
+    } else {
+      for (const agent of agents) {
+        const p = agent.join({
+          room,
+          endpointUrl,
+        });
+        promises.push(p);
+      }
     }
-    this.setRealms(realms);
-
-    await this.realms.updateRealmsKeys({
-      realmsKeys: [room],
-      rootRealmKey: room,
-    });
-
-    await connectPromise;
+    await Promise.all(promises);
   }
-  // leave the multiplayer room
-  async leave() {
-    if (this.realms) {
-      this.realms.disconnect();
+  async leave({
+    agentId = null,
+    room,
+    endpointUrl = multiplayerEndpointUrl,
+  }) {
+    const agents = Array.from(this.agentRenderer.agentRegistry.values());
+    if (agentId !== null) {
+      const agent = agents.find(a => a.id === agentId);
+      if (agent) {
+        await agent.leave({
+          room,
+          endpointUrl,
+        });
+      } else {
+        throw new Error('agent not found');
+      }
+    } else {
+      for (const agent of agents) {
+        await agent.leave({
+          room,
+          endpointUrl,
+        });
+      }
     }
   }
+
+  //
 
   getGuid() {
     return this.env.GUID;
@@ -319,18 +121,7 @@ export class DurableObject extends EventTarget {
     return agentJson;
   }
 
-  async handleUserAgentServerRequest(request) {
-    const serverResponse = await serverHandler(request, this.agentRenderer);
-    const arrayBuffer = await serverResponse.arrayBuffer();
-    return new Response(arrayBuffer, {
-      status: serverResponse.status,
-      headers: {
-        ...headers,
-        // ...headersToObject(serverRes.headers),
-        'Content-Type': serverResponse.headers.get('Content-Type'),
-      },
-    });
-  }
+  //
 
   // Handle HTTP requests from clients.
   async fetch(request) {
@@ -385,34 +176,31 @@ export class DurableObject extends EventTarget {
                   break;
                 }
                 case 'leave': {
-                  await this.leave();
+                  await this.leave({
+                    room: args.room,
+                    endpointUrl: args.endpointUrl,
+                  });
                   break;
                 }
               }
             });
 
-            // output to the websocket
-            const onmessage = (e) => {
-              // skip recursive chat messages coming from the socket
-              server.send(JSON.stringify(e.data));
-            };
-            this.conversationContext.addEventListener('message', onmessage);
-            server.addEventListener('close', (e) => {
-              console.log('websocket close', e);
-              this.conversationContext.removeEventListener(
-                'message',
-                onmessage,
-              );
-            });
-
-            // If the client closes the connection, the runtime will also close the connection.
+            // // output to the websocket
+            // const onmessage = (e) => {
+            //   // skip recursive chat messages coming from the socket
+            //   server.send(JSON.stringify(e.data));
+            // };
+            // this.conversationContext.addEventListener('message', onmessage);
             server.addEventListener('close', (e) => {
               console.log('got websocket close', {
                 guid,
-                stack: new Error().stack,
               });
 
-              // clearInterval(interval);
+              // this.conversationContext.removeEventListener(
+              //   'message',
+              //   onmessage,
+              // );
+
               server.close(1001, 'Durable Object is closing WebSocket');
             });
 
@@ -439,13 +227,8 @@ export class DurableObject extends EventTarget {
           this.conversationContext.addEventListener('message', message);
           this.addEventListener('error', message);
           const cleanup = () => {
-            // console.log('event listener removed', {
-            //   guid,
-            // });
             this.conversationContext.removeEventListener('message', message);
             this.removeEventListener('error', message);
-
-            // clearInterval(interval);
           };
 
           // response stream
@@ -477,12 +260,10 @@ export class DurableObject extends EventTarget {
         const handleStatus = async () => {
           if (request.method === 'GET') {
             // return the enabled status as well as the room state
-            // const enabled = (await this.state.storage.get('enabled')) ?? false;
             const room = this.realms
               ? Array.from(this.realms.connectedRealms)?.[0].key ?? null
               : null;
             return new Response(JSON.stringify({
-              // enabled,
               room,
             }), {
               headers,
@@ -506,17 +287,6 @@ export class DurableObject extends EventTarget {
               endpointUrl,
             });
 
-            /* const agentJson = this.getAgentJson();
-            const joinMessage = {
-              userId: guid,
-              method: 'join',
-              name: agentJson.name,
-              args: {
-                playerId: guid,
-              },
-            };
-            await this.conversationContext.addLocalAndRemoteMessage(joinMessage); */
-
             return new Response(JSON.stringify({ ok: true }), {
               headers,
             });
@@ -530,14 +300,35 @@ export class DurableObject extends EventTarget {
           }
         };
         const handleLeave = async () => {
-          await this.leave();
+          const { room, endpointUrl } = body ?? {};
+          if (typeof room === 'string') {
+            await this.leave({
+              room,
+              endpointUrl,
+            });
 
-          return new Response(JSON.stringify({ ok: true }), {
-            headers,
-          });
+            return new Response(JSON.stringify({ ok: true }), {
+              headers,
+            });
+          } else {
+            return new Response(JSON.stringify({
+              error: 'invalid request',
+            }), {
+              status: 400,
+              headers,
+            });
+          }
         };
         const handleDefaultRequest = async () => {
-          return await this.handleUserAgentServerRequest(request);
+          const serverResponse = await serverHandler(request, this.agentRenderer);
+          const arrayBuffer = await serverResponse.arrayBuffer();
+          return new Response(arrayBuffer, {
+            status: serverResponse.status,
+            headers: {
+              ...headers,
+              'Content-Type': serverResponse.headers.get('Content-Type'),
+            },
+          });
         };
 
         switch (subpath) {
