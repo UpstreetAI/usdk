@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
 import type { Ref } from 'react';
-import type { ZodTypeAny } from 'zod';
+// import type { ZodTypeAny } from 'zod';
 import type {
-  ActionMessages,
-  AppContextValue,
-  PendingActionMessage,
-  ChatMessages,
-  SubtleAiImageOpts,
-  SubtleAiCompleteOpts,
-  MemoryOpts,
+  // ActionMessages,
+  // AppContextValue,
+  // PendingActionMessage,
+  // ChatMessages,
+  // SubtleAiImageOpts,
+  // SubtleAiCompleteOpts,
+  // MemoryOpts,
   AgentProps,
   RawAgentProps,
   ActionProps,
@@ -22,15 +22,26 @@ import type {
   ServerProps,
 } from './types';
 import {
-  TaskResultEnum,
-} from './types';
-import {
   AppContext,
-  EpochContext,
+  AgentContext,
+  // EpochContext,
 } from './context';
 import {
   DefaultAgentComponents,
 } from './default-components';
+// import {
+//   SceneObject,
+// } from './classes/scene-object';
+// import {
+//   AgentObject,
+// } from './classes/agent-object';
+import {
+  ActiveAgentObject,
+} from './classes/active-agent-object';
+// import {
+//   SubtleAi,
+// } from './classes/subtle-ai';
+import { AgentContextValue } from './classes/agent-context-value';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -57,18 +68,6 @@ const makeSymbol = () => Symbol('propsKey');
  * ```
  */
 export const Agent = forwardRef((props: AgentProps, ref: Ref<any>) => {
-  // const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  // const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  // useEffect(() => {
-  //   // console.log('Agent component useEffect', props, appContext);
-  //   return () => {
-  //     // console.log('Agent component cleanup', props, appContext);
-  //     appContext.unregisterAgent(symbol);
-  //   };
-  // }, [appContext]);
-  // appContext.registerAgent(symbol, props);
-
   return React.createElement(RawAgent, {
     ref,
   }, [
@@ -77,116 +76,125 @@ export const Agent = forwardRef((props: AgentProps, ref: Ref<any>) => {
   ]);
 });
 export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  // hooks
+  const appContextValue = useContext(AppContext);
+  const agentJson = appContextValue.useAgentJson() as any;
+  const wallets = appContextValue.useWallets();
+
+  // state
+  const symbol = useMemo(makeSymbol, []);
+  const agent = useMemo(() => {
+    const activeAgent = new ActiveAgentObject(agentJson, {
+      appContextValue,
+      wallets,
+    });
+    return activeAgent;
+  }, []);
+  // const agentContextValue = useMemo(() => {
+  //   return new AgentContextValue({
+  //     agentJson,
+  //     currentAgent,
+  //   });
+  // }, []);
+
+  // registry
   useEffect(() => {
-    // console.log('Agent component useEffect', props, appContext);
     return () => {
-      // console.log('Agent component cleanup', props, appContext);
-      appContext.unregisterAgent(symbol);
+      appContextValue.unregisterAgent(symbol);
     };
-  }, [appContext]);
-  appContext.registerAgent(symbol, props);
+  }, [appContextValue]);
+  appContextValue.registerAgent(symbol, agent);
 
-  const currentAgent = appContext.useCurrentAgent();
-  useImperativeHandle(ref, () => currentAgent, [currentAgent]);
+  // ref
+  useImperativeHandle(ref, () => agent, [agent]);
 
-  return React.createElement(React.Fragment, {}, props.children);
+  // return
+  return React.createElement(AgentContext.Provider, {
+    value: agent,
+  }, props.children);
 });
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Action component useEffect', props, appContext);
-    return () => {
-      // console.log('Action component cleanup', props, appContext);
-      appContext.unregisterAction(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerAction(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterAction(symbol);
+    };
+  }, []);
+
+  agentContext.registerAction(symbol, props);
 
   return null;
 };
 export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Prompt unregister', props, appContext);
-    return () => {
-      // console.log('Prompt register', props, appContext);
-      appContext.unregisterPrompt(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerPrompt(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterPrompt(symbol);
+    };
+  }, []);
+  agentContext.registerPrompt(symbol, props);
 
   return React.createElement(React.Fragment, {}, props.children);
 };
 export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Parser component useEffect', props, appContext);
-    return () => {
-      // console.log('Parser component cleanup', props, appContext);
-      appContext.unregisterFormatter(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerFormatter(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterFormatter(symbol);
+    };
+  }, []);
+  agentContext.registerFormatter(symbol, props);
 
   return null;
 };
 export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Parser component useEffect', props, appContext);
-    return () => {
-      // console.log('Parser component cleanup', props, appContext);
-      appContext.unregisterParser(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerParser(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterParser(symbol);
+    };
+  }, []);
+  agentContext.registerParser(symbol, props);
 
   return null;
 };
 export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Perception component useEffect', props, appContext);
-    return () => {
-      // console.log('Perception component cleanup', props, appContext);
-      appContext.unregisterPerception(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerPerception(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterPerception(symbol);
+    };
+  }, []);
+  agentContext.registerPerception(symbol, props);
 
   return null;
 };
 export const Task: React.FC<TaskProps> = (props: TaskProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
-  useEffect(() => {
-    // console.log('Schedule component useEffect', props, appContext);
-    return () => {
-      // console.log('Schedule component cleanup', props, appContext);
-      appContext.unregisterTask(symbol);
-    };
-  }, [appContext]);
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
 
-  appContext.registerTask(symbol, props);
+  useEffect(() => {
+    return () => {
+      agentContext.unregisterTask(symbol);
+    };
+  }, []);
+  agentContext.registerTask(symbol, props);
 
   return null;
 };
@@ -194,32 +202,30 @@ export const Task: React.FC<TaskProps> = (props: TaskProps) => {
 //
 
 export const Name: React.FC<NameProps> = (props: NameProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
+
   useEffect(() => {
-    // console.log('Schedule component useEffect', props, appContext);
     return () => {
-      // console.log('Schedule component cleanup', props, appContext);
-      appContext.unregisterName(symbol);
+      agentContext.unregisterName(symbol);
     };
-  }, [appContext]);
-  appContext.registerName(symbol, props);
+  }, []);
+  agentContext.registerName(symbol, props);
 
   return null;
 };
 export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
+
   useEffect(() => {
-    // console.log('Schedule component useEffect', props, appContext);
     return () => {
-      // console.log('Schedule component cleanup', props, appContext);
-      appContext.unregisterPersonality(symbol);
+      agentContext.unregisterPersonality(symbol);
     };
-  }, [appContext]);
-  appContext.registerPersonality(symbol, props);
+  }, []);
+  agentContext.registerPersonality(symbol, props);
 
   return null;
 };
@@ -227,195 +233,16 @@ export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps)
 //
 
 export const Server: React.FC<ServerProps> = (props: ServerProps) => {
-  const [symbol, setSymbol] = useState(makeSymbol);
-  // bind to app context
-  const appContext = (useContext(AppContext) as unknown) as AppContextValue;
+  const symbol = useMemo(makeSymbol, []);
+  // const appContext = useContext(AppContext);
+  const agentContext = useContext(AgentContext);
+
   useEffect(() => {
-    // console.log('Schedule component useEffect', props, appContext);
     return () => {
-      // console.log('Schedule component cleanup', props, appContext);
-      appContext.unregisterServer(symbol);
+      agentContext.unregisterServer(symbol);
     };
-  }, [appContext]);
+  }, []);
+  agentContext.registerServer(symbol, props);
 
-  appContext.registerServer(symbol, props);
-
-  // return React.createElement(React.Fragment, {}, props.children);
   return null;
 };
-
-//
-
-export class ExtendableMessageEvent extends MessageEvent<object> {
-  private promises: Array<Promise<any>> = [];
-  constructor(type: string, opts: object) {
-    super(type, opts);
-  }
-  waitUntil(promise: Promise<any>) {
-    this.promises.push(promise);
-  }
-  async waitForFinish() {
-    await Promise.all(this.promises);
-  }
-}
-export class SceneObject extends EventTarget {
-  name: string;
-  description: string;
-  constructor({
-    name = '',
-    description = '',
-  } = {}) {
-    super();
-
-    this.name = name;
-    this.description = description;
-  }
-}
-export class AgentObject extends EventTarget {
-  id: string;
-  name: string;
-  description: string;
-  bio: string;
-  model: string;
-  address: string;
-  ctx: AppContextValue;
-  constructor({
-    id,
-    name,
-    description,
-    bio,
-    model,
-    address,
-  }: {
-    id: string;
-    name: string;
-    description: string;
-    bio: string;
-    model: string;
-    address: string;
-  }, {
-    context,
-  }: {
-    context: AppContextValue;
-  }) {
-    super();
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.bio = bio;
-    this.model = model;
-    this.address = address;
-    this.ctx = context;
-  }
-  async getMemory(query: string, opts?: MemoryOpts) {
-    const result = await this.ctx.getMemory(this, query, opts);
-    return result;
-  }
-}
-export class SubtleAi {
-  context: AppContextValue;
-  constructor({
-    context,
-  }: {
-    context?: AppContextValue;
-  } = {}) {
-    this.context = context as AppContextValue;
-  }
-  async complete(messages: ChatMessages, opts?: SubtleAiCompleteOpts) {
-    return await this.context.complete(messages, opts);
-  }
-  async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
-    return await this.context.generateImage(prompt, opts);
-  }
-}
-export class ActiveAgentObject extends AgentObject {
-  wallets: any;
-  constructor(
-    agent: AgentObject,
-    {
-      wallets,
-    }: {
-      wallets: any;
-    }
-  ) {
-    super(agent, {
-      context: agent.ctx,
-    });
-    this.wallets = wallets;
-  }
-
-  async addAction(action: PendingActionMessage) {
-    await this.ctx.addAction(this, action);
-  }
-
-  async addMemory(text: string, content?: any) {
-    // console.log('active agent object addMemory 1', {
-    //   agent: this,
-    //   text,
-    // });
-    const result = await this.ctx.addMemory(this, text, content);
-    // console.log('active agent object addMemory 2', result);
-    return result;
-  }
-
-  async say(text: string) {
-    const result = await this.ctx.say(this, text);
-    return result;
-  }
-  async monologue(text: string) {
-    const result = await this.ctx.monologue(this, text);
-    return result;
-  }
-  async think(hint?: string): Promise<void> {
-    return await this.ctx.think(this, hint);
-  }
-  async generate(hint: string, schema?: ZodTypeAny): Promise<void> {
-    return await this.ctx.generate(this, hint, schema);
-  }
-}
-export class TaskObject {
-  id: any;
-  // name: string;
-  // description: string;
-  timestamp: Date;
-  constructor({
-    id = null,
-    // name = '',
-    // description = '',
-    timestamp = new Date(0),
-  } = {}) {
-    this.id = id;
-    // this.name = name;
-    // this.description = description;
-    this.timestamp = timestamp;
-  }
-}
-export class TaskResult {
-  type: TaskResultEnum;
-  args: object;
-
-  static SCHEDULE = TaskResultEnum.Schedule;
-  static IDLE = TaskResultEnum.Idle;
-  static DONE = TaskResultEnum.Done;
-
-  constructor(type: TaskResultEnum, args: object = null) {
-    switch (type) {
-      case TaskResult.SCHEDULE: {
-        const timestamp = (args as any)?.timestamp;
-        if (!(timestamp instanceof Date)) {
-          throw new Error('Invalid timestamp: ' + timestamp);
-        }
-        break;
-      }
-      case TaskResult.DONE: {
-        break;
-      }
-      default: {
-        throw new Error('Invalid task result type: ' + type);
-      }
-    }
-
-    this.type = type;
-    this.args = args;
-  }
-}
