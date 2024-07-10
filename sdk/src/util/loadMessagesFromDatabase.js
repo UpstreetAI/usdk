@@ -1,5 +1,9 @@
-export async function loadMessagesFromDatabase(supabaseClient, limit) {
-  const { error, data } = await supabaseClient
+export async function loadMessagesFromDatabase({
+  supabase,
+  agentId,
+  limit,
+}) {
+  const { error, data } = await supabase
     .from( 'agent_messages' )
     .select([
       'method',
@@ -8,8 +12,9 @@ export async function loadMessagesFromDatabase(supabaseClient, limit) {
       'src_name',
       'created_at',
     ].join(','))
+    .eq('user_id', agentId)
     .order( 'created_at', { ascending: true })
-    .limit( limit )
+    .limit( limit );
   if (!error) {
     return decodeMessage(data);
   } else {

@@ -28,35 +28,38 @@ export class ConversationContext extends EventTarget {
   #loadPromise: Promise<void>;
   constructor({
     agent,
-    room,
-    endpointUrl,
+    // room,
+    // endpointUrl,
   }: {
     agent: ActiveAgentObject;
-    room: string;
-    endpointUrl: string;
+    // room: string;
+    // endpointUrl: string;
   }) {
     if (!agent) {
       throw new Error('ConversationContext: agent is required');
     }
-    if (!room) {
-      throw new Error('ConversationContext: room is required');
-    }
-    if (!endpointUrl) {
-      throw new Error('ConversationContext: endpointUrl is required');
-    }
+    // if (!room) {
+    //   throw new Error('ConversationContext: room is required');
+    // }
+    // if (!endpointUrl) {
+    //   throw new Error('ConversationContext: endpointUrl is required');
+    // }
 
     super();
 
     this.#agent = agent;
-    this.#room = room;
-    this.#endpointUrl = endpointUrl;
+    // this.#room = room;
+    // this.#endpointUrl = endpointUrl;
     this.#messages = [];
     this.#loadPromise = (async () => {
       const supabase = this.#agent.useSupabase();
-      // Load messages into conversation context.
-      const messages = await loadMessagesFromDatabase(supabase, LOADED_MESSAGES_LIMIT);
-      // this.conversationContext.setMessages(messages);
-      this.#messages = messages;
+      const messages = await loadMessagesFromDatabase({
+        supabase,
+        agentId: agent.id,
+        limit: LOADED_MESSAGES_LIMIT,
+      });
+      // prepend new messages
+      this.#messages = messages.concat(this.#messages);
     })();
   }
 
@@ -67,16 +70,9 @@ export class ConversationContext extends EventTarget {
   getScene() {
     return this.#scene;
   }
-  setScene(scene) {
+  setScene(scene: SceneObject | null) {
     this.#scene = scene;
   }
-
-  /* getCurrentAgent() {
-    return this.#currentAgent;
-  }
-  setCurrentAgent(currentAgent) {
-    this.#currentAgent = currentAgent;
-  } */
 
   getAgents() {
     return Array
@@ -136,30 +132,6 @@ export class ConversationContext extends EventTarget {
     this.#messages.length = 0;
     this.#messages.push( ...messages );
   } */
-
-  async typing(handlerAsyncFn) {
-    const agent = this.#agent;
-
-    this.dispatchEvent(new MessageEvent('typingstart', {
-      data: {
-        agent,
-      },
-    }));
-
-    let error = null;
-    try {
-      await handlerAsyncFn();
-    } catch (err) {
-      error = err;
-    } finally {
-      this.dispatchEvent(new MessageEvent('typingstop', {
-        data: {
-          agent,
-          error,
-        },
-      }));
-    }
-  }
 
   // pull a message from the network
   async addLocalMessage(message) {
