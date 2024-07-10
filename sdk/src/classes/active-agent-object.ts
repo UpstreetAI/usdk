@@ -127,25 +127,6 @@ export class ActiveAgentObject extends AgentObject {
     });
   }
 
-  //
-
-  /* async ensureConversationContext({
-    room,
-    endpointUrl,
-  }: {
-    room: string;
-    endpointUrl: string;
-  }) {
-    const conversationContext = new ConversationContext({
-      agent: this,
-      room,
-      endpointUrl,
-    });
-    await conversationContext.waitForLoad();
-    // XXX bind the conversation context here
-    return conversationContext;
-  } */
-
   // registry
 
   registerAction(key: symbol, props: ActionProps) {
