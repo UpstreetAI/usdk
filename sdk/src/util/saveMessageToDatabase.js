@@ -2,9 +2,15 @@ import {
   lembed,
 } from './embedding.mjs';
 
-export async function saveMessageToDatabase(supabaseClient, jwt, playerID, message) {
-  const encodedMessage = await encodeMessage(message, jwt, playerID);
-  const { error } = await supabaseClient
+export async function saveMessageToDatabase({
+  supabase,
+  jwt,
+  agentId,
+  conversationId,
+  message,
+}) {
+  const encodedMessage = await encodeMessage(message, jwt, agentId, conversationId);
+  const { error } = await supabase
     .from('agent_messages')
     .insert(encodedMessage);
   if (!error) {
@@ -14,7 +20,7 @@ export async function saveMessageToDatabase(supabaseClient, jwt, playerID, messa
   }
 }
 
-async function encodeMessage(message, jwt, playerID) {
+async function encodeMessage(message, jwt, agentId, conversationId) {
   const embedding = await lembed(JSON.stringify({
     method: message.method,
     args: message.args,
@@ -23,7 +29,8 @@ async function encodeMessage(message, jwt, playerID) {
     method: message.method,
     args: message.args,
     text: message.args.text,
-    user_id: playerID,
+    user_id: agentId,
+    conversation_id: conversationId,
     src_user_id: message.userId,
     src_name: message.name,
     embedding,

@@ -47,10 +47,9 @@ import {
   generateJsonMatchingSchema,
   generateString,
 } from '../runtime';
-// import { makeAnonymousClient } from '../util/supabase-client.mjs';
-import {
-  loadMessagesFromDatabase,
-} from '../util/loadMessagesFromDatabase.js';
+// import {
+//   loadMessagesFromDatabase,
+// } from '../util/loadMessagesFromDatabase.js';
 import {
   saveMessageToDatabase,
 } from '../util/saveMessageToDatabase.js';
@@ -222,7 +221,7 @@ export class ActiveAgentObject extends AgentObject {
   // dynamic hooks
 
   useScene() {
-    return null; // XXX
+    return null; // XXX find a way to inject this state into prompts
   }
   useAgents() {
     return []; // XXX
@@ -411,7 +410,13 @@ export class ActiveAgentObject extends AgentObject {
                 (async () => {
                   const supabase = this.useSupabase();
                   const jwt = this.useAuthToken();
-                  await saveMessageToDatabase(supabase, jwt, guid, message);
+                  await saveMessageToDatabase({
+                    supabase,
+                    jwt,
+                    agentId: guid,
+                    conversationId: key,
+                    message,
+                  });
                 })();
               } catch (err) {
                 console.warn(err.stack);
@@ -433,7 +438,13 @@ export class ActiveAgentObject extends AgentObject {
           (async () => {
             const supabase = this.useSupabase();
             const jwt = this.useAuthToken();
-            await saveMessageToDatabase(supabase, jwt, guid, message);
+            await saveMessageToDatabase({
+              supabase,
+              jwt,
+              agentId: guid,
+              conversationId: key,
+              message,
+            });
           })();
         });
       };
@@ -492,7 +503,7 @@ export class ActiveAgentObject extends AgentObject {
 
     // XXX get his from the pending action
     conversationContext.addLocalAndRemoteMessage(actionMessage);
-    // XXX emit update method
+    // XXX emit update method and handle externally
     await self.rerenderAsync();
   }
 

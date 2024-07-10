@@ -8,13 +8,8 @@ import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 import { AgentRenderer } from './src/classes/agent-renderer';
 import serverHandler from './src/routes/server.ts';
 import renderUserTasks from './src/renderers/task.ts';
-// import { ExtendableMessageEvent } from './src/util/extendable-message-event.ts';
-// import { getConnectedWalletsFromMnemonic } from './src/util/ethereum-utils.mjs';
 
 import userRender from '../agent';
-// import { makePromise } from './src/lib/multiplayer/public/util.mjs';
-// import { loadMessagesFromDatabase } from './src/util/loadMessagesFromDatabase.js'
-// import { saveMessageToDatabase } from './src/util/saveMessageToDatabase.js'
 
 Error.stackTraceLimit = 300;
 
