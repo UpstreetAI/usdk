@@ -14,55 +14,54 @@ import {
   Tts,
   Chat,
 } from './types';
-import { AppContext } from './context';
+import {
+  AppContext,
+  AgentContext,
+} from './context';
+
+//
 
 export const useAuthToken: () => string = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useAuthToken();
 };
+
+//
+
 export const useScene: () => SceneObject = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useScene();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useScene();
 };
 export const useAgents: () => Array<AgentObject> = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useAgents();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useAgents();
 };
 export const useCurrentAgent: () => ActiveAgentObject = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useCurrentAgent();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue;
 };
 
 export const useActions: () => Array<ActionProps> = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useActions();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useActions();
 };
 export const useFormatters: () => Array<FormatterProps> = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useFormatters();
-};
-
-export const useNames: () => Array<NameProps> = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useNames();
-};
-export const usePersonalities: () => Array<PersonalityProps> = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.usePersonalities();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useFormatters();
 };
 
 export const useName: () => string = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useName();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useName();
 };
 export const usePersonality: () => string = () => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.usePersonality();
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.usePersonality();
 };
 
 export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useActionHistory(opts);
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useActionHistory(opts);
 };
 
 export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
