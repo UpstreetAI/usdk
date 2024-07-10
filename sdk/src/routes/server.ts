@@ -12,16 +12,16 @@ export default async function handler(
   request: Request,
   agentRegistry: AgentRenderer,
 ) {
-  console.log('nudge handler', { enabled });
-  if (typeof enabled !== 'boolean') {
-    throw new Error('serverHandler: enabled must be a boolean');
-  }
+  // console.log('nudge handler', { enabled });
+  // if (typeof enabled !== 'boolean') {
+  //   throw new Error('serverHandler: enabled must be a boolean');
+  // }
 
   const prepareUserArgs = async (
     conversationContext: ConversationContext,
     env: object,
     userRender: UserHandler,
-    enabled: boolean,
+    // enabled: boolean,
   ) => {
     // const currentAgentId = (args as any).currentAgentId as string;
     // const agentIds = (args as any).agentIds as string;
@@ -58,7 +58,7 @@ export default async function handler(
       // currentAgent,
       // messages,
       wallets,
-      enabled,
+      // enabled,
     };
   };
   const handleServer = async () => {
@@ -66,7 +66,7 @@ export default async function handler(
       conversationContext,
       env,
       userRender,
-      enabled,
+      // enabled,
     );
     const agentServer = await compileUserAgentServer(userArgs);
     const method = request.method as string;
