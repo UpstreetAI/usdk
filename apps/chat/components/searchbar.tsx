@@ -208,7 +208,7 @@ export function SearchBar() {
 
         <input id='search' name='search' type="text" className={cn(
           "size-full px-2 font-black outline-none border-none",
-          !value && "italic uppercase"
+          !value && "uppercase"
         )} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />

@@ -24,7 +24,7 @@ export function HeaderLoginButton({
         await redirectToLoginTool()
       }}
       disabled={isLoading}
-      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-none bg-[#5313A3] font-black")}
+      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-lg bg-[#5313A3] font-black")}
       {...props}
     >
       {

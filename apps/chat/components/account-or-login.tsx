@@ -16,7 +16,7 @@ import { logout } from '@/lib/logout'
 
 export async function AccountOrLogin() {
   const user = await (async () => {
-    const jwt = getJWT();
+    const jwt = await getJWT();
     if (jwt) {
       return getUserForJwt(jwt);
     } else {

@@ -4,9 +4,19 @@ import Link from 'next/link';
 import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons';
 import { AccountOrLogin } from '@/components/account-or-login';
 import { SearchBar } from '@/components/searchbar';
+import { getJWT } from '@/lib/jwt';
+import { getUserForJwt } from '@/utils/supabase/supabase-client';
 
 
-export function Header() {
+export async function Header() {
+  const user = await (async () => {
+    const jwt = await getJWT();
+    if (jwt) {
+      return getUserForJwt(jwt);
+    } else {
+      return null;
+    }
+  })();
   return (
     <header
       className="flex z-0 items-center justify-between h-16 border-b shrink-0 bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
@@ -22,8 +32,12 @@ export function Header() {
           </Link>
         </div>
       </div>
-      <SearchBar/>
-      <div className='md:m-w-[200px] md:w-[200px]'>
+
+      {
+        user && <SearchBar/>
+      }
+
+      <div className='md:m-w-[200px] md:w-[200px] mr-4 md:mr-0'>
         <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
           <AccountOrLogin/>
         </React.Suspense>

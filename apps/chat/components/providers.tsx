@@ -8,10 +8,12 @@ import { SupabaseProvider } from '@/lib/hooks/use-supabase'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ActionsProvider } from '@/components/ui/actions'
 import { MultiplayerActionsProvider } from '@/components/ui/multiplayer-actions'
-
+import { Analytics } from '@vercel/analytics/react';
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
   return (
+    <>
+    <Analytics />
     <NextThemesProvider {...props}>
       <SupabaseProvider>
         <SidebarProvider>
@@ -25,5 +27,6 @@ export function Providers({ children, ...props }: ThemeProviderProps) {
         </SidebarProvider>
       </SupabaseProvider>
     </NextThemesProvider>
+    </>
   )
 }
