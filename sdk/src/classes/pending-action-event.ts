@@ -1,15 +1,8 @@
-// export type PendingActionEventData = {
-//   agent: ActiveAgentObject;
-//   message: PendingActionMessage;
-// };
 import type {
   ActiveAgentObject,
   PendingActionEventData,
   PendingActionMessage,
 } from '../types';
-// export interface PendingActionEvent extends MessageEvent<PendingActionEventData> {
-//   commit: () => Promise<void>;
-// }
 
 export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
   constructor({

@@ -210,17 +210,10 @@ export async function handleAgentAction(
   // console.log('handle agent action 2', actionHandler);
   if (actionHandler) {
     // handle the pending action
-    const e = new MessageEvent('pendingaction', {
-      data: {
-        agent,
-        message: newMessage,
-      },
-    }) as unknown as PendingActionEvent;
-    e.commit = async () => {
-      // console.log('handle agent commit 1', newMessage);
-      await agent.addAction(newMessage);
-      // console.log('handle agent commit 2', newMessage);
-    };
+    const e = new PendingActionEvent({
+      agent,
+      message: newMessage,
+    });
     // console.log('handle agent action 3', actionHandler);
     if (actionHandler.handler) {
       await actionHandler.handler(e);
