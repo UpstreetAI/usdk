@@ -1,6 +1,7 @@
 export async function loadMessagesFromDatabase({
   supabase,
   agentId,
+  conversationId,
   limit,
 }) {
   const { error, data } = await supabase
@@ -13,6 +14,7 @@ export async function loadMessagesFromDatabase({
       'created_at',
     ].join(','))
     .eq('user_id', agentId)
+    .eq('conversation_id', conversationId)
     .order( 'created_at', { ascending: true })
     .limit( limit );
   if (!error) {

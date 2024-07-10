@@ -18,43 +18,36 @@ const LOADED_MESSAGES_LIMIT = 50
 //
 
 export class ConversationContext extends EventTarget {
-  // #currentAgent: object | null;
+  #id: string;
   #agent: ActiveAgentObject;
   #scene: SceneObject | null;
   #agentsMap: Map<string, Player>;
-  // #room: string;
-  // #endpointUrl: string;
   #messages: ActionMessage[];
   #loadPromise: Promise<void>;
   constructor({
+    id,
     agent,
-    // room,
-    // endpointUrl,
   }: {
+    id: string;
     agent: ActiveAgentObject;
-    // room: string;
-    // endpointUrl: string;
   }) {
+    if (!id) {
+      throw new Error('ConversationContext: id is required');
+    }
     if (!agent) {
       throw new Error('ConversationContext: agent is required');
     }
-    // if (!room) {
-    //   throw new Error('ConversationContext: room is required');
-    // }
-    // if (!endpointUrl) {
-    //   throw new Error('ConversationContext: endpointUrl is required');
-    // }
 
     super();
 
+    this.#id = id;
     this.#agent = agent;
-    // this.#room = room;
-    // this.#endpointUrl = endpointUrl;
     this.#messages = [];
     this.#loadPromise = (async () => {
       const supabase = this.#agent.useSupabase();
       const messages = await loadMessagesFromDatabase({
         supabase,
+        conversationId: this.#id,
         agentId: agent.id,
         limit: LOADED_MESSAGES_LIMIT,
       });

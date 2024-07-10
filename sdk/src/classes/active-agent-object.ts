@@ -268,9 +268,8 @@ export class ActiveAgentObject extends AgentObject {
       endpointUrl,
     });
     const conversationContext = new ConversationContext({
+      id: key,
       agent: this,
-      room,
-      endpointUrl,
     });
     this.conversations.set(key, conversationContext);
     const converstaionContextPromise = conversationContext.waitForLoad();
