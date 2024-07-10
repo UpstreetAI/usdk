@@ -10,6 +10,7 @@ export interface AccountButtonProps {
   user: any
 }
 export function AccountButton({ user }: AccountButtonProps) {
+  console.log("user", user);
   return (
     <div className='flex'>
       <Link

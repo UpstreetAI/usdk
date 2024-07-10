@@ -5,7 +5,7 @@ interface IconProps {
   size?: number
 }
 
-const Icon: React.FC<IconProps> = ({ name, size, ...props }) => {
+const Icon: React.FC<IconProps & Partial<HTMLDivElement>> = ({ name, size, ...props }) => {
   const DynamicIcon = Icons[name]
 
   if (!DynamicIcon) {

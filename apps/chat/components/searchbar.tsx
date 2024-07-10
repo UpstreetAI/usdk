@@ -191,7 +191,7 @@ export function SearchBar() {
   }, [value])
 
   return (
-    <div className={cn("hidden md:flex flex-1 flex-col h-full inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
+    <div className={cn("hidden md:flex z-50 flex-1 flex-col h-full inset-0 pointer-events-none", isSearchOpen && 'block')} onFocus={e => {
       setFocus(true);
     }} onBlur={e => {
       setFocus(false);
@@ -212,7 +212,7 @@ export function SearchBar() {
         )} value={value} placeholder="Find an agent..." onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
-        <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !value && 'hidden')}>
+        <div className={cn("fixed md:absolute left-0 top-16 px-0 !z-[999] h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !value && 'hidden')}>
           <div className="md:rounded-lg border bg-zinc-900 h-full overflow-y-scroll">
             {loadingResults ? (
               <div className="animate-pulse text-center p-4 text-xl">Searching for agents...</div>

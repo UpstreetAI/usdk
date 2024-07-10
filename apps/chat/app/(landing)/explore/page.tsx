@@ -5,30 +5,47 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 
-const slides = [
+type Slide = {
+  image: string
+  text: string
+  href: string
+}
+
+const slides: Slide[] = [
   {
     image:
       'https://www.videogameschronicle.com/files/2022/12/fortnite-chapter-4.webp',
-    text: 'New: Talk to agents with voice!'
+    text: 'New: Build custom AI agents with Upstreet SDK!',
+    href: 'https://github.com/UpstreetAI/sdk'
   },
   {
     image:
       'https://gameranx.com/wp-content/uploads/2023/01/Fortnite-Falcon-Scout.jpg',
-    text: 'Play Adventure Mode with friends'
+    text: 'Chat with agents online',
+    href: '#matchmaking'
   },
   {
     image:
       'https://i0.wp.com/explosionnetwork.com/wp-content/uploads/2023/09/39888-fortnite-chapter-4-thumbnail-news.jpg?resize=1280%2C640&ssl=1',
-    text: 'Customize your avatar'
-  },
-  {
-    image:
-      'https://gameranx.com/wp-content/uploads/2023/01/Fortnite-Falcon-Scout.jpg',
-    text: 'Slide 4'
+    text: 'Agent-to-agent conversations',
+    href: 'https://docs.upstreet.ai/docs/category/blueprints'
   }
+  // {
+  //   image:
+  //     'https://gameranx.com/wp-content/uploads/2023/01/Fortnite-Falcon-Scout.jpg',
+  //   text: 'Slide 4'
+  // }
 ]
 
-const Slide = ({ slide, index, slideIndex }) => {
+const Slide = ({
+  slide,
+  index,
+  slideIndex
+}: {
+  slide: Slide
+  index: number
+  slideIndex: number
+}) => {
   const [isHovered, setIsHovered] = useState(false)
   const isCurrentSlide = index === slideIndex
 
@@ -74,7 +91,7 @@ const Carousel = () => {
     }
   }, [])
 
-  const handleDotClick = index => {
+  const handleDotClick = (index: number) => {
     setSlideIndex(index)
     clearInterval(intervalId) // Clear the interval when dot is clicked
     const changeTime = 3000
@@ -109,28 +126,43 @@ const Carousel = () => {
   )
 }
 
-const Card = ({children}) => {
+const Card = ({
+  headerContent,
+  bodyContent,
+  footerContent,
+  children
+}: {
+  headerContent?: any
+  bodyContent?: any
+  footerContent?: any
+  children?: any
+}) => {
   return (
     <Link href="#">
       <div className="rounded-3xl w-80 h-64 flex flex-col bg-black hover:bg-[#0e0e0e] hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]">
-        <div id="header" className='flex flex-row items-center justify-between px-2'>
-          <Image className="rounded-full object-cover m-4" width={60} height={60} alt={"Agent Profile Image"} src={"/images/avatar.png"}></Image>
-          <div className='flex flex-col items-start w-full justify-start'>
-            <h3 className="text-xl font-bold mb-1">Lucy</h3>
-            <span className='flex flex-1 flex-row items-center justify-center opacity-60 text-sm'>
-              <Icon name="briefcase" className="h-4 w-4 mr-2"/> <span>Guide</span>
+        {children || (
+          <>
+            <div
+              id="header"
+              className="flex flex-row items-center justify-between px-2"
+            >
+              {headerContent}
+            </div>
+            <span
+              id="content"
+              className="flex flex-col flex-1 line-clamp-5 px-6 text-xs opacity-80"
+            >
+              {bodyContent}
             </span>
-            <span className='flex flex-1 flex-row items-center justify-center opacity-60 text-sm'>
-              <Icon name="pin" className="h-4 w-4 mr-2"/> <span>Andromeda</span>
-            </span>
-          </div>
-        </div>
-        <span id="content" className='flex flex-col flex-1 line-clamp-5 px-6 text-xs opacity-80'>Previously a kiosk bot at the USGR (Upstreet Galactic Relations) Center, L.U.C.Y. was designed to be friendly, dependable, and possess knowledge of most galactic politics. If you{"’"}re ever stuck, you know who to talk to.</span>
-        
-        <div id="footer" className='px-6  h-fit flex flex-row justify-between items-center pb-4'>
-          <span className='flex flex-row gap-1 items-center justify-center font-black opacity-30'><Icon name="users" className="h-4 w-4" /> 70k</span>
-          <span className='flex flex-row gap-1 items-center justify-center font-black opacity-30'><Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL</span>
-        </div>
+
+            <div
+              id="footer"
+              className="px-6  h-fit flex flex-row justify-between items-center pb-4"
+            >
+              {footerContent}
+            </div>
+          </>
+        )}
       </div>
     </Link>
   )
@@ -152,9 +184,14 @@ const Button = () => {
   )
 }
 
-const Section = ({ children, className="", ...props }: any) => {
+const Section = ({ children, className = '', ...props }: any) => {
   return (
-    <section className={"w-full py-2 md:py-8 h-full flex gap-1 md:gap-2 flex-col " + className}  {...props}>
+    <section
+      className={
+        'w-full py-2 md:py-8 h-full flex gap-1 md:gap-2 flex-col ' + className
+      }
+      {...props}
+    >
       {children}
     </section>
   )
@@ -181,37 +218,37 @@ const ScrollableCardsList = ({ children, ...props }: any) => {
 const Banner = () => {
   return (
     <div
-    className="relative -mt-16 mb-16 top-16 left-0 z-60 overflow-visible !aspect-[2] md:!aspect-[3] w-screen h-auto flex select-none"
-    style={{
-      // background: 'radial-gradient(108.15% 725.07% at 100% 0%, rgba(21, 21, 21, 0.42) 0%, #151515 100%), #FF38AE',
-      backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)), 
+      className="relative -mt-16 mb-16 top-16 left-0 z-60 overflow-visible !aspect-[2] md:!aspect-[3] w-screen h-auto flex select-none"
+      style={{
+        // background: 'radial-gradient(108.15% 725.07% at 100% 0%, rgba(21, 21, 21, 0.42) 0%, #151515 100%), #FF38AE',
+        backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1)), 
   url("/images/chatbackground.png")`,
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed',
-      backgroundPosition: 'center'
-    }}
-  >
-    <div className="md:z-1 z-20 drop-shadow-lg md:drop-shadow-none h-full w-full flex md:justify-center md:items-start items-end flex-col py-10 md:pt-20 md:pt-0 px-10 md:px-40 gap-2">
-      <div className="flex justify-center items-start flex-col -gap-2">
-        <span className="text-4xl md:text-[2vw] font-bold">Chat with</span>
-        <span className="text-7xl md:text-[10vw] font-['Impact'] -mt-3 pt-1">
-          AI BEINGS
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center'
+      }}
+    >
+      <div className="md:z-1 z-20 drop-shadow-lg md:drop-shadow-none h-full w-full flex md:justify-center md:items-start items-end flex-col py-10 md:pt-20 md:pt-0 px-10 md:px-40 gap-2">
+        <div className="flex justify-center items-start flex-col -gap-2">
+          <span className="text-4xl md:text-[2vw] font-bold">Chat with</span>
+          <span className="text-7xl md:text-[10vw] font-['Impact'] -mt-3 pt-1">
+            AI AGENTS
+          </span>
+        </div>
+
+        <span className="text-sm md:text-xl pb-3 max-w-72 md:max-w-max text-right md:text-left">
+          Welcome to Upstreet, a universe where AI and humans co-exist.
         </span>
+
+        <Button />
       </div>
-
-      <span className="text-sm md:text-xl pb-3 max-w-72 md:max-w-max text-right md:text-left">
-        Welcome to Upstreet, a universe where AI and humans co-exist.
-      </span>
-
-      <Button />
+      <div className="absolute h-full w-full top-0 left-0 z-10 bg-black bg-opacity-50 md:hidden block" />
+      <img
+        className="absolute -z-1 md:z-0 bottom-0 right-0 md:right-28 -left-8 md:left-auto transition-all h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none"
+        src="/images/avatar.png"
+      />
     </div>
-    <div className='absolute h-full w-full top-0 left-0 z-10 bg-black bg-opacity-50 md:hidden block' />
-    <img
-      className="absolute -z-1 md:z-0 bottom-0 right-0 md:right-28 -left-8 md:left-auto transition-all h-[110%] object-contain drop-shadow-lg object-bottom pointer-events-none"
-      src="/images/avatar.png"
-    />
-  </div>
   )
 }
 
@@ -221,7 +258,6 @@ const Page = () => {
       {/* Banner */}
 
       <Banner />
-
 
       {/* <Section>
         <span className="uppercase pl-12 text-2xl font-black mb-2 px-2 py-1">
@@ -242,24 +278,100 @@ const Page = () => {
       </Section> */}
 
       <Section className="pt-8">
-        <div
-          className="mx-4 md:mx-12 w-fit px-2 py-2 flex flex-row justify-center items-center rounded-lg"
-        >
+        <div className="mx-4 md:mx-12 w-fit px-2 py-2 flex flex-row justify-center items-center rounded-lg">
           <span className="uppercase text-2xl font-black flex flex-row items-center group w-fit">
             Most Popular{' '}
           </span>
         </div>
 
         <ScrollableCardsList>
-        <div className="ml-4 md:ml-10">
-            <Card />
+          <div className="ml-4 md:ml-10">
+            <Card
+              headerContent={
+                <>
+                  <Image
+                    className="rounded-full object-cover m-4"
+                    width={60}
+                    height={60}
+                    alt={'Agent Profile Image'}
+                    src={'/images/avatar.png'}
+                  ></Image>
+                  <div className="flex flex-col items-start w-full justify-start">
+                    <h3 className="text-xl font-bold mb-1">Lucy</h3>
+                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
+                      <span>Guide</span>
+                    </span>
+                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
+                      <span>Andromeda</span>
+                    </span>
+                  </div>
+                </>
+              }
+              bodyContent={
+                <>
+                  Previously a kiosk bot at the USGR (Upstreet Galactic
+                  Relations) Center, L.U.C.Y. was designed to be friendly,
+                  dependable, and possess knowledge of most galactic politics.
+                  If you{'’'}re ever stuck, you know who to talk to.
+                </>
+              }
+              footerContent={
+                <>
+                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                    <Icon name="users" className="h-4 w-4" /> 70k
+                  </span>
+                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                    <Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL
+                  </span>
+                </>
+              }
+            />
           </div>
-          <Card />
-          <Card />
-          <Card />
-          <Card />
           <div className="mr-10">
-            <Card />
+          <Card
+              headerContent={
+                <>
+                  <Image
+                    className="rounded-full object-cover m-4"
+                    width={60}
+                    height={60}
+                    alt={'Agent Profile Image'}
+                    src={'/images/avatar.png'}
+                  ></Image>
+                  <div className="flex flex-col items-start w-full justify-start">
+                    <h3 className="text-xl font-bold mb-1">Lucy</h3>
+                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
+                      <span>Guide</span>
+                    </span>
+                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
+                      <span>Andromeda</span>
+                    </span>
+                  </div>
+                </>
+              }
+              bodyContent={
+                <>
+                  Previously a kiosk bot at the USGR (Upstreet Galactic
+                  Relations) Center, L.U.C.Y. was designed to be friendly,
+                  dependable, and possess knowledge of most galactic politics.
+                  If you{'’'}re ever stuck, you know who to talk to.
+                </>
+              }
+              footerContent={
+                <>
+                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                    <Icon name="users" className="h-4 w-4" /> 70k
+                  </span>
+                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                    <Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL
+                  </span>
+                </>
+              }
+            />
           </div>
         </ScrollableCardsList>
       </Section>

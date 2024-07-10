@@ -1,9 +1,11 @@
+"use client"
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
 import { getAgentUrl, getAgentPreviewImageUrl, resolveRelativeUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
+import { WindupChildren } from "windups";
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -66,11 +68,12 @@ export function ChatMessage({
           </span>
           <br />
 
+          <WindupChildren>
           {media?.type === 'image' && (<ChatMessageImage url={media.url} timestamp={timestamp} />)}
           {media?.type === 'audio' && (<ChatMessageAudio url={media.url} timestamp={timestamp} />)}
           {media?.type === 'video' && (<ChatMessageVideo url={media.url} timestamp={timestamp} />)}
           {!media && (<div>{content}</div>)}
-
+          </WindupChildren>
         </div>
       </div>
     </div>
