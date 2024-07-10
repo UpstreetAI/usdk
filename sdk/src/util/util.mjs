@@ -57,3 +57,16 @@ export const parseCodeBlock = (content) => {
     );
   }
 };
+
+export const retry = async (fn/*: (() => any) | (() => Promise<any>)*/, numRetries = 5) => {
+  for (let i = 0; i < numRetries; i++) {
+    try {
+      const result = await fn();
+      return result;
+    } catch (err) {
+      console.warn('retry error', err);
+      continue;
+    }
+  }
+  throw new Error(`failed after ${numRetries} retries`);
+};
