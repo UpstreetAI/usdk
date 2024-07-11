@@ -80,7 +80,7 @@ export async function generateAgentAction(agent: ActiveAgentObject) {
       content: promptString,
     },
   ];
-  return await generateAgentActionFromMessages(agent, promptMessages);
+  return await _generateAgentActionFromMessages(agent, promptMessages);
 }
 export async function generateAgentActionFromInstructions(
   agent: ActiveAgentObject,
@@ -98,9 +98,9 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
-  return await generateAgentActionFromMessages(agent, promptMessages);
+  return await _generateAgentActionFromMessages(agent, promptMessages);
 }
-export async function generateAgentActionFromMessages(
+async function _generateAgentActionFromMessages(
   agent: ActiveAgentObject,
   promptMessages: ChatMessages,
 ) {
