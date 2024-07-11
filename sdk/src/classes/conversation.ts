@@ -1,15 +1,18 @@
 import {
-  AgentObject,
+  // AgentObject,
   ActiveAgentObject,
   ActionMessage,
   // ActionMessages,
   MessageFilter,
+  PendingActionMessage,
+  ActionMessageEventData,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import {
   loadMessagesFromDatabase,
 } from '../util/loadMessagesFromDatabase';
+import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
 //
 
@@ -17,13 +20,14 @@ const LOADED_MESSAGES_LIMIT = 50
 
 //
 
-export class ConversationContext extends EventTarget {
+export class Conversation extends EventTarget {
   #id: string;
   #agent: ActiveAgentObject;
   #scene: SceneObject | null;
   #agentsMap: Map<string, Player>;
   #messages: ActionMessage[];
   #loadPromise: Promise<void>;
+  numTyping: number = 0;
   constructor({
     id,
     agent,
@@ -43,6 +47,7 @@ export class ConversationContext extends EventTarget {
     this.#id = id;
     this.#agent = agent;
     this.#messages = [];
+    // XXX move this externally
     this.#loadPromise = (async () => {
       const supabase = this.#agent.useSupabase();
       const messages = await loadMessagesFromDatabase({
@@ -56,9 +61,34 @@ export class ConversationContext extends EventTarget {
     })();
   }
 
+  //
+
   waitForLoad() {
     return this.#loadPromise;
   }
+
+  //
+
+  async typing(fn: () => Promise<void>) {
+    const start = () => {
+      if (++this.numTyping === 1) {
+        this.dispatchEvent(new MessageEvent('typingstart'));
+      }
+    };
+    const end = () => {
+      if (--this.numTyping === 0) {
+        this.dispatchEvent(new MessageEvent('typingend'));
+      }
+    };
+    start();
+    try {
+      return await fn();
+    } finally {
+      end();
+    }
+  }
+
+  //
 
   getScene() {
     return this.#scene;
@@ -81,9 +111,9 @@ export class ConversationContext extends EventTarget {
   removeAgent(agentId: string) {
     this.#agentsMap.delete(agentId);
   }
-  clearAgents() {
+  /* clearAgents() {
     this.#agentsMap.clear();
-  }
+  } */
 
   getMessages(filter?: MessageFilter) {
     const agent = filter?.agent;
@@ -127,22 +157,16 @@ export class ConversationContext extends EventTarget {
   } */
 
   // pull a message from the network
-  async addLocalMessage(message) {
+  async addLocalMessage(message: ActionMessage) {
     this.#messages.push(message);
 
-    let promises = [];
-    const waitUntil = p => {
-      promises.push(p);
-    };
-    this.dispatchEvent(
-      new MessageEvent('localmessage', {
-        data: {
-          message,
-          waitUntil,
-        },
-      }),
-    );
-    await Promise.all(promises);
+    const e = new ExtendableMessageEvent<ActionMessageEventData>('localmessage', {
+      data: {
+        message,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
   // push a message to the network
   addLocalAndRemoteMessage(message) {
