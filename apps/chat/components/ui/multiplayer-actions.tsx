@@ -3,6 +3,8 @@
 import * as React from 'react'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
+import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
+import { createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
 interface MultiplayerActionsContextType {
@@ -80,6 +82,9 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   const userId = playerSpec.id;
   const name = playerSpec.name;
 
+  const audioContext = getAudioContext();
+
+  console.log("audioContext: ",audioContext);
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
@@ -248,6 +253,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         ensureJoin();
       });
     });
+
     virtualPlayers.addEventListener('leave', (e: any) => {
       const { playerId } = e.data;
       if (connected) {
@@ -278,13 +284,94 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         debugger;
       }
     });
+
+    virtualPlayers.addEventListener('audio', (e: any) => {
+      console.log("audio event received");
+
+      const {
+        playerId,
+        streamId,
+      } = e.data;
+
+      console.log('audio', 'playerId: ', playerId, 'streamId: ',streamId);
+
+      const audioStream = ensureAudioStream(playerId, streamId,audioContext);
+      // audioStream.write(data);
+
+    })
+
+    virtualPlayers.addEventListener('audioend', (e: any) => {
+      console.log("audio event received");
+
+      const {
+        playerId,
+        streamId,
+      } = e.data;
+      
+      console.log('audio end', 'playerId: ', playerId, 'streamId: ',streamId);
+    })
   };
+
+  const ensureAudioStream = (playerId: any, streamId: any, audioContext: AudioContext) => {
+    const key = `${playerId}:${streamId}`;
+
+    console.log("key: ",key);
+
+    const stream = createOpusAudioOutputStream({
+        audioContext,
+    });
+
+    console.log("Stream object: ",stream);
+
+    // let audioStream = this.outputAudioStreams.get(key);
+    // if (!audioStream) {
+    //   // const {
+    //   //   audioContext,
+    //   // } = this.audioManager;
+    //   const stream = createOpusAudioOutputStream({
+    //     // audioContext,
+    //   });
+      
+    //   const audioManagerInput = this.audioManager.getInput();
+    //   stream.outputNode.connect(audioManagerInput);
+    //   console.log('connect node', stream.outputNode);
+
+    //   audioStreams.set(key, stream);
+    //   audioStream = stream;
+
+    //   // connect to avatar
+    //   (async () => {
+    //     const remotePlayer = playersMap.get(playerId);
+    //     if (remotePlayer) {
+
+    //       // await remotePlayer.waitForAvatar();
+    //       // handle the race condition where the audio stream ends before the avatar is loaded
+    //       if (!audioStreams.has(key)) return;
+
+    //       remotePlayer.avatar.setAudioEnabled({
+    //         audioContext: this.audioManager.audioContext,
+    //       });
+    //       const audioInput = remotePlayer.avatar.getAudioInput();
+    //       stream.outputNode.connect(audioInput);
+    //     } else {
+    //       console.warn('remote player not found', {
+    //         playerId,
+    //         playersMap: this.playersMap,
+    //       });
+    //       debugger;
+    //     }
+    //   })();
+    // }
+    // return audioStream;
+  };
+
   _trackRemotePlayers();
 
+  
   const _bindMultiplayerChat = () => {
     const onchat = (e: any) => {
       const { message } = e.data;
-      // console.log('got message', { message });
+      console.log('got message', { message });
       const { userId: messageUserId, name, method, args } = message;
 
       switch (method) {
@@ -313,7 +400,16 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           break;
         }
         case 'nudge':
-        case 'join':
+        case 'join': {
+          virtualPlayers.addEventListener('audio', (e) => {
+            console.log("audio event received");
+          })
+    
+          virtualPlayers.addEventListener('audioend', (e) => {
+            console.log("audioend event received");
+
+          })
+        }
         case 'leave': {
           // nothing
           break;
@@ -332,10 +428,12 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       }
     };
     realms.addEventListener('chat', onchat);
+  
     const cleanup = () => {
       realms.removeEventListener('chat', onchat);
       typingMap.clear();
     };
+
     realms.addEventListener('disconnect', () => {
       cleanup();
     });

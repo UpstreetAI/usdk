@@ -46,9 +46,9 @@ export function WsAudioDecoder({output, error}) {
 // import WsOpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
 // import WsMp3CodecWorker from '../../../../public/audio-worker/ws-mp3-codec-worker.js?worker';
 
-import OpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
-import Mp3EncoderWorker from '../../../../public/audio-worker/ws-mp3-encoder-worker.js?worker';
-import Mp3DecoderWorker from '../../../../public/audio-worker/ws-mp3-decoder-worker.js?worker';
+// import OpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
+// import Mp3EncoderWorker from '../../../../public/audio-worker/ws-mp3-encoder-worker.js?worker';
+// import Mp3DecoderWorker from '../../../../public/audio-worker/ws-mp3-decoder-worker.js?worker';
 
 // NO WebCodecs suport
 

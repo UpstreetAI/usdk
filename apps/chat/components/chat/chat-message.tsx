@@ -62,7 +62,7 @@ export function ChatMessage({
             {name}
           </Link>
           <span className="opacity-75 text-xs font-medium">
-            {timestamp ? timeAgo.format(timestamp) : null}
+            {/* {timestamp ? timeAgo.format(timestamp) : null} */}
           </span>
           <br />
 
