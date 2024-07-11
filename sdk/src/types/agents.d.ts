@@ -3,7 +3,7 @@ import type { ZodTypeAny } from 'zod';
 
 // events
 
-export type ExtendableMessageEvent = MessageEvent & {
+export type ExtendableMessageEvent<T> = MessageEvent<T> & {
   waitUntil: (promise: Promise<any>) => void;
   waitForFinish: () => Promise<void>;
 };
@@ -96,6 +96,9 @@ export type SubtleAi = {
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
+export type ActionOpts = {
+  conversation?: Conversation;
+};
 export type MemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
@@ -104,8 +107,9 @@ export type QueueManager = {
   isIdle: () => boolean;
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
-export interface ConversationContext extends EventTarget {
+export interface Conversation extends EventTarget {
   waitForLoad: () => Promise<void>;
+  // addAction: (pendingActionMessage: PendingActionMessage) => Promise<void>;
   getMessages: (filter?: MessageFilter) => ActionMessage[];
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
@@ -131,8 +135,9 @@ export type ActiveAgentObject = AgentObject & {
 
   useSupabase: () => any;
 
-  useScene: () => SceneObject | null;
-  useAgents: () => Array<AgentObject>;
+  // useScene: () => SceneObject | null;
+  // useAgents: () => Array<AgentObject>;
+  useCurrentConversation: () => Conversation | null;
 
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
@@ -140,7 +145,7 @@ export type ActiveAgentObject = AgentObject & {
   useName: () => string;
   usePersonality: () => string;
 
-  useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
+  // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
 
   //
 
@@ -167,7 +172,7 @@ export type ActiveAgentObject = AgentObject & {
 
   //
 
-  addAction: (action: PendingActionMessage) => Promise<any>;
+  // addAction: (pendingActionMessage: PendingActionMessage, opts?: ActionOpts) => Promise<any>;
   getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
   addMemory: (
     text: string,
@@ -179,7 +184,6 @@ export type ActiveAgentObject = AgentObject & {
   think: (hint?: string) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
 
-  getJson: () => object;
   join: (opts: {
     room: string;
     endpointUrl: string;
@@ -192,7 +196,7 @@ export type ActiveAgentObject = AgentObject & {
   // ensureConversationContext: (opts: {
   //   room: string;
   //   endpointUrl: string;
-  // }) => Promise<ConversationContext>;
+  // }) => Promise<Conversation>;
 }
 
 // action events
@@ -208,6 +212,7 @@ export interface ActionEvent extends MessageEvent {
 export type PendingActionEventData = {
   agent: ActiveAgentObject;
   message: PendingActionMessage;
+  conversation: Conversation;
 };
 export interface PendingActionEvent extends MessageEvent<PendingActionEventData> {
   commit: () => Promise<void>;
@@ -224,9 +229,20 @@ export type PerceptionEventData = {
   agent: ActiveAgentObject;
   message: PerceptionMessage;
 };
-export interface PerceptionEvent extends ExtendableMessageEvent {
-  data: PerceptionEventData;
-}
+export type PerceptionEvent = MessageEvent<PerceptionEventData>;
+
+export type ActionMessageEventData = {
+  message: ActionMessage;
+};
+export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
+
+export type ConversationChangeEventData = {
+  conversation: Conversation;
+};
+export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
+
+export type MessagesUpdateEventData = undefined;
+export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
 
 export type TaskObject = {
   id: any;
@@ -238,9 +254,7 @@ export type TaskEventData = {
   agent: ActiveAgentObject;
   task: TaskObject;
 };
-export interface TaskEvent extends ExtendableMessageEvent {
-  data: TaskEventData;
-}
+export type TaskEvent = ExtendableMessageEvent<TaskEventData>;
 
 // scenes
 
