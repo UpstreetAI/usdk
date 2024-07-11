@@ -570,8 +570,6 @@ export class ActiveAgentObject extends AgentObject {
           : generateString(hint)
         );
         // console.log('agent renderer think 3');
-        // await self.handleAgentAction(agent, pendingMessage);
-        // console.log('agent renderer think 4');
         return pendingMessage;
       } catch (err) {
         console.warn('generate error', err);
