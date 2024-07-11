@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+// import type { Context } from 'react';
 import { z } from 'zod';
 import type { ZodTypeAny } from 'zod';
 import dedent from 'dedent';
@@ -27,10 +28,16 @@ import type {
   ChatMessages,
   ActionHistoryQuery,
   Memory,
+  ActionOpts,
+  PerceptionEventData,
+  ConversationChangeEventData,
+  ActionMessageEventData,
+  ActionMessageEvent,
+  MessagesUpdateEventData,
 } from '../types';
 import {
-  ConversationContext,
-} from './conversation-context';
+  Conversation,
+} from './conversation';
 import {
   QueueManager,
 } from '../util/queue-manager.mjs';
@@ -59,24 +66,25 @@ import {
 
 //
 
-const makeEpochUse = (getterFn: () => any) => () => {
-  useContext(EpochContext); // re-render when epoch changes
+const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
+  useContext(ContextType); // re-render when epoch changes
   return getterFn();
 };
 
 //
 
-function getConverstationKey({
+const getConverstationKey = ({
   room,
   endpointUrl,
-}) {
-  return `${endpointUrl}/${room}`;
-}
+}) => `${endpointUrl}/${room}`;
 
+//
+
+// XXX break this out into RenderedAgentObject and LiveAgentObject
 export class ActiveAgentObject extends AgentObject {
   // arguments
   appContextValue: AppContextValue;
-  wallets: any;
+  wallets: Array<object>;
   // registry
   actionRegistry: Map<symbol, ActionProps> = new Map();
   formatterRegistry: Map<symbol, FormatterProps> = new Map();
@@ -88,12 +96,13 @@ export class ActiveAgentObject extends AgentObject {
   personalityRegistry: Map<symbol, PersonalityProps> = new Map();
   serverRegistry: Map<symbol, ServerProps> = new Map();
   // state
-  conversations = new Map<string, ConversationContext>();
+  conversations = new Map<string, Conversation>();
+  currentConversation: Conversation | null;
   rooms = new Map<string, NetworkRealms>();
   thinkQueueManager = new QueueManager();
   tasks: Map<symbol, TaskObject> = new Map();
-
   incomingMessageQueueManager: QueueManager;
+  numTyping = 0;
 
   //
   
@@ -104,7 +113,7 @@ export class ActiveAgentObject extends AgentObject {
       wallets,
     }: {
       appContextValue: AppContextValue;
-      wallets: any;
+      wallets: Array<object>;
     }
   ) {
     super(agentJson);
@@ -199,63 +208,51 @@ export class ActiveAgentObject extends AgentObject {
   }
 
   useActions() {
-    return makeEpochUse(() => Array.from(this.actionRegistry.values()))();
+    return useContextEpoch(EpochContext, () => Array.from(this.actionRegistry.values()));
   }
   useFormatters() {
-    return makeEpochUse(() => Array.from(this.formatterRegistry.values()))();
+    return useContextEpoch(EpochContext, () => Array.from(this.formatterRegistry.values()));
   }
 
   useName() {
-    return makeEpochUse(() => {
+    return useContextEpoch(EpochContext, () => {
       const names = Array.from(this.nameRegistry.values());
       return names.length > 0 ? names[0].children : this.name;
-    })();
+    });
   }
   usePersonality() {
-    return makeEpochUse(() => {
+    return useContextEpoch(EpochContext, () => {
       const personalities = Array.from(this.personalityRegistry.values());
       return personalities.length > 0 ? personalities[0].children : this.bio;
-    })();
+    });
+  }
+
+  // setters
+
+  async setConversation(conversation: Conversation | null) {
+    this.currentConversation = conversation;
+
+    const e = new ExtendableMessageEvent<ConversationChangeEventData>('conversationchange', {
+      data: {
+        conversation,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
 
   // dynamic hooks
 
-  useScene() {
-    return null; // XXX find a way to inject this state into prompts
+  // XXX move this to context hooks
+  useCurrentConversation() {
+    return this.currentConversation;
   }
-  useAgents() {
-    return []; // XXX
-  }
-  useActionHistory(query?: ActionHistoryQuery) {
-    return []; // XXX filter the local messages
-    /* const agentJson = this.#agentJson;
-    const filter = query?.filter;
-    // console.log('use action history 1');
-    const messages = makeEpochUse(() => conversationContext.getMessages(filter))();
-    // console.log('use action history 2', messages);
-    return messages; */
+  useConversations() {
+    return Array.from(this.conversations);
   }
 
   // methods
 
-  getJson() {
-    const {
-      name,
-      id,
-      description,
-      bio,
-      model,
-      address,
-    } = this;
-    return {
-      name,
-      id,
-      description,
-      bio,
-      model,
-      address,
-    };
-  }
   async join({
     room,
     endpointUrl,
@@ -266,12 +263,13 @@ export class ActiveAgentObject extends AgentObject {
       room,
       endpointUrl,
     });
-    const conversationContext = new ConversationContext({
+    const conversation = new Conversation({
       id: key,
-      agent: this,
+      agent: this, // XXX get rid of this argument
     });
-    this.conversations.set(key, conversationContext);
-    const converstaionContextPromise = conversationContext.waitForLoad();
+    // XXX load conversation messages manually here
+    this.conversations.set(key, conversation);
+    const conversationPromise = conversation.waitForLoad();
 
     const realmsPromise = (async () => {
       const realms = new NetworkRealms({
@@ -291,7 +289,25 @@ export class ActiveAgentObject extends AgentObject {
             const realmKey = e.data.rootRealmKey;
 
             // Initialize network realms player.
-            const agentJson = this.getJson();
+            const getJson = () => {
+              const {
+                name,
+                id,
+                description,
+                bio,
+                model,
+                address,
+              } = this;
+              return {
+                name,
+                id,
+                description,
+                bio,
+                model,
+                address,
+              };
+            };
+            const agentJson = getJson();
             const localPlayer = new Player(guid, agentJson);
             const _pushInitialPlayer = () => {
               realms.localPlayer.initializePlayer(
@@ -320,7 +336,7 @@ export class ActiveAgentObject extends AgentObject {
           console.log('remote player joined:', playerId);
 
           const remotePlayer = new Player(playerId);
-          conversationContext.addAgent(playerId, remotePlayer);
+          conversation.addAgent(playerId, remotePlayer);
 
           // apply initial remote player state
           {
@@ -340,9 +356,9 @@ export class ActiveAgentObject extends AgentObject {
         virtualPlayers.addEventListener('leave', async (e) => {
           const { playerId } = e.data;
           console.log('remote player left:', playerId);
-          const remotePlayer = conversationContext.getAgent(playerId);
+          const remotePlayer = conversation.getAgent(playerId);
           if (remotePlayer) {
-            conversationContext.removeAgent(playerId);
+            conversation.removeAgent(playerId);
           } else {
             console.warn('remote player not found', playerId);
             debugger;
@@ -356,7 +372,7 @@ export class ActiveAgentObject extends AgentObject {
 
         const handleRemoteUserMessage = async (message) => {
           if (!message.hidden) {
-            conversationContext.addLocalMessage(message);
+            conversation.addLocalMessage(message);
           }
         };
         realms.addEventListener('chat', async (e) => {
@@ -379,14 +395,21 @@ export class ActiveAgentObject extends AgentObject {
       };
       _bindDisconnect();
 
-      const _bindConversationContext = () => {
+      const _bindConversation = () => {
         // handle conversation remote message re-render
-        const onConversationContextLocalMessage = (e) => {
-          const { message, waitUntil } = e.data;
-          waitUntil((async () => {
+        const onConversationLocalMessage = (e: ActionMessageEvent) => {
+          const { message } = e.data;
+          e.waitUntil((async () => {
             await this.incomingMessageQueueManager.waitForTurn(async () => {
               try {
-                await this.agentRenderer.rerenderAsync();
+                // wait for re-render
+                {
+                  // await this.agentRenderer.rerenderAsync();
+                  const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
+                  this.dispatchEvent(e);
+                  await e.waitForFinish();
+                }
+                
                 const {
                   perceptionRegistry,
                 } = this;
@@ -395,7 +418,7 @@ export class ActiveAgentObject extends AgentObject {
                 const perceptionPromises = [];
                 for (const perception of allPerceptions) {
                   if (perception.type === message.method) {
-                    const e = new ExtendableMessageEvent('perception', {
+                    const e = new MessageEvent<PerceptionEventData>('perception', {
                       data: {
                         agent: this,
                         message,
@@ -424,12 +447,12 @@ export class ActiveAgentObject extends AgentObject {
             });
           })());
         };
-        conversationContext.addEventListener(
+        conversation.addEventListener(
           'localmessage',
-          onConversationContextLocalMessage,
+          onConversationLocalMessage,
         );
   
-        conversationContext.addEventListener('remotemessage', async (e) => {
+        conversation.addEventListener('remotemessage', async (e: MessageEvent) => {
           const { message } = e.data;
           if (realms.isConnected()) {
             realms.sendChatMessage(message);
@@ -447,8 +470,32 @@ export class ActiveAgentObject extends AgentObject {
             });
           })();
         });
+
+        const sendTyping = (typing: boolean) => {
+          if (realms.isConnected()) {
+            try {
+              realms.sendChatMessage({
+                method: 'typing',
+                userId: this.id,
+                name: this.name,
+                args: {
+                  typing,
+                },
+                hidden: true,
+              });
+            } catch (err) {
+              console.warn(err);
+            }
+          }
+        };
+        conversation.addEventListener('typingstart', (e: MessageEvent) => {
+          sendTyping(true);
+        });
+        conversation.addEventListener('typingend', (e: MessageEvent) => {
+          sendTyping(false);
+        });
       };
-      _bindConversationContext();
+      _bindConversation();
 
       this.rooms.set(key, realms);
 
@@ -487,58 +534,7 @@ export class ActiveAgentObject extends AgentObject {
     }
   }
 
-  async addAction(
-    pendingActionMessage: PendingActionMessage,
-  ) {
-    const { id: userId, name } = this;
-    const { method, args } = pendingActionMessage;
-    const timestamp = new Date();
-    const actionMessage = {
-      userId,
-      name,
-      method,
-      args,
-      timestamp,
-    };
-
-    // XXX get this from the pending action
-    conversationContext.addLocalAndRemoteMessage(actionMessage);
-    // XXX emit update method and handle externally
-    await self.rerenderAsync();
-  }
-
-  async typing(fn: () => Promise<void>) {
-    const sendTyping = (realms: NetworkRealms, typing: boolean) => {
-      if (realms.isConnected()) {
-        realms.sendChatMessage({
-          method: 'typing',
-          userId: this.id,
-          name: this.name,
-          args: {
-            typing,
-          },
-          hidden: true,
-        });
-      }
-    };
-    const start = () => {
-      for (const realms of Array.from(this.rooms.values())) {
-        sendTyping(realms, true);
-      }
-    };
-    const end = () => {
-      for (const realms of Array.from(this.rooms.values())) {
-        sendTyping(realms, false);
-      }
-    };
-    start();
-    try {
-      return await fn();
-    } finally {
-      end();
-    }
-  }
-
+  // XXX use bindConversation()
   async think(hint?: string) {
     await this.thinkQueueManager.waitForTurn(async () => {
       // console.log('agent renderer think 1');
