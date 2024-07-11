@@ -4,7 +4,7 @@ import * as React from 'react'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
-import { createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
+import { createMp3AudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
 interface MultiplayerActionsContextType {
@@ -317,7 +317,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
     console.log("key: ",key);
 
-    const stream = createOpusAudioOutputStream({
+    const stream = createMp3AudioOutputStream({
         audioContext,
     });
 

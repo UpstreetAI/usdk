@@ -106,6 +106,73 @@ export function createOpusAudioOutputStream({
   };
 }
 
+export function createMp3AudioOutputStream({
+  audioContext,
+}) {
+  if (!audioContext) {
+    debugger;
+  }
+
+  const audioWorkletNode = new AudioWorkletNode(
+    audioContext,
+    'ws-output-worklet',
+  );
+
+  audioWorkletNode.addEventListener('processorerror', e => {
+    console.log('audioWorkletNode processorerror', e);
+  });
+  audioWorkletNode.port.onmessage = e => {
+    // console.log('audio worklet node message', e.data);
+    const {
+      method,
+    } = e.data;
+    switch (method) {
+      case 'finish': {
+        // console.log('finish', performance.now());
+        audioWorkletNode.dispatchEvent(new MessageEvent('finish'));
+        break;
+      }
+      default: {
+        console.warn('opus audio stream got unknown method', method);
+        break;
+      }
+    }
+  };
+
+  const audioDecoder = new Mp3AudioDecoder({
+    sampleRate: audioContext.sampleRate,
+    output: data => {
+      if (data) {
+        // console.log('decoded data', structuredClone(data?.data), performance.now());
+        data = getAudioDataBuffer(data);
+        audioWorkletNode.port.postMessage(data, [data.buffer]);
+      } else {
+        audioWorkletNode.port.postMessage(null);
+      }
+    },
+    error: err => {
+      console.error("mp3 audio decoder error: ",err);
+    }
+  });
+
+  return {
+    outputNode: audioWorkletNode,
+    audioDecoder,
+    write(data) {
+      // console.log('decode data', structuredClone(data));
+      audioDecoder.decode(data);
+    },
+    end() {
+      // console.log('decode end');
+      audioDecoder.decode(null);
+    }
+    // close() {
+    //   audioWorkletNode.disconnect();
+    //   audioDecoder.close();
+    // },
+  };
+}
+
 // media stream -> encoded opus audio output
 export function createOpusMicrophoneSource({
   mediaStream,
