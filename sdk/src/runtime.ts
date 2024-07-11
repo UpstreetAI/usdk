@@ -30,6 +30,7 @@ import {
   ChatMessages,
   PendingActionMessage,
   ActionProps,
+  Conversation,
 } from './types';
 import {
   PendingActionEvent,
@@ -200,19 +201,21 @@ export async function generateString(hint: string) {
 
 export async function handleAgentAction(
   agent: ActiveAgentObject,
-  newMessage: PendingActionMessage,
+  message: PendingActionMessage,
+  conversation: Conversation | null,
 ) {
   // console.log('handle agent action 1');
   const { actionRegistry } = agent;
 
-  const { method } = newMessage;
+  const { method } = message;
   const actionHandler = getActionByName(actionRegistry, method);
   // console.log('handle agent action 2', actionHandler);
   if (actionHandler) {
     // handle the pending action
     const e = new PendingActionEvent({
       agent,
-      message: newMessage,
+      message,
+      conversation,
     });
     // console.log('handle agent action 3', actionHandler);
     if (actionHandler.handler) {
