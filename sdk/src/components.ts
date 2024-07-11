@@ -20,10 +20,15 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
+  Conversation,
+  // ExtendableMessageEvent,
+  ConversationChangeEvent,
+  MessagesUpdateEvent,
 } from './types';
 import {
   AppContext,
   AgentContext,
+  ConversationContext,
   // EpochContext,
 } from './context';
 import {
@@ -41,6 +46,9 @@ import {
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
+import {
+  makePromise,
+} from './util/util.mjs';
 import { AgentContextValue } from './classes/agent-context-value';
 
 // Note: this comment is used to remove imports before running tsdoc
@@ -80,22 +88,32 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
   const wallets = appContextValue.useWallets();
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [messagesEpoch, setMessagesEpoch] = useState(0);
 
   // state
   const symbol = useMemo(makeSymbol, []);
+  const renderCallbacks = useMemo(() => [], []);
   const agent = useMemo(() => {
-    const activeAgent = new ActiveAgentObject(agentJson, {
+    const agent = new ActiveAgentObject(agentJson, {
       appContextValue,
       wallets,
     });
-    return activeAgent;
+    // bind events
+    agent.addEventListener('conversationchange', (e: ConversationChangeEvent) => {
+      const p = makePromise();
+      renderCallbacks.push(() => p.resolve(null));
+      e.waitUntil(p);
+      setConversation(() => e.data.conversation);
+    });
+    agent.addEventListener('messagesupdate', (e: MessagesUpdateEvent) => {
+      const p = makePromise();
+      renderCallbacks.push(() => p.resolve(null));
+      e.waitUntil(p);
+      setMessagesEpoch((prev) => prev + 1);
+    });
+    return agent;
   }, []);
-  // const agentContextValue = useMemo(() => {
-  //   return new AgentContextValue({
-  //     agentJson,
-  //     currentAgent,
-  //   });
-  // }, []);
 
   // registry
   useEffect(() => {
@@ -108,14 +126,23 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   // ref
   useImperativeHandle(ref, () => agent, [agent]);
 
+  // render callbacks
+  useEffect(() => {
+    for (const cb of renderCallbacks) {
+      cb();
+    }
+    renderCallbacks.length = 0;
+  });
+
   // return
   return React.createElement(AgentContext.Provider, {
     value: agent,
-  }, props.children);
+  }, React.createElement(ConversationContext.Provider, {
+    value: conversation,
+  }, props.children));
 });
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -130,7 +157,6 @@ export const Action: React.FC<ActionProps> = (props: ActionProps) => {
 };
 export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -144,7 +170,6 @@ export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
 };
 export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -158,7 +183,6 @@ export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
 };
 export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -172,7 +196,6 @@ export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
 };
 export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -186,7 +209,6 @@ export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) =>
 };
 export const Task: React.FC<TaskProps> = (props: TaskProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -203,7 +225,6 @@ export const Task: React.FC<TaskProps> = (props: TaskProps) => {
 
 export const Name: React.FC<NameProps> = (props: NameProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -217,7 +238,6 @@ export const Name: React.FC<NameProps> = (props: NameProps) => {
 };
 export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
@@ -234,7 +254,6 @@ export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps)
 
 export const Server: React.FC<ServerProps> = (props: ServerProps) => {
   const symbol = useMemo(makeSymbol, []);
-  // const appContext = useContext(AppContext);
   const agentContext = useContext(AgentContext);
 
   useEffect(() => {
