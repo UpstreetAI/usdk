@@ -28,18 +28,22 @@ export const useAuthToken: () => string = () => {
 
 //
 
-export const useScene: () => SceneObject = () => {
+export const useCurrentAgent: () => ActiveAgentObject = () => {
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue;
+};
+export const useCurrentConversation = () => {
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.useCurrentConversation();
+};
+/* export const useScene: () => SceneObject = () => {
   const agentContextValue = useContext(AgentContext);
   return agentContextValue.useScene();
 };
 export const useAgents: () => Array<AgentObject> = () => {
   const agentContextValue = useContext(AgentContext);
   return agentContextValue.useAgents();
-};
-export const useCurrentAgent: () => ActiveAgentObject = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue;
-};
+}; */
 
 export const useActions: () => Array<ActionProps> = () => {
   const agentContextValue = useContext(AgentContext);
