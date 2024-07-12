@@ -1,5 +1,6 @@
 import type {
   ActiveAgentObject,
+  GenerativeAgentObject,
   PendingActionEventData,
   PendingActionMessage,
   Conversation,
@@ -9,17 +10,14 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
   constructor({
     agent,
     message,
-    conversation,
   }: {
-    agent: ActiveAgentObject;
+    agent: GenerativeAgentObject;
     message: PendingActionMessage;
-    conversation: Conversation;
   }) {
     super('pendingaction', {
       data: {
         agent,
         message,
-        conversation,
       },
     });
   }
@@ -28,7 +26,6 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
     const {
       agent,
       message,
-      conversation,
     } = super.data;
 
     const { id: userId, name } = agent;
@@ -43,7 +40,7 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
       human: false,
       hidden: false,
     };
-    conversation.addLocalAndRemoteMessage(newMessage);
+    agent.conversation.addLocalAndRemoteMessage(newMessage);
     // console.log('handle agent commit 2', newMessage);
 
     // XXX move this to the conversation itself
