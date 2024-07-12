@@ -23,7 +23,8 @@ import type {
   Conversation,
   // ExtendableMessageEvent,
   ConversationChangeEvent,
-  ConversationsChangeEvent,
+  ConversationAddEvent,
+  ConversationRemoveEvent,
   MessagesUpdateEvent,
 } from './types';
 import {
@@ -111,9 +112,11 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
       e.waitUntil(renderLoader.waitForLoad());
       setConversation(() => e.data.conversation);
     });
-    agent.addEventListener('conversationschange', (e: ConversationsChangeEvent) => {
-      e.waitUntil(renderLoader.waitForLoad());
-      setConversations(() => e.data.conversations);
+    agent.addEventListener('conversationadd', (e: ConversationAddEvent) => {
+      setConversations((conversations) => conversations.concat([e.data.conversation]));
+    });
+    agent.addEventListener('conversationremove', (e: ConversationRemoveEvent) => {
+      setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
     });
     agent.addEventListener('messagesupdate', (e: MessagesUpdateEvent) => {
       e.waitUntil(renderLoader.waitForLoad());

@@ -31,6 +31,8 @@ import type {
   ActionOpts,
   PerceptionEventData,
   ConversationChangeEventData,
+  ConversationAddEventData,
+  ConversationRemoveEventData,
   ActionMessageEventData,
   ActionMessageEvent,
   MessagesUpdateEventData,
@@ -63,6 +65,9 @@ import {
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
+import {
+  retry,
+} from '../util/util.mjs';
 
 //
 
@@ -73,7 +78,7 @@ const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
 
 //
 
-const getConverstationKey = ({
+const getConversationKey = ({
   room,
   endpointUrl,
 }) => `${endpointUrl}/${room}`;
@@ -96,13 +101,10 @@ export class ActiveAgentObject extends AgentObject {
   personalityRegistry: Map<symbol, PersonalityProps> = new Map();
   serverRegistry: Map<symbol, ServerProps> = new Map();
   // state
-  conversations = new Map<string, Conversation>();
-  currentConversation: Conversation | null;
   rooms = new Map<string, NetworkRealms>();
   thinkQueueManager = new QueueManager();
   tasks: Map<symbol, TaskObject> = new Map();
   incomingMessageQueueManager: QueueManager;
-  numTyping = 0;
 
   //
   
@@ -230,8 +232,6 @@ export class ActiveAgentObject extends AgentObject {
   // setters
 
   async setConversation(conversation: Conversation | null) {
-    this.currentConversation = conversation;
-
     const e = new ExtendableMessageEvent<ConversationChangeEventData>('conversationchange', {
       data: {
         conversation,
@@ -243,14 +243,6 @@ export class ActiveAgentObject extends AgentObject {
 
   // dynamic hooks
 
-  /* // XXX move this to context hooks
-  useCurrentConversation() {
-    return this.currentConversation;
-  }
-  useConversations() {
-    return Array.from(this.conversations);
-  } */
-
   // methods
 
   async join({
@@ -259,7 +251,7 @@ export class ActiveAgentObject extends AgentObject {
   }) {
     const guid = this.id;
 
-    const key = getConverstationKey({
+    const key = getConversationKey({
       room,
       endpointUrl,
     });
@@ -267,8 +259,11 @@ export class ActiveAgentObject extends AgentObject {
       id: key,
       agent: this, // XXX get rid of this argument
     });
-    // XXX load conversation messages manually here
-    this.conversations.set(key, conversation);
+    this.dispatchEvent(new ExtendableMessageEvent<ConversationAddEventData>('conversationadd', {
+      data: {
+        conversation,
+      },
+    }));
     const conversationPromise = conversation.waitForLoad();
 
     const realmsPromise = (async () => {
@@ -277,6 +272,7 @@ export class ActiveAgentObject extends AgentObject {
         playerId: guid,
         audioManager: null,
       });
+      realms.conversation = conversation;
 
       const virtualWorld = realms.getVirtualWorld();
       const virtualPlayers = realms.getVirtualPlayers();
@@ -396,7 +392,6 @@ export class ActiveAgentObject extends AgentObject {
       _bindDisconnect();
 
       const _bindConversation = () => {
-        // handle conversation remote message re-render
         const onConversationLocalMessage = (e: ActionMessageEvent) => {
           const { message } = e.data;
           e.waitUntil((async () => {
@@ -507,7 +502,12 @@ export class ActiveAgentObject extends AgentObject {
       await connectPromise;
     })();
     const cleanup = () => {
-      this.conversations.delete(key);
+      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+        data: {
+          conversation,
+        },
+      }));
+
       this.rooms.delete(key);
     };
     try {
@@ -521,13 +521,19 @@ export class ActiveAgentObject extends AgentObject {
     room,
     endpointUrl,
   }) {
-    const key = getConverstationKey({
+    const key = getConversationKey({
       room,
       endpointUrl,
     });
     const realms = this.rooms.get(key);
     if (realms) {
-      this.conversations.delete(key);
+      const conversation = realms.conversation;
+      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+        data: {
+          conversation,
+        },
+      }));
+
       this.rooms.delete(key);
 
       realms.disconnect();

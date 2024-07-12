@@ -241,10 +241,15 @@ export type ConversationChangeEventData = {
 };
 export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
 
-export type ConversationsChangeEventData = {
-  conversations: Conversation[];
+export type ConversationAddEventData = {
+  conversation: Conversation;
 };
-export type ConversationsChangeEvent = ExtendableMessageEvent<ConversationsChangeEventData>;
+export type ConversationAddEvent = MessageEvent<ConversationAddEventData>;
+
+export type ConversationRemoveEventData = {
+  conversation: Conversation;
+};
+export type ConversationRemoveEvent = MessageEvent<ConversationRemoveEventData>;
 
 export type MessagesUpdateEventData = undefined;
 export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
