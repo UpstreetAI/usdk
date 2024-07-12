@@ -23,12 +23,14 @@ import type {
   Conversation,
   // ExtendableMessageEvent,
   ConversationChangeEvent,
+  ConversationsChangeEvent,
   MessagesUpdateEvent,
 } from './types';
 import {
   AppContext,
   AgentContext,
   ConversationContext,
+  ConversationsContext,
   // EpochContext,
 } from './context';
 import {
@@ -49,7 +51,7 @@ import {
 import {
   makePromise,
 } from './util/util.mjs';
-import { AgentContextValue } from './classes/agent-context-value';
+// import { AgentContextValue } from './classes/agent-context-value';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -89,6 +91,7 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   const agentJson = appContextValue.useAgentJson() as any;
   const wallets = appContextValue.useWallets();
   const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messagesEpoch, setMessagesEpoch] = useState(0);
 
   // state
@@ -105,6 +108,12 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
       renderCallbacks.push(() => p.resolve(null));
       e.waitUntil(p);
       setConversation(() => e.data.conversation);
+    });
+    agent.addEventListener('conversationschange', (e: ConversationsChangeEvent) => {
+      const p = makePromise();
+      renderCallbacks.push(() => p.resolve(null));
+      e.waitUntil(p);
+      setConversations(() => e.data.conversations);
     });
     agent.addEventListener('messagesupdate', (e: MessagesUpdateEvent) => {
       const p = makePromise();
@@ -135,11 +144,23 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   });
 
   // return
-  return React.createElement(AgentContext.Provider, {
-    value: agent,
-  }, React.createElement(ConversationContext.Provider, {
-    value: conversation,
-  }, props.children));
+  return React.createElement(
+    AgentContext.Provider, {
+      value: agent,
+    },
+    React.createElement(
+      ConversationContext.Provider,
+      {
+        value: conversation,
+      },
+      React.createElement(
+        ConversationsContext.Provider, {
+          value: conversations,
+        },
+        props.children
+      ),
+    ),
+  );
 });
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
   const symbol = useMemo(makeSymbol, []);
