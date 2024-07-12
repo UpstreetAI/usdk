@@ -243,13 +243,13 @@ export class ActiveAgentObject extends AgentObject {
 
   // dynamic hooks
 
-  // XXX move this to context hooks
+  /* // XXX move this to context hooks
   useCurrentConversation() {
     return this.currentConversation;
   }
   useConversations() {
     return Array.from(this.conversations);
-  }
+  } */
 
   // methods
 
