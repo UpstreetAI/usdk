@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
+  experimental: {
+    nextScriptWorkers: true,
+  },
   webpack: (config, { isServer }) => {
     
     // Enable WebAssembly experiments
-    config.experiments = { asyncWebAssembly: true, syncWebAssembly: true, layers: true, topLevelAwait: true };
-
+    config.experiments = { asyncWebAssembly: true, syncWebAssembly: true, layers: true, topLevelAwait: true};
     // Ensure WebAssembly modules are properly flagged
     config.module.rules.push({
       test: /\.wasm$/,
@@ -18,6 +20,17 @@ module.exports = {
       config.resolve.fallback = {
         fs: false,
       };
+      config.output.globalObject = 'self';
+      config.optimization.splitChunks = {
+        chunks: (chunk) => {
+          // this may vary widely on your loader config
+          if (chunk.name && chunk.name.includes("worklet")) {
+            return false;
+          }
+    
+          return true;
+        }
+      }
     }
 
     return config;

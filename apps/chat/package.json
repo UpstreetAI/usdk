@@ -84,6 +84,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.10",
+    "@types/audioworklet": "^0.0.57",
     "@types/cookie": "^0.6.0",
     "@types/d3-scale": "4.0.8",
     "@types/node": "20.11.5",

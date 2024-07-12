@@ -19,6 +19,8 @@
     "npm-check-updates": "^16.14.20",
     "typescript": "^5.4.5",
     "typescript-eslint": "^7.13.0"
+  },
+  "dependencies": {
+    "@builder.io/partytown": "^0.10.2"
   }
 }
- 

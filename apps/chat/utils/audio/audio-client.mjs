@@ -110,6 +110,7 @@ export function createMp3AudioOutputStream({
   audioContext,
 }) {
   if (!audioContext) {
+    console.log("no audio context passed");
     debugger;
   }
 
