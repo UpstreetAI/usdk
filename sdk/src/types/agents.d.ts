@@ -137,7 +137,7 @@ export type ActiveAgentObject = AgentObject & {
 
   // useScene: () => SceneObject | null;
   // useAgents: () => Array<AgentObject>;
-  useCurrentConversation: () => Conversation | null;
+  // useCurrentConversation: () => Conversation | null;
 
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
@@ -240,6 +240,11 @@ export type ConversationChangeEventData = {
   conversation: Conversation;
 };
 export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
+
+export type ConversationsChangeEventData = {
+  conversations: Conversation[];
+};
+export type ConversationsChangeEvent = ExtendableMessageEvent<ConversationsChangeEventData>;
 
 export type MessagesUpdateEventData = undefined;
 export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
