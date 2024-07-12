@@ -19,12 +19,12 @@ import {
   // TaskObject,
   // TaskResult,
 } from '../components';
-import {
-  SceneObject,
-} from './scene-object';
-import {
-  AgentObject,
-} from './agent-object';
+// import {
+//   SceneObject,
+// } from './scene-object';
+// import {
+//   AgentObject,
+// } from './agent-object';
 import {
   SubtleAi,
 } from './subtle-ai';
@@ -301,35 +301,6 @@ export class AgentRenderer {
 
     this.renderQueueManager = new QueueManager();
   }
-
-  // bound object getters
-
-  /* getScene() {
-    const scene = this.conversationContext.getScene();
-    const sceneBound = new SceneObject(scene);
-    return sceneBound;
-  }
-  getAgents() {
-    const agents = this.conversationContext.getAgents()
-    const { appContextValue, wallets } = this;
-
-    const agentsBound = agents.map((agent) => new AgentObject(agent, {
-      context: appContextValue,
-    }));
-    return agentsBound;
-  } */
-  /* getCurrentAgent() {
-    const currentAgent = this.conversationContext.getCurrentAgent();
-    const { appContextValue, wallets } = this;
-
-    const currentAgentBound = new AgentObject(currentAgent, {
-      context: appContextValue,
-    });
-    const currentActiveAgentBound = new ActiveAgentObject(currentAgentBound, {
-      wallets,
-    });
-    return currentActiveAgentBound;
-  } */
 
   // rendering
 
