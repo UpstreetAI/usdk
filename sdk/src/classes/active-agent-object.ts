@@ -257,7 +257,7 @@ export class ActiveAgentObject extends AgentObject {
       id: key,
       agent: this, // XXX get rid of this argument
     });
-    this.dispatchEvent(new ExtendableMessageEvent<ConversationAddEventData>('conversationadd', {
+    this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
       data: {
         conversation,
       },
