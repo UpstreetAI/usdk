@@ -17,6 +17,8 @@ import {
 import {
   AppContext,
   AgentContext,
+  ConversationContext,
+  ConversationsContext,
 } from './context';
 
 //
@@ -33,8 +35,12 @@ export const useCurrentAgent: () => ActiveAgentObject = () => {
   return agentContextValue;
 };
 export const useCurrentConversation = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useCurrentConversation();
+  const conversationContextValue = useContext(ConversationContext);
+  return conversationContextValue;
+};
+export const useConversations = () => {
+  const conversationsContext = useContext(ConversationsContext);
+  return conversationsContext;
 };
 /* export const useScene: () => SceneObject = () => {
   const agentContextValue = useContext(AgentContext);
