@@ -3,7 +3,7 @@
 // import {zbencode} from '../../../zjs/encoding.mjs';
 // import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
 import {WsMediaStreamAudioReader, OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder, FakeAudioData} from './ws-codec.js';
-import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './ws-util.js';
+import {getEncodedAudioChunkBuffer, getAudioDataBuffer, getMp3AudioDatBuffer} from './ws-util.js';
 import {makeId, makePromise} from '../util.js';
 
 //
@@ -123,7 +123,7 @@ export function createMp3AudioOutputStream({
     console.log('audioWorkletNode processorerror', e);
   });
   audioWorkletNode.port.onmessage = e => {
-    // console.log('audio worklet node message', e.data);
+    console.log('audio worklet node message', e.data);
     const {
       method,
     } = e.data;
@@ -145,7 +145,8 @@ export function createMp3AudioOutputStream({
     output: data => {
       if (data) {
         // console.log('decoded data', structuredClone(data?.data), performance.now());
-        data = getAudioDataBuffer(data);
+        data = getMp3AudioDatBuffer(data);
+        console.log('data buffer', data.buffer);
         audioWorkletNode.port.postMessage(data, [data.buffer]);
       } else {
         audioWorkletNode.port.postMessage(null);

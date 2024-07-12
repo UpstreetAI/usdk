@@ -302,13 +302,13 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       const {
         playerId,
         streamId,
+        data,
       } = e.data;
 
       console.log('audio', 'playerId: ', playerId, 'streamId: ',streamId);
 
       const audioStream = ensureAudioStream(playerId, streamId,audioContext);
-      // audioStream.write(data);
-
+      audioStream.write(data);
     })
 
     virtualPlayers.addEventListener('audioend', (e: any) => {
@@ -340,6 +340,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     console.log("audioManagerInput: ",audioManagerInput)
     stream.outputNode.connect(audioManagerInput);
     console.log('connect node', stream.outputNode);
+
+    return stream;
 
     // audioStreams.set(key, stream);
     // audioStream = stream;

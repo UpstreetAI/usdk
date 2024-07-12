@@ -189,6 +189,7 @@ export const decodeTypedMessage = (uint8Array, uint8ArrayByteLength, parts) => {
   }
 };
 export const getAudioDataBuffer = audioData => {
+  console.log("audioData: ",audioData);
   let channelData;
   if (audioData.copyTo) { // new api
     channelData = new Float32Array(audioData.numberOfFrames);
@@ -199,6 +200,31 @@ export const getAudioDataBuffer = audioData => {
   } else { // old api
     channelData = audioData.buffer.getChannelData(0);
   }
+  return channelData;
+};
+
+export const getMp3AudioDatBuffer = audioData => {
+  console.log("audioData: ", audioData);
+  let channelData;
+
+  if (audioData.data) {
+    // If audioData has a data property, use it directly
+    channelData = audioData.data;
+  } else if (audioData.copyTo) {
+    // Use the new API if copyTo is available
+    channelData = new Float32Array(audioData.numberOfFrames);
+    audioData.copyTo(channelData, {
+      planeIndex: 0,
+      frameCount: audioData.numberOfFrames,
+    });
+  } else if (audioData.buffer) {
+    // Fallback to the old API
+    channelData = audioData.buffer.getChannelData(0);
+  } else {
+    // Handle case where none of the above methods are available
+    throw new Error("Unsupported audioData format");
+  }
+
   return channelData;
 };
 export const getEncodedAudioChunkBuffer = encodedAudioChunk => {
