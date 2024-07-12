@@ -77,15 +77,15 @@ const makeSymbol = () => Symbol('propsKey');
  * </Agent>
  * ```
  */
-export const Agent = forwardRef((props: AgentProps, ref: Ref<any>) => {
-  return React.createElement(RawAgent, {
-    ref,
-  }, [
-    React.createElement(DefaultAgentComponents, { key: 0 }),
-    React.createElement(React.Fragment, { key: 1 }, props.children),
-  ]);
+export const Agent = forwardRef((props: AgentProps, ref: Ref<ActiveAgentObject>) => {
+  return (
+    <RawAgent ref={ref}>
+      <DefaultAgentComponents />
+      {props.children}
+    </RawAgent>
+  );
 });
-export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
+export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentObject>) => {
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
@@ -144,22 +144,14 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<any>) => {
   });
 
   // return
-  return React.createElement(
-    AgentContext.Provider, {
-      value: agent,
-    },
-    React.createElement(
-      ConversationContext.Provider,
-      {
-        value: conversation,
-      },
-      React.createElement(
-        ConversationsContext.Provider, {
-          value: conversations,
-        },
-        props.children
-      ),
-    ),
+  return (
+    <AgentContext.Provider value={agent}>
+      <ConversationContext.Provider value={conversation}>
+        <ConversationsContext.Provider value={conversations}>
+          {props.children}
+        </ConversationsContext.Provider>
+      </ConversationContext.Provider>
+    </AgentContext.Provider>
   );
 });
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
@@ -187,7 +179,8 @@ export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
   }, []);
   agentContext.registerPrompt(symbol, props);
 
-  return React.createElement(React.Fragment, {}, props.children);
+  // return React.createElement(React.Fragment, {}, props.children);
+  return props.children;
 };
 export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
   const symbol = useMemo(makeSymbol, []);
