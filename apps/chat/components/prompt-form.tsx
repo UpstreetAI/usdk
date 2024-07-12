@@ -139,7 +139,7 @@ export function PromptForm({
           ref={inputRef}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          placeholder="Send a message."
+          placeholder="Send a message..."
           className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-14 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}

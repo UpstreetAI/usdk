@@ -2,6 +2,6 @@
 
 const chatRoomRoute = '/rooms';
 
-export function newChat() {
-  location.href = `${chatRoomRoute}/${crypto.randomUUID()}`;
+export function newChat(toAppend="") {
+  location.href = `${chatRoomRoute}/${crypto.randomUUID()}`+toAppend;
 }

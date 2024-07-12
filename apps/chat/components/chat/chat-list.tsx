@@ -41,12 +41,17 @@ export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
         </>
       ) : null} */}
 
-      {messages.map((message: any, index: number) => message.display &&
+      {
+      // messages.length ? 
+      messages.map((message: any, index: number) => message.display &&
         <div key={message.id}>
           {message.display}
           {index < messages.length - 1 && <Separator className="my-4" />}
         </div>
-      )}
+      )
+      // :
+      // <Image src="/images/cactus-illustration.png" className="object-contain opacity-20" height={200} width={200} alt="Cactus Illustration"/>
+    }
     </div>
   )
 }

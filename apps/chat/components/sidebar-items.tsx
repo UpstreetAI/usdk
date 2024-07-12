@@ -17,6 +17,7 @@ export function SidebarItems({ chats }: SidebarItemsProps) {
 
   return (
     <AnimatePresence>
+       bruh
       {chats.map(
         (chat, index) =>
           chat && (

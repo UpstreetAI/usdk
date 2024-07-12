@@ -23,6 +23,7 @@ import { useSupabase } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 import { Button } from '@/components/ui/button'
+import { createChatIdb } from '@/lib/chat'
 
 type Message = {
   args: {
@@ -75,6 +76,13 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     //   return null;
     // }
   }).filter((message) => message !== null) as unknown as any[];
+
+  useEffect(() => {
+    createChatIdb({
+      id: id,
+      name: room
+    })
+  }, [])
 
   /*useEffect(() => {
     if (user) {
