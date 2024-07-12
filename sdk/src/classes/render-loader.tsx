@@ -5,12 +5,22 @@ import {
 } from '../util/util.mjs';
 
 // for async render completion tracking
-export class RenderLoader {
+export class RenderLoader extends EventTarget {
   private userLoadPromises: Array<Promise<any>> = [];
   useLoad(p: Promise<any>) {
     this.userLoadPromises.push(p);
+    this.dispatchEvent(new Event('loadadd'));
   }
   async waitForLoad() {
+    if (this.userLoadPromises.length === 0) {
+      await new Promise((accept) => {
+        this.addEventListener('loadadd', () => {
+          accept(null);
+        }, {
+          once: true,
+        });
+      });
+    }
     await Promise.all(this.userLoadPromises);
   }
   clear() {

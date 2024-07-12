@@ -51,6 +51,10 @@ import {
 import {
   makePromise,
 } from './util/util.mjs';
+import {
+  RenderLoader,
+  RenderLoaderProvider,
+} from './classes/render-loader';
 // import { AgentContextValue } from './classes/agent-context-value';
 
 // Note: this comment is used to remove imports before running tsdoc
@@ -92,11 +96,11 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   const wallets = appContextValue.useWallets();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [messagesEpoch, setMessagesEpoch] = useState(0);
+  const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
+  const renderLoader = useMemo(() => new RenderLoader(), []);
 
   // state
   const symbol = useMemo(makeSymbol, []);
-  const renderCallbacks = useMemo(() => [], []);
   const agent = useMemo(() => {
     const agent = new ActiveAgentObject(agentJson, {
       appContextValue,
@@ -104,21 +108,15 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
     });
     // bind events
     agent.addEventListener('conversationchange', (e: ConversationChangeEvent) => {
-      const p = makePromise();
-      renderCallbacks.push(() => p.resolve(null));
-      e.waitUntil(p);
+      e.waitUntil(renderLoader.waitForLoad());
       setConversation(() => e.data.conversation);
     });
     agent.addEventListener('conversationschange', (e: ConversationsChangeEvent) => {
-      const p = makePromise();
-      renderCallbacks.push(() => p.resolve(null));
-      e.waitUntil(p);
+      e.waitUntil(renderLoader.waitForLoad());
       setConversations(() => e.data.conversations);
     });
     agent.addEventListener('messagesupdate', (e: MessagesUpdateEvent) => {
-      const p = makePromise();
-      renderCallbacks.push(() => p.resolve(null));
-      e.waitUntil(p);
+      e.waitUntil(renderLoader.waitForLoad());
       setMessagesEpoch((prev) => prev + 1);
     });
     return agent;
@@ -135,20 +133,14 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   // ref
   useImperativeHandle(ref, () => agent, [agent]);
 
-  // render callbacks
-  useEffect(() => {
-    for (const cb of renderCallbacks) {
-      cb();
-    }
-    renderCallbacks.length = 0;
-  });
-
   // return
   return (
     <AgentContext.Provider value={agent}>
       <ConversationContext.Provider value={conversation}>
         <ConversationsContext.Provider value={conversations}>
-          {props.children}
+          <RenderLoaderProvider renderLoader={renderLoader}>
+            {props.children}
+          </RenderLoaderProvider>
         </ConversationsContext.Provider>
       </ConversationContext.Provider>
     </AgentContext.Provider>
