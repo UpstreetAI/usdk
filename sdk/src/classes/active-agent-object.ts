@@ -85,11 +85,9 @@ const getConversationKey = ({
 
 //
 
-// XXX break this out into RenderedAgentObject and LiveAgentObject
 export class ActiveAgentObject extends AgentObject {
   // arguments
   appContextValue: AppContextValue;
-  wallets: Array<object>;
   // registry
   actionRegistry: Map<symbol, ActionProps> = new Map();
   formatterRegistry: Map<symbol, FormatterProps> = new Map();
@@ -112,16 +110,13 @@ export class ActiveAgentObject extends AgentObject {
     agentJson: AgentObject,
     {
       appContextValue,
-      wallets,
     }: {
       appContextValue: AppContextValue;
-      wallets: Array<object>;
     }
   ) {
     super(agentJson);
 
     this.appContextValue = appContextValue;
-    this.wallets = wallets;
 
     this.incomingMessageQueueManager = new QueueManager();
   }
@@ -207,6 +202,9 @@ export class ActiveAgentObject extends AgentObject {
   }
   useSupabase() {
     return this.appContextValue.useSupabase();
+  }
+  useWallets() {
+    return this.appContextValue.useWallets();
   }
 
   useActions() {
@@ -540,7 +538,7 @@ export class ActiveAgentObject extends AgentObject {
     }
   }
 
-  // XXX use bindConversation()
+  // XXX break this out into GenerativeAgentObject
   async think(hint?: string) {
     await this.thinkQueueManager.waitForTurn(async () => {
       // console.log('agent renderer think 1');

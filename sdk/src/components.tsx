@@ -94,7 +94,6 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
-  const wallets = appContextValue.useWallets();
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
@@ -105,7 +104,6 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   const agent = useMemo(() => {
     const agent = new ActiveAgentObject(agentJson, {
       appContextValue,
-      wallets,
     });
     // bind events
     agent.addEventListener('conversationchange', (e: ConversationChangeEvent) => {
