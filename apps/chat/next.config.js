@@ -21,6 +21,11 @@ module.exports = {
         fs: false,
       };
       config.output.globalObject = 'self';
+       // Configure worker-loader for handling worker scripts
+       config.module.rules.push({
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader', options: { type: 'module', inline: true, publicPath: '/scripts/' } },
+      });
       config.optimization.splitChunks = {
         chunks: (chunk) => {
           // this may vary widely on your loader config

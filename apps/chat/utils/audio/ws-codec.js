@@ -52,7 +52,7 @@ export function WsAudioDecoder({output, error}) {
 
 // import OpusCodecWorker from './audio-worker/ws-opus-codec-worker.js?worker';
 // import Mp3EncoderWorker from './audio-worker/ws-mp3-encoder-worker.js?worker';
-// import Mp3DecoderWorker from './audio-worker/ws-mp3-decoder-worker.js?worker';
+// import Mp3DecoderWorker from '@upstreet/chat/public/scripts/ws-mp3-decoder.js?worker';
 
 // NO WebCodecs suport
 
@@ -227,8 +227,7 @@ export class Mp3AudioDecoder {
     if (!sampleRate) {
       debugger;
     }
-
-    this.worker = new Worker('./audio-worker/ws-mp3-decoder-worker.js');
+    this.worker = new Worker('/scripts/ws-mp3-decoder.worker.js',{ type: "module" });
     this.worker.onmessage = e => {
       output(e.data);
     };

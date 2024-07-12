@@ -93,6 +93,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   });
 
   console.log("audioContext: ",audioContext);
+  console.log("audioManager: ",audioManager);
+
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
@@ -334,18 +336,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         audioContext,
     });
 
-
-    // const audioManager = createAudioManager({
-    //   audioContext,
-    // });
-    // const audioManager = new AudioManager(
-    //   {audioContext: audioContext},
-    // );
-
-    // const audioManagerInput = audioManager.getInput();
-    // stream.outputNode.connect(audioManagerInput);
-
-    // console.log('connect node', stream.outputNode);
+    const audioManagerInput = audioManager.getInput();
+    console.log("audioManagerInput: ",audioManagerInput)
+    stream.outputNode.connect(audioManagerInput);
+    console.log('connect node', stream.outputNode);
 
     // audioStreams.set(key, stream);
     // audioStream = stream;
