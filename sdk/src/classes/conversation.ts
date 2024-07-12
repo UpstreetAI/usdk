@@ -30,7 +30,8 @@ export class Conversation extends EventTarget {
   numTyping: number = 0;
   constructor({
     id,
-    agent,
+    agent, // XXX remove this
+    // XXX add source instead
   }: {
     id: string;
     agent: ActiveAgentObject;
