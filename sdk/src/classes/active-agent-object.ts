@@ -68,6 +68,7 @@ import {
 import {
   retry,
 } from '../util/util.mjs';
+import { GenerativeAgentObject } from './generative-agent-object';
 
 //
 
@@ -100,8 +101,8 @@ export class ActiveAgentObject extends AgentObject {
   serverRegistry: Map<symbol, ServerProps> = new Map();
   // state
   rooms = new Map<string, NetworkRealms>();
-  thinkQueueManager = new QueueManager();
   tasks: Map<symbol, TaskObject> = new Map();
+  generativeQueueManager = new QueueManager();
   incomingMessageQueueManager: QueueManager;
 
   //
@@ -238,8 +239,6 @@ export class ActiveAgentObject extends AgentObject {
     this.dispatchEvent(e);
     await e.waitForFinish();
   }
-
-  // dynamic hooks
 
   // methods
 
@@ -538,76 +537,14 @@ export class ActiveAgentObject extends AgentObject {
     }
   }
 
-  // XXX break this out into GenerativeAgentObject
-  async think(hint?: string) {
-    await this.thinkQueueManager.waitForTurn(async () => {
-      // console.log('agent renderer think 1');
-      await this.typing(async () => {
-        // console.log('agent renderer think 2');
-        try {
-          const pendingMessage = await (hint
-            ? generateAgentActionFromInstructions(this, hint)
-            : generateAgentAction(this)
-          );
-          // console.log('agent renderer think 3');
-          await handleAgentAction(this, pendingMessage);
-          // console.log('agent renderer think 4');
-        } catch (err) {
-          console.warn('think error', err);
-        }
-      });
-      // console.log('agent renderer think 5');
-    });
+  generative({
+    conversation,
+  }: {
+    conversation: Conversation;
+  }) {
+    return new GenerativeAgentObject(this, conversation);
   }
 
-  async generate(hint: string, schema?: ZodTypeAny) {
-    // console.log('agent renderer think 1');
-    await this.typing(async () => {
-      // console.log('agent renderer think 2');
-      try {
-        const pendingMessage = await (schema
-          ? generateJsonMatchingSchema(hint, schema)
-          : generateString(hint)
-        );
-        // console.log('agent renderer think 3');
-        return pendingMessage;
-      } catch (err) {
-        console.warn('generate error', err);
-      }
-    });
-    // console.log('agent renderer think 5');
-  }
-
-  async say(text: string) {
-    await this.typing(async () => {
-      console.log('say text', {
-        text,
-      });
-      const timestamp = Date.now();
-      const pendingMessage = {
-        method: 'say',
-        args: {
-          text,
-        },
-        timestamp,
-      };
-      await handleAgentAction(this, pendingMessage);
-    });
-  }
-  async monologue(text: string) {
-    await this.typing(async () => {
-      console.log('monologue text', {
-        text,
-      });
-      const pendingMessage = await generateAgentActionFromInstructions(
-        this,
-        'The next action should be the character commenting on the following:' +
-          '\n' +
-          text,
-      );
-      await handleAgentAction(this, pendingMessage);
-    });
-  }
   async getMemory(
     query: string,
     opts?: MemoryOpts,
