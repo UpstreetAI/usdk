@@ -101,7 +101,7 @@ export class ConversationObject extends EventTarget {
   getAgents() {
     return Array
       .from(this.#agentsMap.values())
-      .map(player => player.getPlayerSpec());
+      // .map(player => player.getPlayerSpec());
   }
   addAgent(agentId: string, player: Player) {
     this.#agentsMap.set(agentId, player);
@@ -165,6 +165,8 @@ export class ConversationObject extends EventTarget {
 
     // XXX implement this to go to the database. support query via embedding
     throw new Error('not implemented');
+
+    return [] as ActionMessage[];
   }
 
   // pull a message from the network

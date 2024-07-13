@@ -542,7 +542,7 @@ export class ActiveAgentObject extends AgentObject {
   generative({
     conversation,
   }: {
-    conversation: Conversation;
+    conversation: ConversationObject;
   }) {
     return new GenerativeAgentObject(this, conversation);
   }

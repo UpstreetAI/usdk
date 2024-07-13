@@ -131,6 +131,12 @@ type MessageCache {
   pushMessage(message: ActionMessage): void;
   prependMessages(messages: ActionMessage[]): void;
 }
+export type Player = {
+  playerId: string;
+  playerSpec: object;
+  getPlayerSpec(): object;
+  setPlayerSpec(playerSpec: object): void;
+};
 export type ConversationObject = EventTarget & {
   id: string;
   messageCache: MessageCache;
@@ -144,6 +150,16 @@ export type ConversationObject = EventTarget & {
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
   addLocalAndRemoteMessage: (message: ActionMessage) => void;
+
+  getScene: () => SceneObject | null;
+  setScene: (scene: SceneObject | null) => void;
+
+  getAgent: () => ActiveAgentObject | null;
+  setAgent: (agent: ActiveAgentObject) => void;
+
+  getAgents: () => Player[];
+  addAgent: (agentId: string, player: Player) => void;
+  removeAgent: (agentId: string) => void;
 }
 export type ActiveAgentObject = AgentObject & {
   actionRegistry: Map<symbol, ActionProps>;
