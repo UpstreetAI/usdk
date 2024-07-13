@@ -68,7 +68,7 @@ import {
 
 //
 
-const makeSymbol = () => Symbol('propsKey');
+// const makeSymbol = () => Symbol('propsKey');
 
 /**
  * Represents an agent component.
