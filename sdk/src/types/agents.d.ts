@@ -19,6 +19,16 @@ export interface AgentObject extends EventTarget {
   address: string;
 }
 
+export interface GenerativeAgentObject extends AgentObject {
+  agent: ActiveAgentObject;
+  conversation: Conversation;
+
+  think: (hint?: string) => Promise<any>;
+  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+  say: (text: string) => Promise<any>;
+  monologue: (text: string) => Promise<any>;
+}
+
 // messages
 
 export type ChatMessage = {
@@ -128,7 +138,7 @@ export type ActiveAgentObject = AgentObject & {
 
   serverRegistry: Map<symbol, ServerProps>;
 
-  thinkQueueManager: QueueManager;
+  generativeQueueManager: QueueManager;
   tasks: Map<symbol, TaskObject>;
 
   //
@@ -172,6 +182,10 @@ export type ActiveAgentObject = AgentObject & {
 
   //
 
+  generative: ({
+    converation: Conversation,
+  }) => GenerativeAgentObject;
+
   // addAction: (pendingActionMessage: PendingActionMessage, opts?: ActionOpts) => Promise<any>;
   getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
   addMemory: (
@@ -179,10 +193,6 @@ export type ActiveAgentObject = AgentObject & {
     content?: any,
     opts?: MemoryOpts,
   ) => Promise<void>;
-  say: (text: string) => Promise<any>;
-  monologue: (text: string) => Promise<any>;
-  think: (hint?: string) => Promise<any>;
-  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
 
   join: (opts: {
     room: string;
@@ -192,11 +202,6 @@ export type ActiveAgentObject = AgentObject & {
     room: string;
     endpointUrl: string;
   }) => void;
-
-  // ensureConversationContext: (opts: {
-  //   room: string;
-  //   endpointUrl: string;
-  // }) => Promise<Conversation>;
 }
 
 // action events
@@ -210,9 +215,8 @@ export interface ActionEvent extends MessageEvent {
 }
 
 export type PendingActionEventData = {
-  agent: ActiveAgentObject;
+  agent: GenerativeAgentObject;
   message: PendingActionMessage;
-  conversation: Conversation;
 };
 export interface PendingActionEvent extends MessageEvent<PendingActionEventData> {
   commit: () => Promise<void>;
