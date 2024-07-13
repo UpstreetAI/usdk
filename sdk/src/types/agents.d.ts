@@ -448,6 +448,30 @@ type Chat = {
   playAudioStream: (readableStream: ReadableStream) => { id: string };
 };
 
+export type Instance = {
+  type: string;
+  props: any;
+  children: Array<Instance | string>;
+  recurse(fn: (instance: Instance) => void): void;
+};
+export type InstanceChild = Instance | string;
+export type AgentRegistry = {
+  value: ActiveAgentObject;
+  actions: ActionProps[];
+  prompts: PromptProps[];
+  formatters: FormatterProps[];
+  parsers: ParserProps[];
+  perceptions: PerceptionProps[];
+  tasks: TaskProps[];
+  names: NameProps[];
+  personalities: PersonalityProps[];
+  servers: ServerProps[];
+}
+export type RenderRegistry = {
+  agents: Map<ActiveAgentObject, AgentRegistry>;
+  load(container: Instance): void;
+};
+
 export type AppContextValue = {
   subtleAi: SubtleAi;
 
@@ -470,58 +494,6 @@ export type AppContextValue = {
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
-/* export type AgentContextValue = {
-  actionRegistry: Map<symbol, ActionProps>;
-  formatterRegistry: Map<symbol, FormatterProps>;
-  promptRegistry: Map<symbol, PromptProps>;
-  parserRegistry: Map<symbol, ParserProps>;
-  perceptionRegistry: Map<symbol, PerceptionProps>;
-  taskRegistry: Map<symbol, TaskProps>;
-
-  nameRegistry: Map<symbol, NameProps>;
-  personalityRegistry: Map<symbol, PersonalityProps>;
-
-  serverRegistry: Map<symbol, ServerProps>;
-
-  tasks: Map<symbol, TaskObject>;
-
-  //
-
-  useCurrentAgent: () => ActiveAgentObject;
-  useScene: () => SceneObject | null;
-  useAgents: () => Array<AgentObject>;
-
-  useActions: () => Array<ActionProps>;
-  useFormatters: () => Array<FormatterProps>;
-
-  useName: () => string;
-  usePersonality: () => string;
-
-  useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
-
-  //
-
-  registerAction: (key: symbol, props: ActionProps) => void;
-  unregisterAction: (key: symbol) => void;
-  registerPrompt: (key: symbol, props: PromptProps) => void;
-  unregisterPrompt: (key: symbol) => void;
-  registerFormatter: (key: symbol, props: FormatterProps) => void;
-  unregisterFormatter: (key: symbol) => void;
-  registerParser: (key: symbol, props: ParserProps) => void;
-  unregisterParser: (key: symbol) => void;
-  registerPerception: (key: symbol, props: PerceptionProps) => void;
-  unregisterPerception: (key: symbol) => void;
-  registerTask: (key: symbol, props: TaskProps) => void;
-  unregisterTask: (key: symbol) => void;
-
-  registerName: (key: symbol, props: NameProps) => void;
-  unregisterName: (key: symbol) => void;
-  registerPersonality: (key: symbol, props: PersonalityProps) => void;
-  unregisterPersonality: (key: symbol) => void;
-
-  registerServer: (key: symbol, props: ServerProps) => void;
-  unregisterServer: (key: symbol) => void;
-}; */
 export type ConfigurationContextValue = {
   get: (key: string) => any;
   set: (key: string, value: any) => void;
@@ -547,7 +519,3 @@ export type ActionHistoryQuery = {
 // user handler
 
 export type UserHandler = FC<void>;
-
-// hooks
-
-export type useAgents = () => Array<AgentObject>;
