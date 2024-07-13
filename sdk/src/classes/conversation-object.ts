@@ -9,75 +9,68 @@ import {
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
-import {
-  loadMessagesFromDatabase,
-} from '../util/loadMessagesFromDatabase';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
 //
 
-const LOADED_MESSAGES_LIMIT = 50
+export const CACHED_MESSAGES_LIMIT = 50;
 
 //
 
-export class Conversation extends EventTarget {
-  #id: string;
-  #agent: ActiveAgentObject;
+class MessageCache {
+  messages: ActionMessage[] = [];
+  loaded: boolean = false;
+  loadPromise: Promise<void> | null = null;
+
+  pushMessage(message: ActionMessage) {
+    this.messages.push(message);
+    this.#trim();
+  }
+  prependMessages(messages: ActionMessage[]) {
+    this.messages.unshift(...messages);
+    this.#trim();
+  }
+  #trim() {
+    if (this.messages.length > CACHED_MESSAGES_LIMIT) {
+      this.messages.splice(0, this.messages.length - CACHED_MESSAGES_LIMIT);
+    }
+  }
+}
+
+//
+
+export class ConversationObject extends EventTarget {
+  id: string;
   #scene: SceneObject | null;
+  #agent: ActiveAgentObject;
   #agentsMap: Map<string, Player>;
-  #messages: ActionMessage[];
-  #loadPromise: Promise<void>;
-  numTyping: number = 0;
+  messageCache = new MessageCache();
+  #numTyping: number = 0;
+
   constructor({
     id,
-    agent, // XXX remove this
-    // XXX add source instead
   }: {
     id: string;
-    agent: ActiveAgentObject;
   }) {
     if (!id) {
       throw new Error('ConversationContext: id is required');
     }
-    if (!agent) {
-      throw new Error('ConversationContext: agent is required');
-    }
 
     super();
 
-    this.#id = id;
-    this.#agent = agent;
-    this.#messages = [];
-    // XXX move this externally
-    this.#loadPromise = (async () => {
-      const supabase = this.#agent.useSupabase();
-      const messages = await loadMessagesFromDatabase({
-        supabase,
-        conversationId: this.#id,
-        agentId: agent.id,
-        limit: LOADED_MESSAGES_LIMIT,
-      });
-      // prepend new messages
-      this.#messages = messages.concat(this.#messages);
-    })();
-  }
-
-  //
-
-  waitForLoad() {
-    return this.#loadPromise;
+    this.id = id;
   }
 
   //
 
   async typing(fn: () => Promise<void>) {
     const start = () => {
-      if (++this.numTyping === 1) {
+      if (++this.#numTyping === 1) {
         this.dispatchEvent(new MessageEvent('typingstart'));
       }
     };
     const end = () => {
-      if (--this.numTyping === 0) {
+      if (--this.#numTyping === 0) {
         this.dispatchEvent(new MessageEvent('typingend'));
       }
     };
@@ -98,13 +91,17 @@ export class Conversation extends EventTarget {
     this.#scene = scene;
   }
 
+  getAgent() {
+    return this.#agent;
+  }
+  setAgent(agent: ActiveAgentObject) {
+    this.#agent = agent;
+  }
+
   getAgents() {
     return Array
       .from(this.#agentsMap.values())
       .map(player => player.getPlayerSpec());
-  }
-  getAgent(agentId: string) {
-    return this.#agentsMap.get(agentId);
   }
   addAgent(agentId: string, player: Player) {
     this.#agentsMap.set(agentId, player);
@@ -112,18 +109,20 @@ export class Conversation extends EventTarget {
   removeAgent(agentId: string) {
     this.#agentsMap.delete(agentId);
   }
-  /* clearAgents() {
-    this.#agentsMap.clear();
-  } */
 
-  getMessages(filter?: MessageFilter) {
+  getCachedMessages(filter?: MessageFilter) {
     const agent = filter?.agent;
     const idMatches = agent?.idMatches;
     const capabilityMatches = agent?.capabilityMatches;
-    const query = filter?.query; // XXX implement this
+    const query = filter?.query;
     const before = filter?.before;
     const after = filter?.after;
     const limit = filter?.limit;
+
+    if (query) {
+      throw new Error('query is not supported in cached messages');
+    }
+
     const filterFns: ((m: ActionMessage) => boolean)[] = [];
     if (Array.isArray(idMatches)) {
       filterFns.push((m: ActionMessage) => {
@@ -143,23 +142,34 @@ export class Conversation extends EventTarget {
         return m.timestamp > after;
       });
     }
-    // XXX support query via embedding
-    let messages = this.#messages.filter(m => filterFns.every(fn => fn(m)));
+    let messages = this.messageCache.messages.filter(m => filterFns.every(fn => fn(m)));
     if (typeof limit === 'number') {
       messages = messages.slice(-limit);
     }
     return messages;
   }
+  async fetchMessages(filter: MessageFilter, {
+    supabase,
+    signal,
+  }: {
+    supabase: any;
+    signal: AbortSignal;
+  }) {
+    const agent = filter?.agent;
+    const idMatches = agent?.idMatches;
+    const capabilityMatches = agent?.capabilityMatches;
+    const query = filter?.query;
+    const before = filter?.before;
+    const after = filter?.after;
+    const limit = filter?.limit;
 
-  /* setMessages( messages: ActionMessage[] ) {
-    // Preserve the original reference to agent messages.
-    this.#messages.length = 0;
-    this.#messages.push( ...messages );
-  } */
+    // XXX implement this to go to the database. support query via embedding
+    throw new Error('not implemented');
+  }
 
   // pull a message from the network
   async addLocalMessage(message: ActionMessage) {
-    this.#messages.push(message);
+    this.messageCache.pushMessage(message);
 
     const e = new ExtendableMessageEvent<ActionMessageEventData>('localmessage', {
       data: {
@@ -170,8 +180,8 @@ export class Conversation extends EventTarget {
     await e.waitForFinish();
   }
   // push a message to the network
-  addLocalAndRemoteMessage(message) {
-    this.#messages.push(message);
+  addLocalAndRemoteMessage(message: ActionMessage) {
+    this.messageCache.pushMessage(message);
 
     this.dispatchEvent(
       new MessageEvent('remotemessage', {
@@ -181,7 +191,4 @@ export class Conversation extends EventTarget {
       }),
     );
   }
-  /* clearMessages() {
-    this.#messages.length = 0;
-  } */
 }
