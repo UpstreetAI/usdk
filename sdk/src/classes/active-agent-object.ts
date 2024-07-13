@@ -349,13 +349,13 @@ export class ActiveAgentObject extends AgentObject {
         virtualPlayers.addEventListener('leave', async (e) => {
           const { playerId } = e.data;
           console.log('remote player left:', playerId);
-          const remotePlayer = conversation.getAgent(playerId);
-          if (remotePlayer) {
+          // const remotePlayer = conversation.getAgent(playerId);
+          // if (remotePlayer) {
             conversation.removeAgent(playerId);
-          } else {
-            console.warn('remote player not found', playerId);
-            debugger;
-          }
+          // } else {
+          //   console.warn('remote player not found', playerId);
+          //   debugger;
+          // }
         });
       };
       _trackRemotePlayers();
