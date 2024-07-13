@@ -74,7 +74,7 @@ import {
 
 //
 
-export class GenerativeAgentObject extends AgentObject {
+export class GenerativeAgentObject {
   // arguments
   agent: ActiveAgentObject;
   conversation: Conversation;
@@ -85,8 +85,6 @@ export class GenerativeAgentObject extends AgentObject {
     agent: ActiveAgentObject,
     conversation: Conversation,
   ) {
-    super(agent);
-
     this.agent = agent;
     this.conversation = conversation;
   }

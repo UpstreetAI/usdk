@@ -41,22 +41,5 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
       hidden: false,
     };
     agent.conversation.addLocalAndRemoteMessage(newMessage);
-    // console.log('handle agent commit 2', newMessage);
-
-    // XXX move this to the conversation itself
-    /* const { id: userId, name } = this;
-    const { method, args } = pendingActionMessage;
-    const timestamp = new Date();
-    const actionMessage = {
-      userId,
-      name,
-      method,
-      args,
-      timestamp,
-    };
-    const conversation = opts?.conversation;
-    conversation?.addLocalAndRemoteMessage(actionMessage);
-    // XXX emit update method and handle externally
-    await self.rerenderAsync(); */
   }
 }
