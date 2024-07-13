@@ -103,12 +103,9 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
 
   // state
   // const symbol = useMemo(makeSymbol, []);
-  const agent = useMemo(() => {
-    const agent = new ActiveAgentObject(agentJson, {
-      appContextValue,
-    });
-    return agent;
-  }, []);
+  const agent = useMemo(() => new ActiveAgentObject(agentJson, {
+    appContextValue,
+  }), []);
 
   // events
   useEffect(() => {

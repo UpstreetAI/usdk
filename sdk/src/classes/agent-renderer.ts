@@ -149,7 +149,6 @@ const ConfigurationComponent = ({
 const AppComponent = (props: any) => {
   const {
     userRender,
-    // AppContext,
     appContextValue,
     epochValue,
     topLevelRenderPromise,
@@ -222,29 +221,35 @@ const logRecoverableError =
 
 //
 
+// XXX break this out and add types
 class AgentRegistry {
-  value: AgentProps;
+  value: ActiveAgentObject;
+  
   actions: ActionProps[] = [];
   prompts: PromptProps[] = [];
   formatters: FormatterProps[] = [];
   parsers: ParserProps[] = [];
   perceptions: PerceptionProps[] = [];
   tasks: TaskProps[] = [];
+  
   names: NameProps[] = [];
   personalities: PersonalityProps[] = [];
+  
   servers: ServerProps[] = [];
+
   constructor(value: AgentProps) {
     this.value = value;
   }
 }
 class RenderRegistry {
-  agents: AgentRegistry[] = [];
+  agents: Map<ActiveAgentObject, AgentRegistry> = new Map();
   load(container: Instance) {
-    this.agents.length = 0;
+    this.agents.clear();
     container.recurse((instance) => {
       if (instance.type === 'agent') {
-        const agentRegistry = new AgentRegistry(instance.props.value);
-        this.agents.push(agentRegistry);
+        const agent = instance.props.value as ActiveAgentObject;
+        const agentRegistry = new AgentRegistry(agent);
+        this.agents.set(agent, agentRegistry);
 
         instance.recurse((childInstance) => {
           if (childInstance.type === 'action') {
@@ -287,6 +292,7 @@ export class AgentRenderer {
   userRender: UserHandler;
 
   renderLoader: RenderLoader;
+  registry: RenderRegistry;
   appContextValue: AppContextValue;
   epochValue: number;
 
@@ -313,6 +319,7 @@ export class AgentRenderer {
 
     // create the app context
     this.renderLoader = new RenderLoader();
+    this.registry = new RenderRegistry();
     const subtleAi = new SubtleAi();
     const useAgentJson = () => {
       const agentJsonString = (env as any).AGENT_JSON as string;
@@ -332,12 +339,16 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
+    const useRegistry = () => {
+      return this.registry;
+    };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
+      registry: useRegistry(),
     });
 
     // run the module to get the result
@@ -346,7 +357,9 @@ export class AgentRenderer {
       isPrimaryRenderer: true,
       getRootHostContext: () => null,
       prepareForCommit: () => null,
-      resetAfterCommit: () => null,
+      resetAfterCommit: () => {
+        this.registry.load(this.container);
+      },
       clearContainer: (container: any) => {
         container.children.length = 0;
       },
@@ -354,17 +367,7 @@ export class AgentRenderer {
         return new Instance(type, props);
       },
       createTextInstance: (text: string, rootContainer: any, hostContext: any, internalHandle: any) => {
-        // console.log('create text instance', { args });
-        // return null;
         return text;
-        // return new Instance('', {}, [
-        //   text,
-        // ]);
-        // return {
-        //   type: '',
-        //   props: {},
-        //   children: [text],
-        // };
       },
       appendInitialChild: (parent: Instance, child: InstanceChild) => {
         parent.children.push(child);
@@ -466,13 +469,8 @@ export class AgentRenderer {
     }
     await this.renderPromise;
   }
-  getRegistry() {
-    const renderRegistry = new RenderRegistry();
-    renderRegistry.load(this.container);
-    return renderRegistry;
-  }
   async ensureRegistry() {
     await this.waitForRender();
-    return this.getRegistry();
+    return this.registry;
   }
 }

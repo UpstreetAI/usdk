@@ -6,6 +6,7 @@ import type {
   SubtleAiCompleteOpts,
   SubtleAiImageOpts,
   ChatMessages,
+  RenderRegistry,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
 import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
@@ -28,8 +29,7 @@ export class AppContextValue {
   wallets: any;
   authToken: string;
   supabase: any;
-  // members
-  agentRegistry: Map<symbol, ActiveAgentObject> = new Map();
+  registry: RenderRegistry;
 
   constructor({
     subtleAi,
@@ -37,27 +37,21 @@ export class AppContextValue {
     wallets,
     authToken,
     supabase,
+    registry,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
     wallets: any;
     authToken: string;
     supabase: any;
+    registry: RenderRegistry,
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
-  }
-
-  // registry
-
-  registerAgent(key: symbol, value: ActiveAgentObject) {
-    this.agentRegistry.set(key, value);
-  }
-  unregisterAgent(key: symbol) {
-    this.agentRegistry.delete(key);
+    this.registry = registry;
   }
 
   // hooks
@@ -73,6 +67,9 @@ export class AppContextValue {
   }
   useSupabase() {
     return this.supabase;
+  }
+  useRegistry() {
+    return this.registry;
   }
 
   useTts(opts?: TtsArgs) { // XXX memoize this

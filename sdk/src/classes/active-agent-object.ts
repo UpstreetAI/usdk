@@ -72,6 +72,7 @@ import { GenerativeAgentObject } from './generative-agent-object';
 
 //
 
+// XXX get rid of this
 const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
   useContext(ContextType); // re-render when epoch changes
   return getterFn();
@@ -89,16 +90,6 @@ const getConversationKey = ({
 export class ActiveAgentObject extends AgentObject {
   // arguments
   appContextValue: AppContextValue;
-  // registry
-  actionRegistry: Map<symbol, ActionProps> = new Map();
-  formatterRegistry: Map<symbol, FormatterProps> = new Map();
-  promptRegistry: Map<symbol, PromptProps> = new Map();
-  parserRegistry: Map<symbol, ParserProps> = new Map();
-  perceptionRegistry: Map<symbol, PerceptionProps> = new Map();
-  taskRegistry: Map<symbol, TaskProps> = new Map();
-  nameRegistry: Map<symbol, NameProps> = new Map();
-  personalityRegistry: Map<symbol, PersonalityProps> = new Map();
-  serverRegistry: Map<symbol, ServerProps> = new Map();
   // state
   rooms = new Map<string, NetworkRealms>();
   tasks: Map<symbol, TaskObject> = new Map();
@@ -133,69 +124,6 @@ export class ActiveAgentObject extends AgentObject {
     });
   }
 
-  // registry
-
-  registerAction(key: symbol, props: ActionProps) {
-    this.actionRegistry.set(key, props);
-  }
-  unregisterAction(key: symbol) {
-    this.actionRegistry.delete(key);
-  }
-  registerPrompt(key: symbol, props: PromptProps) {
-    this.promptRegistry.set(key, props);
-  }
-  unregisterPrompt(key: symbol) {
-    this.promptRegistry.set(key, null);
-  }
-  registerFormatter(key: symbol, props: FormatterProps) {
-    this.formatterRegistry.set(key, props);
-  }
-  unregisterFormatter(key: symbol) {
-    this.formatterRegistry.delete(key);
-  }
-  registerParser(key: symbol, props: ParserProps) {
-    this.parserRegistry.set(key, props);
-  }
-  unregisterParser(key: symbol) {
-    this.parserRegistry.delete(key);
-  }
-  registerPerception(key: symbol, props: PerceptionProps) {
-    this.perceptionRegistry.set(key, props);
-  }
-  unregisterPerception(key: symbol) {
-    this.perceptionRegistry.delete(key);
-  }
-  registerTask(key: symbol, props: TaskProps) {
-    this.taskRegistry.set(key, props);
-  }
-  unregisterTask(key: symbol) {
-    this.taskRegistry.delete(key);
-  }
-
-  //
-
-  registerName(key: symbol, props: NameProps) {
-    this.nameRegistry.set(key, props);
-  }
-  unregisterName(key: symbol) {
-    this.nameRegistry.delete(key);
-  }
-  registerPersonality(key: symbol, props: PersonalityProps) {
-    this.personalityRegistry.set(key, props);
-  }
-  unregisterPersonality(key: symbol) {
-    this.personalityRegistry.delete(key);
-  }
-
-  //
-
-  registerServer(key: symbol, props: ServerProps) {
-    this.serverRegistry.set(key, props);
-  }
-  unregisterServer(key: symbol) {
-    this.serverRegistry.delete(key);
-  }
-
   // static hooks
 
   useAuthToken() {
@@ -207,11 +135,18 @@ export class ActiveAgentObject extends AgentObject {
   useWallets() {
     return this.appContextValue.useWallets();
   }
+  useRegistry() {
+    const renderRegistry = this.appContextValue.useRegistry();
+    const agentRegistry = renderRegistry.agents.get(this);
+    return agentRegistry;
+  }
 
   useActions() {
-    return useContextEpoch(EpochContext, () => Array.from(this.actionRegistry.values()));
+    const registry = this.useRegistry();
+    return registry.actions;
   }
   useFormatters() {
+    // XXX finish this
     return useContextEpoch(EpochContext, () => Array.from(this.formatterRegistry.values()));
   }
 

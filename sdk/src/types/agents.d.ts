@@ -455,12 +455,10 @@ export type AppContextValue = {
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
+  useRegistry: () => RenderRegistry;
 
   useTts: (ttsArgs: TtsArgs) => Tts;
   useChat: (chatArgs: ChatArgs) => Chat;
-
-  registerAgent: (key: symbol, props: ActiveAgentObject) => void;
-  unregisterAgent: (key: symbol) => void;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
