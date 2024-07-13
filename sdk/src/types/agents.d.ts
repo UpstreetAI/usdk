@@ -13,6 +13,11 @@ declare global {
       parser: any;
       perception: any;
       task: any;
+
+      name: any;
+      personality: any;
+      
+      server: any;
     }
   }
 }

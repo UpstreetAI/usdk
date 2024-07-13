@@ -224,14 +224,15 @@ const logRecoverableError =
 
 class AgentRegistry {
   value: AgentProps;
-
   actions: ActionProps[] = [];
-  prompt: PromptProps[] = [];
-  formatter: FormatterProps[] = [];
-  parser: ParserProps[] = [];
-  perception: PerceptionProps[] = [];
-  task: TaskProps[] = [];
-
+  prompts: PromptProps[] = [];
+  formatters: FormatterProps[] = [];
+  parsers: ParserProps[] = [];
+  perceptions: PerceptionProps[] = [];
+  tasks: TaskProps[] = [];
+  names: NameProps[] = [];
+  personalities: PersonalityProps[] = [];
+  servers: ServerProps[] = [];
   constructor(value: AgentProps) {
     this.value = value;
   }
@@ -250,19 +251,28 @@ class RenderRegistry {
             agentRegistry.actions.push(childInstance.props);
           }
           if (childInstance.type === 'prompt') {
-            agentRegistry.prompt.push(childInstance.props);
+            agentRegistry.prompts.push(childInstance.props);
           }
           if (childInstance.type === 'formatter') {
-            agentRegistry.formatter.push(childInstance.props);
+            agentRegistry.formatters.push(childInstance.props);
           }
           if (childInstance.type === 'parser') {
-            agentRegistry.parser.push(childInstance.props);
+            agentRegistry.parsers.push(childInstance.props);
           }
           if (childInstance.type === 'perception') {
-            agentRegistry.perception.push(childInstance.props);
+            agentRegistry.perceptions.push(childInstance.props);
           }
           if (childInstance.type === 'task') {
-            agentRegistry.task.push(childInstance.props);
+            agentRegistry.tasks.push(childInstance.props);
+          }
+          if (childInstance.type === 'name') {
+            agentRegistry.names.push(childInstance.props);
+          }
+          if (childInstance.type === 'personality') {
+            agentRegistry.personalities.push(childInstance.props);
+          }
+          if (childInstance.type === 'server') {
+            agentRegistry.servers.push(childInstance.props);
           }
         });
       }

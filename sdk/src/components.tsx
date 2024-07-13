@@ -280,44 +280,47 @@ export const Task: React.FC<TaskProps> = (props: TaskProps) => {
 //
 
 export const Name: React.FC<NameProps> = (props: NameProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterName(symbol);
-    };
-  }, []);
-  agentContext.registerName(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterName(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerName(symbol, props);
 
-  return null;
+  // return null;
+  return <name value={props} />;
 };
 export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterPersonality(symbol);
-    };
-  }, []);
-  agentContext.registerPersonality(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterPersonality(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerPersonality(symbol, props);
 
-  return null;
+  // return null;
+  return <personality value={props} />;
 };
 
 //
 
 export const Server: React.FC<ServerProps> = (props: ServerProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterServer(symbol);
-    };
-  }, []);
-  agentContext.registerServer(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterServer(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerServer(symbol, props);
 
-  return null;
+  // return null;
+  return <server value={props} />;
 };
