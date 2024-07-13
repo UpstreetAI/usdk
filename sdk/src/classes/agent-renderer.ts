@@ -5,6 +5,7 @@ import 'localstorage-polyfill';
 // import type { ZodTypeAny } from 'zod';
 // import { zodToTs, printNode } from 'zod-to-ts';
 import ReactReconciler from 'react-reconciler';
+import { ConcurrentRoot } from 'react-reconciler/constants'
 // import { parseCodeBlock } from './util/util.mjs';
 import {
   // Agent,
@@ -282,18 +283,21 @@ export class AgentRenderer {
     const reconciler = ReactReconciler(opts);
     this.reconciler = reconciler;
     const container = {};
+    const logRecoverableError =
+      typeof reportError === 'function'
+        ? // In modern browsers, reportError will dispatch an error event,
+          // emulating an uncaught JavaScript error.
+          reportError
+        : // In older browsers and test environments, fallback to console.error.
+          console.error;
     const root = reconciler.createContainer(
       container, // containerInfo
-      0, // tag
+      ConcurrentRoot, // tag
       null, // hydrationCallbacks
       true, // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
-      (err) => {
-        console.warn('got recoverable error', err);
-        // error = err;
-        throw err;
-      }, // onRecoverableError
+      logRecoverableError, // onRecoverableError
       null, // transitionCallbacks
     );
     this.root = root;
@@ -328,7 +332,6 @@ export class AgentRenderer {
 
     const props = {
       userRender,
-      // AppContext,
       appContextValue,
       epochValue: this.epochValue,
       topLevelRenderPromise: null,
