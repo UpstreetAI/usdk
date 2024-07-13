@@ -396,7 +396,6 @@ export class ActiveAgentObject extends AgentObject {
               try {
                 // wait for re-render
                 {
-                  // await this.agentRenderer.rerenderAsync();
                   const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
                   this.dispatchEvent(e);
                   await e.waitForFinish();
