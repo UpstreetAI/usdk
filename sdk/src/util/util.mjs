@@ -1,6 +1,7 @@
 const codeBlockRegexA = /^[^\n]*?(\{[\s\S]*})[^\n]*?$/
 const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
 
+export const abortError = new Error('aborted');
 
 export function makeId(length) {
   let result = '';
