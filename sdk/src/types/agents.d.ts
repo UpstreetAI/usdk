@@ -10,7 +10,7 @@ export type ExtendableMessageEvent<T> = MessageEvent<T> & {
 
 // agents
 
-export interface AgentObject extends EventTarget {
+export type AgentObject = EventTarget & {
   id: string;
   name: string;
   description: string;
@@ -19,15 +19,20 @@ export interface AgentObject extends EventTarget {
   address: string;
 }
 
-export interface GenerativeAgentObject extends AgentObject {
+export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
-  conversation: Conversation;
+  conversation: ConversationObject;
+
+  embed: (text: string) => Promise<Array<number>>;
+  complete: (
+    messages: ChatMessages,
+  ) => Promise<ChatMessage>;
 
   think: (hint?: string) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
-}
+};
 
 // messages
 
@@ -107,7 +112,7 @@ export type SubtleAi = {
   ) => Promise<ArrayBuffer>;
 };
 export type ActionOpts = {
-  conversation?: Conversation;
+  conversation?: ConversationObject;
 };
 export type MemoryOpts = {
   matchThreshold?: number;
@@ -117,10 +122,25 @@ export type QueueManager = {
   isIdle: () => boolean;
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
-export interface Conversation extends EventTarget {
-  waitForLoad: () => Promise<void>;
-  // addAction: (pendingActionMessage: PendingActionMessage) => Promise<void>;
-  getMessages: (filter?: MessageFilter) => ActionMessage[];
+
+type MessageCache {
+  messages: ActionMessage[];
+  loaded: boolean;
+  loadPromise: Promise<void>;
+
+  pushMessage(message: ActionMessage): void;
+  prependMessages(messages: ActionMessage[]): void;
+}
+export type ConversationObject = EventTarget & {
+  id: string;
+  messageCache: MessageCache;
+
+  getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
+  fetchMessages: (filter?: MessageFilter, opts: {
+    supabase: any,
+    signal: AbortSignal;
+  }) => Promise<ActionMessage[]>;
+
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
   addLocalAndRemoteMessage: (message: ActionMessage) => void;
@@ -183,7 +203,9 @@ export type ActiveAgentObject = AgentObject & {
   //
 
   generative: ({
-    converation: Conversation,
+    conversation,
+  }: {
+    conversation: ConversationObject,
   }) => GenerativeAgentObject;
 
   // addAction: (pendingActionMessage: PendingActionMessage, opts?: ActionOpts) => Promise<any>;
@@ -241,17 +263,17 @@ export type ActionMessageEventData = {
 export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
 
 export type ConversationChangeEventData = {
-  conversation: Conversation;
+  conversation: ConversationObject;
 };
 export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
 
 export type ConversationAddEventData = {
-  conversation: Conversation;
+  conversation: ConversationObject;
 };
 export type ConversationAddEvent = MessageEvent<ConversationAddEventData>;
 
 export type ConversationRemoveEventData = {
-  conversation: Conversation;
+  conversation: ConversationObject;
 };
 export type ConversationRemoveEvent = MessageEvent<ConversationRemoveEventData>;
 
@@ -298,6 +320,15 @@ export type AgentProps = {
 export type RawAgentProps = {
   children?: ReactNode;
   ref?: Ref<any>;
+};
+
+export type ConversationProps = {
+  children?: ReactNode;
+};
+export type GenerativeAgentProps = {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+  children?: ReactNode;
 };
 
 export type ActionProps = {
