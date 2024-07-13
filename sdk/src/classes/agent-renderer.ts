@@ -59,6 +59,7 @@ import type {
   ChatArgs,
   ActionHistoryQuery,
   TaskObject,
+  InstanceChild,
 } from '../types';
 
 // import { ConversationContext } from './classes/conversation-context';
@@ -78,6 +79,10 @@ import { makePromise } from '../util/util.mjs';
 import { AppContextValue } from './app-context-value';
 import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
 import { ActiveAgentObject } from './active-agent-object';
+import {
+  RenderRegistry,
+  Instance,
+} from './render-registry';
 
 //
 
@@ -187,30 +192,6 @@ const AppComponent = (props: any) => {
 
 //
 
-class Instance {
-  type: string;
-  props: any;
-  children: Array<Instance | string>;
-  constructor(
-    type: string = '',
-    props: any = {},
-    children: Array<Instance | string> = [],
-  ) {
-    this.type = type;
-    this.props = props;
-    this.children = children;
-  }
-  recurse(fn: (instance: Instance) => void) {
-    fn(this);
-    for (const child of this.children) {
-      if (child instanceof Instance) {
-        child.recurse(fn);
-      }
-    }
-  }
-}
-type InstanceChild = Instance | string;
-
 const logRecoverableError =
   typeof reportError === 'function'
     ? // In modern browsers, reportError will dispatch an error event,
@@ -218,72 +199,6 @@ const logRecoverableError =
       reportError
     : // In older browsers and test environments, fallback to console.error.
       console.error;
-
-//
-
-// XXX break this out and add types
-class AgentRegistry {
-  value: ActiveAgentObject;
-  
-  actions: ActionProps[] = [];
-  prompts: PromptProps[] = [];
-  formatters: FormatterProps[] = [];
-  parsers: ParserProps[] = [];
-  perceptions: PerceptionProps[] = [];
-  tasks: TaskProps[] = [];
-  
-  names: NameProps[] = [];
-  personalities: PersonalityProps[] = [];
-  
-  servers: ServerProps[] = [];
-
-  constructor(value: AgentProps) {
-    this.value = value;
-  }
-}
-class RenderRegistry {
-  agents: Map<ActiveAgentObject, AgentRegistry> = new Map();
-  load(container: Instance) {
-    this.agents.clear();
-    container.recurse((instance) => {
-      if (instance.type === 'agent') {
-        const agent = instance.props.value as ActiveAgentObject;
-        const agentRegistry = new AgentRegistry(agent);
-        this.agents.set(agent, agentRegistry);
-
-        instance.recurse((childInstance) => {
-          if (childInstance.type === 'action') {
-            agentRegistry.actions.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'prompt') {
-            agentRegistry.prompts.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'formatter') {
-            agentRegistry.formatters.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'parser') {
-            agentRegistry.parsers.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'perception') {
-            agentRegistry.perceptions.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'task') {
-            agentRegistry.tasks.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'name') {
-            agentRegistry.names.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'personality') {
-            agentRegistry.personalities.push(childInstance.props.value);
-          }
-          if (childInstance.type === 'server') {
-            agentRegistry.servers.push(childInstance.props.value);
-          }
-        });
-      }
-    });
-  }
-}
 
 //
 
