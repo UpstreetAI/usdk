@@ -103,7 +103,7 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
 
   // state
-  const symbol = useMemo(makeSymbol, []);
+  // const symbol = useMemo(makeSymbol, []);
   const agent = useMemo(() => {
     const agent = new ActiveAgentObject(agentJson, {
       appContextValue,
@@ -128,24 +128,18 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
     };
   }, [agent]);
 
-  // registry
-  useEffect(() => {
-    return () => {
-      appContextValue.unregisterAgent(symbol);
-    };
-  }, [appContextValue]);
-  appContextValue.registerAgent(symbol, agent);
-
   // ref
   useImperativeHandle(ref, () => agent, [agent]);
 
   // return
   return (
-    <AgentContext.Provider value={agent}>
-      <ConversationsContext.Provider value={conversations}>
-        {props.children}
-      </ConversationsContext.Provider>
-    </AgentContext.Provider>
+    <agent value={agent}>
+      <AgentContext.Provider value={agent}>
+        <ConversationsContext.Provider value={conversations}>
+          {props.children}
+        </ConversationsContext.Provider>
+      </AgentContext.Provider>
+    </agent>
   );
 });
 export const GenerativeAgent = (props: GenerativeAgentProps) => {
@@ -198,84 +192,89 @@ export const Conversation = (props: ConversationProps) => {
   });
 };
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterAction(symbol);
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterAction(symbol);
+  //   };
+  // }, []);
 
-  agentContext.registerAction(symbol, props);
+  // agentContext.registerAction(symbol, props);
 
-  return null;
+  return <action value={props} />;
 };
 export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterPrompt(symbol);
-    };
-  }, []);
-  agentContext.registerPrompt(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterPrompt(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerPrompt(symbol, props);
 
   // return React.createElement(React.Fragment, {}, props.children);
-  return props.children;
+  // return props.children;
+  return <prompt value={props} />;
 };
 export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterFormatter(symbol);
-    };
-  }, []);
-  agentContext.registerFormatter(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterFormatter(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerFormatter(symbol, props);
 
-  return null;
+  // return null;
+  return <formatter value={props} />;
 };
 export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterParser(symbol);
-    };
-  }, []);
-  agentContext.registerParser(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterParser(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerParser(symbol, props);
 
-  return null;
+  // return null;
+  return <parser value={props} />;
 };
 export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterPerception(symbol);
-    };
-  }, []);
-  agentContext.registerPerception(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterPerception(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerPerception(symbol, props);
 
-  return null;
+  // return null;
+  return <perception value={props} />;
 };
 export const Task: React.FC<TaskProps> = (props: TaskProps) => {
-  const symbol = useMemo(makeSymbol, []);
-  const agentContext = useContext(AgentContext);
+  // const symbol = useMemo(makeSymbol, []);
+  // const agentContext = useContext(AgentContext);
 
-  useEffect(() => {
-    return () => {
-      agentContext.unregisterTask(symbol);
-    };
-  }, []);
-  agentContext.registerTask(symbol, props);
+  // useEffect(() => {
+  //   return () => {
+  //     agentContext.unregisterTask(symbol);
+  //   };
+  // }, []);
+  // agentContext.registerTask(symbol, props);
 
-  return null;
+  // return null;
+  return <task value={props} />;
 };
 
 //
