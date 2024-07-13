@@ -1,6 +1,22 @@
 import type { ReactNode, FC, Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 
+// intrinsics
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      agent: any;
+      action: any;
+      prompt: any;
+      formatter: any;
+      parser: any;
+      perception: any;
+      task: any;
+    }
+  }
+}
+
 // events
 
 export type ExtendableMessageEvent<T> = MessageEvent<T> & {
