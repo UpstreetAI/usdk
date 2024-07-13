@@ -38,8 +38,8 @@ import type {
   MessagesUpdateEventData,
 } from '../types';
 import {
-  Conversation,
-} from './conversation';
+  ConversationObject,
+} from './conversation-object';
 import {
   QueueManager,
 } from '../util/queue-manager.mjs';
@@ -230,7 +230,7 @@ export class ActiveAgentObject extends AgentObject {
 
   // setters
 
-  async setConversation(conversation: Conversation | null) {
+  /* async setConversation(conversation: ConversationObject | null) {
     const e = new ExtendableMessageEvent<ConversationChangeEventData>('conversationchange', {
       data: {
         conversation,
@@ -238,7 +238,7 @@ export class ActiveAgentObject extends AgentObject {
     });
     this.dispatchEvent(e);
     await e.waitForFinish();
-  }
+  } */
 
   // methods
 
@@ -252,9 +252,9 @@ export class ActiveAgentObject extends AgentObject {
       room,
       endpointUrl,
     });
-    const conversation = new Conversation({
+    const conversation = new ConversationObject({
       id: key,
-      agent: this, // XXX get rid of this argument
+      // agent: this, // XXX get rid of this argument
     });
     this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
       data: {
@@ -389,6 +389,9 @@ export class ActiveAgentObject extends AgentObject {
       _bindDisconnect();
 
       const _bindConversation = () => {
+        conversation.setAgent(this);
+        conversation.setScene(null); // XXX set + track the scene from the multiplayer room as well
+
         const onConversationLocalMessage = (e: ActionMessageEvent) => {
           const { message } = e.data;
           e.waitUntil((async () => {
