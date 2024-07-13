@@ -254,14 +254,12 @@ export class ActiveAgentObject extends AgentObject {
     });
     const conversation = new ConversationObject({
       id: key,
-      // agent: this, // XXX get rid of this argument
     });
     this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
       data: {
         conversation,
       },
     }));
-    const conversationPromise = conversation.waitForLoad();
 
     const realmsPromise = (async () => {
       const realms = new NetworkRealms({
