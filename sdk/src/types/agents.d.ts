@@ -144,14 +144,14 @@ export type QueueManager = {
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
 
-type MessageCache {
+export type MessageCache = {
   messages: ActionMessage[];
   loaded: boolean;
   loadPromise: Promise<void>;
 
   pushMessage(message: ActionMessage): void;
   prependMessages(messages: ActionMessage[]): void;
-}
+};
 export type Player = {
   playerId: string;
   playerSpec: object;
@@ -163,9 +163,9 @@ export type ConversationObject = EventTarget & {
   messageCache: MessageCache;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
-  fetchMessages: (filter?: MessageFilter, opts: {
+  fetchMessages: (filter?: MessageFilter, opts?: {
     supabase: any,
-    signal: AbortSignal;
+    signal: AbortSignal,
   }) => Promise<ActionMessage[]>;
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
