@@ -30,7 +30,7 @@ import {
   ChatMessages,
   PendingActionMessage,
   ActionProps,
-  Conversation,
+  ConversationObject,
 } from './types';
 import {
   PendingActionEvent,

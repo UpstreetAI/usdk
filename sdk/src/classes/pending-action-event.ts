@@ -3,7 +3,7 @@ import type {
   GenerativeAgentObject,
   PendingActionEventData,
   PendingActionMessage,
-  Conversation,
+  ConversationObject,
 } from '../types';
 
 export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
