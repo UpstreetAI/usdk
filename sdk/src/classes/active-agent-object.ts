@@ -68,15 +68,16 @@ import {
 import {
   retry,
 } from '../util/util.mjs';
-import { GenerativeAgentObject } from './generative-agent-object';
+import {
+  GenerativeAgentObject,
+} from './generative-agent-object';
 
 //
 
-// XXX get rid of this
-const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
-  useContext(ContextType); // re-render when epoch changes
-  return getterFn();
-};
+// const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
+//   useContext(ContextType); // re-render when epoch changes
+//   return getterFn();
+// };
 
 //
 
@@ -146,34 +147,20 @@ export class ActiveAgentObject extends AgentObject {
     return registry.actions;
   }
   useFormatters() {
-    // XXX finish this
-    return useContextEpoch(EpochContext, () => Array.from(this.formatterRegistry.values()));
+    const registry = this.useRegistry();
+    return registry.formatters;
   }
 
   useName() {
-    return useContextEpoch(EpochContext, () => {
-      const names = Array.from(this.nameRegistry.values());
-      return names.length > 0 ? names[0].children : this.name;
-    });
+    const registry = this.useRegistry();
+    const names = registry.names;
+    return names.length > 0 ? names[0].children : this.name;
   }
   usePersonality() {
-    return useContextEpoch(EpochContext, () => {
-      const personalities = Array.from(this.personalityRegistry.values());
-      return personalities.length > 0 ? personalities[0].children : this.bio;
-    });
+    const registry = this.useRegistry();
+    const personalities = registry.personalities;
+    return personalities.length > 0 ? personalities[0].children : this.bio;
   }
-
-  // setters
-
-  /* async setConversation(conversation: ConversationObject | null) {
-    const e = new ExtendableMessageEvent<ConversationChangeEventData>('conversationchange', {
-      data: {
-        conversation,
-      },
-    });
-    this.dispatchEvent(e);
-    await e.waitForFinish();
-  } */
 
   // methods
 
@@ -337,11 +324,8 @@ export class ActiveAgentObject extends AgentObject {
                   await e.waitForFinish();
                 }
                 
-                const {
-                  perceptionRegistry,
-                } = this;
-      
-                const allPerceptions = Array.from(perceptionRegistry.values());
+                const registry = this.useRegistry();
+                const allPerceptions = registry.perceptions;
                 const perceptionPromises = [];
                 for (const perception of allPerceptions) {
                   if (perception.type === message.method) {

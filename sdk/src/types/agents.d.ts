@@ -183,18 +183,6 @@ export type ConversationObject = EventTarget & {
   removeAgent: (agentId: string) => void;
 }
 export type ActiveAgentObject = AgentObject & {
-  actionRegistry: Map<symbol, ActionProps>;
-  formatterRegistry: Map<symbol, FormatterProps>;
-  promptRegistry: Map<symbol, PromptProps>;
-  parserRegistry: Map<symbol, ParserProps>;
-  perceptionRegistry: Map<symbol, PerceptionProps>;
-  taskRegistry: Map<symbol, TaskProps>;
-
-  nameRegistry: Map<symbol, NameProps>;
-  personalityRegistry: Map<symbol, PersonalityProps>;
-
-  serverRegistry: Map<symbol, ServerProps>;
-
   generativeQueueManager: QueueManager;
   tasks: Map<symbol, TaskObject>;
 
@@ -204,38 +192,16 @@ export type ActiveAgentObject = AgentObject & {
 
   // useScene: () => SceneObject | null;
   // useAgents: () => Array<AgentObject>;
-  // useCurrentConversation: () => Conversation | null;
+  // useConversation: () => Conversation | null;
 
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
-
   useName: () => string;
   usePersonality: () => string;
+  useWallets: () => object[];
+  useRegistry: () => AgentRegistry;
 
   // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
-
-  //
-
-  registerAction: (key: symbol, props: ActionProps) => void;
-  unregisterAction: (key: symbol) => void;
-  registerPrompt: (key: symbol, props: PromptProps) => void;
-  unregisterPrompt: (key: symbol) => void;
-  registerFormatter: (key: symbol, props: FormatterProps) => void;
-  unregisterFormatter: (key: symbol) => void;
-  registerParser: (key: symbol, props: ParserProps) => void;
-  unregisterParser: (key: symbol) => void;
-  registerPerception: (key: symbol, props: PerceptionProps) => void;
-  unregisterPerception: (key: symbol) => void;
-  registerTask: (key: symbol, props: TaskProps) => void;
-  unregisterTask: (key: symbol) => void;
-
-  registerName: (key: symbol, props: NameProps) => void;
-  unregisterName: (key: symbol) => void;
-  registerPersonality: (key: symbol, props: PersonalityProps) => void;
-  unregisterPersonality: (key: symbol) => void;
-
-  registerServer: (key: symbol, props: ServerProps) => void;
-  unregisterServer: (key: symbol) => void;
 
   //
 
