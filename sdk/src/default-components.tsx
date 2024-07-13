@@ -43,19 +43,21 @@ import {
   TaskResult,
 } from './classes/task-object';
 import {
-  useCurrentAgent,
+  useAgent,
   useAuthToken,
-  useAgents,
-  useScene,
+  // useAgents,
+  // useScene,
   useActions,
   useFormatters,
   // useNames,
   useName,
   // usePersonalities,
   usePersonality,
-  useActionHistory,
+  // useActionHistory,
   useTts,
   useChat,
+  useConversation,
+  useCachedMessages,
 } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock } from './util/util.mjs';
@@ -229,7 +231,7 @@ export const DefaultActions = () => {
  * @returns The JSX elements representing the default prompts components.
  */
 export const DefaultPrompts = () => {
-  const currentAgent = useCurrentAgent();
+  const currentAgent = useAgent();
   const actions = useActions();
   const formatters = useFormatters();
   return (
@@ -256,7 +258,9 @@ export const DefaultHeaderPrompt = () => {
   );
 };
 export const ScenePrompt = () => {
-  const scene = useScene();
+  const conversation = useConversation();
+  const scene = conversation.getScene();
+  // const scene = useScene();
   return (
     <Prompt>
       {scene && dedent`
@@ -272,7 +276,9 @@ const formatAgent = (agent: any) => {
     `Bio: ${agent.bio}`;
 };
 export const CharactersPrompt = () => {
-  const agents = useAgents();
+  const conversation = useConversation();
+  // const agents = useAgents();
+  const agents = conversation.getAgents();
   const name = useName();
   const bio = usePersonality();
   const currentAgentSpec = {
@@ -354,9 +360,10 @@ export const RecentChatHistoryJsonPrompt = () => {
   // const perAgentHistoryActions = await Promise.all(
   //   agents.map((agent) => agent.getActionHistory()),
   // );
-  const historyActions = useActionHistory()
-    // .flat()
-    .sort((a, b) => +a.timestamp - +b.timestamp);
+  // const historyActions = useActionHistory()
+  //   // .flat()
+  //   .sort((a, b) => +a.timestamp - +b.timestamp);
+  const historyActions = useCachedMessages();
 
   // // console.log('render prompt', historyActions);
   // useEffect(() => {
@@ -439,7 +446,7 @@ export const InstructionsJsonPrompt = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const currentAgent = useCurrentAgent();
+  const currentAgent = useAgent();
   return (
     <Prompt>
       {dedent`
@@ -590,7 +597,7 @@ export const JsonFormatter = () => {
  * @returns The JSX elements representing the default perceptions components.
  */
 export const DefaultPerceptions = () => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
 
   return (
     <>
@@ -634,8 +641,10 @@ export const DefaultTasks = () => {
   return <StatusTask />
 };
 export const StatusTask = () => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
   // const agents = useAgents();
+  const conversation = useConversation();
+  const agents = conversation.getAgents();
   const lastActions = useActionHistory({
     filter: {
       limit: 1,
@@ -1370,7 +1379,7 @@ export type WebBrowserProps = {
   navigationTimeout: number,
 };
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
   const authToken = useAuthToken();
   const hint = props.hint ?? '';
   return (
