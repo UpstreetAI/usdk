@@ -38,8 +38,8 @@ import type {
   MessagesUpdateEventData,
 } from '../types';
 import {
-  Conversation,
-} from './conversation';
+  ConversationObject,
+} from './conversation-object';
 import {
   QueueManager,
 } from '../util/queue-manager.mjs';
@@ -77,13 +77,13 @@ import {
 export class GenerativeAgentObject {
   // arguments
   agent: ActiveAgentObject;
-  conversation: Conversation;
+  conversation: ConversationObject;
 
   //
   
   constructor(
     agent: ActiveAgentObject,
-    conversation: Conversation,
+    conversation: ConversationObject,
   ) {
     this.agent = agent;
     this.conversation = conversation;
@@ -126,7 +126,6 @@ export class GenerativeAgentObject {
       // console.log('agent renderer think 5');
     });
   }
-
   async generate(hint: string, schema?: ZodTypeAny) {
     // console.log('agent renderer think 1');
     await this.conversation.typing(async () => {
@@ -144,7 +143,6 @@ export class GenerativeAgentObject {
     });
     // console.log('agent renderer think 5');
   }
-
   async say(text: string) {
     await this.conversation.typing(async () => {
       console.log('say text', {
