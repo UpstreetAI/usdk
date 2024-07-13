@@ -20,7 +20,9 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
-  Conversation,
+  ConversationObject,
+  ConversationProps,
+  GenerativeAgentProps,
   // ExtendableMessageEvent,
   ConversationChangeEvent,
   ConversationAddEvent,
@@ -33,6 +35,7 @@ import {
   ConversationContext,
   ConversationsContext,
   // EpochContext,
+  GenerativeAgentContext,
 } from './context';
 import {
   DefaultAgentComponents,
@@ -46,6 +49,9 @@ import {
 import {
   ActiveAgentObject,
 } from './classes/active-agent-object';
+import {
+  GenerativeAgentObject,
+} from './classes/generative-agent-object';
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
@@ -94,10 +100,7 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
-  const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
-  const renderLoader = useMemo(() => new RenderLoader(), []);
+  const [conversations, setConversations] = useState<ConversationObject[]>([]);
 
   // state
   const symbol = useMemo(makeSymbol, []);
@@ -105,23 +108,25 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
     const agent = new ActiveAgentObject(agentJson, {
       appContextValue,
     });
-    // bind events
-    agent.addEventListener('conversationchange', (e: ConversationChangeEvent) => {
-      e.waitUntil(renderLoader.waitForLoad());
-      setConversation(() => e.data.conversation);
-    });
-    agent.addEventListener('conversationadd', (e: ConversationAddEvent) => {
-      setConversations((conversations) => conversations.concat([e.data.conversation]));
-    });
-    agent.addEventListener('conversationremove', (e: ConversationRemoveEvent) => {
-      setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
-    });
-    agent.addEventListener('messagesupdate', (e: MessagesUpdateEvent) => {
-      e.waitUntil(renderLoader.waitForLoad());
-      setMessagesEpoch((prev) => prev + 1);
-    });
     return agent;
   }, []);
+
+  // events
+  useEffect(() => {
+    const onconversationadd = (e: ConversationAddEvent) => {
+      setConversations((conversations) => conversations.concat([e.data.conversation]));
+    };
+    agent.addEventListener('conversationadd', onconversationadd);
+    const onconversationremove = (e: ConversationRemoveEvent) => {
+      setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
+    };
+    agent.addEventListener('conversationremove', onconversationremove);
+
+    return () => {
+      agent.removeEventListener('conversationadd', onconversationadd);
+      agent.removeEventListener('conversationremove', onconversationremove);
+    };
+  }, [agent]);
 
   // registry
   useEffect(() => {
@@ -137,16 +142,61 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
   // return
   return (
     <AgentContext.Provider value={agent}>
-      <ConversationContext.Provider value={conversation}>
-        <ConversationsContext.Provider value={conversations}>
-          <RenderLoaderProvider renderLoader={renderLoader}>
-            {props.children}
-          </RenderLoaderProvider>
-        </ConversationsContext.Provider>
-      </ConversationContext.Provider>
+      <ConversationsContext.Provider value={conversations}>
+        {props.children}
+      </ConversationsContext.Provider>
     </AgentContext.Provider>
   );
 });
+export const GenerativeAgent = (props: GenerativeAgentProps) => {
+  const {
+    agent,
+    conversation,
+  } = props;
+  const renderLoader = useMemo(() => new RenderLoader(), []);
+  const generativeAgent = useMemo(() => {
+    return agent.generative({
+      conversation,
+    });
+  }, [agent, conversation]);
+  const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
+
+  // events
+  useEffect(() => {
+    const onmessagesupdate = (e: MessagesUpdateEvent) => {
+      e.waitUntil(renderLoader.waitForLoad());
+      setMessagesEpoch((prev) => prev + 1);
+    };
+    agent.addEventListener('messagesupdate', onmessagesupdate);
+
+    return () => {
+      agent.removeEventListener('messagesupdate', onmessagesupdate);
+    };
+  }, [agent]);
+
+  return (
+    <GenerativeAgentContext.Provider value={generativeAgent}>
+      <RenderLoaderProvider renderLoader={renderLoader}>
+        {props.children}
+      </RenderLoaderProvider>
+    </GenerativeAgentContext.Provider>
+  );
+};
+export const Conversation = (props: ConversationProps) => {
+  const agent = useContext(AgentContext);
+  const conversations = useContext(ConversationsContext);
+  return conversations.map((conversation) => {
+    return (
+      <GenerativeAgent
+        agent={agent}
+        conversation={conversation}
+        key={conversation.id}
+      >
+        {props.children}
+      </GenerativeAgent>
+    );
+  });
+};
 export const Action: React.FC<ActionProps> = (props: ActionProps) => {
   const symbol = useMemo(makeSymbol, []);
   const agentContext = useContext(AgentContext);
