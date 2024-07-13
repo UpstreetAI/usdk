@@ -188,6 +188,90 @@ const AppComponent = (props: any) => {
 
 //
 
+class Instance {
+  type: string;
+  props: any;
+  children: Array<Instance | string>;
+  constructor(
+    type: string = '',
+    props: any = {},
+    children: Array<Instance | string> = [],
+  ) {
+    this.type = type;
+    this.props = props;
+    this.children = children;
+  }
+  recurse(fn: (instance: Instance) => void) {
+    fn(this);
+    for (const child of this.children) {
+      if (child instanceof Instance) {
+        child.recurse(fn);
+      }
+    }
+  }
+}
+type InstanceChild = Instance | string;
+
+const logRecoverableError =
+  typeof reportError === 'function'
+    ? // In modern browsers, reportError will dispatch an error event,
+      // emulating an uncaught JavaScript error.
+      reportError
+    : // In older browsers and test environments, fallback to console.error.
+      console.error;
+
+//
+
+class AgentRegistry {
+  value: AgentProps;
+
+  actions: ActionProps[] = [];
+  prompt: PromptProps[] = [];
+  formatter: FormatterProps[] = [];
+  parser: ParserProps[] = [];
+  perception: PerceptionProps[] = [];
+  task: TaskProps[] = [];
+
+  constructor(value: AgentProps) {
+    this.value = value;
+  }
+}
+class RenderRegistry {
+  agents: AgentRegistry[] = [];
+  load(container: Instance) {
+    this.agents.length = 0;
+    container.recurse((instance) => {
+      if (instance.type === 'agent') {
+        const agentRegistry = new AgentRegistry(instance.props);
+        this.agents.push(agentRegistry);
+
+        instance.recurse((childInstance) => {
+          if (childInstance.type === 'action') {
+            agentRegistry.actions.push(childInstance.props);
+          }
+          if (childInstance.type === 'prompt') {
+            agentRegistry.prompt.push(childInstance.props);
+          }
+          if (childInstance.type === 'formatter') {
+            agentRegistry.formatter.push(childInstance.props);
+          }
+          if (childInstance.type === 'parser') {
+            agentRegistry.parser.push(childInstance.props);
+          }
+          if (childInstance.type === 'perception') {
+            agentRegistry.perception.push(childInstance.props);
+          }
+          if (childInstance.type === 'task') {
+            agentRegistry.task.push(childInstance.props);
+          }
+        });
+      }
+    });
+  }
+}
+
+//
+
 export class AgentRenderer {
   env: object;
   userRender: UserHandler;
@@ -197,11 +281,11 @@ export class AgentRenderer {
   epochValue: number;
 
   reconciler: any;
+  container: any;
   root: any;
 
+  renderPromise: Promise<void> | null = null;
   renderQueueManager: QueueManager;
-
-  rendered: boolean = false;
   taskMap: Map<ActiveAgentObject, Map<any, TaskObject>> = new Map();
 
   constructor({
@@ -216,20 +300,6 @@ export class AgentRenderer {
     // latch arguments
     this.env = env;
     this.userRender = userRender;
-
-    // latch members
-    // const {
-    //   agentRegistry,
-    //   // actionRegistry,
-    //   // promptRegistry,
-    //   // formatterRegistry,
-    //   // parserRegistry,
-    //   // perceptionRegistry,
-    //   // taskRegistry,
-    //   // nameRegistry,
-    //   // personalityRegistry,
-    //   // serverRegistry,
-    // } = this;
 
     // create the app context
     this.renderLoader = new RenderLoader();
@@ -252,7 +322,6 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
-    // XXX fix these params
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
@@ -265,33 +334,59 @@ export class AgentRenderer {
     const opts = {
       supportsMutation: true,
       isPrimaryRenderer: true,
-      createInstance(...args: any[]) {
-        // console.log('create instance', { args });
-        return null;
-      },
-      createTextInstance: (...args: any[]) => {
-        // console.log('create text instance', { args });
-        return null;
-      },
       getRootHostContext: () => null,
       prepareForCommit: () => null,
       resetAfterCommit: () => null,
-      clearContainer: () => null,
-      appendChildToContainer: () => null,
-      removeChildFromContainer: () => null,
-    } as any;
+      clearContainer: (container: any) => {
+        container.children.length = 0;
+      },
+      createInstance(type: string, props: object, rootContainer: any, hostContext: any, internalHandle: any) {
+        return new Instance(type, props);
+      },
+      createTextInstance: (text: string, rootContainer: any, hostContext: any, internalHandle: any) => {
+        // console.log('create text instance', { args });
+        // return null;
+        return text;
+        // return new Instance('', {}, [
+        //   text,
+        // ]);
+        // return {
+        //   type: '',
+        //   props: {},
+        //   children: [text],
+        // };
+      },
+      appendInitialChild: (parent: Instance, child: InstanceChild) => {
+        parent.children.push(child);
+      },
+      appendChild: (container: Instance, child: InstanceChild) => {
+        container.children.push(child);
+      },
+      appendChildToContainer: (container: Instance, child: InstanceChild) => {
+        container.children.push(child);
+      },
+      insertBefore: (parent: Instance, child: InstanceChild, beforeChild: InstanceChild) => {
+        const index = parent.children.indexOf(beforeChild);
+        parent.children.splice(index, 0, child);
+      },
+      insertInContainerBefore: (container: Instance, child: InstanceChild, beforeChild: InstanceChild) => {
+        const index = container.children.indexOf(beforeChild);
+        container.children.splice(index, 0, child);
+      },
+      removeChild: (parent: Instance, child: InstanceChild) => {
+        const index = parent.children.indexOf(child);
+        parent.children.splice(index, 1);
+      },
+      removeChildFromContainer: (container: Instance, child: InstanceChild) => {
+        const index = container.children.indexOf(child);
+        container.children.splice(index, 1);
+      },
+    };
     const reconciler = ReactReconciler(opts);
     this.reconciler = reconciler;
-    const container = {};
-    const logRecoverableError =
-      typeof reportError === 'function'
-        ? // In modern browsers, reportError will dispatch an error event,
-          // emulating an uncaught JavaScript error.
-          reportError
-        : // In older browsers and test environments, fallback to console.error.
-          console.error;
+    this.container = new Instance('container');
     const root = reconciler.createContainer(
-      container, // containerInfo
+      this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
       true, // isStrictMode
@@ -339,11 +434,9 @@ export class AgentRenderer {
     // console.log('render 1');
     await this.render(props);
     // console.log('render 2');
-
-    this.rendered = true;
   }
 
-  async rerenderAsync() {
+  /* async renderAsync() {
     // console.log('rerender 1');
     await this.renderQueueManager.waitForTurn(async () => {
       // console.log('rerender 2');
@@ -351,37 +444,25 @@ export class AgentRenderer {
       // console.log('rerender 3');
     });
     // console.log('rerender 4');
-  }
+  } */
 
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
-  async ensureOutput() {
-    if (!this.rendered) {
-      await this.rerenderAsync();
+  async waitForRender() {
+    if (!this.renderPromise) {
+      this.renderPromise = (async () => {
+        await this.rerender();
+      })();
     }
-
-    const {
-      agentRegistry,
-      // actionRegistry,
-      // promptRegistry, 
-      // parserRegistry,
-      // perceptionRegistry,
-      // taskRegistry,
-      // nameRegistry,
-      // personalityRegistry,
-      // serverRegistry,
-    } = this.appContextValue;
-
-    return {
-      agentRegistry,
-      // actionRegistry,
-      // promptRegistry,
-      // parserRegistry,
-      // perceptionRegistry,
-      // taskRegistry,
-      // nameRegistry,
-      // personalityRegistry,
-      // serverRegistry,
-    };
+    await this.renderPromise;
+  }
+  getRegistry() {
+    const renderRegistry = new RenderRegistry();
+    renderRegistry.load(this.container);
+    return renderRegistry;
+  }
+  async ensureRegistry() {
+    await this.waitForRender();
+    return this.getRegistry();
   }
 }
