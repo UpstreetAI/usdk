@@ -36,7 +36,6 @@ import {
   PendingActionEvent,
 } from './classes/pending-action-event';
 import { AgentRenderer } from './classes/agent-renderer';
-// import { ActiveAgentObject } from './classes/active-agent-object';
 import {
   TaskObject,
   TaskResult,
@@ -50,7 +49,12 @@ import {
 import {
   parseCodeBlock,
 } from './util/util.mjs';
-import { ActiveAgentObject } from './classes/active-agent-object';
+import {
+  ActiveAgentObject,
+} from './classes/active-agent-object';
+import {
+  GenerativeAgentObject,
+} from './classes/generative-agent-object';
 
 //
 
@@ -69,8 +73,8 @@ const getActionByName = (actionRegistry: Map<symbol, ActionProps>, name: string)
   return null;
 };
 
-export async function generateAgentAction(agent: ActiveAgentObject) {
-  const { promptRegistry } = agent;
+export async function generateAgentAction(agent: GenerativeAgentObject) {
+  const { promptRegistry } = agent.agent;
   const prompts = Array.from(promptRegistry.values())
     .map((prompt) => prompt?.children)
     .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
@@ -84,7 +88,7 @@ export async function generateAgentAction(agent: ActiveAgentObject) {
   return await _generateAgentActionFromMessages(agent, promptMessages);
 }
 export async function generateAgentActionFromInstructions(
-  agent: ActiveAgentObject,
+  agent: GenerativeAgentObject,
   instructions: string,
 ) {
   const { promptRegistry } = agent;
@@ -102,10 +106,10 @@ export async function generateAgentActionFromInstructions(
   return await _generateAgentActionFromMessages(agent, promptMessages);
 }
 async function _generateAgentActionFromMessages(
-  agent: ActiveAgentObject,
+  agent: GenerativeAgentObject,
   promptMessages: ChatMessages,
 ) {
-  const { parserRegistry, actionRegistry } = agent;
+  const { parserRegistry, actionRegistry } = agent.agent;
 
   const parser = Array.from(parserRegistry.values())[0];
 
@@ -200,12 +204,11 @@ export async function generateString(hint: string) {
 }
 
 export async function handleAgentAction(
-  agent: ActiveAgentObject,
+  agent: GenerativeAgentObject,
   message: PendingActionMessage,
-  conversation: Conversation | null,
 ) {
   // console.log('handle agent action 1');
-  const { actionRegistry } = agent;
+  const { actionRegistry } = agent.agent;
 
   const { method } = message;
   const actionHandler = getActionByName(actionRegistry, method);
@@ -215,7 +218,6 @@ export async function handleAgentAction(
     const e = new PendingActionEvent({
       agent,
       message,
-      conversation,
     });
     // console.log('handle agent action 3', actionHandler);
     if (actionHandler.handler) {
