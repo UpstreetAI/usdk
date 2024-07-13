@@ -243,36 +243,36 @@ class RenderRegistry {
     this.agents.length = 0;
     container.recurse((instance) => {
       if (instance.type === 'agent') {
-        const agentRegistry = new AgentRegistry(instance.props);
+        const agentRegistry = new AgentRegistry(instance.props.value);
         this.agents.push(agentRegistry);
 
         instance.recurse((childInstance) => {
           if (childInstance.type === 'action') {
-            agentRegistry.actions.push(childInstance.props);
+            agentRegistry.actions.push(childInstance.props.value);
           }
           if (childInstance.type === 'prompt') {
-            agentRegistry.prompts.push(childInstance.props);
+            agentRegistry.prompts.push(childInstance.props.value);
           }
           if (childInstance.type === 'formatter') {
-            agentRegistry.formatters.push(childInstance.props);
+            agentRegistry.formatters.push(childInstance.props.value);
           }
           if (childInstance.type === 'parser') {
-            agentRegistry.parsers.push(childInstance.props);
+            agentRegistry.parsers.push(childInstance.props.value);
           }
           if (childInstance.type === 'perception') {
-            agentRegistry.perceptions.push(childInstance.props);
+            agentRegistry.perceptions.push(childInstance.props.value);
           }
           if (childInstance.type === 'task') {
-            agentRegistry.tasks.push(childInstance.props);
+            agentRegistry.tasks.push(childInstance.props.value);
           }
           if (childInstance.type === 'name') {
-            agentRegistry.names.push(childInstance.props);
+            agentRegistry.names.push(childInstance.props.value);
           }
           if (childInstance.type === 'personality') {
-            agentRegistry.personalities.push(childInstance.props);
+            agentRegistry.personalities.push(childInstance.props.value);
           }
           if (childInstance.type === 'server') {
-            agentRegistry.servers.push(childInstance.props);
+            agentRegistry.servers.push(childInstance.props.value);
           }
         });
       }

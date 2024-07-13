@@ -22,7 +22,7 @@ import type {
   ServerProps,
   ConversationObject,
   ConversationProps,
-  GenerativeAgentProps,
+  ConversationInstanceProps,
   // ExtendableMessageEvent,
   ConversationChangeEvent,
   ConversationAddEvent,
@@ -35,7 +35,6 @@ import {
   ConversationContext,
   ConversationsContext,
   // EpochContext,
-  GenerativeAgentContext,
 } from './context';
 import {
   DefaultAgentComponents,
@@ -136,23 +135,20 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={conversations}>
-          {props.children}
+         <ConversationContext.Provider value={null}>
+            {props.children}
+          </ConversationContext.Provider>
         </ConversationsContext.Provider>
       </AgentContext.Provider>
     </agent>
   );
 });
-export const GenerativeAgent = (props: GenerativeAgentProps) => {
+const ConversationInstance = (props: ConversationInstanceProps) => {
   const {
     agent,
     conversation,
   } = props;
   const renderLoader = useMemo(() => new RenderLoader(), []);
-  const generativeAgent = useMemo(() => {
-    return agent.generative({
-      conversation,
-    });
-  }, [agent, conversation]);
   const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
 
   // events
@@ -169,11 +165,11 @@ export const GenerativeAgent = (props: GenerativeAgentProps) => {
   }, [agent]);
 
   return (
-    <GenerativeAgentContext.Provider value={generativeAgent}>
+    <ConversationContext.Provider value={conversation}>
       <RenderLoaderProvider renderLoader={renderLoader}>
         {props.children}
       </RenderLoaderProvider>
-    </GenerativeAgentContext.Provider>
+    </ConversationContext.Provider>
   );
 };
 export const Conversation = (props: ConversationProps) => {
@@ -181,13 +177,13 @@ export const Conversation = (props: ConversationProps) => {
   const conversations = useContext(ConversationsContext);
   return conversations.map((conversation) => {
     return (
-      <GenerativeAgent
+      <ConversationInstance
         agent={agent}
         conversation={conversation}
         key={conversation.id}
       >
         {props.children}
-      </GenerativeAgent>
+      </ConversationInstance>
     );
   });
 };
@@ -208,6 +204,7 @@ export const Action: React.FC<ActionProps> = (props: ActionProps) => {
 export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
   // const symbol = useMemo(makeSymbol, []);
   // const agentContext = useContext(AgentContext);
+  const conversation = useContext(ConversationContext);
 
   // useEffect(() => {
   //   return () => {
@@ -218,7 +215,10 @@ export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
 
   // return React.createElement(React.Fragment, {}, props.children);
   // return props.children;
-  return <prompt value={props} />;
+  return <prompt value={{
+    ...props,
+    conversation,
+  }} />;
 };
 export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
   // const symbol = useMemo(makeSymbol, []);

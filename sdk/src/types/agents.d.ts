@@ -362,7 +362,7 @@ export type RawAgentProps = {
 export type ConversationProps = {
   children?: ReactNode;
 };
-export type GenerativeAgentProps = {
+export type ConversationInstanceProps = {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
   children?: ReactNode;

@@ -18,9 +18,8 @@ import {
 import {
   AppContext,
   AgentContext,
-  ConversationContext,
   ConversationsContext,
-  GenerativeAgentContext,
+  ConversationContext,
 } from './context';
 import {
   // ConversationObject,
@@ -43,7 +42,7 @@ export const useAuthToken: () => string = () => {
 
 //
 
-export const useCurrentAgent = () => {
+export const useAgent = () => {
   const agentContextValue = useContext(AgentContext);
   return agentContextValue;
 };
@@ -51,13 +50,13 @@ export const useConversations = () => {
   const conversationsContext = useContext(ConversationsContext);
   return conversationsContext;
 };
-export const useCurrentGenerativeAgent = () => {
-  const generativeAgentContextValue = useContext(GenerativeAgentContext);
-  return generativeAgentContextValue;
-};
-export const useCurrentConversation = () => {
-  const generativeAgentContextValue = useContext(GenerativeAgentContext);
-  return generativeAgentContextValue.conversation;
+// export const useCurrentGenerativeAgent = () => {
+//   const generativeAgentContextValue = useContext(GenerativeAgentContext);
+//   return generativeAgentContextValue;
+// };
+export const useConversation = () => {
+  const conversationContextValue = useContext(ConversationContext);
+  return conversationContextValue;
 };
 /* export const useScene: () => SceneObject = () => {
   const agentContextValue = useContext(AgentContext);
@@ -91,9 +90,9 @@ export const usePersonality: () => string = () => {
   return agentContextValue.useActionHistory(opts);
 }; */
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
   const supabase = agent.useSupabase();
-  const conversation = useCurrentConversation();
+  const conversation = useConversation();
 
   if (!conversation.messageCache.loadPromise) {
     conversation.messageCache.loadPromise = (async () => {
@@ -114,9 +113,9 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   }
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
   const supabase = agent.useSupabase();
-  const conversation = useCurrentConversation();
+  const conversation = useConversation();
   const optsString = JSON.stringify(opts);
   const messagesPromise = useMemo<any>(makePromise, [conversation, optsString]);
   useEffect(() => {
