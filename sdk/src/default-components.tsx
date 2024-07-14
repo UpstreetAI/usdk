@@ -50,11 +50,8 @@ import {
   // useScene,
   useActions,
   useFormatters,
-  // useNames,
   useName,
-  // usePersonalities,
   usePersonality,
-  // useActionHistory,
   useTts,
   useChat,
   useConversation,
@@ -232,17 +229,14 @@ export const DefaultActions = () => {
  * @returns The JSX elements representing the default prompts components.
  */
 export const DefaultPrompts = () => {
-  const agent = useAgent();
-  const actions = useActions();
-  const formatters = useFormatters();
   return (
     <>
       <DefaultHeaderPrompt />
       <ConversationEnvironmentPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
-      <ActionsPrompt actions={actions} formatters={formatters} />
+      <ActionsPrompt />
       <ConversationMessagesPrompt />
-      <InstructionsPrompt agent={agent} />
+      <InstructionsPrompt />
     </>
   );
 };
@@ -339,13 +333,10 @@ export const CharactersPrompt = () => {
   //   </Prompt>
   // );
 }; */
-export const ActionsPrompt = ({
-  actions,
-  formatters,
-}: {
-  actions: Array<ActionProps>;
-  formatters: Array<FormatterProps>;
-}) => {
+export const ActionsPrompt = () => {
+  const actions = useActions();
+  const formatters = useFormatters();
+
   let s = '';
   if (actions.length > 0 && formatters.length > 0) {
     const formatter = formatters[0];
@@ -439,11 +430,9 @@ export const CachedMessagesPrompt = () => {
     </Prompt>
   );
 };
-export const InstructionsPrompt = ({
-  agent,
-}: {
-  agent: AgentObject;
-}) => {
+export const InstructionsPrompt = () => {
+  const agent = useAgent();
+
   return (
     <Prompt>
       {dedent`
