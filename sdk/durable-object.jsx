@@ -32,7 +32,7 @@ export class DurableObject extends EventTarget {
     });
 
     this.loadPromise = (async () => {
-      await this.agentRenderer.rerenderAsync();
+      await this.agentRenderer.waitForRender();
     })().catch(err => {
       console.warn(err);
     });
@@ -56,8 +56,10 @@ export class DurableObject extends EventTarget {
     endpointUrl = multiplayerEndpointUrl,
   }) {
     const promises = [];
-    const agents = Array.from(this.agentRenderer.agentRegistry.values());
+    const registry = this.agentRenderer.registry;
+    const agents = Array.from(registry.agents.values());
     if (agentId !== null) {
+      // join for specific agent
       const agent = agents.find(a => a.id === agentId);
       if (agent) {
         const p = agent.join({
@@ -69,6 +71,7 @@ export class DurableObject extends EventTarget {
         throw new Error('agent not found');
       }
     } else {
+      // join for all agents
       for (const agent of agents) {
         const p = agent.join({
           room,
@@ -84,8 +87,10 @@ export class DurableObject extends EventTarget {
     room,
     endpointUrl = multiplayerEndpointUrl,
   }) {
-    const agents = Array.from(this.agentRenderer.agentRegistry.values());
+    const registry = this.agentRenderer.registry;
+    const agents = Array.from(registry.agents.values());
     if (agentId !== null) {
+      // leave for specific agent
       const agent = agents.find(a => a.id === agentId);
       if (agent) {
         await agent.leave({
@@ -96,6 +101,7 @@ export class DurableObject extends EventTarget {
         throw new Error('agent not found');
       }
     } else {
+      // leave for all agents
       for (const agent of agents) {
         await agent.leave({
           room,
