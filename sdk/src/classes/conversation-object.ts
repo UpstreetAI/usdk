@@ -66,12 +66,16 @@ export class ConversationObject extends EventTarget {
   async typing(fn: () => Promise<void>) {
     const start = () => {
       if (++this.numTyping === 1) {
-        this.dispatchEvent(new MessageEvent('typingstart'));
+        this.dispatchEvent(new MessageEvent('typingstart', {
+          data: null,
+        }));
       }
     };
     const end = () => {
       if (--this.numTyping === 0) {
-        this.dispatchEvent(new MessageEvent('typingend'));
+        this.dispatchEvent(new MessageEvent('typingend', {
+          data: null,
+        }));
       }
     };
     start();
