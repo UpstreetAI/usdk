@@ -1,48 +1,49 @@
 import 'localstorage-polyfill';
 import { compileUserAgentServer } from '../runtime';
-import type { AgentObject, ActionMessages, UserHandler, ActiveAgentObject } from '../types';
-// import { makeAnonymousClient } from '../util/supabase-client.mjs';
-// import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
-// import { ConversationContext } from '../classes/conversation-context.mjs';
-// import { console } from '../classes/console.mjs';
+import { headers } from '../constants.js';
+// import type { AgentObject, ActionMessages, UserHandler, ActiveAgentObject } from '../types';
+import {
+  AgentRenderer,
+} from '../classes/agent-renderer';
 
 //
 
-export default async function handler(
-  request: Request,
-  agent: ActiveAgentObject,
-) {
-  // console.log('nudge handler', { enabled });
-  // if (typeof enabled !== 'boolean') {
-  //   throw new Error('serverHandler: enabled must be a boolean');
-  // }
-
-  const handleServer = async () => {
+export async function serverHandler(request: Request, {
+  agentRenderer,
+  env,
+}: {
+  agentRenderer: AgentRenderer;
+  env: any;
+}) {
+  const agentRegistries = Array.from(agentRenderer.registry.agents.values());
+  const agentRegistry = agentRegistries[0];
+  if (agentRegistry) {
+    const agent = agentRegistry.value;
     const agentServer = await compileUserAgentServer({
       agent,
     });
     const method = request.method as string;
     // const pathname = (args as any).pathname as string;
-
+  
     const originalUrl = new URL(request.url);
     // originalUrl.pathname = originalUrl.pathname.replace(/^\/agents\/[^/]+/, '');
     const pathname =
       originalUrl.pathname + originalUrl.search + originalUrl.hash;
-
+  
     // extract the url
     const u = new URL(pathname, 'http://localhost');
     // read the headers as an object
-    const headers: {
+    const requestHeaders: {
       [key: string]: string;
     } = {};
     // convert headers object into plain object
     request.headers.forEach((v, k) => {
-      headers[k] = v;
+      requestHeaders[k] = v;
     });
     // create the proxy request
     const opts = {
       method: request.method,
-      headers,
+      headers: requestHeaders,
       body: null,
     };
     if (!['GET', 'HEAD'].includes(method)) {
@@ -50,8 +51,20 @@ export default async function handler(
     }
     const proxyReq = new Request(u, opts);
     const proxyRes = await agentServer.fetch(proxyReq, env);
-    return proxyRes;
-  };
 
-  return await handleServer();
+    const arrayBuffer = await proxyRes.arrayBuffer();
+    const proxyRes2 = new Response(arrayBuffer, {
+      status: proxyRes.status,
+      headers: {
+        ...headers,
+        'Content-Type': proxyRes.headers.get('Content-Type'),
+      },
+    });
+    return proxyRes2;
+  } else {
+    return new Response('durable object: no agents', {
+      status: 404,
+      headers,
+    });
+  }
 }

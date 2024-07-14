@@ -6,7 +6,9 @@ import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 // import { ConversationContext } from './src/classes/conversation-context';
 // import { Player } from './src/classes/player';
 import { AgentRenderer } from './src/classes/agent-renderer';
-import serverHandler from './src/routes/server.ts';
+import {
+  serverHandler,
+ } from './src/routes/server.ts';
 import {
   compileUserAgentTasks,
 } from './src/runtime.ts';
@@ -324,24 +326,11 @@ export class DurableObject extends EventTarget {
           }
         };
         const handleDefaultRequest = async () => {
-          const agents = Array.from(this.agentRenderer.registry.agents.values());
-          const agent = agents[0];
-          if (agent) {
-            const serverResponse = await serverHandler(request, agent);
-            const arrayBuffer = await serverResponse.arrayBuffer();
-            return new Response(arrayBuffer, {
-              status: serverResponse.status,
-              headers: {
-                ...headers,
-                'Content-Type': serverResponse.headers.get('Content-Type'),
-              },
-            });
-          } else {
-            return new Response('durable object: no agents', {
-              status: 404,
-              headers,
-            });
-          }
+          const serverResponse = await serverHandler(request, {
+            agentRenderer: this.agentRenderer,
+            env: this.env,
+          });
+          return serverResponse;
         };
 
         switch (subpath) {
