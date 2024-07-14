@@ -1,9 +1,12 @@
 import React from 'react';
+import { useState, useEffect, Component, Fragment, ReactNode } from 'react';
 // import dedent from 'dedent';
 import 'localstorage-polyfill';
 import ReactReconciler from 'react-reconciler';
 import {
   ConcurrentRoot,
+  EventPriority,
+  NoEventPriority,
   DefaultEventPriority,
 } from 'react-reconciler/constants'
 import {
@@ -30,10 +33,10 @@ import {
 //
 
 type ChildrenProps = {
-  children: React.ReactNode[],
+  children?: ReactNode,
 };
-class ErrorBoundary extends React.Component<
-  any,
+class ErrorBoundary extends Component<
+  ChildrenProps,
   {
     hasError: boolean;
   }
@@ -63,7 +66,7 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       // You can render any custom fallback UI
-      return React.createElement(React.Fragment);
+      return (<></>);
     }
 
     return this.localProps.children;
@@ -71,10 +74,8 @@ class ErrorBoundary extends React.Component<
 }
 const ConfigurationComponent = ({
   children,
-}: {
-  children: React.ReactNode[],
-}) => {
-  const [configurationValue, setConfigurationValue] = React.useState(() => {
+}: ChildrenProps) => {
+  const [configurationValue, setConfigurationValue] = useState(() => {
     const data = {};
     const result = {
       get: (key: string) => data[key],
@@ -86,51 +87,44 @@ const ConfigurationComponent = ({
     return result;
   });
 
-  return React.createElement(
-    ConfigurationContext.Provider,
-    {
-      value: configurationValue,
-    },
-    children,
+  return (
+    <ConfigurationContext.Provider
+      value={configurationValue}
+    >
+      {children}
+    </ConfigurationContext.Provider>
   );
 };
-const AppComponent = (props: any) => {
-  const {
-    userRender,
-    appContextValue,
-    epochValue,
-    topLevelRenderPromise,
-  } = props;
+type AppComponentProps = {
+  userRender: UserHandler,
+  appContextValue: AppContextValue,
+  epochValue: number,
+  topLevelRenderPromise: any
+}
+const AppComponent = ({
+  userRender,
+  appContextValue,
+  epochValue,
+  topLevelRenderPromise,
+}: AppComponentProps) => {
 
-  React.useEffect(() => {
+  useEffect(() => {
     topLevelRenderPromise.resolve(null);
   }, [topLevelRenderPromise]);
 
-  const children = [React.createElement(userRender/*, rest*/)];
+  const UserRenderComponent = userRender;
 
-  // create and use the AppContext.Provider
-  const result = React.createElement(
-    ErrorBoundary,
-    undefined,
-    React.createElement(
-      AppContext.Provider,
-      {
-        value: appContextValue,
-      },
-      React.createElement(
-        ConfigurationComponent,
-        null,
-        React.createElement(
-          EpochContext.Provider,
-          {
-            value: epochValue,
-          },
-          ...children,
-        ),
-      ),
-    ),
-  );
-  return result;
+  return (
+    <ErrorBoundary>
+      <AppContext.Provider value={appContextValue}>
+        <ConfigurationComponent>
+          <EpochContext.Provider value={epochValue}>
+            <UserRenderComponent />
+          </EpochContext.Provider>
+        </ConfigurationComponent>
+      </AppContext.Provider>
+    </ErrorBoundary>
+  )
 };
 
 //
@@ -206,16 +200,29 @@ export class AgentRenderer {
     });
 
     // run the module to get the result
+    let currentUpdatePriority: EventPriority = NoEventPriority;
     const opts = {
       supportsMutation: true,
       isPrimaryRenderer: true,
-      getRootHostContext: () => null,
+      getRootHostContext: () => {
+        return {};
+      },
       getChildHostContext: (parentHostContext: any, type: string, rootContainer: any) => {
         return parentHostContext;
       },
       getCurrentEventPriority: () => {
         return DefaultEventPriority;
       },
+      resolveUpdatePriority: () => currentUpdatePriority || DefaultEventPriority,
+      getCurrentUpdatePriority: () => currentUpdatePriority,
+      setCurrentUpdatePriority: (newPriority: EventPriority) => {
+        currentUpdatePriority = newPriority;
+      },
+      maySuspendCommit: (type: string, props: object) => {
+        return false;
+      },
+      startSuspendingCommit: () => {},
+      waitForCommitToBeReady: () => null,
       prepareForCommit: () => {
         // console.log('prepare for commit');
         return null;
@@ -317,8 +324,12 @@ export class AgentRenderer {
     this.renderLoader.clear();
     this.renderLoader.useLoad(props.topLevelRenderPromise);
 
-    const element = React.createElement(AppComponent, props);
     await new Promise((accept, reject) => {
+      const element = (
+        <AppComponent
+          {...props}
+        />
+      );
       this.reconciler.updateContainer(element, this.root, null, () => {
         accept(null);
       });
