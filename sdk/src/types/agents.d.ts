@@ -348,6 +348,7 @@ export type ConversationInstanceProps = {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
   children?: ReactNode;
+  key?: any;
 };
 
 export type ActionProps = {
@@ -505,4 +506,4 @@ export type ActionHistoryQuery = {
 
 // user handler
 
-export type UserHandler = FC<void>;
+export type UserHandler = ReactNode;
