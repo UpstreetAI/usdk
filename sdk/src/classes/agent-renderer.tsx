@@ -17,6 +17,7 @@ import type {
   UserHandler,
   InstanceChild,
 } from '../types';
+// import inspect from 'browser-util-inspect';
 
 import { RenderLoader } from './render-loader';
 import { QueueManager } from '../util/queue-manager.mjs';
@@ -230,7 +231,7 @@ export class AgentRenderer {
       resetAfterCommit: () => {
         // console.log('reset after commit');
         this.registry.load(this.container);
-        // console.log('registry updated:', this.registry);
+        // console.log('registry updated:', inspect(Array.from(this.registry.agents.values())[0]));
       },
       clearContainer: (container: any) => {
         // console.log('clear container', [container]);
