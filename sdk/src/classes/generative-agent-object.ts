@@ -76,8 +76,6 @@ export class GenerativeAgentObject {
       await this.conversation.typing(async () => {
         // console.log('agent renderer think 2');
         try {
-          // XXX move these methods into this file
-          // XXX ensure locking in these methods
           const pendingMessage = await (hint
             ? generateAgentActionFromInstructions(this, hint)
             : generateAgentAction(this)
