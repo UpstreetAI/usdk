@@ -38,10 +38,11 @@ import {
   Task,
   // Scheduler,
   Server,
+  Conversation,
 } from './components';
-import {
-  TaskResult,
-} from './classes/task-object';
+// import {
+//   TaskResult,
+// } from './classes/task-object';
 import {
   useAgent,
   useAuthToken,
@@ -231,18 +232,17 @@ export const DefaultActions = () => {
  * @returns The JSX elements representing the default prompts components.
  */
 export const DefaultPrompts = () => {
-  const currentAgent = useAgent();
+  const agent = useAgent();
   const actions = useActions();
   const formatters = useFormatters();
   return (
     <>
       <DefaultHeaderPrompt />
-      <ScenePrompt />
-      <CharactersPrompt />
+      <ConversationEnvironmentPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
-      <ActionsFormatPrompt actions={actions} formatters={formatters} />
-      <RecentChatHistoryJsonPrompt />
-      <InstructionsJsonPrompt agent={currentAgent} />
+      <ActionsPrompt actions={actions} formatters={formatters} />
+      <ConversationMessagesPrompt />
+      <InstructionsPrompt agent={agent} />
     </>
   );
 };
@@ -257,10 +257,17 @@ export const DefaultHeaderPrompt = () => {
     </Prompt>
   );
 };
+export const ConversationEnvironmentPrompt = () => {
+  return (
+    <Conversation>
+      <ScenePrompt />
+      <CharactersPrompt />
+    </Conversation>
+  );
+};
 export const ScenePrompt = () => {
   const conversation = useConversation();
   const scene = conversation.getScene();
-  // const scene = useScene();
   return (
     <Prompt>
       {scene && dedent`
@@ -277,7 +284,6 @@ const formatAgent = (agent: any) => {
 };
 export const CharactersPrompt = () => {
   const conversation = useConversation();
-  // const agents = useAgents();
   const agents = conversation.getAgents();
   const name = useName();
   const bio = usePersonality();
@@ -332,7 +338,7 @@ export const CharactersPrompt = () => {
   //   </Prompt>
   // );
 }; */
-export const ActionsFormatPrompt = ({
+export const ActionsPrompt = ({
   actions,
   formatters,
 }: {
@@ -353,7 +359,14 @@ export const ActionsFormatPrompt = ({
     <Prompt>{s}</Prompt>
   );
 };
-export const RecentChatHistoryJsonPrompt = () => {
+export const ConversationMessagesPrompt = () => {
+  return (
+    <Conversation>
+      <CachedMessagesPrompt />
+    </Conversation>
+  );
+}
+export const CachedMessagesPrompt = () => {
   // const appContextValue = useContext(AppContext);
 
   // const [historyActions, setHistoryActions] = useState([]);
@@ -425,7 +438,7 @@ export const RecentChatHistoryJsonPrompt = () => {
     </Prompt>
   );
 };
-export const InstructionsJsonPrompt = ({
+export const InstructionsPrompt = ({
   agent,
 }: {
   agent: AgentObject;
@@ -641,15 +654,15 @@ export const DefaultTasks = () => {
   return <StatusTask />
 };
 export const StatusTask = () => {
-  const agent = useAgent();
+  // const agent = useAgent();
   // const agents = useAgents();
-  const conversation = useConversation();
-  const agents = conversation.getAgents();
-  const lastActions = useActionHistory({
-    filter: {
-      limit: 1,
-    },
-  });
+  // const conversation = useConversation();
+  // const agents = conversation.getAgents();
+  // const lastActions = useActionHistory({
+  //   filter: {
+  //     limit: 1,
+  //   },
+  // });
   // console.log('got last actions', lastActions);
   // XXX use exponential backoff
 

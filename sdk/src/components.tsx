@@ -132,9 +132,9 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={conversations}>
-         <ConversationContext.Provider value={null}>
+         {/* <ConversationContext.Provider value={null}> */}
             {props.children}
-          </ConversationContext.Provider>
+          {/* </ConversationContext.Provider> */}
         </ConversationsContext.Provider>
       </AgentContext.Provider>
     </agent>

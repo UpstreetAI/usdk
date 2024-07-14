@@ -1,9 +1,6 @@
 import React from 'react';
 // import dedent from 'dedent';
 import 'localstorage-polyfill';
-// import { z } from 'zod';
-// import type { ZodTypeAny } from 'zod';
-// import { zodToTs, printNode } from 'zod-to-ts';
 import ReactReconciler from 'react-reconciler';
 import {
   ConcurrentRoot,
@@ -14,54 +11,16 @@ import {
 } from './subtle-ai';
 import { AppContext, EpochContext, ConfigurationContext } from '../context';
 import type {
-  // AppContextValue,
-  // AgentContextValue,
-  ConfigurationContextValue,
-  ActionMessages,
-  PendingActionEvent,
-  PendingActionMessage,
-  PerceptionEvent,
-  SubtleAiCompleteOpts,
-  SubtleAiImageOpts,
-  MemoryOpts,
-  ChatMessage,
-  ChatMessages,
-  Memory,
-  AgentProps,
-  ActionProps,
-  PromptProps,
-  FormatterProps,
-  ParserProps,
-  PerceptionProps,
-  TaskProps,
-  NameProps,
-  PersonalityProps,
-  ServerProps,
   UserHandler,
-  TtsArgs,
-  ChatArgs,
-  ActionHistoryQuery,
-  TaskObject,
   InstanceChild,
 } from '../types';
 
-// import { ConversationContext } from './classes/conversation-context';
 import { RenderLoader } from './render-loader';
-// import { fetchChatCompletion } from './util/fetch.mjs';
-// import * as DefaultComponents from './default-components.jsx';
-// import { aiProxyHost } from './util/endpoints.mjs';
-// import { lembed } from './util/embedding.mjs';
 import { QueueManager } from '../util/queue-manager.mjs';
 import { makeAnonymousClient } from '../util/supabase-client.mjs';
-// import { UserHandler, AgentConsole } from 'sdk/types';
 import { makePromise } from '../util/util.mjs';
-// import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './lib/voice-output/voice-endpoint-voicer.mjs';
-// import { createOpusReadableStreamSource } from './lib/multiplayer/public/audio/audio-client.mjs';
-// import { NetworkRealms } from "./lib/multiplayer/public/network-realms.mjs";
-// import { retry } from "../util/util.mjs";
 import { AppContextValue } from './app-context-value';
 import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
-// import { ActiveAgentObject } from './active-agent-object';
 import {
   RenderRegistry,
   Instance,
@@ -209,8 +168,6 @@ export class AgentRenderer {
     env: object;
     userRender: UserHandler;
   }) {
-    // const self = this;
-
     // latch arguments
     this.env = env;
     this.userRender = userRender;
@@ -259,17 +216,24 @@ export class AgentRenderer {
       getCurrentEventPriority: () => {
         return DefaultEventPriority;
       },
-      prepareForCommit: () => null,
+      prepareForCommit: () => {
+        // console.log('prepare for commit');
+        return null;
+      },
       resetAfterCommit: () => {
+        // console.log('reset after commit');
         this.registry.load(this.container);
       },
       clearContainer: (container: any) => {
+        // console.log('clear container', [container]);
         container.children.length = 0;
       },
       createInstance(type: string, props: object, rootContainer: any, hostContext: any, internalHandle: any) {
+        // console.log('create instance', [type, props]);
         return new Instance(type, props);
       },
       createTextInstance: (text: string, rootContainer: any, hostContext: any, internalHandle: any) => {
+        // console.log('create text instance', [text]);
         return new TextInstance(text);
       },
       appendInitialChild: (parent: Instance, child: InstanceChild) => {
@@ -279,9 +243,11 @@ export class AgentRenderer {
         return false;
       },
       prepareUpdate: (instance: Instance, type: string, oldProps: object, newProps: object, rootContainer: any, hostContext: any) => {
+        // console.log('prepare update', [type, oldProps, newProps]);
         return null;
       },
       commitUpdate: (instance: Instance, updatePayload: any, type: string, oldProps: object, newProps: object, internalHandle: any) => {
+        // console.log('commit update', [type, oldProps, newProps]);
         instance.type = type;
         instance.props = newProps;
       },
