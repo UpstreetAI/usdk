@@ -230,6 +230,7 @@ export class AgentRenderer {
       resetAfterCommit: () => {
         // console.log('reset after commit');
         this.registry.load(this.container);
+        // console.log('registry updated:', this.registry);
       },
       clearContainer: (container: any) => {
         // console.log('clear container', [container]);
@@ -249,11 +250,7 @@ export class AgentRenderer {
       finalizeInitialChildren: (instance: Instance, type: string, props: object, rootContainer: any, hostContext: any) => {
         return false;
       },
-      prepareUpdate: (instance: Instance, type: string, oldProps: object, newProps: object, rootContainer: any, hostContext: any) => {
-        // console.log('prepare update', [type, oldProps, newProps]);
-        return null;
-      },
-      commitUpdate: (instance: Instance, updatePayload: any, type: string, oldProps: object, newProps: object, internalHandle: any) => {
+      commitUpdate: (instance: Instance, type: string, oldProps: object, newProps: object, internalHandle: any) => {
         // console.log('commit update', [type, oldProps, newProps]);
         instance.type = type;
         instance.props = newProps;
