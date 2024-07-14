@@ -4,7 +4,7 @@ import dedent from 'dedent';
 import { z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
-import puppeteer from '@cloudflare/puppeteer';
+// import puppeteer from '@cloudflare/puppeteer';
 // import type { ZodTypeAny } from 'zod';
 import { zodToTs, printNode } from 'zod-to-ts';
 import type {
@@ -292,6 +292,7 @@ export const CharactersPrompt = () => {
     // id,
     bio,
   };
+  const agentSpecs = agents.map((agent) => agent.getPlayerSpec());
 
   return (
     <Prompt>
@@ -307,7 +308,7 @@ export const CharactersPrompt = () => {
               # Other Characters
             ` +
             '\n\n' +
-            agents
+            agentSpecs
               .map(formatAgent)
               .join('\n\n')
           )
