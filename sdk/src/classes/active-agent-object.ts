@@ -137,21 +137,21 @@ export class ActiveAgentObject extends AgentObject {
 
   useActions() {
     const registry = this.useRegistry();
-    return registry.actions;
+    return registry ? registry.actions : [];
   }
   useFormatters() {
     const registry = this.useRegistry();
-    return registry.formatters;
+    return registry ? registry.formatters : [];
   }
 
   useName() {
     const registry = this.useRegistry();
-    const names = registry.names;
+    const names = registry ? registry.names : [];
     return names.length > 0 ? names[0].children : this.name;
   }
   usePersonality() {
     const registry = this.useRegistry();
-    const personalities = registry.personalities;
+    const personalities = registry ? registry.personalities : [];
     return personalities.length > 0 ? personalities[0].children : this.bio;
   }
 
