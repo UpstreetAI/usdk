@@ -49,7 +49,7 @@ export const RenderLoaderProvider = ({
   children,
 }: {
   renderLoader: RenderLoader;
-  children: ReactNode;
+  children?: ReactNode;
 }) => {
   const p = makePromise();
   renderLoader.useLoad(p);
