@@ -22,6 +22,10 @@ declare global {
   }
 }
 
+// network
+
+export type NetworkRealms = any;
+
 // events
 
 export type ExtendableMessageEvent<T> = MessageEvent<T> & {
@@ -151,6 +155,7 @@ export type MessageCache = {
 
   pushMessage(message: ActionMessage): void;
   prependMessages(messages: ActionMessage[]): void;
+  trim(): void;
 };
 export type Player = {
   playerId: string;
@@ -160,7 +165,11 @@ export type Player = {
 };
 export type ConversationObject = EventTarget & {
   id: string;
+  scene: SceneObject | null;
+  agent: ActiveAgentObject;
+  agentsMap: Map<string, Player>;
   messageCache: MessageCache;
+  numTyping: number;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   fetchMessages: (filter?: MessageFilter, opts?: {
@@ -183,16 +192,23 @@ export type ConversationObject = EventTarget & {
   removeAgent: (agentId: string) => void;
 }
 export type ActiveAgentObject = AgentObject & {
+  appContextValue: AppContextValue;
+  rooms: Map<string, NetworkRealms>;
+  incomingMessageQueueManager: QueueManager;
   generativeQueueManager: QueueManager;
-  tasks: Map<symbol, TaskObject>;
+  tasks: Map<any, TaskObject>;
+
+  // static hooks
+
+  embed: (text: string) => Promise<Array<number>>;
+  complete: (
+    messages: ChatMessages,
+  ) => Promise<ChatMessage>;
 
   //
 
+  useAuthToken: () => string;
   useSupabase: () => any;
-
-  // useScene: () => SceneObject | null;
-  // useAgents: () => Array<AgentObject>;
-  // useConversation: () => Conversation | null;
 
   useActions: () => Array<ActionProps>;
   useFormatters: () => Array<FormatterProps>;
