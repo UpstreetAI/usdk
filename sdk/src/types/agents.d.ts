@@ -505,4 +505,4 @@ export type ActionHistoryQuery = {
 
 // user handler
 
-export type UserHandler = ReactNode;
+export type UserHandler = FC;
