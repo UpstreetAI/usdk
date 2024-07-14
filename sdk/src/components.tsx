@@ -48,14 +48,14 @@ import {
   ActiveAgentObject,
 } from './classes/active-agent-object';
 import {
+  makePromise,
+} from './util/util.mjs';
+import {
   GenerativeAgentObject,
 } from './classes/generative-agent-object';
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
-// import {
-//   makePromise,
-// } from './util/util.mjs';
 import {
   RenderLoader,
   RenderLoaderProvider,
@@ -145,13 +145,18 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
     conversation,
   } = props;
   const renderLoader = useMemo(() => new RenderLoader(), []);
-  const [messagesEpoch, setMessagesEpoch] = useState<number>(0);
+  const [renderPromises, setRenderPromises] = useState<any[]>([]);
 
   // events
+  const waitForRender = () => {
+    const p = makePromise();
+    renderLoader.useLoad(p);
+    setRenderPromises((renderPromises) => renderPromises.concat([p]));
+    return renderLoader.waitForLoad();
+  };
   useEffect(() => {
     const onmessagesupdate = (e: MessagesUpdateEvent) => {
-      e.waitUntil(renderLoader.waitForLoad());
-      setMessagesEpoch((prev) => prev + 1);
+      e.waitUntil(waitForRender());
     };
     agent.addEventListener('messagesupdate', onmessagesupdate);
 
@@ -159,6 +164,14 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
       agent.removeEventListener('messagesupdate', onmessagesupdate);
     };
   }, [agent]);
+  useEffect(() => {
+    if (renderPromises.length > 0) {
+      for (const renderPromise of renderPromises) {
+        renderPromise.resolve(null);
+      }
+      setRenderPromises([]);
+    }
+  }, [renderPromises.length]);
 
   return (
     <ConversationContext.Provider value={conversation}>
