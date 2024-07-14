@@ -324,9 +324,12 @@ export class ActiveAgentObject extends AgentObject {
                 const perceptionPromises = [];
                 for (const perception of allPerceptions) {
                   if (perception.type === message.method) {
+                    const generativeAgent = this.generative({
+                      conversation,
+                    });
                     const e = new MessageEvent<PerceptionEventData>('perception', {
                       data: {
-                        agent: this,
+                        agent: generativeAgent,
                         message,
                       },
                     });

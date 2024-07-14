@@ -271,7 +271,7 @@ export interface AgentEvent extends MessageEvent {
 }
 
 export type PerceptionEventData = {
-  agent: ActiveAgentObject;
+  agent: GenerativeAgentObject;
   message: PerceptionMessage;
 };
 export type PerceptionEvent = MessageEvent<PerceptionEventData>;
