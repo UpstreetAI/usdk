@@ -31,6 +31,7 @@ import {
   PendingActionMessage,
   ActionProps,
   ConversationObject,
+  TaskEventData,
 } from './types';
 import {
   PendingActionEvent,
@@ -233,16 +234,13 @@ export async function handleAgentAction(
 
 // XXX can move this to the agent renderer
 export const compileUserAgentServer = async ({
-  agentRenderer,
+  agent,
 }: {
-  agentRenderer: AgentRenderer;
+  agent: ActiveAgentObject;
 }) => {
-  const {
-    serverRegistry,
-  } = await agentRenderer.ensureOutput();
+  const agentRegistry = agent.useRegistry();
 
-  const serversProps = Array.from(serverRegistry.values());
-  const servers = serversProps
+  const servers = agentRegistry.servers
     .map((serverProps) => {
       const childFn = serverProps.children as () => ServerHandler;
       if (typeof childFn === 'function') {
@@ -286,31 +284,24 @@ export const compileUserAgentTasks = async ({
 }: {
   agentRenderer: AgentRenderer;
 }) => {
-  const {
-    agentRegistry,
-  } = await agentRenderer.ensureOutput();
+  const registry = agentRenderer.registry;
 
   const update = async () => {
     const ensureTask = (agent: ActiveAgentObject, taskId: any) => {
-      let tasks = agentRenderer.taskMap.get(agent);
-      if (tasks) {
-        tasks = new Map();
-        agentRenderer.taskMap.set(agent, tasks);
-      }
-      const task = tasks.get(taskId);
+      const task = agent.tasks.get(taskId);
       if (task) {
         return task;
       } else {
         const task = new TaskObject({
           id: taskId,
         });
-        tasks.set(taskId, task);
+        agent.tasks.set(taskId, task);
         return task;
       }
     };
     // const currentAgent = agentRenderer.getCurrentAgent();
     const makeTaskEvent = (agent: ActiveAgentObject, task: TaskObject) => {
-      return new ExtendableMessageEvent('task', {
+      return new ExtendableMessageEvent<TaskEventData>('task', {
         data: {
           agent,
           task,
@@ -319,15 +310,16 @@ export const compileUserAgentTasks = async ({
     };
 
     // initialize and run tasks
-    const agents = Array.from(agentRegistry.values());
+    const agentRegistries = Array.from(registry.agents.values());
     const now = new Date();
     await Promise.all(
-      agents.map(async (agent) => {
-        const agentTaskProps = Array.from(agent.taskRegistry.values());
+      agentRegistries.map(async (agentRegistry) => {
+        const agent = agentRegistry.value;
+        const agentTasksProps = agentRegistry.tasks;
 
         // clear out any unnseen tasks
         const seenTasks = new Set<any>();
-        for (const taskProps of agentTaskProps) {
+        for (const taskProps of agentTasksProps) {
           const { id: taskId } = taskProps;
           if (!seenTasks.has(taskId)) {
             seenTasks.add(taskId);
@@ -339,7 +331,8 @@ export const compileUserAgentTasks = async ({
           }
         }
 
-        await Promise.all(agentTaskProps.map(async (taskProps) => {
+        // add new task
+        await Promise.all(agentTasksProps.map(async (taskProps) => {
           const { id: taskId } = taskProps;
           const task = ensureTask(agent, taskId);
           if (task.timestamp <= now) {
@@ -390,15 +383,12 @@ export const compileUserAgentTasks = async ({
         }));
       }),
     );
-    // filter to only the seen tasks
-    for (const [id, task] of Array.from(agentRenderer.tasks.entries())) {
-      if (!seenTasks.has(id)) {
-        agentRenderer.tasks.delete(id);
-      }
-    }
     // compute the earliest timeout
-    const timestamps = Array.from(agentRenderer.taskMap.values()).map((task) => {
-      return +task.timestamp;
+    const timestamps = agentRegistries.flatMap((agentRegistry) => {
+      const agent = agentRegistry.value;
+      return Array.from(agent.tasks.values()).map((task) => {
+        return +task.timestamp;
+      });
     }).filter(n => !isNaN(n)).concat([Infinity]);
     const minTimestamp = Math.min(...timestamps);
     return minTimestamp;
