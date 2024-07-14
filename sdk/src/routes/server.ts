@@ -1,9 +1,9 @@
 import 'localstorage-polyfill';
-import { AgentRenderer, compileUserAgentServer } from '../runtime';
-import type { AgentObject, ActionMessages, UserHandler, AgentConsole, ActiveAgentObject } from '../types';
+import { compileUserAgentServer } from '../runtime';
+import type { AgentObject, ActionMessages, UserHandler, ActiveAgentObject } from '../types';
 // import { makeAnonymousClient } from '../util/supabase-client.mjs';
-import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
-import { ConversationContext } from '../classes/conversation-context.mjs';
+// import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
+// import { ConversationContext } from '../classes/conversation-context.mjs';
 // import { console } from '../classes/console.mjs';
 
 //
@@ -18,14 +18,8 @@ export default async function handler(
   // }
 
   const handleServer = async () => {
-    // const userArgs = await prepareUserArgs(
-    //   conversationContext,
-    //   env,
-    //   userRender,
-    //   // enabled,
-    // );
     const agentServer = await compileUserAgentServer({
-      agentRenderer,
+      agent,
     });
     const method = request.method as string;
     // const pathname = (args as any).pathname as string;

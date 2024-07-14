@@ -239,7 +239,6 @@ export const compileUserAgentServer = async ({
   agent: ActiveAgentObject;
 }) => {
   const agentRegistry = agent.useRegistry();
-
   const servers = agentRegistry.servers
     .map((serverProps) => {
       const childFn = serverProps.children as () => ServerHandler;

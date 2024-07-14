@@ -7,7 +7,10 @@ import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 // import { Player } from './src/classes/player';
 import { AgentRenderer } from './src/classes/agent-renderer';
 import serverHandler from './src/routes/server.ts';
-import renderUserTasks from './src/renderers/task.ts';
+import {
+  compileUserAgentTasks,
+} from './src/runtime.ts';
+
 
 import userRender from '../agent';
 
@@ -33,12 +36,12 @@ export class DurableObject extends EventTarget {
 
     this.loadPromise = (async () => {
       await this.agentRenderer.waitForRender();
-    })().catch(err => {
-      console.warn(err);
-    });
 
-    (async () => {
-      await this.updateTasks();
+      (async () => {
+        await this.updateTasks();
+      })().catch(err => {
+        console.warn(err);
+      });
     })().catch(err => {
       console.warn(err);
     });
@@ -113,10 +116,10 @@ export class DurableObject extends EventTarget {
 
   //
 
-  getGuid() {
+  #getGuid() {
     return this.env.GUID;
   }
-  getAgentJson() {
+  #getAgentJson() {
     const agentJsonString = this.env.AGENT_JSON;
     const agentJson = JSON.parse(agentJsonString);
     return agentJson;
@@ -136,10 +139,10 @@ export class DurableObject extends EventTarget {
       let match;
       if ((match = u.pathname.match(/^\/([^/]*)/))) {
         const subpath = match[1];
-        const guid = this.getGuid();
+        const guid = this.#getGuid();
 
         const handleAgentJson = async () => {
-          const agentJson = this.getAgentJson();
+          const agentJson = this.#getAgentJson();
           const s = JSON.stringify(agentJson);
           return new Response(s, {
             headers,
@@ -321,15 +324,24 @@ export class DurableObject extends EventTarget {
           }
         };
         const handleDefaultRequest = async () => {
-          const serverResponse = await serverHandler(request, this.agentRenderer);
-          const arrayBuffer = await serverResponse.arrayBuffer();
-          return new Response(arrayBuffer, {
-            status: serverResponse.status,
-            headers: {
-              ...headers,
-              'Content-Type': serverResponse.headers.get('Content-Type'),
-            },
-          });
+          const agents = Array.from(this.agentRenderer.registry.agents.values());
+          const agent = agents[0];
+          if (agent) {
+            const serverResponse = await serverHandler(request, agent);
+            const arrayBuffer = await serverResponse.arrayBuffer();
+            return new Response(arrayBuffer, {
+              status: serverResponse.status,
+              headers: {
+                ...headers,
+                'Content-Type': serverResponse.headers.get('Content-Type'),
+              },
+            });
+          } else {
+            return new Response('durable object: no agents', {
+              status: 404,
+              headers,
+            });
+          }
         };
 
         switch (subpath) {
@@ -366,7 +378,9 @@ export class DurableObject extends EventTarget {
   }
   async updateTasks() {
     // console.log('update tasks');
-    const taskUpdater = await renderUserTasks(this.agentRenderer);
+    const taskUpdater = await compileUserAgentTasks({
+      agentRenderer: this.agentRenderer,
+    });
     const timeout = await taskUpdater.update();
     if (isFinite(timeout)) {
       // const now = Date.now();
