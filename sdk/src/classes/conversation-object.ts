@@ -24,13 +24,13 @@ class MessageCache {
 
   pushMessage(message: ActionMessage) {
     this.messages.push(message);
-    this.#trim();
+    this.trim();
   }
   prependMessages(messages: ActionMessage[]) {
     this.messages.unshift(...messages);
-    this.#trim();
+    this.trim();
   }
-  #trim() {
+  trim() {
     if (this.messages.length > CACHED_MESSAGES_LIMIT) {
       this.messages.splice(0, this.messages.length - CACHED_MESSAGES_LIMIT);
     }
@@ -41,11 +41,11 @@ class MessageCache {
 
 export class ConversationObject extends EventTarget {
   id: string;
-  #scene: SceneObject | null;
-  #agent: ActiveAgentObject;
-  #agentsMap: Map<string, Player>;
+  scene: SceneObject | null;
+  agent: ActiveAgentObject;
+  agentsMap: Map<string, Player>;
   messageCache = new MessageCache();
-  #numTyping: number = 0;
+  numTyping: number = 0;
 
   constructor({
     id,
@@ -65,12 +65,12 @@ export class ConversationObject extends EventTarget {
 
   async typing(fn: () => Promise<void>) {
     const start = () => {
-      if (++this.#numTyping === 1) {
+      if (++this.numTyping === 1) {
         this.dispatchEvent(new MessageEvent('typingstart'));
       }
     };
     const end = () => {
-      if (--this.#numTyping === 0) {
+      if (--this.numTyping === 0) {
         this.dispatchEvent(new MessageEvent('typingend'));
       }
     };
@@ -85,29 +85,29 @@ export class ConversationObject extends EventTarget {
   //
 
   getScene() {
-    return this.#scene;
+    return this.scene;
   }
   setScene(scene: SceneObject | null) {
-    this.#scene = scene;
+    this.scene = scene;
   }
 
   getAgent() {
-    return this.#agent;
+    return this.agent;
   }
   setAgent(agent: ActiveAgentObject) {
-    this.#agent = agent;
+    this.agent = agent;
   }
 
   getAgents() {
     return Array
-      .from(this.#agentsMap.values())
+      .from(this.agentsMap.values())
       // .map(player => player.getPlayerSpec());
   }
   addAgent(agentId: string, player: Player) {
-    this.#agentsMap.set(agentId, player);
+    this.agentsMap.set(agentId, player);
   }
   removeAgent(agentId: string) {
-    this.#agentsMap.delete(agentId);
+    this.agentsMap.delete(agentId);
   }
 
   getCachedMessages(filter?: MessageFilter) {
