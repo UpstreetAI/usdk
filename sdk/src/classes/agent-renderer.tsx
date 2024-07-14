@@ -129,7 +129,7 @@ const AppComponent = ({
 
 //
 
-const logRecoverableError =
+const logError =
   typeof reportError === 'function'
     ? // In modern browsers, reportError will dispatch an error event,
       // emulating an uncaught JavaScript error.
@@ -306,7 +306,9 @@ export class AgentRenderer {
       true, // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
-      logRecoverableError, // onRecoverableError
+      logError, // onUncaughtError
+      logError, // onCaughtError
+      logError, // onRecoverableError
       null, // transitionCallbacks
     );
     this.root = root;
