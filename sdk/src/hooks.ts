@@ -103,6 +103,7 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
         limit: CACHED_MESSAGES_LIMIT,
       });
       conversation.messageCache.prependMessages(messages);
+      conversation.messageCache.loaded = true;
     })();
   }
   use(conversation.messageCache.loadPromise);
