@@ -64,6 +64,7 @@ import {
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
+import { AgentRegistry } from './render-registry';
 
 //
 
@@ -71,6 +72,7 @@ import {
 //   useContext(ContextType); // re-render when epoch changes
 //   return getterFn();
 // };
+const emptyRegistry = new AgentRegistry();
 
 //
 
@@ -131,27 +133,27 @@ export class ActiveAgentObject extends AgentObject {
   }
   useRegistry() {
     const renderRegistry = this.appContextValue.useRegistry();
-    const agentRegistry = renderRegistry.agents.get(this);
+    const agentRegistry = renderRegistry.agents.get(this) ?? emptyRegistry;
     return agentRegistry;
   }
 
   useActions() {
     const registry = this.useRegistry();
-    return registry ? registry.actions : [];
+    return registry.actions;
   }
   useFormatters() {
     const registry = this.useRegistry();
-    return registry ? registry.formatters : [];
+    return registry.formatters;
   }
 
   useName() {
     const registry = this.useRegistry();
-    const names = registry ? registry.names : [];
+    const names = registry.names;
     return names.length > 0 ? names[0].children : this.name;
   }
   usePersonality() {
     const registry = this.useRegistry();
-    const personalities = registry ? registry.personalities : [];
+    const personalities = registry.personalities;
     return personalities.length > 0 ? personalities[0].children : this.bio;
   }
 
