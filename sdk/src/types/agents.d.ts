@@ -444,7 +444,6 @@ export type TextInstance = {
 };
 export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
-  value: ActiveAgentObject;
   actions: ActionProps[];
   prompts: PromptProps[];
   formatters: FormatterProps[];
