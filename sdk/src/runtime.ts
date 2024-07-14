@@ -5,32 +5,10 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import 'localstorage-polyfill';
 import dedent from 'dedent';
 import {
-  // Agent,
-  // Action,
-  // Formatter,
-  // Prompt,
-  // Parser,
-  // Perception,
-  // Server,
-  // SceneObject,
-  // AgentObject,
-  // SubtleAi,
-} from './components';
-import {
-  // Agent,
-  // Action,
-  // Formatter,
-  // Prompt,
-  // Parser,
-  // Perception,
-  // Server,
-  // SceneObject,
-  // AgentObject,
-  // SubtleAi,
   ChatMessages,
   PendingActionMessage,
   ActionProps,
-  ConversationObject,
+  // ConversationObject,
   TaskEventData,
 } from './types';
 import {
@@ -65,8 +43,8 @@ type ServerHandler = {
 
 //
 
-const getActionByName = (actionRegistry: Map<symbol, ActionProps>, name: string) => {
-  for (const action of Array.from(actionRegistry.values())) {
+const getActionByName = (actions: ActionProps[], name: string) => {
+  for (const action of actions) {
     if (action.name === name) {
       return action;
     }
@@ -75,8 +53,8 @@ const getActionByName = (actionRegistry: Map<symbol, ActionProps>, name: string)
 };
 
 export async function generateAgentAction(agent: GenerativeAgentObject) {
-  const { promptRegistry } = agent.agent;
-  const prompts = Array.from(promptRegistry.values())
+  const agentRegistry = agent.agent.useRegistry();
+  const prompts = agentRegistry.prompts
     .map((prompt) => prompt?.children)
     .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
   const promptString = prompts.join('\n\n');
@@ -92,8 +70,8 @@ export async function generateAgentActionFromInstructions(
   agent: GenerativeAgentObject,
   instructions: string,
 ) {
-  const { promptRegistry } = agent;
-  const prompts = Array.from(promptRegistry.values())
+  const agentRegistry = agent.agent.useRegistry();
+  const prompts = agentRegistry.prompts
     .map((prompt) => prompt?.children)
     .filter((prompt) => typeof prompt === 'string' && prompt.length > 0)
     .concat([instructions]);
@@ -110,9 +88,12 @@ async function _generateAgentActionFromMessages(
   agent: GenerativeAgentObject,
   promptMessages: ChatMessages,
 ) {
-  const { parserRegistry, actionRegistry } = agent.agent;
-
-  const parser = Array.from(parserRegistry.values())[0];
+  const agentRegistry = agent.agent.useRegistry();
+  const {
+    parsers,
+    actions,
+  } = agentRegistry;
+  const parser = parsers[0];
 
   const numRetries = 5;
   return await retry(async () => {
@@ -122,7 +103,7 @@ async function _generateAgentActionFromMessages(
       newMessage = await parser.parseFn(completionMessage.content);
 
       const { method } = newMessage;
-      const actionHandler = getActionByName(actionRegistry, method);
+      const actionHandler = getActionByName(actions, method);
       if (actionHandler) {
         if (actionHandler.schema) {
           try {
@@ -209,10 +190,13 @@ export async function handleAgentAction(
   message: PendingActionMessage,
 ) {
   // console.log('handle agent action 1');
-  const { actionRegistry } = agent.agent;
+  const agentRegistry = agent.agent.useRegistry();
+  const {
+    actions,
+  } = agentRegistry;
 
   const { method } = message;
-  const actionHandler = getActionByName(actionRegistry, method);
+  const actionHandler = getActionByName(actions, method);
   // console.log('handle agent action 2', actionHandler);
   if (actionHandler) {
     // handle the pending action
