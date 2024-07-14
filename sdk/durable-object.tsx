@@ -317,6 +317,7 @@ export class DurableObject extends EventTarget {
           }
         };
         const handleLeave = async () => {
+          const body = await request.json();
           const { room, endpointUrl } = body ?? {};
           if (typeof room === 'string') {
             await this.leave({
