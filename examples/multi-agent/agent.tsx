@@ -44,7 +44,7 @@ const Bob = () => {
   );
 };
 
-export default function render() {  
+export default function MyAgent() {
   return (
     <>
       <Alice />

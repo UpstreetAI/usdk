@@ -110,7 +110,7 @@ const MemoryActions = () => {
   );
 };
 
-export default function render() {
+export default function MyAgent() {
   return (
     <Agent>
       <MemoryActions />
