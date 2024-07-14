@@ -293,11 +293,10 @@ export const compileUserAgentTasks = async ({
     };
 
     // initialize and run tasks
-    const agentRegistries = Array.from(registry.agents.values());
+    const agentEntries = Array.from(registry.agents.entries());
     const now = new Date();
     await Promise.all(
-      agentRegistries.map(async (agentRegistry) => {
-        const agent = agentRegistry.value;
+      agentEntries.map(async ([agent, agentRegistry]) => {
         const agentTasksProps = agentRegistry.tasks;
 
         // clear out any unnseen tasks
@@ -367,8 +366,7 @@ export const compileUserAgentTasks = async ({
       }),
     );
     // compute the earliest timeout
-    const timestamps = agentRegistries.flatMap((agentRegistry) => {
-      const agent = agentRegistry.value;
+    const timestamps = agentEntries.flatMap(([agent, agentRegistry]) => {
       return Array.from(agent.tasks.values()).map((task) => {
         return +task.timestamp;
       });

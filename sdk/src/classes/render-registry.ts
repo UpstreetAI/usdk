@@ -49,8 +49,6 @@ export class TextInstance {
 type InstanceChild = Instance | TextInstance;
 
 export class AgentRegistry {
-  value: ActiveAgentObject;
-  
   actions: ActionProps[] = [];
   prompts: PromptProps[] = [];
   formatters: FormatterProps[] = [];
@@ -62,10 +60,6 @@ export class AgentRegistry {
   personalities: PersonalityProps[] = [];
   
   servers: ServerProps[] = [];
-
-  constructor(value: ActiveAgentObject) {
-    this.value = value;
-  }
 }
 export class RenderRegistry {
   agents: Map<ActiveAgentObject, AgentRegistry> = new Map();
@@ -74,7 +68,7 @@ export class RenderRegistry {
     container.recurse((instance) => {
       if (instance.type === 'agent') {
         const agent = instance.props.value as ActiveAgentObject;
-        const agentRegistry = new AgentRegistry(agent);
+        const agentRegistry = new AgentRegistry();
         this.agents.set(agent, agentRegistry);
 
         instance.recurse((childInstance) => {
