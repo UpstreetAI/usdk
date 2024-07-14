@@ -69,7 +69,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
       };
       return (
         (typeof children === 'string' && children.length > 0) &&
-        (promptConversation === null || promptConversation === agentConversation)
+        (!promptConversation || promptConversation === agentConversation)
       );
     })
     .map((prompt) => prompt.children as string);
