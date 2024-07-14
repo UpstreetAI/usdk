@@ -41,9 +41,9 @@ class MessageCache {
 
 export class ConversationObject extends EventTarget {
   id: string;
-  scene: SceneObject | null;
-  agent: ActiveAgentObject;
-  agentsMap: Map<string, Player>;
+  scene: SceneObject | null = null;
+  agent: ActiveAgentObject | null = null;
+  agentsMap: Map<string, Player> = new Map();
   messageCache = new MessageCache();
   numTyping: number = 0;
 
