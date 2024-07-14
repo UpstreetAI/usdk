@@ -5,27 +5,10 @@ import 'localstorage-polyfill';
 // import type { ZodTypeAny } from 'zod';
 // import { zodToTs, printNode } from 'zod-to-ts';
 import ReactReconciler from 'react-reconciler';
-import { ConcurrentRoot } from 'react-reconciler/constants'
-// import { parseCodeBlock } from './util/util.mjs';
 import {
-  // Agent,
-  // Action,
-  // Formatter,
-  // Prompt,
-  // Parser,
-  // Perception,
-  // Server,
-  // ActiveAgentObject,
-  // ExtendableMessageEvent,
-  // TaskObject,
-  // TaskResult,
-} from '../components';
-// import {
-//   SceneObject,
-// } from './scene-object';
-// import {
-//   AgentObject,
-// } from './agent-object';
+  ConcurrentRoot,
+  DefaultEventPriority,
+} from 'react-reconciler/constants'
 import {
   SubtleAi,
 } from './subtle-ai';
@@ -78,7 +61,7 @@ import { makePromise } from '../util/util.mjs';
 // import { retry } from "../util/util.mjs";
 import { AppContextValue } from './app-context-value';
 import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
-import { ActiveAgentObject } from './active-agent-object';
+// import { ActiveAgentObject } from './active-agent-object';
 import {
   RenderRegistry,
   Instance,
@@ -269,6 +252,9 @@ export class AgentRenderer {
       supportsMutation: true,
       isPrimaryRenderer: true,
       getRootHostContext: () => null,
+      getCurrentEventPriority() {
+        return DefaultEventPriority;
+      },
       prepareForCommit: () => null,
       resetAfterCommit: () => {
         this.registry.load(this.container);
