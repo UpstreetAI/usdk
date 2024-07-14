@@ -65,6 +65,7 @@ import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
 import {
   RenderRegistry,
   Instance,
+  TextInstance,
 } from './render-registry';
 
 //
@@ -252,7 +253,10 @@ export class AgentRenderer {
       supportsMutation: true,
       isPrimaryRenderer: true,
       getRootHostContext: () => null,
-      getCurrentEventPriority() {
+      getChildHostContext: (parentHostContext: any, type: string, rootContainer: any) => {
+        return parentHostContext;
+      },
+      getCurrentEventPriority: () => {
         return DefaultEventPriority;
       },
       prepareForCommit: () => null,
@@ -266,10 +270,35 @@ export class AgentRenderer {
         return new Instance(type, props);
       },
       createTextInstance: (text: string, rootContainer: any, hostContext: any, internalHandle: any) => {
-        return text;
+        return new TextInstance(text);
       },
       appendInitialChild: (parent: Instance, child: InstanceChild) => {
         parent.children.push(child);
+      },
+      finalizeInitialChildren: (instance: Instance, type: string, props: object, rootContainer: any, hostContext: any) => {
+        return false;
+      },
+      prepareUpdate: (instance: Instance, type: string, oldProps: object, newProps: object, rootContainer: any, hostContext: any) => {
+        return null;
+      },
+      commitUpdate: (instance: Instance, updatePayload: any, type: string, oldProps: object, newProps: object, internalHandle: any) => {
+        instance.type = type;
+        instance.props = newProps;
+      },
+      shouldSetTextContent: (type: string, props: object) => {
+        return false;
+      },
+      hideInstance: (instance: Instance) => {
+        instance.visible = false;
+      },
+      unhideInstance: (instance: Instance) => {
+        instance.visible = true;
+      },
+      hideTextInstance: (textInstance: TextInstance) => {
+        textInstance.visible = false;
+      },
+      unhideTextInstance: (textInstance: TextInstance) => {
+        textInstance.visible = true;
       },
       appendChild: (container: Instance, child: InstanceChild) => {
         container.children.push(child);

@@ -433,10 +433,15 @@ type Chat = {
 export type Instance = {
   type: string;
   props: any;
-  children: Array<Instance | string>;
+  children: InstanceChild[];
+  visible: boolean;
   recurse(fn: (instance: Instance) => void): void;
 };
-export type InstanceChild = Instance | string;
+export type TextInstance = {
+  value: string;
+  visible: boolean;
+};
+export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
   value: ActiveAgentObject;
   actions: ActionProps[];

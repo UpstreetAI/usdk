@@ -10,7 +10,6 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
-  // InstanceChild,
 } from '../types';
 
 //
@@ -18,25 +17,37 @@ import type {
 export class Instance {
   type: string;
   props: any;
-  children: Array<Instance | string>;
+  children: InstanceChild[];
+  visible: boolean = true;
   constructor(
     type: string = '',
     props: any = {},
-    children: Array<Instance | string> = [],
+    children: InstanceChild[] = [],
   ) {
     this.type = type;
     this.props = props;
     this.children = children;
   }
   recurse(fn: (instance: Instance) => void) {
-    fn(this);
-    for (const child of this.children) {
-      if (child instanceof Instance) {
-        child.recurse(fn);
+    if (this.visible) {
+      fn(this);
+      for (const child of this.children) {
+        if (child instanceof Instance) {
+          child.recurse(fn);
+        }
       }
     }
   }
 }
+export class TextInstance {
+  value: string;
+  visible: boolean = true;
+  constructor(value: string) {
+    this.value = value;
+  }
+}
+type InstanceChild = Instance | TextInstance;
+
 export class AgentRegistry {
   value: ActiveAgentObject;
   
