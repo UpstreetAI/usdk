@@ -133,8 +133,12 @@ export class ActiveAgentObject extends AgentObject {
   }
   useRegistry() {
     const renderRegistry = this.appContextValue.useRegistry();
-    const agentRegistry = renderRegistry.agents.get(this) ?? emptyRegistry;
-    return agentRegistry;
+    const agentRegistry = renderRegistry.agents.get(this);
+    if (agentRegistry) {
+      return agentRegistry;
+    } else {
+      return emptyRegistry;
+    }
   }
 
   useActions() {
