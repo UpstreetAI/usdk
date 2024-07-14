@@ -190,14 +190,14 @@ export class AgentRenderer {
   env: object;
   userRender: UserHandler;
 
-  renderLoader: RenderLoader;
+  registry: RenderRegistry;
   appContextValue: AppContextValue;
   epochValue: number;
 
   reconciler: any;
   container: any;
   root: any;
-  registry: RenderRegistry;
+  renderLoader: RenderLoader;
 
   renderPromise: Promise<void> | null = null;
   renderQueueManager: QueueManager;
@@ -216,7 +216,7 @@ export class AgentRenderer {
     this.userRender = userRender;
 
     // create the app context
-    this.renderLoader = new RenderLoader();
+    this.registry = new RenderRegistry();
     const subtleAi = new SubtleAi();
     const useAgentJson = () => {
       const agentJsonString = (env as any).AGENT_JSON as string;
@@ -337,7 +337,7 @@ export class AgentRenderer {
       null, // transitionCallbacks
     );
     this.root = root;
-    this.registry = new RenderRegistry();
+    this.renderLoader = new RenderLoader();
 
     this.epochValue = 0;
 

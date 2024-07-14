@@ -23,7 +23,6 @@ const defaultSampleRate = 48000;
 //
 
 export class AppContextValue {
-  // arguments
   subtleAi: SubtleAi;
   agentJson: object;
   wallets: any;
