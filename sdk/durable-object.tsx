@@ -5,16 +5,15 @@ import { makeAnonymousClient } from './src/util/supabase-client.mjs';
 import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 // import { ConversationContext } from './src/classes/conversation-context';
 // import { Player } from './src/classes/player';
-import { AgentRenderer } from './src/classes/agent-renderer';
+import { AgentRenderer } from './src/classes/agent-renderer.js';
 import {
   serverHandler,
- } from './src/routes/server.ts';
+ } from './src/routes/server.js';
 import {
   compileUserAgentTasks,
-} from './src/runtime.ts';
+} from './src/runtime.js';
 
-
-import userRender from '../agent';
+import userRender from '../agent'; // note: this will be copied in by the build process
 
 Error.stackTraceLimit = 300;
 
@@ -24,7 +23,13 @@ const textEncoder = new TextEncoder();
 
 // CloudFlare Worker Durable Object class
 export class DurableObject extends EventTarget {
-  constructor(state, env) {
+  state: any;
+  env: any;
+  supabase: any;
+  agentRenderer: AgentRenderer;
+  loadPromise: Promise<void>;
+
+  constructor(state: any, env: any) {
     super();
     
     this.state = state;
@@ -62,7 +67,7 @@ export class DurableObject extends EventTarget {
   }) {
     const promises = [];
     const registry = this.agentRenderer.registry;
-    const agents = Array.from(registry.agents.values());
+    const agents = Array.from(registry.agents.values()).map((agentRegistry) => agentRegistry.value);
     if (agentId !== null) {
       // join for specific agent
       const agent = agents.find(a => a.id === agentId);
@@ -93,7 +98,7 @@ export class DurableObject extends EventTarget {
     endpointUrl = multiplayerEndpointUrl,
   }) {
     const registry = this.agentRenderer.registry;
-    const agents = Array.from(registry.agents.values());
+    const agents = Array.from(registry.agents.values()).map((agentRegistry) => agentRegistry.value);
     if (agentId !== null) {
       // leave for specific agent
       const agent = agents.find(a => a.id === agentId);
@@ -108,7 +113,7 @@ export class DurableObject extends EventTarget {
     } else {
       // leave for all agents
       for (const agent of agents) {
-        await agent.leave({
+        agent.leave({
           room,
           endpointUrl,
         });
@@ -147,8 +152,10 @@ export class DurableObject extends EventTarget {
           const agentJson = this.#getAgentJson();
           const s = JSON.stringify(agentJson);
           return new Response(s, {
-            headers,
-            'Content-Type': 'application/json',
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json',
+            },
           });
         };
         const handleWs = async () => {
@@ -161,8 +168,8 @@ export class DurableObject extends EventTarget {
             });
 
             // Creates two ends of a WebSocket connection.
-            const webSocketPair = new WebSocketPair();
-            const [client, server] = Object.values(webSocketPair);
+            const webSocketPair = new globalThis.WebSocketPair();
+            const [client, server] = Object.values(webSocketPair) as [any, any];
 
             // Calling `accept()` informs the runtime that this WebSocket is to begin terminating
             // request within the Durable Object. It has the effect of "accepting" the connection,
@@ -224,6 +231,8 @@ export class DurableObject extends EventTarget {
           }
         };
         const handleEvents = async () => {
+          throw new Error('not implemented');
+
           // output to the event stream
           const message = (e) => {
             const s = JSON.stringify(e.data);
@@ -264,6 +273,8 @@ export class DurableObject extends EventTarget {
           return res;
         };
         const handleStatus = async () => {
+          throw new Error('not implemented');
+
           if (request.method === 'GET') {
             // return the enabled status as well as the room state
             const room = this.realms
@@ -351,7 +362,6 @@ export class DurableObject extends EventTarget {
         }
       } else {
         return new Response('durable object: not found', {
-          url: u.href,
           headers,
           status: 404,
         });
