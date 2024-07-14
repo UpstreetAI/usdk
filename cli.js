@@ -17,7 +17,7 @@ import toml from '@iarna/toml';
 import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
-import pc from 'picocolors'
+import pc from 'picocolors';
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -33,8 +33,8 @@ import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { generationModel } from './const.js'
-import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
+import { generationModel } from './const.js';
+import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import packageJson from './package.json' with { type: 'json' };
 import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
@@ -394,7 +394,7 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.bio = 'A cool person';
   }
   if (typeof spec.model !== 'string') {
-    spec.model = 'openai:gpt-4o';
+    spec.model = generationModel;
   }
   if (typeof spec.previewUrl !== 'string') {
     spec.previewUrl = '/images/characters/upstreet/small/scillia.png';

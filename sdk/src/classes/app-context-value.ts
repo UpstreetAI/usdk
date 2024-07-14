@@ -143,10 +143,8 @@ export class AppContextValue {
     const embedding = await lembed(text);
     return embedding;
   }
-  async complete(messages: ChatMessages, opts?: SubtleAiCompleteOpts) {
-    // XXX get the model in the opts
-    const currentAgent = conversationContext.getCurrentAgent();
-    const { model = currentAgent.model } = opts ?? {};
+  async complete(messages: ChatMessages, opts: SubtleAiCompleteOpts) {
+    const { model } = opts;
     // const jwt = (env as any).AGENT_TOKEN as string;
     const jwt = this.authToken;
     localStorage.setItem('jwt', JSON.stringify(jwt));
@@ -159,7 +157,7 @@ export class AppContextValue {
       content,
     };
   }
-  async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
+  async generateImage(prompt: string, opts: SubtleAiImageOpts) {
     const {
       model = 'dall-e-3',
       width = 1024, // [1024, 1792]

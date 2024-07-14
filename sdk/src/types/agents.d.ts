@@ -474,11 +474,11 @@ export type AppContextValue = {
   embed: (text: string) => Promise<Array<number>>;
   complete: (
     messages: ChatMessages,
-    opts?: SubtleAiCompleteOpts,
+    opts: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
   generateImage: (
     text: string,
-    opts?: SubtleAiImageOpts,
+    opts: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
 export type ConfigurationContextValue = {
