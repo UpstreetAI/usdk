@@ -217,7 +217,6 @@ export class AgentRenderer {
 
   renderPromise: Promise<void> | null = null;
   renderQueueManager: QueueManager;
-  taskMap: Map<ActiveAgentObject, Map<any, TaskObject>> = new Map();
 
   constructor({
     env,
