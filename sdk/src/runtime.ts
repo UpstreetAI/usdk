@@ -1,4 +1,5 @@
 // import React from 'react';
+import { ReactNode } from 'react';
 import { z } from 'zod';
 import type { ZodTypeAny } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
@@ -8,7 +9,7 @@ import {
   ChatMessages,
   PendingActionMessage,
   ActionProps,
-  // ConversationObject,
+  ConversationObject,
   TaskEventData,
 } from './types';
 import {
@@ -51,12 +52,31 @@ const getActionByName = (actions: ActionProps[], name: string) => {
   }
   return null;
 };
+const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
+  const {
+    agent,
+    conversation: agentConversation,
+  } = generativeAgent;
+  const agentRegistry = agent.useRegistry();
+  return agentRegistry.prompts
+    .filter((prompt) => {
+      const {
+        conversation: promptConversation,
+        children,
+      } = prompt as {
+        conversation: ConversationObject | null,
+        children?: ReactNode,
+      };
+      return (
+        (typeof children === 'string' && children.length > 0) &&
+        (promptConversation === null || promptConversation === agentConversation)
+      );
+    })
+    .map((prompt) => prompt.children as string);
+};
 
 export async function generateAgentAction(agent: GenerativeAgentObject) {
-  const agentRegistry = agent.agent.useRegistry();
-  const prompts = agentRegistry.prompts
-    .map((prompt) => prompt?.children)
-    .filter((prompt) => typeof prompt === 'string' && prompt.length > 0);
+  const prompts = getGenerativePrompts(agent);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
     {
@@ -70,10 +90,7 @@ export async function generateAgentActionFromInstructions(
   agent: GenerativeAgentObject,
   instructions: string,
 ) {
-  const agentRegistry = agent.agent.useRegistry();
-  const prompts = agentRegistry.prompts
-    .map((prompt) => prompt?.children)
-    .filter((prompt) => typeof prompt === 'string' && prompt.length > 0)
+  const prompts = getGenerativePrompts(agent)
     .concat([instructions]);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
