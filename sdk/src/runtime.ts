@@ -57,7 +57,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
     agent,
     conversation: agentConversation,
   } = generativeAgent;
-  const agentRegistry = agent.useRegistry();
+  const agentRegistry = agent.useAgentRegistry();
   return agentRegistry.prompts
     .filter((prompt) => {
       const {
@@ -75,8 +75,8 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
     .map((prompt) => prompt.children as string);
 };
 
-export async function generateAgentAction(agent: GenerativeAgentObject) {
-  const prompts = getGenerativePrompts(agent);
+export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
+  const prompts = getGenerativePrompts(generativeAgent);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
     {
@@ -84,13 +84,13 @@ export async function generateAgentAction(agent: GenerativeAgentObject) {
       content: promptString,
     },
   ];
-  return await _generateAgentActionFromMessages(agent, promptMessages);
+  return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
 export async function generateAgentActionFromInstructions(
-  agent: GenerativeAgentObject,
+  generativeAgent: GenerativeAgentObject,
   instructions: string,
 ) {
-  const prompts = getGenerativePrompts(agent)
+  const prompts = getGenerativePrompts(generativeAgent)
     .concat([instructions]);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
@@ -99,13 +99,14 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
-  return await _generateAgentActionFromMessages(agent, promptMessages);
+  return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
 async function _generateAgentActionFromMessages(
-  agent: GenerativeAgentObject,
+  generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
 ) {
-  const agentRegistry = agent.agent.useRegistry();
+  const { agent } = generativeAgent;
+  const agentRegistry = agent.useAgentRegistry();
   const {
     parsers,
     actions,
@@ -114,7 +115,7 @@ async function _generateAgentActionFromMessages(
 
   const numRetries = 5;
   return await retry(async () => {
-    const completionMessage = await agent.complete(promptMessages);
+    const completionMessage = await generativeAgent.complete(promptMessages);
     if (completionMessage !== null) {
       let newMessage: PendingActionMessage = null;
       newMessage = await parser.parseFn(completionMessage.content);
