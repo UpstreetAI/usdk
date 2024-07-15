@@ -198,24 +198,20 @@ export type ActiveAgentObject = AgentObject & {
   generativeQueueManager: QueueManager;
   tasks: Map<any, TaskObject>;
 
-  // static hooks
-
-  embed: (text: string) => Promise<Array<number>>;
-  complete: (
-    messages: ChatMessages,
-  ) => Promise<ChatMessage>;
-
   //
 
   useAuthToken: () => string;
   useSupabase: () => any;
 
-  useActions: () => Array<ActionProps>;
-  useFormatters: () => Array<FormatterProps>;
-  useName: () => string;
-  usePersonality: () => string;
+  // useActions: () => Array<ActionProps>;
+  // useFormatters: () => Array<FormatterProps>;
+  // useName: () => string;
+  // usePersonality: () => string;
+
   useWallets: () => object[];
-  useRegistry: () => AgentRegistry;
+  useAgentRegistry: () => AgentRegistry;
+
+  useEpoch: (deps: any[]) => void;
 
   // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
 
@@ -333,6 +329,7 @@ export type AgentAppProps = {
 };
 
 export type AgentProps = {
+  raw?: boolean;
   children?: ReactNode;
   ref?: Ref<any>;
 };
@@ -402,7 +399,7 @@ export type PersonalityProps = {
 //
 
 export type ServerProps = {
-  children: ReactNode | (() => void);
+  children: () => void;
 };
 
 //
