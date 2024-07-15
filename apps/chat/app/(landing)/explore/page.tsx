@@ -1,6 +1,10 @@
 'use client'
 
+import { AgentProps } from '@/components/agent-profile'
 import Icon from '@/components/ui/icon'
+import { getLatestAgents } from '@/lib/agents'
+import { redirectToLoginTool } from '@/lib/redirectToLoginTool'
+import { getAgentPreviewImageUrl } from '@/lib/utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
@@ -139,12 +143,12 @@ const Card = ({
 }) => {
   return (
     <Link href="#">
-      <div className="rounded-3xl w-80 h-64 flex flex-col bg-black hover:bg-[#0e0e0e] hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]">
+      <div className="overflow-hidden rounded-3xl w-80 h-64 flex flex-col bg-black hover:bg-[#0e0e0e] hover:scale-105 transition-all cursor-pointer hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)]">
         {children || (
           <>
             <div
               id="header"
-              className="flex flex-row items-center justify-between px-2"
+              className="flex flex-row items-center justify-between"
             >
               {headerContent}
             </div>
@@ -168,9 +172,9 @@ const Card = ({
   )
 }
 
-const Button = () => {
+const Button = ({className="", ...props}: React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>) => {
   return (
-    <button className="bg-[#FF38AE] relative font-black flex h-fit px-6 md:px-12 py-4 md:py-8 items-center justify-center text-center border-none font-sans text-2xl rounded-[calc(2rem*0.6)] p-[calc(2rem*0.5)] m-0 leading-none text-white shadow-[inset_0_0_0_0_rgba(248,249,255,0.5),inset_0_0_0_0_rgba(248,249,255,0.3),0_0_0_rgba(248,249,255,0.2)] transition-all ease-[0.2s] hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] group">
+    <button className={"bg-[#FF38AE] relative font-black flex h-fit px-6 md:px-12 py-4 md:py-8 items-center justify-center text-center border-none font-sans text-2xl rounded-[calc(2rem*0.6)] p-[calc(2rem*0.5)] m-0 leading-none text-white shadow-[inset_0_0_0_0_rgba(248,249,255,0.5),inset_0_0_0_0_rgba(248,249,255,0.3),0_0_0_rgba(248,249,255,0.2)] transition-all ease-[0.2s] hover:shadow-[inset_0_0_0_calc(2rem*0.2)_rgba(248,249,255,0.5),inset_0_0_calc(2rem*0.2)_calc(2rem*0.5)_rgba(248,249,255,0.3),0_0_calc(2rem*0.2)_rgba(248,249,255,0.2)] group " + className}  {...props}>
       CHAT NOW
       <Icon
         name="arrowRight"
@@ -241,7 +245,12 @@ const Banner = () => {
           Welcome to Upstreet, a universe where AI and humans co-exist.
         </span>
 
-        <Button />
+        <Button onClick={async () => {
+          // setIsLoading( true )
+          // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+          await redirectToLoginTool()
+        }}
+        />
       </div>
       <div className="absolute h-full w-full top-0 left-0 z-10 bg-black bg-opacity-50 md:hidden block" />
       <img
@@ -253,6 +262,19 @@ const Banner = () => {
 }
 
 const Page = () => {
+
+
+  const [latestAgents, setLatestAgents] = useState<AgentProps[]>()
+
+
+  useEffect(() => {
+    const _getLatestAgents = async () => {
+      setLatestAgents(await getLatestAgents())
+    }
+
+    _getLatestAgents()
+  }, [])
+
   return (
     <div className="h-fit w-full flex justify-center items-center flex-col overflow-hidden md:overflow-visible">
       {/* Banner */}
@@ -277,104 +299,72 @@ const Page = () => {
         </ScrollableCardsList>
       </Section> */}
 
-      <Section className="pt-8">
-        <div className="mx-4 md:mx-12 w-fit px-2 py-2 flex flex-row justify-center items-center rounded-lg">
-          <span className="uppercase text-2xl font-black flex flex-row items-center group w-fit">
-            Most Popular{' '}
-          </span>
-        </div>
+      {
+        latestAgents && (
+          <Section className="pt-8">
+            <div className="mx-4 md:mx-12 w-fit px-2 py-2 flex flex-row justify-center items-center rounded-lg">
+              <span className="uppercase text-2xl font-black flex flex-row items-center group w-fit">
+                Most Popular{' '}
+              </span>
+            </div>
 
-        <ScrollableCardsList>
-          <div className="ml-4 md:ml-10">
-            <Card
-              headerContent={
-                <>
-                  <Image
-                    className="rounded-full object-cover m-4"
-                    width={60}
-                    height={60}
-                    alt={'Agent Profile Image'}
-                    src={'/images/avatar.png'}
-                  ></Image>
-                  <div className="flex flex-col items-start w-full justify-start">
-                    <h3 className="text-xl font-bold mb-1">Lucy</h3>
-                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
-                      <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
-                      <span>Guide</span>
-                    </span>
-                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
-                      <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
-                      <span>Andromeda</span>
-                    </span>
-                  </div>
-                </>
+            <ScrollableCardsList>
+              {
+                latestAgents?.map((agent, index) => {
+                  console.log("agent", agent);
+                  const playerSpec = agent.getPlayerSpec();
+                  return (
+                    <div className={index === 0 ? "ml-4 md:ml-10" : index === latestAgents.length - 1 ? "mr-10" : ""}>
+                      <Card
+                        headerContent={
+                          <>
+                            <Image
+                              className="rounded-full object-cover m-4"
+                              width={60}
+                              height={60}
+                              alt={'Agent Profile Image'}
+                              src={getAgentPreviewImageUrl(agent.get)}
+                            ></Image>
+                            <div className="flex flex-col items-start w-full justify-start">
+                              <h3 className="text-xl font-bold mb-1">Lucy</h3>
+                              <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                                <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
+                                <span>Guide</span>
+                              </span>
+                              <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                                <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
+                                <span>Andromeda</span>
+                              </span>
+                            </div>
+                          </>
+                        }
+                        bodyContent={
+                          <>
+                            Previously a kiosk bot at the USGR (Upstreet Galactic
+                            Relations) Center, L.U.C.Y. was designed to be friendly,
+                            dependable, and possess knowledge of most galactic politics.
+                            If you{'’'}re ever stuck, you know who to talk to.
+                          </>
+                        }
+                        footerContent={
+                          <>
+                            <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                              <Icon name="users" className="h-4 w-4" /> 70k
+                            </span>
+                            <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
+                              <Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL
+                            </span>
+                          </>
+                        }
+                      />
+                    </div>
+                  )
+                })
               }
-              bodyContent={
-                <>
-                  Previously a kiosk bot at the USGR (Upstreet Galactic
-                  Relations) Center, L.U.C.Y. was designed to be friendly,
-                  dependable, and possess knowledge of most galactic politics.
-                  If you{'’'}re ever stuck, you know who to talk to.
-                </>
-              }
-              footerContent={
-                <>
-                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
-                    <Icon name="users" className="h-4 w-4" /> 70k
-                  </span>
-                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
-                    <Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL
-                  </span>
-                </>
-              }
-            />
-          </div>
-          <div className="mr-10">
-          <Card
-              headerContent={
-                <>
-                  <Image
-                    className="rounded-full object-cover m-4"
-                    width={60}
-                    height={60}
-                    alt={'Agent Profile Image'}
-                    src={'/images/avatar.png'}
-                  ></Image>
-                  <div className="flex flex-col items-start w-full justify-start">
-                    <h3 className="text-xl font-bold mb-1">Lucy</h3>
-                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
-                      <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
-                      <span>Guide</span>
-                    </span>
-                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
-                      <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
-                      <span>Andromeda</span>
-                    </span>
-                  </div>
-                </>
-              }
-              bodyContent={
-                <>
-                  Previously a kiosk bot at the USGR (Upstreet Galactic
-                  Relations) Center, L.U.C.Y. was designed to be friendly,
-                  dependable, and possess knowledge of most galactic politics.
-                  If you{'’'}re ever stuck, you know who to talk to.
-                </>
-              }
-              footerContent={
-                <>
-                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
-                    <Icon name="users" className="h-4 w-4" /> 70k
-                  </span>
-                  <span className="flex flex-row gap-1 items-center justify-center font-black opacity-30">
-                    <Icon name="checkCircle" className="h-4 w-4" /> OFFICIAL
-                  </span>
-                </>
-              }
-            />
-          </div>
-        </ScrollableCardsList>
-      </Section>
+            </ScrollableCardsList>
+        </Section>
+        )
+      }
 
       <Section>
         <Link
@@ -394,10 +384,39 @@ const Page = () => {
           <div className="min-w-[400px] ml-4 md:ml-10">
             <Carousel />
           </div>
-          <Card />
-          <div className="mr-10">
+          <Card
+              headerContent={
+                <div className='flex flex-col justify-center items-center -px-2 w-full overflow-hidden'>
+                  <Image
+                    className="w-full object-cover -px-2 h-34 overflow-hidden"
+                    width={200}
+                    height={10}
+                    alt={'News object'}
+                    src={'/images/chatbackground.png'}
+                  >
+                  </Image>
+                  <div className="flex flex-col items-start w-full justify-start px-4 pt-1">
+                    <h3 className="text-xl font-black mb-1">Build your own agent</h3>
+                    {/* <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="briefcase" className="h-4 w-4 mr-2" />{' '}
+                      <span>Guide</span>
+                    </span>
+                    <span className="flex flex-1 flex-row items-center justify-center opacity-60 text-sm">
+                      <Icon name="pin" className="h-4 w-4 mr-2" />{' '}
+                      <span>Andromeda</span>
+                    </span> */}
+                  </div>
+                </div>
+              }
+              bodyContent={
+                <div className='-mx-2'>
+                  Develop and deploy an AI agent in minutes. Use millions of libraries to make it do anything you want.
+                </div>
+              }
+            />
+          {/* <div className="mr-10">
             <Card />
-          </div>
+          </div> */}
         </ScrollableCardsList>
       </Section>
     </div>
