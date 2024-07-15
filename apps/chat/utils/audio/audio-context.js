@@ -1,7 +1,7 @@
 // import * as THREE from 'three';
 import { unmuteAudioContext } from './unmuteAudioContext';
 
-const sampleRate = 48000;
+const sampleRate = 44100;
 
 let audioContext = null;
 let unmuteAudioContextHandle = null;

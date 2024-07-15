@@ -189,7 +189,6 @@ export const decodeTypedMessage = (uint8Array, uint8ArrayByteLength, parts) => {
   }
 };
 export const getAudioDataBuffer = audioData => {
-  console.log("audioData: ",audioData);
   let channelData;
   if (audioData.copyTo) { // new api
     channelData = new Float32Array(audioData.numberOfFrames);
@@ -204,7 +203,6 @@ export const getAudioDataBuffer = audioData => {
 };
 
 export const getMp3AudioDatBuffer = audioData => {
-  console.log("audioData: ", audioData);
   let channelData;
 
   if (audioData.data) {

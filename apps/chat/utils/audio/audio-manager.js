@@ -15,10 +15,6 @@
 
 let createAudioManager ;
 
-if (typeof window !== 'undefined' && window.AudioContext) {
-
-  console.log("windows exists: ",window);
-  
 const loadWorkletModules = async (audioContext) => {
   try {
     const omitCreds = {
@@ -36,7 +32,9 @@ const loadWorkletModules = async (audioContext) => {
   } catch (error) {
     console.error('loadWorkletModules error:', error);
   }
-  };
+};
+
+if (typeof window !== 'undefined' && window.AudioContext) {
 
   createAudioManager = function({ audioContext }) {
     let gainNode = audioContext.createGain();

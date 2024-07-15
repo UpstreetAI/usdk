@@ -143,10 +143,10 @@ export function createMp3AudioOutputStream({
   const audioDecoder = new Mp3AudioDecoder({
     sampleRate: audioContext.sampleRate,
     output: data => {
-      if (data) {
+      if (data && data.data !== null) {
         // console.log('decoded data', structuredClone(data?.data), performance.now());
         data = getMp3AudioDatBuffer(data);
-        console.log('data buffer', data.buffer);
+        // console.log('data buffer', data.buffer);
         audioWorkletNode.port.postMessage(data, [data.buffer]);
       } else {
         audioWorkletNode.port.postMessage(null);

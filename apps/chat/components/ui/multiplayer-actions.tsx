@@ -92,6 +92,21 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     audioContext,
   });
 
+  var outputAudioStreams = new Map();
+
+  // let stream;
+
+  // audioManager.waitForLoad().then( 
+  //   (_ : any) => {
+
+  //     console.log("load completed");
+  //     stream = createMp3AudioOutputStream({
+  //       audioContext,
+  //   });
+  //   }
+  // );
+
+
   console.log("audioContext: ",audioContext);
   console.log("audioManager: ",audioManager);
 
@@ -295,32 +310,6 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         debugger;
       }
     });
-
-    virtualPlayers.addEventListener('audio', (e: any) => {
-      console.log("audio event received");
-
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      console.log('audio', 'playerId: ', playerId, 'streamId: ',streamId);
-
-      const audioStream = ensureAudioStream(playerId, streamId,audioContext);
-      audioStream.write(data);
-    })
-
-    virtualPlayers.addEventListener('audioend', (e: any) => {
-      console.log("audio event received");
-
-      const {
-        playerId,
-        streamId,
-      } = e.data;
-      
-      console.log('audio end', 'playerId: ', playerId, 'streamId: ',streamId);
-    })
   };
 
   const ensureAudioStream = (playerId: any, streamId: any, audioContext: AudioContext) => {
@@ -328,21 +317,20 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     if (typeof window === "undefined") return;
 
     const key = `${playerId}:${streamId}`;
+    let audioStream = outputAudioStreams.get(playerId);
 
-    console.log("key: ",key);
-    console.log("audioContext: ",audioContext);
-    
-    const stream = createMp3AudioOutputStream({
+    if (!audioStream) {
+      console.log("audioStream does not exist, creating audio stream");
+      const stream = createMp3AudioOutputStream({
         audioContext,
-    });
+      });
+      outputAudioStreams.set(playerId, stream);
+      audioStream = stream;
+      const audioManagerInput = audioManager.getInput();
+      stream.outputNode.connect(audioManagerInput);
+    }
 
-    const audioManagerInput = audioManager.getInput();
-    console.log("audioManagerInput: ",audioManagerInput)
-    stream.outputNode.connect(audioManagerInput);
-    console.log('connect node', stream.outputNode);
-
-    return stream;
-
+    return audioStream;
     // audioStreams.set(key, stream);
     // audioStream = stream;
 
@@ -410,6 +398,38 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     // }
     // return audioStream;
   };
+  
+  const closeAudioStream = (playerId: any, streamId: any) => {
+    const key = playerId;
+    const audioStream = outputAudioStreams.get(key);
+    if (audioStream) {
+      outputAudioStreams.delete(key);
+
+      audioStream.end();
+      audioStream.outputNode.addEventListener('finish', () => {
+        console.log("closeAudioStream | disconnecting ");
+        audioStream.outputNode.disconnect();
+        console.log('audioStream outputNode: ', audioStream.outputNode);
+        audioStream.outputNode.port.onmessage = null;
+  
+        audioStream.outputNode = null;
+
+        console.log('audioStream outputNode x2: ', audioStream.outputNode);
+
+
+        // // disable avatar audio processing when there is no audio to process
+        // const playerAudioStreams = getAudioStreamsForPlayer(playerId).length;
+        // if (playerAudioStreams.length === 0) {
+        //   remotePlayer.avatar.setAudioEnabled({
+        //     audioContext: null,
+        //   });
+        // }
+
+      }, {
+        once: true,
+      });
+    }
+  };
 
   _trackRemotePlayers();
 
@@ -447,14 +467,6 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         }
         case 'nudge':
         case 'join': {
-          virtualPlayers.addEventListener('audio', (e) => {
-            console.log("audio event received");
-          })
-    
-          virtualPlayers.addEventListener('audioend', (e) => {
-            console.log("audioend event received");
-
-          })
         }
         case 'leave': {
           // nothing
@@ -483,6 +495,40 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     realms.addEventListener('disconnect', () => {
       cleanup();
     });
+
+    virtualPlayers.addEventListener('audio', (e: any) => {
+      console.log("audio event received");
+
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      // console.log('audio', 'playerId: ', playerId, 'streamId: ',streamId, "data: ",data);
+      console.log("data: ",data);
+
+      const audioStream = ensureAudioStream(playerId, streamId,audioContext);
+      audioStream.write(data);
+    })
+
+    virtualPlayers.addEventListener('audioend', (e: any) => {
+      console.log("audio end event received");
+
+      const {
+        playerId,
+        streamId,
+      } = e.data;
+      
+      console.log('audio end', 'playerId: ', playerId, 'streamId: ',streamId);
+      
+      closeAudioStream(playerId,streamId);
+      // if (audioStream){
+      //   // audioStream.close(); 
+      // }
+      // stream.end();
+    })
+
   };
   _bindMultiplayerChat();
 
