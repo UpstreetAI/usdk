@@ -320,7 +320,6 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     let audioStream = outputAudioStreams.get(playerId);
 
     if (!audioStream) {
-      console.log("audioStream does not exist, creating audio stream");
       const stream = createMp3AudioOutputStream({
         audioContext,
       });
@@ -407,14 +406,14 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
       audioStream.end();
       audioStream.outputNode.addEventListener('finish', () => {
-        console.log("closeAudioStream | disconnecting ");
+        // console.log("closeAudioStream | disconnecting ");
         audioStream.outputNode.disconnect();
-        console.log('audioStream outputNode: ', audioStream.outputNode);
+        // console.log('audioStream outputNode: ', audioStream.outputNode);
         audioStream.outputNode.port.onmessage = null;
   
         audioStream.outputNode = null;
 
-        console.log('audioStream outputNode x2: ', audioStream.outputNode);
+        // console.log('audioStream outputNode x2: ', audioStream.outputNode);
 
 
         // // disable avatar audio processing when there is no audio to process
@@ -437,7 +436,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   const _bindMultiplayerChat = () => {
     const onchat = (e: any) => {
       const { message } = e.data;
-      console.log('got message', { message });
+      // console.log('got message', { message });
       const { userId: messageUserId, name, method, args } = message;
 
       switch (method) {
@@ -497,36 +496,34 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     });
 
     virtualPlayers.addEventListener('audio', (e: any) => {
-      console.log("audio event received");
-
       const {
         playerId,
         streamId,
         data,
       } = e.data;
 
-      // console.log('audio', 'playerId: ', playerId, 'streamId: ',streamId, "data: ",data);
-      console.log("data: ",data);
-
       const audioStream = ensureAudioStream(playerId, streamId,audioContext);
       audioStream.write(data);
     })
 
-    virtualPlayers.addEventListener('audioend', (e: any) => {
-      console.log("audio end event received");
+    virtualPlayers.addEventListener('audio', (e: any) => {
+      // console.log("audio event received from agent, render chat message");
+      realms.dispatchEvent(new MessageEvent('startmessagerender'));
+    });
 
+    virtualPlayers.addEventListener('audioend', (e: any) => {
+      // console.log("audio event received from agent, render chat message");
+      realms.dispatchEvent(new MessageEvent('endmessagerender'));
+    });
+
+    virtualPlayers.addEventListener('audioend', (e: any) => {
       const {
         playerId,
         streamId,
       } = e.data;
       
-      console.log('audio end', 'playerId: ', playerId, 'streamId: ',streamId);
       
       closeAudioStream(playerId,streamId);
-      // if (audioStream){
-      //   // audioStream.close(); 
-      // }
-      // stream.end();
     })
 
   };
@@ -598,6 +595,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
         }
 
+        var renderAgentMessage = false;
+
         if (room !== newRoom) {
           room = newRoom;
           if (realms) {
@@ -611,10 +610,23 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
           realms = connectMultiplayer(room, newLocalPlayerSpec);
           realms.addEventListener('chat', (e) => {
-            const { message } = (e as any).data;
+            const {playerId, message } = (e as any).data;
             messages = [...messages, message];
-            refresh();
+
+            if (playerId === localPlayerSpec.id){
+              refresh();
+            }
           });
+          realms.addEventListener('startmessagerender', (_) => {
+            if (renderAgentMessage === false){
+              renderAgentMessage = true;
+              refresh();
+            }
+          });
+          realms.addEventListener('endmessagerender', (_) => {
+            renderAgentMessage = false;
+          })
+
           realms.addEventListener('playerschange', (e) => {
             playersMap = (e as any).data;
 
