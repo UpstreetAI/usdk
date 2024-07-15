@@ -18,6 +18,7 @@ import {
 import {
   AppContext,
   AgentContext,
+  AgentRegistryContext,
   ConversationsContext,
   ConversationContext,
 } from './context';
@@ -50,10 +51,6 @@ export const useConversations = () => {
   const conversationsContext = useContext(ConversationsContext);
   return conversationsContext;
 };
-// export const useCurrentGenerativeAgent = () => {
-//   const generativeAgentContextValue = useContext(GenerativeAgentContext);
-//   return generativeAgentContextValue;
-// };
 export const useConversation = () => {
   const conversationContextValue = useContext(ConversationContext);
   return conversationContextValue;
@@ -68,21 +65,25 @@ export const useAgents: () => Array<AgentObject> = () => {
 }; */
 
 export const useActions: () => Array<ActionProps> = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useActions();
+  const agentRegistryValue = useContext(AgentRegistryContext);
+  return agentRegistryValue.actions;
 };
 export const useFormatters: () => Array<FormatterProps> = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useFormatters();
+  const agentRegistryValue = useContext(AgentRegistryContext);
+  return agentRegistryValue.formatters;
 };
 
 export const useName: () => string = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useName();
+  const agent = useContext(AgentContext);
+  const agentRegistryValue = useContext(AgentRegistryContext);
+  const names = agentRegistryValue.names;
+  return names.length > 0 ? names[0].children : agent.name;
 };
 export const usePersonality: () => string = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.usePersonality();
+  const agent = useContext(AgentContext);
+  const agentRegistryValue = useContext(AgentRegistryContext);
+  const personalities = agentRegistryValue.personalities;
+  return personalities.length > 0 ? personalities[0].children : agent.bio;
 };
 
 /* export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
@@ -107,11 +108,8 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     })();
   }
   use(conversation.messageCache.loadPromise);
-  if (conversation.messageCache.loaded) {
-    return conversation.getCachedMessages(opts?.filter);
-  } else {
-    return [];
-  }
+  const messages = conversation.getCachedMessages(opts?.filter);
+  return messages;
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
