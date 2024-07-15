@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
 import type { Ref } from 'react';
 // import type { ZodTypeAny } from 'zod';
-import type {
+import {
   // ActionMessages,
   // AppContextValue,
   // PendingActionMessage,
@@ -9,31 +9,33 @@ import type {
   // SubtleAiImageOpts,
   // SubtleAiCompleteOpts,
   // MemoryOpts,
-  AgentProps,
-  RawAgentProps,
-  ActionProps,
-  PromptProps,
-  FormatterProps,
-  ParserProps,
-  PerceptionProps,
-  TaskProps,
-  NameProps,
-  PersonalityProps,
-  ServerProps,
-  ConversationObject,
-  ConversationProps,
-  ConversationInstanceProps,
+  type AgentProps,
+  type RawAgentProps,
+  type ActionProps,
+  type PromptProps,
+  type FormatterProps,
+  type ParserProps,
+  type PerceptionProps,
+  type TaskProps,
+  type NameProps,
+  type PersonalityProps,
+  type ServerProps,
+  type ConversationObject,
+  type ConversationProps,
+  type ConversationInstanceProps,
   // ExtendableMessageEvent,
-  ConversationChangeEvent,
-  ConversationAddEvent,
-  ConversationRemoveEvent,
-  MessagesUpdateEvent,
+  type ConversationChangeEvent,
+  type ConversationAddEvent,
+  type ConversationRemoveEvent,
+  type MessagesUpdateEvent,
+  AgentRegistry,
 } from './types';
 import {
   AppContext,
   AgentContext,
   ConversationContext,
   ConversationsContext,
+  AgentRegistryContext,
 } from './context';
 import {
   DefaultAgentComponents,
@@ -53,6 +55,9 @@ import {
 import {
   GenerativeAgentObject,
 } from './classes/generative-agent-object';
+import {
+  printZodSchema,
+} from './util/util.mjs';
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
@@ -70,7 +75,7 @@ import {
 // const makeSymbol = () => Symbol('propsKey');
 
 /**
- * Represents an agent component.
+ * Represents an agent component.z
  *
  * The `Agent` component is used to register an agent with the application context.
  * It takes an `AgentProps` object as its props and registers the agent with the app context.
@@ -86,25 +91,18 @@ import {
  * </Agent>
  * ```
  */
-export const Agent = forwardRef((props: AgentProps, ref: Ref<ActiveAgentObject>) => {
-  return (
-    <RawAgent ref={ref}>
-      <DefaultAgentComponents />
-      {props.children}
-    </RawAgent>
-  );
-});
-export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentObject>) => {
+export const Agent = forwardRef(({
+  raw,
+  children,
+}: AgentProps, ref: Ref<ActiveAgentObject>) => {
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
-
-  // state
-  // const symbol = useMemo(makeSymbol, []);
-  const agent = useMemo(() => new ActiveAgentObject(agentJson, {
+  const agent = useMemo<ActiveAgentObject>(() => new ActiveAgentObject(agentJson, {
     appContextValue,
   }), []);
+  const [agentRegistry, setAgentRegistry] = useState<AgentRegistry>(() => agent.useAgentRegistry());
 
   // events
   useEffect(() => {
@@ -116,28 +114,38 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
       setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
     };
     agent.addEventListener('conversationremove', onconversationremove);
+    const onepochchange = (e: MessageEvent) => {
+      setAgentRegistry((agentRegistry) => agentRegistry);
+    };
+    agent.addEventListener('epochchange', onepochchange);
 
     return () => {
       agent.removeEventListener('conversationadd', onconversationadd);
       agent.removeEventListener('conversationremove', onconversationremove);
+      agent.removeEventListener('epochchange', onepochchange);
     };
   }, [agent]);
 
   // ref
   useImperativeHandle(ref, () => agent, [agent]);
 
-  // return
   return (
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={conversations}>
-         {/* <ConversationContext.Provider value={null}> */}
-            {props.children}
-          {/* </ConversationContext.Provider> */}
+          <AgentRegistryContext.Provider value={agentRegistry}>
+            {/* <ConversationContext.Provider value={null}> */}
+              {!raw && <DefaultAgentComponents />}
+              {children}
+            {/* </ConversationContext.Provider> */}
+          </AgentRegistryContext.Provider>
         </ConversationsContext.Provider>
       </AgentContext.Provider>
     </agent>
   );
+});
+export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentObject>) => {
+  return <Agent {...props} raw ref={ref} />;
 });
 const ConversationInstance = (props: ConversationInstanceProps) => {
   const {
@@ -156,7 +164,9 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
   };
   useEffect(() => {
     const onmessagesupdate = (e: MessagesUpdateEvent) => {
-      e.waitUntil(waitForRender());
+      e.waitUntil((async () => {
+        await waitForRender();
+      })());
     };
     agent.addEventListener('messagesupdate', onmessagesupdate);
 
@@ -196,140 +206,93 @@ export const Conversation = (props: ConversationProps) => {
     );
   });
 };
-export const Action: React.FC<ActionProps> = (props: ActionProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
-
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterAction(symbol);
-  //   };
-  // }, []);
-
-  // agentContext.registerAction(symbol, props);
+export const Action = /*memo(*/(props: ActionProps) => {
+  const agent = useContext(AgentContext);
+  // console.log('action use epoch', props, new Error().stack);
+  agent.useEpoch([
+    props.name,
+    props.description,
+    printZodSchema(props.schema),
+    JSON.stringify(props.examples),
+    props.handler.toString(),
+  ]);
 
   return <action value={props} />;
-};
-export const Prompt: React.FC<PromptProps> = (props: PromptProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Prompt = /*memo(*/(props: PromptProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.children,
+  // ]);
   const conversation = useContext(ConversationContext);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterPrompt(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerPrompt(symbol, props);
-
-  // return React.createElement(React.Fragment, {}, props.children);
-  // return props.children;
   return <prompt value={{
     ...props,
     conversation,
   }} />;
-};
-export const Formatter: React.FC<FormatterProps> = (props: FormatterProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Formatter = /*memo(*/(props: FormatterProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.formatFn.toString(),
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterFormatter(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerFormatter(symbol, props);
-
-  // return null;
   return <formatter value={props} />;
-};
-export const Parser: React.FC<ParserProps> = (props: ParserProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Parser = /*memo(*/(props: ParserProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.parseFn.toString(),
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterParser(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerParser(symbol, props);
-
-  // return null;
   return <parser value={props} />;
-};
-export const Perception: React.FC<PerceptionProps> = (props: PerceptionProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Perception = /*memo(*/(props: PerceptionProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.type,
+  //   props.handler.toString(),
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterPerception(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerPerception(symbol, props);
-
-  // return null;
   return <perception value={props} />;
-};
-export const Task: React.FC<TaskProps> = (props: TaskProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Task = /*memo(*/(props: TaskProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.id,
+  //   props.handler.toString(),
+  //   props.onDone?.toString(),
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterTask(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerTask(symbol, props);
-
-  // return null;
   return <task value={props} />;
-};
+}//);
 
 //
 
-export const Name: React.FC<NameProps> = (props: NameProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+export const Name = /*memo(*/(props: NameProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.children,
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterName(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerName(symbol, props);
-
-  // return null;
   return <name value={props} />;
-};
-export const Personality: React.FC<PersonalityProps> = (props: PersonalityProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+}//);
+export const Personality = /*memo(*/(props: PersonalityProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.children,
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterPersonality(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerPersonality(symbol, props);
-
-  // return null;
   return <personality value={props} />;
-};
+}//);
 
 //
 
-export const Server: React.FC<ServerProps> = (props: ServerProps) => {
-  // const symbol = useMemo(makeSymbol, []);
-  // const agentContext = useContext(AgentContext);
+export const Server = /*memo(*/(props: ServerProps) => {
+  const agent = useContext(AgentContext);
+  // agent.useEpoch([
+  //   props.children.toString(),
+  // ]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     agentContext.unregisterServer(symbol);
-  //   };
-  // }, []);
-  // agentContext.registerServer(symbol, props);
-
-  // return null;
   return <server value={props} />;
-};
+}//);
