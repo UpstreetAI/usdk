@@ -49,11 +49,11 @@ export const useAgent = () => {
 };
 export const useConversations = () => {
   const conversationsContext = useContext(ConversationsContext);
-  return conversationsContext;
+  return conversationsContext.conversations;
 };
 export const useConversation = () => {
   const conversationContextValue = useContext(ConversationContext);
-  return conversationContextValue;
+  return conversationContextValue.conversation;
 };
 /* export const useScene: () => SceneObject = () => {
   const agentContextValue = useContext(AgentContext);
@@ -65,23 +65,23 @@ export const useAgents: () => Array<AgentObject> = () => {
 }; */
 
 export const useActions: () => Array<ActionProps> = () => {
-  const agentRegistryValue = useContext(AgentRegistryContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   return agentRegistryValue.actions;
 };
 export const useFormatters: () => Array<FormatterProps> = () => {
-  const agentRegistryValue = useContext(AgentRegistryContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   return agentRegistryValue.formatters;
 };
 
 export const useName: () => string = () => {
   const agent = useContext(AgentContext);
-  const agentRegistryValue = useContext(AgentRegistryContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   const names = agentRegistryValue.names;
   return names.length > 0 ? names[0].children : agent.name;
 };
 export const usePersonality: () => string = () => {
   const agent = useContext(AgentContext);
-  const agentRegistryValue = useContext(AgentRegistryContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   const personalities = agentRegistryValue.personalities;
   return personalities.length > 0 ? personalities[0].children : agent.bio;
 };
