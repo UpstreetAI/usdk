@@ -77,7 +77,7 @@ import {
 const makeSymbol = () => Symbol('propsKey');
 
 /**
- * Represents an agent component.z
+ * Represents an agent component.
  *
  * The `Agent` component is used to register an agent with the application context.
  * It takes an `AgentProps` object as its props and registers the agent with the app context.
