@@ -1,12 +1,11 @@
 import React from 'react';
 import { useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
-import { z } from 'zod';
+import { ZodTypeAny, z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 // import puppeteer from '@cloudflare/puppeteer';
 // import type { ZodTypeAny } from 'zod';
-import { zodToTs, printNode } from 'zod-to-ts';
 import type {
   AppContextValue,
   ConfigurationContextValue,
@@ -58,7 +57,7 @@ import {
   useCachedMessages,
 } from './hooks';
 // import type { AppContextValue } from './types';
-import { parseCodeBlock } from './util/util.mjs';
+import { parseCodeBlock, printZodSchema } from './util/util.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -67,12 +66,7 @@ import { parseCodeBlock } from './util/util.mjs';
 
 const timeAgo = (timestamp: Date) =>
   jsAgo(+timestamp / 1000, { format: 'short' });
-const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
-const printZodNode = (z: any) => {
-  let s = printNode(z);
-  s = s.replace(/    /g, '  ');
-  return s;
-};
+// const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
 
 // defaults
 
@@ -368,7 +362,7 @@ export const CachedMessagesPrompt = () => {
   // const historyActions = useActionHistory()
   //   // .flat()
   //   .sort((a, b) => +a.timestamp - +b.timestamp);
-  const historyActions = useCachedMessages();
+  const cachedMessages = useCachedMessages();
 
   // // console.log('render prompt', historyActions);
   // useEffect(() => {
@@ -399,14 +393,14 @@ export const CachedMessagesPrompt = () => {
       {dedent`
         # Message history
         ${
-          historyActions.length > 0
+          cachedMessages.length > 0
             ? dedent`
               Here is the chat so far, in JSON format:
             ` +
               '\n' +
               '```' +
               '\n' +
-              historyActions
+              cachedMessages
                 .map((action) => {
                   const { userId, name, method, args, timestamp } = action;
                   const j = {
@@ -566,7 +560,7 @@ export const JsonFormatter = () => {
             \`\`\`
           ` +
           '\n' +
-          printZodNode(zodToTs(schema).node) +
+          printZodSchema(schema) +
           '\n' +
           dedent`
             \`\`\`
@@ -1190,9 +1184,9 @@ const generativeImageFetchHandlerHook = new GenerativeFetchHandlerHook({
     //   json: JSON.stringify(json, null, 2),
     // });
     const url = json.data[0].url;
-    console.log('generate image 4', {
-      url,
-    });
+    // console.log('generate image 4', {
+    //   url,
+    // });
     const proxyRes = await fetch(url);
     if (proxyRes.ok) {
       return new Response(proxyRes.body, {
