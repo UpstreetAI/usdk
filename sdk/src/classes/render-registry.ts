@@ -104,3 +104,5 @@ export class RenderRegistry {
     });
   }
 }
+
+export const emptyAgentRegistry = new AgentRegistry();
