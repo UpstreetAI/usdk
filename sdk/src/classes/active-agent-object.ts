@@ -1,11 +1,11 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 // import type { Context } from 'react';
 import { z } from 'zod';
 import type { ZodTypeAny } from 'zod';
 import dedent from 'dedent';
-import {
-  EpochContext,
-} from '../context';
+// import {
+//   EpochContext,
+// } from '../context';
 import {
   AgentObject,
 } from './agent-object';
@@ -64,7 +64,7 @@ import {
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
-import { AgentRegistry } from './render-registry';
+import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
 
@@ -72,7 +72,6 @@ import { AgentRegistry } from './render-registry';
 //   useContext(ContextType); // re-render when epoch changes
 //   return getterFn();
 // };
-const emptyRegistry = new AgentRegistry();
 
 //
 
@@ -109,17 +108,6 @@ export class ActiveAgentObject extends AgentObject {
     this.incomingMessageQueueManager = new QueueManager();
   }
 
-  async embed(text: string) {
-    return await this.appContextValue.embed(text);
-  }
-  async complete(
-    messages: ChatMessages,
-  ) {
-    return await this.appContextValue.complete(messages, {
-      model: this.model,
-    });
-  }
-
   // static hooks
 
   useAuthToken() {
@@ -131,17 +119,29 @@ export class ActiveAgentObject extends AgentObject {
   useWallets() {
     return this.appContextValue.useWallets();
   }
-  useRegistry() {
+  useAgentRegistry() {
     const renderRegistry = this.appContextValue.useRegistry();
     const agentRegistry = renderRegistry.agents.get(this);
     if (agentRegistry) {
       return agentRegistry;
     } else {
-      return emptyRegistry;
+      return emptyAgentRegistry;
     }
   }
 
-  useActions() {
+  useEpoch(deps: any[]) {
+    const tick = () => {
+      this.dispatchEvent(new MessageEvent('epochchange', {
+        data: null,
+      }));
+    };
+    useEffect(() => {
+      tick();
+      return tick;
+    }, deps);
+  }
+
+  /* useActions() {
     const registry = this.useRegistry();
     return registry.actions;
   }
@@ -159,7 +159,7 @@ export class ActiveAgentObject extends AgentObject {
     const registry = this.useRegistry();
     const personalities = registry.personalities;
     return personalities.length > 0 ? personalities[0].children : this.bio;
-  }
+  } */
 
   // methods
 
@@ -323,7 +323,7 @@ export class ActiveAgentObject extends AgentObject {
                   await e.waitForFinish();
                 }
                 
-                const registry = this.useRegistry();
+                const registry = this.useAgentRegistry();
                 const allPerceptions = registry.perceptions;
                 const perceptionPromises = [];
                 for (const perception of allPerceptions) {
@@ -474,7 +474,7 @@ export class ActiveAgentObject extends AgentObject {
       agent: this,
       query,
     });
-    const embedding = await this.embed(query);
+    const embedding = await this.appContextValue.embed(query);
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
     // const jwt = this.useAuthToken();
@@ -503,7 +503,7 @@ export class ActiveAgentObject extends AgentObject {
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
     const id = crypto.randomUUID();
-    const embedding = await this.embed(text);
+    const embedding = await this.appContextValue.embed(text);
 
     // const jwt = this.useAuthToken();
     // const supabase = makeAnonymousClient(env, jwt);
@@ -560,7 +560,9 @@ export class ActiveAgentObject extends AgentObject {
                   `,
               },
             ];
-            const message = await this.complete(promptMessages);
+            const message = await this.appContextValue.complete(promptMessages, {
+              model: this.model,
+            });
             // extract the code block
             const s = parseCodeBlock(message.content);
             // parse the json in the code block
