@@ -132,6 +132,8 @@ export const Agent = forwardRef(({
   // ref
   useImperativeHandle(ref, () => agent, [agent]);
 
+  // XXX update ConversationsContext, AgentRegistryContext, ConversationContext to use a nested object
+
   return (
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
