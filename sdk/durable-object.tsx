@@ -67,7 +67,7 @@ export class DurableObject extends EventTarget {
   }) {
     const promises = [];
     const registry = this.agentRenderer.registry;
-    const agents = Array.from(registry.agents.keys());
+    const agents = registry.agents;
     if (agentId !== null) {
       // join for specific agent
       const agent = agents.find(a => a.id === agentId);
@@ -98,7 +98,7 @@ export class DurableObject extends EventTarget {
     endpointUrl = multiplayerEndpointUrl,
   }) {
     const registry = this.agentRenderer.registry;
-    const agents = Array.from(registry.agents.keys());
+    const agents = registry.agents;
     if (agentId !== null) {
       // leave for specific agent
       const agent = agents.find(a => a.id === agentId);

@@ -188,16 +188,16 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
-    const useRegistry = () => {
-      return this.registry;
-    };
+    // const useRegistry = () => {
+    //   return this.registry;
+    // };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
-      registry: useRegistry(),
+      // registry: useRegistry(),
     });
 
     // run the module to get the result

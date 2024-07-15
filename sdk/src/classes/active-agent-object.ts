@@ -85,11 +85,12 @@ const getConversationKey = ({
 export class ActiveAgentObject extends AgentObject {
   // arguments
   appContextValue: AppContextValue;
+  registry: AgentRegistry;
   // state
   rooms = new Map<string, NetworkRealms>();
   tasks: Map<symbol, TaskObject> = new Map();
   generativeQueueManager = new QueueManager();
-  incomingMessageQueueManager: QueueManager;
+  incomingMessageQueueManager = new QueueManager();
 
   //
   
@@ -97,15 +98,16 @@ export class ActiveAgentObject extends AgentObject {
     agentJson: AgentObject,
     {
       appContextValue,
+      registry,
     }: {
       appContextValue: AppContextValue;
+      registry: AgentRegistry;
     }
   ) {
     super(agentJson);
 
     this.appContextValue = appContextValue;
-
-    this.incomingMessageQueueManager = new QueueManager();
+    this.registry = registry;
   }
 
   // static hooks
@@ -118,15 +120,6 @@ export class ActiveAgentObject extends AgentObject {
   }
   useWallets() {
     return this.appContextValue.useWallets();
-  }
-  useAgentRegistry() {
-    const renderRegistry = this.appContextValue.useRegistry();
-    const agentRegistry = renderRegistry.agents.get(this);
-    if (agentRegistry) {
-      return agentRegistry;
-    } else {
-      return emptyAgentRegistry;
-    }
   }
 
   useEpoch(deps: any[]) {
@@ -323,8 +316,7 @@ export class ActiveAgentObject extends AgentObject {
                   await e.waitForFinish();
                 }
                 
-                const registry = this.useAgentRegistry();
-                const allPerceptions = registry.perceptions;
+                const allPerceptions = this.registry.perceptions;
                 const perceptionPromises = [];
                 for (const perception of allPerceptions) {
                   if (perception.type === message.method) {

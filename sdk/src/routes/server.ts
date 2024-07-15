@@ -15,9 +15,9 @@ export async function serverHandler(request: Request, {
   agentRenderer: AgentRenderer;
   env: any;
 }) {
-  const agentEntries = Array.from(agentRenderer.registry.agents.entries());
-  if (agentEntries.length > 0) {
-    const [agent, agentRegistry] = agentEntries[0];
+  const agents = agentRenderer.registry.agents;
+  if (agents.length > 0) {
+    const agent = agents[0];
     const agentServer = await compileUserAgentServer({
       agent,
     });

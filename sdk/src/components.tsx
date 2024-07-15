@@ -28,7 +28,6 @@ import {
   type ConversationAddEvent,
   type ConversationRemoveEvent,
   type MessagesUpdateEvent,
-  AgentRegistry,
 } from './types';
 import {
   AppContext,
@@ -40,6 +39,9 @@ import {
 import {
   DefaultAgentComponents,
 } from './default-components';
+import {
+  AgentRegistry,
+} from './classes/render-registry';
 // import {
 //   SceneObject,
 // } from './classes/scene-object';
@@ -52,9 +54,9 @@ import {
 import {
   makePromise,
 } from './util/util.mjs';
-import {
-  GenerativeAgentObject,
-} from './classes/generative-agent-object';
+// import {
+//   GenerativeAgentObject,
+// } from './classes/generative-agent-object';
 import {
   printZodSchema,
 } from './util/util.mjs';
@@ -72,7 +74,7 @@ import {
 
 //
 
-// const makeSymbol = () => Symbol('propsKey');
+const makeSymbol = () => Symbol('propsKey');
 
 /**
  * Represents an agent component.z
@@ -99,10 +101,11 @@ export const Agent = forwardRef(({
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
+  const [agentRegistry, setAgentRegistry] = useState(() => new AgentRegistry());
   const agent = useMemo<ActiveAgentObject>(() => new ActiveAgentObject(agentJson, {
     appContextValue,
+    registry: agentRegistry,
   }), []);
-  const [agentRegistry, setAgentRegistry] = useState<AgentRegistry>(() => agent.useAgentRegistry());
 
   // events
   useEffect(() => {
@@ -164,9 +167,7 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
   };
   useEffect(() => {
     const onmessagesupdate = (e: MessagesUpdateEvent) => {
-      e.waitUntil((async () => {
-        await waitForRender();
-      })());
+      e.waitUntil(waitForRender());
     };
     agent.addEventListener('messagesupdate', onmessagesupdate);
 
@@ -208,23 +209,39 @@ export const Conversation = (props: ConversationProps) => {
 };
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
-  // console.log('action use epoch', props, new Error().stack);
-  agent.useEpoch([
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
     props.name,
     props.description,
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
     props.handler.toString(),
-  ]);
+  ];
 
-  return <action value={props} />;
+  useEffect(() => {
+    agentRegistry.registerAction(symbol, props);
+    return () => {
+      agentRegistry.unregisterAction(symbol);
+    };
+  }, deps);
+
+  // console.log('action use epoch', props, new Error().stack);
+  agent.useEpoch(deps);
+
+  // return <action value={props} />;
+  return null;
 }//);
 export const Prompt = /*memo(*/(props: PromptProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.children,
-  ]);
   const conversation = useContext(ConversationContext);
+
+  const deps = [
+    props.children,
+  ];
+
+  agent.useEpoch(deps);
 
   return <prompt value={{
     ...props,
@@ -233,66 +250,157 @@ export const Prompt = /*memo(*/(props: PromptProps) => {
 }//);
 export const Formatter = /*memo(*/(props: FormatterProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.formatFn.toString(),
-  ]);
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
 
-  return <formatter value={props} />;
+  const deps = [
+    props.formatFn.toString(),
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerFormatter(symbol, props);
+    return () => {
+      agentRegistry.unregisterFormatter(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <formatter value={props} />;
+  return null;
 }//);
 export const Parser = /*memo(*/(props: ParserProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.parseFn.toString(),
-  ]);
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
 
-  return <parser value={props} />;
+  const deps = [
+    props.parseFn.toString(),
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerParser(symbol, props);
+    return () => {
+      agentRegistry.unregisterParser(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <parser value={props} />;
+  return null;
 }//);
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
     props.type,
     props.handler.toString(),
-  ]);
+  ];
 
-  return <perception value={props} />;
+  useEffect(() => {
+    agentRegistry.registerPerception(symbol, props);
+    return () => {
+      agentRegistry.unregisterPerception(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <perception value={props} />;
+  return null;
 }//);
 export const Task = /*memo(*/(props: TaskProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
     props.id,
     props.handler.toString(),
     props.onDone?.toString(),
-  ]);
+  ];
 
-  return <task value={props} />;
+  useEffect(() => {
+    agentRegistry.registerTask(symbol, props);
+    return () => {
+      agentRegistry.unregisterTask(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <task value={props} />;
+  return null;
 }//);
 
 //
 
 export const Name = /*memo(*/(props: NameProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.children,
-  ]);
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
 
-  return <name value={props} />;
+  const deps = [
+    props.children,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerName(symbol, props);
+    return () => {
+      agentRegistry.unregisterName(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <name value={props} />;
+  return null;
 }//);
 export const Personality = /*memo(*/(props: PersonalityProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.children,
-  ]);
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
 
-  return <personality value={props} />;
+  const deps = [
+    props.children,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerPersonality(symbol, props);
+    return () => {
+      agentRegistry.unregisterPersonality(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <personality value={props} />;
+  return null;
 }//);
 
 //
 
 export const Server = /*memo(*/(props: ServerProps) => {
   const agent = useContext(AgentContext);
-  agent.useEpoch([
-    props.children.toString(),
-  ]);
+  const agentRegistry = useContext(AgentRegistryContext);
+  const symbol = useMemo(makeSymbol, []);
 
-  return <server value={props} />;
+  const deps = [
+    props.children.toString(),
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerServer(symbol, props);
+    return () => {
+      agentRegistry.unregisterServer(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  // return <server value={props} />;
+  return null;
 }//);

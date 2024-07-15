@@ -7,17 +7,18 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       agent: any;
-      action: any;
       prompt: any;
-      formatter: any;
-      parser: any;
-      perception: any;
-      task: any;
 
-      name: any;
-      personality: any;
+      // action: any;
+      // formatter: any;
+      // parser: any;
+      // perception: any;
+      // task: any;
+
+      // name: any;
+      // personality: any;
       
-      server: any;
+      // server: any;
     }
   }
 }
@@ -193,6 +194,8 @@ export type ConversationObject = EventTarget & {
 }
 export type ActiveAgentObject = AgentObject & {
   appContextValue: AppContextValue;
+  registry: AgentRegistry;
+
   rooms: Map<string, NetworkRealms>;
   incomingMessageQueueManager: QueueManager;
   generativeQueueManager: QueueManager;
@@ -209,7 +212,6 @@ export type ActiveAgentObject = AgentObject & {
   // usePersonality: () => string;
 
   useWallets: () => object[];
-  useAgentRegistry: () => AgentRegistry;
 
   useEpoch: (deps: any[]) => void;
 
@@ -368,10 +370,6 @@ export type PerceptionProps = {
   type: string;
   handler: (e: PerceptionEvent) => any | Promise<any>;
 };
-// type ScheduleFnReturnType = number;
-// export type SchedulerProps = {
-//   scheduleFn: () => ScheduleFnReturnType | Promise<ScheduleFnReturnType>;
-// };
 export enum TaskResultEnum {
   Schedule = 'schedule',
   Idle = 'idle',
@@ -402,18 +400,6 @@ export type ServerProps = {
   children: () => void;
 };
 
-//
-
-// export type SdkDefaultComponentArgs = {
-//   DefaultAgentComponents: FC<void>;
-//   DefaultActions: FC<void>;
-//   DefaultPrompts: FC<void>;
-//   DefaultParsers: FC<void>;
-//   DefaultPerceptions: FC<void>;
-//   // DefaultSchedulers: FC<void>;
-//   DefaultServers: FC<void>;
-// };
-
 // contexts
 
 type Compartment = {
@@ -441,18 +427,47 @@ export type TextInstance = {
 };
 export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
-  actions: ActionProps[];
   prompts: PromptProps[];
-  formatters: FormatterProps[];
-  parsers: ParserProps[];
-  perceptions: PerceptionProps[];
-  tasks: TaskProps[];
-  names: NameProps[];
-  personalities: PersonalityProps[];
-  servers: ServerProps[];
+
+  actionsMap: Map<symbol, ActionProps | null>;
+  formattersMap: Map<symbol, FormatterProps | null>;
+  parsersMap: Map<symbol, ParserProps | null>;
+  perceptionsMap: Map<symbol, PerceptionProps | null>;
+  tasksMap: Map<symbol, TaskProps | null>;
+  
+  namesMap: Map<symbol, NameProps | null>;
+  personalitiesMap: Map<symbol, PersonalityProps | null>;
+  
+  serversMap: Map<symbol, ServerProps | null>;
+
+  get actions(): ActionProps[];
+  get formatters(): FormatterProps[];
+  get parsers(): ParserProps[];
+  get perceptions(): PerceptionProps[];
+  get tasks(): TaskProps[];
+  get names(): NameProps[];
+  get personalities(): PersonalityProps[];
+  get servers(): ServerProps[];
+
+  registerAction(key: symbol, action: ActionProps): void;
+  unregisterAction(key: symbol): void;
+  registerFormatter(key: symbol, formatter: FormatterProps): void;
+  unregisterFormatter(key: symbol): void;
+  registerParser(key: symbol, parser: ParserProps): void;
+  unregisterParser(key: symbol): void;
+  registerPerception(key: symbol, perception: PerceptionProps): void;
+  unregisterPerception(key: symbol): void;
+  registerTask(key: symbol, task: TaskProps): void;
+  unregisterTask(key: symbol): void;
+  registerName(key: symbol, name: NameProps): void;
+  unregisterName(key: symbol): void;
+  registerPersonality(key: symbol, personality: PersonalityProps): void;
+  unregisterPersonality(key: symbol): void;
+  registerServer(key: symbol, server: ServerProps): void;
+  unregisterServer(key: symbol): void;
 }
 export type RenderRegistry = {
-  agents: Map<ActiveAgentObject, AgentRegistry>;
+  agents: ActiveAgentObject[];
   load(container: Instance): void;
 };
 
@@ -463,7 +478,6 @@ export type AppContextValue = {
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
-  useRegistry: () => RenderRegistry;
 
   useTts: (ttsArgs: TtsArgs) => Tts;
   useChat: (chatArgs: ChatArgs) => Chat;

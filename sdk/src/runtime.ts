@@ -57,8 +57,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
     agent,
     conversation: agentConversation,
   } = generativeAgent;
-  const agentRegistry = agent.useAgentRegistry();
-  return agentRegistry.prompts
+  return agent.registry.prompts
     .filter((prompt) => {
       const {
         conversation: promptConversation,
@@ -106,11 +105,10 @@ async function _generateAgentActionFromMessages(
   promptMessages: ChatMessages,
 ) {
   const { agent } = generativeAgent;
-  const agentRegistry = agent.useAgentRegistry();
   const {
     parsers,
     actions,
-  } = agentRegistry;
+  } = agent.registry;
   const parser = parsers[0];
 
   const numRetries = 5;
@@ -204,14 +202,16 @@ export async function generateString(hint: string) {
 }
 
 export async function handleAgentAction(
-  agent: GenerativeAgentObject,
+  generativeAgent: GenerativeAgentObject,
   message: PendingActionMessage,
 ) {
   // console.log('handle agent action 1');
-  const agentRegistry = agent.agent.useRegistry();
+  const {
+    agent,
+  } = generativeAgent;
   const {
     actions,
-  } = agentRegistry;
+  } = agent.registry;
 
   const { method } = message;
   const actionHandler = getActionByName(actions, method);
@@ -219,7 +219,7 @@ export async function handleAgentAction(
   if (actionHandler) {
     // handle the pending action
     const e = new PendingActionEvent({
-      agent,
+      agent: generativeAgent,
       message,
     });
     // console.log('handle agent action 3', actionHandler);
@@ -240,8 +240,7 @@ export const compileUserAgentServer = async ({
 }: {
   agent: ActiveAgentObject;
 }) => {
-  const agentRegistry = agent.useRegistry();
-  const servers = agentRegistry.servers
+  const servers = agent.registry.servers
     .map((serverProps) => {
       const childFn = serverProps.children as () => ServerHandler;
       if (typeof childFn === 'function') {
@@ -300,7 +299,6 @@ export const compileUserAgentTasks = async ({
         return task;
       }
     };
-    // const currentAgent = agentRenderer.getCurrentAgent();
     const makeTaskEvent = (agent: ActiveAgentObject, task: TaskObject) => {
       return new ExtendableMessageEvent<TaskEventData>('task', {
         data: {
@@ -311,10 +309,11 @@ export const compileUserAgentTasks = async ({
     };
 
     // initialize and run tasks
-    const agentEntries = Array.from(registry.agents.entries());
+    const agents = registry.agents;
     const now = new Date();
     await Promise.all(
-      agentEntries.map(async ([agent, agentRegistry]) => {
+      agents.map(async (agent) => {
+        const agentRegistry = agent.registry;
         const agentTasksProps = agentRegistry.tasks;
 
         // clear out any unnseen tasks
@@ -384,7 +383,7 @@ export const compileUserAgentTasks = async ({
       }),
     );
     // compute the earliest timeout
-    const timestamps = agentEntries.flatMap(([agent, agentRegistry]) => {
+    const timestamps = agents.flatMap((agent) => {
       return Array.from(agent.tasks.values()).map((task) => {
         return +task.timestamp;
       });
