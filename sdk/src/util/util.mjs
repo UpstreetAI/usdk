@@ -1,3 +1,5 @@
+import { zodToTs, printNode } from 'zod-to-ts';
+
 const codeBlockRegexA = /^[^\n]*?(\{[\s\S]*})[^\n]*?$/
 const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
 
@@ -71,3 +73,10 @@ export const retry = async (fn/*: (() => any) | (() => Promise<any>)*/, numRetri
   }
   throw new Error(`failed after ${numRetries} retries`);
 };
+
+const printZodNode = (z) => {
+  let s = printNode(z);
+  s = s.replace(/    /g, '  ');
+  return s;
+};
+export const printZodSchema = (schema) => printZodNode(zodToTs(schema).node);
