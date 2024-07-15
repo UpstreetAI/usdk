@@ -12,7 +12,7 @@ import {
 import {
   SubtleAi,
 } from './subtle-ai';
-import { AppContext, EpochContext, ConfigurationContext } from '../context';
+import { AppContext, /*EpochContext,*/ ConfigurationContext } from '../context';
 import type {
   UserHandler,
   InstanceChild,
@@ -99,13 +99,13 @@ const ConfigurationComponent = ({
 type AppComponentProps = {
   userRender: UserHandler,
   appContextValue: AppContextValue,
-  epochValue: number,
+  // epochValue: number,
   topLevelRenderPromise: any
 }
 const AppComponent = ({
   userRender,
   appContextValue,
-  epochValue,
+  // epochValue,
   topLevelRenderPromise,
 }: AppComponentProps) => {
 
@@ -119,9 +119,9 @@ const AppComponent = ({
     <ErrorBoundary>
       <AppContext.Provider value={appContextValue}>
         <ConfigurationComponent>
-          <EpochContext.Provider value={epochValue}>
+          {/* <EpochContext.Provider value={epochValue}> */}
             <UserRenderComponent />
-          </EpochContext.Provider>
+          {/* </EpochContext.Provider> */}
         </ConfigurationComponent>
       </AppContext.Provider>
     </ErrorBoundary>
@@ -146,7 +146,7 @@ export class AgentRenderer {
 
   registry: RenderRegistry;
   appContextValue: AppContextValue;
-  epochValue: number;
+  // epochValue: number;
 
   reconciler: any;
   container: any;
@@ -231,7 +231,9 @@ export class AgentRenderer {
       resetAfterCommit: () => {
         // console.log('reset after commit');
         this.registry.load(this.container);
-        // console.log('registry updated:', inspect(Array.from(this.registry.agents.values())[0]));
+        // console.log('registry updated:', inspect(Array.from(this.registry.agents.values()), {
+        //   depth: 3,
+        // }));
       },
       clearContainer: (container: any) => {
         // console.log('clear container', [container]);
@@ -312,7 +314,7 @@ export class AgentRenderer {
     this.root = root;
     this.renderLoader = new RenderLoader();
 
-    this.epochValue = 0;
+    // this.epochValue = 0;
 
     this.renderQueueManager = new QueueManager();
   }
@@ -343,12 +345,12 @@ export class AgentRenderer {
       appContextValue,
     } = this;
 
-    this.epochValue++;
+    // this.epochValue++;
 
     const props = {
       userRender,
       appContextValue,
-      epochValue: this.epochValue,
+      // epochValue: this.epochValue,
       topLevelRenderPromise: null,
     };
     // console.log('render 1');
