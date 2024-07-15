@@ -221,9 +221,9 @@ export const Action = /*memo(*/(props: ActionProps) => {
 }//);
 export const Prompt = /*memo(*/(props: PromptProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.children,
-  // ]);
+  agent.useEpoch([
+    props.children,
+  ]);
   const conversation = useContext(ConversationContext);
 
   return <prompt value={{
@@ -233,36 +233,36 @@ export const Prompt = /*memo(*/(props: PromptProps) => {
 }//);
 export const Formatter = /*memo(*/(props: FormatterProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.formatFn.toString(),
-  // ]);
+  agent.useEpoch([
+    props.formatFn.toString(),
+  ]);
 
   return <formatter value={props} />;
 }//);
 export const Parser = /*memo(*/(props: ParserProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.parseFn.toString(),
-  // ]);
+  agent.useEpoch([
+    props.parseFn.toString(),
+  ]);
 
   return <parser value={props} />;
 }//);
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.type,
-  //   props.handler.toString(),
-  // ]);
+  agent.useEpoch([
+    props.type,
+    props.handler.toString(),
+  ]);
 
   return <perception value={props} />;
 }//);
 export const Task = /*memo(*/(props: TaskProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.id,
-  //   props.handler.toString(),
-  //   props.onDone?.toString(),
-  // ]);
+  agent.useEpoch([
+    props.id,
+    props.handler.toString(),
+    props.onDone?.toString(),
+  ]);
 
   return <task value={props} />;
 }//);
@@ -271,17 +271,17 @@ export const Task = /*memo(*/(props: TaskProps) => {
 
 export const Name = /*memo(*/(props: NameProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.children,
-  // ]);
+  agent.useEpoch([
+    props.children,
+  ]);
 
   return <name value={props} />;
 }//);
 export const Personality = /*memo(*/(props: PersonalityProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.children,
-  // ]);
+  agent.useEpoch([
+    props.children,
+  ]);
 
   return <personality value={props} />;
 }//);
@@ -290,9 +290,9 @@ export const Personality = /*memo(*/(props: PersonalityProps) => {
 
 export const Server = /*memo(*/(props: ServerProps) => {
   const agent = useContext(AgentContext);
-  // agent.useEpoch([
-  //   props.children.toString(),
-  // ]);
+  agent.useEpoch([
+    props.children.toString(),
+  ]);
 
   return <server value={props} />;
 }//);
