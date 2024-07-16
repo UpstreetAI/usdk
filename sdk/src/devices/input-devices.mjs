@@ -6,11 +6,6 @@ import {
   VideoInput,
 } from './video-input.mjs';
 
-// type Stdio = {
-//   stdout: string;
-//   stderr: string;
-// };
-
 export class InputDevices {
   async listDevices() {
     // capture command:
@@ -64,10 +59,10 @@ export class InputDevices {
   getDefaultMicrophoneDevice(audioDevices) {
     return audioDevices.find(d => /mic/i.test(d.label)) || audioDevices[0];
   }
-  getAudioInput(id) {
-    return new AudioInput(id);
+  getAudioInput(id, opts) {
+    return new AudioInput(id, opts);
   }
-  getVideoInput(id) {
-    return new VideoInput(id);
+  getVideoInput(id, opts) {
+    return new VideoInput(id, opts);
   }
 }
