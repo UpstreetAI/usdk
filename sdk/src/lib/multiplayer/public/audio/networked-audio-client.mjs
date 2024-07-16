@@ -71,7 +71,7 @@ export class NetworkedAudioClient extends EventTarget {
   async connect(ws) {
     this.ws = ws;
 
-    await new Promise((resolve, reject) => {
+    const _waitForOpen = () => new Promise((resolve, reject) => {
       resolve = (resolve => () => {
         resolve();
         _cleanup();
@@ -89,6 +89,7 @@ export class NetworkedAudioClient extends EventTarget {
         this.ws.removeEventListener('error', reject);
       };
     });
+    await _waitForOpen();
 
     // console.log('irc listen');
     this.ws.addEventListener('message', e => {

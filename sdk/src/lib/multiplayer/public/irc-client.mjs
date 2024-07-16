@@ -25,7 +25,7 @@ export class NetworkedIrcClient extends EventTarget {
   async connect(ws) {
     this.ws = ws;
 
-    await new Promise((resolve, reject) => {
+    const _waitForOpen = () => new Promise((resolve, reject) => {
       resolve = (resolve => () => {
         resolve();
         _cleanup();
@@ -43,7 +43,6 @@ export class NetworkedIrcClient extends EventTarget {
         this.ws.removeEventListener('error', reject);
       };
     });
-
     const _waitForInitialImport = async () => {
       await new Promise((resolve, reject) => {
         const initialMessage = e => {
@@ -66,7 +65,10 @@ export class NetworkedIrcClient extends EventTarget {
         this.ws.addEventListener('message', initialMessage);
       });
     };
-    await _waitForInitialImport();
+    await Promise.all([
+      _waitForOpen(),
+      _waitForInitialImport(),
+    ]);
 
     // console.log('irc listen');
     this.ws.addEventListener('message', e => {
