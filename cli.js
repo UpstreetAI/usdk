@@ -2659,7 +2659,7 @@ const test = async (args) => {
       try {
         await runJest(agentDirectory);
       } finally {
-        // cleanup
+        // clean up
         ws.close();
         realms.disconnect();
         process.kill(cp.pid, 'SIGTERM');
