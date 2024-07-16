@@ -101,11 +101,12 @@ export const Agent = forwardRef(({
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
-  const [agentRegistry, setAgentRegistry] = useState(() => new AgentRegistry());
+  const agentRegistry = useMemo(() => new AgentRegistry(), []);
   const agent = useMemo<ActiveAgentObject>(() => new ActiveAgentObject(agentJson, {
     appContextValue,
     registry: agentRegistry,
   }), []);
+  const [registryEpoch, setRegistryEpoch] = useState(0);
 
   // events
   useEffect(() => {
@@ -118,7 +119,7 @@ export const Agent = forwardRef(({
     };
     agent.addEventListener('conversationremove', onconversationremove);
     const onepochchange = (e: MessageEvent) => {
-      setAgentRegistry((agentRegistry) => agentRegistry);
+      setRegistryEpoch((registryEpoch) => registryEpoch + 1);
     };
     agent.addEventListener('epochchange', onepochchange);
 
