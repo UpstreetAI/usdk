@@ -1428,7 +1428,11 @@ export class NetworkRealm extends EventTarget {
     this.connected = false;
 
     if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.close();
+      if (this.ws.terminate) {
+        this.ws.terminate();
+      } else {
+        this.ws.close();
+      }
     }
 
     this.dispatchEvent(new MessageEvent('disconnect', {
@@ -1487,7 +1491,7 @@ export class NetworkRealms extends EventTarget {
   constructor({
     endpointUrl,
     playerId,
-    // audioManager
+    // audioManager,
   }) {
     super();
 
