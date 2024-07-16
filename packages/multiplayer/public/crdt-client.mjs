@@ -73,8 +73,6 @@ export class NetworkedCrdtClient extends EventTarget {
         };
       });
     };
-    await _waitForOpen();
-
     const _waitForInitialImport = async () => {
       await new Promise((resolve, reject) => {
         const initialMessage = e => {
@@ -98,7 +96,10 @@ export class NetworkedCrdtClient extends EventTarget {
         ws.addEventListener('message', initialMessage);
       });
     };
-    await _waitForInitialImport();
+    await Promise.all([
+      _waitForOpen(),
+      _waitForInitialImport(),
+    ]);
 
     // console.log('irc listen');
     ws.addEventListener('message', e => {
