@@ -2722,8 +2722,8 @@ const capture = async (args) => {
   const screen = args.screen;
   const width = args.width ?? 1024;
   const height = args.height;
-  const rows = args.rows ?? 24;
-  const cols = args.cols;
+  const rows = args.rows;
+  const cols = args.cols ?? 80;
 
   if (camera && screen) {
     throw new Error('camera and screen are mutually exclusive');
@@ -2762,8 +2762,9 @@ const capture = async (args) => {
         // cameraInput.on('data', (b) => {
         //   console.log('got camera data', b);
         // });
-        cameraInput.on('frame', (frame) => {
-          console.log('got camera frame', frame);
+        cameraInput.on('frame', (imageData) => {
+          // console.log('got camera frame', imageData);
+          cameraInput.drawImage(imageData, cols, rows);
         });
       } else if (screen) {
         if (!screenDevice) {
@@ -2773,8 +2774,9 @@ const capture = async (args) => {
         // screenInput.on('data', (b) => {
         //   console.log('got screen data', b);
         // });
-        screenInput.on('frame', (frame) => {
-          console.log('got screen frame', frame);
+        screenInput.on('frame', (imageData) => {
+          // console.log('got screen frame', imageData);
+          screenInput.drawImage(imageData, cols, rows);
         });
       }
     } else {
