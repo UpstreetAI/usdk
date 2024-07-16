@@ -2636,7 +2636,9 @@ const test = async (args) => {
       });
 
       // connect to the chat
-      await connect({
+      const {
+        realms,
+      } = await connect({
         _: [room],
         browser: false,
         debug,
@@ -2645,12 +2647,14 @@ const test = async (args) => {
       });
 
       // run tests
-      await runJest(agentDirectory);
-
-      // cleanup
-      ws.close();
-      realms.disconnect();
-      process.kill(cp.pid, 'SIGTERM');
+      try {
+        await runJest(agentDirectory);
+      } finally {
+        // cleanup
+        ws.close();
+        realms.disconnect();
+        process.kill(cp.pid, 'SIGTERM');
+      }
     };
     const testTemplate = async (template) => {
       console.log('running template test: ' + template);
