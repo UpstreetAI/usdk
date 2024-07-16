@@ -355,7 +355,8 @@ const getEndpoint = () => {
   return `${wss}${hostname}`;
 };
 const createWs = (endpoint, roomname, playerId) => {
-  const ws = new WebSocket(`${endpoint}/api/room/${roomname}/websocket${playerId ? `?playerId=${playerId}` : ''}`);
+  const u = `${endpoint}/api/room/${roomname}/websocket${playerId ? `?playerId=${playerId}` : ''}`;
+  const ws = new WebSocket(u);
   return ws;
 };
 
