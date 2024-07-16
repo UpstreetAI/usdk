@@ -2795,7 +2795,9 @@ const capture = async (args) => {
         if (!cameraDevice) {
           throw new Error('invalid camera device');
         }
-        const cameraInput = inputDevices.getVideoInput(cameraDevice.id);
+        const cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+          fps: 5,
+        });
         // cameraInput.on('data', (b) => {
         //   console.log('got camera data', b);
         // });
@@ -2807,7 +2809,9 @@ const capture = async (args) => {
         if (!screenDevice) {
           throw new Error('invalid screen device');
         }
-        const screenInput = inputDevices.getVideoInput(screenDevice.id);
+        const screenInput = inputDevices.getVideoInput(screenDevice.id, {
+          fps: 5,
+        });
         // screenInput.on('data', (b) => {
         //   console.log('got screen data', b);
         // });
