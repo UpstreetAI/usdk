@@ -16,7 +16,7 @@ import {
 
 //
 
-export default function render(props: AgentAppProps) {
+export default function MyAgent(props) {
   return (
     <Agent>
       <Task

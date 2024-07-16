@@ -1,12 +1,11 @@
 import React from 'react';
 import { useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
-import { z } from 'zod';
+import { ZodTypeAny, z } from 'zod';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
-import puppeteer from '@cloudflare/puppeteer';
-import type { ZodTypeAny } from 'zod';
-import { zodToTs, printNode } from 'zod-to-ts';
+// import puppeteer from '@cloudflare/puppeteer';
+// import type { ZodTypeAny } from 'zod';
 import type {
   AppContextValue,
   ConfigurationContextValue,
@@ -23,7 +22,6 @@ import type {
   ActiveAgentObject,
   PendingActionEvent,
   ActionMessage,
-  SdkDefaultComponentArgs,
 } from './types';
 import {
   AppContext,
@@ -37,13 +35,29 @@ import {
   Parser,
   Perception,
   Task,
-  TaskResult,
   // Scheduler,
   Server,
+  Conversation,
 } from './components';
-import { useCurrentAgent, useAuthToken, useAgents, useScene, useActions, useFormatters, useActionHistory, useTts, useChat } from './hooks';
+// import {
+//   TaskResult,
+// } from './classes/task-object';
+import {
+  useAgent,
+  useAuthToken,
+  // useAgents,
+  // useScene,
+  useActions,
+  useFormatters,
+  useName,
+  usePersonality,
+  useTts,
+  useChat,
+  useConversation,
+  useCachedMessages,
+} from './hooks';
 // import type { AppContextValue } from './types';
-import { parseCodeBlock } from './util/util.mjs';
+import { parseCodeBlock, printZodSchema } from './util/util.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -52,12 +66,7 @@ import { parseCodeBlock } from './util/util.mjs';
 
 const timeAgo = (timestamp: Date) =>
   jsAgo(+timestamp / 1000, { format: 'short' });
-const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
-const printZodNode = (z: any) => {
-  let s = printNode(z);
-  s = s.replace(/    /g, '  ');
-  return s;
-};
+// const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
 
 // defaults
 
@@ -214,20 +223,14 @@ export const DefaultActions = () => {
  * @returns The JSX elements representing the default prompts components.
  */
 export const DefaultPrompts = () => {
-  const scene = useScene();
-  const agents = useAgents();
-  const currentAgent = useCurrentAgent();
-  const actions = useActions();
-  const formatters = useFormatters();
   return (
     <>
       <DefaultHeaderPrompt />
-      <ScenePrompt scene={scene} />
-      <CharactersPrompt agents={agents} />
+      <ConversationEnvironmentPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
-      <ActionsFormatPrompt actions={actions} formatters={formatters} />
-      <RecentChatHistoryJsonPrompt />
-      <InstructionsJsonPrompt agent={currentAgent} />
+      <ActionsPrompt />
+      <ConversationMessagesPrompt />
+      <InstructionsPrompt />
     </>
   );
 };
@@ -242,36 +245,64 @@ export const DefaultHeaderPrompt = () => {
     </Prompt>
   );
 };
-export const ScenePrompt = ({ scene }: { scene: SceneObject }) => {
+export const ConversationEnvironmentPrompt = () => {
+  return (
+    <Conversation>
+      <ScenePrompt />
+      <CharactersPrompt />
+    </Conversation>
+  );
+};
+export const ScenePrompt = () => {
+  const conversation = useConversation();
+  const scene = conversation.getScene();
   return (
     <Prompt>
-      {dedent`
+      {scene && dedent`
         # Scene
         ${scene.description}
       `}
     </Prompt>
   );
 };
-export const CharactersPrompt = ({
-  agents,
-}: {
-  agents: Array<AgentObject>;
-}) => {
+const formatAgent = (agent: any) => {
+  return `Name: ${agent.name}\n` +
+    // `UserId: ${agent.id}\n` +
+    `Bio: ${agent.bio}`;
+};
+export const CharactersPrompt = () => {
+  const conversation = useConversation();
+  const agents = conversation.getAgents();
+  const name = useName();
+  const bio = usePersonality();
+  const currentAgentSpec = {
+    name,
+    // id,
+    bio,
+  };
+  const agentSpecs = agents.map((agent) => agent.getPlayerSpec());
+
   return (
     <Prompt>
       {dedent`
-        # Characters
+        # Your Character
       ` +
-        '\n' +
-        agents
-          .map((agent) => {
-            return dedent`
-              Name: ${agent.name}
-              UserId: ${agent.id}
-              Bio: ${agent.bio}
-            `;
-          })
-          .join('\n\n')}
+        '\n\n' +
+        formatAgent(currentAgentSpec) +
+        (agents.length > 0
+          ? (
+            '\n\n' +
+            dedent`
+              # Other Characters
+            ` +
+            '\n\n' +
+            agentSpecs
+              .map(formatAgent)
+              .join('\n\n')
+          )
+          : ''
+        )
+      }
     </Prompt>
   );
 };
@@ -296,13 +327,10 @@ export const CharactersPrompt = ({
   //   </Prompt>
   // );
 }; */
-export const ActionsFormatPrompt = ({
-  actions,
-  formatters,
-}: {
-  actions: Array<ActionProps>;
-  formatters: Array<FormatterProps>;
-}) => {
+export const ActionsPrompt = () => {
+  const actions = useActions();
+  const formatters = useFormatters();
+
   let s = '';
   if (actions.length > 0 && formatters.length > 0) {
     const formatter = formatters[0];
@@ -317,16 +345,24 @@ export const ActionsFormatPrompt = ({
     <Prompt>{s}</Prompt>
   );
 };
-export const RecentChatHistoryJsonPrompt = () => {
+export const ConversationMessagesPrompt = () => {
+  return (
+    <Conversation>
+      <CachedMessagesPrompt />
+    </Conversation>
+  );
+}
+export const CachedMessagesPrompt = () => {
   // const appContextValue = useContext(AppContext);
 
   // const [historyActions, setHistoryActions] = useState([]);
   // const perAgentHistoryActions = await Promise.all(
   //   agents.map((agent) => agent.getActionHistory()),
   // );
-  const historyActions = useActionHistory()
-    // .flat()
-    .sort((a, b) => +a.timestamp - +b.timestamp);
+  // const historyActions = useActionHistory()
+  //   // .flat()
+  //   .sort((a, b) => +a.timestamp - +b.timestamp);
+  const cachedMessages = useCachedMessages();
 
   // // console.log('render prompt', historyActions);
   // useEffect(() => {
@@ -357,18 +393,18 @@ export const RecentChatHistoryJsonPrompt = () => {
       {dedent`
         # Message history
         ${
-          historyActions.length > 0
+          cachedMessages.length > 0
             ? dedent`
               Here is the chat so far, in JSON format:
             ` +
               '\n' +
               '```' +
               '\n' +
-              historyActions
+              cachedMessages
                 .map((action) => {
                   const { userId, name, method, args, timestamp } = action;
                   const j = {
-                    userId,
+                    // userId,
                     name,
                     method,
                     args,
@@ -388,37 +424,35 @@ export const RecentChatHistoryJsonPrompt = () => {
     </Prompt>
   );
 };
-export const InstructionsJsonPrompt = ({
-  agent,
-}: {
-  agent: AgentObject;
-}) => {
+export const InstructionsPrompt = () => {
+  const agent = useAgent();
+
   return (
     <Prompt>
       {dedent`
         # Instructions
-        Respond with the next action for ${agent.name} (${JSON.stringify(agent.id)}).
+        Respond with the next action taken by your character: ${agent.name}
         The method/args of your response must match one of the allowed actions.
       `}
     </Prompt>
   );
 };
 
-export const Personality = ({
+/* export const Personality = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  const currentAgent = useCurrentAgent();
+  const currentAgent = useAgent();
   return (
     <Prompt>
       {dedent`
         # Additional note
-        ${currentAgent.id} (${currentAgent.name}) has the following personality:
+        ${currentAgent.name} has the following personality:
       ` + children}
     </Prompt>
   );
-};
+}; */
 
 // parsers
 
@@ -526,7 +560,7 @@ export const JsonFormatter = () => {
             \`\`\`
           ` +
           '\n' +
-          printZodNode(zodToTs(schema).node) +
+          printZodSchema(schema) +
           '\n' +
           dedent`
             \`\`\`
@@ -560,7 +594,7 @@ export const JsonFormatter = () => {
  * @returns The JSX elements representing the default perceptions components.
  */
 export const DefaultPerceptions = () => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
 
   return (
     <>
@@ -604,13 +638,15 @@ export const DefaultTasks = () => {
   return <StatusTask />
 };
 export const StatusTask = () => {
-  const agent = useCurrentAgent();
+  // const agent = useAgent();
   // const agents = useAgents();
-  const lastActions = useActionHistory({
-    filter: {
-      limit: 1,
-    },
-  });
+  // const conversation = useConversation();
+  // const agents = conversation.getAgents();
+  // const lastActions = useActionHistory({
+  //   filter: {
+  //     limit: 1,
+  //   },
+  // });
   // console.log('got last actions', lastActions);
   // XXX use exponential backoff
 
@@ -1148,9 +1184,9 @@ const generativeImageFetchHandlerHook = new GenerativeFetchHandlerHook({
     //   json: JSON.stringify(json, null, 2),
     // });
     const url = json.data[0].url;
-    console.log('generate image 4', {
-      url,
-    });
+    // console.log('generate image 4', {
+    //   url,
+    // });
     const proxyRes = await fetch(url);
     if (proxyRes.ok) {
       return new Response(proxyRes.body, {
@@ -1282,7 +1318,7 @@ export const StaticServer = () => {
             const { pathname } = u;
             // XXX finish this to serve the agent's public directory
             if (pathname === '/agent.npc') {
-              const s = env.AGENT_JSON;
+              const s = (env as any).AGENT_JSON as string;
               console.log('returning agent json', { s, env });
               return new Response(s);
             } else {
@@ -1340,7 +1376,7 @@ export type WebBrowserProps = {
   navigationTimeout: number,
 };
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
-  const agent = useCurrentAgent();
+  const agent = useAgent();
   const authToken = useAuthToken();
   const hint = props.hint ?? '';
   return (

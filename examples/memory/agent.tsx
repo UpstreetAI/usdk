@@ -36,14 +36,16 @@ const AddMemoryAction = () => {
         content: 'Some string to remember, which could be a sentence or a few. It should be concise, but still include all of the relevant details.',
       }}
       handler={async (e: PendingActionEvent) => {
-        const { agent, message } = e.data;
+        const { agent, message, conversation } = e.data;
         const args = message.args as any;
 
         if (typeof args === 'object' && typeof args?.content === 'string') {
           console.log('remember handler 1', new Error().stack);
           await agent.addMemory(args.content, message);
           console.log('remember handler 2');
-          await agent.addAction(message);
+          await agent.addAction(message, {
+            conversation,
+          });
           console.log('remember handler 3');
           await agent.monologue(`Remembered: ${JSON.stringify(args.content)}`);
           console.log('remember handler 4');
@@ -63,7 +65,7 @@ const GetMemoryAction = () => {
         query: 'Query string to search for a memory.',
       }}
       handler={async (e: PendingActionEvent) => {
-        const { agent, message } = e.data;
+        const { agent, message, conversation } = e.data;
         const args = message.args as any;
 
         if (typeof args === 'object' && typeof args?.query === 'string') {
@@ -80,7 +82,9 @@ const GetMemoryAction = () => {
                 value: memory,
               },
             };
-            await agent.addAction(newMessage);
+            await agent.addAction(newMessage, {
+              conversation,
+            });
             console.log('got memory', memory);
             await agent.monologue(
               `Remembered: ${JSON.stringify(args.query)} -> ${JSON.stringify(memory.text)}`,
@@ -106,7 +110,7 @@ const MemoryActions = () => {
   );
 };
 
-export default function render() {
+export default function MyAgent() {
   return (
     <Agent>
       <MemoryActions />

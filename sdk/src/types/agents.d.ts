@@ -1,25 +1,64 @@
 import type { ReactNode, FC, Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 
+// intrinsics
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      agent: any;
+      prompt: any;
+
+      // action: any;
+      // formatter: any;
+      // parser: any;
+      // perception: any;
+      // task: any;
+
+      // name: any;
+      // personality: any;
+      
+      // server: any;
+    }
+  }
+}
+
+// network
+
+export type NetworkRealms = any;
+
 // events
 
-export type ExtendableMessageEvent = MessageEvent & {
+export type ExtendableMessageEvent<T> = MessageEvent<T> & {
   waitUntil: (promise: Promise<any>) => void;
   waitForFinish: () => Promise<void>;
 };
 
 // agents
 
-export interface AgentObject extends EventTarget {
+export type AgentObject = EventTarget & {
   id: string;
   name: string;
   description: string;
   bio: string;
   model: string;
   address: string;
-  ctx: AppContextValue;
-  getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
 }
+
+export type GenerativeAgentObject =  {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+
+  embed: (text: string) => Promise<Array<number>>;
+  complete: (
+    messages: ChatMessages,
+  ) => Promise<ChatMessage>;
+
+  think: (hint?: string) => Promise<any>;
+  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+  say: (text: string) => Promise<any>;
+  monologue: (text: string) => Promise<any>;
+};
 
 // messages
 
@@ -37,7 +76,7 @@ export type ChatArgs = {
 // tts
 
 export type TtsArgs = {
-  voiceEndpoint: string;
+  voiceEndpoint?: string;
   sampleRate?: number;
 }
 
@@ -98,22 +137,110 @@ export type SubtleAi = {
     opts?: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
+export type ActionOpts = {
+  conversation?: ConversationObject;
+};
 export type MemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
 };
-export interface ActiveAgentObject extends AgentObject {
-  wallets: any;
-  addAction: (action: PendingActionMessage) => Promise<any>;
+export type QueueManager = {
+  isIdle: () => boolean;
+  waitForTurn: (fn: () => Promise<any>) => Promise<void>;
+};
+
+export type MessageCache = {
+  messages: ActionMessage[];
+  loaded: boolean;
+  loadPromise: Promise<void>;
+
+  pushMessage(message: ActionMessage): void;
+  prependMessages(messages: ActionMessage[]): void;
+  trim(): void;
+};
+export type Player = {
+  playerId: string;
+  playerSpec: object;
+  getPlayerSpec(): object;
+  setPlayerSpec(playerSpec: object): void;
+};
+export type ConversationObject = EventTarget & {
+  id: string;
+  scene: SceneObject | null;
+  agent: ActiveAgentObject;
+  agentsMap: Map<string, Player>;
+  messageCache: MessageCache;
+  numTyping: number;
+
+  getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
+  fetchMessages: (filter?: MessageFilter, opts?: {
+    supabase: any,
+    signal: AbortSignal,
+  }) => Promise<ActionMessage[]>;
+
+  typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
+  addLocalMessage: (message: ActionMessage) => Promise<void>;
+  addLocalAndRemoteMessage: (message: ActionMessage) => void;
+
+  getScene: () => SceneObject | null;
+  setScene: (scene: SceneObject | null) => void;
+
+  getAgent: () => ActiveAgentObject | null;
+  setAgent: (agent: ActiveAgentObject) => void;
+
+  getAgents: () => Player[];
+  addAgent: (agentId: string, player: Player) => void;
+  removeAgent: (agentId: string) => void;
+}
+export type ActiveAgentObject = AgentObject & {
+  appContextValue: AppContextValue;
+  registry: AgentRegistry;
+
+  rooms: Map<string, NetworkRealms>;
+  incomingMessageQueueManager: QueueManager;
+  generativeQueueManager: QueueManager;
+  tasks: Map<any, TaskObject>;
+
+  //
+
+  useAuthToken: () => string;
+  useSupabase: () => any;
+
+  // useActions: () => Array<ActionProps>;
+  // useFormatters: () => Array<FormatterProps>;
+  // useName: () => string;
+  // usePersonality: () => string;
+
+  useWallets: () => object[];
+
+  useEpoch: (deps: any[]) => void;
+
+  // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
+
+  //
+
+  generative: ({
+    conversation,
+  }: {
+    conversation: ConversationObject,
+  }) => GenerativeAgentObject;
+
+  // addAction: (pendingActionMessage: PendingActionMessage, opts?: ActionOpts) => Promise<any>;
+  getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
   addMemory: (
     text: string,
     content?: any,
     opts?: MemoryOpts,
   ) => Promise<void>;
-  say: (text: string) => Promise<any>;
-  monologue: (text: string) => Promise<any>;
-  think: (hint?: string) => Promise<any>;
-  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+
+  join: (opts: {
+    room: string;
+    endpointUrl: string;
+  }) => Promise<void>;
+  leave: (opts: {
+    room: string;
+    endpointUrl: string;
+  }) => void;
 }
 
 // action events
@@ -127,11 +254,10 @@ export interface ActionEvent extends MessageEvent {
 }
 
 export type PendingActionEventData = {
-  agent: ActiveAgentObject;
+  agent: GenerativeAgentObject;
   message: PendingActionMessage;
 };
-export interface PendingActionEvent extends ExtendableMessageEvent {
-  data: PendingActionEventData;
+export interface PendingActionEvent extends MessageEvent<PendingActionEventData> {
   commit: () => Promise<void>;
 }
 
@@ -143,30 +269,50 @@ export interface AgentEvent extends MessageEvent {
 }
 
 export type PerceptionEventData = {
-  agent: ActiveAgentObject;
+  agent: GenerativeAgentObject;
   message: PerceptionMessage;
 };
-export interface PerceptionEvent extends ExtendableMessageEvent {
-  data: PerceptionEventData;
-}
+export type PerceptionEvent = MessageEvent<PerceptionEventData>;
+
+export type ActionMessageEventData = {
+  message: ActionMessage;
+};
+export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
+
+export type ConversationChangeEventData = {
+  conversation: ConversationObject;
+};
+export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
+
+export type ConversationAddEventData = {
+  conversation: ConversationObject;
+};
+export type ConversationAddEvent = MessageEvent<ConversationAddEventData>;
+
+export type ConversationRemoveEventData = {
+  conversation: ConversationObject;
+};
+export type ConversationRemoveEvent = MessageEvent<ConversationRemoveEventData>;
+
+export type MessagesUpdateEventData = undefined;
+export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
 
 export type TaskObject = {
   id: any;
-  name: string;
-  description: string;
+  // name: string;
+  // description: string;
   timestamp: Date,
 };
 export type TaskEventData = {
   agent: ActiveAgentObject;
   task: TaskObject;
 };
-export interface TaskEvent extends MessageEvent {
-  data: TaskEventData;
-}
+export type TaskEvent = ExtendableMessageEvent<TaskEventData>;
 
 // scenes
 
 export interface SceneObject extends EventTarget {
+  name: string;
   description: string;
 }
 
@@ -185,12 +331,23 @@ export type AgentAppProps = {
 };
 
 export type AgentProps = {
+  raw?: boolean;
   children?: ReactNode;
   ref?: Ref<any>;
 };
 export type RawAgentProps = {
   children?: ReactNode;
   ref?: Ref<any>;
+};
+
+export type ConversationProps = {
+  children?: ReactNode;
+};
+export type ConversationInstanceProps = {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+  children?: ReactNode;
+  key?: any;
 };
 
 export type ActionProps = {
@@ -213,10 +370,6 @@ export type PerceptionProps = {
   type: string;
   handler: (e: PerceptionEvent) => any | Promise<any>;
 };
-// type ScheduleFnReturnType = number;
-// export type SchedulerProps = {
-//   scheduleFn: () => ScheduleFnReturnType | Promise<ScheduleFnReturnType>;
-// };
 export enum TaskResultEnum {
   Schedule = 'schedule',
   Idle = 'idle',
@@ -229,25 +382,22 @@ export type TaskResult = {
 export type TaskProps = {
   id: any;
   handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
+  onDone?: (e: TaskEvent) => void | Promise<void>;
 };
 
-// type AgentConsole = {
-//   log: (args: Array<any>) => void;
-//   warn: (args: Array<any>) => void;
-// };
+//
+
+export type NameProps = {
+  children: string;
+};
+export type PersonalityProps = {
+  children: string;
+};
+
+//
 
 export type ServerProps = {
-  children: ReactNode | (() => void);
-};
-
-export type SdkDefaultComponentArgs = {
-  DefaultAgentComponents: FC<void>;
-  DefaultActions: FC<void>;
-  DefaultPrompts: FC<void>;
-  DefaultParsers: FC<void>;
-  DefaultPerceptions: FC<void>;
-  // DefaultSchedulers: FC<void>;
-  DefaultServers: FC<void>;
+  children: () => void;
 };
 
 // contexts
@@ -264,81 +414,82 @@ type Chat = {
   playAudioStream: (readableStream: ReadableStream) => { id: string };
 };
 
+export type Instance = {
+  type: string;
+  props: any;
+  children: InstanceChild[];
+  visible: boolean;
+  recurse(fn: (instance: Instance) => void): void;
+};
+export type TextInstance = {
+  value: string;
+  visible: boolean;
+};
+export type InstanceChild = Instance | TextInstance;
+export type AgentRegistry = {
+  prompts: PromptProps[];
+
+  actionsMap: Map<symbol, ActionProps | null>;
+  formattersMap: Map<symbol, FormatterProps | null>;
+  parsersMap: Map<symbol, ParserProps | null>;
+  perceptionsMap: Map<symbol, PerceptionProps | null>;
+  tasksMap: Map<symbol, TaskProps | null>;
+  
+  namesMap: Map<symbol, NameProps | null>;
+  personalitiesMap: Map<symbol, PersonalityProps | null>;
+  
+  serversMap: Map<symbol, ServerProps | null>;
+
+  get actions(): ActionProps[];
+  get formatters(): FormatterProps[];
+  get parsers(): ParserProps[];
+  get perceptions(): PerceptionProps[];
+  get tasks(): TaskProps[];
+  get names(): NameProps[];
+  get personalities(): PersonalityProps[];
+  get servers(): ServerProps[];
+
+  registerAction(key: symbol, action: ActionProps): void;
+  unregisterAction(key: symbol): void;
+  registerFormatter(key: symbol, formatter: FormatterProps): void;
+  unregisterFormatter(key: symbol): void;
+  registerParser(key: symbol, parser: ParserProps): void;
+  unregisterParser(key: symbol): void;
+  registerPerception(key: symbol, perception: PerceptionProps): void;
+  unregisterPerception(key: symbol): void;
+  registerTask(key: symbol, task: TaskProps): void;
+  unregisterTask(key: symbol): void;
+  registerName(key: symbol, name: NameProps): void;
+  unregisterName(key: symbol): void;
+  registerPersonality(key: symbol, personality: PersonalityProps): void;
+  unregisterPersonality(key: symbol): void;
+  registerServer(key: symbol, server: ServerProps): void;
+  unregisterServer(key: symbol): void;
+}
+export type RenderRegistry = {
+  agents: ActiveAgentObject[];
+  load(container: Instance): void;
+};
+
 export type AppContextValue = {
-  // UserCompartment: new (...args: any[]) => Compartment;
-
-  Agent: FC<AgentProps>;
-  Action: FC<ActionProps>;
-  Prompt: FC<PromptProps>;
-  Formatter: FC<FormatterProps>;
-  Parser: FC<ParserProps>;
-  Perception: FC<PerceptionProps>;
-  Server: FC<ServerProps>;
-
   subtleAi: SubtleAi;
 
+  useAgentJson: () => object;
+  useWallets: () => object[];
   useAuthToken: () => string;
+  useSupabase: () => any;
 
-  useScene: () => SceneObject;
-  useAgents: () => Array<AgentObject>;
-  useCurrentAgent: () => ActiveAgentObject;
-  useActions: () => Array<ActionProps>;
-  useFormatters: () => Array<FormatterProps>;
-  useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
   useTts: (ttsArgs: TtsArgs) => Tts;
   useChat: (chatArgs: ChatArgs) => Chat;
-
-  // useLoad: (p: Promise<any>) => void;
-
-  registerAgent: (key: symbol, props: AgentProps) => void;
-  unregisterAgent: (key: symbol) => void;
-  registerAction: (key: symbol, props: ActionProps) => void;
-  unregisterAction: (key: symbol) => void;
-  registerPrompt: (key: symbol, props: PromptProps) => void;
-  unregisterPrompt: (key: symbol) => void;
-  registerFormatter: (key: symbol, props: FormatterProps) => void;
-  unregisterFormatter: (key: symbol) => void;
-  registerParser: (key: symbol, props: ParserProps) => void;
-  unregisterParser: (key: symbol) => void;
-  registerPerception: (key: symbol, props: PerceptionProps) => void;
-  unregisterPerception: (key: symbol) => void;
-  registerServer: (key: symbol, props: ServerProps) => void;
-  unregisterServer: (key: symbol) => void;
-  registerTask: (key: symbol, props: TaskProps) => void;
-  unregisterTask: (key: symbol) => void;
-  
-  isEnabled: () => boolean;
-  
-  addAction: (
-    agent: ActiveAgentObject,
-    action: PendingActionMessage,
-  ) => Promise<any>;
-
-  think: (agent: ActiveAgentObject, hint?: string) => Promise<any>;
-  generate: (agent: ActiveAgentObject, hint: string, schema?: ZodTypeAny) => Promise<any>;
-  say: (agent: ActiveAgentObject, text: string) => Promise<any>;
-  monologue: (agent: ActiveAgentObject, text: string) => Promise<any>;
-
-  addMemory: (
-    agent: ActiveAgentObject,
-    text: string,
-    content?: any,
-    opts?: MemoryOpts,
-  ) => Promise<void>;
-  getMemory: (
-    agent: AgentObject,
-    query: string,
-    opts?: MemoryOpts,
-  ) => Promise<Array<Memory>>;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
     messages: ChatMessages,
-    opts?: SubtleAiCompleteOpts,
+    opts: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
   generateImage: (
     text: string,
-    opts?: SubtleAiImageOpts,
+    opts: SubtleAiImageOpts,
   ) => Promise<ArrayBuffer>;
 };
 export type ConfigurationContextValue = {
@@ -365,8 +516,4 @@ export type ActionHistoryQuery = {
 
 // user handler
 
-export type UserHandler = FC<void>;
-
-// hooks
-
-export type useAgents = () => Array<AgentObject>;
+export type UserHandler = FC;

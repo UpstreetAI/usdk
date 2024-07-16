@@ -3,10 +3,9 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/util-format-url": "^3.577.0",
-    "@cloudflare/kv-asset-handler": "^0.3.2",
-    "@cloudflare/puppeteer": "^0.0.11",
     "@supabase/supabase-js": "^2.39.8",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
+    "@types/react": "^18.3.3",
     "browser-util-inspect": "^0.2.0",
     "dedent": "^1.5.3",
     "ethers": "^6.12.0",
@@ -15,9 +14,8 @@
     "js-ago": "^2.1.1",
     "localstorage-polyfill": "^1.0.1",
     "minimatch": "^9.0.4",
-    "react": "18.3.1",
-    "react-reconciler": "^0.29.0",
-    "ses": "^1.5.0",
+    "react": "^19.0.0-rc-df5f2736-20240712",
+    "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "yjs": "^13.6.18",
     "zod": "^3.23.8",
     "zod-to-ts": "^1.2.0"

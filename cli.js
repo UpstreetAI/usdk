@@ -17,7 +17,7 @@ import toml from '@iarna/toml';
 import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
-import pc from 'picocolors'
+import pc from 'picocolors';
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -33,8 +33,8 @@ import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { generationModel } from './const.js'
-import { modifyAgentJSXWithGeneratedCode } from './lib/index.js'
+import { generationModel } from './const.js';
+import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import packageJson from './package.json' with { type: 'json' };
 import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
@@ -394,7 +394,7 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.bio = 'A cool person';
   }
   if (typeof spec.model !== 'string') {
-    spec.model = 'openai:gpt-4o';
+    spec.model = generationModel;
   }
   if (typeof spec.previewUrl !== 'string') {
     spec.previewUrl = '/images/characters/upstreet/small/scillia.png';
@@ -491,7 +491,9 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}) => {
+const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
+  debug = false,
+} = {}) => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBin,
@@ -504,6 +506,10 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}) => {
   );
   bindProcess(cp);
   await waitForProcessIo(cp, /ready/i);
+  if (debug) {
+    cp.stdout.pipe(process.stdout);
+    cp.stderr.pipe(process.stderr);
+  }
   return cp;
 };
 const startWebcamServer = async () => {
@@ -1141,25 +1147,6 @@ const startMultiplayerListener = ({
   // local,
   startRepl,
 }) => {
-  // const _agentsHost = local ? localAgentsHost : agentsHost;
-
-  /* const call = async (guid, pathname) => {
-    const u = `${_agentsHost}/agents/${guid}${pathname}`;
-    // log(u);
-    const proxyRes = await fetch(u);
-    // console.log(proxyRes.headers);
-    const contentType = proxyRes.headers.get('content-type');
-    if (contentType.startsWith('image/')) {
-      const arrayBuffer = await proxyRes.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const hex = buffer.toString('hex').slice(0, 80);
-      log(hex);
-    } else {
-      const text = await proxyRes.text();
-      log(text);
-    }
-  }; */
-
   const getPrompt = () => {
     const name = userAsset.name;
 
@@ -1181,74 +1168,57 @@ const startMultiplayerListener = ({
     }
   });
 
-  const replServer = startRepl ? repl.start({
-    prompt: getPrompt(),
-    eval: async (cmd, context, filename, callback) => {
-      cmd = cmd.replace(/;?\s*$/, '');
+  let replServer = null;
+  if (startRepl) {
+    replServer = repl.start({
+      prompt: getPrompt(),
+      eval: async (cmd, context, filename, callback) => {
+        cmd = cmd.replace(/;?\s*$/, '');
 
-      if (cmd) {
-        const cmdSplit = cmd.split(/\s+/);
-        const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-        if (commandMatch) {
-          // XXX replace this with perception events
-          const command = commandMatch ? commandMatch[1] : null;
-          switch (command) {
-            case 'nudge': {
-              let guid = cmdSplit[1];
-              if (!guid) {
-                const agentIds = Array.from(playersMap.keys());
-                shuffle(agentIds);
-                guid = agentIds[0];
+        if (cmd) {
+          const cmdSplit = cmd.split(/\s+/);
+          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+          if (commandMatch) {
+            // XXX replace this with perception events
+            const command = commandMatch ? commandMatch[1] : null;
+            switch (command) {
+              case 'nudge': {
+                let guid = cmdSplit[1];
+                if (!guid) {
+                  const agentIds = Array.from(playersMap.keys());
+                  shuffle(agentIds);
+                  guid = agentIds[0];
+                }
+
+                await nudge(realms, guid);
+
+                break;
               }
-
-              await nudge(realms, guid);
-
-              break;
+              default: {
+                console.log('unknown command', command);
+                break;
+              }
             }
-            /* case 'call': {
-              let guid = cmdSplit[1];
-              let pathname = cmdSplit[2];
-              if (guid && guid.startsWith('/') && !pathname) {
-                pathname = guid;
-                guid = null;
-              }
-              if (!guid) {
-                const agentIds = Array.from(playersMap.keys());
-                shuffle(agentIds);
-                guid = agentIds[0];
-              }
-              if (!pathname) {
-                pathname = '/';
-              }
-
-              await call(guid, pathname);
-
-              break;
-            } */
-            default: {
-              console.log('unknown command', command);
-              break;
-            }
+          } else {
+            const userId = userAsset.id;
+            const name = userAsset.name;
+            await realms.sendChatMessage({
+              method: 'say',
+              userId,
+              name,
+              args: {
+                text: cmd,
+              },
+              timestamp: Date.now(),
+            });
           }
-        } else {
-          const userId = userAsset.id;
-          const name = userAsset.name;
-          await realms.sendChatMessage({
-            method: 'say',
-            userId,
-            name,
-            args: {
-              text: cmd,
-            },
-            timestamp: Date.now(),
-          });
         }
-      }
 
-      callback();
-    },
-    ignoreUndefined: true,
-  }) : null;
+        callback();
+      },
+      ignoreUndefined: true,
+    });
+  }
   const exit = (e) => {
     process.exit(0);
   };
@@ -1336,6 +1306,8 @@ const connect = async (args) => {
   const local = !!args.local;
   const debug = !!args.debug;
   const vision = !!args.vision;
+  const browser = !!args.browser;
+  const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
   if (room) {
     // set up the chat
@@ -1344,14 +1316,14 @@ const connect = async (args) => {
         room,
         debug,
       });
-    if (args.browser) {
+    if (browser) {
       const _chatEndpointUrl = local
         ? `http://localhost:3000`
         : chatEndpointUrl;
-
       open(`${_chatEndpointUrl}/rooms/${room}`)
         .catch( console.error );
-    } else {
+    }
+    if (startRepl) {
       startMultiplayerListener({
         userAsset,
         realms,
@@ -1379,6 +1351,13 @@ const connect = async (args) => {
         // });
       });
     }
+
+    return {
+      userAsset,
+      realms,
+      playersMap,
+      typingMap,
+    };
   } else {
     console.log('no room name provided');
     process.exit(1);
@@ -1458,11 +1437,9 @@ const chat = async (args) => {
     // start the dev agents, if applicable
     if (dev) {
       const devServerPromises = guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        const cp = await startDevServer(guidOrDevPathIndex);
-        if (debug) {
-          cp.stdout.pipe(process.stdout);
-          cp.stderr.pipe(process.stderr);
-        }
+        const cp = await startDevServer(guidOrDevPathIndex, {
+          debug,
+        });
         return cp;
       });
       await Promise.all(devServerPromises);
@@ -2535,10 +2512,27 @@ const search = async (args) => {
     throw new Error('not logged in');
   }
 };
+const getNpmRoot = async () => {
+  const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
+  return stdout.trim();
+};
+const ensureNpmRoot = (() => {
+  let npmRootPromise = null;
+  return () => {
+    if (npmRootPromise === null) {
+      npmRootPromise = getNpmRoot();
+    }
+    return npmRootPromise;
+  };
+})();
 const runJest = async (agentDirectory) => {
+  const npmRoot = await ensureNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
     cwd: agentDirectory,
+    env: {
+      NODE_PATH: npmRoot, // needed to import usdk
+    },
   });
 };
 const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
@@ -2632,41 +2626,81 @@ const extractZip = async (zipBuffer, tempPath) => {
   };
 };
 const test = async (args) => {
-  const testTemplate = async (template) => {
-    console.log('running template test: ' + template);
+  let guidsOrDevPathIndexes = args._[0] ?? [];
+  const all = !!args.all;
+  const dev = true;
+  const debug = !!args.debug;
 
-    // create the template
-    const agentDirectory = await makeTempDir();
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    const runAgentTest = async (guidOrDevPathIndex) => {
+      // console.log('got chat args', JSON.stringify(args));
+      const {
+        agentDirectory,
+      } = guidOrDevPathIndex;
 
-    const { guid } = await create({
-      _: [agentDirectory],
-      template,
-    });
-
-    // make up a room id
-    const room = makeRoomName();
-
-    await join({
-      _: [],
-      local: true,
-      debug: true,
-    });
-
-    const { realms } =
-      await connectMultiplayer({
-        room,
-        debug: true,
+      // start the dev agents
+      const cp = await startDevServer(guidOrDevPathIndex, {
+        debug,
       });
 
-    await runJest(agentDirectory);
+      // wait for agents to join the multiplayer room
+      const room = makeRoomName();
+      const ws = await join({
+        _: [guidOrDevPathIndex, room],
+        dev,
+        // debug,
+      });
 
-    realms.disconnect();
-    process.kill(cp.pid, 'SIGTERM');
-  };
+      // connect to the chat
+      const {
+        realms,
+      } = await connect({
+        _: [room],
+        browser: false,
+        repl: false,
+        debug,
+        local: false,
+        vision: false,
+      });
 
-  const templateNames = await getTemplateNames();
-  for (const template of templateNames) {
-    await testTemplate(template);
+      // run tests
+      try {
+        await runJest(agentDirectory);
+      } finally {
+        // clean up
+        ws.close();
+        realms.disconnect();
+        process.kill(cp.pid, 'SIGTERM');
+      }
+    };
+    const testTemplate = async (template) => {
+      console.log('running template test: ' + template);
+
+      // create the template
+      const agentDirectory = await makeTempDir();
+      await create({
+        _: [agentDirectory],
+        template,
+      });
+
+      await runAgentTest(agentDirectory);
+    };
+
+    if (all) {
+      const templateNames = await getTemplateNames();
+      for (const template of templateNames) {
+        await testTemplate(template);
+      }
+    } else {
+      guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, { dev });
+      for (const guidOrDevPathIndex of guidsOrDevPathIndexes) {
+        await runAgentTest(guidOrDevPathIndex);
+      }
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
   }
 };
 // const deploymentTypes = ['agent', 'ui'];
@@ -3601,15 +3635,22 @@ const main = async () => {
         await search(args);
       });
     });
-  /*program
+  program
     .command('test')
-    .description('Run the test suite')
-    .action(async (subcommand = '', opts = {}) => {
+    .description('Run agent tests')
+    .argument(`[directories...]`, `Directories containing the agent projects to test`)
+    .option('-a, --all', 'Run all tests')
+    .option('-g, --debug', 'Enable debug logging')
+    .action(async (directories = [], opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
-        await test();
+        const args = {
+          _: [directories],
+          ...opts,
+        };
+        await test(args);
       });
-    });*/
+    });
   program
     .command('deploy')
     .description('Deploy an agent to the network')

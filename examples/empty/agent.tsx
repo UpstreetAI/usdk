@@ -8,7 +8,7 @@ import {
 import type { AgentAppProps } from 'react-agents'
 
 
-export default function render(props: AgentAppProps) {
+export default function MyAgent(props) {
   return (
     <RawAgent>
 {/* JSX REGEX HOOK */}
