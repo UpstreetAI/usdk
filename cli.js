@@ -1307,7 +1307,7 @@ const connect = async (args) => {
   const debug = !!args.debug;
   const vision = !!args.vision;
   const browser = !!args.browser;
-  const startRepl = !browser;
+  const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
   if (room) {
     // set up the chat
@@ -2649,6 +2649,7 @@ const test = async (args) => {
       } = await connect({
         _: [room],
         browser: false,
+        repl: false,
         debug,
         local: false,
         vision: false,
