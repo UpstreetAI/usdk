@@ -2516,8 +2516,17 @@ const getNpmRoot = async () => {
   const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
   return stdout.trim();
 };
+const ensureNpmRoot = (() => {
+  let npmRootPromise = null;
+  return () => {
+    if (npmRootPromise === null) {
+      npmRootPromise = getNpmRoot();
+    }
+    return npmRootPromise;
+  };
+})();
 const runJest = async (agentDirectory) => {
-  const npmRoot = await getNpmRoot();
+  const npmRoot = await ensureNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
     cwd: agentDirectory,
