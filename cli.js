@@ -65,6 +65,19 @@ import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
+import {
+  InputDevices,
+} from './sdk/src/devices/input-devices.mjs';
+
+/*
+ffmpeg -f avfoundation -list_devices true -i "" -hide_banner -loglevel info
+
+ffmpeg -f avfoundation -i ":1" -c:a libopus -f opus pipe:1 >/tmp/lol.opus
+
+ffmpeg -f avfoundation -framerate 30 -i "0" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+ffmpeg -f avfoundation -framerate 30 -i "1" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+ffmpeg -f v4l2 -framerate 30 -i /dev/video0 -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+*/
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2703,6 +2716,68 @@ const test = async (args) => {
     process.exit(1);
   }
 };
+const capture = async (args) => {
+  const microphone = !!args.microphone;
+  const camera = !!args.camera;
+  const screen = !!args.screen;
+  const width = args.width ?? 1024;
+  const height = args.height;
+  const rows = args.rows ?? 24;
+  const cols = args.cols;
+
+  console.log('capture args', args);
+
+  if (camera && screen) {
+    throw new Error('camera and screen are mutually exclusive');
+  }
+
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    const inputDevices = new InputDevices();
+    const devices = await inputDevices.listDevices();
+    console.log('got devices', devices);
+    const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
+    const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
+    const microphoneDevice = inputDevices.getDefaultMicrophoneDevice(devices.audio);
+    
+    if (microphone) {
+      if (!microphoneDevice) {
+        throw new Error('no microphone device');
+      }
+      const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id);
+      microphoneInput.on('data', (b) => {
+        console.log('got mic data', b);
+      });
+    }
+    
+    if (camera) {
+      if (!cameraDevice) {
+        throw new Error('no camera device');
+      }
+      const cameraInput = inputDevices.getVideoInput(cameraDevice.id);
+      // cameraInput.on('data', (b) => {
+      //   console.log('got camera data', b);
+      // });
+      cameraInput.on('frame', (frame) => {
+        console.log('got camera frame', frame);
+      });
+    } else if (screen) {
+      if (!screenDevice) {
+        throw new Error('no screen device');
+      }
+      const screenInput = inputDevices.getVideoInput(screenDevice.id);
+      // screenInput.on('data', (b) => {
+      //   console.log('got screen data', b);
+      // });
+      screenInput.on('frame', (frame) => {
+        console.log('got screen frame', frame);
+      });
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
 // const deploymentTypes = ['agent', 'ui'];
 const deploy = async (args) => {
   try {
@@ -3649,6 +3724,26 @@ const main = async () => {
           ...opts,
         };
         await test(args);
+      });
+    });
+  program
+    .command('capture')
+    .description('Test display functionality')
+    .option('-m, --microphone', 'Enable microphone')
+    .option('-c, --camera', 'Enable camera')
+    .option('-s, --screen', 'Enable screen capture')
+    .option('-w, --width <width>', 'Render width')
+    .option('-h, --height <height>', 'Render height')
+    .option('-r, --rows <rows>', 'Render rows')
+    .option('-l, --cols <cols>', 'Render cols')
+    .action(async (opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [],
+          ...opts,
+        };
+        await capture(args);
       });
     });
   program
