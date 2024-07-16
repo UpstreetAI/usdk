@@ -235,14 +235,13 @@ export const Action = /*memo(*/(props: ActionProps) => {
   return null;
 }//);
 export const Prompt = /*memo(*/(props: PromptProps) => {
-  const agent = useContext(AgentContext);
+  // const agent = useContext(AgentContext);
   const conversation = useContext(ConversationContext).conversation;
 
-  const deps = [
-    props.children,
-  ];
-
-  agent.useEpoch(deps);
+  // const deps = [
+  //   props.children,
+  // ];
+  // agent.useEpoch(deps);
 
   return <prompt value={{
     ...props,
