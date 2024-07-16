@@ -2717,65 +2717,73 @@ const test = async (args) => {
   }
 };
 const capture = async (args) => {
-  const microphone = !!args.microphone;
-  const camera = !!args.camera;
-  const screen = !!args.screen;
+  const microphone = args.microphone;
+  const camera = args.camera;
+  const screen = args.screen;
   const width = args.width ?? 1024;
   const height = args.height;
   const rows = args.rows ?? 24;
   const cols = args.cols;
 
-  console.log('capture args', args);
-
   if (camera && screen) {
     throw new Error('camera and screen are mutually exclusive');
   }
 
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    const inputDevices = new InputDevices();
-    const devices = await inputDevices.listDevices();
-    console.log('got devices', devices);
-    const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
-    const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
-    const microphoneDevice = inputDevices.getDefaultMicrophoneDevice(devices.audio);
-    
-    if (microphone) {
-      if (!microphoneDevice) {
-        throw new Error('no microphone device');
+  const inputDevices = new InputDevices();
+  const devices = await inputDevices.listDevices();
+
+  if (
+    microphone ||
+    camera ||
+    screen
+  ) {
+    const jwt = await getLoginJwt();
+    if (jwt !== null) {
+      // console.log('got devices', devices);
+      const cameraDevice = typeof camera === 'boolean' ? inputDevices.getDefaultCameraDevice(devices.video) : devices.video.find(d => d.id === camera);
+      const screenDevice = typeof screen === 'boolean' ? inputDevices.getDefaultScreenDevice(devices.video) : devices.video.find(d => d.id === screen);
+      const microphoneDevice = typeof microphone === 'boolean' ? inputDevices.getDefaultMicrophoneDevice(devices.audio) : devices.audio.find(d => d.id === microphone);
+      
+      if (microphone) {
+        if (!microphoneDevice) {
+          throw new Error('invalid microphone device');
+        }
+        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id);
+        microphoneInput.on('data', (b) => {
+          console.log('got mic data', b);
+        });
       }
-      const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id);
-      microphoneInput.on('data', (b) => {
-        console.log('got mic data', b);
-      });
-    }
-    
-    if (camera) {
-      if (!cameraDevice) {
-        throw new Error('no camera device');
+      
+      if (camera) {
+        if (!cameraDevice) {
+          throw new Error('invalid camera device');
+        }
+        const cameraInput = inputDevices.getVideoInput(cameraDevice.id);
+        // cameraInput.on('data', (b) => {
+        //   console.log('got camera data', b);
+        // });
+        cameraInput.on('frame', (frame) => {
+          console.log('got camera frame', frame);
+        });
+      } else if (screen) {
+        if (!screenDevice) {
+          throw new Error('invalid screen device');
+        }
+        const screenInput = inputDevices.getVideoInput(screenDevice.id);
+        // screenInput.on('data', (b) => {
+        //   console.log('got screen data', b);
+        // });
+        screenInput.on('frame', (frame) => {
+          console.log('got screen frame', frame);
+        });
       }
-      const cameraInput = inputDevices.getVideoInput(cameraDevice.id);
-      // cameraInput.on('data', (b) => {
-      //   console.log('got camera data', b);
-      // });
-      cameraInput.on('frame', (frame) => {
-        console.log('got camera frame', frame);
-      });
-    } else if (screen) {
-      if (!screenDevice) {
-        throw new Error('no screen device');
-      }
-      const screenInput = inputDevices.getVideoInput(screenDevice.id);
-      // screenInput.on('data', (b) => {
-      //   console.log('got screen data', b);
-      // });
-      screenInput.on('frame', (frame) => {
-        console.log('got screen frame', frame);
-      });
+    } else {
+      console.log('not logged in');
+      process.exit(1);
     }
   } else {
-    console.log('not logged in');
-    process.exit(1);
+    // console.log('devices:');
+    console.log(devices);
   }
 };
 // const deploymentTypes = ['agent', 'ui'];
@@ -3729,9 +3737,9 @@ const main = async () => {
   program
     .command('capture')
     .description('Test display functionality')
-    .option('-m, --microphone', 'Enable microphone')
-    .option('-c, --camera', 'Enable camera')
-    .option('-s, --screen', 'Enable screen capture')
+    .option('-m, --microphone [id]', 'Enable microphone')
+    .option('-c, --camera [id]', 'Enable camera')
+    .option('-s, --screen [id]', 'Enable screen capture')
     .option('-w, --width <width>', 'Render width')
     .option('-h, --height <height>', 'Render height')
     .option('-r, --rows <rows>', 'Render rows')

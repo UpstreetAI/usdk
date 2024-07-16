@@ -26,7 +26,7 @@ export class InputDevices {
         const match1 = stderr.match(/video devices[^\n]*\n((?:(?!\n[^\n]*?devices[^\n]*?\n)[\s\S])+)/i);
         const match2 = stderr.match(/audio devices[^\n]*\n((?:(?!\n[^\n]*?error[^\n]*?\n)[\s\S])+)/i);
         if (match1 && match2) {
-          console.log('got match', match1, match2);
+          // console.log('got match', match1, match2);
 
           const parseDevice = (device) => {
             const match = device.match(/\[([0-9]+)\] ([^\n]*)/);
