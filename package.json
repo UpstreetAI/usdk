@@ -3,6 +3,7 @@
   "version": "0.0.37a",
   "description": "",
   "type": "module",
+  "main": "index.js",
   "bin": {
     "usdk": "./usdk"
   },
