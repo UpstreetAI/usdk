@@ -414,9 +414,6 @@ const Page = () => {
                 </div>
               }
             />
-          {/* <div className="mr-10">
-            <Card />
-          </div> */}
         </ScrollableCardsList>
       </Section>
     </div>
