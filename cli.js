@@ -68,6 +68,13 @@ import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 import {
   InputDevices,
 } from './sdk/src/devices/input-devices.mjs';
+import {
+  AudioInput,
+} from './sdk/src/devices/audio-input.mjs';
+import {
+  VideoInput,
+} from './sdk/src/devices/video-input.mjs';
+import vad from '@ricky0123/vad-node';
 
 /*
 ffmpeg -f avfoundation -list_devices true -i "" -hide_banner -loglevel info
@@ -2748,9 +2755,39 @@ const capture = async (args) => {
         if (!microphoneDevice) {
           throw new Error('invalid microphone device');
         }
-        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id);
+
+        const myvad = await vad.NonRealTimeVAD.new({
+          positiveSpeechThreshold: 0.1,
+          negativeSpeechThreshold: 0.1,
+        });
+        const queueManager = new QueueManager();
+
+        const sampleRate = AudioInput.defaultSampleRate;
+        // const numSamples = sampleRate * 2;
+        // const numSamples = sampleRate / 2;
+        const numSamples = sampleRate;
+        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
+          sampleRate,
+          numSamples,
+        });
         microphoneInput.on('data', (b) => {
-          console.log('got mic data', b);
+          // console.log('got mic data', b.length);
+          (async () => {
+            await queueManager.waitForTurn(async () => {
+              // console.time('lol');
+              const asyncIterator = myvad.run(b, sampleRate);
+              // console.log('run iter', numSamples);
+              const results = [];
+              for await (const vadResult of asyncIterator) {
+                // console.log('got vad result', vadResult);
+                results.push(vadResult);
+              }
+              if (results.length > 0) {
+                console.log('got vad results', results);
+              }
+              // console.timeEnd('lol');
+            });
+          })();
         });
       }
       
