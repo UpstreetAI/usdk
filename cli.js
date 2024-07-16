@@ -2512,10 +2512,18 @@ const search = async (args) => {
     throw new Error('not logged in');
   }
 };
+const getNpmRoot = async () => {
+  const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
+  return stdout.trim();
+};
 const runJest = async (agentDirectory) => {
+  const npmRoot = await getNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
     cwd: agentDirectory,
+    env: {
+      NODE_PATH: npmRoot, // needed to import usdk
+    },
   });
 };
 const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
