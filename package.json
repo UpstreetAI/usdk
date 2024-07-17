@@ -54,7 +54,8 @@
     "vercel": "^34.2.6",
     "wrangler": "^3.60.2",
     "ws": "^8.17.0",
-    "yjs": "^13.6.18"
+    "yjs": "^13.6.18",
+    "zod-to-ts": "^1.2.0"
   },
   "overrides": {
     "@supabase/auth-js": "2.62.0",
