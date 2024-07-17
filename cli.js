@@ -2727,7 +2727,7 @@ const capture = async (args) => {
   const microphone = args.microphone;
   const camera = args.camera;
   const screen = args.screen;
-  const width = args.width ?? 1024;
+  const width = args.width;
   const height = args.height;
   const rows = args.rows;
   const cols = args.cols ?? 80;
@@ -2796,6 +2796,8 @@ const capture = async (args) => {
           throw new Error('invalid camera device');
         }
         const cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+          width,
+          height,
           fps: 5,
         });
         // cameraInput.on('data', (b) => {
@@ -2810,6 +2812,8 @@ const capture = async (args) => {
           throw new Error('invalid screen device');
         }
         const screenInput = inputDevices.getVideoInput(screenDevice.id, {
+          width,
+          height,
           fps: 5,
         });
         // screenInput.on('data', (b) => {

@@ -10,6 +10,8 @@ export class VideoInput extends EventEmitter {
   queueManager = new QueueManager();
 
   constructor(id, {
+    width,
+    height,
     framerate = 30,
     fps = 1,
   } = {}) {
@@ -44,7 +46,20 @@ export class VideoInput extends EventEmitter {
           if (bsLength >= fileSize) {
             const data = b.slice(0, fileSize);
             await this.queueManager.waitForTurn(async () => {
-              const imageData = await webp.decode(data);
+              let imageData = await webp.decode(data);
+              if (typeof width === 'number' || typeof height === 'number') {
+                const image = new Jimp(imageData.width, imageData.height);
+                image.bitmap.data.set(imageData.data);
+                image.resize(
+                  typeof width === 'number' ? width : Jimp.AUTO,
+                  typeof height === 'number' ? height : Jimp.AUTO,
+                );
+                // imageData.data.set(image.bitmap.data);
+                // imageData.width = image.bitmap.width;
+                // imageData.height = image.bitmap.height;
+                // imageData = new ImageData(image.bitmap.data, image.bitmap.width, image.bitmap.height)
+                imageData = image.bitmap;
+              }
               this.emit('frame', imageData);
             });
 
