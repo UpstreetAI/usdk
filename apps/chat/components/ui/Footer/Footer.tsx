@@ -1,9 +1,8 @@
 'use client'
- 
-import { usePathname, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
-import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons';
+import { IconUpstreet } from '@/components/ui/icons';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Footer() {
 
@@ -21,9 +20,8 @@ export default function Footer() {
             className="flex items-center flex-initial font-bold md:mr-24"
           >
             <span className="mr-4">
-              <IconUpstreet className='size-8' />
+              <IconUpstreet className='size-14' />
             </span>
-            <span>UPSTREET</span>
           </Link>
         </div>
         <div className="col-span-1 lg:col-span-2">
