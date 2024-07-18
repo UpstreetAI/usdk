@@ -73,4 +73,17 @@
   body {
     @apply bg-background text-foreground min-h-screen;
   }
+
+  h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+  h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  p {
+    margin-bottom: 8px;
+  }
 }
