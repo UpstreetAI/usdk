@@ -21,16 +21,19 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
         </div>
-        <Link href="/" rel="nofollow" className='block ml-4'>
-          Chat
+        <Link href="/company/pricing" rel="nofollow" className='block ml-4'>
+          Pricing
         </Link>
-        <Link href="/" rel="nofollow" className='block ml-4'>
+        <Link href="https://docs.upstreet.ai" rel="nofollow" target='_blank' className='block ml-4'>
           SDK
         </Link>
-        <Link href="/" rel="nofollow" className='block ml-4'>
+        <Link href="/chat" rel="nofollow" className='block ml-4'>
+          Chat
+        </Link>
+        <Link href="/company/careers" rel="nofollow" className='block ml-4'>
           Careers
         </Link>
-        <Link href="/" rel="nofollow" className='block ml-4'>
+        <Link href="/company/waitlist" rel="nofollow" className='block ml-4'>
           Waitlist
         </Link>
       </div>
