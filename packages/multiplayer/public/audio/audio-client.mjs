@@ -79,8 +79,9 @@ export function createOpusAudioOutputStream({
     sampleRate: audioContext.sampleRate,
     output: data => {
       if (data) {
-        // console.log('decoded data', structuredClone(data?.data), performance.now());
+        console.log('decoded data', structuredClone(data?.data), performance.now());
         data = getAudioDataBuffer(data);
+        console.log("output | data: ",data)
         audioWorkletNode.port.postMessage(data, [data.buffer]);
       } else {
         audioWorkletNode.port.postMessage(null);
@@ -93,6 +94,7 @@ export function createOpusAudioOutputStream({
     audioDecoder,
     write(data) {
       // console.log('decode data', structuredClone(data));
+      console.log('decode data', );
       audioDecoder.decode(data);
     },
     end() {

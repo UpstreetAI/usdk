@@ -1341,6 +1341,10 @@ export class NetworkRealm extends EventTarget {
     this.networkedIrcClient.sendChatMessage(message);
   }
 
+  sendSkipAudioMessage(streamId){
+    this.networkedIrcClient.sendSkipAudioMessage(streamId);
+  }
+
   async connect() {
     this.dispatchEvent(new Event('connecting'));
 
@@ -1823,6 +1827,15 @@ export class NetworkRealms extends EventTarget {
       headRealm.sendChatMessage(message);
     } else {
       throw new Error('no connected realm to send chat message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(','));
+    }
+  }
+
+  sendSkipAudioMessage(streamId) {
+    const headRealm = this.getClosestRealm(this.lastRootRealmKey);
+    if (headRealm) {
+      headRealm.sendSkipAudioMessage(streamId);
+    } else {
+      throw new Error('no connected realm to send skip audio message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(','));
     }
   }
 

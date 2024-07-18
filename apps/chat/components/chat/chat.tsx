@@ -63,6 +63,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     setMultiplayerConnectionParameters,
     sendRawMessage,
     sendChatMessage,
+    skipAudioMessage,
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
@@ -133,7 +134,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
       >
         {room ? (
           messages.length ? (
-            <ChatList messages={messages} /*isShared={false} user={user}*/ />
+            <ChatList messages={messages} /*isShared={false} user={user}*/ skipAudioMessagePlayback={skipAudioMessage} />
           ) : (
             null
           )

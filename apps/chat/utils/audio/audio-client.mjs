@@ -64,7 +64,7 @@ export function createOpusAudioOutputStream({
     } = e.data;
     switch (method) {
       case 'finish': {
-        // console.log('finish', performance.now());
+        console.log('finish', performance.now());
         audioWorkletNode.dispatchEvent(new MessageEvent('finish'));
         break;
       }
@@ -81,6 +81,7 @@ export function createOpusAudioOutputStream({
       if (data) {
         // console.log('decoded data', structuredClone(data?.data), performance.now());
         data = getAudioDataBuffer(data);
+        console.log("audioDecoder | output | data: ",data);
         audioWorkletNode.port.postMessage(data, [data.buffer]);
       } else {
         audioWorkletNode.port.postMessage(null);
@@ -531,3 +532,14 @@ export function createOpusDecodeTransformStream({
 
   return transformStream;
 }
+
+export const audioOutputStreamFactory = (mimeType) => {
+    switch (mimeType) {
+        case 'mpeg':
+            return createMp3AudioOutputStream;
+        case 'opus':
+            return createOpusAudioOutputStream;
+        default:
+            throw new Error(`Unsupported MIME type: ${mimeType}`);
+    }
+};

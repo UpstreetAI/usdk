@@ -164,4 +164,16 @@ export class NetworkedIrcClient extends EventTarget {
     });
     this.ws.send(buffer);
   }
+  
+  sendSkipAudioMessage(message){
+    console.log("sendSkipAudioMessage | message: ", message);
+    const buffer = zbencode({
+      method: UPDATE_METHODS.SKIP_AUDIO,
+      args: [
+        this.playerId,
+        message,
+      ],
+    });
+    this.ws.send(buffer);
+  }
 }

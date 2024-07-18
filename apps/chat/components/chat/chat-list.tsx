@@ -5,12 +5,13 @@ import { Separator } from '@/components/ui/separator'
 // import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
 
 export interface ChatList {
-  messages: any
+  messages: any,
   // user?: User | null
   // isShared: boolean
+  skipAudioMessagePlayback: any,
 }
 
-export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
+export function ChatList({ messages/*, user, isShared*/, skipAudioMessagePlayback }: ChatList) {
   if (!messages.length) {
     return null
   }
@@ -45,6 +46,7 @@ export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
         <div key={message.id}>
           {message.display}
           {index < messages.length - 1 && <Separator className="my-4" />}
+          <button onClick={() => skipAudioMessagePlayback(message.id)}>Skip</button>
         </div>
       )}
     </div>

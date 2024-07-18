@@ -179,9 +179,10 @@ export class OpusAudioEncoder {
 
 export class OpusAudioDecoder {
   constructor({sampleRate, output, error}) {
-    this.worker = new Worker('./audio-worker/ws-opus-codec-worker.js');
+    this.worker = new Worker('/scripts/ws-opus-codec.worker.js',{ type: "module" });
     const fakeAudioData = new FakeAudioData();
     this.worker.onmessage = e => {
+      console.log('this.worker.onmessage: ',e);
       if (e.data) {
         fakeAudioData.set(e.data);
         output(fakeAudioData);

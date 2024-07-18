@@ -6,7 +6,7 @@ import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
-import { createMp3AudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
+import { audioOutputStreamFactory, createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
 import { createAudioManager } from '@upstreet/chat/utils/audio/audio-manager';
 
 // import {AudioManager} from "@upstreet/chat/utils/audio/audio-manager";
@@ -22,6 +22,7 @@ interface MultiplayerActionsContextType {
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
   epoch: number
+  skipAudioMessage: (streamId: string) => void
 }
 
 const MultiplayerActionsContext = React.createContext<MultiplayerActionsContextType | undefined>(
@@ -312,7 +313,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     });
   };
 
-  const ensureAudioStream = (playerId: any, streamId: any, audioContext: AudioContext) => {
+  const ensureAudioStream = (playerId: any, streamId: any, audioContext: AudioContext,mimeType: string) => {
 
     if (typeof window === "undefined") return;
 
@@ -320,9 +321,14 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     let audioStream = outputAudioStreams.get(playerId);
 
     if (!audioStream) {
-      const stream = createMp3AudioOutputStream({
+      const createAudioOutputStream = audioOutputStreamFactory(mimeType);
+      const stream = createAudioOutputStream({
         audioContext,
       });
+      // const stream = createOpusAudioOutputStream({
+      //   audioContext,
+      // });
+      console.log('stream: ',stream);
       outputAudioStreams.set(playerId, stream);
       audioStream = stream;
       const audioManagerInput = audioManager.getInput();
@@ -500,9 +506,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         playerId,
         streamId,
         data,
+        mimeType,
       } = e.data;
 
-      const audioStream = ensureAudioStream(playerId, streamId,audioContext);
+      const audioStream = ensureAudioStream(playerId, streamId,audioContext,mimeType);
       audioStream.write(data);
     })
 
@@ -578,6 +585,12 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       }
     };
 
+    const sendAudioSkipMessage = (streamId: any) => {
+      if (realms){
+        realms.sendSkipAudioMessage(streamId);
+      }
+    }
+
     const multiplayerState = {
       getRoom: () => room,
       getLocalPlayerSpec: () => localPlayerSpec,
@@ -646,6 +659,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage('say', {
           text,
         }),
+      sendAudioSkipMessage: (message: any) => sendAudioSkipMessage(message),
     };
     return multiplayerState;
   });
@@ -657,10 +671,11 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
+  const skipAudioMessage = multiplayerState.sendAudioSkipMessage;
 
   return (
     <MultiplayerActionsContext.Provider
-      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch }}
+      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch, skipAudioMessage }}
     >
       {children}
     </MultiplayerActionsContext.Provider>

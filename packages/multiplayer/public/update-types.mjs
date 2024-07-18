@@ -15,4 +15,5 @@ export const UPDATE_METHODS = {
   CHAT: 14,
   AUDIO: 15,
   AUDIO_END: 16,
+  SKIP_AUDIO: 17,
 };
