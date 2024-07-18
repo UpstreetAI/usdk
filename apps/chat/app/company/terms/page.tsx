@@ -19,7 +19,7 @@ export default function Terms() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-6xl px-6 pt-8 pb-16">
+    <div className="mx-auto max-w-6xl px-6 pt-8 pb-16 markdown">
       <ReactMarkdown>{md}</ReactMarkdown>
     </div>
   );
