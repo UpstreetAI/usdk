@@ -1,8 +1,17 @@
+'use client'
+ 
+import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons';
 
 export default function Footer() {
+
+  const pathname = usePathname();
+
+  // HIDE FOOTER WHEN USER IS ON CHAT PAGE
+  if(pathname.startsWith('/room')) return null;
+
   return (
     <footer className="mx-auto px-6">
       <div className="grid grid-cols-1 gap-8 py-12 text-white transition-colors duration-150 border-b lg:grid-cols-12 border-zinc-600">
