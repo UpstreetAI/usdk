@@ -7,6 +7,7 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
 interface MultiplayerActionsContextType {
   getRoom: () => string
+  getCrdtDoc: () => any
   localPlayerSpec: PlayerSpec
   playersMap: Map<string, Player>
   playersCache: Map<string, Player>
@@ -83,7 +84,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
-    audioManager: null,
+    // audioManager: null,
   });
 
   const playersMap = new Map<string, Player>();
@@ -349,7 +350,9 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       rootRealmKey: room,
     });
     // console.log('update realms keys 2');
-  })();
+  })().catch(err => {
+    console.warn(err);
+  });
 
   return realms;
 };
@@ -393,6 +396,20 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
     const multiplayerState = {
       getRoom: () => room,
+      getCrdtDoc: () => {
+        // console.log('got realms 1', realms);
+        if (realms) {
+          const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+          // console.log('got realms 2', headRealm, headRealm);
+          if (headRealm) {
+            return headRealm.networkedCrdtClient.getDoc();
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      },
       getLocalPlayerSpec: () => localPlayerSpec,
       getPlayersMap: () => playersMap,
       getPlayersCache: () => playersCache,
@@ -448,6 +465,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     return multiplayerState;
   });
   const getRoom = multiplayerState.getRoom;
+  const getCrdtDoc = multiplayerState.getCrdtDoc;
   const localPlayerSpec = multiplayerState.getLocalPlayerSpec();
   const playersMap = multiplayerState.getPlayersMap();
   const playersCache = multiplayerState.getPlayersCache();
@@ -458,7 +476,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
   return (
     <MultiplayerActionsContext.Provider
-      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch }}
+      value={{ getRoom, getCrdtDoc, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch }}
     >
       {children}
     </MultiplayerActionsContext.Provider>

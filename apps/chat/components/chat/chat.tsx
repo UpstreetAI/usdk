@@ -23,6 +23,7 @@ import { useSupabase } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 import { Button } from '@/components/ui/button'
+import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 
 type Message = {
   args: {
@@ -62,7 +63,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     messages: rawMessages,
     setMultiplayerConnectionParameters,
     sendRawMessage,
-    sendChatMessage,
+    // sendChatMessage,
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
@@ -103,7 +104,6 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
 
   useEffect(() => {
     if (room && user) {
-      console.log('got user', user);
       const localPlayerSpec: PlayerSpec = {
         id: (user as any).id as string,
         name: (user as any).name as string,
@@ -120,11 +120,13 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   }, [room, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor()
+    useScrollAnchor();
 
+  const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
+  
   return (
     <div
-      className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
+      className={`group w-full duration-300 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
       ref={scrollRef}
     >
       <div

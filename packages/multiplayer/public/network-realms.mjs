@@ -1,4 +1,6 @@
 import {DataClient, NetworkedDataClient, DCMap, DCArray} from './data-client.mjs';
+import {NetworkedCrdtClient} from './crdt-client.mjs';
+import {NetworkedLockClient} from './lock-client.mjs';
 import {NetworkedIrcClient} from './irc-client.mjs';
 // import {createOpusMicrophoneSource, createOpusReadableStreamSource} from './audio/audio-client.mjs';
 import {NetworkedAudioClient} from './audio/networked-audio-client.mjs';
@@ -702,22 +704,22 @@ class VirtualPlayersArray extends EventTarget {
     _linkData();
 
     const _linkAudio = () => {
-      const audiostreamstart = e => {
-        this.dispatchEvent(new MessageEvent('audiostreamstart', {
+      const audio = e => {
+        this.dispatchEvent(new MessageEvent('audio', {
           data: e.data,
         }));
       };
-      networkedAudioClient.addEventListener('audiostreamstart', audiostreamstart);
-      const audiostreamend = e => {
-        this.dispatchEvent(new MessageEvent('audiostreamend', {
+      networkedAudioClient.addEventListener('audio', audio);
+      const audioend = e => {
+        this.dispatchEvent(new MessageEvent('audioend', {
           data: e.data,
         }));
       };
-      networkedAudioClient.addEventListener('audiostreamend', audiostreamend);
+      networkedAudioClient.addEventListener('audioend', audioend);
 
       this.cleanupFns.set(networkedAudioClient, () => {
-        networkedAudioClient.removeEventListener('audiostreamstart', audiostreamstart);
-        networkedAudioClient.removeEventListener('audiostreamend', audiostreamend);
+        networkedAudioClient.removeEventListener('audio', audio);
+        networkedAudioClient.removeEventListener('audioend', audioend);
       });
     };
     _linkAudio();
@@ -1328,10 +1330,12 @@ export class NetworkRealm extends EventTarget {
         realm: this,
       },
     });
+    this.networkedCrdtClient = new NetworkedCrdtClient();
+    this.networkedLockClient = new NetworkedLockClient();
     this.networkedIrcClient = new NetworkedIrcClient(this.parent.playerId);
     this.networkedAudioClient = new NetworkedAudioClient({
       playerId: this.parent.playerId,
-      audioManager: this.parent.audioManager,
+      // audioManager: this.parent.audioManager,
     });
 
     // this.microphoneSource = null;
@@ -1363,6 +1367,12 @@ export class NetworkRealm extends EventTarget {
     await Promise.all([
       this.networkedDataClient.connect(ws1).then(() => {
         // console.log('networkedDataClient connected');
+      }),
+      this.networkedCrdtClient.connect(ws1).then(() => {
+        // console.log('networkedIrcClient connected');
+      }),
+      this.networkedLockClient.connect(ws1).then(() => {
+        // console.log('networkedIrcClient connected');
       }),
       this.networkedIrcClient.connect(ws1).then(() => {
         // console.log('networkedIrcClient connected');
@@ -1418,7 +1428,11 @@ export class NetworkRealm extends EventTarget {
     this.connected = false;
 
     if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.close();
+      if (this.ws.terminate) {
+        this.ws.terminate();
+      } else {
+        this.ws.close();
+      }
     }
 
     this.dispatchEvent(new MessageEvent('disconnect', {
@@ -1477,7 +1491,7 @@ export class NetworkRealms extends EventTarget {
   constructor({
     endpointUrl,
     playerId,
-    audioManager,
+    // audioManager,
   }) {
     super();
 
@@ -1492,7 +1506,7 @@ export class NetworkRealms extends EventTarget {
     }
     this.endpointUrl = endpointUrl;
     this.playerId = playerId;
-    this.audioManager = audioManager;
+    // this.audioManager = audioManager;
 
     // this.lastKey = '';
     // this.lastPosition = [NaN, NaN, NaN];
@@ -1822,7 +1836,7 @@ export class NetworkRealms extends EventTarget {
     if (headRealm) {
       headRealm.sendChatMessage(message);
     } else {
-      throw new Error('no connected realm to send chat message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(','));
+      throw new Error('no connected realm to send chat message to: ' + this.lastRootRealmKey + ': ' + Array.from(this.connectedRealms.values()).map(realm => realm.key).join(',') + '\n' + new Error().stack);
     }
   }
 

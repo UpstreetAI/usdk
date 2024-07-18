@@ -4,6 +4,9 @@ import Image from 'next/image'
 import { getAgentUrl, getAgentPreviewImageUrl, resolveRelativeUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
+import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
+import { IconChat, IconShare } from '@/components/ui/icons'
+import { Button } from '@/components/ui/button'
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -27,16 +30,13 @@ export function ChatMessage({
   media,
   name,
   player,
-  room,
+  // room,
   timestamp,
   // user,
 }: ChatMessageProps) {
   if (!player) {
     throw new Error('Player is required')
   }
-  // if (!user) {
-  //   throw new Error('User is required')
-  // }
 
   const playerSpec = player.getPlayerSpec();
   const agentUrl = getAgentUrl(playerSpec);
@@ -44,11 +44,42 @@ export function ChatMessage({
 
   // check if the avatarURL is a valid url
   const isExternalURL = isValidUrl(avatarURL);
+
+  const { popoverUserId, togglePopoverUserId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
   
   return (
     <div>
-      {/*{ JSON.stringify( player )}*/}
-      <div className={'grid grid-cols-message bt-0'}>
+      <div className={'relative grid grid-cols-message bt-0'}>
+        {(popoverUserId === playerSpec.id) && (
+          <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
+            <Link
+              className="flex flex-col w-full"
+              href={`/agents/${playerSpec.name}`}
+              onClick={e => {
+                togglePopoverUserId('');
+              }}
+            >
+              <Button
+                variant="secondary"
+                className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
+              >
+                <IconShare className="mr-2" />
+                <div>Profile</div>
+              </Button>
+            </Link>
+            <Button
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
+              onClick={(e) => {
+                toggleOpenDm(playerSpec.id);
+                togglePopoverUserId('');
+              }}
+            >
+              <IconChat className="mr-2" />
+              <div>Direct message</div>
+            </Button>
+          </div>
+        )}
         <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
           {avatarURL && isExternalURL ? (
@@ -58,9 +89,20 @@ export function ChatMessage({
           )}
         </Link>
         <div className="">
-          <Link href={agentUrl} className="font-bold mr-2 hover:underline">
+          {/* <Link href={agentUrl} className="font-bold mr-2 hover:underline">
             {name}
-          </Link>
+          </Link> */}
+          <span
+            className="font-bold mr-2 cursor-pointer hover:underline"
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              togglePopoverUserId(playerSpec.id);
+            }}
+          >
+            {name}
+          </span>
           <span className="opacity-75 text-xs font-medium">
             {timestamp ? timeAgo.format(timestamp) : null}
           </span>

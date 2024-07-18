@@ -66,6 +66,8 @@ const assetManifest = JSON.parse(manifestJSON);
 import {zbencode, zbdecode} from "../public/encoding.mjs";
 import {DataClient, NetworkedDataClient, DCMap, DCArray} from "../public/data-client.mjs";
 import {NetworkedIrcClient} from "../public/irc-client.mjs";
+import {NetworkedCrdtClient} from "../public/crdt-client.mjs";
+import {NetworkedLockClient} from "../public/lock-client.mjs";
 import {handlesMethod as networkedAudioClientHandlesMethod} from "../public/audio/networked-audio-client-utils.mjs";
 import {parseUpdateObject, serializeMessage} from "../public/util.mjs";
 import {UPDATE_METHODS} from "../public/update-types.mjs";
@@ -269,6 +271,8 @@ const readCrdtFromStorage = async (storage, arrayNames) => {
   return crdt;
 };
 const dataClientPromises = new Map();
+const crdtClientPromises = new Map();
+const lockClientPromises = new Map();
 
 //
 
@@ -399,12 +403,39 @@ export class ChatRoom {
       })();
       dataClientPromises.set(roomName, dataClientPromise);
     }
+    let crdtClientPromise = crdtClientPromises.get(roomName);
+    if (!crdtClientPromise) {
+      crdtClientPromise = (async () => {
+        let initialUpdate = await this.storage.get('crdt');
+        console.log('get room crdt', initialUpdate);
+        const crdtClient = new NetworkedCrdtClient({
+          initialUpdate,
+        });
+        crdtClient.addEventListener('update', async e => {
+          const uint8array = crdtClient.getStateAsUpdate();
+          // console.log('put room crdt', uint8array);
+          await this.storage.put('crdt', uint8array);
+        });
+        return crdtClient;
+      })();
+      crdtClientPromises.set(roomName, crdtClientPromise);
+    }
+    let lockClientPromise = lockClientPromises.get(roomName);
+    if (!lockClientPromise) {
+      lockClientPromise = (async () => {
+        const lockClient = new NetworkedLockClient();
+        return lockClient;
+      })();
+      lockClientPromises.set(roomName, lockClientPromise);
+    }
 
     const _resumeWebsocket = _pauseWebSocket(webSocket);
 
     const dataClient = await dataClientPromise;
+    const crdtClient = await crdtClientPromise;
+    const lockClient = await lockClientPromise;
     const networkClient = {
-      serializeMessage(message) {
+      /* serializeMessage(message) {
         if (message.type === 'networkinit') {
           const {playerIds} = message.data;
           return zbencode({
@@ -416,7 +447,7 @@ export class ChatRoom {
         } else {
           throw new Error('invalid message type: ' + message.type);
         }
-      },
+      }, */
       getNetworkInitMessage: () => {
         return new MessageEvent('networkinit', {
           data: {
@@ -428,11 +459,13 @@ export class ChatRoom {
       },
     };
 
-  let session = {webSocket, playerId/*, blockedMessages: []*/};
+    let session = {webSocket, playerId/*, blockedMessages: []*/};
     this.sessions.push(session);
 
     // send import
-    webSocket.send(dataClient.serializeMessage(dataClient.getImportMessage()));
+    webSocket.send(serializeMessage(dataClient.getImportMessage()));
+    // send initial update
+    webSocket.send(serializeMessage(crdtClient.getInitialUpdateMessage()));
     // send network init
     webSocket.send(serializeMessage(networkClient.getNetworkInitMessage()));
 
@@ -461,7 +494,7 @@ export class ChatRoom {
               listen: false,
             });
             const removeMapUpdate = map.removeUpdate();
-            const removeMapUpdateBuffer = dataClient.serializeMessage(removeMapUpdate);
+            const removeMapUpdateBuffer = serializeMessage(removeMapUpdate);
             proxyMessageToPeers(removeMapUpdateBuffer);
 
             /* const array = dataClient.getArray(arrayId, {
@@ -472,7 +505,7 @@ export class ChatRoom {
                 listen: false,
               });
               const removeMessage = map.removeUpdate();
-              const removeArrayUpdateBuffer = dataClient.serializeMessage(removeMessage);
+              const removeArrayUpdateBuffer = serializeMessage(removeMessage);
               proxyMessageToPeers(removeArrayUpdateBuffer);
             } */
           }
@@ -484,12 +517,15 @@ export class ChatRoom {
               listen: false,
             });
             const removeMessage = map.removeUpdate();
-            const removeArrayUpdateBuffer = dataClient.serializeMessage(removeMessage);
+            const removeArrayUpdateBuffer = serializeMessage(removeMessage);
             proxyMessageToPeers(removeArrayUpdateBuffer);
           }
         }
         // console.log('iter end');
       }
+    };
+    const _triggerUnlocks = () => {
+      lockClient.serverUnlockSession(session);
     };
 
     dataClient.addEventListener('deadhand', e => {
@@ -589,6 +625,47 @@ export class ChatRoom {
           dataClient.emitUpdate(update);
           proxyMessageToPeers(uint8Array);
         }
+      }
+      if (NetworkedCrdtClient.handlesMethod(method)) {
+        const [update] = args;
+        crdtClient.update(update);
+        proxyMessageToPeers(uint8Array);
+      }
+      if (NetworkedLockClient.handlesMethod(method)) {
+        const m = (() => {
+          const [lockName] = args;
+          switch (method) {
+            case UPDATE_METHODS.LOCK_REQUEST: {
+              return new MessageEvent('lockRequest', {
+                data: {
+                  playerId,
+                  lockName,
+                },
+              });
+            }
+            case UPDATE_METHODS.LOCK_RESPONSE: {
+              return new MessageEvent('lockResponse', {
+                data: {
+                  playerId,
+                  lockName,
+                },
+              });
+            }
+            case UPDATE_METHODS.LOCK_RELEASE: {
+              return new MessageEvent('lockRelease', {
+                data: {
+                  playerId,
+                  lockName,
+                },
+              });
+            }
+            default: {
+              console.warn('unrecognized lock method', method);
+              break
+            }
+          }
+        })();
+        lockClient.handle(m);
       }
       if (NetworkedIrcClient.handlesMethod(method)) {
         // console.log('route', method, args, this.sessions);
@@ -725,6 +802,7 @@ export class ChatRoom {
         this.sessions = this.sessions.filter(member => member !== session);
 
         _triggerDeadHands();
+        _triggerUnlocks();
 
         // console.log('send leave', new Error().stack);
         // _sendLeaveMessage();

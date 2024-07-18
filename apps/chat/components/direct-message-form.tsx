@@ -10,20 +10,31 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
+import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { newChat } from '@/lib/chat/actions'
 import { cn } from '@/lib/utils'
 
-export function PromptForm({
-  input,
-  setInput
+function DirectMessageForm({
+  userId,
 }: {
-  input: string
-  setInput: (value: string) => void
+  userId: string,
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
+  const [input, setInput] = React.useState('');
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { sendChatMessage } = useMultiplayerActions()
+
+  const {
+    playersCache,
+  } = useMultiplayerActions()
+  const player = playersCache.get(userId);
+  const playerSpec = (player as any).getPlayerSpec();
+  
+  const sendDirectMessage = (text: string) => {
+    console.log('send direct message', { text });
+    // XXX implement this in multiplayer
+    debugger;
+  };
 
   const toggleMediaPicker = () => {
     setMediaPickerOpen(open => !open)
@@ -34,11 +45,7 @@ export function PromptForm({
     setInput('')
     if (!value) return
 
-    // Submit and get response message
-    // const responseMessage = await submitUserMessage(value)
-    // setMessages(currentMessages => [...currentMessages, responseMessage])
-    console.log('submit chat message', value);
-    sendChatMessage(value);
+    sendDirectMessage(value);
   };
 
   const onKeyDown = (
@@ -61,13 +68,14 @@ export function PromptForm({
   return (
     <form
       // ref={formRef}
+      className="absolute bottom-0 left-4 right-4 space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4"
       onSubmit={async (e: any) => {
         e.preventDefault()
         submitMessage()
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
-        {/* // XXX abstract this out to a component */}
+        {/* // XXX use the abstracted MediaPicker component */}
         {mediaPickerOpen && (
           <div className="absolute left-0 bottom-16 py-2 flex flex-col bg-background border rounded">
             <div className="mx-4 my-2 text-xs text-muted-foreground">Add media...</div>
@@ -86,36 +94,6 @@ export function PromptForm({
               <IconImage className="mr-2" />
               <div>Image</div>
             </Button>
-            {/* <Button
-              variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
-              onClick={() => {
-                console.log('click document');
-              }}
-            >
-              <IconDocument className="mr-2" />
-              <div>Document</div>
-            </Button> */}
-            {/* <Button
-              variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
-              onClick={() => {
-                console.log('click audio');
-              }}
-            >
-              <IconAudio className="mr-2" />
-              <div>Audio</div>
-            </Button> */}
-            {/* <Button
-              variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
-              onClick={() => {
-                console.log('click capture');
-              }}
-            >
-              <IconCapture className="mr-2" />
-              <div>Capture</div>
-            </Button> */}
           </div>
         )}
         <Tooltip>
@@ -138,7 +116,7 @@ export function PromptForm({
           ref={inputRef}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          placeholder="Send a message"
+          placeholder={`Send DM`}
           className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}
@@ -163,4 +141,18 @@ export function PromptForm({
       </div>
     </form>
   )
+}
+
+export function DirectMessages() {
+  const { dmsOpen, toggleOpenDm } = useDirectMessageActions();
+  return (<>
+    {dmsOpen.map((userId) => {
+      return (
+        <DirectMessageForm
+          userId={userId}
+          key={userId}
+        />
+      );
+    })}
+  </>);
 }
