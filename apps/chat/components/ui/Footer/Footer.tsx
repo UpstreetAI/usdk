@@ -23,7 +23,7 @@ export default function Footer() {
             <span className="mr-4">
               <IconUpstreet className='size-8' />
             </span>
-            <span>UPSTREET.AI</span>
+            <span>UPSTREET</span>
           </Link>
         </div>
         <div className="col-span-1 lg:col-span-2">
