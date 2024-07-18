@@ -535,9 +535,9 @@ export function createOpusDecodeTransformStream({
 
 export const audioOutputStreamFactory = (mimeType) => {
     switch (mimeType) {
-        case 'mpeg':
+        case 'audio/mpeg':
             return createMp3AudioOutputStream;
-        case 'opus':
+        case 'audio/opus':
             return createOpusAudioOutputStream;
         default:
             throw new Error(`Unsupported MIME type: ${mimeType}`);
