@@ -69,20 +69,20 @@ export default function Footer() {
                 LEGAL
               </p>
             </li>
-            <li className="py-3 md:py-0 md:pb-4">
+            {/* <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Privacy Policy
               </Link>
-            </li>
+            </li> */}
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/"
+                href="/company/terms"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
-                Terms of Use
+                Terms of Service
               </Link>
             </li>
           </ul>
