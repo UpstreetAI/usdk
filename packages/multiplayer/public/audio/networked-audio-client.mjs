@@ -140,6 +140,20 @@ export class NetworkedAudioClient extends EventTarget {
           streamId,
         },
       }));
+    } else if (method === UPDATE_METHODS.AUDIO_START) {
+
+      console.log("Audio start event received");
+      // const [
+      //   playerId,
+      //   streamId,
+      // ] = args;
+
+      // this.dispatchEvent(new MessageEvent('audioend', {
+      //   data: {
+      //     playerId,
+      //     streamId,
+      //   },
+      // }));
     } else if (method === UPDATE_METHODS.JOIN) {
       const [playerId] = args;
       this.playerIds.push(playerId);

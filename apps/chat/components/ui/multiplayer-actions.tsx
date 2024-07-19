@@ -586,6 +586,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     };
 
     const sendAudioSkipMessage = (streamId: any) => {
+      console.log("audio skip message initiated");
       if (realms){
         realms.sendSkipAudioMessage(streamId);
       }

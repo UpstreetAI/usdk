@@ -16,6 +16,12 @@ export function ChatList({ messages/*, user, isShared*/, skipAudioMessagePlaybac
     return null
   }
 
+  function handleClick(id: any){
+    console.log("skip button clicked");
+    console.log("id: ",id);
+    skipAudioMessagePlayback(id);
+  }
+
   return (
     <div className="relative mx-auto max-w-2xl px-4">
       {/* {!isShared && !user ? (
@@ -46,7 +52,7 @@ export function ChatList({ messages/*, user, isShared*/, skipAudioMessagePlaybac
         <div key={message.id}>
           {message.display}
           {index < messages.length - 1 && <Separator className="my-4" />}
-          <button onClick={() => skipAudioMessagePlayback(message.id)}>Skip</button>
+          <button onClick={ () => handleClick(message.id)}>Skip</button>
         </div>
       )}
     </div>
