@@ -94,11 +94,14 @@ export class NetworkedAudioClient extends EventTarget {
     this.ws.addEventListener('message', e => {
       // console.log('got irc data', e.data);
       if (e?.data?.byteLength > 0) {
+        console.log('received a message in network audio listner');
         const updateBuffer = e.data;
         const uint8Array = new Uint8Array(updateBuffer);
         const updateObject = parseUpdateObject(uint8Array);
 
         const {method /*, args */} = updateObject;
+
+        console.log('networkAudioListner: method', method);
         if (handlesMethod(method)) {
           this.handleUpdateObject(updateObject);
         }

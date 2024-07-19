@@ -702,6 +702,16 @@ class VirtualPlayersArray extends EventTarget {
     _linkData();
 
     const _linkAudio = () => {
+
+      const audioStart = e => {
+        console.log("audio start received");
+        this.dispatchEvent(new MessageEvent('audiostart', {
+          data: e.data
+        }));
+      };
+
+      networkedAudioClient.addEventListener('audiostart', audioStart);
+
       const audiostreamstart = e => {
         this.dispatchEvent(new MessageEvent('audio', {
           data: e.data,
@@ -715,7 +725,9 @@ class VirtualPlayersArray extends EventTarget {
       };
       networkedAudioClient.addEventListener('audioend', audiostreamend);
 
+
       this.cleanupFns.set(networkedAudioClient, () => {
+        networkedAudioClient.removeEventListener('audiostart', audioStart);
         networkedAudioClient.removeEventListener('audio', audiostreamstart);
         networkedAudioClient.removeEventListener('audioend', audiostreamend);
       });
