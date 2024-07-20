@@ -1,17 +1,9 @@
-import { Bio } from '@/components/account/bio'
-import { Name } from '@/components/account/name'
-import { ProfileImage } from '@/components/account/profile-image'
+import { Info } from '@/components/account/info'
 import { AccountPrivateUi } from './private-ui';
-// import { EditableText } from '@/components/editable-text'
-// import { env } from '@/lib/env'
-// import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
-import React from 'react'
-// import { Button } from '@/components/ui/button'
-// import { IconEdit } from '@/components/ui/icons'
-import { redirect } from 'next/navigation'
-// import { resolveRelativeUrl } from '@/lib/utils'
-import { routes } from '@/routes'
-import { getUserAccount, getUserAccountPrivate, waitForUser } from '@/utils/supabase/server'
+import React from 'react';
+import { redirect } from 'next/navigation';
+import { routes } from '@/routes';
+import { getUserAccount, getUserAccountPrivate, waitForUser } from '@/utils/supabase/server';
 
 
 export interface AccountProps {
@@ -45,18 +37,19 @@ export async function Account({ params: { id }}: AccountProps) {
   }
 
   return (
-    <div className="flex flex-col flex-nowrap p-4">
-      <ProfileImage user={user} userIsCurrentUser={userIsCurrentUser} />
-      <Name user={user} userIsCurrentUser={userIsCurrentUser} />
-      <Bio user={user} userIsCurrentUser={userIsCurrentUser} />
-      {userIsCurrentUser && <AccountPrivateUi
-        user={user}
-        userPrivate={userPrivate}
-      />}
-
-      {/*<div className="whitespace-pre-wrap">
-        {JSON.stringify( user, null, ' ' )}
-      </div>*/}
+    <div className="flex flex-col flex-nowrap p-4 mx-auto max-w-4xl">
+      <div className="max-w-6xl px-4 py-8 mx-auto sm:px-6 sm:pt-14 lg:px-8">
+        <div className="sm:align-center sm:flex sm:flex-col">
+          <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+            Welcome, {user?.name}
+          </h1>
+          <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
+            Manage your info, privacy, and subscriptions to make your experience at Upstreet better.
+          </p>
+        </div>
+      </div>
+      <Info user={user} userIsCurrentUser={userIsCurrentUser} />
+      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} />}
     </div>
   );
 }

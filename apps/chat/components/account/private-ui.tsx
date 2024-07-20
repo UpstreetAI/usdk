@@ -3,7 +3,7 @@
 // import { Bio } from '@/components/account/bio'
 // import { Name } from '@/components/account/name'
 // import { ProfileImage } from '@/components/account/profile-image'
-import { Button, type ButtonProps } from '@/components/ui/button'
+import { Button, type ButtonProps } from '@/components/ui/Button'
 import { aiHost } from '@/utils/const/endpoints';
 // import { EditableText } from '@/components/editable-text'
 // import { env } from '@/lib/env'
@@ -31,19 +31,31 @@ const plans = [
   {
     price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
     name: 'hobby',
-    label: `$20/mo`
+    value: 5,
+    currency: `$`,
+    interval: 'mo'
   },
   {
     price: 'price_1PeZLaGQNhufWPO8830LJKJg',
-    name: 'developer',
-    label: `$50/mo`
+    name: 'pro',
+    value: 25,
+    currency: `$`,
+    interval: 'mo'
   },
   {
     price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
-    name: 'business',
-    label: `$200/mo`
-  },
+    name: 'advanced',
+    value: 150,
+    currency: `$`,
+    interval: 'mo'
+  }
 ];
+
+//
+
+const creditUnit = 1000; // is multiplied by the value in plans array
+
+//
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -60,24 +72,47 @@ const SubscriptionPlans = ({
 
   return (
     <div>
-      <div>Subscription Plans</div>
-      <div className="flex">
+      <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 flex flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
         {plans.map((plan, i) => {
           const {
             name,
-            label,
+            currency,
+            value,
+            interval
           } = plan;
           return (
-            <Button
-              variant="outline"
-              className={cn("cursor-pointer", name === selectedPlan && 'bg-primary/10')}
-              onClick={e => {
-                setSelectedPlan(name);
-              }}
+            <div
               key={i}
+              className={cn(
+                'flex flex-col rounded-lg shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
+                {
+                  'border border-pink-500': name === selectedPlan
+                },
+                'flex-1',
+                'basis-1/4',
+                'max-w-xs'
+              )}
             >
-              {capitalize(name)} - {label}
-            </Button>
+              <div className="p-6">
+                <h2 className="text-2xl font-semibold leading-6 text-white capitalize">
+                  {name}
+                </h2>
+                <p className="mt-4 text-zinc-300">{value * creditUnit} Credits</p>
+                <p className="mt-8">
+                  <span className="text-5xl font-extrabold white">
+                    {currency}{value}
+                  </span>
+                  <span className="text-base font-medium text-zinc-100">
+                    /{interval}
+                  </span>
+                </p>
+                <Button
+                  className='w-full mt-8'
+                >
+                  Subscribe
+                </Button>
+              </div>
+            </div>
           );
         })}
       </div>
@@ -129,80 +164,80 @@ const StripeConnectButtons = ({
 
   return (
     <>
-    {!stripe_connect_account_id ? (
-      <>
-        <div>Stripe connect</div>
-        <Button
-          variant="outline"
-          onClick={async () => {
-            // stripe connect
-            console.log('stripe connect');
+      {!stripe_connect_account_id ? (
+        <>
+          <div>Stripe connect</div>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              // stripe connect
+              console.log('stripe connect');
 
-            const res = await fetch(`${aiHost}/stripe/account`, {
-              method: 'POST',
-            });
-            if (res.ok) {
-              const j = await res.json();
-              console.log('created account', j);
+              const res = await fetch(`${aiHost}/stripe/account`, {
+                method: 'POST',
+              });
+              if (res.ok) {
+                const j = await res.json();
+                console.log('created account', j);
 
-              const res2 = await fetch(`${aiHost}/stripe/account_link`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  account: j.account,
-                  return_url: `${window.location.origin}`,
-                  refresh_url: `${window.location.origin}`,
-                }),
-              })
-              if (res2.ok) {
-                const j = await res2.json();
-                const { url, error } = j;
-                if (!error) {
-                  window.location.href = url;
+                const res2 = await fetch(`${aiHost}/stripe/account_link`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    account: j.account,
+                    return_url: `${window.location.origin}`,
+                    refresh_url: `${window.location.origin}`,
+                  }),
+                })
+                if (res2.ok) {
+                  const j = await res2.json();
+                  const { url, error } = j;
+                  if (!error) {
+                    window.location.href = url;
+                  } else {
+                    console.warn(error);
+                  }
                 } else {
-                  console.warn(error);
+                  console.warn('failed to create account link:', res2.status);
                 }
               } else {
-                console.warn('failed to create account link:', res2.status);
+                console.warn('failed to create account:', res.status);
               }
-            } else {
-              console.warn('failed to create account:', res.status);
-            }
 
-            // setIsLoading(true)
-            // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-            // signIn('github', { callbackUrl: `/` })
-          }}
+              // setIsLoading(true)
+              // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+              // signIn('github', { callbackUrl: `/` })
+            }}
           // disabled={isLoading}
           // className={cn(className)}
           // {...props}
-        >
-          Connect Stripe 
-        </Button>
-      </>
-    ) : (
-      <div>
-        <div>Connected stripe account: {stripe_connect_account_id}</div>
-        <Button
-          variant="outline"
-          onClick={() => {
-            // stripe connect
-            console.log('stripe disconnect');
+          >
+            Connect Stripe
+          </Button>
+        </>
+      ) : (
+        <div>
+          <div>Connected stripe account: {stripe_connect_account_id}</div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              // stripe connect
+              console.log('stripe disconnect');
 
-            // setIsLoading(true)
-            // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-            // signIn('github', { callbackUrl: `/` })
-          }}
+              // setIsLoading(true)
+              // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+              // signIn('github', { callbackUrl: `/` })
+            }}
           // disabled={isLoading}
           // className={cn(className)}
           // {...props}
-        >
-          Disonnect Stripe
-        </Button>
-      </div>
-    )}
+          >
+            Disonnect Stripe
+          </Button>
+        </div>
+      )}
 
       {/*<div className="whitespace-pre-wrap">
         {JSON.stringify( user, null, ' ' )}
@@ -217,6 +252,14 @@ export function AccountPrivateUi({
 }: AccountPrivateUiProps) {
   return (
     <>
+      <div className="sm:flex sm:flex-col sm:align-center pt-8">
+        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+          Subscription Plans
+        </h1>
+        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
+          Subscribe to a plan to get monthly credits.
+        </p>
+      </div>
       <SubscriptionPlans user={user} userPrivate={userPrivate} />
       <StripeConnectButtons user={user} userPrivate={userPrivate} />
     </>
