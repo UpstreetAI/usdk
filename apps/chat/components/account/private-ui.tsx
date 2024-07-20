@@ -31,16 +31,21 @@ const plans = [
   {
     price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
     name: 'hobby',
+    label: `$20/mo`
   },
   {
     price: 'price_1PeZLaGQNhufWPO8830LJKJg',
     name: 'developer',
+    label: `$50/mo`
   },
   {
     price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
     name: 'business',
+    label: `$200/mo`
   },
 ];
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const SubscriptionPlans = ({
   user,
@@ -59,19 +64,19 @@ const SubscriptionPlans = ({
       <div className="flex">
         {plans.map((plan, i) => {
           const {
-            // id,
             name,
+            label,
           } = plan;
           return (
             <Button
               variant="outline"
-              className={cn("capitalize cursor-pointer", name === selectedPlan && 'bg-primary/10')}
+              className={cn("cursor-pointer", name === selectedPlan && 'bg-primary/10')}
               onClick={e => {
                 setSelectedPlan(name);
               }}
               key={i}
             >
-              {name}
+              {capitalize(name)} - {label}
             </Button>
           );
         })}
