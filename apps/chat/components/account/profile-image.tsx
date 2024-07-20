@@ -24,7 +24,7 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
         src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}
         height={100}
         width={100}
-        className="border-2 rounded-xl drop-shadow-xl size-40"
+        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48"
       />
       {userIsCurrentUser ? (
         <Button

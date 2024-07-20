@@ -46,7 +46,7 @@ export function Info({ user, userIsCurrentUser }: InfoProps) {
           <p className="text-zinc-300">Your personal information, including your name, bio, and image, will be used during interactions with agents and other users. This helps create a personalized and tailored experience.</p>
           <div className="mt-8 mb-4 text-xl font-semibold flex">
             <ProfileImage user={user} userIsCurrentUser={userIsCurrentUser} />
-            <div>
+            <div className='w-full'>
               <input
                 type="text"
                 name="fullName"
@@ -78,9 +78,6 @@ export function Info({ user, userIsCurrentUser }: InfoProps) {
         </div>
         </div>
       </div>
-
-
     </div>
-
   )
 }
