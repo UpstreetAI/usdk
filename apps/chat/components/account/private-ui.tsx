@@ -3,7 +3,7 @@
 // import { Bio } from '@/components/account/bio'
 // import { Name } from '@/components/account/name'
 // import { ProfileImage } from '@/components/account/profile-image'
-import { Button, type ButtonProps } from '@/components/ui/Button'
+import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
 // import { EditableText } from '@/components/editable-text'
 // import { env } from '@/lib/env'
@@ -84,7 +84,7 @@ const SubscriptionPlans = ({
             <div
               key={i}
               className={cn(
-                'flex flex-col rounded-lg shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
+                'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
                 {
                   'border border-pink-500': name === selectedPlan
                 },

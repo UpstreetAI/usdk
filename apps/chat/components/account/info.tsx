@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 'use client'
 
 import { useSupabase } from '@/lib/hooks/use-supabase'
 import React, { useState } from 'react'
 import { ProfileImage } from '@/components/account/profile-image'
-import { Button } from '../ui/Button'
+import { Button } from '@/components/ui/button';
 
 
 export interface InfoProps {
@@ -19,7 +18,6 @@ export function Info({ user, userIsCurrentUser }: InfoProps) {
   const [bio, setBio] = useState<string>(user.playerSpec.bio);
 
   const saveInfo = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const { error } = await supabase
       .from('accounts')
       .update({
