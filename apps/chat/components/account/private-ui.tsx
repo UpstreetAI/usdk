@@ -106,50 +106,49 @@ const SubscriptionPlans = ({
                     /{interval}
                   </span>
                 </p>
-                <Button
-                  className='w-full mt-8'
-                >
-                  Subscribe
-                </Button>
+                {currentPlan !== name ? (
+                  <Button
+                    className='w-full mt-8'
+                    onClick={async (e) => {
+                      // create the checkout session
+                      const jwt = await getJWT();
+                      const res = await fetch(`${aiHost}/stripe/checkout/session`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${jwt}`,
+                        },
+                        body: JSON.stringify({
+                          plan: name,
+                          success_url: location.href,
+                        }),
+                      });
+                      if (res.ok) {
+                        const j = await res.json();
+                        const {
+                          id,
+                          url,
+                        } = j;
+                        location.href = url;
+                      } else {
+                        console.warn('failed to create checkout session:', res.status);
+                      }
+                    }}
+                  >
+                    Subscribe
+                  </Button>
+                ) : (
+                  <Button
+                    className='w-full mt-8'
+                  >
+                    Manage
+                  </Button>
+                )}
               </div>
             </div>
           );
         })}
       </div>
-      <Button
-        variant="outline"
-        disabled={selectedPlan === currentPlan}
-        onClick={async (e) => {
-          // create the checkout session
-          const jwt = await getJWT();
-          const res = await fetch(`${aiHost}/stripe/checkout/session`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${jwt}`,
-            },
-            body: JSON.stringify({
-              plan: selectedPlan,
-              success_url: location.href,
-            }),
-          });
-          if (res.ok) {
-            const j = await res.json();
-            const {
-              id,
-              url,
-            } = j;
-            // console.log('got res', j);
-            location.href = url;
-          } else {
-            console.warn('failed to create checkout session:', res.status);
-          }
-          // regex: /^\/stripe\/checkout\/session$/,
-          // async fn({ req, res, env }) {
-          //   const j = await req.json();
-          //   const { plan, success_url } = j;
-        }}
-      >Update plan</Button>
     </div>
   );
 };
@@ -163,86 +162,95 @@ const StripeConnectButtons = ({
   } = userPrivate;
 
   return (
-    <>
+    <div className="flex m-auto w-full max-w-4xl mt-8">
       {!stripe_connect_account_id ? (
-        <>
-          <div>Stripe connect</div>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              // stripe connect
-              console.log('stripe connect');
+        <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
+          <div className="px-5 py-4">
+            <h3 className="mb-1 text-2xl font-medium">Stripe connect</h3>
+            <p className="text-zinc-300">No stripe account connected.</p>
+          </div>
+          <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
+            <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
+              <p className="pb-4 sm:pb-0">Connect to your stripe account</p>
+              <Button
+                onClick={async () => {
+                  // stripe connect
+                  console.log('stripe connect');
 
-              const res = await fetch(`${aiHost}/stripe/account`, {
-                method: 'POST',
-              });
-              if (res.ok) {
-                const j = await res.json();
-                console.log('created account', j);
+                  const res = await fetch(`${aiHost}/stripe/account`, {
+                    method: 'POST',
+                  });
+                  if (res.ok) {
+                    const j = await res.json();
+                    console.log('created account', j);
 
-                const res2 = await fetch(`${aiHost}/stripe/account_link`, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    account: j.account,
-                    return_url: `${window.location.origin}`,
-                    refresh_url: `${window.location.origin}`,
-                  }),
-                })
-                if (res2.ok) {
-                  const j = await res2.json();
-                  const { url, error } = j;
-                  if (!error) {
-                    window.location.href = url;
+                    const res2 = await fetch(`${aiHost}/stripe/account_link`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        account: j.account,
+                        return_url: `${window.location.origin}`,
+                        refresh_url: `${window.location.origin}`,
+                      }),
+                    })
+                    if (res2.ok) {
+                      const j = await res2.json();
+                      const { url, error } = j;
+                      if (!error) {
+                        window.location.href = url;
+                      } else {
+                        console.warn(error);
+                      }
+                    } else {
+                      console.warn('failed to create account link:', res2.status);
+                    }
                   } else {
-                    console.warn(error);
+                    console.warn('failed to create account:', res.status);
                   }
-                } else {
-                  console.warn('failed to create account link:', res2.status);
-                }
-              } else {
-                console.warn('failed to create account:', res.status);
-              }
 
-              // setIsLoading(true)
-              // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-              // signIn('github', { callbackUrl: `/` })
-            }}
-          // disabled={isLoading}
-          // className={cn(className)}
-          // {...props}
-          >
-            Connect Stripe
-          </Button>
-        </>
+                  // setIsLoading(true)
+                  // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+                  // signIn('github', { callbackUrl: `/` })
+                }}
+              >
+                Connect Stripe
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : (
-        <div>
-          <div>Connected stripe account: {stripe_connect_account_id}</div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              // stripe connect
-              console.log('stripe disconnect');
+        <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
+          <div className="px-5 py-4">
+            <h3 className="mb-1 text-2xl font-medium">Stripe connect</h3>
+            <p className="text-zinc-300">Connected stripe account: {stripe_connect_account_id}</p>
+          </div>
+          <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
+            <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
+              <p className="pb-4 sm:pb-0">Connect to your stripe account</p>
+              <Button
+                onClick={() => {
+                  // stripe connect
+                  console.log('stripe disconnect');
 
-              // setIsLoading(true)
-              // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-              // signIn('github', { callbackUrl: `/` })
-            }}
-          // disabled={isLoading}
-          // className={cn(className)}
-          // {...props}
-          >
-            Disonnect Stripe
-          </Button>
+                  // setIsLoading(true)
+                  // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+                  // signIn('github', { callbackUrl: `/` })
+                }}
+              >
+                Disonnect Stripe
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
       {/*<div className="whitespace-pre-wrap">
         {JSON.stringify( user, null, ' ' )}
       </div>*/}
-    </>
+
+    </div>
   );
 };
 
