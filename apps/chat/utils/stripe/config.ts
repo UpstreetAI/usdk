@@ -10,9 +10,9 @@ export const stripe = new Stripe(
     // Register this as an official Stripe plugin.
     // https://stripe.com/docs/building-plugins#setappinfo
     appInfo: {
-      name: 'Upstreet Subscriptions',
+      name: 'Upstreet AI',
       version: '0.0.0',
-      url: 'https://upstreet.ai'
+      url: 'https://github.com/upstreetai'
     }
   }
 );
