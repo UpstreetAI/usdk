@@ -65,6 +65,17 @@ export async function getUserAccount(id: string, select = '*', supabaseClient = 
   return data?.[0] as any|null
 }
 
+export async function getUserAccountPrivate(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('accounts_private')
+    .select(select)
+    .eq( 'id', id )
+    .limit(1)
+    // .single()
+
+  return data?.[0] as any|null
+}
+
 export function getJWT() {
   const cookieStore = cookies();
   return cookieStore.get('auth-jwt')?.value;
