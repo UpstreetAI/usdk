@@ -111,7 +111,7 @@ const SubscriptionPlans = ({
               className={cn(
                 'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
                 {
-                  'border border-pink-500': name === selectedPlan,
+                  'border border-pink-500': name === selectedPlan || !selectedPlan && name === 'free',
                 },
                 'flex-1',
                 'basis-1/6',
