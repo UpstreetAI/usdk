@@ -5,6 +5,66 @@ import Jimp from 'jimp';
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from '../util/queue-manager.mjs';
+import { aiProxyHost } from '../util/endpoints.mjs';
+
+//
+
+export const encodeWebp = async (imageData) => {
+  return await webp.encode(imageData, {
+    quality: 75,
+    // lossless: 0,
+  });
+};
+
+//
+
+export const describe = async (frame, hint = `What's in this image?`, {
+  jwt,
+}) => {
+  const messages = [
+    {
+      role: 'user',
+      content: [
+        {
+          "type": "text",
+          "text": hint,
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": `data:image/webp;base64,${frame.toString('base64')}`,
+          }
+        }
+      ],
+    },
+  ];
+  const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+    method: 'POST',
+
+    headers: {
+      'Content-Type': 'application/json',
+      // 'OpenAI-Beta': 'assistants=v1',
+      Authorization: `Bearer ${jwt}`,
+    },
+
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages,
+
+      // stream,
+    }),
+    // signal,
+  });
+  if (res.ok) {
+    const j = await res.json();
+    return j.choices[0].message.content;
+  } else {
+    const text = await res.text();
+    throw new Error('invalid status code: ' + res.status + ': ' + text);
+  }
+};
+
+//
 
 export class VideoInput extends EventEmitter {
   queueManager = new QueueManager();
