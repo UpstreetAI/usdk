@@ -167,7 +167,7 @@ export class ConversationObject extends EventTarget {
     const after = filter?.after;
     const limit = filter?.limit;
 
-    // XXX implement this to go to the database. support query via embedding
+    // XXX implement this to go to the database. support query via embedding.
     throw new Error('not implemented');
 
     return [] as ActionMessage[];
