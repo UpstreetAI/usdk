@@ -1195,6 +1195,13 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
+    const getDoc = () => {
+      const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+      const { networkedCrdtClient } = headRealm;
+      const doc = networkedCrdtClient.getDoc();
+      return doc;
+    };
+
     replServer = repl.start({
       prompt: getPrompt(),
       eval: async (cmd, context, filename, callback) => {
@@ -1204,10 +1211,9 @@ const startMultiplayerListener = ({
           const cmdSplit = cmd.split(/\s+/);
           const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
           if (commandMatch) {
-            // XXX replace this with perception events
             const command = commandMatch ? commandMatch[1] : null;
             switch (command) {
-              case 'nudge': {
+              /* case 'nudge': {
                 let guid = cmdSplit[1];
                 if (!guid) {
                   const agentIds = Array.from(playersMap.keys());
@@ -1217,6 +1223,36 @@ const startMultiplayerListener = ({
 
                 await nudge(realms, guid);
 
+                break;
+              } */
+              case 'get': {
+                const key = cmdSplit[1];
+
+                const doc = getDoc();
+                if (key) {
+                  const text = doc.getText(key);
+                  const s = text.toString();
+                  console.log(s);
+                } else {
+                  const j = doc.toJSON();
+                  console.log(j);
+                }
+                break;
+              }
+              case 'set': {
+                const key = cmdSplit[1];
+                const value = cmdSplit[2];
+
+                if (key && value) {
+                  const doc = getDoc();
+                  doc.transact(() => {
+                    const text = doc.getText(key);
+                    text.delete(0, text.length);
+                    text.insert(0, value);
+                  });
+                } else {
+                  throw new Error('expected 2 arguments');
+                }
                 break;
               }
               default: {
