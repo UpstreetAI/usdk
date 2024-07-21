@@ -57,11 +57,10 @@ export function Info({ user, userIsCurrentUser }: InfoProps) {
               <textarea
                 name="fullName"
                 className="w-full h-32 p-3 rounded-md bg-zinc-800 text-sm"
+                value={bio}
                 placeholder="Bio"
                 onChange={e => setBio(e.target.value)}
-              >
-                {bio}
-              </textarea>
+              />
             </div>
           </div>
         </div>
