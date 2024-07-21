@@ -6,6 +6,16 @@ import {
   VideoInput,
 } from './video-input.mjs';
 
+/*
+ffmpeg -f avfoundation -list_devices true -i "" -hide_banner -loglevel info
+
+ffmpeg -f avfoundation -i ":1" -c:a libopus -f opus pipe:1 >/tmp/lol.opus
+
+ffmpeg -f avfoundation -framerate 30 -i "0" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+ffmpeg -f avfoundation -framerate 30 -i "1" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+ffmpeg -f v4l2 -framerate 30 -i /dev/video0 -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
+*/
+
 export class InputDevices {
   async listDevices() {
     // capture command:

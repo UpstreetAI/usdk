@@ -66,31 +66,22 @@ import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
-import webp from 'webp-wasm';
-import {
-  InputDevices,
-} from './sdk/src/devices/input-devices.mjs';
-import {
-  AudioInput,
-  encodeMp3,
-  transcribe,
-} from './sdk/src/devices/audio-input.mjs';
-import {
-  VideoInput,
-  encodeWebp,
-  describe,
-} from './sdk/src/devices/video-input.mjs';
-import vad from '@ricky0123/vad-node';
-
-/*
-ffmpeg -f avfoundation -list_devices true -i "" -hide_banner -loglevel info
-
-ffmpeg -f avfoundation -i ":1" -c:a libopus -f opus pipe:1 >/tmp/lol.opus
-
-ffmpeg -f avfoundation -framerate 30 -i "0" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
-ffmpeg -f avfoundation -framerate 30 -i "1" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
-ffmpeg -f v4l2 -framerate 30 -i /dev/video0 -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe - >/tmp/lol.webp
-*/
+// XXX imports for capture support
+// import webp from 'webp-wasm';
+// import {
+//   InputDevices,
+// } from './sdk/src/devices/input-devices.mjs';
+// import {
+//   AudioInput,
+//   encodeMp3,
+//   transcribe,
+// } from './sdk/src/devices/audio-input.mjs';
+// import {
+//   VideoInput,
+//   encodeWebp,
+//   describe,
+// } from './sdk/src/devices/video-input.mjs';
+// import vad from '@ricky0123/vad-node';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2755,7 +2746,7 @@ const test = async (args) => {
     process.exit(1);
   }
 };
-const capture = async (args) => {
+/* const capture = async (args) => {
   const microphone = args.microphone;
   const camera = args.camera;
   const screen = args.screen;
@@ -2939,7 +2930,7 @@ const capture = async (args) => {
     // console.log('devices:');
     console.log(devices);
   }
-};
+}; *
 // const deploymentTypes = ['agent', 'ui'];
 const deploy = async (args) => {
   try {
@@ -3888,7 +3879,7 @@ const main = async () => {
         await test(args);
       });
     });
-  program
+  /* program
     .command('capture')
     .description('Test display functionality')
     .option('-m, --microphone [id]', 'Enable microphone')
@@ -3908,7 +3899,7 @@ const main = async () => {
         };
         await capture(args);
       });
-    });
+    }); */
   program
     .command('deploy')
     .description('Deploy an agent to the network')
