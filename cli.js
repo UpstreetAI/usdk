@@ -1155,7 +1155,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
     typingMap,
   };
 };
-const nudge = async (realms, targetPlayerId) => {
+/* const nudge = async (realms, targetPlayerId) => {
   const o = {
     method: 'nudge',
     args: {
@@ -1163,7 +1163,7 @@ const nudge = async (realms, targetPlayerId) => {
     },
   };
   await realms.sendChatMessage(o);
-};
+}; */
 const startMultiplayerListener = ({
   userAsset,
   realms,
@@ -2472,16 +2472,6 @@ const dev = async (args) => {
 
       break;
     }
-    /* case 'simulate': {
-      await simulate({
-        _: [guidsOrDevPathIndexes],
-        dev: true,
-        vision: args.vision,
-        debug: args.debug,
-      });
-
-      break;
-    } */
     case 'listen': {
       await listen({
         _: [guidsOrDevPathIndexes],
@@ -2772,6 +2762,7 @@ const capture = async (args) => {
   const height = args.height;
   const rows = args.rows;
   const cols = args.cols ?? 80;
+  const execute = !!args.execute;
 
   if (camera && screen) {
     throw new Error('camera and screen are mutually exclusive');
@@ -2798,10 +2789,10 @@ const capture = async (args) => {
         }
 
         const myvad = await vad.NonRealTimeVAD.new({
-          positiveSpeechThreshold: 0.1,
-          negativeSpeechThreshold: 0.1,
+          // positiveSpeechThreshold: 0.1,
+          // negativeSpeechThreshold: 0.1,
         });
-        const queueManager = new QueueManager();
+        const microphoneQueueManager = new QueueManager();
 
         const sampleRate = AudioInput.defaultSampleRate;
         // const numSamples = sampleRate * 2;
@@ -2811,24 +2802,52 @@ const capture = async (args) => {
           sampleRate,
           numSamples,
         });
-        microphoneInput.on('data', (b) => {
-          // console.log('got mic data', b.length);
-          (async () => {
-            await queueManager.waitForTurn(async () => {
+
+        const bs = [];
+        let lastDetected = false;
+        microphoneInput.on('data', async (d) => {
+          // console.log('got mic data', d.length);
+          // (async () => {
+            await microphoneQueueManager.waitForTurn(async () => {
+              bs.push(d);
+
               // console.time('lol');
-              const asyncIterator = myvad.run(b, sampleRate);
+              const asyncIterator = myvad.run(d, sampleRate);
               // console.log('run iter', numSamples);
-              const results = [];
+              // const results = [];
+              let detected = false;
               for await (const vadResult of asyncIterator) {
                 // console.log('got vad result', vadResult);
-                results.push(vadResult);
+                // results.push(vadResult);
+                detected = true;
               }
-              if (results.length > 0) {
-                console.log('got vad results', results);
+
+              console.log('check detected', detected, lastDetected);
+
+              if (detected) {
+                // console.log('got vad results', results);
+              } else {
+                if (lastDetected) {
+                  const mp3BufferPromise = encodeMp3(bs);
+                  bs.length = 0;
+                  const mp3Buffer = await mp3BufferPromise;
+
+                  console.log('got mp3 buffer', mp3Buffer);
+                  if (execute) {
+                    const transcription = await transcribe(mp3Buffer, {
+                      jwt,
+                    });
+                    console.log('got transcription:', JSON.stringify(transcription));
+                  }
+                } else {
+                  // remove all except the last buffer
+                  bs.splice(0, bs.length - 1);
+                }
               }
+              lastDetected = detected;
               // console.timeEnd('lol');
             });
-          })();
+          // })();
         });
       }
       
@@ -2836,6 +2855,9 @@ const capture = async (args) => {
         if (!cameraDevice) {
           throw new Error('invalid camera device');
         }
+
+        const cameraQueueManager = new QueueManager();
+        
         const cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
           width,
           height,
@@ -2844,14 +2866,37 @@ const capture = async (args) => {
         // cameraInput.on('data', (b) => {
         //   console.log('got camera data', b);
         // });
-        cameraInput.on('frame', (imageData) => {
+        cameraInput.on('frame', async (imageData) => {
           // console.log('got camera frame', imageData);
           cameraInput.drawImage(imageData, cols, rows);
+
+          if (execute) {
+            await cameraQueueManager.waitForTurn(async () => {
+              // encode to webp
+              const frame = await encodeWebp(imageData);
+
+              // describe the image
+              const text = await describe(frame, undefined, {
+                jwt,
+              });
+              for (let i = 0; i < 30; i++) {
+                console.log('description:', text);
+              }
+
+              // // send the video frame
+              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+              // const {networkedVideoClient} = headRealm;
+              // networkedVideoClient.sendVideoFrame(frame);
+            });
+          }
         });
       } else if (screen) {
         if (!screenDevice) {
           throw new Error('invalid screen device');
         }
+
+        const screenQueueManager = new QueueManager();
+
         const screenInput = inputDevices.getVideoInput(screenDevice.id, {
           width,
           height,
@@ -2860,9 +2905,29 @@ const capture = async (args) => {
         // screenInput.on('data', (b) => {
         //   console.log('got screen data', b);
         // });
-        screenInput.on('frame', (imageData) => {
+        screenInput.on('frame', async (imageData) => {
           // console.log('got screen frame', imageData);
           screenInput.drawImage(imageData, cols, rows);
+
+          if (execute) {
+            await screenQueueManager.waitForTurn(async () => {
+              // encode to webp
+              const frame = await encodeWebp(imageData);
+
+              // describe the image
+              const text = await describe(frame, undefined, {
+                jwt,
+              });
+              for (let i = 0; i < 30; i++) {
+                console.log('description:', text);
+              }
+
+              // // send the video frame
+              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+              // const {networkedVideoClient} = headRealm;
+              // networkedVideoClient.sendVideoFrame(frame);
+            });
+          }
         });
       }
     } else {
@@ -3832,6 +3897,7 @@ const main = async () => {
     .option('-h, --height <height>', 'Render height')
     .option('-r, --rows <rows>', 'Render rows')
     .option('-l, --cols <cols>', 'Render cols')
+    .option('-x, --execute', 'Execute inference')
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
