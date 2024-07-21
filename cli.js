@@ -18,7 +18,6 @@ import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
-import webp from 'webp-wasm';
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -66,6 +65,8 @@ import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
+
+import webp from 'webp-wasm';
 import {
   InputDevices,
 } from './sdk/src/devices/input-devices.mjs';
