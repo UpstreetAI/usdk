@@ -1,6 +1,6 @@
 import { headers } from './src/constants.js';
 // import { QueueManager } from './src/util/queue-manager.mjs';
-import { makeAnonymousClient } from './src/util/supabase-client.mjs';
+import { makeAnonymousClient, getUserIdForJwt, getUserForJwt } from './src/util/supabase-client.mjs';
 // import { NetworkRealms } from './src/lib/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 // import { ConversationContext } from './src/classes/conversation-context';
@@ -294,6 +294,37 @@ export class DurableObject extends EventTarget {
             });
           }
         };
+        const handleWebhook = async () => {
+          if (request.method === 'POST') {
+            const jsonPromise = request.json();
+
+            const authorizationHeader = request.headers['authorization'];
+            const bearerMatch = authorizationHeader?.match(/^Bearer ([\s\S]+)$/i);
+            const jwt = bearerMatch?.[1];
+            const userId = jwt && await getUserIdForJwt(jwt);
+
+            const json = await jsonPromise;
+
+            console.log('got webhook payload', {
+              userId,
+              json,
+            });
+
+            return new Response(JSON.stringify({
+              userId,
+              json,
+            }), {
+              headers,
+            });
+          } else {
+            return new Response(JSON.stringify({
+              error: 'method not allowed',
+            }), {
+              status: 405,
+              headers,
+            });
+          }
+        };
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
@@ -354,6 +385,8 @@ export class DurableObject extends EventTarget {
             return await handleEvents();
           case 'status':
             return await handleStatus();
+          case 'webhook':
+            return await handleWebhook();
           case 'join':
             return await handleJoin();
           case 'leave':
