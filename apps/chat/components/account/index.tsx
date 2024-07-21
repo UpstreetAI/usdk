@@ -33,7 +33,7 @@ export async function Account({ params: { id }}: AccountProps) {
   }
 
   if (userIsCurrentUser) {
-    userPrivate = await getUserAccountPrivate(user.id, 'stripe_connect_account_id')
+    userPrivate = await getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan')
   }
 
   return (
