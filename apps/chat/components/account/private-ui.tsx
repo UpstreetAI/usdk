@@ -31,24 +31,24 @@ const plans = [
   {
     price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
     name: 'hobby',
-    value: 5,
+    value: 20,
     currency: `$`,
     interval: 'mo'
   },
   {
     price: 'price_1PeZLaGQNhufWPO8830LJKJg',
-    name: 'pro',
+    name: 'developer',
     value: 25,
     currency: `$`,
     interval: 'mo'
   },
   {
     price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
-    name: 'advanced',
+    name: 'business',
     value: 150,
     currency: `$`,
     interval: 'mo'
-  }
+  },
 ];
 
 //
