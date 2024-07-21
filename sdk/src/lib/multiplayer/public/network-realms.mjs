@@ -4,6 +4,7 @@ import {NetworkedLockClient} from './lock-client.mjs';
 import {NetworkedIrcClient} from './irc-client.mjs';
 // import {createOpusMicrophoneSource, createOpusReadableStreamSource} from './audio/audio-client.mjs';
 import {NetworkedAudioClient} from './audio/networked-audio-client.mjs';
+import {NetworkedVideoClient} from './video/networked-video-client.mjs';
 import {
   createWs,
   makePromise,
@@ -618,7 +619,7 @@ class VirtualPlayersArray extends EventTarget {
   }
 
   link(realm) {
-    const {dataClient, networkedDataClient, networkedAudioClient} = realm;
+    const {dataClient, networkedDataClient, networkedAudioClient, networkedVideoClient} = realm;
 
     const _linkData = () => {
       const playersArray = dataClient.getArray(this.arrayId);
@@ -723,16 +724,34 @@ class VirtualPlayersArray extends EventTarget {
       });
     };
     _linkAudio();
+
+    const _linkVideo = () => {
+      const video = e => {
+        this.dispatchEvent(new MessageEvent('video', {
+          data: e.data,
+        }));
+      };
+      networkedVideoClient.addEventListener('video', video);
+
+      this.cleanupFns.set(networkedVideoClient, () => {
+        networkedAudioClient.removeEventListener('video', video);
+      });
+    };
+    _linkVideo();
   }
 
   unlink(realm) {
-    const {networkedDataClient, networkedAudioClient} = realm;
+    const {networkedDataClient, networkedAudioClient, networkedVideoClient} = realm;
 
     this.cleanupFns.get(networkedDataClient)();
     this.cleanupFns.delete(networkedDataClient);
 
     this.cleanupFns.get(networkedAudioClient)();
     this.cleanupFns.delete(networkedAudioClient);
+
+    this.cleanupFns.get(networkedVideoClient)();
+    this.cleanupFns.delete(networkedVideoClient);
+
   }
 }
 
@@ -1337,6 +1356,9 @@ export class NetworkRealm extends EventTarget {
       playerId: this.parent.playerId,
       // audioManager: this.parent.audioManager,
     });
+    this.networkedVideoClient = new NetworkedVideoClient({
+      playerId: this.parent.playerId,
+    });
 
     // this.microphoneSource = null;
   }
@@ -1369,16 +1391,19 @@ export class NetworkRealm extends EventTarget {
         // console.log('networkedDataClient connected');
       }),
       this.networkedCrdtClient.connect(ws1).then(() => {
-        // console.log('networkedIrcClient connected');
+        // console.log('networkedCrdtClient connected');
       }),
       this.networkedLockClient.connect(ws1).then(() => {
-        // console.log('networkedIrcClient connected');
+        // console.log('networkedLockClient connected');
       }),
       this.networkedIrcClient.connect(ws1).then(() => {
         // console.log('networkedIrcClient connected');
       }),
       this.networkedAudioClient.connect(ws1).then(() => {
         // console.log('networkedAudioClient connected');
+      }),
+      this.networkedVideoClient.connect(ws1).then(() => {
+        // console.log('networkedVideoClient connected');
       }),
     ]);
     this.connected = true;
@@ -1821,6 +1846,12 @@ export class NetworkRealms extends EventTarget {
       oldNetworkedAudioClient.removeMicrophoneSource(audioSource);
       newNetworkedAudioClient.addMicrophoneSource(audioSource);
     }
+  }
+
+  sendVideoFrame(frame) {
+    const headRealm = this.localPlayer.headTracker.getHeadRealm();
+    const {networkedVideoClient} = headRealm;
+    networkedVideoClient.sendVideoFrame(frame);
   }
 
   isConnected() {
