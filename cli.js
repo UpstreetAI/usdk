@@ -18,6 +18,7 @@ import open from 'open';
 import { rimraf } from 'rimraf';
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
+import webp from 'webp-wasm';
 import recursiveReaddir from 'recursive-readdir';
 import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -70,9 +71,13 @@ import {
 } from './sdk/src/devices/input-devices.mjs';
 import {
   AudioInput,
+  encodeMp3,
+  transcribe,
 } from './sdk/src/devices/audio-input.mjs';
 import {
   VideoInput,
+  encodeWebp,
+  describe,
 } from './sdk/src/devices/video-input.mjs';
 import vad from '@ricky0123/vad-node';
 
@@ -1257,7 +1262,7 @@ const startMultiplayerListener = ({
   };
   _bindRealmsLogging();
 };
-const createWebcamSource = ({ local }) => {
+/* const createWebcamSource = ({ local }) => {
   const webcamSource = new EventTarget();
 
   const wss = new WebSocketServer({ noServer: true });
@@ -1320,12 +1325,12 @@ const createWebcamSource = ({ local }) => {
     }
   });
   return webcamSource;
-};
+}; */
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
   const debug = !!args.debug;
-  const vision = !!args.vision;
+  // const vision = !!args.vision;
   const browser = !!args.browser;
   const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
@@ -1353,7 +1358,7 @@ const connect = async (args) => {
       });
     }
 
-    // set up the webcam, if needed
+    /* // set up the webcam, if needed
     if (vision) {
       const webcamSource = createWebcamSource({
         local,
@@ -1370,7 +1375,7 @@ const connect = async (args) => {
         //   },
         // });
       });
-    }
+    } */
 
     return {
       userAsset,
@@ -1483,7 +1488,7 @@ const chat = async (args) => {
       browser: args.browser,
       debug: args.debug,
       local: args.local,
-      vision: args.vision,
+      // vision: args.vision,
     });
 
     return {
@@ -2425,7 +2430,7 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         browser: args.browser,
         dev: true,
-        vision: args.vision,
+        // vision: args.vision,
         debug: args.debug,
       });
 
@@ -2446,7 +2451,7 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         dev: true,
         local: args.local,
-        vision: args.vision,
+        // vision: args.vision,
         debug: args.debug,
       });
 
@@ -2681,7 +2686,7 @@ const test = async (args) => {
         repl: false,
         debug,
         local: false,
-        vision: false,
+        // vision: false,
       });
 
       // run tests
