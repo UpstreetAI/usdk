@@ -125,10 +125,10 @@ const SubscriptionPlans = ({
                 <p className="mt-4 text-zinc-300">{value ? (value * creditUnit) + ' Credits' : '\xa0'}</p>
                 <p className="mt-8">
                   <span className="text-5xl font-extrabold white">
-                    {currency}{value}
+                    {value > 0 ? `${currency}${value}` : '\xa0'}
                   </span>
                   <span className="text-base font-medium text-zinc-100">
-                    /{interval}
+                    {value > 0 ? `/${interval}` : '\xa0'}
                   </span>
                 </p>
                 {price ?
@@ -171,9 +171,8 @@ const SubscriptionPlans = ({
                     {currentPlan !== name ? 'Subscribe' : 'Current'}
                   </Button>
                 :
-                  <Button
+                  (currentPlan && <Button
                     className='w-full mt-8'
-                    disabled={!currentPlan}
                     onClick={async (e) => {
                       // cancel the plan
                       const jwt = await getJWT();
@@ -206,7 +205,7 @@ const SubscriptionPlans = ({
                     }}
                   >
                     Cancel
-                  </Button>
+                  </Button>)
                 }
               </div>
             </div>
