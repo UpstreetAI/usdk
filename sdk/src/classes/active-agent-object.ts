@@ -1,7 +1,8 @@
 import { useContext, useEffect } from 'react';
 // import type { Context } from 'react';
 import { z } from 'zod';
-import type { ZodTypeAny } from 'zod';
+import * as Y from 'yjs';
+// import type { ZodTypeAny } from 'zod';
 import dedent from 'dedent';
 // import {
 //   EpochContext,
@@ -64,6 +65,9 @@ import {
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
+import {
+  SceneObject,
+} from './scene-object';
 import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
@@ -301,10 +305,37 @@ export class ActiveAgentObject extends AgentObject {
       _bindDisconnect();
 
       const _bindConversation = () => {
-        conversation.setAgent(this);
-        conversation.setScene(null); // XXX set + track the scene from the multiplayer room as well
+        const _bindAgent = () => {
+          conversation.setAgent(this);
+        };
+        _bindAgent();
 
-        const onConversationLocalMessage = (e: ActionMessageEvent) => {
+        //
+
+        const _bindScene = () => {
+          const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+          const { networkedCrdtClient } = headRealm;
+
+          const doc = networkedCrdtClient.getDoc() as Y.Doc;
+          const name = doc.getText('name');
+          const description = doc.getText('description');
+          const getScene = () => new SceneObject({
+            name: name.toString(),
+            description: description.toString(),
+          });
+          const _updateScene = () => {
+            const scene = getScene();
+            conversation.setScene(scene);
+          };
+          _updateScene();
+          name.observe(_updateScene);
+          description.observe(_updateScene);
+        };
+        _bindScene();
+
+        //
+
+        conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
           const { message } = e.data;
           e.waitUntil((async () => {
             await this.incomingMessageQueueManager.waitForTurn(async () => {
@@ -351,11 +382,7 @@ export class ActiveAgentObject extends AgentObject {
               }
             });
           })());
-        };
-        conversation.addEventListener(
-          'localmessage',
-          onConversationLocalMessage,
-        );
+        });
   
         conversation.addEventListener('remotemessage', async (e: MessageEvent) => {
           const { message } = e.data;
@@ -375,6 +402,8 @@ export class ActiveAgentObject extends AgentObject {
             });
           })();
         });
+
+        //
 
         const sendTyping = (typing: boolean) => {
           if (realms.isConnected()) {
