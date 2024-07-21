@@ -57,8 +57,6 @@ const creditUnit = 1000; // is multiplied by the value in plans array
 
 //
 
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 const SubscriptionPlans = ({
   user,
   userPrivate,
