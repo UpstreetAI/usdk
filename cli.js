@@ -2930,7 +2930,7 @@ const test = async (args) => {
     // console.log('devices:');
     console.log(devices);
   }
-}; *
+}; */
 // const deploymentTypes = ['agent', 'ui'];
 const deploy = async (args) => {
   try {
