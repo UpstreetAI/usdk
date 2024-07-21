@@ -256,7 +256,7 @@ const makeCorsHeaders = (req) => {
 
 const callbackPort = 10617;
 const devServerPort = 10618;
-const webcamPort = 10619;
+// const webcamPort = 10619;
 const cwd = process.cwd();
 const homedir = os.homedir();
 const usdkProfileLocation = path.join(homedir, '.usdk');
