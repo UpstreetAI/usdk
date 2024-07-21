@@ -380,7 +380,7 @@ export type TaskResult = {
   args: object;
 };
 export type TaskProps = {
-  id: any;
+  // id: any;
   handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
   onDone?: (e: TaskEvent) => void | Promise<void>;
 };
