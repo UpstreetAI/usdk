@@ -38,14 +38,14 @@ const plans = [
   {
     price: 'price_1PeZLaGQNhufWPO8830LJKJg',
     name: 'developer',
-    value: 25,
+    value: 50,
     currency: `$`,
     interval: 'mo'
   },
   {
     price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
     name: 'business',
-    value: 150,
+    value: 200,
     currency: `$`,
     interval: 'mo'
   },
