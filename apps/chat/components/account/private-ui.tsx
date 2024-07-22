@@ -58,10 +58,10 @@ const plans = [
     interval: 'mo'
   },
 ];
+const creditUnit = 1000; // is multiplied by the value in plans array
 
 //
 
-const creditUnit = 1000; // is multiplied by the value in plans array
 const useStripeSubscription = () => {
   const u = new URL(location.href);
   const id = u.searchParams.get('stripe_subscription_id');
@@ -139,11 +139,12 @@ const SubscriptionPlans = ({
                       // create the checkout session
                       const jwt = await getJWT();
                       
-                      const success_url_object = new URL(`${aiHost}/plans/redirect`);
-                      success_url_object.searchParams.set('stripe_session_id', 'CHECKOUT_SESSION_ID');
-                      success_url_object.searchParams.set('redirect_url', location.href);
-                      const success_url = (success_url_object + '').replace('CHECKOUT_SESSION_ID', '{CHECKOUT_SESSION_ID}');
-                      
+                      // const success_url_object = new URL(`${aiHost}/plans/redirect`);
+                      // success_url_object.searchParams.set('stripe_session_id', 'CHECKOUT_SESSION_ID');
+                      // success_url_object.searchParams.set('redirect_url', location.href);
+                      // const success_url = (success_url_object + '').replace('CHECKOUT_SESSION_ID', '{CHECKOUT_SESSION_ID}');
+                      const success_url = location.href;
+
                       const res = await fetch(`${aiHost}/stripe/checkout/session`, {
                         method: 'POST',
                         headers: {
