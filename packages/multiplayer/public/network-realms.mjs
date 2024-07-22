@@ -1354,7 +1354,14 @@ export class NetworkRealm extends EventTarget {
   }
 
   sendSkipAudioMessage(streamId){
-    this.networkedIrcClient.sendSkipAudioMessage(streamId);
+    const data = {
+      playerId: this.parent.playerId,
+      streamId: streamId,
+    };
+
+    this.parent.dispatchEvent(new MessageEvent('audioskip', {
+      data: data,
+    }));
   }
 
   async connect() {

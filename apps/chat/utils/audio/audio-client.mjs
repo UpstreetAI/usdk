@@ -168,11 +168,11 @@ export function createMp3AudioOutputStream({
     end() {
       // console.log('decode end');
       audioDecoder.decode(null);
-    }
-    // close() {
-    //   audioWorkletNode.disconnect();
-    //   audioDecoder.close();
-    // },
+    },
+    close() {
+      audioWorkletNode.disconnect();
+      // audioDecoder.close();
+    },
   };
 }
 

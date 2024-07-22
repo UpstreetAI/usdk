@@ -209,6 +209,15 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     );
   };
   realms.addEventListener('connect', onConnect);
+  realms.addEventListener('audioskip', (e: any) => {
+
+    const {
+      playerId,
+      streamId,
+    } = e.data;
+
+    skipAudioStream();
+  })
 
   const _trackRemotePlayers = () => {
     virtualPlayers.addEventListener('join', (e: any) => {
@@ -318,7 +327,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     if (typeof window === "undefined") return;
 
     const key = `${playerId}:${streamId}`;
-    let audioStream = outputAudioStreams.get(playerId);
+    let audioStream = outputAudioStreams.get(key);
 
     if (!audioStream) {
       const createAudioOutputStream = audioOutputStreamFactory(mimeType);
@@ -329,7 +338,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       //   audioContext,
       // });
       console.log('stream: ',stream);
-      outputAudioStreams.set(playerId, stream);
+      outputAudioStreams.set(key, stream);
+      console.log("outputAudioStreams: ", outputAudioStreams.keys())
       audioStream = stream;
       const audioManagerInput = audioManager.getInput();
       stream.outputNode.connect(audioManagerInput);
@@ -404,14 +414,22 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     // return audioStream;
   };
   
+
+  const skipAudioStream = () => {
+    let latestAudioStreamKV = [...outputAudioStreams.values()].pop();
+
+    if (typeof latestAudioStreamKV !== "undefined" ){
+      latestAudioStreamKV.close();  
+    }
+  }
+
   const closeAudioStream = (playerId: any, streamId: any) => {
-    const key = playerId;
+    const key = `${playerId}:${streamId}`;
     const audioStream = outputAudioStreams.get(key);
     if (audioStream) {
-      outputAudioStreams.delete(key);
-
       audioStream.end();
       audioStream.outputNode.addEventListener('finish', () => {
+        outputAudioStreams.delete(key);
         // console.log("closeAudioStream | disconnecting ");
         audioStream.outputNode.disconnect();
         // console.log('audioStream outputNode: ', audioStream.outputNode);
@@ -515,7 +533,14 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
     virtualPlayers.addEventListener('audio', (e: any) => {
       // console.log("audio event received from agent, render chat message");
-      realms.dispatchEvent(new MessageEvent('startmessagerender'));
+      const {
+        streamId
+      } = e.data;
+
+
+      realms.dispatchEvent(new MessageEvent('startmessagerender', {
+        data: streamId,
+      }));
     });
 
     virtualPlayers.addEventListener('audioend', (e: any) => {
@@ -660,7 +685,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage('say', {
           text,
         }),
-      sendAudioSkipMessage: (message: any) => sendAudioSkipMessage(message),
+      sendAudioSkipMessage: (streamId: any) => sendAudioSkipMessage(streamId),
     };
     return multiplayerState;
   });
