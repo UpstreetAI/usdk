@@ -1100,8 +1100,8 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           break;
         }
         case 'paymentRequest': {
-          const { amount, currency } = args;
-          log(`[${name} requests ${amount} ${currency}]`);
+          const { amount, currency, url, productName, productDescription, productQuantity } = args;
+          log(`[${name} requests ${amount} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
           break;
         }
         case 'nudge':
