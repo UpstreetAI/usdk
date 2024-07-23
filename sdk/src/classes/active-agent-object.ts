@@ -79,10 +79,10 @@ import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
 
-const getConversationKey = ({
-  room,
-  endpointUrl,
-}) => `${endpointUrl}/${room}`;
+// const getConversationKey = ({
+//   room,
+//   endpointUrl,
+// }) => `${endpointUrl}/${room}`;
 
 //
 
@@ -166,12 +166,13 @@ export class ActiveAgentObject extends AgentObject {
   }) {
     const guid = this.id;
 
-    const key = getConversationKey({
+    const key = ConversationObject.getKey({
       room,
       endpointUrl,
     });
     const conversation = new ConversationObject({
-      id: key,
+      room,
+      endpointUrl,
     });
     this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
       data: {
@@ -218,6 +219,7 @@ export class ActiveAgentObject extends AgentObject {
             };
             const agentJson = getJson();
             const localPlayer = new Player(guid, agentJson);
+
             const _pushInitialPlayer = () => {
               realms.localPlayer.initializePlayer(
                 {
@@ -231,6 +233,37 @@ export class ActiveAgentObject extends AgentObject {
               );
             };
             _pushInitialPlayer();
+
+            const _bindRoom = () => {
+              const _bindAgent = () => {
+                conversation.setAgent(this);
+              };
+              _bindAgent();
+      
+              //
+      
+              const _bindScene = () => {
+                const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+                const { networkedCrdtClient } = headRealm;
+      
+                const doc = networkedCrdtClient.getDoc() as Y.Doc;
+                const name = doc.getText('name');
+                const description = doc.getText('description');
+                const getScene = () => new SceneObject({
+                  name: name.toString(),
+                  description: description.toString(),
+                });
+                const _updateScene = () => {
+                  const scene = getScene();
+                  conversation.setScene(scene);
+                };
+                _updateScene();
+                name.observe(_updateScene);
+                description.observe(_updateScene);
+              };
+              _bindScene();
+            };
+            _bindRoom();
 
             connectPromise.resolve();
           })(),
@@ -305,36 +338,6 @@ export class ActiveAgentObject extends AgentObject {
       _bindDisconnect();
 
       const _bindConversation = () => {
-        const _bindAgent = () => {
-          conversation.setAgent(this);
-        };
-        _bindAgent();
-
-        //
-
-        const _bindScene = () => {
-          const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-          const { networkedCrdtClient } = headRealm;
-
-          const doc = networkedCrdtClient.getDoc() as Y.Doc;
-          const name = doc.getText('name');
-          const description = doc.getText('description');
-          const getScene = () => new SceneObject({
-            name: name.toString(),
-            description: description.toString(),
-          });
-          const _updateScene = () => {
-            const scene = getScene();
-            conversation.setScene(scene);
-          };
-          _updateScene();
-          name.observe(_updateScene);
-          description.observe(_updateScene);
-        };
-        _bindScene();
-
-        //
-
         conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
           const { message } = e.data;
           e.waitUntil((async () => {
@@ -460,7 +463,7 @@ export class ActiveAgentObject extends AgentObject {
     room,
     endpointUrl,
   }) {
-    const key = getConversationKey({
+    const key = ConversationObject.getKey({
       room,
       endpointUrl,
     });
