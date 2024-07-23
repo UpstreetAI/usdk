@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { toast } from "sonner"
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
@@ -126,7 +127,27 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   };
 
 
-  const queuedAudioManager = new QueuedAudioManager(audioContext, ensureAudioStream);
+  const createAgentAudioSonner = (event: any) => {
+    toast("Agent Voice Audio is Playing", {
+      description: "",
+      action: {
+        label: "Skip Audio",
+        onClick: () => {
+          const queuedAudioManager = event.data;
+          queuedAudioManager.skipAudioStream();
+        },
+      },
+      dismissible: false,
+      duration: Infinity,
+    })
+  };
+
+  const clearAgentAudioSonner = (event: any) => {
+    console.log("dismissing toast");
+    toast.dismiss();
+  };
+
+  const queuedAudioManager = new QueuedAudioManager(audioContext, ensureAudioStream, createAgentAudioSonner,clearAgentAudioSonner);
 
   // let stream;
 
@@ -355,13 +376,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     });
   };
 
-  const skipAudioStream = () => {
-    let latestAudioStreamKV = [...outputAudioStreams.values()].pop();
-
-    if (typeof latestAudioStreamKV !== "undefined" ){
-      latestAudioStreamKV.close();  
-    }
-  }
+   
 
   const closeAudioStream = (playerId: any, streamId: any) => {
     const key = `${playerId}:${streamId}`;

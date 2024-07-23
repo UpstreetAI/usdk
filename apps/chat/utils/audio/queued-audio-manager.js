@@ -1,10 +1,14 @@
 import { QueueAudioPlayer } from './audio-player';
 import { AudioQueue } from './audio-queue';
 
-export class QueuedAudioManager {
-  constructor(audioContext, ensureAudioStream) {
-    this.audioPlayer = new QueueAudioPlayer(audioContext, ensureAudioStream);
+export class QueuedAudioManager extends EventTarget {
+  constructor(audioContext, ensureAudioStream, createAgentAudioSonner,clearAgentAudioSonner) {
+    super();
+    this.audioPlayer = new QueueAudioPlayer(audioContext, ensureAudioStream,this);
     this.audioQueue = new AudioQueue(this.audioPlayer);
+
+    this.audioPlayer.addEventListener('playingaudio',createAgentAudioSonner)
+    this.audioPlayer.addEventListener('audiofinish',clearAgentAudioSonner)
   }
 
   enqueue(event) {
@@ -13,6 +17,10 @@ export class QueuedAudioManager {
 
   handleAudioEnd(streamId) {
     this.audioQueue.handleAudioEnd(streamId);
+  }
+
+  skipAudioStream(){
+    this.audioPlayer.skipAudioStream();
   }
 }
   

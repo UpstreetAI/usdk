@@ -52,7 +52,6 @@ export function ChatList({ messages/*, user, isShared*/, skipAudioMessagePlaybac
         <div key={message.id}>
           {message.display}
           {index < messages.length - 1 && <Separator className="my-4" />}
-          <button onClick={ () => handleClick(message.id)}>Skip</button>
         </div>
       )}
     </div>

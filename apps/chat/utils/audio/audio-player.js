@@ -1,9 +1,11 @@
-export class QueueAudioPlayer {
-    constructor(audioContext, ensureAudioStream) {
+export class QueueAudioPlayer extends EventTarget {
+    constructor(audioContext, ensureAudioStream, queuedAudioManager) {
+      super();
       this.audioContext = audioContext;
       this.ensureAudioStream = ensureAudioStream;
       this.isPlaying = false;
       this.currentStream = null;
+      this.parent = queuedAudioManager;
     }
   
     isCurrentStream(streamId) {
@@ -22,6 +24,11 @@ export class QueueAudioPlayer {
   
     async playCurrentStream(bufferedData, hasAudioStreamEnded) {
       this.isPlaying = true;
+
+      this.dispatchEvent(new MessageEvent('playingaudio', {
+        data: this.parent,
+      }));
+
       if (bufferedData) {
         for (const dataChunk of bufferedData) {
           this.currentStream.write(dataChunk);
@@ -41,6 +48,7 @@ export class QueueAudioPlayer {
         this.currentStream.outputNode.port.onmessage = (event) => {
           const { method } = event.data;
           if (method === 'finish') {
+            this.dispatchEvent(new MessageEvent('audiofinish'))
             this.cleanupCurrentStream();
             resolve();
           }
@@ -59,6 +67,12 @@ export class QueueAudioPlayer {
     endCurrentStream() {
       if (this.currentStream) {
         this.currentStream.end(); 
+      }
+    }
+
+    skipAudioStream() {
+      if (this.currentStream){
+        this.currentStream.close();
       }
     }
   }
