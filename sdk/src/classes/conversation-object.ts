@@ -10,6 +10,7 @@ import {
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
+import { chatEndpointUrl } from '../util/endpoints.mjs';
 
 //
 
@@ -41,24 +42,45 @@ class MessageCache {
 
 export class ConversationObject extends EventTarget {
   id: string;
+  room: string;
+  endpointUrl: string;
   scene: SceneObject | null = null;
   agent: ActiveAgentObject | null = null;
   agentsMap: Map<string, Player> = new Map();
   messageCache = new MessageCache();
   numTyping: number = 0;
 
-  constructor({
-    id,
+  static getKey({
+    room,
+    endpointUrl,
   }: {
-    id: string;
+    room: string;
+    endpointUrl: string;
   }) {
-    if (!id) {
-      throw new Error('ConversationContext: id is required');
-    }
+    return `${endpointUrl}/${room}`;
+  }
 
+  constructor({
+    room,
+    endpointUrl,
+  }: {
+    room: string;
+    endpointUrl: string;
+  }) {
     super();
 
-    this.id = id;
+    this.id = ConversationObject.getKey({
+      room,
+      endpointUrl,
+    });
+    this.room = room;
+    this.endpointUrl = endpointUrl;
+  }
+
+  //
+
+  getBrowserUrl() {
+    return `${chatEndpointUrl}/rooms/${this.room}`;
   }
 
   //
