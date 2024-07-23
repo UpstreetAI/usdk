@@ -9,6 +9,9 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { audioOutputStreamFactory, createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
 import { createAudioManager } from '@upstreet/chat/utils/audio/audio-manager';
 
+import { QueuedAudioManager } from '@upstreet/chat/utils/audio/queued-audio-manager';
+
+
 // import {AudioManager} from "@upstreet/chat/utils/audio/audio-manager";
 
 
@@ -93,7 +96,37 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     audioContext,
   });
 
+  
   var outputAudioStreams = new Map();
+
+  const ensureAudioStream = (playerId: any, streamId: any, audioContext: any, mimeType: any) => {
+    if (typeof window === "undefined") return;
+  
+    const key = `${playerId}:${streamId}`;
+
+    console.log("ensureAudioStream key: ",key)
+    let audioStream = outputAudioStreams.get(key);
+  
+    if (!audioStream) {
+      const createAudioOutputStream = audioOutputStreamFactory(mimeType);
+      const stream = createAudioOutputStream({ audioContext });
+      console.log('stream: ', stream);
+      outputAudioStreams.set(key, stream);
+      console.log("outputAudioStreams set: ", outputAudioStreams.keys());
+      audioStream = stream;
+      const audioManagerInput = audioManager.getInput();
+      stream.outputNode.connect(audioManagerInput);
+    }
+  
+    return {
+      ...audioStream,
+      streamId,
+      playerId,
+    };
+  };
+
+
+  const queuedAudioManager = new QueuedAudioManager(audioContext, ensureAudioStream);
 
   // let stream;
 
@@ -322,99 +355,6 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     });
   };
 
-  const ensureAudioStream = (playerId: any, streamId: any, audioContext: AudioContext,mimeType: string) => {
-
-    if (typeof window === "undefined") return;
-
-    const key = `${playerId}:${streamId}`;
-    let audioStream = outputAudioStreams.get(key);
-
-    if (!audioStream) {
-      const createAudioOutputStream = audioOutputStreamFactory(mimeType);
-      const stream = createAudioOutputStream({
-        audioContext,
-      });
-      // const stream = createOpusAudioOutputStream({
-      //   audioContext,
-      // });
-      console.log('stream: ',stream);
-      outputAudioStreams.set(key, stream);
-      console.log("outputAudioStreams: ", outputAudioStreams.keys())
-      audioStream = stream;
-      const audioManagerInput = audioManager.getInput();
-      stream.outputNode.connect(audioManagerInput);
-    }
-
-    return audioStream;
-    // audioStreams.set(key, stream);
-    // audioStream = stream;
-
-    // connect to avatar
-    // (async () => {
-    //   const remotePlayer = playersMap.get(playerId);
-    //   if (remotePlayer) {
-
-    //     // await remotePlayer.waitForAvatar();
-    //     // handle the race condition where the audio stream ends before the avatar is loaded
-    //     // if (!audioStreams.has(key)) return;
-
-    //     remotePlayer.avatar.setAudioEnabled({
-    //       audioContext: this.audioManager.audioContext,
-    //     });
-    //     const audioInput = remotePlayer.avatar.getAudioInput();
-    //     stream.outputNode.connect(audioInput);
-    //   } else {
-    //     console.warn('remote player not found', {
-    //       playerId,
-    //       playersMap: this.playersMap,
-    //     });
-    //     debugger;
-    //   }
-    // })();
-
-    // let audioStream = this.outputAudioStreams.get(key);
-    // if (!audioStream) {
-    //   // const {
-    //   //   audioContext,
-    //   // } = this.audioManager;
-    //   const stream = createOpusAudioOutputStream({
-    //     // audioContext,
-    //   });
-      
-    //   const audioManagerInput = this.audioManager.getInput();
-    //   stream.outputNode.connect(audioManagerInput);
-    //   console.log('connect node', stream.outputNode);
-
-    //   audioStreams.set(key, stream);
-    //   audioStream = stream;
-
-    //   // connect to avatar
-    //   (async () => {
-    //     const remotePlayer = playersMap.get(playerId);
-    //     if (remotePlayer) {
-
-    //       // await remotePlayer.waitForAvatar();
-    //       // handle the race condition where the audio stream ends before the avatar is loaded
-    //       if (!audioStreams.has(key)) return;
-
-    //       remotePlayer.avatar.setAudioEnabled({
-    //         audioContext: this.audioManager.audioContext,
-    //       });
-    //       const audioInput = remotePlayer.avatar.getAudioInput();
-    //       stream.outputNode.connect(audioInput);
-    //     } else {
-    //       console.warn('remote player not found', {
-    //         playerId,
-    //         playersMap: this.playersMap,
-    //       });
-    //       debugger;
-    //     }
-    //   })();
-    // }
-    // return audioStream;
-  };
-  
-
   const skipAudioStream = () => {
     let latestAudioStreamKV = [...outputAudioStreams.values()].pop();
 
@@ -527,8 +467,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         mimeType,
       } = e.data;
 
-      const audioStream = ensureAudioStream(playerId, streamId,audioContext,mimeType);
-      audioStream.write(data);
+      const audioEvent = { playerId, streamId, data, mimeType };
+      queuedAudioManager.enqueue(audioEvent);
     })
 
     virtualPlayers.addEventListener('audio', (e: any) => {
@@ -555,7 +495,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       } = e.data;
       
       
-      closeAudioStream(playerId,streamId);
+      // closeAudioStream(playerId,streamId);
+      const key = `${playerId}:${streamId}`;
+      queuedAudioManager.handleAudioEnd(streamId);
+      outputAudioStreams.delete(key);
     })
 
   };
