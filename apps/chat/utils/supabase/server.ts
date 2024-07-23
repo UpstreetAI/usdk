@@ -72,9 +72,20 @@ export async function getUserAccountPrivate(id: string, select = '*', supabaseCl
     .eq( 'id', id )
     .limit(1)
     // .single()
-
   return data?.[0] as any|null
 }
+
+export async function getCredits(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('credits')
+    .select(select)
+    .eq( 'agent_id', id )
+    .limit(1)
+    // .single()
+  return (data?.[0] as any|null)?.credits;
+}
+
+ 
 
 export function getJWT() {
   const cookieStore = cookies();
