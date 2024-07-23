@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 export interface AccountPrivateUiProps {
   user: any
   userPrivate: any
+  credits: number
 }
 
 //
@@ -318,15 +319,57 @@ const StripeConnectButtons = ({
   );
 };
 
+const Credits = ({
+  credits,
+}: {
+  credits: number,
+}) => {
+  return (
+    <>
+      <div className="sm:flex sm:flex-col sm:align-center pt-8">
+        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+          Credits
+        </h1>
+        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
+          {credits}
+        </p>
+      </div>
+    </>
+  );
+};
+
+const Subscriptions = ({
+  user,
+  userPrivate,
+  setUserPrivate,
+}: {
+  user: any,
+  userPrivate: any,
+  setUserPrivate: (userPrivate: any) => void;
+}) => {
+  return (
+    <>
+      <div className="sm:flex sm:flex-col sm:align-center pt-8">
+        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+          Subscription Plans
+        </h1>
+        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
+          Subscribe to a plan to get monthly credits.
+        </p>
+      </div>
+      <SubscriptionPlans user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
+    </>
+  );
+}
+
 export function AccountPrivateUi({
   user,
   userPrivate: initUserPrivate,
+  credits,
 }: AccountPrivateUiProps) {
   const [userPrivate, setUserPrivate] = useState(() => initUserPrivate);
 
-  // console.log('load user private', userPrivate);
-
-  const stripeSubscription = useStripeSubscription();
+  /* const stripeSubscription = useStripeSubscription();
   useEffect(() => {
     if (stripeSubscription) {
       console.log('got stripe subscription', stripeSubscription);
@@ -356,20 +399,13 @@ export function AccountPrivateUi({
        history.replaceState(null, '', location.pathname);
       })();
     }
-  }, [stripeSubscription?.id]);
+  }, [stripeSubscription?.id]); */
 
   return (
     <>
-      <div className="sm:flex sm:flex-col sm:align-center pt-8">
-        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-          Subscription Plans
-        </h1>
-        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-          Subscribe to a plan to get monthly credits.
-        </p>
-      </div>
-      <SubscriptionPlans user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
-      <StripeConnectButtons user={user} userPrivate={userPrivate} />
+      <Credits credits={credits} />
+      <Subscriptions user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
+      <StripeConnectButtons userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
     </>
   );
 }

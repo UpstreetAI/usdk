@@ -3,7 +3,7 @@ import { AccountPrivateUi } from './private-ui';
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
-import { getUserAccount, getUserAccountPrivate, waitForUser } from '@/utils/supabase/server';
+import { getUserAccount, getUserAccountPrivate, getCredits, waitForUser } from '@/utils/supabase/server';
 
 
 export interface AccountProps {
@@ -17,6 +17,7 @@ export async function Account({ params: { id }}: AccountProps) {
 
   let user = null
   let userPrivate = null
+  let credits = 0
   let userIsCurrentUser = false
 
   // Display user for given ID if provided, else get current user.
@@ -33,7 +34,10 @@ export async function Account({ params: { id }}: AccountProps) {
   }
 
   if (userIsCurrentUser) {
-    userPrivate = await getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan')
+    [userPrivate, credits] = await Promise.all([
+      getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan'),
+      getCredits(user.id),
+    ]);
   }
 
   return (
@@ -49,7 +53,7 @@ export async function Account({ params: { id }}: AccountProps) {
         </div>
       </div>
       <Info user={user} userIsCurrentUser={userIsCurrentUser} />
-      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} />}
+      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />}
     </div>
   );
 }
