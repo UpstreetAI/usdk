@@ -128,8 +128,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
 
   const createAgentAudioSonner = (event: any) => {
-    toast("Agent Voice Audio is Playing", {
-      description: "",
+    toast(`${name} speaking`, {
       action: {
         label: "Skip Audio",
         onClick: () => {
