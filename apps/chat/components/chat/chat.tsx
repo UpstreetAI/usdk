@@ -1,10 +1,11 @@
 'use client'
 
 import React from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link';
 import { ChatMessage } from '@/components/chat/chat-message'
 // import { ChatMessageOld } from '@/components/chat/chat-message-old'
 // import { type User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react'
 // import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat/chat-list'
@@ -19,6 +20,7 @@ import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 // import { UIState } from '@/lib/chat/actions'
 // import { resolveRelativeUrl } from '@/lib/utils'
 import { useSupabase } from '@/lib/hooks/use-supabase';
+
 
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
@@ -217,20 +219,36 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       let media = null;
 
+      const {
+        args,
+      } = message;
+      const {
+        amount,
+        currency,
+        url,
+        productName,
+        productDescription,
+        productQuantity,
+      } = args as any;
+
       return (
         <ChatMessage
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
                 <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
-                <div className="mb-4">{(message.args as any).description}</div>
-                <Button onClick={e => {
+                <div className="mb-4">{productQuantity} x {productName}: {productDescription}</div>
+                <div className="mb-4">{amount / 100} {currency}</div>
+                {/* <Button onClick={e => {
                   sendRawMessage('paymentResponse', {
                     description: 'Payment accepted',
-                    amount: (message.args as any).amount,
-                    currency: (message.args as any).currency,
+                    amount,
+                    currency,
                   });
-                }}>Pay {(message.args as any).amount / 100} {(message.args as any).currency}</Button>
+                }}>Pay {amount / 100} {currency}</Button> */}
+                <Link href={url}>
+                  <Button>Checkout</Button>
+                </Link>
               </div>
             </>
           }
