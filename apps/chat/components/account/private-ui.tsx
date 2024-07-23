@@ -154,7 +154,9 @@ const SubscriptionPlans = ({
                         },
                         body: JSON.stringify({
                           plan: name,
-                          success_url,
+                          args: {
+                            success_url,
+                          },
                         }),
                       });
                       if (res.ok) {
