@@ -66,6 +66,23 @@ import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
+// XXX imports for capture support
+// import webp from 'webp-wasm';
+// import {
+//   InputDevices,
+// } from './sdk/src/devices/input-devices.mjs';
+// import {
+//   AudioInput,
+//   encodeMp3,
+//   transcribe,
+// } from './sdk/src/devices/audio-input.mjs';
+// import {
+//   VideoInput,
+//   encodeWebp,
+//   describe,
+// } from './sdk/src/devices/video-input.mjs';
+// import vad from '@ricky0123/vad-node';
+
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -239,7 +256,7 @@ const makeCorsHeaders = (req) => {
 
 const callbackPort = 10617;
 const devServerPort = 10618;
-const webcamPort = 10619;
+// const webcamPort = 10619;
 const cwd = process.cwd();
 const homedir = os.homedir();
 const usdkProfileLocation = path.join(homedir, '.usdk');
@@ -412,9 +429,10 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.capabilities = [];
   }
 };
-const compileAgentJson = (agentJson, { guid, walletAddress, dev }) => {
+const compileAgentJson = (agentJson, { guid, stripeConnectAccountId, walletAddress, dev }) => {
   agentJson.id = guid;
   agentJson.startUrl = getAgentHost(guid, { dev });
+  agentJson.stripeConnectAccountId = stripeConnectAccountId;
   agentJson.address = walletAddress;
   ensureAgentJsonDefaults(agentJson);
   return agentJson;
@@ -1082,8 +1100,8 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
           break;
         }
         case 'paymentRequest': {
-          const { amount, currency } = args;
-          log(`[${name} requests ${amount} ${currency}]`);
+          const { amount, currency, url, productName, productDescription, productQuantity } = args;
+          log(`[${name} requests ${amount} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
           break;
         }
         case 'nudge':
@@ -1130,7 +1148,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
     typingMap,
   };
 };
-const nudge = async (realms, targetPlayerId) => {
+/* const nudge = async (realms, targetPlayerId) => {
   const o = {
     method: 'nudge',
     args: {
@@ -1138,7 +1156,7 @@ const nudge = async (realms, targetPlayerId) => {
     },
   };
   await realms.sendChatMessage(o);
-};
+}; */
 const startMultiplayerListener = ({
   userAsset,
   realms,
@@ -1170,6 +1188,13 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
+    const getDoc = () => {
+      const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+      const { networkedCrdtClient } = headRealm;
+      const doc = networkedCrdtClient.getDoc();
+      return doc;
+    };
+
     replServer = repl.start({
       prompt: getPrompt(),
       eval: async (cmd, context, filename, callback) => {
@@ -1179,10 +1204,9 @@ const startMultiplayerListener = ({
           const cmdSplit = cmd.split(/\s+/);
           const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
           if (commandMatch) {
-            // XXX replace this with perception events
             const command = commandMatch ? commandMatch[1] : null;
             switch (command) {
-              case 'nudge': {
+              /* case 'nudge': {
                 let guid = cmdSplit[1];
                 if (!guid) {
                   const agentIds = Array.from(playersMap.keys());
@@ -1192,6 +1216,36 @@ const startMultiplayerListener = ({
 
                 await nudge(realms, guid);
 
+                break;
+              } */
+              case 'get': {
+                const key = cmdSplit[1];
+
+                const doc = getDoc();
+                if (key) {
+                  const text = doc.getText(key);
+                  const s = text.toString();
+                  console.log(s);
+                } else {
+                  const j = doc.toJSON();
+                  console.log(j);
+                }
+                break;
+              }
+              case 'set': {
+                const key = cmdSplit[1];
+                const value = cmdSplit[2];
+
+                if (key && value) {
+                  const doc = getDoc();
+                  doc.transact(() => {
+                    const text = doc.getText(key);
+                    text.delete(0, text.length);
+                    text.insert(0, value);
+                  });
+                } else {
+                  throw new Error('expected 2 arguments');
+                }
                 break;
               }
               default: {
@@ -1237,7 +1291,7 @@ const startMultiplayerListener = ({
   };
   _bindRealmsLogging();
 };
-const createWebcamSource = ({ local }) => {
+/* const createWebcamSource = ({ local }) => {
   const webcamSource = new EventTarget();
 
   const wss = new WebSocketServer({ noServer: true });
@@ -1300,12 +1354,12 @@ const createWebcamSource = ({ local }) => {
     }
   });
   return webcamSource;
-};
+}; */
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
   const debug = !!args.debug;
-  const vision = !!args.vision;
+  // const vision = !!args.vision;
   const browser = !!args.browser;
   const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
@@ -1333,7 +1387,7 @@ const connect = async (args) => {
       });
     }
 
-    // set up the webcam, if needed
+    /* // set up the webcam, if needed
     if (vision) {
       const webcamSource = createWebcamSource({
         local,
@@ -1350,7 +1404,7 @@ const connect = async (args) => {
         //   },
         // });
       });
-    }
+    } */
 
     return {
       userAsset,
@@ -1463,7 +1517,7 @@ const chat = async (args) => {
       browser: args.browser,
       debug: args.debug,
       local: args.local,
-      vision: args.vision,
+      // vision: args.vision,
     });
 
     return {
@@ -2206,8 +2260,14 @@ const create = async (args) => {
   const guid = makeDevGuid();
   const jwt = await getLoginJwt();
   let agentToken = null;
+  let userPrivate = null;
   if (jwt !== null) {
-    agentToken = await getAgentToken(jwt, guid);
+    [agentToken, userPrivate] = await Promise.all([
+      getAgentToken(jwt, guid),
+      getUserForJwt(jwt, {
+        private: true,
+      }),
+    ]);
     if (!agentToken) {
       console.warn('Authorization error. Please try logging in again.')
       process.exit(1)
@@ -2232,6 +2292,8 @@ const create = async (args) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
+
+  const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
 
   // read agent files
   console.log(pc.italic('\nReading files...'));
@@ -2324,6 +2386,7 @@ const create = async (args) => {
   // const agentJson = JSON.parse(agentJsonString);
   compileAgentJson(agentJson, {
     guid,
+    stripeConnectAccountId,
     walletAddress,
     dev,
   });
@@ -2405,28 +2468,18 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         browser: args.browser,
         dev: true,
-        vision: args.vision,
+        // vision: args.vision,
         debug: args.debug,
       });
 
       break;
     }
-    /* case 'simulate': {
-      await simulate({
-        _: [guidsOrDevPathIndexes],
-        dev: true,
-        vision: args.vision,
-        debug: args.debug,
-      });
-
-      break;
-    } */
     case 'listen': {
       await listen({
         _: [guidsOrDevPathIndexes],
         dev: true,
         local: args.local,
-        vision: args.vision,
+        // vision: args.vision,
         debug: args.debug,
       });
 
@@ -2661,7 +2714,7 @@ const test = async (args) => {
         repl: false,
         debug,
         local: false,
-        vision: false,
+        // vision: false,
       });
 
       // run tests
@@ -2703,6 +2756,191 @@ const test = async (args) => {
     process.exit(1);
   }
 };
+/* const capture = async (args) => {
+  const microphone = args.microphone;
+  const camera = args.camera;
+  const screen = args.screen;
+  const width = args.width;
+  const height = args.height;
+  const rows = args.rows;
+  const cols = args.cols ?? 80;
+  const execute = !!args.execute;
+
+  if (camera && screen) {
+    throw new Error('camera and screen are mutually exclusive');
+  }
+
+  const inputDevices = new InputDevices();
+  const devices = await inputDevices.listDevices();
+
+  if (
+    microphone ||
+    camera ||
+    screen
+  ) {
+    const jwt = await getLoginJwt();
+    if (jwt !== null) {
+      // console.log('got devices', devices);
+      const cameraDevice = typeof camera === 'boolean' ? inputDevices.getDefaultCameraDevice(devices.video) : devices.video.find(d => d.id === camera);
+      const screenDevice = typeof screen === 'boolean' ? inputDevices.getDefaultScreenDevice(devices.video) : devices.video.find(d => d.id === screen);
+      const microphoneDevice = typeof microphone === 'boolean' ? inputDevices.getDefaultMicrophoneDevice(devices.audio) : devices.audio.find(d => d.id === microphone);
+      
+      if (microphone) {
+        if (!microphoneDevice) {
+          throw new Error('invalid microphone device');
+        }
+
+        const myvad = await vad.NonRealTimeVAD.new({
+          // positiveSpeechThreshold: 0.1,
+          // negativeSpeechThreshold: 0.1,
+        });
+        const microphoneQueueManager = new QueueManager();
+
+        const sampleRate = AudioInput.defaultSampleRate;
+        // const numSamples = sampleRate * 2;
+        // const numSamples = sampleRate / 2;
+        const numSamples = sampleRate;
+        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
+          sampleRate,
+          numSamples,
+        });
+
+        const bs = [];
+        let lastDetected = false;
+        microphoneInput.on('data', async (d) => {
+          // console.log('got mic data', d.length);
+          // (async () => {
+            await microphoneQueueManager.waitForTurn(async () => {
+              bs.push(d);
+
+              // console.time('lol');
+              const asyncIterator = myvad.run(d, sampleRate);
+              // console.log('run iter', numSamples);
+              // const results = [];
+              let detected = false;
+              for await (const vadResult of asyncIterator) {
+                // console.log('got vad result', vadResult);
+                // results.push(vadResult);
+                detected = true;
+              }
+
+              console.log('check detected', detected, lastDetected);
+
+              if (detected) {
+                // console.log('got vad results', results);
+              } else {
+                if (lastDetected) {
+                  const mp3BufferPromise = encodeMp3(bs);
+                  bs.length = 0;
+                  const mp3Buffer = await mp3BufferPromise;
+
+                  console.log('got mp3 buffer', mp3Buffer);
+                  if (execute) {
+                    const transcription = await transcribe(mp3Buffer, {
+                      jwt,
+                    });
+                    console.log('got transcription:', JSON.stringify(transcription));
+                  }
+                } else {
+                  // remove all except the last buffer
+                  bs.splice(0, bs.length - 1);
+                }
+              }
+              lastDetected = detected;
+              // console.timeEnd('lol');
+            });
+          // })();
+        });
+      }
+      
+      if (camera) {
+        if (!cameraDevice) {
+          throw new Error('invalid camera device');
+        }
+
+        const cameraQueueManager = new QueueManager();
+        
+        const cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+          width,
+          height,
+          fps: 5,
+        });
+        // cameraInput.on('data', (b) => {
+        //   console.log('got camera data', b);
+        // });
+        cameraInput.on('frame', async (imageData) => {
+          // console.log('got camera frame', imageData);
+          cameraInput.drawImage(imageData, cols, rows);
+
+          if (execute) {
+            await cameraQueueManager.waitForTurn(async () => {
+              // encode to webp
+              const frame = await encodeWebp(imageData);
+
+              // describe the image
+              const text = await describe(frame, undefined, {
+                jwt,
+              });
+              for (let i = 0; i < 30; i++) {
+                console.log('description:', text);
+              }
+
+              // // send the video frame
+              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+              // const {networkedVideoClient} = headRealm;
+              // networkedVideoClient.sendVideoFrame(frame);
+            });
+          }
+        });
+      } else if (screen) {
+        if (!screenDevice) {
+          throw new Error('invalid screen device');
+        }
+
+        const screenQueueManager = new QueueManager();
+
+        const screenInput = inputDevices.getVideoInput(screenDevice.id, {
+          width,
+          height,
+          fps: 5,
+        });
+        // screenInput.on('data', (b) => {
+        //   console.log('got screen data', b);
+        // });
+        screenInput.on('frame', async (imageData) => {
+          // console.log('got screen frame', imageData);
+          screenInput.drawImage(imageData, cols, rows);
+
+          if (execute) {
+            await screenQueueManager.waitForTurn(async () => {
+              // encode to webp
+              const frame = await encodeWebp(imageData);
+
+              // describe the image
+              const text = await describe(frame, undefined, {
+                jwt,
+              });
+              for (let i = 0; i < 30; i++) {
+                console.log('description:', text);
+              }
+
+              // // send the video frame
+              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+              // const {networkedVideoClient} = headRealm;
+              // networkedVideoClient.sendVideoFrame(frame);
+            });
+          }
+        });
+      }
+    } else {
+      console.log('not logged in');
+      process.exit(1);
+    }
+  } else {
+    // console.log('devices:');
+    console.log(devices);
+  }
+}; */
 // const deploymentTypes = ['agent', 'ui'];
 const deploy = async (args) => {
   try {
@@ -3651,6 +3889,27 @@ const main = async () => {
         await test(args);
       });
     });
+  /* program
+    .command('capture')
+    .description('Test display functionality')
+    .option('-m, --microphone [id]', 'Enable microphone')
+    .option('-c, --camera [id]', 'Enable camera')
+    .option('-s, --screen [id]', 'Enable screen capture')
+    .option('-w, --width <width>', 'Render width')
+    .option('-h, --height <height>', 'Render height')
+    .option('-r, --rows <rows>', 'Render rows')
+    .option('-l, --cols <cols>', 'Render cols')
+    .option('-x, --execute', 'Execute inference')
+    .action(async (opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [],
+          ...opts,
+        };
+        await capture(args);
+      });
+    }); */
   program
     .command('deploy')
     .description('Deploy an agent to the network')

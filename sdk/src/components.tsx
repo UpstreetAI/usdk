@@ -318,7 +318,7 @@ export const Task = /*memo(*/(props: TaskProps) => {
   const symbol = useMemo(makeSymbol, []);
 
   const deps = [
-    props.id,
+    // props.id,
     props.handler.toString(),
     props.onDone?.toString(),
   ];

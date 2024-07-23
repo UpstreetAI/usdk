@@ -1,4 +1,5 @@
 import React from 'react';
+import { z } from 'zod';
 import {
   Agent,
   AgentAppProps,
@@ -15,6 +16,7 @@ import {
 
   useAgents,
   useCurrentAgent,
+  useStripe,
 
   Action,
   PendingActionEvent,
@@ -23,21 +25,85 @@ import {
 //
 
 const PaymentRequestAction = () => {
+  const stripe = useStripe();
   return (
     <Action
       name="paymentRequest"
-      description={`Request a payment of a specific amount. Amount is in cents.`}
-      args={{
-        handlerType: 'paymentRequest',
-        amount: '2000',
-        currency: 'USD',
-        description: 'A description of what is being sold.'
+      description={`Request payment for a product or service.`}
+      schema={
+        z.object({
+          amount: z.number(),
+          currency: z.enum(['usd']),
+          productName: z.string(),
+          productDescription: z.string(),
+          productQuantity: z.number(),
+        })
+      }
+      examples={[
+        {
+          // handlerType: 'paymentRequest',
+          amount: 2000,
+          currency: 'usd',
+          productName: 'Name of the product being sold.',
+          productDescription: 'Description of the product being sold.',
+          productQuantity: 1,
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const {
+          agent,
+          message,
+        } = e.data;
+        const {
+          // userId,
+          // name,
+          method,
+          args,
+        } = message;
+        const {
+          amount,
+          currency,
+          productName,
+          productDescription,
+          productQuantity,
+        } = args;
+
+        const session = await stripe.checkout.sessions.create({
+          success_url: agent.location.href,
+          line_items: [
+            {
+              price_data: {
+                currency,
+                unit_amount: amount,
+                product_data: {
+                  name: productName,
+                  description: productDescription,
+                },
+              },
+              quantity: productQuantity,
+            },
+          ],
+          mode: 'payment',
+          metadata: {
+            agent_id: agent.agent.id,
+          },
+        });
+
+        const newMessage = {
+          method,
+          args: {
+            type: 'stripe',
+            id: session.id,
+            url: session.url,
+            amount,
+            currency,
+            productName,
+            productDescription,
+            productQuantity,
+          },
+        };
+        await agent.addMessage(newMessage);
       }}
-      // handler={async (e: PendingActionEvent) => {
-      //   // const {
-      //   //   agent,
-      //   // } = e.data;
-      // }}
     />
   );
 };
@@ -47,7 +113,8 @@ const PaymentResponsePerception = () => {
       type="paymentResponse"
       handler={async (e) => {
         const { agent } = e.data;
-        await agent.think('Get notified of the payment success.');
+        // await agent.think('Get notified of the payment success.');
+        await agent.monologue('Acknowledge the payment.');
       }}
     />
   );

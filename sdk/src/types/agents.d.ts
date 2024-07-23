@@ -48,6 +48,8 @@ export type AgentObject = EventTarget & {
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
+  
+  get location(): URL;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
@@ -58,6 +60,8 @@ export type GenerativeAgentObject =  {
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
+
+  addMessage: (m: PendingActionMessage) => void,
 };
 
 // messages
@@ -166,11 +170,15 @@ export type Player = {
 };
 export type ConversationObject = EventTarget & {
   id: string;
+  room: string;
+  endpointUrl: string;
   scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
   messageCache: MessageCache;
   numTyping: number;
+
+  getBrowserUrl: () => string;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   fetchMessages: (filter?: MessageFilter, opts?: {
@@ -380,7 +388,7 @@ export type TaskResult = {
   args: object;
 };
 export type TaskProps = {
-  id: any;
+  // id: any;
   handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
   onDone?: (e: TaskEvent) => void | Promise<void>;
 };
@@ -477,7 +485,10 @@ export type AppContextValue = {
   useAgentJson: () => object;
   useWallets: () => object[];
   useAuthToken: () => string;
+  useStripeKey: () => string;
+
   useSupabase: () => any;
+  useStripe: () => any;
 
   useTts: (ttsArgs: TtsArgs) => Tts;
   useChat: (chatArgs: ChatArgs) => Chat;
