@@ -219,9 +219,12 @@ const SubscriptionPlans = ({
 };
 
 const StripeConnectButtons = ({
-  user,
   userPrivate,
-}: AccountPrivateUiProps) => {
+  setUserPrivate,
+}: {
+  userPrivate: any,
+  setUserPrivate: (userPrivate: any) => void;
+}) => {
   const {
     stripe_connect_account_id,
   } = userPrivate;
@@ -242,22 +245,32 @@ const StripeConnectButtons = ({
                   // stripe connect
                   console.log('stripe connect');
 
+                  const jwt = await getJWT();
                   const res = await fetch(`${aiHost}/stripe/account`, {
                     method: 'POST',
+                    headers: {
+                      Authorization: `Bearer ${jwt}`,
+                    },
                   });
                   if (res.ok) {
                     const j = await res.json();
                     console.log('created account', j);
 
+                    const return_url = new URL(`${aiHost}/stripe/account/redirect`);
+                    return_url.searchParams.set('stripe_connect_account_id', j.account);
+                    return_url.searchParams.set('redirect_url', window.location.href);
+                    const refresh_url = return_url;
+                    
                     const res2 = await fetch(`${aiHost}/stripe/account_link`, {
                       method: "POST",
                       headers: {
-                        "Content-Type": "application/json",
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${jwt}`,
                       },
                       body: JSON.stringify({
                         account: j.account,
-                        return_url: `${window.location.origin}`,
-                        refresh_url: `${window.location.origin}`,
+                        return_url,
+                        refresh_url,
                       }),
                     })
                     if (res2.ok) {
@@ -295,13 +308,31 @@ const StripeConnectButtons = ({
             <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
               <p className="pb-4 sm:pb-0">Connect to your stripe account</p>
               <Button
-                onClick={() => {
+                onClick={async () => {
                   // stripe connect
                   console.log('stripe disconnect');
 
-                  // setIsLoading(true)
-                  // // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-                  // signIn('github', { callbackUrl: `/` })
+                  const jwt = await getJWT();
+                  const res = await fetch(`${aiHost}/stripe/account`, {
+                    method: 'DELETE',
+                    headers: {
+                      Authorization: `Bearer ${jwt}`,
+                    },
+                  });
+                  if (res.ok) {
+                    const blob = await res.blob();
+                    // console.log('got blob', blob);
+                    console.log('disconnected stripe account');
+                  } else {
+                    console.warn(`invalid status code: ${res.status}`);
+                  }
+
+                  setUserPrivate((userPrivate: object) => {
+                    return {
+                      ...userPrivate,
+                      stripe_connect_account_id: null,
+                    };
+                  });
                 }}
               >
                 Disconnect Stripe
