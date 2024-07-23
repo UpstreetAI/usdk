@@ -429,9 +429,10 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.capabilities = [];
   }
 };
-const compileAgentJson = (agentJson, { guid, walletAddress, dev }) => {
+const compileAgentJson = (agentJson, { guid, stripeConnectAccountId, walletAddress, dev }) => {
   agentJson.id = guid;
   agentJson.startUrl = getAgentHost(guid, { dev });
+  agentJson.stripeConnectAccountId = stripeConnectAccountId;
   agentJson.address = walletAddress;
   ensureAgentJsonDefaults(agentJson);
   return agentJson;
@@ -2259,8 +2260,14 @@ const create = async (args) => {
   const guid = makeDevGuid();
   const jwt = await getLoginJwt();
   let agentToken = null;
+  let userPrivate = null;
   if (jwt !== null) {
-    agentToken = await getAgentToken(jwt, guid);
+    [agentToken, userPrivate] = await Promise.all([
+      getAgentToken(jwt, guid),
+      getUserForJwt(jwt, {
+        private: true,
+      }),
+    ]);
     if (!agentToken) {
       console.warn('Authorization error. Please try logging in again.')
       process.exit(1)
@@ -2285,6 +2292,8 @@ const create = async (args) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
+
+  const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
 
   // read agent files
   console.log(pc.italic('\nReading files...'));
@@ -2377,6 +2386,7 @@ const create = async (args) => {
   // const agentJson = JSON.parse(agentJsonString);
   compileAgentJson(agentJson, {
     guid,
+    stripeConnectAccountId,
     walletAddress,
     dev,
   });
