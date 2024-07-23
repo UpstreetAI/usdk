@@ -1889,7 +1889,6 @@ export class NetworkRealms extends EventTarget {
       // this.lastPosition[1] = snappedPosition[1];
       // this.lastPosition[2] = snappedPosition[2];
       this.lastRealmsKeys = realmsKeys;
-      this.lastRootRealmKey = rootRealmKey;
 
       await this.migrateTx(async () => {
         const oldNumConnectedRealms = this.connectedRealms.size;
@@ -1961,6 +1960,8 @@ export class NetworkRealms extends EventTarget {
           }
         }
         await Promise.all(connectPromises);
+
+        this.lastRootRealmKey = rootRealmKey;
 
         // if this is the first network configuration, initialize our local player
         if (oldNumConnectedRealms === 0 && connectPromises.length > 0) {
