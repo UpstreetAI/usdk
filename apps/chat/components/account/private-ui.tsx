@@ -303,7 +303,7 @@ const StripeConnectButtons = ({
                   // signIn('github', { callbackUrl: `/` })
                 }}
               >
-                Disonnect Stripe
+                Disconnect Stripe
               </Button>
             </div>
           </div>
