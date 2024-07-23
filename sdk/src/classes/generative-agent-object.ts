@@ -10,7 +10,9 @@ import dedent from 'dedent';
 //   AgentObject,
 // } from './agent-object';
 import type {
+  ActionMessage,
   ChatMessages,
+  PendingActionMessage,
 } from '../types';
 import {
   ConversationObject,
@@ -53,6 +55,10 @@ export class GenerativeAgentObject {
   ) {
     this.agent = agent;
     this.conversation = conversation;
+  }
+
+  get location() {
+    return new URL(this.conversation.getBrowserUrl());
   }
 
   //
@@ -136,5 +142,22 @@ export class GenerativeAgentObject {
       );
       await handleAgentAction(this, pendingMessage);
     });
+  }
+
+  addMessage(message: PendingActionMessage) {
+    const { agent } = this;
+    const { id: userId, name } = agent;
+    const { method, args } = message;
+    const timestamp = new Date();
+    const newMessage = {
+      userId,
+      name,
+      method,
+      args,
+      timestamp,
+      human: false,
+      hidden: false,
+    };
+    return this.conversation.addLocalAndRemoteMessage(newMessage);
   }
 }

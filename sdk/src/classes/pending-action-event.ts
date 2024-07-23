@@ -22,24 +22,10 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
     });
   }
   async commit() {
-    // console.log('handle agent commit 1', newMessage);
     const {
       agent: generativeAgent,
       message,
     } = this.data;
-    const { agent, conversation } = generativeAgent;
-    const { id: userId, name } = agent;
-    const { method, args } = message;
-    const timestamp = new Date();
-    const newMessage = {
-      userId,
-      name,
-      method,
-      args,
-      timestamp,
-      human: false,
-      hidden: false,
-    };
-    conversation.addLocalAndRemoteMessage(newMessage);
+    generativeAgent.addMessage(message);
   }
 }
