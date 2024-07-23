@@ -304,11 +304,10 @@ const StripeConnectButtons = ({
         <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
           <div className="px-5 py-4">
             <h3 className="mb-1 text-2xl font-medium">Stripe connect</h3>
-            <p className="text-zinc-300">Connected stripe account: {stripe_connect_account_id}</p>
           </div>
           <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
             <div className="flex flex-col items-start justify-between sm:flex-row sm:items-center">
-              <p className="pb-4 sm:pb-0">Connect to your stripe account</p>
+              <p className="pb-4 sm:pb-0">Connected stripe account: {stripe_connect_account_id}</p>
               <Button
                 onClick={async () => {
                   // stripe connect
