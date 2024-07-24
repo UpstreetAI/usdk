@@ -7,6 +7,9 @@
   "bin": {
     "usdk": "./usdk"
   },
+  "scripts": {
+    "prepublishOnly": "rm -Rf sdk/node_modules"
+  },
   "author": "",
   "license": "ISC",
   "files": [
