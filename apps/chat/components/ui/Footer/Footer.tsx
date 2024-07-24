@@ -28,7 +28,7 @@ export default function Footer() {
           <ul className="flex flex-col flex-initial md:flex-1">
           <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/company/pricing"
+                href="/account"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Pricing
