@@ -21,9 +21,6 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
         </div>
-        <Link href="/company/pricing" rel="nofollow" className='block ml-4'>
-          Pricing
-        </Link>
         <Link href="https://docs.upstreet.ai" rel="nofollow" target='_blank' className='block ml-4'>
           SDK
         </Link>
