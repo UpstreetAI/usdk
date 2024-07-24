@@ -1930,6 +1930,8 @@ export class NetworkRealms extends EventTarget {
         }
         await Promise.all(connectPromises);
 
+        this.lastRootRealmKey = rootRealmKey;
+
         // if this is the first network configuration, initialize our local player
         if (oldNumConnectedRealms === 0 && connectPromises.length > 0) {
           // onConnect && await onConnect();
@@ -1980,8 +1982,6 @@ export class NetworkRealms extends EventTarget {
             },
           }));
         }
-
-        this.lastRootRealmKey = rootRealmKey;
 
         // emit the fact that the network was reconfigured
         this.dispatchEvent(new MessageEvent('networkreconfigure', {
