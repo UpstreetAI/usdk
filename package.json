@@ -17,7 +17,9 @@
     "dist",
     "sdk",
     "examples/**",
-    "cli.js"
+    "cli.js",
+    "const.js",
+    "index.js"
   ],
   "dependencies": {
     "@chialab/esbuild-plugin-require-resolve": "^0.18.0",
