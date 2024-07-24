@@ -21,7 +21,7 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
         </div>
-        <Link href="/account" rel="nofollow" className='block ml-4'>
+        {/* <Link href="/account" rel="nofollow" className='block ml-4'>
           Pricing
         </Link>
         <Link href="https://docs.upstreet.ai" rel="nofollow" target='_blank' className='block ml-4'>
@@ -35,7 +35,7 @@ export function Header() {
         </Link>
         <Link href="/company/waitlist" rel="nofollow" className='block ml-4'>
           Waitlist
-        </Link>
+        </Link> */}
       </div>
       <SearchBar />
       <div className='md:m-w-[200px] md:w-[200px]'>
