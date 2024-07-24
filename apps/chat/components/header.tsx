@@ -27,7 +27,7 @@ export function Header() {
         <Link href="https://docs.upstreet.ai" rel="nofollow" target='_blank' className='block ml-4'>
           SDK
         </Link>
-        <Link href="/chat" rel="nofollow" className='block ml-4'>
+        <Link href="/new" rel="nofollow" className='block ml-4'>
           Chat
         </Link>
         <Link href="/company/careers" rel="nofollow" className='block ml-4'>
