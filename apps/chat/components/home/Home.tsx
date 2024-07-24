@@ -1,3 +1,5 @@
+// OLD VERSION
+
 'use client';
 
 import { useSupabase } from "@/lib/hooks/use-supabase";
@@ -45,3 +47,4 @@ export default function Home() {
     </div>
   );
 }
+

@@ -1,14 +1,15 @@
-import React from 'react'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
+import React from 'react';
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 
-import '@/app/globals.css'
-import { cn } from '@/lib/utils'
-import { TailwindIndicator } from '@/components/tailwind-indicator'
-import { Providers } from '@/components/providers'
-import { Header } from '@/components/header'
-import { Toaster } from '@/components/ui/sonner'
-import { Body } from '@/components/body'
+import '@/app/globals.css';
+import { cn } from '@/lib/utils';
+import { TailwindIndicator } from '@/components/tailwind-indicator';
+import { Providers } from '@/components/providers';
+import { Header } from '@/components/header';
+import { Toaster } from '@/components/ui/sonner';
+import { Body } from '@/components/body';
+import Footer from '@/components/ui/Footer';
 
 
 export const metadata = {
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           {/*</Suspense>*/}
 
           <TailwindIndicator/>
+          <Footer />
         </Providers>
       </body>
     </html>

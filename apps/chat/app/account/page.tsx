@@ -1,4 +1,4 @@
-import { Account } from '@/components/account'
+import { Account } from '@/components/account';
 
 
 interface Props {
