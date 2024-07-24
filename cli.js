@@ -1446,10 +1446,25 @@ const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
     // });
   });
 const getGuidFromPath = async (p) => {
+  const makeEnoent = () => new Error('not in an agent directory');
+
   const wranglerTomlPath = path.join(p, 'wrangler.toml');
-  const wranglerTomString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-  const wranglerToml = toml.parse(wranglerTomString);
-  return wranglerToml.vars.GUID;
+  try {
+    const wranglerTomString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+    const wranglerToml = toml.parse(wranglerTomString);
+    const guid = wranglerToml.vars.GUID;
+    if (guid) {
+      return guid;
+    } else {
+      throw makeEnoent();
+    }
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      throw makeEnoent();
+    } else {
+      throw err;
+    }
+  }
 };
 const normalizeGuidInputs = async (guidsOrDevPathIndexes, { dev }) => {
   if (guidsOrDevPathIndexes.length === 0) {
