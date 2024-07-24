@@ -16,6 +16,7 @@
     "minimatch": "^9.0.4",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
+    "together-ai": "^0.6.0-alpha.4",
     "yjs": "^13.6.18",
     "zod": "^3.23.8",
     "zod-to-ts": "^1.2.0"
