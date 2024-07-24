@@ -51,17 +51,17 @@ export default function Home() {
           </div>
 
           <div className='w-full pt-12'>
-              <Button className='bg-[#ff38ae] text-xl font-bold text-white px-8 py-6 mr-2'>
+              <Button className='bg-[#ff38ae] hover:bg-[#ff38ae] hover:opacity-[0.6] text-xl font-bold text-white px-8 py-6 mr-2'>
                 Find an AI
               </Button>
-              <Button className='bg-[#9640ff] text-xl font-bold text-white px-8 py-6 mr-2'>
+              <Button className='bg-[#9640ff] hover:bg-[#9640ff] hover:opacity-[0.6] text-xl font-bold text-white px-8 py-6 mr-2'>
                 Create an AI
               </Button>
-              <Button className='bg-[#e5e2ee] text-xl font-bold text-black px-8 py-6'>
+              <Button className='bg-[#e5e2ee] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 py-6'>
                 Join Waitlist
               </Button>
           </div>
-          
+
         </div>
 
         <div className='h-full w-[30%]'>
