@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.40",
+  "version": "0.0.41",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -16,6 +16,7 @@
     "certs-local",
     "dist",
     "sdk",
+    "lib",
     "examples/**",
     "cli.js",
     "const.js",
