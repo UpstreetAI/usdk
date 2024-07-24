@@ -16,7 +16,8 @@
     "certs-local",
     "dist",
     "sdk",
-    "examples/**"
+    "examples/**",
+    "cli.js"
   ],
   "dependencies": {
     "@chialab/esbuild-plugin-require-resolve": "^0.18.0",
