@@ -49,6 +49,18 @@ export default function Home() {
           <div className='bg-[#000000] text-2xl font-bold inline-block'>
             {'Create your own AIs using the AI builder or <React>.‍'}
           </div>
+
+          <div className='w-full pt-12'>
+              <Button className='bg-[#ff38ae] text-xl font-bold text-white px-8 py-6 mr-2'>
+                Find an AI
+              </Button>
+              <Button className='bg-[#9640ff] text-xl font-bold text-white px-8 py-6 mr-2'>
+                Create an AI
+              </Button>
+              <Button className='bg-[#e5e2ee] text-xl font-bold text-black px-8 py-6'>
+                Join Waitlist
+              </Button>
+          </div>
           
         </div>
 
