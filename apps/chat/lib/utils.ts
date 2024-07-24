@@ -89,6 +89,7 @@ export const getMessageFromCode = (resultCode: string) => {
 }
 
 export function resolveRelativeUrl(url: string) {
+  if (typeof url === "undefined") return;
   if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
     return url
   } else {
