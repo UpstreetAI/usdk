@@ -2271,6 +2271,14 @@ const getAgentToken = async (jwt, guid) => {
   }
 };
 const create = async (args) => {
+  const dstDir = args._[0] ?? cwd;
+  const prompt = args._[1] ?? '';
+  const template = args.template ?? 'basic';
+  const source = args.source;
+  const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
+  const dev = !!args.dev;
+
   const guid = makeDevGuid();
   const jwt = await getLoginJwt();
   let agentToken = null;
@@ -2291,22 +2299,21 @@ const create = async (args) => {
     process.exit(1)
   }
 
-  if (args.prompt && args.template) {
-    console.warn('cannot use both prompt and --template');
+  if ((+!!args.prompt + +!!args.template + +!!args.source) > 1) {
+    console.warn('multiple mutually exclusive options --prompt, --template and --source');
     process.exit(1);
   }
-
-  const dstDir = args._[0] ?? cwd;
-  const prompt = args._[1] ?? '';
-  const force = !!args.force;
-  const forceNoConfirm = !!args.forceNoConfirm;
-  const dev = !!args.dev;
-  const template = args.template ?? 'basic';
 
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
   const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
+
+  // load source file
+  let sourceFile = null;
+  if (source) {
+    sourceFile = await fs.promises.readFile(source);
+  }
 
   // remove old files
   const files = await (async () => {
@@ -2408,10 +2415,16 @@ const create = async (args) => {
   };
   await Promise.all([
     // template -> root
-    recursiveCopy(srcTemplateDir, dstDir, {
-      ...opts,
-      filter: srcTemplateFilter,
-    }),
+    (async () => {
+      await recursiveCopy(srcTemplateDir, dstDir, {
+        ...opts,
+        filter: srcTemplateFilter,
+      });
+      if (sourceFile !== null) {
+        const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
+        await fs.promises.writeFile(dstAgentTsxPath, sourceFile);
+      }
+    })(),
     // root package.json
     mergeJson(dstPackageJsonPath, srcPackageJsonPaths, (a, b) => {
       return {
@@ -3769,6 +3782,7 @@ const main = async () => {
     .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+    .option(`-s, --source <string>`, `Main source file for the agent`)
     .option(
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
@@ -3791,7 +3805,6 @@ const main = async () => {
             };
           }
         } else {
-          // opts = directory;
           directory = undefined;
           prompt = undefined;
           args = {
