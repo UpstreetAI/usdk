@@ -2,6 +2,9 @@
 
 import BackgroundSlider from 'react-background-slider';
 import styles from './Homepage.module.css';
+import { Carousel } from 'react-responsive-carousel';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Button } from '../ui/button';
 
 
 const Hero1 = '/images/hero-1.jpg';
@@ -11,16 +14,16 @@ const Hero3 = '/images/hero-3.jpg';
 export default function Home() {
 
   return (
-    <div className="section section-hero w-full">
+    <div className="section section-hero w-full h-full">
       <BackgroundSlider
         images={[Hero1, Hero2, Hero3]}
         duration={6}
         transition={3}
       />
 
-      <div className="flex flex-col flex-nowrap p-4 mx-auto max-w-6xl h-full">
+      <div className="flex flex-nowrap p-4 mx-auto max-w-6xl h-full">
 
-        <div className='my-auto'>
+        <div className='my-auto w-[70%]'>
           <div className='text-6xl font-bold'>
             <div className={styles.flipBox}>
               <div className={styles.inner}>
@@ -46,8 +49,27 @@ export default function Home() {
           <div className='bg-[#000000] text-2xl font-bold inline-block'>
             {'Create your own AIs using the AI builder or <React>.‍'}
           </div>
+          
         </div>
-        
+
+        <div className='h-full w-[30%]'>
+          <Carousel 
+            autoPlay={true} 
+            infiniteLoop={true} 
+            showArrows={false} 
+            showThumbs={false} 
+            showIndicators={false} 
+            showStatus={false}
+            className='absolute bottom-0 w-[440px]'
+          >
+            <div>
+              <img src="/images/avatar-1.png" />
+            </div>
+            <div>
+              <img src="/images/avatar-2.png" />
+            </div>
+          </Carousel>
+        </div>
       </div>
 
     </div>
