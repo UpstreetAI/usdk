@@ -2271,7 +2271,6 @@ const getAgentToken = async (jwt, guid) => {
   }
 };
 const create = async (args) => {
-  // Ensure user is logged in.
   const guid = makeDevGuid();
   const jwt = await getLoginJwt();
   let agentToken = null;
@@ -2307,7 +2306,6 @@ const create = async (args) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
-
   const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
 
   // read agent files
@@ -2385,8 +2383,6 @@ const create = async (args) => {
   const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
   const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
-  // const srcAgentJson = path.join(srcTemplateDir, agentJsonSrcFilename);
-
   const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
   const srcDstDir = path.join(dstDir, 'sdk');
 
@@ -2397,8 +2393,6 @@ const create = async (args) => {
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
 
   // compile the agent json
-  // const agentJsonString = await fs.promises.readFile(srcAgentJson, 'utf8');
-  // const agentJson = JSON.parse(agentJsonString);
   compileAgentJson(agentJson, {
     guid,
     stripeConnectAccountId,
@@ -2463,11 +2457,11 @@ const create = async (args) => {
   console.log(pc.green('Description:'), agentJson.description);
   console.log(pc.green('Bio:'), agentJson.bio, '\n');
 
-  return {
-    guid,
-    mnemonic,
-    agentJson,
-  };
+  // return {
+  //   guid,
+  //   mnemonic,
+  //   agentJson,
+  // };
 };
 const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
 const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
