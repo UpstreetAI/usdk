@@ -2343,9 +2343,9 @@ const create = async (args) => {
       );
     } else {
       // throw error
-      console.log('directory is not empty (-f to override)');
-      console.log('files (' + dstDir + '):\n' + files.slice(0, 8).join('\n'));
-      process.exit(1);
+      // console.warn('directory is not empty (-f to override)');
+      // console.log('files (' + dstDir + '):\n' + files.slice(0, 8).join('\n'));
+      throw new Error('directory is not empty (-f to override)');
     }
   }
 
