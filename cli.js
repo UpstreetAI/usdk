@@ -2263,7 +2263,7 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-const create = async (args) => {
+export const create = async (args) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
   const template = args.template ?? 'basic';
@@ -3715,7 +3715,7 @@ const main = async () => {
         await logout(args);
       });
     });
-  /*program
+  /* program
     .command('wear')
     .description('Wear the character with the given guid')
     .argument('<guid>', 'The guid of the agent to wear')
@@ -3739,7 +3739,7 @@ const main = async () => {
         await wear(args);
       });
     });*/
-  /*program
+  /* program
     .command('unwear')
     .description('Unwear the currently worn character')
     .action(async (opts = {}) => {
@@ -3939,7 +3939,7 @@ const main = async () => {
       });
     });
   const networkOptions = ['baseSepolia', 'opMainnet'];
-  /*program
+  /* program
     .command('ls')
     .description('List the currently deployed agents')
     .option(
@@ -4200,7 +4200,7 @@ const main = async () => {
     });
 
   // wallet
-  /*program
+  /* program
     .command('fund')
     .description('Fund an agent on the network')
     .argument(`<guid>`, `Guid of the agent to deposit to`)
@@ -4268,18 +4268,24 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-// handle uncaught exceptions
-const handleGlobalError = (err, err2) => {
-  console.log('cli uncaught exception', err, err2);
-  process.exit(1);
-};
-process.on('uncaughtException', handleGlobalError);
-process.on('unhandledRejection', handleGlobalError);
-// run main
-(async () => {
-  try {
-    await main();
-  } catch (err) {
-    console.warn(err.stack);
-  }
-})();
+
+// main module
+const isMainModule = import.meta.url.endsWith(process.argv[1])
+if (isMainModule) {
+  // handle uncaught exceptions
+  const handleGlobalError = (err, err2) => {
+    console.log('cli uncaught exception', err, err2);
+    process.exit(1);
+  };
+  process.on('uncaughtException', handleGlobalError);
+  process.on('unhandledRejection', handleGlobalError);
+
+  // run main
+  (async () => {
+    try {
+      await main();
+    } catch (err) {
+      console.warn(err.stack);
+    }
+  })();
+}
