@@ -2,6 +2,8 @@
 
 import * as React from 'react'
 import { toast } from "sonner"
+import AudioAnimation from '../audio-animation'
+
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
@@ -11,6 +13,7 @@ import { audioOutputStreamFactory, createOpusAudioOutputStream } from '@upstreet
 import { createAudioManager } from '@upstreet/chat/utils/audio/audio-manager';
 
 import { QueuedAudioManager } from '@upstreet/chat/utils/audio/queued-audio-manager';
+import { Button } from './button'
 
 
 // import {AudioManager} from "@upstreet/chat/utils/audio/audio-manager";
@@ -97,7 +100,21 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     audioContext,
   });
 
-  
+  const playersMap = new Map<string, Player>();
+  console.log("audioContext: ",audioContext);
+  console.log("audioManager: ",audioManager);
+
+  const realms = new NetworkRealms({
+    endpointUrl: multiplayerEndpointUrl,
+    playerId: userId,
+    audioManager: null,
+  });
+
+  const typingMap = new TypingMap();
+
+  const virtualWorld = realms.getVirtualWorld();
+  const virtualPlayers = realms.getVirtualPlayers();
+
   var outputAudioStreams = new Map();
 
   const ensureAudioStream = (playerId: any, streamId: any, audioContext: any, mimeType: any) => {
@@ -128,17 +145,41 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
 
   const createAgentAudioSonner = (event: any) => {
-    toast(`${name} speaking`, {
-      action: {
-        label: "Skip Audio",
-        onClick: () => {
-          const queuedAudioManager = event.data;
-          queuedAudioManager.skipAudioStream();
-        },
-      },
-      dismissible: false,
-      duration: Infinity,
-    })
+    const {queuedAudioManager, playerId} = event.data;
+    const agentName = playersMap.get(playerId)?.getPlayerSpec().name;
+    toast(
+      <>
+        <div className='absolute top-2 left-0 w-full h-full z-0 opacity-10'><AudioAnimation /></div>
+        <div className='flex flex-row justify-between items-center w-full px-3'>
+          <div className="flex flex-col space-y-1 z-10">
+            <div className="text-sm font-black">
+              {`${agentName}`}
+            </div>
+            <div className="text-xs font-semibold uppercase italic opacity-40">
+              {`is speaking...`}
+            </div>
+          </div>
+          <div className="flex flex-row space-y-1 z-50">
+            <Button
+              size={'sm'}
+              variant={'ghost'}
+              onClick={() => {
+                console.log("onClick pressed");
+                queuedAudioManager.skipAudioStream();
+                toast.dismiss();
+              }}
+            >
+              Skip
+            </Button>
+          </div>
+        </div>
+      </>,
+      {
+        className: '!rounded-full relative border-none',
+        dismissible: false,
+        duration: Infinity,
+      }
+    );
   };
 
   const clearAgentAudioSonner = (event: any) => {
@@ -160,28 +201,13 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   //   }
   // );
 
-
-  console.log("audioContext: ",audioContext);
-  console.log("audioManager: ",audioManager);
-
-  const realms = new NetworkRealms({
-    endpointUrl: multiplayerEndpointUrl,
-    playerId: userId,
-    audioManager: null,
-  });
-
-  const playersMap = new Map<string, Player>();
-  const typingMap = new TypingMap();
-
-  const virtualWorld = realms.getVirtualWorld();
-  const virtualPlayers = realms.getVirtualPlayers();
   // console.log('got initial players', virtualPlayers.getKeys());
 
   // console.log('waiting for initial connection...');
 
   let connected = false;
   const onConnect = async (e: any) => {
-    // console.log('on connect...');
+    console.log('on connect...');
 
     e.waitUntil(
       (async () => {
@@ -262,15 +288,15 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     );
   };
   realms.addEventListener('connect', onConnect);
-  realms.addEventListener('audioskip', (e: any) => {
+  // realms.addEventListener('audioskip', (e: any) => {
 
-    const {
-      playerId,
-      streamId,
-    } = e.data;
+  //   const {
+  //     playerId,
+  //     streamId,
+  //   } = e.data;
 
-    skipAudioStream();
-  })
+  //   skipAudioStream();
+  // })
 
   const _trackRemotePlayers = () => {
     virtualPlayers.addEventListener('join', (e: any) => {

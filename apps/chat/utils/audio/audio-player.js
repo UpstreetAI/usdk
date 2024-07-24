@@ -26,7 +26,10 @@ export class QueueAudioPlayer extends EventTarget {
       this.isPlaying = true;
 
       this.dispatchEvent(new MessageEvent('playingaudio', {
-        data: this.parent,
+        data: {
+          queuedAudioManager: this.parent,
+          playerId: this.currentStream.playerId,
+        },
       }));
 
       if (bufferedData) {
