@@ -2456,12 +2456,6 @@ const create = async (args) => {
   // console.log(pc.green('ID:'), agentJson.id, '\n');
   console.log(pc.green('Description:'), agentJson.description);
   console.log(pc.green('Bio:'), agentJson.bio, '\n');
-
-  // return {
-  //   guid,
-  //   mnemonic,
-  //   agentJson,
-  // };
 };
 const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
 const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
