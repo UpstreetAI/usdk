@@ -8,6 +8,7 @@ import { getJWT } from '@/lib/jwt';
 import { Button } from '@/components/ui/button';
 import { IconDots } from '@/components/ui/icons'
 import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 export interface AgentsProps {
   agents: object[];
@@ -17,6 +18,8 @@ export interface AgentsProps {
 export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
   const [agents, setAgents] = useState(() => agentsInit);
   const [openAgentIndex, setOpenAgentIndex] = useState(-1);
+
+  const { agentJoin } = useMultiplayerActions()
 
   return (
     <>
@@ -51,7 +54,16 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                 }}>
                   <IconDots />
                 </div>
-                {i === openAgentIndex && <div className="absolute top-8 right-0 p-2 rounded border cursor-auto bg-primary/10">
+                {i === openAgentIndex && <div className="absolute flex flex-col top-8 right-0 p-2 rounded border cursor-auto bg-primary/10">
+                  <Button variant="outline" className="text-xs mb-1" onClick={e => {
+                    setOpenAgentIndex(-1);
+
+                    (async () => {
+                      await agentJoin(id);
+                    })();
+                  }}>
+                    Chat
+                  </Button>
                   <Button variant="destructive" className="text-xs" onClick={e => {
                     setOpenAgentIndex(-1);
 
