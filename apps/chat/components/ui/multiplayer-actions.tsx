@@ -5,6 +5,77 @@ import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 
+//
+
+const getAgentName = (guid: string) => `user-agent-${guid}`;
+const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
+const connectAgentWs = (guid: string) =>
+  new Promise((accept, reject) => {
+    const agentHost = getAgentHost(guid);
+    // console.log('got agent host', guidOrDevPathIndex, agentHost);
+    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
+    // console.log('handle websocket', u);
+    // await pause();
+    const ws = new WebSocket(u);
+    ws.addEventListener('open', () => {
+      accept(ws);
+    });
+    ws.addEventListener('message', (e) => {
+      // const message = e.data;
+      // console.log('got ws message', guid, message);
+    });
+    ws.addEventListener('error', (err) => {
+      console.warn('unhandled ws rejection', err);
+      reject(err);
+    });
+    // ws.addEventListener('message', (e) => {
+    //   console.log('got ws message', e);
+    // });
+  });
+const join = async ({
+  room,
+  guid,
+}: {
+  room: string;
+  guid: string;
+}) => {
+  // cause the agent to join the room
+  const agentHost = getAgentHost(guid);
+  // console.log('get agent host', {
+  //   guidOrDevPathIndex,
+  //   agentHost,
+  // });
+  const u = `${agentHost}/join`;
+  // console.log('join 1', u);
+  const headers = {};
+  // if (!dev) {
+  // const jwt = await getLoginJwt();
+  const jwt = localStorage.getItem('jwt');
+  (headers as any).Authorization = `Bearer ${jwt}`;
+  // }
+  const joinReq = await fetch(u, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      room,
+    }),
+  });
+  if (joinReq.ok) {
+    const joinJson = await joinReq.json();
+    // console.log('join 2', joinJson);
+
+    const ws = await connectAgentWs(guid);
+    return ws;
+  } else {
+    const text = await joinReq.text();
+    console.warn(
+      'failed to join, status code: ' + joinReq.status + ': ' + text,
+    );
+  }
+};
+
+//
+
 interface MultiplayerActionsContextType {
   getRoom: () => string
   getCrdtDoc: () => any
@@ -15,6 +86,7 @@ interface MultiplayerActionsContextType {
   setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
+  agentJoin: (guid: string) => Promise<void>
   epoch: number
 }
 
@@ -461,6 +533,21 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage('say', {
           text,
         }),
+      agentJoin: async (guid: string) => {
+        const oldRoom = multiplayerState.getRoom();
+        const room = oldRoom || crypto.randomUUID();
+        console.log('agent join', {
+          guid,
+          room,
+        });
+        await join({
+          room,
+          guid,
+        });
+        if (!/\/rooms\//.test(location.pathname)) {
+          location.href = `/rooms/${room}`;
+        }
+      },
     };
     return multiplayerState;
   });
@@ -473,10 +560,23 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
+  const agentJoin = multiplayerState.agentJoin;
 
   return (
     <MultiplayerActionsContext.Provider
-      value={{ getRoom, getCrdtDoc, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch }}
+      value={{
+        getRoom,
+        getCrdtDoc,
+        localPlayerSpec,
+        playersMap,
+        playersCache,
+        messages,
+        setMultiplayerConnectionParameters,
+        sendRawMessage,
+        sendChatMessage,
+        agentJoin,
+        epoch,
+      }}
     >
       {children}
     </MultiplayerActionsContext.Provider>

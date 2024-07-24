@@ -1,9 +1,10 @@
 import { Info } from '@/components/account/info'
+import { Agents } from '@/components/account/agents'
 import { AccountPrivateUi } from './private-ui';
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
-import { getUserAccount, getUserAccountPrivate, getCredits, waitForUser } from '@/utils/supabase/server';
+import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
 
 
 export interface AccountProps {
@@ -13,12 +14,14 @@ export interface AccountProps {
 }
 
 export async function Account({ params: { id }}: AccountProps) {
-  const currentUser = await waitForUser()
-
   let user = null
   let userPrivate = null
   let credits = 0
   let userIsCurrentUser = false
+
+  const currentUser = await waitForUser()
+
+  const agentsPromise = getAgents(id || currentUser.id);
 
   // Display user for given ID if provided, else get current user.
   if (id) {
@@ -32,13 +35,15 @@ export async function Account({ params: { id }}: AccountProps) {
     user = currentUser
     userIsCurrentUser = true
   }
-
+  // load private data
   if (userIsCurrentUser) {
     [userPrivate, credits] = await Promise.all([
       getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan'),
       getCredits(user.id),
     ]);
   }
+
+  const agents = await agentsPromise;
 
   return (
     <div className="flex flex-col flex-nowrap p-4 mx-auto max-w-4xl">
@@ -53,6 +58,7 @@ export async function Account({ params: { id }}: AccountProps) {
         </div>
       </div>
       <Info user={user} userIsCurrentUser={userIsCurrentUser} />
+      <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
       {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />}
     </div>
   );

@@ -1,19 +1,8 @@
 'use client';
 
-// import { Bio } from '@/components/account/bio'
-// import { Name } from '@/components/account/name'
-// import { ProfileImage } from '@/components/account/profile-image'
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
-// import { EditableText } from '@/components/editable-text'
-// import { env } from '@/lib/env'
 import React, { useEffect, useState, useMemo } from 'react'
-// import { Button } from '@/components/ui/button'
-// import { IconEdit } from '@/components/ui/icons'
-// import { redirect } from 'next/navigation'
-// import { resolveRelativeUrl } from '@/lib/utils'
-// import { routes } from '@/routes'
-// import { getUserAccount, getUserAccountPrivate, waitForUser } from '@/utils/supabase/server'
 import { env } from '@/lib/env'
 import { getJWT } from '@/lib/jwt';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
