@@ -180,11 +180,10 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
 };
 const getAgentName = (guid) => `user-agent-${guid}`;
 const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
-const getAgentHost = (guidOrPortIndex, { dev }) => {
-  const agentHost = dev
-    ? `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
-    // : `https://${getAgentName(guidOrPortIndex)}.upstreet.ai`;
-    : `https://${getAgentName(guidOrPortIndex)}.${workersHost}`;
+const getAgentHost = (guidOrPortIndex) => {
+  const agentHost = typeof guidOrPortIndex === 'string'
+    ? `https://${getAgentName(guidOrPortIndex)}.${workersHost}`
+    : `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
   return agentHost;
 };
 /* const pause = () =>
@@ -429,9 +428,9 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.capabilities = [];
   }
 };
-const compileAgentJson = (agentJson, { guid, stripeConnectAccountId, walletAddress, dev }) => {
+const compileAgentJson = (agentJson, { guid, stripeConnectAccountId, walletAddress }) => {
   agentJson.id = guid;
-  agentJson.startUrl = getAgentHost(guid, { dev });
+  agentJson.startUrl = getAgentHost(guid);
   agentJson.stripeConnectAccountId = stripeConnectAccountId;
   agentJson.address = walletAddress;
   ensureAgentJsonDefaults(agentJson);
@@ -1421,9 +1420,6 @@ const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
   new Promise((accept, reject) => {
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-      {
-        dev,
-      },
     );
     // console.log('got agent host', guidOrDevPathIndex, agentHost);
     const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
@@ -1731,9 +1727,6 @@ const listen = async (args) => {
   const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-      {
-        dev,
-      },
     );
 
     const eventSource = new EventSource(`${agentHost}/events`);
@@ -2277,7 +2270,6 @@ const create = async (args) => {
   const source = args.source;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
-  const dev = !!args.dev;
 
   const guid = makeDevGuid();
   const jwt = await getLoginJwt();
@@ -2404,7 +2396,6 @@ const create = async (args) => {
     guid,
     stripeConnectAccountId,
     walletAddress,
-    dev,
   });
 
   // copy over the template files
@@ -3101,9 +3092,7 @@ const ls = async (args) => {
     const promises = [];
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
-      const agentHost = getAgentHost(agent.id, {
-        dev,
-      });
+      const agentHost = getAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
         const statusPromise = (async () => {
           const u = `${agentHost}/status`;
@@ -3295,9 +3284,6 @@ const join = async (args) => {
     // cause the agent to join the room
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-      {
-        dev,
-      },
     );
     // console.log('get agent host', {
     //   guidOrDevPathIndex,
@@ -3357,9 +3343,7 @@ const leave = async (args) => {
       const jwt = await getLoginJwt();
       const userId = jwt && (await getUserIdForJwt(jwt));
       if (userId) {
-        const agentHost = getAgentHost(guid, {
-          dev,
-        });
+        const agentHost = getAgentHost(guid);
         const leaveReq = await fetch(`${agentHost}/leave`, {
           method: 'POST',
           headers: {
