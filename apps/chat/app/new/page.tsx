@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation'
+'use client';
+
+const chatRoomRoute = '/rooms';
 
 export default async function NewPage() {
-  redirect('/')
+  location.href = `${chatRoomRoute}/${crypto.randomUUID()}`;
 }
