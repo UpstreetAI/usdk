@@ -17,7 +17,7 @@ const Hero3 = '/images/hero-3.jpg';
 export default function Home() {
 
   return (
-    <>
+    <div>
       <div className="w-full h-full">
         <BackgroundSlider
           images={[Hero1, Hero2, Hero3]}
@@ -53,13 +53,13 @@ export default function Home() {
             </div>
 
             <div className='w-full pt-12'>
-              <Link href="/new" className='bg-[#ff38ae] hover:bg-[#ff38ae] hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
+              <Link href="/new" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
                 Find an AI
               </Link>
-              <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] hover:bg-[#9640ff] hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
+              <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
-              <Link href="/company/waitlist" className='bg-[#e5e2ee] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+              <Link href="/company/waitlist" className='bg-[#e5e2ee] inline-block hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
                 Join Waitlist
               </Link>
             </div>
@@ -89,7 +89,7 @@ export default function Home() {
       <div className="w-full bg-[#000000] py-20">
         <div className="md:flex p-4 mx-auto max-w-6xl h-full">
           <div className='h-full md:w-[50%] text-center'>
-            <Image src={resolveRelativeUrl('/images/nota-2.png')} alt="Profile picture" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
+            <Image src={resolveRelativeUrl('/images/nota-2.png')} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
           </div>
           <div className='h-full md:w-[50%] my-auto'>
             <div className='text-4xl font-bold mb-4'>Let's be friends</div>
@@ -143,6 +143,6 @@ export default function Home() {
         </div>
       </div>
 
-    </>
+    </div>
   );
 }
