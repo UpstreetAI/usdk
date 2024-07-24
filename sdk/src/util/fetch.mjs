@@ -1,6 +1,7 @@
 import { aiProxyHost } from './endpoints.mjs';
 import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
+import Together from 'together-ai';
 
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }) => {
@@ -67,6 +68,16 @@ const fetchChatCompletionFns = {
     }
   },
   together: async ({ model, messages, stream, signal }) => {
+    const jwt = getCleanJwt();
+    if (!jwt) {
+      throw new Error('no jwt');
+    }
+    const together = new Together({
+      baseURL: `https://api.together.xyz/v1`,
+      apiKey: jwt,
+    });
+    throw new Error('not implemented');
+    // XXX
     // const systemMessages = messages.filter(m => m.role === 'system');
     // const userMessages = messages.filter(m => m.role === 'user');
     // const assistantMessages = messages.filter(m => m.role === 'assistant');
@@ -171,6 +182,11 @@ ${message.prompt}
       let prompt2;
       let stop;
       switch (model) {
+        case 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo': {
+          prompt2 = formatMessagesInst(prMessages);
+          stop = ['[/INST]', '</s>'];
+          break;
+        }
         case 'mistralai/Mixtral-8x7B-Instruct-v0.1': {
           prompt2 = formatMessagesInst(prMessages);
           stop = ['[/INST]', '</s>'];
@@ -225,10 +241,10 @@ ${message.prompt}
 
     const togetherAiTemperature = 0.7;
     const togetherAiMaxTokens = 1024;
-    const jwt = getCleanJwt();
-    if (!jwt) {
-      throw new Error('no jwt');
-    }
+    // const jwt = getCleanJwt();
+    // if (!jwt) {
+    //   throw new Error('no jwt');
+    // }
     const aiFetch = getAiFetch();
     const res = await aiFetch(`https://${aiProxyHost}/api/togetherAi/inference`, {
       method: 'POST',
