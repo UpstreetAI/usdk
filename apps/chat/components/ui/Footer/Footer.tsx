@@ -12,7 +12,7 @@ export default function Footer() {
   if(pathname.startsWith('/room')) return null;
 
   return (
-    <footer className="mx-auto px-6">
+    <footer className="mx-auto px-6 bg-[#000000]">
       <div className="grid grid-cols-1 gap-8 py-12 text-white transition-colors duration-150 border-b lg:grid-cols-12 border-zinc-600">
         <div className="col-span-1 lg:col-span-2">
           <Link
@@ -36,7 +36,7 @@ export default function Footer() {
             </li>
             <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/"
+                href="/new"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Chat
