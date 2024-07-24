@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.37a",
+  "version": "0.0.38",
   "description": "",
   "type": "module",
   "main": "index.js",
