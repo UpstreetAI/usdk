@@ -21,6 +21,8 @@ export async function Account({ params: { id }}: AccountProps) {
 
   const currentUser = await waitForUser()
 
+  if(!currentUser) redirect('/');
+
   const agentsPromise = getAgents(id || currentUser.id);
 
   // Display user for given ID if provided, else get current user.
