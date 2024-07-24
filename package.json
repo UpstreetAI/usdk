@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "description": "",
   "type": "module",
   "main": "index.js",
@@ -20,7 +20,9 @@
     "examples/**",
     "cli.js",
     "const.js",
-    "index.js"
+    "index.js",
+    "tsconfig.json",
+    "jest.config.js"
   ],
   "dependencies": {
     "@chialab/esbuild-plugin-require-resolve": "^0.18.0",
