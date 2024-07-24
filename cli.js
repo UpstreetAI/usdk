@@ -4270,7 +4270,7 @@ const main = async () => {
 };
 
 // main module
-const isMainModule = import.meta.url.endsWith(process.argv[1])
+const isMainModule = process.argv[1].endsWith('/usdk') || import.meta.url.endsWith(process.argv[1]);
 if (isMainModule) {
   // handle uncaught exceptions
   const handleGlobalError = (err, err2) => {
