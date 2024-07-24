@@ -20,7 +20,6 @@
     "examples/**",
     "cli.js",
     "const.js",
-    "index.js",
     "tsconfig.json",
     "jest.config.js"
   ],
