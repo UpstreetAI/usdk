@@ -54,6 +54,21 @@ import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-cl
   );
 }; */
 
+export async function getAgents(userId: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { error, data } = await supabaseClient
+    .from('assets')
+    .select(select)
+    .eq( 'user_id', userId )
+    .eq( 'type', 'npc' )
+    // .limit(1)
+    // .single()
+  if (!error) {
+    return data as object[];
+  } else {
+    throw error;
+  }
+}
+
 export async function getUserAccount(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
   const { data } = await supabaseClient
     .from('accounts')
