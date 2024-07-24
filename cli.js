@@ -2308,8 +2308,7 @@ const create = async (args) => {
   const walletAddress = wallet.address.toLowerCase();
   const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
 
-  // read agent files
-  console.log(pc.italic('\nReading files...'));
+  // remove old files
   const files = await (async () => {
     try {
       return await fs.promises.readdir(dstDir);
@@ -2338,6 +2337,7 @@ const create = async (args) => {
       }
 
       // Remove all files.
+      console.log(pc.italic('\nRemoving old files...'));
       await Promise.all(
         files.map((filePath) => rimraf(path.join(dstDir, filePath))),
       );
