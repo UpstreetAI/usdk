@@ -91,7 +91,7 @@ export default async function AgentProfilePage({ params }: Params) {
   if (!agentData?.start_url) return notFound();
 
   const response = await fetch(agentData.start_url);
-  if (response.ok) {
+  // if (response.ok) {
     const jsonData = await response.json();
 
     const agentInfo = {
@@ -102,7 +102,7 @@ export default async function AgentProfilePage({ params }: Params) {
     return (
       <AgentProfile agent={agentInfo} />
     );
-  } else {
-    throw new Error('Failed to fetch agent data: ' + response.status);
-  }
+  // } else {
+  //   throw new Error('Failed to fetch agent data: ' + response.status);
+  // }
 }
