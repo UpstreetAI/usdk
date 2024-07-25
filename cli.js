@@ -2283,17 +2283,14 @@ export const create = async (args, opts) => {
       }),
     ]);
     if (!agentToken) {
-      console.warn('Authorization error. Please try logging in again.')
-      process.exit(1)
+      throw new Error('Authorization error. Please try logging in again.')
     }
   } else {
-    console.warn('You must be logged in to create an agent.');
-    process.exit(1)
+    throw new Error('You must be logged in to create an agent.');
   }
 
   if ((+!!args.prompt + +!!args.template + +!!args.source) > 1) {
-    console.warn('multiple mutually exclusive options --prompt, --template and --source');
-    process.exit(1);
+    throw new Error('multiple mutually exclusive options --prompt, --template and --source');
   }
 
   const mnemonic = generateMnemonic();
@@ -2332,7 +2329,9 @@ export const create = async (args, opts) => {
         rl.close();
         console.log();
 
-        if (!isYes(answer)) process.exit(1);
+        if (!isYes(answer)) {
+          throw new Error('aborted');
+        }
       }
 
       // Remove all files.
