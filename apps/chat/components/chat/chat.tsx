@@ -71,12 +71,12 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     const message = {
       ...rawMessage,
-      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : Date.now(),
+      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
     };
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, message, playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index, playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
@@ -163,7 +163,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   )
 }
 
-function getMessageComponent(room: string, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
+function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
  
   switch (message.method) {
 
@@ -206,6 +206,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={message.args.text}
           name={ message.name }
           media={ media }
@@ -237,6 +238,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
@@ -274,6 +276,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">

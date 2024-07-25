@@ -16,6 +16,7 @@ const timeAgo = new TimeAgo('en-US')
 
 
 export interface ChatMessageProps {
+  id: string
   content: React.ReactNode
   media: any
   name: string
@@ -26,6 +27,7 @@ export interface ChatMessageProps {
 }
 
 export function ChatMessage({
+  id,
   content,
   media,
   name,
@@ -42,18 +44,18 @@ export function ChatMessage({
   const agentUrl = getAgentUrl(playerSpec);
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
-  const { popoverUserId, togglePopoverUserId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
+  const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
   
   return (
     <div>
       <div className={'relative grid grid-cols-message bt-0'}>
-        {(popoverUserId === playerSpec.id) && (
+        {(popoverMessageId === id) && (
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
               href={`/agents/${playerSpec.id}`}
               onClick={e => {
-                togglePopoverUserId('');
+                togglePopoverMessageId('');
               }}
             >
               <Button
@@ -69,7 +71,7 @@ export function ChatMessage({
               className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
               onClick={(e) => {
                 toggleOpenDm(playerSpec.id);
-                togglePopoverUserId('');
+                togglePopoverMessageId('');
               }}
             >
               <IconChat className="mr-2" />
@@ -95,7 +97,7 @@ export function ChatMessage({
               e.preventDefault();
               e.stopPropagation();
 
-              togglePopoverUserId(playerSpec.id);
+              togglePopoverMessageId(id);
             }}
           >
             {name}
