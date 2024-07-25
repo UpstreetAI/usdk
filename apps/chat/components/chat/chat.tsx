@@ -71,7 +71,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     const message = {
       ...rawMessage,
-      timestamp: new Date(rawMessage.timestamp),
+      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : Date.now(),
     };
     // if (rawMessage.method === 'say') {
       return {
