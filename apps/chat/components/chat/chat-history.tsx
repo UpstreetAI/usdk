@@ -1,19 +1,21 @@
 'use client';
 
 import * as React from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import {
   cn,
   getAgentEndpointUrl,
   getAgentPreviewImageUrl,
   getAgentUrl,
+  isValidUrl,
 } from '@/lib/utils';
 
-import { buttonVariants } from '@/components/ui/button';
 import Icon from '../ui/icon';
 import { Input } from '../ui/input';
 import Link from 'next/link';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { buttonVariants } from '@/components/ui/button';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
+import Image from 'next/image';
 
 interface ChatHistoryProps {
   id: string
@@ -108,7 +110,7 @@ export function ChatHistory({ id }: ChatHistoryProps) {
           const id = playerSpec.id;
           const name = playerSpec.name;
           const agentUrl = getAgentUrl(playerSpec);
-          const photo = getAgentPreviewImageUrl(playerSpec);
+          const {previewUrl} = playerSpec;
           return (
             <div className="mb-1 px-2" key={player.playerId}>
               <Link
@@ -119,10 +121,11 @@ export function ChatHistory({ id }: ChatHistoryProps) {
                   'flex w-full justify-start bg-zinc-50 px-2 shadow-none transition-colors hover:bg-zinc-200/40 dark:bg-zinc-900 dark:hover:bg-zinc-300/10'
                 )}
               >
-                <img
-                  className="w-6 h-6 aspect-square rounded-full mr-2"
-                  src={photo}
-                />
+                {previewUrl && isValidUrl(previewUrl) ? (
+                    <Image className="w-6 h-6 aspect-square rounded-full mr-2" width={128} height={128} src={previewUrl} alt='Profile picture' />
+                  ) : (
+                    <div className='uppercase text-sm font-bold rounded-full bg-muted mr-2 aspect-square h-6 w-6 text-center flex items-center justify-center'>{name.charAt(0)}</div>
+                  )}
                 <div className="flex-1 text-ellipsis overflow-hidden">
                   {name}
                 </div>
