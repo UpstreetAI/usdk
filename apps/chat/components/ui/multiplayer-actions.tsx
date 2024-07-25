@@ -431,17 +431,20 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   return realms;
 };
 
+const makeFakePlayerSpec = () => (
+  {
+    id: '',
+    name: '',
+    previewUrl: '',
+    capabilities: [],
+  }
+);
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let room = '';
     let realms: NetworkRealms | null = null;
-    let localPlayerSpec: PlayerSpec = {
-      id: '',
-      name: '',
-      previewUrl: '',
-      capabilities: [],
-    };
+    let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
     let playersMap: Map<string, Player> = new Map();
     let playersCache: Map<string, Player> = new Map();
     let messages: object[] = [];
@@ -490,39 +493,43 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       getMessages: () => messages,
       setMultiplayerConnectionParameters: (opts: object | null) => {
         let newRoom: string = (opts as any)?.room || '';
-        let newLocalPlayerSpec: PlayerSpec | null = (opts as any)?.localPlayerSpec || null;
+        let newLocalPlayerSpec: PlayerSpec = (opts as any)?.localPlayerSpec || makeFakePlayerSpec();
 
         if (room !== newRoom) {
-          if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
-            throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
-          }
-
+          // latch new state
           room = newRoom;
+          localPlayerSpec = newLocalPlayerSpec;
+          messages = [];
+
+          // disconnect old room
           if (realms) {
             realms.disconnect();
             realms = null;
           }
 
-          // latch new state
-          localPlayerSpec = newLocalPlayerSpec;
-          messages = [];
-
-          realms = connectMultiplayer(room, newLocalPlayerSpec);
-          realms.addEventListener('chat', (e) => {
-            const { message } = (e as any).data;
-            messages = [...messages, message];
-            refresh();
-          });
-          realms.addEventListener('playerschange', (e) => {
-            playersMap = (e as any).data;
-
-            // ensure all players are in the players cache
-            for (const [playerId, player] of playersMap) {
-              playersCache.set(playerId, player);
+          // connect new room
+          if (room) {
+            if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
+              throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            refresh();
-          });
+            realms = connectMultiplayer(room, newLocalPlayerSpec);
+            realms.addEventListener('chat', (e) => {
+              const { message } = (e as any).data;
+              messages = [...messages, message];
+              refresh();
+            });
+            realms.addEventListener('playerschange', (e) => {
+              playersMap = (e as any).data;
+
+              // ensure all players are in the players cache
+              for (const [playerId, player] of playersMap) {
+                playersCache.set(playerId, player);
+              }
+
+              refresh();
+            });
+          }
 
           refresh();
         }
