@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
+import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { getJWT } from '@/lib/jwt';
 
 export default function AgentEditor() {
   const [name, setName] = useState('');
@@ -35,9 +37,32 @@ export default function AgentEditor() {
             value,
           });
 
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          setDeploying(false);
+          try {
+            const jwt = await getJWT();
+            const res = await fetch(`${deployEndpointUrl}/agent`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/javascript',
+                Authorization: `Bearer ${jwt}`,
+              },
+              body: value,
+            });
+            if (res.ok) {
+              const j = await res.json();
+              console.log('got deploy result', j);
+              const {
+                guid,
+                name,
+                description,
+              } = j;
+              location.href = `/agents/${guid}`;
+              // await new Promise(resolve => setTimeout(resolve, 2000));
+            } else {
+              console.error('failed to deploy agent', res);
+            }
+          } finally {
+            setDeploying(false);
+          }
         })();
       }
     }}>
@@ -49,7 +74,6 @@ export default function AgentEditor() {
         setDescription(e.target.value);
       }} required />
       <Button onClick={e => {
-        // trigger a submit attempt
         formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       }} disabled={deploying}>{!deploying ? `Deploy` : 'Deploying...'}</Button>
       </div>
