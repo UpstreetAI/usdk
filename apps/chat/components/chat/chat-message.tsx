@@ -42,9 +42,6 @@ export function ChatMessage({
   const agentUrl = getAgentUrl(playerSpec);
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
-  // check if the avatarURL is a valid url
-  const isExternalURL = isValidUrl(avatarURL);
-
   const { popoverUserId, togglePopoverUserId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
   
   return (
@@ -54,7 +51,7 @@ export function ChatMessage({
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
-              href={`/agents/${playerSpec.name}`}
+              href={`/agents/${playerSpec.id}`}
               onClick={e => {
                 togglePopoverUserId('');
               }}
@@ -82,7 +79,7 @@ export function ChatMessage({
         )}
         <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
-          {avatarURL && isExternalURL ? (
+          {avatarURL && isValidUrl(avatarURL) ? (
             <Image src={resolveRelativeUrl(avatarURL)} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>

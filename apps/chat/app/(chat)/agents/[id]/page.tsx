@@ -87,7 +87,7 @@ export default async function AgentProfilePage({ params }: Params) {
     .eq('id', agentId)
     .single();
 
-  if(!agentData?.start_url) return null;
+  if (!agentData?.start_url) return null;
 
   const response = await fetch(agentData.start_url);
   const jsonData = await response.json();
