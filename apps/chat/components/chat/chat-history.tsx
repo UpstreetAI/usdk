@@ -141,6 +141,8 @@ export function ChatHistory({ id }: ChatHistoryProps) {
                       if (res.ok) {
                         const text = await res.text()
                       }
+                      // const oldRoom = getRoom();
+                      // await agentLeave(playerSpec.id, oldRoom);
                     }}
                   >
                     <Icon name="close" className="stroke-2" />

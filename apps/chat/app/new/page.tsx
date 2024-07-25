@@ -1,7 +1,7 @@
-'use client';
-
-const chatRoomRoute = '/rooms';
+import AgentEditor from './editor';
 
 export default async function NewPage() {
-  location.href = `${chatRoomRoute}/${crypto.randomUUID()}`;
+  return (
+    <AgentEditor />
+  );
 }

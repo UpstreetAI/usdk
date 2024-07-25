@@ -37,12 +37,12 @@ export function Header() {
           Waitlist
         </Link> */}
       </div>
-      <SearchBar />
-      <div className='md:m-w-[200px] md:w-[200px]'>
-        <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
-          <AccountOrLogin />
+      <SearchBar/>
+      {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
+        <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
+          <AccountOrLogin/>
         </React.Suspense>
-      </div>
+      {/* </div> */}
     </header>
   );
 }

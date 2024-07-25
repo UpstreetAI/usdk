@@ -101,8 +101,8 @@ export function getAgentPreviewImageUrl(agentObject: any) {
   return resolveRelativeUrl(agentObject.previewUrl);
 }
 
-export function getAgentEndpointUrl(agentObject: any) {
-  return `https://user-agent-${agentObject.id}.isekaichat.workers.dev/`;
+export function getAgentEndpointUrl(guid: string) {
+  return `https://user-agent-${guid}.isekaichat.workers.dev/`;
 }
 
 export function isValidUrl(urlString: string) {

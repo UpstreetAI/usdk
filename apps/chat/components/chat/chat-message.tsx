@@ -16,16 +16,18 @@ const timeAgo = new TimeAgo('en-US')
 
 
 export interface ChatMessageProps {
+  id: string
   content: React.ReactNode
   media: any
   name: string
   player: any
   room: string
-  timestamp: number
+  timestamp: Date
   // user: User | null
 }
 
 export function ChatMessage({
+  id,
   content,
   media,
   name,
@@ -42,21 +44,18 @@ export function ChatMessage({
   const agentUrl = getAgentUrl(playerSpec);
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
-  // check if the avatarURL is a valid url
-  const isExternalURL = isValidUrl(avatarURL);
-
-  const { popoverUserId, togglePopoverUserId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
+  const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
   
   return (
     <div>
       <div className={'relative grid grid-cols-message bt-0'}>
-        {(popoverUserId === playerSpec.id) && (
+        {(popoverMessageId === id) && (
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
-              href={`/agents/${playerSpec.name}`}
+              href={`/agents/${playerSpec.id}`}
               onClick={e => {
-                togglePopoverUserId('');
+                togglePopoverMessageId('');
               }}
             >
               <Button
@@ -72,7 +71,7 @@ export function ChatMessage({
               className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
               onClick={(e) => {
                 toggleOpenDm(playerSpec.id);
-                togglePopoverUserId('');
+                togglePopoverMessageId('');
               }}
             >
               <IconChat className="mr-2" />
@@ -82,7 +81,7 @@ export function ChatMessage({
         )}
         <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
-          {avatarURL && isExternalURL ? (
+          {avatarURL && isValidUrl(avatarURL) ? (
             <Image src={resolveRelativeUrl(avatarURL)} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
@@ -98,7 +97,7 @@ export function ChatMessage({
               e.preventDefault();
               e.stopPropagation();
 
-              togglePopoverUserId(playerSpec.id);
+              togglePopoverMessageId(id);
             }}
           >
             {name}
@@ -123,7 +122,7 @@ export function ChatMessage({
 
 export interface ChatMessageAudioProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageAudio({
@@ -145,7 +144,7 @@ export function ChatMessageAudio({
 
 export interface ChatMessageVideoProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageVideo({
@@ -167,7 +166,7 @@ export function ChatMessageVideo({
 
 export interface ChatMessageImageProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageImage({

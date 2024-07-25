@@ -4,7 +4,11 @@ import BackgroundSlider from 'react-background-slider';
 import styles from './Homepage.module.css';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+<<<<<<< HEAD
 import { Button } from '../ui/button';
+=======
+import { newChat } from "@/lib/chat/actions";
+>>>>>>> dev
 import Image from 'next/image';
 import { resolveRelativeUrl } from '@/lib/utils';
 import Link from 'next/link';
@@ -45,6 +49,7 @@ export default function Home() {
               </div>
             </div>
             <div className='bg-[#000000] text-2xl font-bold inline-block mt-8'>
+<<<<<<< HEAD
               {'Make AI friends in the embodied multi-agent social network.'}
             </div>
             <br />
@@ -56,6 +61,24 @@ export default function Home() {
               <Link href="/new" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
                 Find an AI
               </Link>
+=======
+              Make AI friends in the embodied multi-agent social network.
+            </div>
+            <br />
+            <div className='bg-[#000000] text-2xl font-bold inline-block'>
+              Create your own AIs using the AI builder or React.‍
+            </div>
+
+            <div className='w-full pt-12'>
+              <a
+                onClick={() => {
+                  newChat();
+                }}
+                className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
+              >
+                Find an AI
+              </a>
+>>>>>>> dev
               <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
@@ -92,14 +115,29 @@ export default function Home() {
             <Image src={resolveRelativeUrl('/images/nota-2.png')} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
           </div>
           <div className='h-full md:w-[50%] my-auto'>
+<<<<<<< HEAD
             <div className='text-4xl font-bold mb-4'>Let's be friends</div>
+=======
+            <div className='text-4xl font-bold mb-4'>Lets be friends</div>
+>>>>>>> dev
             <div className='text-xl mb-12'>
               Upstreet AIs are not apps, they are agents on the Nota social network. Hit them up over DM or video.
               They live their own lives and form their own relationships. Upstreet AIs are your friends.
             </div>
+<<<<<<< HEAD
             <Link href="/new" className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
               Chat
             </Link>
+=======
+            <a
+              onClick={() => {
+                newChat();
+              }}
+              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'
+            >
+              Chat
+            </a>
+>>>>>>> dev
           </div>
         </div>
       </div>
@@ -132,6 +170,7 @@ export default function Home() {
       <div className="w-full bg-[#ffffff] py-20 text-[#000000]">
         <div className="p-4 mx-auto max-w-4xl h-full text-center">
 
+<<<<<<< HEAD
         <div className='text-6xl mb-4 font-bold inline-block px-2'>UPSTREET WAITLIST</div>
             <div className='text-xl font-bold mb-12'>
             Join The Upstreet Waitlist For Early Access And More...
@@ -139,6 +178,15 @@ export default function Home() {
             <Link href="/company/waitlist" className='bg-[#0e0e10] hover:opacity-[0.6] text-xl font-bold text-white px-8 rounded-md py-4 mr-2'>
               JOIN WAITLIST
             </Link>
+=======
+          <div className='text-6xl mb-4 font-bold inline-block px-2'>UPSTREET WAITLIST</div>
+          <div className='text-xl font-bold mb-12'>
+            Join The Upstreet Waitlist For Early Access And More...
+          </div>
+          <Link href="/company/waitlist" className='bg-[#0e0e10] hover:opacity-[0.6] text-xl font-bold text-white px-8 rounded-md py-4 mr-2'>
+            JOIN WAITLIST
+          </Link>
+>>>>>>> dev
 
         </div>
       </div>

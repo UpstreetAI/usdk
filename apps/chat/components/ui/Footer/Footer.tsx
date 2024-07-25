@@ -51,14 +51,14 @@ export default function Footer() {
                 SDK
               </Link>
             </li>
-            <li className="py-3 md:py-0 md:pb-4">
+            {/* <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/company/careers"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Careers
               </Link>
-            </li>
+            </li> */}
             <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/company/waitlist"
@@ -95,14 +95,14 @@ export default function Footer() {
           </ul>
         </div>
         <div className="flex items-start col-span-1 text-white lg:col-span-6 lg:justify-end">
-          <div className="flex items-center h-10 space-x-6">
+          {/* <div className="flex items-center h-10 space-x-6">
             <a
               aria-label="Github Repository"
-              href="https://github.com/vercel/nextjs-subscription-payments"
+              href="https://github.com/upstreetai"
             >
               <IconUpstreet />
             </a>
-          </div>
+          </div> */}
         </div>
       </div>
       <div className="text-center py-8 space-y-4 md:flex-row">

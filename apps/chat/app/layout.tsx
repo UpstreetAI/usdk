@@ -11,7 +11,6 @@ import { Toaster } from '@/components/ui/sonner';
 import { Body } from '@/components/body';
 import Footer from '@/components/ui/Footer';
 
-
 export const metadata = {
   metadataBase: process.env.VERCEL_URL
     ? new URL(`https://${process.env.VERCEL_URL}`)
@@ -55,7 +54,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <meta name="msapplication-TileColor" content="#ffffff" />
         <meta name="msapplication-TileImage" content="/favicons/ms-icon-144x144.png" />
         <meta name="theme-color" content="#ffffff" />
-        <script type="text/javascript" src="https://app.viral-loops.com/widgetsV2/core/loader.js" data-campaign-id="gX3p2JkNdLHrZSSivBsto3Taies" id="viral-loops-loader"></script>
+        <script type="text/javascript" src="https://app.viral-loops.com/widgetsV2/core/loader.js" data-campaign-id="gX3p2JkNdLHrZSSivBsto3Taies" id="viral-loops-loader" async/>
       </head>
       <body
         className={cn(

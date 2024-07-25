@@ -37,7 +37,7 @@ type Message = {
 
   method: string
   name: string
-  timestamp: number
+  timestamp: Date
   userId: string
 }
 
@@ -51,8 +51,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps) {
-  const router = useRouter()
-  const path = usePathname()
+  // const router = useRouter()
+  // const path = usePathname()
   const [input, setInput] = useState('')
   // const [messages] = useUIState()
   // const [aiState] = useAIState()
@@ -69,15 +69,19 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
+    const message = {
+      ...rawMessage,
+      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
+    };
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, rawMessage, playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index + '', playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
     // }
-  }).filter((message) => message !== null) as unknown as any[];
+  })/*.filter((message) => message !== null) as unknown */as any[];
 
   /*useEffect(() => {
     if (user) {
@@ -159,7 +163,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   )
 }
 
-function getMessageComponent(room: string, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
+function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
  
   switch (message.method) {
 
@@ -202,6 +206,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={message.args.text}
           name={ message.name }
           media={ media }
@@ -233,6 +238,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
@@ -270,6 +276,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">

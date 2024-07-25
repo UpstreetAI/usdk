@@ -3,8 +3,8 @@
 import * as React from 'react'
 
 interface DirectMessageActionsContextType {
-  popoverUserId: string;
-  togglePopoverUserId: (userId: string) => void;
+  popoverMessageId: string;
+  togglePopoverMessageId: (id: string) => void;
   dmsOpen: string[];
   toggleOpenDm: (userId: string) => void;
 };
@@ -26,21 +26,20 @@ interface DirectMessageActionsProviderProps {
 }
 
 export function DirectMessageActionsProvider({ children }: DirectMessageActionsProviderProps) {
-  const [popoverUserId, setPopoverId] = React.useState<string>('');
+  const [popoverMessageId, setPopoverMessageId] = React.useState<string>('');
   const [dmsOpen, setDmsOpen] = React.useState<string[]>([]);
 
-  const togglePopoverUserId = (userId: string) => {
-    if (popoverUserId !== userId) {
-      setPopoverId(userId);
+  const togglePopoverMessageId = (id: string) => {
+    if (popoverMessageId !== id) {
+      setPopoverMessageId(id);
     } else {
-      setPopoverId('');
+      setPopoverMessageId('');
     }
   };
   const toggleOpenDm = (userId: string) => {
     const index = dmsOpen.indexOf(userId);
     if (index !== -1) {
       // nothing
-      // setDmsOpen(dmsOpen.filter((id) => id !== userId));
     } else {
       setDmsOpen([...dmsOpen, userId]);
     }
@@ -48,7 +47,7 @@ export function DirectMessageActionsProvider({ children }: DirectMessageActionsP
 
   return (
     <DirectMessageActionsContext.Provider
-      value={{ popoverUserId, togglePopoverUserId, dmsOpen, toggleOpenDm, }}
+      value={{ popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm, }}
     >
       {children}
     </DirectMessageActionsContext.Provider>

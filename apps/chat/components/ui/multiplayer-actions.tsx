@@ -1,9 +1,11 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
+import { getAgentEndpointUrl } from '@/lib/utils'
 
 //
 
@@ -83,10 +85,11 @@ interface MultiplayerActionsContextType {
   playersMap: Map<string, Player>
   playersCache: Map<string, Player>
   messages: object[]
-  setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
+  setMultiplayerConnectionParameters: (params: object | null) => void
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
   agentJoin: (guid: string) => Promise<void>
+  agentLeave: (guid: string, room: string) => Promise<void>
   epoch: number
 }
 
@@ -429,17 +432,21 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   return realms;
 };
 
+const makeFakePlayerSpec = () => (
+  {
+    id: '',
+    name: '',
+    previewUrl: '',
+    capabilities: [],
+  }
+);
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
+  const router = useRouter()
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let room = '';
     let realms: NetworkRealms | null = null;
-    let localPlayerSpec: PlayerSpec = {
-      id: '',
-      name: '',
-      previewUrl: '',
-      capabilities: [],
-    };
+    let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
     let playersMap: Map<string, Player> = new Map();
     let playersCache: Map<string, Player> = new Map();
     let messages: object[] = [];
@@ -486,44 +493,45 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       getPlayersMap: () => playersMap,
       getPlayersCache: () => playersCache,
       getMessages: () => messages,
-      setMultiplayerConnectionParameters: ({
-        room: newRoom,
-        localPlayerSpec: newLocalPlayerSpec,
-      }: {
-        room: string,
-        localPlayerSpec: PlayerSpec,
-      }) => {
-        if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
-          throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
-        }
+      setMultiplayerConnectionParameters: (opts: object | null) => {
+        let newRoom: string = (opts as any)?.room || '';
+        let newLocalPlayerSpec: PlayerSpec = (opts as any)?.localPlayerSpec || makeFakePlayerSpec();
 
         if (room !== newRoom) {
+          // latch new state
           room = newRoom;
+          localPlayerSpec = newLocalPlayerSpec;
+          messages = [];
+
+          // disconnect old room
           if (realms) {
             realms.disconnect();
             realms = null;
           }
 
-          // latch new state
-          localPlayerSpec = newLocalPlayerSpec;
-          messages = [];
-
-          realms = connectMultiplayer(room, newLocalPlayerSpec);
-          realms.addEventListener('chat', (e) => {
-            const { message } = (e as any).data;
-            messages = [...messages, message];
-            refresh();
-          });
-          realms.addEventListener('playerschange', (e) => {
-            playersMap = (e as any).data;
-
-            // ensure all players are in the players cache
-            for (const [playerId, player] of playersMap) {
-              playersCache.set(playerId, player);
+          // connect new room
+          if (room) {
+            if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
+              throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            refresh();
-          });
+            realms = connectMultiplayer(room, newLocalPlayerSpec);
+            realms.addEventListener('chat', (e) => {
+              const { message } = (e as any).data;
+              messages = [...messages, message];
+              refresh();
+            });
+            realms.addEventListener('playerschange', (e) => {
+              playersMap = (e as any).data;
+
+              // ensure all players are in the players cache
+              for (const [playerId, player] of playersMap) {
+                playersCache.set(playerId, player);
+              }
+
+              refresh();
+            });
+          }
 
           refresh();
         }
@@ -544,8 +552,30 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           room,
           guid,
         });
+        // redirect to the room, as necessary
         if (!/\/rooms\//.test(location.pathname)) {
-          location.href = `/rooms/${room}`;
+          router.push(`/rooms/${room}`);
+        }
+      },
+      agentLeave: async (guid: string, room: string) => {
+        console.log('agent leave', {
+          guid,
+          room,
+        });
+        const agentEndpointUrl = getAgentEndpointUrl(guid);
+        const leaveUrl = `${agentEndpointUrl}leave`;
+        console.log('click x', leaveUrl);
+        const res = await fetch(leaveUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            room,
+          }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
         }
       },
     };
@@ -561,6 +591,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
   const agentJoin = multiplayerState.agentJoin;
+  const agentLeave = multiplayerState.agentLeave;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -575,6 +606,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage,
         sendChatMessage,
         agentJoin,
+        agentLeave,
         epoch,
       }}
     >
