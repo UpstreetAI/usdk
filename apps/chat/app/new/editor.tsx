@@ -13,11 +13,11 @@ export default function AgentEditor() {
   const formEl = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
-  useEffect(() => {
-    if (monaco) {
-      console.log('here is the monaco instance:', monaco);
-    }
-  }, [monaco]);
+  // useEffect(() => {
+  //   if (monaco) {
+  //     console.log('here is the monaco instance:', monaco);
+  //   }
+  // }, [monaco]);
 
   return (
     <form className="relative flex flex-col flex-1" ref={formEl} onSubmit={e => {
