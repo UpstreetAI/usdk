@@ -4,7 +4,8 @@
 // import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
 import {WsMediaStreamAudioReader, OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder, FakeAudioData} from './ws-codec.js';
 import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './ws-util.js';
-import {makeId, makePromise} from '../../../engine/util.js';
+import { makeId, makePromise } from '../util.mjs';
+
 
 //
 // AUDIO OUTPUTS
