@@ -15,7 +15,7 @@ const AudioAnimation: React.FC = () => {
   return (
     <div className="sound-wave">
       {Array.from({ length: 20 }).map((_, i) => (
-        <Bar index={i} />
+        <Bar key={i} index={i} />
       ))}
     </div>
   );

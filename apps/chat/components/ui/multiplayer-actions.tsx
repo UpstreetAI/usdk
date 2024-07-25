@@ -637,6 +637,13 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
             if (playerId === localPlayerSpec.id){
               refresh();
+            } else { // in case the agent is not an audio agent, render the message
+              const { method } = message;
+              const { media } = message.args;
+              console.log("media is: ",media);
+              if (method === 'say' && typeof media === "undefined"){
+                refresh();
+              } 
             }
           });
           realms.addEventListener('startmessagerender', (_) => {
