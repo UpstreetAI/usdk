@@ -4,6 +4,7 @@ import * as React from 'react'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
+import { getAgentEndpointUrl } from '@/lib/utils'
 
 //
 
@@ -87,6 +88,7 @@ interface MultiplayerActionsContextType {
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
   agentJoin: (guid: string) => Promise<void>
+  agentLeave: (guid: string, room: string) => Promise<void>
   epoch: number
 }
 
@@ -544,8 +546,30 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           room,
           guid,
         });
+        // redirect to the room, as necessary
         if (!/\/rooms\//.test(location.pathname)) {
           location.href = `/rooms/${room}`;
+        }
+      },
+      agentLeave: async (guid: string, room: string) => {
+        console.log('agent leave', {
+          guid,
+          room,
+        });
+        const agentEndpointUrl = getAgentEndpointUrl(guid);
+        const leaveUrl = `${agentEndpointUrl}leave`;
+        console.log('click x', leaveUrl);
+        const res = await fetch(leaveUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            room,
+          }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
         }
       },
     };
@@ -561,6 +585,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
   const agentJoin = multiplayerState.agentJoin;
+  const agentLeave = multiplayerState.agentLeave;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -575,6 +600,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage,
         sendChatMessage,
         agentJoin,
+        agentLeave,
         epoch,
       }}
     >

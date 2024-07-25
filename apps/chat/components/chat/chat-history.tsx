@@ -3,7 +3,7 @@ import * as React from 'react'
 
 import Link from 'next/link'
 
-import { cn, getAgentUrl, getAgentPreviewImageUrl, getAgentEndpointUrl } from '@/lib/utils'
+import { cn, getAgentUrl } from '@/lib/utils'
 // import { SidebarList } from '@/components/sidebar-list'
 import { buttonVariants } from '@/components/ui/button'
 import { IconPlus, IconClose } from '@/components/ui/icons'
@@ -15,7 +15,7 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 // }
 
 export function ChatHistory() {
-  const { localPlayerSpec, playersMap } = useMultiplayerActions();
+  const { getRoom, localPlayerSpec, playersMap, agentLeave } = useMultiplayerActions();
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name);
   });
@@ -51,15 +51,8 @@ export function ChatHistory() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const agentEndpointUrl = getAgentEndpointUrl(playerSpec);
-                const leaveUrl = `${agentEndpointUrl}leave`;
-                console.log('click x', leaveUrl);
-                const res = await fetch(leaveUrl, {
-                  method: 'POST',
-                });
-                if (res.ok) {
-                  const text = await res.text();
-                }
+                const oldRoom = getRoom();
+                await agentLeave(playerSpec.id, oldRoom);
               }}
             >
               <IconClose className="stroke-2" />
