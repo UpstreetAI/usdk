@@ -2263,7 +2263,7 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-export const create = async (args) => {
+export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
   const template = args.template ?? 'basic';
@@ -2272,7 +2272,7 @@ export const create = async (args) => {
   const forceNoConfirm = !!args.forceNoConfirm;
 
   const guid = makeDevGuid();
-  const jwt = await getLoginJwt();
+  const jwt = opts?.jwt || await getLoginJwt();
   let agentToken = null;
   let userPrivate = null;
   if (jwt !== null) {
