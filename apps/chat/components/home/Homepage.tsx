@@ -4,7 +4,7 @@ import BackgroundSlider from 'react-background-slider';
 import styles from './Homepage.module.css';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { Button } from '../ui/button';
+import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
 import { resolveRelativeUrl } from '@/lib/utils';
 import Link from 'next/link';
@@ -53,9 +53,14 @@ export default function Home() {
             </div>
 
             <div className='w-full pt-12'>
-              <Link href="/new" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
+              <a
+                onClick={() => {
+                  newChat();
+                }}
+                className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
+              >
                 Find an AI
-              </Link>
+              </a>
               <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
@@ -97,9 +102,14 @@ export default function Home() {
               Upstreet AIs are not apps, they are agents on the Nota social network. Hit them up over DM or video.
               They live their own lives and form their own relationships. Upstreet AIs are your friends.
             </div>
-            <Link href="/new" className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+            <a
+              onClick={() => {
+                newChat();
+              }}
+              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'
+            >
               Chat
-            </Link>
+            </a>
           </div>
         </div>
       </div>
