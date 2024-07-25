@@ -489,54 +489,40 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       getPlayersCache: () => playersCache,
       getMessages: () => messages,
       setMultiplayerConnectionParameters: (opts: object | null) => {
-        if (opts) {
-          const {
-            room: newRoom,
-            localPlayerSpec: newLocalPlayerSpec,
-          } = opts as {
-            room: string,
-            localPlayerSpec: PlayerSpec,
-          };
+        let newRoom: string = (opts as any)?.room || '';
+        let newLocalPlayerSpec: PlayerSpec | null = (opts as any)?.localPlayerSpec || null;
+
+        if (room !== newRoom) {
           if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
             throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
           }
 
-          if (room !== newRoom) {
-            room = newRoom;
-            if (realms) {
-              realms.disconnect();
-              realms = null;
-            }
-
-            // latch new state
-            localPlayerSpec = newLocalPlayerSpec;
-            messages = [];
-
-            realms = connectMultiplayer(room, newLocalPlayerSpec);
-            realms.addEventListener('chat', (e) => {
-              const { message } = (e as any).data;
-              messages = [...messages, message];
-              refresh();
-            });
-            realms.addEventListener('playerschange', (e) => {
-              playersMap = (e as any).data;
-
-              // ensure all players are in the players cache
-              for (const [playerId, player] of playersMap) {
-                playersCache.set(playerId, player);
-              }
-
-              refresh();
-            });
-
-            refresh();
-          }
-        } else {
-          room = '';
+          room = newRoom;
           if (realms) {
             realms.disconnect();
             realms = null;
           }
+
+          // latch new state
+          localPlayerSpec = newLocalPlayerSpec;
+          messages = [];
+
+          realms = connectMultiplayer(room, newLocalPlayerSpec);
+          realms.addEventListener('chat', (e) => {
+            const { message } = (e as any).data;
+            messages = [...messages, message];
+            refresh();
+          });
+          realms.addEventListener('playerschange', (e) => {
+            playersMap = (e as any).data;
+
+            // ensure all players are in the players cache
+            for (const [playerId, player] of playersMap) {
+              playersCache.set(playerId, player);
+            }
+
+            refresh();
+          });
 
           refresh();
         }
