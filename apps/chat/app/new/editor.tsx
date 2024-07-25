@@ -73,10 +73,10 @@ export default function AgentEditor() {
       <div className="flex m-4">
       <input type="text" className="p-2 mr-2" value={name} placeholder="Name" onChange={e => {
         setName(e.target.value);
-      }} required />
+      }} />
       <input type="text" className="p-2 mr-2 flex-1" value={description} placeholder="Description" onChange={e => {
         setDescription(e.target.value);
-      }} required />
+      }} />
       <Button onClick={e => {
         formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       }} disabled={deploying}>{!deploying ? `Deploy` : 'Deploying...'}</Button>
