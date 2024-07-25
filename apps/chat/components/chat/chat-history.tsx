@@ -5,23 +5,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import {
   cn,
   getAgentEndpointUrl,
-  getAgentPreviewImageUrl,
   getAgentUrl,
   isValidUrl,
 } from '@/lib/utils';
 
 import Icon from '../ui/icon';
+import Image from 'next/image';
 import { Input } from '../ui/input';
 import Link from 'next/link';
 import { buttonVariants } from '@/components/ui/button';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
-import Image from 'next/image';
 
-interface ChatHistoryProps {
-  id: string
-}
-
-export function ChatHistory({ id }: ChatHistoryProps) {
+export function ChatHistory() {
   const [showRoomLinkTooltip, setShowRoomLinkTooltip] = React.useState(false)
 
   const { localPlayerSpec, playersMap, getCrdtDoc } = useMultiplayerActions()
