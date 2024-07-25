@@ -2400,14 +2400,14 @@ export const create = async (args, opts) => {
   // copy over the template files
   console.log(pc.italic('Copying files...'));
   const name = getAgentName(guid);
-  const opts = {
+  const copyOpts = {
     // overwrite: force,
   };
   await Promise.all([
     // template -> root
     (async () => {
       await recursiveCopy(srcTemplateDir, dstDir, {
-        ...opts,
+        ...copyOpts,
         filter: srcTemplateFilter,
       });
       if (sourceFile !== null) {
@@ -2429,9 +2429,9 @@ export const create = async (args, opts) => {
       };
     }),
     // root tsconfig
-    recursiveCopy(srcTsconfigPath, dstTsconfigPath, opts),
+    recursiveCopy(srcTsconfigPath, dstTsconfigPath, copyOpts),
     // root jest config
-    recursiveCopy(srcJestConfigPath, dstJestConfigPath, opts),
+    recursiveCopy(srcJestConfigPath, dstJestConfigPath, copyOpts),
     // root wrangler.toml
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
@@ -2439,7 +2439,7 @@ export const create = async (args, opts) => {
       return toml.stringify(t);
     }),
     // sdk directory
-    recursiveCopy(srcSdkDir, srcDstDir, opts),
+    recursiveCopy(srcSdkDir, srcDstDir, copyOpts),
   ]);
 
   // npm install
