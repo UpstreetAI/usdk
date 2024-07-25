@@ -136,7 +136,7 @@ export function ChatHistory({ id }: ChatHistoryProps) {
                       e.preventDefault()
                       e.stopPropagation()
 
-                      const agentEndpointUrl = getAgentEndpointUrl(playerSpec)
+                      const agentEndpointUrl = getAgentEndpointUrl(playerSpec.id)
                       const leaveUrl = `${agentEndpointUrl}leave`
                       const res = await fetch(leaveUrl, {
                         method: 'POST'
