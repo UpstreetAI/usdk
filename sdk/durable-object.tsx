@@ -103,7 +103,7 @@ export class DurableObject extends EventTarget {
       // leave for specific agent
       const agent = agents.find(a => a.id === agentId);
       if (agent) {
-        await agent.leave({
+        agent.leave({
           room,
           endpointUrl,
         });

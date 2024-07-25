@@ -170,6 +170,11 @@ export class ActiveAgentObject extends AgentObject {
       room,
       endpointUrl,
     });
+    console.log('join room', {
+      room,
+      endpointUrl,
+      key,
+    });
     const conversation = new ConversationObject({
       room,
       endpointUrl,
@@ -443,19 +448,20 @@ export class ActiveAgentObject extends AgentObject {
 
       await connectPromise;
     })();
-    const cleanup = () => {
-      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-        data: {
-          conversation,
-        },
-      }));
-
-      this.rooms.delete(key);
-    };
     try {
       await realmsPromise;
     } catch (err) {
       console.warn(err);
+
+      const cleanup = () => {
+        this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+          data: {
+            conversation,
+          },
+        }));
+  
+        this.rooms.delete(key);
+      };
       cleanup();
     }
   }
@@ -466,6 +472,11 @@ export class ActiveAgentObject extends AgentObject {
     const key = ConversationObject.getKey({
       room,
       endpointUrl,
+    });
+    console.log('leave room', {
+      room,
+      endpointUrl,
+      key,
     });
     const realms = this.rooms.get(key);
     if (realms) {
