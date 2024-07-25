@@ -8,6 +8,7 @@ import { getJWT } from '@/lib/jwt';
 import { Button } from '@/components/ui/button';
 import { IconDots } from '@/components/ui/icons'
 import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { isValidUrl } from '@/utils/helpers/urls';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 export interface AgentsProps {
@@ -39,7 +40,13 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
           return (
             <div className="relative flex m-auto mb-4 w-full max-w-4xl" key={id}>
               <Link href={`/agents/${id}`}>
-                <Image className="flex mr-2" width={128} height={128} src={preview_url} alt='Profile picture' />
+                <div className="mr-4 mb-4 size-[128px] min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                  {preview_url && isValidUrl(preview_url) ? (
+                    <Image className="flex mr-2" width={128} height={128} src={preview_url} alt='Profile picture' />
+                  ) : (
+                    <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
+                  )}
+                </div>
               </Link>
               <div className="flex flex-col flex-1">
                 <Link href={`/agents/${id}`}>
