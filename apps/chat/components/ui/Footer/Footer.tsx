@@ -51,14 +51,14 @@ export default function Footer() {
                 SDK
               </Link>
             </li>
-            <li className="py-3 md:py-0 md:pb-4">
+            {/* <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/company/careers"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Careers
               </Link>
-            </li>
+            </li> */}
             <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/company/waitlist"
