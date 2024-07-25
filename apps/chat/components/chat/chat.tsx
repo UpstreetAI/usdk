@@ -76,7 +76,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, message, index, playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index + '', playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
