@@ -73,4 +73,16 @@
   body {
     @apply bg-background text-foreground min-h-screen;
   }
+  .markdown h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+  .markdown h3 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  .markdown p {
+    margin-bottom: 16px;
+  }
 }
