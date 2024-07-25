@@ -21,7 +21,7 @@ export interface ChatMessageProps {
   name: string
   player: any
   room: string
-  timestamp: number
+  timestamp: Date
   // user: User | null
 }
 
@@ -123,7 +123,7 @@ export function ChatMessage({
 
 export interface ChatMessageAudioProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageAudio({
@@ -145,7 +145,7 @@ export function ChatMessageAudio({
 
 export interface ChatMessageVideoProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageVideo({
@@ -167,7 +167,7 @@ export function ChatMessageVideo({
 
 export interface ChatMessageImageProps {
   url: string
-  timestamp: number
+  timestamp: Date
 }
 
 export function ChatMessageImage({

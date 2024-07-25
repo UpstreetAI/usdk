@@ -37,7 +37,7 @@ type Message = {
 
   method: string
   name: string
-  timestamp: number
+  timestamp: Date
   userId: string
 }
 
@@ -69,15 +69,19 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
+    const message = {
+      ...rawMessage,
+      timestamp: new Date(rawMessage.timestamp),
+    };
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, rawMessage, playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
     // }
-  }).filter((message) => message !== null) as unknown as any[];
+  })/*.filter((message) => message !== null) as unknown */as any[];
 
   /*useEffect(() => {
     if (user) {
