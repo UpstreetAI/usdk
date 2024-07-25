@@ -428,11 +428,21 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.capabilities = [];
   }
 };
-const compileAgentJson = (agentJson, { guid, stripeConnectAccountId, walletAddress }) => {
+const compileAgentJson = (agentJson, { guid, name, description, stripeConnectAccountId, walletAddress }) => {
   agentJson.id = guid;
   agentJson.startUrl = getAgentHost(guid);
-  agentJson.stripeConnectAccountId = stripeConnectAccountId;
-  agentJson.address = walletAddress;
+  if (name) {
+    agentJson.name = name;
+  }
+  if (description) {
+    agentJson.description = description;
+  }
+  if (stripeConnectAccountId) {
+    agentJson.stripeConnectAccountId = stripeConnectAccountId;
+  }
+  if (walletAddress) {
+    agentJson.address = walletAddress;
+  }
   ensureAgentJsonDefaults(agentJson);
   return agentJson;
 };
@@ -2266,6 +2276,8 @@ const getAgentToken = async (jwt, guid) => {
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args._[1] ?? '';
+  const name = args.name;
+  const description = args.description;
   const template = args.template ?? 'basic';
   const source = args.source;
   const force = !!args.force;
@@ -2393,13 +2405,15 @@ export const create = async (args, opts) => {
   // compile the agent json
   compileAgentJson(agentJson, {
     guid,
+    name,
+    description,
     stripeConnectAccountId,
     walletAddress,
   });
 
   // copy over the template files
   console.log(pc.italic('Copying files...'));
-  const name = getAgentName(guid);
+  const agentName = getAgentName(guid);
   const copyOpts = {
     // overwrite: force,
   };
@@ -2420,7 +2434,7 @@ export const create = async (args, opts) => {
       return {
         ...a,
         ...b,
-        name,
+        name: agentName,
         dependencies: {
           ...a.dependencies,
           ...b.dependencies,
@@ -2435,7 +2449,7 @@ export const create = async (args, opts) => {
     // root wrangler.toml
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
-      t = buildWranglerToml(t, { name, guid, agentJson, mnemonic, agentToken });
+      t = buildWranglerToml(t, { name: agentName, guid, agentJson, mnemonic, agentToken });
       return toml.stringify(t);
     }),
     // sdk directory
@@ -3763,6 +3777,8 @@ const main = async () => {
     .description('Create a new agent, from either a prompt or template')
     .argument(`[directory]`, `The directory to create the project in`)
     .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
+    .option(`-n, --name <string>`, `Agent name`)
+    .option(`-d, --description <string>`, `Agent description`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
