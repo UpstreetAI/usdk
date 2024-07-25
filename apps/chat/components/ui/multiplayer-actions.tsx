@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
@@ -440,6 +441,7 @@ const makeFakePlayerSpec = () => (
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
+  const router = useRouter()
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let room = '';
@@ -552,7 +554,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         });
         // redirect to the room, as necessary
         if (!/\/rooms\//.test(location.pathname)) {
-          location.href = `/rooms/${room}`;
+          router.push(`/rooms/${room}`);
         }
       },
       agentLeave: async (guid: string, room: string) => {
