@@ -12,7 +12,7 @@ import {
 import {
   SubtleAi,
 } from './subtle-ai';
-import { AppContext, /*EpochContext,*/ ConfigurationContext } from '../context';
+import { AppContext, ConfigurationContext } from '../context';
 import type {
   UserHandler,
   InstanceChild,
@@ -99,13 +99,11 @@ const ConfigurationComponent = ({
 type AppComponentProps = {
   userRender: UserHandler,
   appContextValue: AppContextValue,
-  // epochValue: number,
   topLevelRenderPromise: any
 }
 const AppComponent = ({
   userRender,
   appContextValue,
-  // epochValue,
   topLevelRenderPromise,
 }: AppComponentProps) => {
 
@@ -119,9 +117,7 @@ const AppComponent = ({
     <ErrorBoundary>
       <AppContext.Provider value={appContextValue}>
         <ConfigurationComponent>
-          {/* <EpochContext.Provider value={epochValue}> */}
-            <UserRenderComponent />
-          {/* </EpochContext.Provider> */}
+          <UserRenderComponent />
         </ConfigurationComponent>
       </AppContext.Provider>
     </ErrorBoundary>
@@ -146,7 +142,6 @@ export class AgentRenderer {
 
   registry: RenderRegistry;
   appContextValue: AppContextValue;
-  // epochValue: number;
 
   reconciler: any;
   container: any;
@@ -188,16 +183,12 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
-    // const useRegistry = () => {
-    //   return this.registry;
-    // };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
-      // registry: useRegistry(),
     });
 
     // run the module to get the result
@@ -314,8 +305,6 @@ export class AgentRenderer {
     this.root = root;
     this.renderLoader = new RenderLoader();
 
-    // this.epochValue = 0;
-
     this.renderQueueManager = new QueueManager();
   }
 
@@ -345,12 +334,9 @@ export class AgentRenderer {
       appContextValue,
     } = this;
 
-    // this.epochValue++;
-
     const props = {
       userRender,
       appContextValue,
-      // epochValue: this.epochValue,
       topLevelRenderPromise: null,
     };
     // console.log('render 1');
