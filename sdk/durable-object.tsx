@@ -1,10 +1,6 @@
 import { headers } from './src/constants.js';
-// import { QueueManager } from './src/util/queue-manager.mjs';
 import { makeAnonymousClient, getUserIdForJwt, getUserForJwt } from './src/util/supabase-client.mjs';
-// import { NetworkRealms } from './src/lib/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
-// import { ConversationContext } from './src/classes/conversation-context';
-// import { Player } from './src/classes/player';
 import { AgentRenderer } from './src/classes/agent-renderer.js';
 import {
   serverHandler,
@@ -273,26 +269,41 @@ export class DurableObject extends EventTarget {
           return res;
         };
         const handleStatus = async () => {
-          throw new Error('not implemented');
+          const registry = this.agentRenderer.registry;
 
-          if (request.method === 'GET') {
-            // return the enabled status as well as the room state
-            const room = this.realms
-              ? Array.from(this.realms.connectedRealms)?.[0].key ?? null
-              : null;
-            return new Response(JSON.stringify({
-              room,
-            }), {
-              headers,
+          const agents = registry.agents.map((agent) => {
+            const {
+              name,
+              description,
+              bio,
+            } = agent;
+
+            const agentRealms = Array.from(agent.rooms.values());
+            const rooms = agentRealms.map((realms) => {
+              const { conversation } = realms.metadata;
+              const { room, endpointUrl } = conversation;
+              return {
+                room,
+                endpointUrl,
+              };
             });
-          } else {
-            return new Response(JSON.stringify({
-              error: 'method not allowed',
-            }), {
-              status: 405,
-              headers,
-            });
-          }
+
+            return {
+              name,
+              description,
+              bio,
+              rooms,
+            };
+          });
+
+          return new Response(JSON.stringify({
+            agents,
+          }), {
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json',
+            },
+          });
         };
         const handleWebhook = async () => {
           if (request.method === 'POST') {
@@ -379,12 +390,12 @@ export class DurableObject extends EventTarget {
         switch (subpath) {
           case 'agent.json':
             return await handleAgentJson();
+          case 'status':
+            return await handleStatus();
           case 'ws':
             return await handleWs();
           case 'events':
             return await handleEvents();
-          case 'status':
-            return await handleStatus();
           case 'webhook':
             return await handleWebhook();
           case 'join':
