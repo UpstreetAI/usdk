@@ -72,20 +72,6 @@ import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
 
-// const useContextEpoch = <T>(ContextType: any, getterFn: () => T) => {
-//   useContext(ContextType); // re-render when epoch changes
-//   return getterFn();
-// };
-
-//
-
-// const getConversationKey = ({
-//   room,
-//   endpointUrl,
-// }) => `${endpointUrl}/${room}`;
-
-//
-
 export class ActiveAgentObject extends AgentObject {
   // arguments
   appContextValue: AppContextValue;
@@ -190,8 +176,10 @@ export class ActiveAgentObject extends AgentObject {
         endpointUrl,
         playerId: guid,
         audioManager: null,
+        metadata: {
+          conversation,
+        },
       });
-      realms.conversation = conversation;
 
       const virtualWorld = realms.getVirtualWorld();
       const virtualPlayers = realms.getVirtualPlayers();
@@ -480,7 +468,7 @@ export class ActiveAgentObject extends AgentObject {
     });
     const realms = this.rooms.get(key);
     if (realms) {
-      const conversation = realms.conversation;
+      const conversation = realms.metadata.conversation;
       this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
         data: {
           conversation,
@@ -493,6 +481,7 @@ export class ActiveAgentObject extends AgentObject {
     }
   }
 
+  // convert this ActiveAgentObject to a GenerativeAgentObject for inference
   generative({
     conversation,
   }: {
