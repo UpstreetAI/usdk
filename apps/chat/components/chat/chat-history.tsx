@@ -19,7 +19,7 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 export function ChatHistory() {
   const [showRoomLinkTooltip, setShowRoomLinkTooltip] = React.useState(false)
 
-  const { localPlayerSpec, playersMap, getCrdtDoc } = useMultiplayerActions()
+  const { localPlayerSpec, playersMap, getCrdtDoc, agentLeave, room } = useMultiplayerActions()
 
   const crdt = getCrdtDoc()
 
@@ -27,7 +27,7 @@ export function ChatHistory() {
   const roomDescription = crdt?.getText('description').toString()
 
   const roomLink = typeof window !== 'undefined' ? window.location.href : ''
-
+  
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
   })
@@ -139,8 +139,7 @@ export function ChatHistory() {
                       if (res.ok) {
                         const text = await res.text()
                       }
-                      // const oldRoom = getRoom();
-                      // await agentLeave(playerSpec.id, oldRoom);
+                      await agentLeave(playerSpec.id, room);
                     }}
                   >
                     <Icon name="close" className="stroke-2" />
