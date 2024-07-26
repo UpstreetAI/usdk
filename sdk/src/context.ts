@@ -3,7 +3,7 @@ import {
   AppContextValue,
   // AgentContextValue,
   ActiveAgentObject,
-  GenerativeAgentObject,
+  // GenerativeAgentObject,
   ConversationObject,
   ConfigurationContextValue,
   // AgentRegistry,
