@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation'
+import AgentEditor from './editor';
 
 export default async function NewPage() {
-  redirect('/')
+  return (
+    <AgentEditor />
+  );
 }

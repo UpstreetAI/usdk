@@ -8,14 +8,15 @@ import { cn, resolveRelativeUrl } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { createClient } from '@/utils/supabase/client';
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+// import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { getSupabase } from '@/lib/hooks/use-supabase';
 import { buttonVariants } from '@/components/ui/button'
 // import { useSupabase } from '@/components/ui/providers'
+import { isValidUrl } from '@/utils/helpers/urls'
 
 import {
   IconClose,
-  IconSearch,
+  // IconSearch,
   IconPlus,
 } from '@/components/ui/icons'
 
@@ -53,75 +54,6 @@ async function search(query: string, opts: { signal: AbortSignal; }) {
 
 //
 
-const getAgentName = (guid: string) => `user-agent-${guid}`;
-const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
-const connectAgentWs = (guid: string) =>
-  new Promise((accept, reject) => {
-    const agentHost = getAgentHost(guid);
-    // console.log('got agent host', guidOrDevPathIndex, agentHost);
-    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
-    // console.log('handle websocket', u);
-    // await pause();
-    const ws = new WebSocket(u);
-    ws.addEventListener('open', () => {
-      accept(ws);
-    });
-    ws.addEventListener('message', (e) => {
-      // const message = e.data;
-      // console.log('got ws message', guid, message);
-    });
-    ws.addEventListener('error', (err) => {
-      console.warn('unhandled ws rejection', err);
-      reject(err);
-    });
-    // ws.addEventListener('message', (e) => {
-    //   console.log('got ws message', e);
-    // });
-  });
-const joinAgent = async ({
-  room,
-  guid,
-}: {
-  room: string;
-  guid: string;
-}) => {
-  // cause the agent to join the room
-  const agentHost = getAgentHost(guid);
-  // console.log('get agent host', {
-  //   guidOrDevPathIndex,
-  //   agentHost,
-  // });
-  const u = `${agentHost}/join`;
-  // console.log('join 1', u);
-  const headers = {};
-  // if (!dev) {
-  // const jwt = await getLoginJwt();
-  const jwt = localStorage.getItem('jwt');
-  (headers as any).Authorization = `Bearer ${jwt}`;
-  // }
-  const joinReq = await fetch(u, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      room,
-    }),
-  });
-  if (joinReq.ok) {
-    const joinJson = await joinReq.json();
-    // console.log('join 2', joinJson);
-
-    const ws = await connectAgentWs(guid);
-    return ws;
-  } else {
-    const text = await joinReq.text();
-    console.warn(
-      'failed to join, status code: ' + joinReq.status + ': ' + text,
-    );
-  }
-};
-
-//
-
 type AgentObject = {
   id: string;
   name: string;
@@ -152,7 +84,7 @@ export function SearchBar() {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const { isSearchOpen, toggleSearch } = useActions();
-  const { getRoom } = useMultiplayerActions();
+  const { agentJoin } = useMultiplayerActions();
 
   // focus search
   React.useEffect(() => {
@@ -214,7 +146,7 @@ export function SearchBar() {
                   <div className={`flex p-4 border-b`} key={i}>
                     <AgentLink name={agent.name} id={agent.id}>
                       <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
-                        {agent.preview_url ? (
+                        {agent.preview_url && isValidUrl(agent.preview_url) ? (
                           <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
                         ) : (
                           <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
@@ -239,19 +171,9 @@ export function SearchBar() {
                           e.preventDefault();
                           e.stopPropagation();
 
-                          // console.log('join agent', agent.id);
+                          await agentJoin(agent.id);
 
-                          const oldRoom = getRoom();
-                          const room = oldRoom || crypto.randomUUID();
-                          const guid = agent.id;
-                          await joinAgent({
-                            room,
-                            guid,
-                          });
                           setFocus(false);
-                          if (!/\/rooms\//.test(location.pathname)) {
-                            location.href = `/rooms/${room}`;
-                          }
                         }}>
                         <IconPlus className='size-8 opacity-[0.4]' />
                       </Link>

@@ -89,14 +89,8 @@ export const getMessageFromCode = (resultCode: string) => {
 }
 
 export function resolveRelativeUrl(url: string) {
-  if (typeof url === "undefined") return;
-  if (url.indexOf('http://') === 0 || url.indexOf('https://') === 0) {
-    return url
-  } else {
-    // XXX should be changed to chat.upstreet.ai, when the default images are hosted there
-    return url && new URL(url, `https://nota.upstreet.ai`) + '';
-    // return url;
-  }
+  // console.warn('do not use resolveRelativeUrl');
+  return url;
 }
 
 export function getAgentUrl(agentObject: any) {
@@ -107,6 +101,16 @@ export function getAgentPreviewImageUrl(agentObject: any) {
   return resolveRelativeUrl(agentObject.previewUrl);
 }
 
-export function getAgentEndpointUrl(agentObject: any) {
-  return `https://user-agent-${agentObject.id}.isekaichat.workers.dev/`;
+export function getAgentEndpointUrl(guid: string) {
+  return `https://user-agent-${guid}.isekaichat.workers.dev/`;
+}
+
+export function isValidUrl(urlString: string) {
+  const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // validate protocol
+  '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // validate domain name
+  '((\\d{1,3}\\.){3}\\d{1,3}))'+ // validate OR ip (v4) address
+  '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // validate port and path
+  '(\\?[;&a-z\\d%_.~+=-]*)?'+ // validate query string
+  '(\\#[-a-z\\d_]*)?$','i'); // validate fragment locator
+return !!urlPattern.test(urlString);
 }

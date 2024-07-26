@@ -3,26 +3,16 @@
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
-// import { useActions, useUIState } from 'ai/rsc'
-
-// import { UserMessage } from './stocks/message'
-// import { type AI } from '@/lib/chat/actions'
 import { Button } from '@/components/ui/button'
-import { IconArrowElbow, IconPlus, IconUpstreet, IconUsers } from '@/components/ui/icons'
+import { IconPlus, IconImage, IconDocument, IconAudio, IconCapture, IconUpstreet } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-// import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
-import { nanoid } from 'nanoid'
-import { useRouter } from 'next/navigation'
-
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
-import { newChat } from '@/lib/chat/actions'
-import { useSidebar } from '@/lib/client/hooks/use-sidebar'
-import { SidebarMobile } from './sidebar-mobile'
-import { ChatHistory } from './chat/chat-history'
+// import { newChat } from '@/lib/chat/actions'
+import { cn } from '@/lib/utils'
 
 export function PromptForm({
   input,
@@ -31,26 +21,18 @@ export function PromptForm({
   input: string
   setInput: (value: string) => void
 }) {
-
-  const { toggleSidebar, isSidebarOpen } = useSidebar();
-
+  const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-
   const { sendChatMessage } = useMultiplayerActions()
+
+  const toggleMediaPicker = () => {
+    setMediaPickerOpen(open => !open)
+  };
 
   const submitMessage = () => {
     const value = input.trim()
     setInput('')
     if (!value) return
-
-    // // Optimistically add user message UI
-    // setMessages(currentMessages => [
-    //   ...currentMessages,
-    //   {
-    //     id: nanoid(),
-    //     display: <UserMessage>{value}</UserMessage>
-    //   }
-    // ])
 
     // Submit and get response message
     // const responseMessage = await submitUserMessage(value)
@@ -76,12 +58,6 @@ export function PromptForm({
     }
   };
 
-  // React.useEffect(() => {
-  //   if (inputRef.current) {
-  //     inputRef.current.focus()
-  //   }
-  // }, [])
-
   return (
     <form
       // ref={formRef}
@@ -90,57 +66,80 @@ export function PromptForm({
         submitMessage()
       }}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
-        <div>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <SidebarMobile>
-              <ChatHistory />
-            </SidebarMobile>
-          </TooltipTrigger>
-          <TooltipContent>{isSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
-        </Tooltip>
-        </div>
-        <div className='hidden md:block'>
-        <Tooltip>
-          <TooltipTrigger asChild>
+      <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
+        {/* // XXX abstract this out to a component */}
+        {mediaPickerOpen && (
+          <div className="absolute left-0 bottom-16 py-2 flex flex-col bg-background border rounded">
+            <div className="mx-4 my-2 text-xs text-muted-foreground">Add media...</div>
             <Button
-              variant="outline"
-              size="icon"
-              className={`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0 ${isSidebarOpen ? "bg-white text-black" : "bg-background"}`}
-              onClick={() => {
-                toggleSidebar();
-              }}
-            > 
-              <IconUsers />
-              <span className="sr-only">Show Members</span>
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+            >
+              <input className="absolute -top-12 bottom-0 -left-12 right-0 cursor-pointer" type="file" onChange={e => {
+                const files = Array.from((e.target as any).files);
+                const file = files[0];
+                console.log('image file', file);
+
+                toggleMediaPicker();
+                (e.target as any).value = null;
+              }} />
+              <IconImage className="mr-2" />
+              <div>Image</div>
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>{isSidebarOpen ? "Hide" : "Show"} Members</TooltipContent>
-        </Tooltip>
-        </div>
+            {/* <Button
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              onClick={() => {
+                console.log('click document');
+              }}
+            >
+              <IconDocument className="mr-2" />
+              <div>Document</div>
+            </Button> */}
+            {/* <Button
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              onClick={() => {
+                console.log('click audio');
+              }}
+            >
+              <IconAudio className="mr-2" />
+              <div>Audio</div>
+            </Button> */}
+            {/* <Button
+              variant="secondary"
+              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              onClick={() => {
+                console.log('click capture');
+              }}
+            >
+              <IconCapture className="mr-2" />
+              <div>Capture</div>
+            </Button> */}
+          </div>
+        )}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
               size="icon"
-              className={`absolute left-10 md:left-14 top-[14px] size-8 rounded-full bg-background p-0`}
+              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full bg-background p-0`, mediaPickerOpen && `bg-secondary/80`)}
               onClick={() => {
-                newChat();
+                toggleMediaPicker();
               }}
             >
               <IconPlus />
-              <span className="sr-only">New Chat</span>
+              <span className="sr-only">Add Media</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>New Chat</TooltipContent>
+          <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
         <Textarea
           ref={inputRef}
           tabIndex={0}
           onKeyDown={onKeyDown}
-          placeholder="Send a message."
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-14 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          placeholder="Send a message"
+          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}
           autoComplete="off"

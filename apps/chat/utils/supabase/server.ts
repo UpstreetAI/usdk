@@ -54,6 +54,21 @@ import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-cl
   );
 }; */
 
+export async function getAgents(userId: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { error, data } = await supabaseClient
+    .from('assets')
+    .select(select)
+    .eq( 'user_id', userId )
+    .eq( 'type', 'npc' )
+    // .limit(1)
+    // .single()
+  if (!error) {
+    return data as object[];
+  } else {
+    throw error;
+  }
+}
+
 export async function getUserAccount(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
   const { data } = await supabaseClient
     .from('accounts')
@@ -64,6 +79,28 @@ export async function getUserAccount(id: string, select = '*', supabaseClient = 
 
   return data?.[0] as any|null
 }
+
+export async function getUserAccountPrivate(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('accounts_private')
+    .select(select)
+    .eq( 'id', id )
+    .limit(1)
+    // .single()
+  return data?.[0] as any|null
+}
+
+export async function getCredits(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('credits')
+    .select(select)
+    .eq( 'agent_id', id )
+    .limit(1)
+    // .single()
+  return (data?.[0] as any|null)?.credits;
+}
+
+ 
 
 export function getJWT() {
   const cookieStore = cookies();

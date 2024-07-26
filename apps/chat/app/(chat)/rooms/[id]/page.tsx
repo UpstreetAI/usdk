@@ -1,7 +1,8 @@
 import React from 'react';
 import { nanoid } from '@/lib/utils';
 import { Chat } from '@/components/chat/chat';
-import { SidebarDesktop } from '@/components/sidebar-desktop';
+import { SidebarDesktopLeft, SidebarDesktopRight } from '@/components/sidebar-desktop';
+import { LeftSidebarToggle, RightSidebarToggle } from '@/components/sidebar-toggle';
 // import { AI } from '@/lib/chat/actions'
 // import { getMissingKeys } from '@/app/actions'
 // import { getUser } from '@/utils/supabase/server'
@@ -83,8 +84,11 @@ export default async function RoomPage({ params }: Params) {
   return (
     // <AI initialAIState={{ chatId: id, messages: [] }}>
     <>
-      <SidebarDesktop />
+      <SidebarDesktopLeft />
+      
       <Chat id={id} /* user={user} missingKeys={missingKeys} */ room={roomName} />
+
+      <SidebarDesktopRight />
     </>
     // </AI>
   );

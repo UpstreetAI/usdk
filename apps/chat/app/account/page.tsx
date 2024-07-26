@@ -7,7 +7,6 @@ interface Props {
   }
 }
 
-
 export default function IndexPage({params}: Props) {
   return (
     <Account params={params}/>

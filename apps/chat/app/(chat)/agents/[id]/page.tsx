@@ -1,5 +1,6 @@
 
 import { type Metadata } from 'next';
+import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agent-profile';
 // import { createClient } from '@/utils/supabase/server';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
@@ -87,17 +88,21 @@ export default async function AgentProfilePage({ params }: Params) {
     .eq('id', agentId)
     .single();
 
-  if(!agentData?.start_url) return null;
+  if (!agentData?.start_url) return notFound();
 
-  const response = await fetch(agentData.start_url);
-  const jsonData = await response.json();
+  // const response = await fetch(agentData.start_url);
+  // if (response.ok) {
+    // const jsonData = await response.json();
 
-  const agentInfo = {
-    ...agentData,
-    npc: jsonData
-  }
+    // const agentInfo = {
+    //   ...agentData,
+    //   npc: jsonData
+    // }
 
-  return (
-    <AgentProfile agent={agentInfo} />
-  );
+    return (
+      <AgentProfile agent={agentData} />
+    );
+  // } else {
+  //   throw new Error('Failed to fetch agent data: ' + response.status);
+  // }
 }

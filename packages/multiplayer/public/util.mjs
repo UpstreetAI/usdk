@@ -1,4 +1,4 @@
-import {MULTIPLAYER_PORT} from './constants.mjs';
+// import {MULTIPLAYER_PORT} from './constants.mjs';
 import {zbencode, zbdecode} from './encoding.mjs';
 import {UPDATE_METHODS} from './update-types.mjs';
 
@@ -72,6 +72,32 @@ function parseMessage(m) {
             type: 'import',
             crdtExport: m.data.crdtExport,
           };
+        } else if (m.type === 'syn') {
+          const {synId} = m.data;
+          return {
+            type: 'syn',
+            synId,
+          };
+        } else if (m.type === 'synAck') {
+          const {synId} = m.data;
+          return {
+            type: 'synAck',
+            synId,
+          };
+        } else if (m.type === 'deadhand') {
+          const {keys, deadHand} = m.data;
+          return {
+            type: 'deadhand',
+            keys,
+            deadHand,
+          };
+        } else if (m.type === 'livehand') {
+          const {keys, liveHand} = m.data;
+          return {
+            type: 'livehand',
+            keys,
+            liveHand,
+          };
         } else if (m.type === 'networkinit') {
           return {
             type: 'networkinit',
@@ -87,9 +113,35 @@ function parseMessage(m) {
             type: 'leave',
             playerId: m.data.playerId,
           };
-        } else if (m.type === 'sync') {
+        } else if (m.type === 'register') {
+          const {playerId} = m.data;
           return {
-            type: 'sync',
+            type: 'register',
+            playerId,
+          };
+        } else if (m.type === 'crdtUpdate') {
+          const {update} = m.data;
+          return {
+            type: 'crdtUpdate',
+            update,
+          };
+        } else if (m.type === 'lockRequest') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockRequest',
+            lockName,
+          };
+        } else if (m.type === 'lockResponse') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockResponse',
+            lockName,
+          };
+        } else if (m.type === 'lockRelease') {
+          const {lockName} = m.data;
+          return {
+            type: 'lockRelease',
+            lockName,
           };
         } else {
           console.warn('failed to parse', m);
@@ -113,9 +165,22 @@ function serializeMessage(m) {
         ],
       });
     }
-    case 'sync': {
+    case 'syn': {
+      const {synId} = parsedMessage;
       return zbencode({
-        method: UPDATE_METHODS.SYNC,
+        method: UPDATE_METHODS.SYN,
+        args: [
+          synId,
+        ],
+      });
+    }
+    case 'synAck': {
+      const {synId} = parsedMessage;
+      return zbencode({
+        method: UPDATE_METHODS.SYN_ACK,
+        args: [
+          synId,
+        ],
       });
     }
     case 'set': {
@@ -153,6 +218,14 @@ function serializeMessage(m) {
         ],
       });
     }
+    case 'removeArray': {
+      return zbencode({
+        method: UPDATE_METHODS.REMOVE_ARRAY,
+        args: [
+          arrayId,
+        ],
+      });
+    }
     case 'rollback': {
       const {arrayId, arrayIndexId, key, oldEpoch, oldVal} = m.data;
       return zbencode({
@@ -163,6 +236,28 @@ function serializeMessage(m) {
           key,
           oldEpoch,
           oldVal,
+        ],
+      });
+    }
+    case 'deadhand': {
+      // console.log('serialize dead hand');
+      const {keys, deadHand} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.DEAD_HAND,
+        args: [
+          keys,
+          deadHand,
+        ],
+      });
+    }
+    case 'livehand': {
+      // console.log('serialize live hand');
+      const {keys, liveHand} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LIVE_HAND,
+        args: [
+          keys,
+          liveHand,
         ],
       });
     }
@@ -193,6 +288,51 @@ function serializeMessage(m) {
         ],
       });
     }
+    case 'register': {
+      const {playerId} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.REGISTER,
+        args: [
+          playerId,
+        ],
+      });
+    }
+    case 'crdtUpdate': {
+      const {update} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.CRDT_UPDATE,
+        args: [
+          update,
+        ],
+      });
+    }
+    case 'lockRequest': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_REQUEST,
+        args: [
+          lockName,
+        ],
+      });
+    }
+    case 'lockResponse': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_RESPONSE,
+        args: [
+          lockName,
+        ],
+      });
+    }
+    case 'lockRelease': {
+      const {lockName} = m.data;
+      return zbencode({
+        method: UPDATE_METHODS.LOCK_RELEASE,
+        args: [
+          lockName,
+        ],
+      });
+    }
     default: {
       console.warn('unrecognized message type', type);
       throw new Error('unrecognized message type: ' + type);
@@ -215,7 +355,8 @@ const getEndpoint = () => {
   return `${wss}${hostname}`;
 };
 const createWs = (endpoint, roomname, playerId) => {
-  const ws = new WebSocket(`${endpoint}/api/room/${roomname}/websocket${playerId ? `?playerId=${playerId}` : ''}`);
+  const u = `${endpoint}/api/room/${roomname}/websocket${playerId ? `?playerId=${playerId}` : ''}`;
+  const ws = new WebSocket(u);
   return ws;
 };
 

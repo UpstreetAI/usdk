@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from "sonner"
 import AudioAnimation from '../audio-animation'
 
@@ -8,6 +9,78 @@ import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
+import { getAgentEndpointUrl } from '@/lib/utils'
+
+//
+
+const getAgentName = (guid: string) => `user-agent-${guid}`;
+const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
+const connectAgentWs = (guid: string) =>
+  new Promise((accept, reject) => {
+    const agentHost = getAgentHost(guid);
+    // console.log('got agent host', guidOrDevPathIndex, agentHost);
+    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
+    // console.log('handle websocket', u);
+    // await pause();
+    const ws = new WebSocket(u);
+    ws.addEventListener('open', () => {
+      accept(ws);
+    });
+    ws.addEventListener('message', (e) => {
+      // const message = e.data;
+      // console.log('got ws message', guid, message);
+    });
+    ws.addEventListener('error', (err) => {
+      console.warn('unhandled ws rejection', err);
+      reject(err);
+    });
+    // ws.addEventListener('message', (e) => {
+    //   console.log('got ws message', e);
+    // });
+  });
+const join = async ({
+  room,
+  guid,
+}: {
+  room: string;
+  guid: string;
+}) => {
+  // cause the agent to join the room
+  const agentHost = getAgentHost(guid);
+  // console.log('get agent host', {
+  //   guidOrDevPathIndex,
+  //   agentHost,
+  // });
+  const u = `${agentHost}/join`;
+  // console.log('join 1', u);
+  const headers = {};
+  // if (!dev) {
+  // const jwt = await getLoginJwt();
+  const jwt = localStorage.getItem('jwt');
+  (headers as any).Authorization = `Bearer ${jwt}`;
+  // }
+  const joinReq = await fetch(u, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      room,
+    }),
+  });
+  if (joinReq.ok) {
+    const joinJson = await joinReq.json();
+    // console.log('join 2', joinJson);
+
+    const ws = await connectAgentWs(guid);
+    return ws;
+  } else {
+    const text = await joinReq.text();
+    console.warn(
+      'failed to join, status code: ' + joinReq.status + ': ' + text,
+    );
+  }
+};
+
+//
 
 import { audioOutputStreamFactory, createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
 import { createAudioManager } from '@upstreet/chat/utils/audio/audio-manager';
@@ -21,13 +94,16 @@ import { Button } from './button'
 
 interface MultiplayerActionsContextType {
   getRoom: () => string
+  getCrdtDoc: () => any
   localPlayerSpec: PlayerSpec
   playersMap: Map<string, Player>
   playersCache: Map<string, Player>
   messages: object[]
-  setMultiplayerConnectionParameters: (params: { room: string, localPlayerSpec: PlayerSpec }) => void
+  setMultiplayerConnectionParameters: (params: object | null) => void
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
+  agentJoin: (guid: string) => Promise<void>
+  agentLeave: (guid: string, room: string) => Promise<void>
   epoch: number
   skipAudioMessage: (streamId: string) => void
 }
@@ -107,7 +183,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: userId,
-    audioManager: null,
+    // audioManager: null,
   });
 
   const typingMap = new TypingMap();
@@ -551,22 +627,28 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       rootRealmKey: room,
     });
     // console.log('update realms keys 2');
-  })();
+  })().catch(err => {
+    console.warn(err);
+  });
 
   return realms;
 };
 
+const makeFakePlayerSpec = () => (
+  {
+    id: '',
+    name: '',
+    previewUrl: '',
+    capabilities: [],
+  }
+);
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
+  const router = useRouter()
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let room = '';
     let realms: NetworkRealms | null = null;
-    let localPlayerSpec: PlayerSpec = {
-      id: '',
-      name: '',
-      previewUrl: '',
-      capabilities: [],
-    };
+    let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
     let playersMap: Map<string, Player> = new Map();
     let playersCache: Map<string, Player> = new Map();
     let messages: object[] = [];
@@ -602,33 +684,45 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
     const multiplayerState = {
       getRoom: () => room,
+      getCrdtDoc: () => {
+        // console.log('got realms 1', realms);
+        if (realms) {
+          const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+          // console.log('got realms 2', headRealm, headRealm);
+          if (headRealm) {
+            return headRealm.networkedCrdtClient.getDoc();
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      },
       getLocalPlayerSpec: () => localPlayerSpec,
       getPlayersMap: () => playersMap,
       getPlayersCache: () => playersCache,
       getMessages: () => messages,
-      setMultiplayerConnectionParameters: ({
-        room: newRoom,
-        localPlayerSpec: newLocalPlayerSpec,
-      }: {
-        room: string,
-        localPlayerSpec: PlayerSpec,
-      }) => {
-        if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
-          throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
-        }
-
-        var renderAgentMessage = false;
+      setMultiplayerConnectionParameters: (opts: object | null) => {
+        let newRoom: string = (opts as any)?.room || '';
+        let newLocalPlayerSpec: PlayerSpec = (opts as any)?.localPlayerSpec || makeFakePlayerSpec();
 
         if (room !== newRoom) {
+          // latch new state
           room = newRoom;
+          localPlayerSpec = newLocalPlayerSpec;
+          messages = [];
+
+          // disconnect old room
           if (realms) {
             realms.disconnect();
             realms = null;
           }
 
-          // latch new state
-          localPlayerSpec = newLocalPlayerSpec;
-          messages = [];
+          // connect new room
+          if (room) {
+            if (!newLocalPlayerSpec?.id || !newLocalPlayerSpec?.name || !newLocalPlayerSpec?.previewUrl) {
+              throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
+            }
 
           realms = connectMultiplayer(room, newLocalPlayerSpec);
           realms.addEventListener('chat', (e) => {
@@ -659,13 +753,14 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           realms.addEventListener('playerschange', (e) => {
             playersMap = (e as any).data;
 
-            // ensure all players are in the players cache
-            for (const [playerId, player] of playersMap) {
-              playersCache.set(playerId, player);
-            }
+              // ensure all players are in the players cache
+              for (const [playerId, player] of playersMap) {
+                playersCache.set(playerId, player);
+              }
 
-            refresh();
-          });
+              refresh();
+            });
+          }
 
           refresh();
         }
@@ -675,11 +770,49 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage('say', {
           text,
         }),
+      agentJoin: async (guid: string) => {
+        const oldRoom = multiplayerState.getRoom();
+        const room = oldRoom || crypto.randomUUID();
+        console.log('agent join', {
+          guid,
+          room,
+        });
+        await join({
+          room,
+          guid,
+        });
+        // redirect to the room, as necessary
+        if (!/\/rooms\//.test(location.pathname)) {
+          router.push(`/rooms/${room}`);
+        }
+      },
+      agentLeave: async (guid: string, room: string) => {
+        console.log('agent leave', {
+          guid,
+          room,
+        });
+        const agentEndpointUrl = getAgentEndpointUrl(guid);
+        const leaveUrl = `${agentEndpointUrl}leave`;
+        console.log('click x', leaveUrl);
+        const res = await fetch(leaveUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            room,
+          }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+        }
+      },
       sendAudioSkipMessage: (streamId: any) => sendAudioSkipMessage(streamId),
     };
     return multiplayerState;
   });
   const getRoom = multiplayerState.getRoom;
+  const getCrdtDoc = multiplayerState.getCrdtDoc;
   const localPlayerSpec = multiplayerState.getLocalPlayerSpec();
   const playersMap = multiplayerState.getPlayersMap();
   const playersCache = multiplayerState.getPlayersCache();
@@ -687,11 +820,26 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
+  const agentJoin = multiplayerState.agentJoin;
+  const agentLeave = multiplayerState.agentLeave;
   const skipAudioMessage = multiplayerState.sendAudioSkipMessage;
 
   return (
     <MultiplayerActionsContext.Provider
-      value={{ getRoom, localPlayerSpec, playersMap, playersCache, messages, setMultiplayerConnectionParameters, sendRawMessage, sendChatMessage, epoch, skipAudioMessage }}
+      value={{
+        getRoom,
+        getCrdtDoc,
+        localPlayerSpec,
+        playersMap,
+        playersCache,
+        messages,
+        setMultiplayerConnectionParameters,
+        sendRawMessage,
+        sendChatMessage,
+        agentJoin,
+        agentLeave,
+        epoch,
+      }}
     >
       {children}
     </MultiplayerActionsContext.Provider>
