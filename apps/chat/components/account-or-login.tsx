@@ -26,9 +26,7 @@ export async function AccountOrLogin() {
   return (
     <>
       {user ? (
-        <>
-          <AccountButton user={user}/>
-        </>
+        <AccountButton user={user}/>
       ) : (
         <HeaderLoginButton />
       )}
