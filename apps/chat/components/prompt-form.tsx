@@ -23,7 +23,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { sendChatMessage } = useMultiplayerActions()
+  const { connected, sendChatMessage } = useMultiplayerActions()
 
   const toggleMediaPicker = () => {
     setMediaPickerOpen(open => !open)
@@ -148,6 +148,7 @@ export function PromptForm({
           rows={1}
           value={input}
           onChange={e => setInput(e.target.value)}
+          disabled={!connected}
         />
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>
