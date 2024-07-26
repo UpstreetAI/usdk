@@ -3,7 +3,6 @@ import { Info } from '@/components/account/info'
 import { Agents } from '@/components/account/agents'
 import { AccountPrivateUi } from './private-ui';
 import { redirect } from 'next/navigation';
-import { LoginPlaceholder } from '@/components/ui/login-placeholder';
 import { routes } from '@/routes';
 import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
 
@@ -22,7 +21,7 @@ export async function Account({ params: { id }}: AccountProps) {
 
   const currentUser = await waitForUser()
   if (!currentUser) {
-    return (<LoginPlaceholder/ >)
+    return redirect( routes.home )
   }
 
   const agentsPromise = getAgents(id || currentUser.id);
@@ -33,7 +32,7 @@ export async function Account({ params: { id }}: AccountProps) {
 
     // Redirect if a user isn't found, otherwise check if it's the
     // logged-in user.
-    if (!user) redirect( routes.home )
+    if (!user) return redirect( routes.home )
     userIsCurrentUser = user?.id === currentUser.id
   } else {
     user = currentUser
