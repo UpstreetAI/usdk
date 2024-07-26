@@ -10,6 +10,7 @@ import { IconDots } from '@/components/ui/icons'
 import { deployEndpointUrl } from '@/utils/const/endpoints';
 import { isValidUrl } from '@/utils/helpers/urls';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
+import { useRouter } from 'next/navigation'
 
 export interface AgentsProps {
   agents: object[];
@@ -17,6 +18,7 @@ export interface AgentsProps {
 }
 
 export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
+  const router = useRouter();
   const [agents, setAgents] = useState(() => agentsInit);
   const [openAgentIndex, setOpenAgentIndex] = useState(-1);
 
@@ -70,6 +72,13 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     })();
                   }}>
                     Chat
+                  </Button>
+                  <Button variant="outline" className="text-xs mb-1" onClick={e => {
+                    setOpenAgentIndex(-1);
+
+                    router.push(`/agents/${id}/logs`);
+                  }}>
+                    Logs
                   </Button>
                   <Button variant="destructive" className="text-xs" onClick={e => {
                     setOpenAgentIndex(-1);
