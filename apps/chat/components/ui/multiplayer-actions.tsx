@@ -78,6 +78,27 @@ const join = async ({
   }
 };
 
+const uploadFile = async (file: File) => {
+  const jwt = await getJWT();
+  const id = crypto.randomUUID();
+  const keyPath = ['uploads', id, file.name].join('/');
+  const u = `${r2EndpointUrl}/${keyPath}`;
+  const res = await fetch(u, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${jwt}`,
+    },
+    body: file,
+  });
+  if (res.ok) {
+    const url = await res.json();
+    return url;
+  } else {
+    const text = await res.text();
+    throw new Error(`could not upload file: ${file.name}: ${text}`);
+  }
+}
+
 //
 
 interface MultiplayerActionsContextType {
