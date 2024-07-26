@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { IconEdit } from '@/components/ui/icons'
-import { r2Endpoint } from '@/utils/const/endpoints'
+import { r2EndpointUrl } from '@/utils/const/endpoints'
 import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
@@ -40,7 +40,7 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
               if (extension) {
                 const imageID = crypto.randomUUID()
 
-                const url = `${r2Endpoint}/${user.id}/${imageID}.${extension}`
+                const url = `${r2EndpointUrl}/${user.id}/${imageID}.${extension}`
 
                 try {
                   const res = await fetch(url, {
