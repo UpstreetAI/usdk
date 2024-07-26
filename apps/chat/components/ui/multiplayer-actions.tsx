@@ -602,6 +602,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
+  const sendMediaMessage = multiplayerState.sendMediaMessage;
   const agentJoin = multiplayerState.agentJoin;
   const agentLeave = multiplayerState.agentLeave;
 
