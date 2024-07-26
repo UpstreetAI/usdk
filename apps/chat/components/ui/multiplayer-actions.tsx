@@ -102,7 +102,8 @@ const uploadFile = async (file: File) => {
 //
 
 interface MultiplayerActionsContextType {
-  getRoom: () => string
+  connected: boolean
+  room: string
   getCrdtDoc: () => any
   localPlayerSpec: PlayerSpec
   playersMap: Map<string, Player>
@@ -468,6 +469,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const router = useRouter()
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
+    let connected = false;
     let room = '';
     let realms: NetworkRealms | null = null;
     let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
@@ -498,6 +500,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     };
 
     const multiplayerState = {
+      getConnected: () => connected,
       getRoom: () => room,
       getCrdtDoc: () => {
         // console.log('got realms 1', realms);
@@ -540,6 +543,18 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             }
 
             realms = connectMultiplayer(room, newLocalPlayerSpec);
+            realms.addEventListener('connect', e => {
+              console.log('connect event');
+
+              connected = true;
+              refresh();
+            });
+            realms.addEventListener('disconnect', e => {
+              console.log('disconnect event');
+
+              connected = false;
+              refresh();
+            });
             realms.addEventListener('chat', (e) => {
               const { message } = (e as any).data;
               messages = [...messages, message];
@@ -614,7 +629,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     };
     return multiplayerState;
   });
-  const getRoom = multiplayerState.getRoom;
+  const connected = multiplayerState.getConnected();
+  const room = multiplayerState.getRoom();
   const getCrdtDoc = multiplayerState.getCrdtDoc;
   const localPlayerSpec = multiplayerState.getLocalPlayerSpec();
   const playersMap = multiplayerState.getPlayersMap();
@@ -630,7 +646,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   return (
     <MultiplayerActionsContext.Provider
       value={{
-        getRoom,
+        connected,
+        room,
         getCrdtDoc,
         localPlayerSpec,
         playersMap,
