@@ -1,8 +1,9 @@
+import React from 'react';
 import { Info } from '@/components/account/info'
 import { Agents } from '@/components/account/agents'
 import { AccountPrivateUi } from './private-ui';
-import React from 'react';
 import { redirect } from 'next/navigation';
+import { LoginPlaceholder } from '@/components/ui/login-placeholder';
 import { routes } from '@/routes';
 import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
 
@@ -20,6 +21,9 @@ export async function Account({ params: { id }}: AccountProps) {
   let userIsCurrentUser = false
 
   const currentUser = await waitForUser()
+  if (!currentUser) {
+    return (<LoginPlaceholder/ >)
+  }
 
   const agentsPromise = getAgents(id || currentUser.id);
 
