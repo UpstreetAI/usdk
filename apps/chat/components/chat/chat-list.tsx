@@ -8,20 +8,13 @@ export interface ChatList {
   messages: any,
   // user?: User | null
   // isShared: boolean
-  skipAudioMessagePlayback: any,
 }
 
-export function ChatList({ messages/*, user, isShared*/, skipAudioMessagePlayback }: ChatList) {
+export function ChatList({ messages/*, user, isShared*/ }: ChatList) {
   if (!messages.length) {
     return null
   }
-
-  function handleClick(id: any){
-    console.log("skip button clicked");
-    console.log("id: ",id);
-    skipAudioMessagePlayback(id);
-  }
-
+  
   return (
     <div className="relative mx-auto max-w-2xl px-4">
       {/* {!isShared && !user ? (

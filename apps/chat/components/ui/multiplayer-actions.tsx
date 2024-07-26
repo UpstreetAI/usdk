@@ -705,6 +705,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       setMultiplayerConnectionParameters: (opts: object | null) => {
         let newRoom: string = (opts as any)?.room || '';
         let newLocalPlayerSpec: PlayerSpec = (opts as any)?.localPlayerSpec || makeFakePlayerSpec();
+        let renderAgentMessage = false;
 
         if (room !== newRoom) {
           // latch new state

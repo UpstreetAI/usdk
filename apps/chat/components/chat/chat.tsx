@@ -141,7 +141,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
       >
         {room ? (
           messages.length ? (
-            <ChatList messages={messages} /*isShared={false} user={user}*/ skipAudioMessagePlayback={skipAudioMessage} />
+            <ChatList messages={messages} /*isShared={false} user={user}*/ />
           ) : (
             null
           )
