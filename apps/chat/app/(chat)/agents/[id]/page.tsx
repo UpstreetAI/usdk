@@ -80,7 +80,7 @@ export default async function AgentProfilePage({ params }: Params) {
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id)
 
-  console.log(agentId)
+  // console.log(agentId)
 
   const { data: agentData } = await supabase
     .from('assets')
