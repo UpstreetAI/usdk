@@ -23,7 +23,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { sendChatMessage } = useMultiplayerActions()
+  const { connected, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
 
   const toggleMediaPicker = () => {
     setMediaPickerOpen(open => !open)
@@ -76,9 +76,10 @@ export function PromptForm({
               className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
             >
               <input className="absolute -top-12 bottom-0 -left-12 right-0 cursor-pointer" type="file" onChange={e => {
-                const files = Array.from((e.target as any).files);
+                const files: File[] = Array.from((e.target as any).files);
                 const file = files[0];
-                console.log('image file', file);
+                // console.log('image file', file.type, file);
+                sendMediaMessage(file);
 
                 toggleMediaPicker();
                 (e.target as any).value = null;
@@ -148,6 +149,7 @@ export function PromptForm({
           rows={1}
           value={input}
           onChange={e => setInput(e.target.value)}
+          disabled={!connected}
         />
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>

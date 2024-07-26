@@ -7,6 +7,7 @@ import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
 import { IconChat, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
+import { isImageType, isAudioType, isVideoType } from '@/utils/helpers/media-types'
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -107,9 +108,9 @@ export function ChatMessage({
           </span>
           <br />
 
-          {media?.type === 'image' && (<ChatMessageImage url={media.url} timestamp={timestamp} />)}
-          {media?.type === 'audio' && (<ChatMessageAudio url={media.url} timestamp={timestamp} />)}
-          {media?.type === 'video' && (<ChatMessageVideo url={media.url} timestamp={timestamp} />)}
+          {isImageType(media?.type) && (<ChatMessageImage url={media.url} timestamp={timestamp} />)}
+          {isAudioType(media?.type) && (<ChatMessageAudio url={media.url} timestamp={timestamp} />)}
+          {isVideoType(media?.type) && (<ChatMessageVideo url={media.url} timestamp={timestamp} />)}
           {!media && (<div>{content}</div>)}
 
         </div>

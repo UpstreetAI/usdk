@@ -27,12 +27,17 @@ import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multi
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 
+type MessageMedia = {
+  type: string
+  url: string
+}
 type Message = {
   args: {
-    text: string
-    audio?: string
-    image?: string
-    video?: string
+    text?: string
+    // audio?: string
+    // image?: string
+    // video?: string
+    media?: MessageMedia
   }
 
   method: string
@@ -186,30 +191,30 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
       const player = playersCache.get(message.userId);
 
-      let media = null;
+      // let media = null;
 
-      if(message.args.audio) media = { type: 'audio', url: message.args.audio };
-      if(message.args.video) media = { type: 'video', url: message.args.video };
-      if(message.args.image) media = { type: 'image', url: message.args.image };
+      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
+      // if(message.args.video) media = { type: 'video', url: message.args.video };
+      // if(message.args.image) media = { type: 'image', url: message.args.image };
 
       // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
       // Usage:
       // test audio [AUDIO_URL]
       // test video [VIDEO_URL]
       // test image [IMAGE_URL]
-      const match = message.args.text.match(/\[([^\]]+)\]/);
-      const url = match && match[1]
-      if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
-      if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
-      if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
+      // const match = message.args.text.match(/\[([^\]]+)\]/);
+      // const url = match && match[1]
+      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
+      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
+      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
       // TEST MESSAGE COMPONENTS END
 
       return (
         <ChatMessage
           id={id}
-          content={message.args.text}
           name={ message.name }
-          media={ media }
+          content={message.args.text}
+          media={message.args.media}
           player={player}
           room={room}
           timestamp={message.timestamp}

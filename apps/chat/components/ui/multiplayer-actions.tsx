@@ -10,6 +10,8 @@ import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import {getAudioContext} from '@upstreet/chat/utils/audio/audio-context.js';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { getAgentEndpointUrl } from '@/lib/utils'
+import { r2EndpointUrl } from '@/utils/const/endpoints';
+import { getJWT } from '@/lib/jwt';
 
 //
 
@@ -80,6 +82,27 @@ const join = async ({
   }
 };
 
+const uploadFile = async (file: File) => {
+  const jwt = await getJWT();
+  const id = crypto.randomUUID();
+  const keyPath = ['uploads', id, file.name].join('/');
+  const u = `${r2EndpointUrl}/${keyPath}`;
+  const res = await fetch(u, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${jwt}`,
+    },
+    body: file,
+  });
+  if (res.ok) {
+    const url = await res.json();
+    return url;
+  } else {
+    const text = await res.text();
+    throw new Error(`could not upload file: ${file.name}: ${text}`);
+  }
+}
+
 //
 
 import { audioOutputStreamFactory, createOpusAudioOutputStream } from '@upstreet/chat/utils/audio/audio-client.mjs';
@@ -93,7 +116,8 @@ import { Button } from './button'
 
 
 interface MultiplayerActionsContextType {
-  getRoom: () => string
+  connected: boolean
+  room: string
   getCrdtDoc: () => any
   localPlayerSpec: PlayerSpec
   playersMap: Map<string, Player>
@@ -102,6 +126,7 @@ interface MultiplayerActionsContextType {
   setMultiplayerConnectionParameters: (params: object | null) => void
   sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
+  sendMediaMessage: (file: File) => Promise<void>
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   epoch: number
@@ -646,6 +671,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const router = useRouter()
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
+    let connected = false;
     let room = '';
     let realms: NetworkRealms | null = null;
     let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
@@ -668,7 +694,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           args,
           timestamp: Date.now(),
         };
-        console.log('send chat message', message);
+        // console.log('send chat message', message);
         realms.sendChatMessage(message);
       } else {
         console.warn('realms not connected');
@@ -683,6 +709,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     }
 
     const multiplayerState = {
+      getConnected: () => connected,
       getRoom: () => room,
       getCrdtDoc: () => {
         // console.log('got realms 1', realms);
@@ -771,6 +798,15 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendRawMessage('say', {
           text,
         }),
+      sendMediaMessage: async (file: File) => {
+        const url = await uploadFile(file);
+        return sendRawMessage('say', {
+          media: {
+            type: file.type,
+            url,
+          },
+        });
+      },
       agentJoin: async (guid: string) => {
         const oldRoom = multiplayerState.getRoom();
         const room = oldRoom || crypto.randomUUID();
@@ -812,7 +848,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     };
     return multiplayerState;
   });
-  const getRoom = multiplayerState.getRoom;
+  const connected = multiplayerState.getConnected();
+  const room = multiplayerState.getRoom();
   const getCrdtDoc = multiplayerState.getCrdtDoc;
   const localPlayerSpec = multiplayerState.getLocalPlayerSpec();
   const playersMap = multiplayerState.getPlayersMap();
@@ -821,6 +858,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
+  const sendMediaMessage = multiplayerState.sendMediaMessage;
   const agentJoin = multiplayerState.agentJoin;
   const agentLeave = multiplayerState.agentLeave;
   const skipAudioMessage = multiplayerState.sendAudioSkipMessage;
@@ -828,7 +866,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   return (
     <MultiplayerActionsContext.Provider
       value={{
-        getRoom,
+        connected,
+        room,
         getCrdtDoc,
         localPlayerSpec,
         playersMap,
@@ -837,6 +876,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         setMultiplayerConnectionParameters,
         sendRawMessage,
         sendChatMessage,
+        sendMediaMessage,
         agentJoin,
         agentLeave,
         epoch,

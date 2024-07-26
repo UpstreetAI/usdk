@@ -15,7 +15,7 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 // }
 
 export function ChatHistory() {
-  const { getRoom, localPlayerSpec, playersMap, agentLeave } = useMultiplayerActions();
+  const { room, localPlayerSpec, playersMap, agentLeave } = useMultiplayerActions();
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name);
   });
@@ -51,8 +51,7 @@ export function ChatHistory() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                const oldRoom = getRoom();
-                await agentLeave(playerSpec.id, oldRoom);
+                await agentLeave(playerSpec.id, room);
               }}
             >
               <IconClose className="stroke-2" />
