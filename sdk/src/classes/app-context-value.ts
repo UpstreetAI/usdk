@@ -36,21 +36,18 @@ export class AppContextValue {
     wallets,
     authToken,
     supabase,
-    // registry,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
     wallets: any;
     authToken: string;
     supabase: any;
-    // registry: RenderRegistry,
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
-    // this.registry = registry;
   }
 
   // hooks
@@ -67,9 +64,6 @@ export class AppContextValue {
   useSupabase() {
     return this.supabase;
   }
-  // useRegistry() {
-  //   return this.registry;
-  // }
 
   useTts(opts?: TtsArgs) { // XXX memoize this
     const voiceEndpoint = (() => {

@@ -143,6 +143,7 @@ export class RenderRegistry {
     this.agents.length = 0;
 
     container.recurse((instance) => {
+      // collect prompts for each agent
       if (instance.type === 'agent') {
         const agent = instance.props.value as ActiveAgentObject;
         this.agents.push(agent);

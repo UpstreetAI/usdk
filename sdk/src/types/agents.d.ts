@@ -485,7 +485,6 @@ export type AppContextValue = {
   useAgentJson: () => object;
   useWallets: () => object[];
   useAuthToken: () => string;
-  useStripeKey: () => string;
 
   useSupabase: () => any;
   useStripe: () => any;
