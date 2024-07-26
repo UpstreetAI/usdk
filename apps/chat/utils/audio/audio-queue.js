@@ -4,6 +4,7 @@ export class AudioQueue {
     this.queue = [];
     this.streamDataBuffers = new Map();
     this.streamEndEvents = new Set();
+    this.isProcessing = false;
   }
 
   enqueue(event) {
@@ -14,49 +15,50 @@ export class AudioQueue {
     } else {
       if (!this.streamDataBuffers.has(streamId)) {
         this.streamDataBuffers.set(streamId, []);
+        this.queue.push(event);
       }
       this.streamDataBuffers.get(streamId).push(data);
+    }
 
-      const isEnqueued = this.queue.some((queuedEvent) => queuedEvent.streamId === streamId);
-      if (!isEnqueued) {
-        this.queue.push(event);
-        this.playNext();
-      }
+    if (!this.isProcessing && !this.audioPlayer.isPlaying) {
+      this.processQueue();
     }
   }
 
   handleAudioEnd(streamId) {
-    if (this.audioPlayer.isCurrentStream(streamId)){
+    if (this.audioPlayer.isCurrentStream(streamId)) {
       this.audioPlayer.endCurrentStream();
-    } else if (this.streamDataBuffers.has(streamId)) {
+    } else {
       this.streamEndEvents.add(streamId);
-    } else if (this.audioPlayer.isCurrentStream(streamId)) {
-      this.audioPlayer.endCurrentStream();
+    }
+    
+    if (!this.isProcessing && !this.audioPlayer.isPlaying) {
+      this.processQueue();
     }
   }
 
-  async playNext() {
-    if (this.audioPlayer.isPlaying) {
+  async processQueue() {
+    if (this.isProcessing || this.audioPlayer.isPlaying) {
       return;
     }
 
-    const event = this.queue.shift();
-    if (event) {
+    this.isProcessing = true;
+
+    while (this.queue.length > 0) {
+      const event = this.queue.shift();
       const { playerId, streamId, mimeType } = event;
+
       this.audioPlayer.setCurrentStream(playerId, streamId, mimeType);
 
       const bufferedData = this.streamDataBuffers.get(streamId);
       const hasAudioStreamEnded = this.streamEndEvents.has(streamId);
-      await this.audioPlayer.playCurrentStream(bufferedData,hasAudioStreamEnded);
+
+      await this.audioPlayer.playCurrentStream(bufferedData, hasAudioStreamEnded);
 
       this.streamDataBuffers.delete(streamId);
-
-      if (this.streamEndEvents.has(streamId)) {
-        this.streamEndEvents.delete(streamId);
-        this.audioPlayer.endCurrentStream();
-      }
-
-      this.playNext();
+      this.streamEndEvents.delete(streamId);
     }
+
+    this.isProcessing = false;
   }
 }
