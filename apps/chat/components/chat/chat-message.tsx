@@ -108,11 +108,18 @@ export function ChatMessage({
           </span>
           <br />
 
-          {isImageType(media?.type) && (<ChatMessageImage url={media.url} timestamp={timestamp} />)}
-          {isAudioType(media?.type) && (<ChatMessageAudio url={media.url} timestamp={timestamp} />)}
-          {isVideoType(media?.type) && (<ChatMessageVideo url={media.url} timestamp={timestamp} />)}
-          {!media && (<div>{content}</div>)}
-
+          {(() => {
+            if (isImageType(media?.type)) {
+              return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
+            }
+            if (isAudioType(media?.type)) {
+              (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
+            }
+            if (isVideoType(media?.type)) {
+              return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
+            }
+            return (<div>{content}</div>);
+          })()}
         </div>
       </div>
     </div>
