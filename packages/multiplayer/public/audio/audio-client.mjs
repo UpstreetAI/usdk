@@ -373,6 +373,7 @@ export function createMp3MicrophoneSource({
 
 export function createMp3DecodeTransformStream({
   sampleRate,
+  format = 'f32',
 }) {
   if (!sampleRate) {
     debugger;
@@ -408,6 +409,7 @@ export function createMp3DecodeTransformStream({
   }
   const audioDecoder = new Mp3AudioDecoder({
     sampleRate,
+    format,
     output: muxAndSend,
     error: onDecoderError,
   });
