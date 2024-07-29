@@ -1,6 +1,6 @@
 /* this module is responsible for mapping a remote TTS endpoint to the character. */
 
-import { createMp3DecodeTransformStream } from '../multiplayer/public/audio/audio-client.mjs';
+// import { createMp3DecodeTransformStream } from '../multiplayer/public/audio/audio-client.mjs';
 // import Rvc from '../rvc.js';
 import {aiProxyHost} from '../../util/endpoints.mjs'
 // import { abortableRead, makePromise } from '../../util.js';
@@ -9,12 +9,14 @@ import {getCleanJwt} from '../../util/jwt-util.mjs';
 //
 
 export const getVoiceRequest = {
-  elevenlabs: async ({ text = '', voiceId = null }, { signal = null }) => {
+  elevenlabs: async ({ text = '', voiceId = null }, { jwt = null, signal = null }) => {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
     }
 
-    const jwt = getCleanJwt();
+    if (!jwt) {
+      jwt = getCleanJwt();
+    }
     const baseUrl = `https://${aiProxyHost}/api/ai/text-to-speech`;
     const j = {
       text,
@@ -39,12 +41,14 @@ export const getVoiceRequest = {
     });
     return res;
   },
-  tiktalknet: async ({ text = '', voiceId = null }, { signal = null }) => {
+  tiktalknet: async ({ text = '', voiceId = null }, { jwt = null, signal = null }) => {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
     }
 
-    const jwt = getCleanJwt();
+    if (!jwt) {
+      jwt = getCleanJwt();
+    }
     const baseUrl = `https://${aiProxyHost}/api/tts`;
     const u = new URL(baseUrl);
     //clean emojis and special characters from text
@@ -63,7 +67,6 @@ export const getVoiceRequest = {
       },
       signal,
     });
-
     return res;
   },
 };
@@ -71,7 +74,6 @@ export const getVoiceStream = {
   elevenlabs: (spec, opts) => {
     // create a through stream that will be used to pipe the audio stream
     const throughStream = new TransformStream();
-    // throughStream.text = opts.text;
 
     const close = () => {
       throughStream.writable.getWriter().close();
@@ -86,10 +88,7 @@ export const getVoiceStream = {
         if (res.ok) {
           loadPromise.resolve();
 
-          // const start = performance.now();
           await res.body.pipeTo(throughStream.writable);
-          // const end = performance.now();
-          // console.log('preloadElevenLabsVoiceStream took', end - start, 'ms');
         } else {
           console.warn(
             'preloadElevenLabsVoiceStream error',
@@ -105,11 +104,15 @@ export const getVoiceStream = {
     })();
 
     // return the through stream readable end
-    const stream = throughStream.readable.pipeThrough(
-      createMp3DecodeTransformStream({
-        sampleRate: opts.sampleRate,
-      })
-    );
+    // const stream = throughStream.readable.pipeThrough(
+    //   createMp3DecodeTransformStream({
+    //     sampleRate: opts.sampleRate,
+    //   })
+    // );
+    // stream.waitForLoad = () => loadPromise;
+    // return stream;
+    const stream = throughStream.readable;
+    stream.type = 'audio/mpeg';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
@@ -146,12 +149,16 @@ export const getVoiceStream = {
     })();
 
     // return the through stream readable end
-    const stream = throughStream.readable.pipeThrough(
-      createMp3DecodeTransformStream({
-        sampleRate: opts.sampleRate,
-      })
-    );
+    // const stream = throughStream.readable.pipeThrough(
+    //   createMp3DecodeTransformStream({
+    //     sampleRate: opts.sampleRate,
+    //   })
+    // );
     // stream.isMp3Stream = true;
+    // stream.waitForLoad = () => loadPromise;
+    // return stream;
+    const stream = throughStream.readable;
+    stream.type = 'audio/mpeg';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
@@ -166,10 +173,14 @@ export const getVoiceStream = {
     const text = spec.text ?? '';
     const voiceId = spec.voiceId ?? 'nova';
     const signal = opts.signal ?? null;
+    let jwt = opts.jwt ?? null;
+
+    if (!jwt) {
+      jwt = getCleanJwt();
+    }
 
     const loadPromise = makePromise();
     (async () => {
-      const jwt = getCleanJwt();
       const u = `https://${aiProxyHost}/api/ai/audio/speech`;
       const j = {
         model: 'tts-1',
@@ -199,18 +210,24 @@ export const getVoiceStream = {
     })();
 
     // return the through stream readable end
-    const stream = throughStream.readable.pipeThrough(
-      createMp3DecodeTransformStream({
-        sampleRate: opts.sampleRate,
-      })
-    );
+    // const stream = throughStream.readable.pipeThrough(
+    //   createMp3DecodeTransformStream({
+    //     sampleRate: opts.sampleRate,
+    //   })
+    // );
     // stream.isMp3Stream = true;
+    // stream.waitForLoad = () => loadPromise;
+    // return stream;
+    const stream = throughStream.readable;
+    stream.type = 'audio/mpeg';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
 };
-export const getVoiceChangeRequest = ({ audioBlob, voiceId }) => {
-  const jwt = getCleanJwt();
+export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
+  if (!jwt) {
+    jwt = getCleanJwt();
+  }
   const baseUrl = `https://${aiProxyHost}/api/ai/speech-to-speech`;
   const u = `${baseUrl}/${voiceId}/stream`;
 
@@ -443,10 +460,11 @@ const startStream = async (stream, opts) => {
 };
 
 export class VoiceEndpointVoicer {
-  constructor({ voiceEndpoint, sampleRate }) {
+  constructor({ voiceEndpoint, sampleRate, jwt }) {
     if (!voiceEndpoint || !sampleRate) {
-      console.warn('bad args', {
+      console.warn('VoiceEndpointVoicer bad args', {
         voiceEndpoint,
+        sampleRate,
         // audioManager,
       });
       debugger;
@@ -454,6 +472,7 @@ export class VoiceEndpointVoicer {
 
     this.voiceEndpoint = voiceEndpoint;
     this.sampleRate = sampleRate;
+    this.jwt = jwt;
     // this.audioManager = audioManager;
 
     // this.running = false;
@@ -466,8 +485,9 @@ export class VoiceEndpointVoicer {
   // }
   getStream(text, opts) {
     return this.voiceEndpoint.getStream(text, {
-      ...opts, // signal
       sampleRate: this.sampleRate,
+      jwt: this.jwt,
+      ...opts, // signal
       // sampleRate: this.audioManager.audioContext.sampleRate,
     });
   }
