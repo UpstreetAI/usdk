@@ -1524,7 +1524,7 @@ export class NetworkRealms extends EventTarget {
     endpointUrl,
     playerId,
     // audioManager,
-    metadata,
+    metadata = null,
   }) {
     super();
 
