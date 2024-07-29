@@ -1830,9 +1830,10 @@ export class NetworkRealms extends EventTarget {
   addAudioSource(audioSource) {
     const headRealm = this.localPlayer.headTracker.getHeadRealm();
     const {networkedAudioClient} = headRealm;
-    networkedAudioClient.addAudioSource(audioSource);
 
     this.audioSources.push(audioSource);
+
+    return networkedAudioClient.addAudioSource(audioSource);
   }
   removeAudioSource(audioSource) {
     const index = this.audioSources.indexOf(audioSource);

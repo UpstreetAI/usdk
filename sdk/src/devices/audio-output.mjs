@@ -5,9 +5,9 @@ export class SpeakerOutputStream extends WritableStream {
   static defaultSampleRate = 44100;
 
   constructor({
-    metadata,
+    // metadata,
     sampleRate = SpeakerOutputStream.defaultSampleRate,
-  }) {
+  } = {}) {
     super({
       // start: c => {
       //   controller = c;
@@ -28,7 +28,7 @@ export class SpeakerOutputStream extends WritableStream {
       },
     });
 
-    this.metadata = metadata;
+    // this.metadata = metadata;
     this.sampleRate = sampleRate;
 
     // // let controller;

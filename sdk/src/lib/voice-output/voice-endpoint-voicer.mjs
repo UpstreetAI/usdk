@@ -460,8 +460,8 @@ const startStream = async (stream, opts) => {
 };
 
 export class VoiceEndpointVoicer {
-  constructor({ voiceEndpoint, sampleRate, jwt }) {
-    if (!voiceEndpoint || !sampleRate) {
+  constructor({ voiceEndpoint, /*sampleRate, */ jwt }) {
+    if (!voiceEndpoint /*|| !sampleRate*/) {
       console.warn('VoiceEndpointVoicer bad args', {
         voiceEndpoint,
         sampleRate,
@@ -471,7 +471,7 @@ export class VoiceEndpointVoicer {
     }
 
     this.voiceEndpoint = voiceEndpoint;
-    this.sampleRate = sampleRate;
+    // this.sampleRate = sampleRate;
     this.jwt = jwt;
     // this.audioManager = audioManager;
 
@@ -485,13 +485,15 @@ export class VoiceEndpointVoicer {
   // }
   getStream(text, opts) {
     return this.voiceEndpoint.getStream(text, {
-      sampleRate: this.sampleRate,
+      // sampleRate: this.sampleRate,
       jwt: this.jwt,
       ...opts, // signal
       // sampleRate: this.audioManager.audioContext.sampleRate,
     });
   }
   async start(stream, opts) {
+    throw new Error('needs to be reimplemented in a different class with an audioManager and sampleRate');
+
     // let stream;
     // if (text instanceof ReadableStream) {
     //   stream = text;

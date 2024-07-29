@@ -61,7 +61,8 @@ export type GenerativeAgentObject =  {
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
 
-  addMessage: (m: PendingActionMessage) => void,
+  addMessage: (m: PendingActionMessage) => void;
+  addAudioStream: (stream: PlayableAudioStream) => void;
 };
 
 // messages
@@ -189,6 +190,8 @@ export type ConversationObject = EventTarget & {
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
   addLocalAndRemoteMessage: (message: ActionMessage) => void;
+
+  addAudioStream: (audioStream: PlayableAudioStream) => void;
 
   getScene: () => SceneObject | null;
   setScene: (scene: SceneObject | null) => void;
@@ -415,11 +418,7 @@ type Compartment = {
 };
 
 type Tts = {
-  getAudioStream: (text: string, opts?: any) => ReadableStream<any>;
-}
-
-type Chat = {
-  playAudioStream: (readableStream: ReadableStream) => { id: string };
+  getAudioStream: (text: string, opts?: any) => ReadableAudioStream;
 };
 
 export type Instance = {
@@ -490,7 +489,6 @@ export type AppContextValue = {
   useStripe: () => any;
 
   useTts: (ttsArgs: TtsArgs) => Tts;
-  useChat: (chatArgs: ChatArgs) => Chat;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
@@ -522,6 +520,16 @@ export type MessageFilter = {
 };
 export type ActionHistoryQuery = {
   filter?: MessageFilter,
+};
+
+// media
+
+export type ReadableAudioStream = ReadableStream & {
+  type: string;
+  waitForLoad: () => Promise<void>;
+};
+export type PlayableAudioStream = ReadableAudioStream & {
+  id: string;
 };
 
 // user handler
