@@ -21,3 +21,12 @@ export const resample = (sampleArray, srcSampleRate, targetSampleRate) => {
 
   return outputArray;
 };
+
+export const convertFloat32ToInt16 = (float32Array) => {
+  const int16Array = new Int16Array(float32Array.length);
+  for (let i = 0; i < float32Array.length; i++) {
+    const val = float32Array[i];
+    int16Array[i] = val * 0x7FFF;
+  }
+  return int16Array;
+};
