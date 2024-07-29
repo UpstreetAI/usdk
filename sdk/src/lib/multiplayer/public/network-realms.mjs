@@ -711,6 +711,12 @@ class VirtualPlayersArray extends EventTarget {
         }));
       };
       networkedAudioClient.addEventListener('audio', audio);
+      const audiostart = e => {
+        this.dispatchEvent(new MessageEvent('audiostart', {
+          data: e.data,
+        }));
+      };
+      networkedAudioClient.addEventListener('audiostart', audiostart);
       const audioend = e => {
         this.dispatchEvent(new MessageEvent('audioend', {
           data: e.data,
@@ -720,6 +726,7 @@ class VirtualPlayersArray extends EventTarget {
 
       this.cleanupFns.set(networkedAudioClient, () => {
         networkedAudioClient.removeEventListener('audio', audio);
+        networkedAudioClient.removeEventListener('audiostart', audiostart);
         networkedAudioClient.removeEventListener('audioend', audioend);
       });
     };

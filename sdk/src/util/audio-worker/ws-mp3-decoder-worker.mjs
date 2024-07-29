@@ -1,6 +1,6 @@
 import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
 // import {channelCount, sampleRate, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
-import {resample} from './resample.js';
+import { resample, convertFloat32ToInt16 } from './resample.mjs';
 import { QueueManager } from '../queue-manager.mjs';
 
 /* function floatTo16Bit(inputArray){
@@ -24,7 +24,7 @@ import { QueueManager } from '../queue-manager.mjs';
 const mp3decoder = new MPEGDecoder();
 const queueManager = new QueueManager();
 
-onmessage = e => {
+globalThis.onmessage = e => {
   const {
     sampleRate: globalSampleRate,
   } = e.data;
@@ -42,8 +42,10 @@ onmessage = e => {
               firstChannelData
             :
               resample(firstChannelData, localSampleRate, globalSampleRate);
+            const f32 = resampled;
+            const i16 = convertFloat32ToInt16(f32);
             postMessage({
-              data: resampled,
+              data: i16,
               timestamp: 0, // fake
               duration: 1, // fake
             }, [resampled.buffer]);
