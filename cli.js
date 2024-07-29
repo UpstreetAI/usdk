@@ -70,6 +70,9 @@ import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-outp
 import { AudioDecodeStream } from './sdk/src/lib/multiplayer/public/audio/audio-decode.mjs';
 import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
 
+import Worker from 'web-worker';
+globalThis.Worker = Worker;
+
 // XXX imports for capture support
 // import webp from 'webp-wasm';
 // import {
@@ -1108,6 +1111,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       const decodeStream = new AudioDecodeStream({
         type,
         sampleRate,
+        format: 'i16',
       });
       decodeStream.readable.pipeTo(outputStream);
 
@@ -3602,6 +3606,7 @@ const voice = async (args) => {
                   const decodeStream = new AudioDecodeStream({
                     type,
                     sampleRate,
+                    format: 'i16',
                   });
 
                   console.log('playing...')

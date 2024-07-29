@@ -1,9 +1,8 @@
-import path from 'path';
-import Worker from 'web-worker';
+// import path from 'path';
 // import {getAudioContext} from './ws-audio-context.js';
 // import {getAudioDataBuffer} from './ws-util.js';
 // import {channelCount, sampleRate, bitrate} from './ws-constants.js';
-const metaUrl = decodeURI(import.meta.url).replace('file://', '');
+// const metaUrl = decodeURI(import.meta.url).replace('file://', '');
 
 // note: you can toggle the implementation to use WebCodecs or not by commenting/uncommenting
 
@@ -230,13 +229,12 @@ export class Mp3AudioEncoder {
 }
 
 export class Mp3AudioDecoder {
-  constructor({sampleRate, output, error}) {
+  constructor({sampleRate, format, output, error}) {
     if (!sampleRate) {
       debugger;
     }
 
-    const mp3DecoderWorkerPath = path.join(metaUrl, '../../../../../util/audio-worker/ws-mp3-decoder-worker.mjs');
-    this.worker = new Worker(mp3DecoderWorkerPath, {
+    this.worker = new Worker(new URL('../audio-worker/ws-mp3-decoder-worker.mjs', import.meta.url), {
       type: 'module',
     });
 
@@ -246,6 +244,7 @@ export class Mp3AudioDecoder {
     this.worker.onerror = error;
     this.worker.postMessage({
       sampleRate,
+      format,
     });
   }
 

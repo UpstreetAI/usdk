@@ -18,7 +18,7 @@ export class SpeakerOutputStream extends WritableStream {
         // controller.enqueue(chunk);
         this.speaker.write(chunk);
       },
-      close: async (controller) => {
+      close: async () => {
         // audioDecoder.decode(null);
         // await donePromise;
         this.speaker.end();
