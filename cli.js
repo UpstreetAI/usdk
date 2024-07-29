@@ -1111,6 +1111,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       const decodeStream = new AudioDecodeStream({
         type,
         sampleRate,
+        format: 'i16',
       });
       decodeStream.readable.pipeTo(outputStream);
 
@@ -3605,6 +3606,7 @@ const voice = async (args) => {
                   const decodeStream = new AudioDecodeStream({
                     type,
                     sampleRate,
+                    format: 'i16',
                   });
 
                   console.log('playing...')

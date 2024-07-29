@@ -1,7 +1,7 @@
 import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
 // import {channelCount, sampleRate, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
 import { resample, convertFloat32ToInt16 } from './resample.mjs';
-import { QueueManager } from '../queue-manager.mjs';
+import { QueueManager } from './queue-manager.mjs';
 
 /* function floatTo16Bit(inputArray){
   const output = new Int16Array(inputArray.length);
@@ -27,6 +27,7 @@ const queueManager = new QueueManager();
 globalThis.onmessage = e => {
   const {
     sampleRate: globalSampleRate,
+    format,
   } = e.data;
     onmessage = async e => {
       await queueManager.waitForTurn(async () => {
@@ -42,10 +43,23 @@ globalThis.onmessage = e => {
               firstChannelData
             :
               resample(firstChannelData, localSampleRate, globalSampleRate);
-            const f32 = resampled;
-            const i16 = convertFloat32ToInt16(f32);
+            const formatted = (() => {
+              switch (format) {
+                case 'f32': {
+                  return resampled;
+                }
+                case 'i16': {
+                  const f32 = resampled;
+                  const i16 = convertFloat32ToInt16(f32);
+                  return i16;
+                }
+                default: {
+                  throw new Error('invalid format: ' + format);
+                }
+              }
+            })();
             postMessage({
-              data: i16,
+              data: formatted,
               timestamp: 0, // fake
               duration: 1, // fake
             }, [resampled.buffer]);
