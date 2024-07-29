@@ -4,11 +4,13 @@ export class AudioDecodeStream {
   constructor({
     type,
     sampleRate,
+    format,
   }) {
     switch (type) {
       case 'audio/mpeg': {
         return createMp3DecodeTransformStream({
           sampleRate,
+          format,
         });
       }
       default: {
