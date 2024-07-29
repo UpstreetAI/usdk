@@ -6,6 +6,7 @@ import {
   MessageFilter,
   PendingActionMessage,
   ActionMessageEventData,
+  PlayableAudioStream,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
@@ -215,6 +216,16 @@ export class ConversationObject extends EventTarget {
       new MessageEvent('remotemessage', {
         data: {
           message,
+        },
+      }),
+    );
+  }
+
+  addAudioStream(audioStream: PlayableAudioStream) {
+    this.dispatchEvent(
+      new MessageEvent('audiostream', {
+        data: {
+          audioStream,
         },
       }),
     );
