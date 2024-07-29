@@ -1,19 +1,11 @@
 import React from 'react';
 import {
   Agent,
-  AgentAppProps,
-  DefaultAgentComponents,
-  DefaultActions,
-  DefaultPrompts,
-  DefaultParsers,
-  DefaultPerceptions,
-  DefaultSchedulers,
-  DefaultServers,
 } from 'react-agents';
 
 //
 
-export default function MyAgent(props) {
+export default function MyAgent() {
   return (
     <Agent>
       {/* ... */}
