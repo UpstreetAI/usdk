@@ -1,7 +1,3 @@
-import {
-  makePromise,
-} from './util.mjs';
-
 export class QueueManager extends EventTarget {
   constructor({
     parallelism = 1,
@@ -54,7 +50,11 @@ export class QueueManager extends EventTarget {
         throw error;
       }
     } else {
-      const p = makePromise();
+      const {
+        promise,
+        resolve,
+        reject,
+      } = Promise.withResolvers();
       this.queue.push(async () => {
         let result, error;
         try {
@@ -64,14 +64,14 @@ export class QueueManager extends EventTarget {
         }
 
         if (!error) {
-          p.resolve(result);
+          resolve(result);
           return result;
         } else {
-          p.reject(error);
+          reject(error);
           throw error;
         }
       });
-      const result = await p;
+      const result = await promise;
       return result;
     }
   }
