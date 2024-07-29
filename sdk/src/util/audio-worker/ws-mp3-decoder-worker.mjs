@@ -24,7 +24,7 @@ import { QueueManager } from '../queue-manager.mjs';
 const mp3decoder = new MPEGDecoder();
 const queueManager = new QueueManager();
 
-onmessage = e => {
+globalThis.onmessage = e => {
   const {
     sampleRate: globalSampleRate,
   } = e.data;
