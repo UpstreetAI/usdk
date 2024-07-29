@@ -1,18 +1,13 @@
-import { useContext } from 'react';
-// import type { Context } from 'react';
-import { z } from 'zod';
+// import { useContext } from 'react';
+// import { z } from 'zod';
 import type { ZodTypeAny } from 'zod';
-import dedent from 'dedent';
-// import {
-//   EpochContext,
-// } from '../context';
-// import {
-//   AgentObject,
-// } from './agent-object';
+// import dedent from 'dedent';
 import type {
   ActionMessage,
   ChatMessages,
   PendingActionMessage,
+  ReadableAudioStream,
+  PlayableAudioStream,
 } from '../types';
 import {
   ConversationObject,
@@ -24,21 +19,9 @@ import {
   generateJsonMatchingSchema,
   generateString,
 } from '../runtime';
-// import {
-//   loadMessagesFromDatabase,
-// } from '../util/loadMessagesFromDatabase.js';
-// import {
-//   saveMessageToDatabase,
-// } from '../util/saveMessageToDatabase.js';
-// import {
-//   ExtendableMessageEvent,
-// } from '../util/extendable-message-event';
 import {
   ActiveAgentObject,
 } from './active-agent-object';
-// import {
-//   retry,
-// } from '../util/util.mjs';
 
 //
 
@@ -159,5 +142,9 @@ export class GenerativeAgentObject {
       hidden: false,
     };
     return this.conversation.addLocalAndRemoteMessage(newMessage);
+  }
+
+  addAudioStream(playableAudioStream: PlayableAudioStream) {
+    this.conversation.addAudioStream(playableAudioStream);
   }
 }
