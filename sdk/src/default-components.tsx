@@ -22,6 +22,7 @@ import type {
   ActiveAgentObject,
   PendingActionEvent,
   ActionMessage,
+  PlayableAudioStream,
 } from './types';
 import {
   AppContext,
@@ -52,7 +53,6 @@ import {
   useName,
   usePersonality,
   useTts,
-  useChat,
   useConversation,
   useCachedMessages,
 } from './hooks';
@@ -91,8 +91,6 @@ export const DefaultAgentComponents = () => {
 // action modifiers
 
 type ActionHandlerModifier = {
-  // preload: (e: MessageEvent) => void;
-  // lock: <T>(fn: () => Promise<T>) => T;
   handle: (e: MessageEvent) => Promise<any>;
 };
 const actionHandlerModifiersKey = 'actionHandlerModifiers';
@@ -1464,23 +1462,24 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   const tts = useTts({
     voiceEndpoint,
   });
-  const chat = useChat();
 
   useEffect(() => {
     const actionHandlerModifier = (() => {
       return {
-        handle: async (e) => {
-          const { message } = e.data;
-          const { args } = message;
+        handle: async (e: PendingActionEvent) => {
+          const { message, agent } = e.data;
+          const args = message.args as any;
           const text = (args as any).text as string;
           const readableAudioStream = tts.getAudioStream(text);
-          const { id: audioStreamId } = chat.playAudioStream(readableAudioStream);
-          if (args.media) {
+          const playableAudioStream = readableAudioStream as PlayableAudioStream;
+          playableAudioStream.id = crypto.randomUUID();
+          agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
+          if (!args.media) {
             args.media = [];
           }
           args.media.push({
             type: 'audio/mp3',
-            ref: audioStreamId,
+            ref: playableAudioStream,
           });
         },
       };
@@ -1492,7 +1491,6 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     };
   }, [
     tts,
-    chat,
   ]);
 
   return null;
