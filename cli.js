@@ -906,7 +906,7 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 };
-const connectMultiplayer = async ({ room, anonymous, debug }) => {
+const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const getUserAsset = async () => {
     if (!anonymous) {
       let user = null;
@@ -1039,7 +1039,6 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
   };
   realms.addEventListener('connect', onConnect);
 
-  const audioStreams = new Map();
   const _trackRemotePlayers = () => {
     virtualPlayers.addEventListener('join', (e) => {
       const { playerId, player } = e.data;
@@ -1093,6 +1092,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
   };
   _trackRemotePlayers();
 
+  const audioStreams = new Map();
   const _trackAudio = () => {
     virtualPlayers.addEventListener('audiostart', e => {
       const {
@@ -1149,7 +1149,9 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
       }
     });
   };
-  _trackAudio();
+  if (media) {
+    _trackAudio();
+  }
 
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
@@ -1443,6 +1445,7 @@ const connect = async (args) => {
   const debug = !!args.debug;
   // const vision = !!args.vision;
   const browser = !!args.browser;
+  const media = !!args.media;
   const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
   if (room) {
@@ -1450,6 +1453,7 @@ const connect = async (args) => {
     const { userAsset, realms, playersMap, typingMap } =
       await connectMultiplayer({
         room,
+        media,
         debug,
       });
     if (browser) {
@@ -1609,6 +1613,7 @@ const chat = async (args) => {
     await connect({
       _: [room],
       browser: args.browser,
+      media: !args.browser,
       debug: args.debug,
       local: args.local,
       // vision: args.vision,
@@ -2561,7 +2566,6 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         browser: args.browser,
         dev: true,
-        // vision: args.vision,
         debug: args.debug,
       });
 
@@ -2804,6 +2808,7 @@ const test = async (args) => {
       } = await connect({
         _: [room],
         browser: false,
+        media: false,
         repl: false,
         debug,
         local: false,
