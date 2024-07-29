@@ -7,6 +7,7 @@ import type {
   SubtleAiImageOpts,
   ChatMessages,
   RenderRegistry,
+  ReadableAudioStream,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
 import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
@@ -66,18 +67,16 @@ export class AppContextValue {
   }
 
   useTts(opts?: TtsArgs) { // XXX memoize this
-    const voiceEndpoint = (() => {
+    const voiceEndpointString = (() => {
       if (opts?.voiceEndpoint) {
         return opts.voiceEndpoint;
       } else {
-        // const agentJsonString = (env as any).AGENT_JSON as string;
-        // const agentJson = JSON.parse(agentJsonString);
         return (this.agentJson as any).voiceEndpoint as string;
       }
     })();
-    const sampleRate = opts?.sampleRate ?? defaultSampleRate;
-    if (voiceEndpoint) {
-      const match = voiceEndpoint.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
+    // const sampleRate = opts?.sampleRate ?? defaultSampleRate;
+    if (voiceEndpointString) {
+      const match = voiceEndpointString.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
       if (match) {
         const [_, model, voiceName, voiceId] = match;
         const voiceEndpoint = new AutoVoiceEndpoint({
@@ -87,50 +86,20 @@ export class AppContextValue {
         const voiceEndpointVoicer = new VoiceEndpointVoicer({
           voiceEndpoint,
           // audioManager: null,
-          sampleRate,
+          // sampleRate,
         });
         return {
           getAudioStream: (text: string, opts: any) => {
-            const transformStream = voiceEndpointVoicer.getStream(text, opts);
-            return transformStream.readable;
+            const readableStream = voiceEndpointVoicer.getStream(text, opts) as ReadableAudioStream;
+            return readableStream;
           },
         };
       } else {
-        throw new Error('invalid voice endpoint: ' + voiceEndpoint);
+        throw new Error('invalid voice endpoint: ' + voiceEndpointString);
       }
     } else {
       throw new Error('no voice endpoint');
     }
-  }
-  useChat(opts?: ChatArgs) {
-    return {
-      playAudioStream: (readableStream) => {
-        const audioSource = createOpusReadableStreamSource({
-          readableStream,
-          // audioContext,
-        });
-
-        const virPlayerEndpointUrl = opts.endpointUrl;
-        const virPlayerId = opts.playerId;
-
-        const realms = new NetworkRealms({
-          virPlayerEndpointUrl,
-          playerId: virPlayerId,
-          audioManager: null,
-        });
-        
-        // XXX make this bind to the realms
-        realms.addAudioSource(audioSource);
-
-        audioSource.output.addEventListener('end', e => {
-          realms.removeAudioSource(audioSource);
-        });
-
-        return {
-          id: audioSource.id,
-        };
-      },
-    };
   }
 
   async embed(text: string) {
