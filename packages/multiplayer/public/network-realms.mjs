@@ -711,6 +711,12 @@ class VirtualPlayersArray extends EventTarget {
         }));
       };
       networkedAudioClient.addEventListener('audio', audio);
+      const audiostart = e => {
+        this.dispatchEvent(new MessageEvent('audiostart', {
+          data: e.data,
+        }));
+      };
+      networkedAudioClient.addEventListener('audiostart', audiostart);
       const audioend = e => {
         this.dispatchEvent(new MessageEvent('audioend', {
           data: e.data,
@@ -720,6 +726,7 @@ class VirtualPlayersArray extends EventTarget {
 
       this.cleanupFns.set(networkedAudioClient, () => {
         networkedAudioClient.removeEventListener('audio', audio);
+        networkedAudioClient.removeEventListener('audiostart', audiostart);
         networkedAudioClient.removeEventListener('audioend', audioend);
       });
     };
@@ -1517,6 +1524,7 @@ export class NetworkRealms extends EventTarget {
     endpointUrl,
     playerId,
     // audioManager,
+    metadata,
   }) {
     super();
 
@@ -1532,6 +1540,7 @@ export class NetworkRealms extends EventTarget {
     this.endpointUrl = endpointUrl;
     this.playerId = playerId;
     // this.audioManager = audioManager;
+    this.metadata = metadata;
 
     // this.lastKey = '';
     // this.lastPosition = [NaN, NaN, NaN];
@@ -1821,9 +1830,10 @@ export class NetworkRealms extends EventTarget {
   addAudioSource(audioSource) {
     const headRealm = this.localPlayer.headTracker.getHeadRealm();
     const {networkedAudioClient} = headRealm;
-    networkedAudioClient.addAudioSource(audioSource);
 
     this.audioSources.push(audioSource);
+
+    return networkedAudioClient.addAudioSource(audioSource);
   }
   removeAudioSource(audioSource) {
     const index = this.audioSources.indexOf(audioSource);
