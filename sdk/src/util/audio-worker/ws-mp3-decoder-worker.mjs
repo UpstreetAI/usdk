@@ -1,6 +1,6 @@
 import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
 // import {channelCount, sampleRate, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
-import {resample} from './resample.js';
+import {resample} from './resample.mjs';
 import { QueueManager } from '../queue-manager.mjs';
 
 /* function floatTo16Bit(inputArray){
