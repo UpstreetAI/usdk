@@ -3500,7 +3500,7 @@ const voice = async (args) => {
               const res = await fetch(start_url);
               if (res.ok) {
                 const voiceJson = await res.json();
-                console.log(JSON.stringify(voiceJson, null, 2));
+                // console.log(JSON.stringify(voiceJson, null, 2));
 
                 const { voiceEndpoint: voiceEndpointString } = voiceJson;
                 const match = voiceEndpointString.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
@@ -3531,17 +3531,16 @@ const voice = async (args) => {
                     jwt,
                   });
                   const voiceStream = voiceEndpointVoicer.getStream(text);
-                  console.log('got stream 2', voiceStream);
 
+                  console.log('playing...')
                   voiceStream
                     .pipeThrough(decodeStream)
                     .pipeTo(outputStream)
-                    // .then(() => {
-                    //   console.log('done!');
-                    // });
+                    .then(() => {
+                      console.log('done');
+                    });
 
                   await voiceStream.waitForLoad();
-                  console.log('got stream 2', voiceStream);
 
                   // setTimeout(() => {
                   //   console.log('done');
