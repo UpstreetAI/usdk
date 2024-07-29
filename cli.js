@@ -67,7 +67,7 @@ import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './sdk/src/devices/audio-decode.mjs';
+import { AudioDecodeStream } from './sdk/src/lib/multiplayer/public/audio/audio-decode.mjs';
 import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
 
 // XXX imports for capture support

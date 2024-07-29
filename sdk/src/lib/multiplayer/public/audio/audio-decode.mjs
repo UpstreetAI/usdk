@@ -1,4 +1,4 @@
-import { createMp3DecodeTransformStream } from '../lib/multiplayer/public/audio/audio-client.mjs';
+import { createMp3DecodeTransformStream } from './audio-client.mjs';
 
 export class AudioDecodeStream {
   constructor({
