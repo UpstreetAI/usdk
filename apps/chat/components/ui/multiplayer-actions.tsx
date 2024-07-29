@@ -8,6 +8,8 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { getAgentEndpointUrl } from '@/lib/utils'
 import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
+import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
+import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 
 //
 
@@ -354,6 +356,8 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       if (connected) {
         console.log('remote player left:', playerId);
       }
+
+      // remove remote player
       const remotePlayer = playersMap.get(playerId);
       if (remotePlayer) {
         const agentJson = remotePlayer.getPlayerSpec() as any;
@@ -378,9 +382,77 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         console.log('remote player not found', playerId);
         debugger;
       }
+
+      // remove dangling audio streams
+      for (const [streamId, stream] of Array.from(audioStreams.entries())) {
+        if (stream.metadata.playerId === playerId) {
+          stream.close();
+          audioStreams.delete(streamId);
+        }
+      }
     });
   };
   _trackRemotePlayers();
+
+  const audioStreams = new Map();
+  const _trackAudio = () => {
+    virtualPlayers.addEventListener('audiostart', e => {
+      const {
+        playerId,
+        streamId,
+        type,
+      } = e.data;
+
+      const outputStream = new AudioContextOutputStream();
+      const { sampleRate } = outputStream;
+
+      // decode stream
+      const decodeStream = new AudioDecodeStream({
+        type,
+        sampleRate,
+        format: 'f32',
+      });
+      decodeStream.readable.pipeTo(outputStream);
+
+      const writer = decodeStream.writable.getWriter();
+      writer.metadata = {
+        playerId,
+      };
+      audioStreams.set(streamId, writer);
+    });
+    virtualPlayers.addEventListener('audio', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.write(data);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audio data', e.data);
+      }
+    });
+    virtualPlayers.addEventListener('audioend', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.close();
+        audioStreams.delete(streamId);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audioend data', e.data);
+      }
+    });
+  };
+  _trackAudio();
 
   const _bindMultiplayerChat = () => {
     const onchat = (e: any) => {
