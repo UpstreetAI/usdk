@@ -1471,15 +1471,16 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
           const args = message.args as any;
           const text = (args as any).text as string;
           const readableAudioStream = tts.getAudioStream(text);
+          const { type } = readableAudioStream;
           const playableAudioStream = readableAudioStream as PlayableAudioStream;
           playableAudioStream.id = crypto.randomUUID();
           agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
-          if (!args.media) {
-            args.media = [];
+          if (!args.linkedMedia) {
+            args.linkedMedia = [];
           }
-          args.media.push({
-            type: 'audio/mp3',
-            ref: playableAudioStream,
+          args.linkedMedia.push({
+            id: playableAudioStream.id,
+            type,
           });
         },
       };
