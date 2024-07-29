@@ -37,6 +37,7 @@ import type {
   ActionMessageEventData,
   ActionMessageEvent,
   MessagesUpdateEventData,
+  PlayableAudioStream,
 } from '../types';
 import {
   ConversationObject,
@@ -156,11 +157,11 @@ export class ActiveAgentObject extends AgentObject {
       room,
       endpointUrl,
     });
-    console.log('join room', {
-      room,
-      endpointUrl,
-      key,
-    });
+    // console.log('join room', {
+    //   room,
+    //   endpointUrl,
+    //   key,
+    // });
     const conversation = new ConversationObject({
       room,
       endpointUrl,
@@ -396,6 +397,19 @@ export class ActiveAgentObject extends AgentObject {
               conversationId: key,
               message,
             });
+          })();
+        });
+
+        //
+
+        conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+          const audioStream = e.data.audioStream as PlayableAudioStream;
+          (async () => {
+            const {
+              waitForFinish,
+            } = realms.addAudioSource(audioStream);
+            await waitForFinish();
+            realms.removeAudioSource(audioStream);
           })();
         });
 
