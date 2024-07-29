@@ -44,7 +44,7 @@ type ServerHandler = {
 
 //
 
-const getActionByName = (actions: ActionProps[], name: string) => {
+const getActionHandlerByName = (actions: ActionProps[], name: string) => {
   for (const action of actions) {
     if (action.name === name) {
       return action;
@@ -119,7 +119,7 @@ async function _generateAgentActionFromMessages(
       newMessage = await parser.parseFn(completionMessage.content);
 
       const { method } = newMessage;
-      const actionHandler = getActionByName(actions, method);
+      const actionHandler = getActionHandlerByName(actions, method);
       if (actionHandler) {
         if (actionHandler.schema) {
           try {
@@ -214,7 +214,7 @@ export async function handleAgentAction(
   } = agent.registry;
 
   const { method } = message;
-  const actionHandler = getActionByName(actions, method);
+  const actionHandler = getActionHandlerByName(actions, method);
   // console.log('handle agent action 2', actionHandler);
   if (actionHandler) {
     // handle the pending action
