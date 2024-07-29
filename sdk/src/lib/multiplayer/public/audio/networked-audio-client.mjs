@@ -22,27 +22,25 @@ export class NetworkedAudioClient extends EventTarget {
   addAudioSource(audioSource) {
     // console.log('add audio source', new Error().stack);
 
-    // add the cleanup fn
     const {
       id,
       output,
+      type,
     } = audioSource;
-    const cleanup = () => {
-      output.removeEventListener('data', data);
 
-      // console.log('send audio end', [
-      //   this.playerId,
-      //   id,
-      // ]);
-      this.ws.send(zbencode({
-        method: UPDATE_METHODS.AUDIO_END,
-        args: [
-          this.playerId,
-          id,
-        ],
-      }));
-    };
-    this.audioSourceCleanups.set(id, cleanup);
+    // console.log('send data', [
+    //   this.playerId,
+    //   id,
+    //   e.data,
+    // ]);
+    this.ws.send(zbencode({
+      method: UPDATE_METHODS.AUDIO_START,
+      args: [
+        this.playerId,
+        id,
+        type,
+      ],
+    }));
 
     const data = e => {
       // console.log('send data', [
@@ -60,6 +58,24 @@ export class NetworkedAudioClient extends EventTarget {
       }));
     };
     output.addEventListener('data', data);
+
+    // add the cleanup fn
+    const cleanup = () => {
+      output.removeEventListener('data', data);
+
+      // console.log('send audio end', [
+      //   this.playerId,
+      //   id,
+      // ]);
+      this.ws.send(zbencode({
+        method: UPDATE_METHODS.AUDIO_END,
+        args: [
+          this.playerId,
+          id,
+        ],
+      }));
+    };
+    this.audioSourceCleanups.set(id, cleanup);
   }
 
   removeAudioSource(microphoneSource) {
@@ -125,6 +141,20 @@ export class NetworkedAudioClient extends EventTarget {
           playerId,
           streamId,
           data,
+        },
+      }));
+    } else if (method === UPDATE_METHODS.AUDIO_START) {
+      const [
+        playerId,
+        streamId,
+        type,
+      ] = args;
+
+      this.dispatchEvent(new MessageEvent('audiostart', {
+        data: {
+          playerId,
+          streamId,
+          type,
         },
       }));
     } else if (method === UPDATE_METHODS.AUDIO_END) {
