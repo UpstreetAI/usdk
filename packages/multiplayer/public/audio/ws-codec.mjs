@@ -1,6 +1,9 @@
+import path from 'path';
+import Worker from 'web-worker';
 // import {getAudioContext} from './ws-audio-context.js';
 // import {getAudioDataBuffer} from './ws-util.js';
 // import {channelCount, sampleRate, bitrate} from './ws-constants.js';
+const metaUrl = decodeURI(import.meta.url).replace('file://', '');
 
 // note: you can toggle the implementation to use WebCodecs or not by commenting/uncommenting
 
@@ -46,9 +49,13 @@ export function WsAudioDecoder({output, error}) {
 // import WsOpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
 // import WsMp3CodecWorker from '../../../../public/audio-worker/ws-mp3-codec-worker.js?worker';
 
-import OpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
-import Mp3EncoderWorker from '../../../../public/audio-worker/ws-mp3-encoder-worker.js?worker';
-import Mp3DecoderWorker from '../../../../public/audio-worker/ws-mp3-decoder-worker.js?worker';
+// import OpusCodecWorker from '../../../../public/audio-worker/ws-opus-codec-worker.js?worker';
+// import Mp3EncoderWorker from '../../../../public/audio-worker/ws-mp3-encoder-worker.js?worker';
+// import Mp3DecoderWorker from '../../../../public/audio-worker/ws-mp3-decoder-worker.js?worker';
+
+// import OpusCodecWorker from '../../../../util/audio-worker/ws-opus-codec-worker.js?worker';
+// import Mp3EncoderWorker from '../../../../util/audio-worker/ws-mp3-encoder-worker.js?worker';
+// import Mp3DecoderWorker from '../../../../util/audio-worker/ws-mp3-decoder-worker.js?worker';
 
 // NO WebCodecs suport
 
@@ -157,7 +164,9 @@ export function WsEncodedAudioChunk(o) {
 
 export class OpusAudioEncoder {
   constructor({sampleRate, output, error}) {
-    this.worker = new OpusCodecWorker();
+    // this.worker = new OpusCodecWorker();
+    this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
+    // console.log("worker", this.worker)
     this.worker.onmessage = e => {
       output(e.data);
     };
@@ -175,7 +184,8 @@ export class OpusAudioEncoder {
 
 export class OpusAudioDecoder {
   constructor({sampleRate, output, error}) {
-    this.worker = new OpusCodecWorker();
+    // this.worker = new OpusCodecWorker();
+    this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
     const fakeAudioData = new FakeAudioData();
     this.worker.onmessage = e => {
       if (e.data) {
@@ -203,7 +213,8 @@ export class Mp3AudioEncoder {
       debugger;
     }
 
-    this.worker = new Mp3EncoderWorker();
+    this.worker = new Worker("../../../../util/audio-worker/ws-mp3-encoder-worker.js");
+
     this.worker.onmessage = e => {
       output(e.data);
     };
@@ -224,7 +235,11 @@ export class Mp3AudioDecoder {
       debugger;
     }
 
-    this.worker = new Mp3DecoderWorker();
+    const mp3DecoderWorkerPath = path.join(metaUrl, '../../../../../util/audio-worker/ws-mp3-decoder-worker.mjs');
+    this.worker = new Worker(mp3DecoderWorkerPath, {
+      type: 'module',
+    });
+
     this.worker.onmessage = e => {
       output(e.data);
     };
