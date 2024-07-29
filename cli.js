@@ -66,6 +66,10 @@ import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
+import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
+import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
+import { AudioDecodeStream } from './sdk/src/devices/audio-decode.mjs';
+
 // XXX imports for capture support
 // import webp from 'webp-wasm';
 // import {
@@ -3456,18 +3460,107 @@ const voice = async (args) => {
             .maybeSingle();
           const { error, data } = result;
           if (!error) {
-            // const voice = await voiceTrainer.getVoice(voiceName, {
-            //   jwt,
-            // });
             console.log(JSON.stringify(data, null, 2));
+            if (data) {
+              const { start_url } = data;
+              const res = await fetch(start_url);
+              if (res.ok) {
+                const assetJson = await res.json();
+                console.log(JSON.stringify(voiceJson, null, 2));
+              } else {
+                console.warn('could not get voice json:', res.status);
+              }
+            }
+          } else {
+            console.warn('error getting voice:', error);
+            process.exit(1);
+          }
+        } else {
+          console.warn('invalid arguments');
+          process.exit(1);
+        }
+        break;
+      }
+      case 'play': {
+        const voiceName = subcommandArgs[0] ?? '';
+        const text = subcommandArgs[1] ?? '';
+        if (voiceName && text) {
+          const supabase = makeSupabase(jwt);
+          const result = await supabase.from('assets')
+            .select('*')
+            .eq('name', voiceName)
+            .eq('user_id', userId)
+            .eq('type', 'voice')
+            .maybeSingle();
+          const { error, data } = result;
+          if (!error) {
+            // console.log(JSON.stringify(data, null, 2));
             if (data) {
               const { start_url } = data;
               const res = await fetch(start_url);
               if (res.ok) {
                 const voiceJson = await res.json();
                 console.log(JSON.stringify(voiceJson, null, 2));
+
+                const { voiceEndpoint: voiceEndpointString } = voiceJson;
+                const match = voiceEndpointString.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
+                if (match) {
+                  const [_, model, voiceName, voiceId] = match;
+
+                  // output stream
+                  const outputStream = new SpeakerOutputStream({
+                    // type: 'audio/mpeg',
+                    // sampleRate,
+                  });
+                  const { sampleRate } = outputStream;
+
+                  // decode stream
+                  const decodeStream = new AudioDecodeStream({
+                    type: 'audio/mpeg',
+                    sampleRate,
+                  });
+
+                  // voice stream
+                  const voiceEndpoint = new AutoVoiceEndpoint({
+                    model,
+                    voiceId,
+                  });
+                  const voiceEndpointVoicer = new VoiceEndpointVoicer({
+                    voiceEndpoint,
+                    sampleRate,
+                    jwt,
+                  });
+                  const voiceStream = voiceEndpointVoicer.getStream(text);
+                  console.log('got stream 2', voiceStream);
+
+                  voiceStream
+                    .pipeThrough(decodeStream)
+                    .pipeTo(outputStream)
+                    // .then(() => {
+                    //   console.log('done!');
+                    // });
+
+                  await voiceStream.waitForLoad();
+                  console.log('got stream 2', voiceStream);
+
+                  // setTimeout(() => {
+                  //   console.log('done');
+                  // }, 2000);
+
+                  // // pipe
+                  // (async () => {
+                  //   for await (const chunk of voiceStream) {
+                  //     console.log('got chunk', chunk);
+                  //   }
+                  //   console.log('done');
+                  // })();
+                } else {
+                  console.warn('invalid voice endpoint:', voiceEndpointString);
+                  process.exit(1);
+                }
               } else {
                 console.warn('could not get voice json:', res.status);
+                process.exit(1);
               }
             }
           } else {
