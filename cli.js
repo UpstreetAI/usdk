@@ -1039,6 +1039,7 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
   };
   realms.addEventListener('connect', onConnect);
 
+  const audioStreams = new Map();
   const _trackRemotePlayers = () => {
     virtualPlayers.addEventListener('join', (e) => {
       const { playerId, player } = e.data;
@@ -1071,6 +1072,8 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
       if (connected) {
         log('remote player left:', playerId);
       }
+
+      // remove remote player
       const remotePlayer = playersMap.get(playerId);
       if (remotePlayer) {
         playersMap.delete(playerId);
@@ -1078,9 +1081,75 @@ const connectMultiplayer = async ({ room, anonymous, debug }) => {
         log('remote player not found', playerId);
         debugger;
       }
+
+      // remove dangling audio streams
+      for (const [streamId, stream] of Array.from(audioStreams.entries())) {
+        if (stream.metadata.playerId === playerId) {
+          stream.close();
+          audioStreams.delete(streamId);
+        }
+      }
     });
   };
   _trackRemotePlayers();
+
+  const _trackAudio = () => {
+    virtualPlayers.addEventListener('audiostart', e => {
+      const {
+        playerId,
+        streamId,
+        type,
+      } = e.data;
+
+      const outputStream = new SpeakerOutputStream();
+      const { sampleRate } = outputStream;
+
+      // decode stream
+      const decodeStream = new AudioDecodeStream({
+        type,
+        sampleRate,
+      });
+      decodeStream.readable.pipeTo(outputStream);
+
+      const writer = decodeStream.writable.getWriter();
+      writer.metadata = {
+        playerId,
+      };
+      audioStreams.set(streamId, writer);
+    });
+    virtualPlayers.addEventListener('audio', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.write(data);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audio data', e.data);
+      }
+    });
+    virtualPlayers.addEventListener('audioend', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.close();
+        audioStreams.delete(streamId);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audioend data', e.data);
+      }
+    });
+  };
+  _trackAudio();
 
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
@@ -3508,17 +3577,8 @@ const voice = async (args) => {
                   const [_, model, voiceName, voiceId] = match;
 
                   // output stream
-                  const outputStream = new SpeakerOutputStream({
-                    // type: 'audio/mpeg',
-                    // sampleRate,
-                  });
+                  const outputStream = new SpeakerOutputStream();
                   const { sampleRate } = outputStream;
-
-                  // decode stream
-                  const decodeStream = new AudioDecodeStream({
-                    type: 'audio/mpeg',
-                    sampleRate,
-                  });
 
                   // voice stream
                   const voiceEndpoint = new AutoVoiceEndpoint({
@@ -3531,6 +3591,13 @@ const voice = async (args) => {
                     jwt,
                   });
                   const voiceStream = voiceEndpointVoicer.getStream(text);
+                  const { type } = voiceStream;
+
+                  // decode stream
+                  const decodeStream = new AudioDecodeStream({
+                    type,
+                    sampleRate,
+                  });
 
                   console.log('playing...')
                   voiceStream
@@ -3541,18 +3608,6 @@ const voice = async (args) => {
                     });
 
                   await voiceStream.waitForLoad();
-
-                  // setTimeout(() => {
-                  //   console.log('done');
-                  // }, 2000);
-
-                  // // pipe
-                  // (async () => {
-                  //   for await (const chunk of voiceStream) {
-                  //     console.log('got chunk', chunk);
-                  //   }
-                  //   console.log('done');
-                  // })();
                 } else {
                   console.warn('invalid voice endpoint:', voiceEndpointString);
                   process.exit(1);
