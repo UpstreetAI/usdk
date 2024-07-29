@@ -1,6 +1,8 @@
-const volumeUpdateRate = 20;
+// const volumeUpdateRate = 20;
+const volumeUpdateRate = Infinity;
 const volumeScale = 2;
-const audioBufferLength = 30;
+// const audioBufferLength = 30;
+const audioBufferLength = Infinity;
 class WsOutputWorklet extends AudioWorkletProcessor {
   constructor (...args) {
     super(...args);
@@ -9,9 +11,13 @@ class WsOutputWorklet extends AudioWorkletProcessor {
     this.lastVolumeTime = 0;
     this.maxSample = 0;
     this.numSamples = 0;
+    this.flushed = true;
     
     this.port.onmessage = e => {
       this.buffers.push(e.data);
+
+      this.flushed = false;
+
       // if the buffer is too big, delete it
       if (this.buffers.length > audioBufferLength) {
         this.buffers.splice(0, this.buffers.length - audioBufferLength);
@@ -63,18 +69,34 @@ class WsOutputWorklet extends AudioWorkletProcessor {
       }
     }
 
-    const now = Date.now();
-    const timeDiff = now - this.lastVolumeTime;
-    if (timeDiff >= volumeUpdateRate) {
-      const volume = this.numSamples > 0 ?
-        Math.min(this.maxSample * volumeScale, 1)
-      :
-        0;
-      this.port.postMessage(volume);
+    // update flushed
+    if (!this.flushed && this.buffers.length === 0) {
+      this.flushed = true;
+      this.port.postMessage({
+        method: 'flush',
+      });
+    }
 
-      this.lastVolumeTime = now;
-      this.maxSample = 0;
-      this.numSamples = 0;
+    // update volume
+    if (isFinite(volumeUpdateRate)) {
+      const now = Date.now();
+      const timeDiff = now - this.lastVolumeTime;
+      if (timeDiff >= volumeUpdateRate) {
+        const volume = this.numSamples > 0 ?
+          Math.min(this.maxSample * volumeScale, 1)
+        :
+          0;
+        this.port.postMessage({
+          method: 'volume',
+          args: {
+            volume,
+          },
+        });
+
+        this.lastVolumeTime = now;
+        this.maxSample = 0;
+        this.numSamples = 0;
+      }
     }
     
     return true;
