@@ -396,7 +396,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
   const audioStreams = new Map();
   const _trackAudio = () => {
-    virtualPlayers.addEventListener('audiostart', e => {
+    virtualPlayers.addEventListener('audiostart', (e: MessageEvent) => {
       const {
         playerId,
         streamId,
@@ -420,7 +420,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
       };
       audioStreams.set(streamId, writer);
     });
-    virtualPlayers.addEventListener('audio', e => {
+    virtualPlayers.addEventListener('audio', (e: MessageEvent) => {
       const {
         playerId,
         streamId,
@@ -435,7 +435,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         console.warn('dropping audio data', e.data);
       }
     });
-    virtualPlayers.addEventListener('audioend', e => {
+    virtualPlayers.addEventListener('audioend', (e: MessageEvent) => {
       const {
         playerId,
         streamId,
