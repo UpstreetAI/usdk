@@ -207,12 +207,22 @@ export class OpusAudioDecoder {
 }
 
 export class Mp3AudioEncoder {
-  constructor({sampleRate, output, error}) {
+  constructor({
+    sampleRate,
+    bitrate = 128,
+    transferBuffers = true,
+    output,
+    error,
+  }) {
     if (!sampleRate) {
       debugger;
     }
 
-    this.worker = new Worker("../../../../util/audio-worker/ws-mp3-encoder-worker.js");
+    this.transferBuffers = transferBuffers;
+
+    this.worker = new Worker(new URL('../audio-worker/ws-mp3-encoder-worker.mjs', import.meta.url), {
+      type: 'module',
+    });
 
     this.worker.onmessage = e => {
       output(e.data);
@@ -220,19 +230,28 @@ export class Mp3AudioEncoder {
     this.worker.onerror = error;
     this.worker.postMessage({
       sampleRate,
+      bitrate,
     });
   }
   
   encode(audioData) {
-    this.worker.postMessage(audioData.data, audioData.data !== null ? [audioData.data.buffer] : []);
+    this.worker.postMessage(audioData.data, this.transferBuffers && audioData.data !== null ? [audioData.data.buffer] : []);
   }
 }
 
 export class Mp3AudioDecoder {
-  constructor({sampleRate, format, output, error}) {
+  constructor({
+    sampleRate,
+    format,
+    transferBuffers = true,
+    output,
+    error,
+  }) {
     if (!sampleRate) {
       debugger;
     }
+
+    this.transferBuffers = transferBuffers;
 
     this.worker = new Worker(new URL('../audio-worker/ws-mp3-decoder-worker.mjs', import.meta.url), {
       type: 'module',
@@ -249,6 +268,6 @@ export class Mp3AudioDecoder {
   }
 
   decode(data) {
-    this.worker.postMessage(data, data !== null ? [data.buffer] : []);
+    this.worker.postMessage(data, this.transferBuffers && data !== null ? [data.buffer] : []);
   }
 }
