@@ -18,7 +18,7 @@ export const encodeWebp = async (imageData) => {
 
 //
 
-export const describe = async (frame, hint = `What's in this image?`, {
+export const describe = async (frame, query = `What's in this image?`, {
   jwt,
 }) => {
   const messages = [
@@ -27,7 +27,7 @@ export const describe = async (frame, hint = `What's in this image?`, {
       content: [
         {
           "type": "text",
-          "text": hint,
+          "text": query,
         },
         {
           "type": "image_url",
