@@ -71,6 +71,10 @@ export class TerminalVideoRenderer {
     width,
     height,
   }) {
+    if (typeof width !== 'number' || typeof height !== 'number') {
+      throw new Error('width and height must be numbers');
+    }
+
     this.width = width;
     this.height = height;
 
