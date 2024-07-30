@@ -368,12 +368,13 @@ export function createMp3MicrophoneSource({
 }
 
 //
-// STREAMS
+// DECODER STREAMS
 //
 
 export function createMp3DecodeTransformStream({
   sampleRate,
   format = 'f32',
+  transferBuffers,
 }) {
   if (!sampleRate) {
     debugger;
@@ -410,6 +411,7 @@ export function createMp3DecodeTransformStream({
   const audioDecoder = new Mp3AudioDecoder({
     sampleRate,
     format,
+    transferBuffers,
     output: muxAndSend,
     error: onDecoderError,
   });
@@ -458,6 +460,63 @@ export function createOpusDecodeTransformStream({
     sampleRate,
     output: muxAndSend,
     error: onDecoderError,
+  });
+
+  transformStream.readable.sampleRate = sampleRate;
+
+  return transformStream;
+}
+
+//
+// ENCODER STREAMS
+//
+
+export function createMp3EncodeTransformStream({
+  sampleRate,
+  transferBuffers,
+}) {
+  if (!sampleRate) {
+    debugger;
+  }
+
+  let controller;
+  const donePromise = makePromise();
+  const transformStream = new TransformStream({
+    start: c => {
+      controller = c;
+    },
+    transform: (chunk, controller) => {
+      const audioData = new FakeAudioData();
+      audioData.data = new Float32Array(chunk.buffer, chunk.byteOffset, chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
+      audioEncoder.encode(audioData);
+    },
+    flush: async () => {
+      // console.log('flush');
+      audioEncoder.encode(new FakeAudioData());
+      await donePromise;
+    },
+  });
+
+  // create encoder
+  const muxAndSend = encodedChunk => {
+    // console.log('mux and send', encodedChunk.data);
+    if (encodedChunk.data) {
+      const data = getEncodedAudioChunkBuffer(encodedChunk);
+      // output.write(data);
+      controller.enqueue(data);
+    } else {
+      // output.end();
+      donePromise.resolve();
+    }
+  };
+  function onEncoderError(err) {
+    console.warn('encoder error', err);
+  }
+  const audioEncoder = new Mp3AudioEncoder({
+    sampleRate,
+    transferBuffers,
+    output: muxAndSend,
+    error: onEncoderError,
   });
 
   transformStream.readable.sampleRate = sampleRate;
