@@ -181,7 +181,7 @@ export class TerminalVideoRenderer {
       const image = new Jimp(imageData.width, imageData.height);
       // image.bitmap.data.set(imageData.data);
       image.bitmap.data.set(imageData.data);
-      s = ansiEscapeSequences.cursor.previousLine(image.bitmap.height / 2) + s;
+      s = ansiEscapeSequences.cursor.previousLine(height / 2) + s;
       s += render(image, {
         width,
         height,
