@@ -2993,9 +2993,10 @@ const capture = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, query, {
+              let text = await describe(frame, query, {
                 jwt,
               });
+              text = text.replace(/[\r\n]/g, ' ');
               videoRenderer.setDescription(text);
               videoRenderer.render();
               // for (let i = 0; i < 30; i++) {
@@ -3036,9 +3037,10 @@ const capture = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, query, {
+              let text = await describe(frame, query, {
                 jwt,
               });
+              text = text.replace(/[\r\n]/g, ' ');
               // for (let i = 0; i < 30; i++) {
               //   console.log('description:', text);
               // }

@@ -212,7 +212,9 @@ export class TerminalVideoRenderer {
 
       this.lastDescriptionLines = trimmedDescription.length;
       s += trimmedDescription.join('\n');
-      s = ansiEscapeSequences.cursor.previousLine(this.lastDescriptionLines - 1) + s;
+      if (this.lastDescriptionLines > 1) {
+        s = ansiEscapeSequences.cursor.previousLine(this.lastDescriptionLines - 1) + s;
+      }
     } else {
       this.lastDescriptionLines = 0;
     }
