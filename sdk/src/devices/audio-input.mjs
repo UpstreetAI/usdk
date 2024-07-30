@@ -138,6 +138,95 @@ export const transcribe = async (data, {
 
 //
 
+export class VoiceActivityMicrophoneInput extends EventTarget {
+  constructor({
+    device,
+  }) {
+    super();
+
+    this.abortController = new AbortController();
+    const {
+      signal,
+    } = this.abortController;
+
+    (async () => {
+      const vadThreshold = 0.2;
+      const myvad = await vad.NonRealTimeVAD.new({
+        positiveSpeechThreshold: vadThreshold,
+        negativeSpeechThreshold: vadThreshold,
+      });
+      if (signal.aborted) return;
+
+      const sampleRate = AudioInput.defaultSampleRate;
+      const numSamples = sampleRate * 0.5; // 0.5 seconds
+      const inputDevices = new InputDevices();
+      const microphoneInput = inputDevices.getAudioInput(device.id, {
+        sampleRate,
+        numSamples,
+      });
+      signal.addEventListener('abort', () => {
+        microphoneInput.close();
+      });
+
+      const onstart = e => {
+        this.dispatchEvent(new MessageEvent('start', {
+          data: null,
+        }));
+      };
+      microphoneInput.on('start', onstart);
+      signal.addEventListener('abort', () => {
+        microphoneInput.removeListener('start', onstart);
+      });
+
+      const bs = [];
+      let lastDetected = false;
+      const microphoneQueueManager = new QueueManager();
+      const ondata = async (d) => {
+        await microphoneQueueManager.waitForTurn(async () => {
+          bs.push(d.slice());
+
+          const asyncIterator = myvad.run(d, sampleRate);
+          let detected = false;
+          for await (const vadResult of asyncIterator) {
+            // console.log('got vad result', vadResult);
+            detected = true;
+          }
+
+          if (detected) {
+            if (!lastDetected) {
+              this.dispatchEvent(new MessageEvent('voicestart', {
+                data: null,
+              }));
+            }
+          } else {
+            if (lastDetected) {
+              this.dispatchEvent(new MessageEvent('voice', {
+                data: {
+                  buffers: bs.slice(),
+                  sampleRate,
+                },
+              }));
+              bs.length = 0;
+            } else {
+              // remove all except the last buffer
+              bs.splice(0, bs.length - 1);
+            }
+          }
+          lastDetected = detected;
+        });
+      };
+      microphoneInput.on('data', ondata);
+      signal.addEventListener('abort', () => {
+        microphoneInput.removeListener('data', ondata);
+      });
+    })();
+  }
+  close() {
+    this.abortController.abort();
+  }
+}
+//
+
 export class AudioInput extends EventEmitter {
   static defaultSampleRate = 48000;
   constructor(id, {
@@ -146,83 +235,93 @@ export class AudioInput extends EventEmitter {
   } = {}) {
     super();
 
-    (async () => {
-      // const decoder = new OpusDecoderWebWorker();
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
 
-      // ffmpeg -f avfoundation -i ":1" -ar 48000 -c:a libopus -f opus pipe:1
-      const cp = child_process.spawn('ffmpeg', [
-        '-f', 'avfoundation',
-        '-i', `:${id}`,
-        '-ar', `${sampleRate}`,
-        // '-c:a', 'libopus',
-        // '-f', 'opus',
-        '-f', 'f32le',
-        '-acodec', 'pcm_f32le',
-        'pipe:1',
-      ]);
-      // cp.stderr.pipe(process.stderr);
+    // ffmpeg -f avfoundation -i ":1" -ar 48000 -c:a libopus -f opus pipe:1
+    const cp = child_process.spawn('ffmpeg', [
+      '-f', 'avfoundation',
+      '-i', `:${id}`,
+      '-ar', `${sampleRate}`,
+      // '-c:a', 'libopus',
+      // '-f', 'opus',
+      '-f', 'f32le',
+      '-acodec', 'pcm_f32le',
+      'pipe:1',
+    ]);
+    // cp.stderr.pipe(process.stderr);
+    signal.addEventListener('abort', () => {
+      cp.kill();
+    });
 
-      const _listenForStart = () => {
-        let s = '';
-        cp.stderr.setEncoding('utf8');
-        const ondata = data => {
-          s += data;
-          if (/time=/.test(s)) {
-            this.emit('start');
-            cp.stderr.removeListener('data', ondata);
-          }
-        };
-        cp.stderr.on('data', ondata);
-      };
-      _listenForStart();
-
-      const bs = [];
-      let bsLength = 0;
-
-      // const decodeStream = cp.stdout.pipe(new OggDecodeTransformStream({
-      //   sampleRate,
-      // }));
-      const decodeStream = cp.stdout;
-      decodeStream.on('data', data => {
-        // data = Uint8Array.from(data);
-        // const {channelData, samplesDecoded, sampleRate} = await decoder.decode(data);
-        // console.log('decoded', channelData, samplesDecoded, sampleRate);
-
-        if (typeof numSamples === 'number') {
-          bs.push(data);
-          bsLength += data.length;
-
-          // console.log('bs length', bsLength, numSamples);
-
-          if (bsLength / Float32Array.BYTES_PER_ELEMENT >= numSamples) {
-            const b = Buffer.concat(bs);
-            let i = 0;
-            while (bsLength / Float32Array.BYTES_PER_ELEMENT >= numSamples) {
-              // const data = b.slice(i * Float32Array.BYTES_PER_ELEMENT, (i + numSamples) * Float32Array.BYTES_PER_ELEMENT);
-              // const samples = new Float32Array(data.buffer, data.byteOffset, numSamples);
-              const samples = new Float32Array(b.buffer, b.byteOffset + i * Float32Array.BYTES_PER_ELEMENT, numSamples);
-              this.emit('data', samples);
-
-              i += numSamples;
-              bsLength -= numSamples * Float32Array.BYTES_PER_ELEMENT;
-            }
-            // unshift the remainder
-            bs.length = 0;
-            if (bsLength > 0) {
-              bs.push(b.slice(i * Float32Array.BYTES_PER_ELEMENT));
-            }
-          }
-        } else {
-          const samples = new Float32Array(data.buffer, data.byteOffset, data.length / Float32Array.BYTES_PER_ELEMENT);
-          this.emit('data', samples);
+    const _listenForStart = () => {
+      let s = '';
+      cp.stderr.setEncoding('utf8');
+      const ondata = data => {
+        s += data;
+        if (/time=/.test(s)) {
+          this.emit('start');
+          cp.stderr.removeListener('data', ondata);
         }
+      };
+      cp.stderr.on('data', ondata);
+
+      signal.addEventListener('abort', () => {
+        cp.stderr.removeListener('data', ondata);
       });
-      decodeStream.on('end', () => {
-        this.emit('end');
-      });
-      cp.on('error', err => {
-        this.emit('error', err);
-      });
-    })();
+    };
+    _listenForStart();
+
+    const bs = [];
+    let bsLength = 0;
+
+    const ondata = data => {
+      if (typeof numSamples === 'number') {
+        bs.push(data);
+        bsLength += data.length;
+
+        // console.log('bs length', bsLength, numSamples);
+
+        if (bsLength / Float32Array.BYTES_PER_ELEMENT >= numSamples) {
+          const b = Buffer.concat(bs);
+          let i = 0;
+          while (bsLength / Float32Array.BYTES_PER_ELEMENT >= numSamples) {
+            // const data = b.slice(i * Float32Array.BYTES_PER_ELEMENT, (i + numSamples) * Float32Array.BYTES_PER_ELEMENT);
+            // const samples = new Float32Array(data.buffer, data.byteOffset, numSamples);
+            const samples = new Float32Array(b.buffer, b.byteOffset + i * Float32Array.BYTES_PER_ELEMENT, numSamples);
+            this.emit('data', samples);
+
+            i += numSamples;
+            bsLength -= numSamples * Float32Array.BYTES_PER_ELEMENT;
+          }
+          // unshift the remainder
+          bs.length = 0;
+          if (bsLength > 0) {
+            bs.push(b.slice(i * Float32Array.BYTES_PER_ELEMENT));
+          }
+        }
+      } else {
+        const samples = new Float32Array(data.buffer, data.byteOffset, data.length / Float32Array.BYTES_PER_ELEMENT);
+        this.emit('data', samples);
+      }
+    };
+    cp.stdout.on('data', ondata);
+    const onend = () => {
+      this.emit('end');
+    };
+    cp.stdout.on('end', onend);
+    const onerror = err => {
+      this.emit('error', err);
+    };
+    cp.on('error', onerror);
+
+    signal.addEventListener('abort', () => {
+      cp.stdout.removeListener('data', ondata);
+      cp.stdout.removeListener('end', onend);
+      cp.removeListener('error', onerror);
+    });
+  }
+  close() {
+    this.abortController.abort();
   }
 };
