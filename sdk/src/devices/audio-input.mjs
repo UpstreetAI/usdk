@@ -1,15 +1,26 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
-// import lamejs from 'lamejstmp';
 import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
-// import { OpusDecoderWebWorker } from 'opus-decoder';
-// import { OggOpusDecoderWebWorker } from 'ogg-opus-decoder';
-// import {
-//   QueueManager,
-// } from '../util/queue-manager.mjs';
+import vad from '@ricky0123/vad-node';
+import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
+import {
+  InputDevices,
+} from './input-devices.mjs';
+import {
+  QueueManager,
+} from '../util/queue-manager.mjs';
 import {
   aiHost,
 } from '../util/endpoints.mjs';
+
+//
+
+const _disableVadLog = () => {
+  for (const k in vadLog) {
+    vadLog[k] = () => {};
+  }
+};
+_disableVadLog();
 
 //
 
