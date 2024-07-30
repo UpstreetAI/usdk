@@ -1,15 +1,26 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
-// import lamejs from 'lamejstmp';
 import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
-// import { OpusDecoderWebWorker } from 'opus-decoder';
-// import { OggOpusDecoderWebWorker } from 'ogg-opus-decoder';
-// import {
-//   QueueManager,
-// } from '../util/queue-manager.mjs';
+import vad from '@ricky0123/vad-node';
+import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
+import {
+  InputDevices,
+} from './input-devices.mjs';
+import {
+  QueueManager,
+} from '../util/queue-manager.mjs';
 import {
   aiHost,
 } from '../util/endpoints.mjs';
+
+//
+
+const _disableVadLog = () => {
+  for (const k in vadLog) {
+    vadLog[k] = () => {};
+  }
+};
+_disableVadLog();
 
 //
 
@@ -127,6 +138,135 @@ export const transcribe = async (data, {
 
 //
 
+export class VoiceActivityMicrophoneInput extends EventTarget {
+  constructor({
+    device,
+  }) {
+    super();
+
+    this.abortController = new AbortController();
+    const {
+      signal,
+    } = this.abortController;
+
+    this.paused = false;
+
+    (async () => {
+      const vadThreshold = 0.2;
+      const myvad = await vad.NonRealTimeVAD.new({
+        positiveSpeechThreshold: vadThreshold,
+        negativeSpeechThreshold: vadThreshold,
+      });
+      if (signal.aborted) return;
+
+      const sampleRate = AudioInput.defaultSampleRate;
+      const numSamples = sampleRate * 0.5; // 0.5 seconds
+      const inputDevices = new InputDevices();
+      const microphoneInput = inputDevices.getAudioInput(device.id, {
+        sampleRate,
+        numSamples,
+      });
+      signal.addEventListener('abort', () => {
+        microphoneInput.close();
+      });
+      this.addEventListener('pause', e => {
+        microphoneInput.pause();
+      });
+      this.addEventListener('resume', e => {
+        microphoneInput.resume();
+      });
+
+      const onstart = e => {
+        this.dispatchEvent(new MessageEvent('start', {
+          data: null,
+        }));
+      };
+      microphoneInput.on('start', onstart);
+      signal.addEventListener('abort', () => {
+        microphoneInput.removeListener('start', onstart);
+      });
+
+      const bs = [];
+      let lastDetected = false;
+      this.addEventListener('pause', e => {
+        bs.length = 0;
+        lastDetected = false;
+      });
+      const microphoneQueueManager = new QueueManager();
+      const ondata = async (d) => {
+        await microphoneQueueManager.waitForTurn(async () => {
+          if (this.paused) return;
+
+          // push the buffer
+          bs.push(d.slice());
+
+          // check for detection in the current buffer
+          const asyncIterator = myvad.run(d, sampleRate);
+          let detected = false;
+          for await (const vadResult of asyncIterator) {
+            if (this.paused) return;
+            detected = true;
+          }
+
+          // reconcile detected change
+          if (detected) {
+            if (!lastDetected) {
+              // voice is start
+              this.dispatchEvent(new MessageEvent('voicestart', {
+                data: null,
+              }));
+            }
+          } else {
+            if (lastDetected) {
+              // voice end
+              this.dispatchEvent(new MessageEvent('voice', {
+                data: {
+                  buffers: bs.slice(),
+                  sampleRate,
+                },
+              }));
+              bs.length = 0;
+            } else {
+              // keep the last buffer
+              bs.splice(0, bs.length - 1);
+            }
+          }
+          lastDetected = detected;
+        });
+      };
+      microphoneInput.on('data', ondata);
+      signal.addEventListener('abort', () => {
+        microphoneInput.removeListener('data', ondata);
+      });
+    })();
+  }
+  close() {
+    this.abortController.abort();
+    this.dispatchEvent(new MessageEvent('close', {
+      data: null,
+    }));
+  }
+  pause() {
+    console.log('pause');
+    if (!this.paused) {
+      this.paused = true;
+      this.dispatchEvent(new MessageEvent('pause', {
+        data: null,
+      }));
+    }
+  }
+  resume() {
+    console.log('resume');
+    if (this.paused) {
+      this.paused = false;
+      this.dispatchEvent(new MessageEvent('resume', {
+        data: null,
+      }));
+    }
+  }
+}
+//
+
 export class AudioInput extends EventEmitter {
   static defaultSampleRate = 48000;
   constructor(id, {
@@ -135,8 +275,11 @@ export class AudioInput extends EventEmitter {
   } = {}) {
     super();
 
-    (async () => {
-      // const decoder = new OpusDecoderWebWorker();
+    const _reset = () => {
+      this.abortController = new AbortController();
+      const { signal } = this.abortController;
+
+      this.paused = false;
 
       // ffmpeg -f avfoundation -i ":1" -ar 48000 -c:a libopus -f opus pipe:1
       const cp = child_process.spawn('ffmpeg', [
@@ -150,6 +293,9 @@ export class AudioInput extends EventEmitter {
         'pipe:1',
       ]);
       // cp.stderr.pipe(process.stderr);
+      signal.addEventListener('abort', () => {
+        cp.kill();
+      });
 
       const _listenForStart = () => {
         let s = '';
@@ -162,21 +308,16 @@ export class AudioInput extends EventEmitter {
           }
         };
         cp.stderr.on('data', ondata);
+
+        signal.addEventListener('abort', () => {
+          cp.stderr.removeListener('data', ondata);
+        });
       };
       _listenForStart();
 
       const bs = [];
       let bsLength = 0;
-
-      // const decodeStream = cp.stdout.pipe(new OggDecodeTransformStream({
-      //   sampleRate,
-      // }));
-      const decodeStream = cp.stdout;
-      decodeStream.on('data', data => {
-        // data = Uint8Array.from(data);
-        // const {channelData, samplesDecoded, sampleRate} = await decoder.decode(data);
-        // console.log('decoded', channelData, samplesDecoded, sampleRate);
-
+      const ondata = data => {
         if (typeof numSamples === 'number') {
           bs.push(data);
           bsLength += data.length;
@@ -205,13 +346,46 @@ export class AudioInput extends EventEmitter {
           const samples = new Float32Array(data.buffer, data.byteOffset, data.length / Float32Array.BYTES_PER_ELEMENT);
           this.emit('data', samples);
         }
-      });
-      decodeStream.on('end', () => {
+      };
+      cp.stdout.on('data', ondata);
+      const onend = () => {
         this.emit('end');
-      });
-      cp.on('error', err => {
+      };
+      cp.stdout.on('end', onend);
+      const onerror = err => {
         this.emit('error', err);
+      };
+      cp.on('error', onerror);
+
+      signal.addEventListener('abort', () => {
+        cp.stdout.removeListener('data', ondata);
+        cp.stdout.removeListener('end', onend);
+        cp.removeListener('error', onerror);
       });
-    })();
+    };
+    _reset();
+
+    this.on('pause', e => {
+      this.abortController.abort();
+    });
+    this.on('resume', e => {
+      _reset();
+    });
+  }
+  close() {
+    this.abortController.abort();
+    this.emit('close');
+  }
+  pause() {
+    if (!this.paused) {
+      this.paused = true;
+      this.emit('pause');
+    }
+  }
+  resume() {
+    if (this.paused) {
+      this.paused = false;
+      this.emit('resume');
+    }
   }
 };

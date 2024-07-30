@@ -77,7 +77,8 @@ import {
   InputDevices,
 } from './sdk/src/devices/input-devices.mjs';
 import {
-  AudioInput,
+  // AudioInput,
+  VoiceActivityMicrophoneInput,
   encodeMp3,
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
@@ -87,7 +88,6 @@ import {
   encodeWebp,
   describe,
 } from './sdk/src/devices/video-input.mjs';
-import vad from '@ricky0123/vad-node';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -214,6 +214,50 @@ class TypingMap extends EventTarget {
       }));
     }
     this.#internalMap.clear();
+  }
+}
+class SpeakerMap extends EventTarget {
+  #internalMap = new Map(); // playerId: string -> boolean
+  #lastSpeakers = false;
+  getMap() {
+    return this.#internalMap;
+  }
+  set(playerId, speaking) {
+    this.#internalMap.set(playerId, speaking);
+    this.dispatchEvent(new MessageEvent('speakingchange', {
+      data: {
+        playerId,
+        speaking,
+      },
+    }));
+
+    const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
+    console.log('current speakers', {
+      currentSpeakers,
+      lastSpeakers: this.#lastSpeakers,
+    });
+    if (currentSpeakers && !this.#lastSpeakers) {
+      this.dispatchEvent(new MessageEvent('playingchange', {
+        data: true,
+      }));
+    } else if (!currentSpeakers && this.#lastSpeakers) {
+      this.dispatchEvent(new MessageEvent('playingchange', {
+        data: false,
+      }));
+    }
+    this.#lastSpeakers = currentSpeakers;
+  }
+  clear() {
+    for (const [playerId, speaking] of this.#internalMap) {
+      this.dispatchEvent(new MessageEvent('speakingchange', {
+        data: {
+          playerId,
+          speaking,
+        },
+      }));
+    }
+    this.#internalMap.clear();
+    this.#lastSpeakers = false;
   }
 }
 
@@ -949,6 +993,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   });
   const playersMap = new Map();
   const typingMap = new TypingMap();
+  const speakerMap = new SpeakerMap();
 
   const virtualWorld = realms.getVirtualWorld();
   const virtualPlayers = realms.getVirtualPlayers();
@@ -994,32 +1039,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         }
 
         connected = true;
-
-        // log the initial room state
-        // agentIds.push(userId);
-        /* const agentJsons = await Promise.all(
-          agentIds.map(async (agentId) => {
-            // current player
-            if (agentId === userId) {
-              return {
-                id: userId,
-                name,
-              };
-            // development agent
-            } else if (agentId === devAgentId) {
-              return {
-                id: devAgentId,
-                name,
-              };
-            } else {
-              const assetJson = await getAssetJson(supabase, agentId);
-              return {
-                id: agentId,
-                name: assetJson.name,
-              };
-            }
-          }),
-        ); */
 
         const agentJsons = Array.from(playersMap.values()).map(
           (player) => player.playerSpec,
@@ -1112,7 +1131,14 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         sampleRate,
         format: 'i16',
       });
-      decodeStream.readable.pipeTo(outputStream);
+      (async () => {
+        speakerMap.set(playerId, true);
+        try {
+          await decodeStream.readable.pipeTo(outputStream);
+        } finally {
+          speakerMap.set(playerId, false);
+        }
+      })();
 
       const writer = decodeStream.writable.getWriter();
       writer.metadata = {
@@ -1233,6 +1259,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
     realms,
     playersMap,
     typingMap,
+    speakerMap,
   };
 };
 /* const nudge = async (realms, targetPlayerId) => {
@@ -1249,6 +1276,7 @@ const startMultiplayerListener = ({
   realms,
   playersMap,
   typingMap,
+  speakerMap,
   // local,
   startRepl,
 }) => {
@@ -1275,6 +1303,15 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
+    const ensureJwt = (() => {
+      let jwtPromise = null;
+      return () => {
+        if (jwtPromise === null) {
+          jwtPromise = getLoginJwt();
+        }
+        return jwtPromise;
+      };
+    })();
     const getDoc = () => {
       const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
       const { networkedCrdtClient } = headRealm;
@@ -1282,80 +1319,137 @@ const startMultiplayerListener = ({
       return doc;
     };
 
+    let microphoneInput = null;
+    const microphoneQueueManager = new QueueManager();
+    const toggleMic = async () => {
+      await microphoneQueueManager.waitForTurn(async () => {
+        if (!microphoneInput) {
+          const inputDevices = new InputDevices();
+          const devices = await inputDevices.listDevices();
+          const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
+
+          microphoneInput = new VoiceActivityMicrophoneInput({
+            device,
+          });
+
+          const onplayingchange = e => {
+            const playing = e.data;
+            console.log('playing change', playing);
+            if (playing) {
+              microphoneInput.pause();
+            } else {
+              microphoneInput.resume();
+            }
+          };
+          speakerMap.addEventListener('playingchange', onplayingchange);
+          microphoneInput.addEventListener('close', e => {
+            speakerMap.removeEventListener('playingchange', onplayingchange);
+          });
+
+          await new Promise((accept, reject) => {
+            microphoneInput.addEventListener('start', e => {
+              accept();
+            });
+          });
+          console.log('* mic enabled *');
+          microphoneInput.addEventListener('voice', async (e) => {
+            const {
+              buffers,
+              sampleRate,
+            } = e.data;
+            const mp3Buffer = await encodeMp3(buffers, {
+              sampleRate,
+            });
+            const jwt = await ensureJwt();
+            const transcription = await transcribe(mp3Buffer, {
+              jwt,
+            });
+            replServer.clearBufferedCommand();
+            console.log(transcription);
+            sendChatMessage(transcription);
+          });
+          replServer.displayPrompt(true);
+        } else {
+          microphoneInput.close();
+          console.log('* mic disabled *');
+          replServer.displayPrompt(true);
+        }
+      });
+    };
+    const sendChatMessage = async (text) => {
+      const userId = userAsset.id;
+      const name = userAsset.name;
+      await realms.sendChatMessage({
+        method: 'say',
+        userId,
+        name,
+        args: {
+          text,
+        },
+        timestamp: Date.now(),
+      });
+    };
+
     replServer = repl.start({
       prompt: getPrompt(),
       eval: async (cmd, context, filename, callback) => {
-        cmd = cmd.replace(/;?\s*$/, '');
+        let error = null;
+        try {
+          cmd = cmd.replace(/;?\s*$/, '');
 
-        if (cmd) {
-          const cmdSplit = cmd.split(/\s+/);
-          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-          if (commandMatch) {
-            const command = commandMatch ? commandMatch[1] : null;
-            switch (command) {
-              /* case 'nudge': {
-                let guid = cmdSplit[1];
-                if (!guid) {
-                  const agentIds = Array.from(playersMap.keys());
-                  shuffle(agentIds);
-                  guid = agentIds[0];
-                }
+          if (cmd) {
+            const cmdSplit = cmd.split(/\s+/);
+            const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+            if (commandMatch) {
+              const command = commandMatch ? commandMatch[1] : null;
+              switch (command) {
+                case 'get': {
+                  const key = cmdSplit[1];
 
-                await nudge(realms, guid);
-
-                break;
-              } */
-              case 'get': {
-                const key = cmdSplit[1];
-
-                const doc = getDoc();
-                if (key) {
-                  const text = doc.getText(key);
-                  const s = text.toString();
-                  console.log(s);
-                } else {
-                  const j = doc.toJSON();
-                  console.log(j);
-                }
-                break;
-              }
-              case 'set': {
-                const key = cmdSplit[1];
-                const value = cmdSplit[2];
-
-                if (key && value) {
                   const doc = getDoc();
-                  doc.transact(() => {
+                  if (key) {
                     const text = doc.getText(key);
-                    text.delete(0, text.length);
-                    text.insert(0, value);
-                  });
-                } else {
-                  throw new Error('expected 2 arguments');
+                    const s = text.toString();
+                    console.log(s);
+                  } else {
+                    const j = doc.toJSON();
+                    console.log(j);
+                  }
+                  break;
                 }
-                break;
-              }
-              default: {
-                console.log('unknown command', command);
-                break;
-              }
-            }
-          } else {
-            const userId = userAsset.id;
-            const name = userAsset.name;
-            await realms.sendChatMessage({
-              method: 'say',
-              userId,
-              name,
-              args: {
-                text: cmd,
-              },
-              timestamp: Date.now(),
-            });
-          }
-        }
+                case 'set': {
+                  const key = cmdSplit[1];
+                  const value = cmdSplit[2];
 
-        callback();
+                  if (key && value) {
+                    const doc = getDoc();
+                    doc.transact(() => {
+                      const text = doc.getText(key);
+                      text.delete(0, text.length);
+                      text.insert(0, value);
+                    });
+                  } else {
+                    throw new Error('expected 2 arguments');
+                  }
+                  break;
+                }
+                case 'mic': {
+                  toggleMic();
+                  break;
+                }
+                default: {
+                  console.log('unknown command', command);
+                  break;
+                }
+              }
+            } else {
+              await sendChatMessage(cmd);
+            }
+          }
+        } catch (err) {
+          error = err;
+        }
+        callback(error);
       },
       ignoreUndefined: true,
     });
@@ -1378,70 +1472,6 @@ const startMultiplayerListener = ({
   };
   _bindRealmsLogging();
 };
-/* const createWebcamSource = ({ local }) => {
-  const webcamSource = new EventTarget();
-
-  const wss = new WebSocketServer({ noServer: true });
-  wss.binaryType = 'arraybuffer';
-
-  const serverOpts = getServerOpts();
-  const server = https.createServer(serverOpts, (req, res) => {
-    // set cors
-    const corsHeaders = makeCorsHeaders(req);
-    for (const { key, value } of corsHeaders) {
-      res.setHeader(key, value);
-    }
-
-    // handle methods
-    if (req.method === 'OPTIONS') {
-      res.end();
-    } else {
-      res.statusCode = 404;
-      res.end();
-    }
-  });
-  server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, function done(ws) {
-      wss.emit('connection', ws, request);
-    });
-  });
-  wss.on('connection', (ws, request) => {
-    ws.addEventListener('message', e => {
-      // if it's an array buffer, send it to the room
-      if (e.data instanceof Buffer) {
-        webcamSource.dispatchEvent(new MessageEvent('frame', {
-          data: {
-            imageData: e.data,
-          },
-        }));
-      } else {
-        console.warn('got non-arraybuffer webcam message', e.data);
-      }
-    });
-  });
-  server.on('error', (err) => {
-    console.warn('callback server error', err);
-  });
-  // server.on('close', () => {
-  //   console.log('callback server closed');
-  // });
-  server.listen(webcamPort, '0.0.0.0', (err) => {
-    // console.log('callback server listening on port', {
-    //   callbackPort,
-    // });
-    if (err) {
-      console.warn(err);
-    } else {
-      const _webcamHost = local
-        ? `https://local.upstreet.ai:4443`
-        : `https://login.upstreet.ai`;
-      const p = `${_webcamHost}/webcamtool`;
-      // console.log(`Waiting for webcam connection at ${p}`);
-      open(p);
-    }
-  });
-  return webcamSource;
-}; */
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
@@ -1453,7 +1483,7 @@ const connect = async (args) => {
 
   if (room) {
     // set up the chat
-    const { userAsset, realms, playersMap, typingMap } =
+    const { userAsset, realms, playersMap, typingMap, speakerMap } =
       await connectMultiplayer({
         room,
         media,
@@ -1472,6 +1502,7 @@ const connect = async (args) => {
         realms,
         playersMap,
         typingMap,
+        speakerMap,
         startRepl: true,
       });
     }
@@ -1500,6 +1531,7 @@ const connect = async (args) => {
       realms,
       playersMap,
       typingMap,
+      speakerMap,
     };
   } else {
     console.log('no room name provided');
@@ -2892,77 +2924,33 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const vadThreshold = 0.2;
-        const myvad = await vad.NonRealTimeVAD.new({
-          positiveSpeechThreshold: vadThreshold,
-          negativeSpeechThreshold: vadThreshold,
+        const microphoneInput = new VoiceActivityMicrophoneInput({
+          device: microphoneDevice,
         });
-        const microphoneQueueManager = new QueueManager();
-
-        const sampleRate = AudioInput.defaultSampleRate;
-        const numSamples = sampleRate * 0.5; // 1 second
-        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
-          sampleRate,
-          numSamples,
-        });
-
-        microphoneInput.on('start', e => {
+        microphoneInput.addEventListener('start', e => {
           console.log('listening...');
         });
+        microphoneInput.addEventListener('voicestart', e => {
+          console.log('capturing...');
+        });
+        microphoneInput.addEventListener('voice', async (e) => {
+          const {
+            buffers,
+            sampleRate,
+          } = e.data;
+          const mp3Buffer = await encodeMp3(buffers, {
+            sampleRate,
+          });
 
-        const bs = [];
-        let lastDetected = false;
-        // let index = 0;
-        microphoneInput.on('data', async (d) => {
-          // console.log('got mic data', d.length);
-          // (async () => {
-            await microphoneQueueManager.waitForTurn(async () => {
-              bs.push(d.slice());
-
-              // console.time('lol');
-              const asyncIterator = myvad.run(d, sampleRate);
-              // console.log('run iter', numSamples);
-              // const results = [];
-              let detected = false;
-              for await (const vadResult of asyncIterator) {
-                // console.log('got vad result', vadResult);
-                // results.push(vadResult);
-                detected = true;
-              }
-
-              // console.log('check detected', detected, lastDetected);
-
-              if (detected) {
-                if (!lastDetected) {
-                  console.log('capturing...')
-                }
-              } else {
-                if (lastDetected) {
-                  const mp3BufferPromise = encodeMp3(bs, {
-                    sampleRate,
-                  });
-                  bs.length = 0;
-                  const mp3Buffer = await mp3BufferPromise;
-
-                  if (execute) {
-                    console.log('transcribing...');
-                    // await fs.promises.writeFile(`out-${index++}.mp3`, mp3Buffer);
-                    const transcription = await transcribe(mp3Buffer, {
-                      jwt,
-                    });
-                    console.log(JSON.stringify(transcription));
-                  } else {
-                    console.log('got mp3 buffer', mp3Buffer);
-                  }
-                } else {
-                  // remove all except the last buffer
-                  bs.splice(0, bs.length - 1);
-                }
-              }
-              lastDetected = detected;
-              // console.timeEnd('lol');
+          if (execute) {
+            console.log('transcribing...');
+            const transcription = await transcribe(mp3Buffer, {
+              jwt,
             });
-          // })();
+            console.log(JSON.stringify(transcription));
+          } else {
+            console.log('got mp3 buffer', mp3Buffer);
+          }
         });
       }
       
