@@ -47,7 +47,7 @@ export function ChatHistory() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex mt-20 flex-col justify-start px-4 pb-4 gap-1 rounded-md border-1">
+      <div className="flex mt-5 flex-col justify-start px-4 pb-4 gap-1 rounded-md border-1">
         {roomName && (
           <span className="select-none font-black text-2xl flex justify-between w-full items-center">
             {roomName}
