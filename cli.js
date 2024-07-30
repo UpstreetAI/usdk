@@ -1087,6 +1087,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         format: 'i16',
       });
       decodeStream.readable.pipeTo(outputStream);
+      // XXX while streams are playing, cancel microphone listening
 
       const writer = decodeStream.writable.getWriter();
       writer.metadata = {
