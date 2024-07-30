@@ -993,6 +993,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   });
   const playersMap = new Map();
   const typingMap = new TypingMap();
+  const speakerMap = new SpeakerMap();
 
   const virtualWorld = realms.getVirtualWorld();
   const virtualPlayers = realms.getVirtualPlayers();
@@ -1130,8 +1131,14 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         sampleRate,
         format: 'i16',
       });
-      decodeStream.readable.pipeTo(outputStream);
-      // XXX while streams are playing, cancel microphone listening
+      (async () => {
+        speakerMap.set(playerId, true);
+        try {
+          await decodeStream.readable.pipeTo(outputStream);
+        } finally {
+          speakerMap.set(playerId, false);
+        }
+      })();
 
       const writer = decodeStream.writable.getWriter();
       writer.metadata = {
@@ -1252,6 +1259,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
     realms,
     playersMap,
     typingMap,
+    speakerMap,
   };
 };
 /* const nudge = async (realms, targetPlayerId) => {
@@ -1268,6 +1276,7 @@ const startMultiplayerListener = ({
   realms,
   playersMap,
   typingMap,
+  speakerMap,
   // local,
   startRepl,
 }) => {
@@ -1322,6 +1331,21 @@ const startMultiplayerListener = ({
           microphoneInput = new VoiceActivityMicrophoneInput({
             device,
           });
+
+          const onplayingchange = e => {
+            const playing = e.data;
+            console.log('playing change', playing);
+            if (playing) {
+              microphoneInput.pause();
+            } else {
+              microphoneInput.resume();
+            }
+          };
+          speakerMap.addEventListener('playingchange', onplayingchange);
+          microphoneInput.addEventListener('close', e => {
+            speakerMap.removeEventListener('playingchange', onplayingchange);
+          });
+
           await new Promise((accept, reject) => {
             microphoneInput.addEventListener('start', e => {
               accept();
@@ -1459,7 +1483,7 @@ const connect = async (args) => {
 
   if (room) {
     // set up the chat
-    const { userAsset, realms, playersMap, typingMap } =
+    const { userAsset, realms, playersMap, typingMap, speakerMap } =
       await connectMultiplayer({
         room,
         media,
@@ -1478,6 +1502,7 @@ const connect = async (args) => {
         realms,
         playersMap,
         typingMap,
+        speakerMap,
         startRepl: true,
       });
     }
@@ -1506,6 +1531,7 @@ const connect = async (args) => {
       realms,
       playersMap,
       typingMap,
+      speakerMap,
     };
   } else {
     console.log('no room name provided');
