@@ -73,22 +73,21 @@ import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
 
-// XXX imports for capture support
-// import webp from 'webp-wasm';
-// import {
-//   InputDevices,
-// } from './sdk/src/devices/input-devices.mjs';
-// import {
-//   AudioInput,
-//   encodeMp3,
-//   transcribe,
-// } from './sdk/src/devices/audio-input.mjs';
-// import {
-//   VideoInput,
-//   encodeWebp,
-//   describe,
-// } from './sdk/src/devices/video-input.mjs';
-// import vad from '@ricky0123/vad-node';
+import {
+  InputDevices,
+} from './sdk/src/devices/input-devices.mjs';
+import {
+  AudioInput,
+  encodeMp3,
+  transcribe,
+} from './sdk/src/devices/audio-input.mjs';
+import {
+  // VideoInput,
+  TerminalVideoRenderer,
+  encodeWebp,
+  describe,
+} from './sdk/src/devices/video-input.mjs';
+import vad from '@ricky0123/vad-node';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2858,7 +2857,7 @@ const test = async (args) => {
     process.exit(1);
   }
 };
-/* const capture = async (args) => {
+const capture = async (args) => {
   const microphone = args.microphone;
   const camera = args.camera;
   const screen = args.screen;
@@ -2866,6 +2865,7 @@ const test = async (args) => {
   const height = args.height;
   const rows = args.rows;
   const cols = args.cols ?? 80;
+  const query = args.query;
   const execute = !!args.execute;
 
   if (camera && screen) {
@@ -2892,28 +2892,32 @@ const test = async (args) => {
           throw new Error('invalid microphone device');
         }
 
+        const vadThreshold = 0.2;
         const myvad = await vad.NonRealTimeVAD.new({
-          // positiveSpeechThreshold: 0.1,
-          // negativeSpeechThreshold: 0.1,
+          positiveSpeechThreshold: vadThreshold,
+          negativeSpeechThreshold: vadThreshold,
         });
         const microphoneQueueManager = new QueueManager();
 
         const sampleRate = AudioInput.defaultSampleRate;
-        // const numSamples = sampleRate * 2;
-        // const numSamples = sampleRate / 2;
-        const numSamples = sampleRate;
+        const numSamples = sampleRate * 0.5; // 1 second
         const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
           sampleRate,
           numSamples,
         });
 
+        microphoneInput.on('start', e => {
+          console.log('listening...');
+        });
+
         const bs = [];
         let lastDetected = false;
+        // let index = 0;
         microphoneInput.on('data', async (d) => {
           // console.log('got mic data', d.length);
           // (async () => {
             await microphoneQueueManager.waitForTurn(async () => {
-              bs.push(d);
+              bs.push(d.slice());
 
               // console.time('lol');
               const asyncIterator = myvad.run(d, sampleRate);
@@ -2926,22 +2930,29 @@ const test = async (args) => {
                 detected = true;
               }
 
-              console.log('check detected', detected, lastDetected);
+              // console.log('check detected', detected, lastDetected);
 
               if (detected) {
-                // console.log('got vad results', results);
+                if (!lastDetected) {
+                  console.log('capturing...')
+                }
               } else {
                 if (lastDetected) {
-                  const mp3BufferPromise = encodeMp3(bs);
+                  const mp3BufferPromise = encodeMp3(bs, {
+                    sampleRate,
+                  });
                   bs.length = 0;
                   const mp3Buffer = await mp3BufferPromise;
 
-                  console.log('got mp3 buffer', mp3Buffer);
                   if (execute) {
+                    console.log('transcribing...');
+                    // await fs.promises.writeFile(`out-${index++}.mp3`, mp3Buffer);
                     const transcription = await transcribe(mp3Buffer, {
                       jwt,
                     });
-                    console.log('got transcription:', JSON.stringify(transcription));
+                    console.log(JSON.stringify(transcription));
+                  } else {
+                    console.log('got mp3 buffer', mp3Buffer);
                   }
                 } else {
                   // remove all except the last buffer
@@ -2967,12 +2978,14 @@ const test = async (args) => {
           height,
           fps: 5,
         });
-        // cameraInput.on('data', (b) => {
-        //   console.log('got camera data', b);
-        // });
+        const videoRenderer = new TerminalVideoRenderer({
+          width: cols,
+          height: rows,
+        });
         cameraInput.on('frame', async (imageData) => {
           // console.log('got camera frame', imageData);
-          cameraInput.drawImage(imageData, cols, rows);
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
 
           if (execute) {
             await cameraQueueManager.waitForTurn(async () => {
@@ -2980,12 +2993,14 @@ const test = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, undefined, {
+              const text = await describe(frame, query, {
                 jwt,
               });
-              for (let i = 0; i < 30; i++) {
-                console.log('description:', text);
-              }
+              videoRenderer.setDescription(text);
+              videoRenderer.render();
+              // for (let i = 0; i < 30; i++) {
+              //   console.log('description:', text);
+              // }
 
               // // send the video frame
               // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
@@ -3006,12 +3021,14 @@ const test = async (args) => {
           height,
           fps: 5,
         });
-        // screenInput.on('data', (b) => {
-        //   console.log('got screen data', b);
-        // });
+        const videoRenderer = new TerminalVideoRenderer({
+          width: cols,
+          height: rows,
+        });
         screenInput.on('frame', async (imageData) => {
           // console.log('got screen frame', imageData);
-          screenInput.drawImage(imageData, cols, rows);
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
 
           if (execute) {
             await screenQueueManager.waitForTurn(async () => {
@@ -3019,12 +3036,14 @@ const test = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, undefined, {
+              const text = await describe(frame, query, {
                 jwt,
               });
-              for (let i = 0; i < 30; i++) {
-                console.log('description:', text);
-              }
+              // for (let i = 0; i < 30; i++) {
+              //   console.log('description:', text);
+              // }
+              videoRenderer.setDescription(text);
+              videoRenderer.render();
 
               // // send the video frame
               // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
@@ -3042,8 +3061,7 @@ const test = async (args) => {
     // console.log('devices:');
     console.log(devices);
   }
-}; */
-// const deploymentTypes = ['agent', 'ui'];
+};
 const deploy = async (args) => {
   try {
     const agentDirectory = args._[0] ?? cwd;
@@ -4061,9 +4079,9 @@ const main = async () => {
         await test(args);
       });
     });
-  /* program
+  program
     .command('capture')
-    .description('Test display functionality')
+    .description('Test display functionality; with no arguments, list available devices')
     .option('-m, --microphone [id]', 'Enable microphone')
     .option('-c, --camera [id]', 'Enable camera')
     .option('-s, --screen [id]', 'Enable screen capture')
@@ -4072,6 +4090,7 @@ const main = async () => {
     .option('-r, --rows <rows>', 'Render rows')
     .option('-l, --cols <cols>', 'Render cols')
     .option('-x, --execute', 'Execute inference')
+    .option('-q, --query <string>', 'Inference query for video')
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -4081,7 +4100,7 @@ const main = async () => {
         };
         await capture(args);
       });
-    }); */
+    });
   program
     .command('deploy')
     .description('Deploy an agent to the network')
