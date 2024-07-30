@@ -50,7 +50,6 @@
     "jimp": "^0.22.12",
     "js-ago": "^2.1.1",
     "jszip": "^3.10.1",
-    "lamejstmp": "^1.0.1",
     "localstorage-polyfill": "^1.0.1",
     "mime": "^4.0.1",
     "mkdirp": "^3.0.1",
