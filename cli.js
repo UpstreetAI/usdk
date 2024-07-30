@@ -1266,80 +1266,122 @@ const startMultiplayerListener = ({
       return doc;
     };
 
+    let microphoneInput = null;
+    const microphoneQueueManager = new QueueManager();
+    const toggleMic = async () => {
+      await microphoneQueueManager.waitForTurn(async () => {
+        if (!microphoneInput) {
+          const inputDevices = new InputDevices();
+          const devices = await inputDevices.listDevices();
+          const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
+
+          microphoneInput = new VoiceActivityMicrophoneInput({
+            device,
+          });
+          await new Promise((accept, reject) => {
+            microphoneInput.addEventListener('start', e => {
+              accept();
+            });
+          });
+          console.log('* mic enabled *');
+          microphoneInput.addEventListener('voice', async (e) => {
+            const {
+              buffers,
+              sampleRate,
+            } = e.data;
+            const mp3Buffer = await encodeMp3(buffers, {
+              sampleRate,
+            });
+            const jwt = await ensureJwt();
+            const transcription = await transcribe(mp3Buffer, {
+              jwt,
+            });
+            replServer.clearBufferedCommand();
+            console.log(transcription);
+            sendChatMessage(transcription);
+          });
+          replServer.displayPrompt(true);
+        } else {
+          microphoneInput.close();
+          console.log('* mic disabled *');
+          replServer.displayPrompt(true);
+        }
+      });
+    };
+    const sendChatMessage = async (text) => {
+      const userId = userAsset.id;
+      const name = userAsset.name;
+      await realms.sendChatMessage({
+        method: 'say',
+        userId,
+        name,
+        args: {
+          text,
+        },
+        timestamp: Date.now(),
+      });
+    };
+
     replServer = repl.start({
       prompt: getPrompt(),
       eval: async (cmd, context, filename, callback) => {
-        cmd = cmd.replace(/;?\s*$/, '');
+        let error = null;
+        try {
+          cmd = cmd.replace(/;?\s*$/, '');
 
-        if (cmd) {
-          const cmdSplit = cmd.split(/\s+/);
-          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-          if (commandMatch) {
-            const command = commandMatch ? commandMatch[1] : null;
-            switch (command) {
-              /* case 'nudge': {
-                let guid = cmdSplit[1];
-                if (!guid) {
-                  const agentIds = Array.from(playersMap.keys());
-                  shuffle(agentIds);
-                  guid = agentIds[0];
-                }
+          if (cmd) {
+            const cmdSplit = cmd.split(/\s+/);
+            const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+            if (commandMatch) {
+              const command = commandMatch ? commandMatch[1] : null;
+              switch (command) {
+                case 'get': {
+                  const key = cmdSplit[1];
 
-                await nudge(realms, guid);
-
-                break;
-              } */
-              case 'get': {
-                const key = cmdSplit[1];
-
-                const doc = getDoc();
-                if (key) {
-                  const text = doc.getText(key);
-                  const s = text.toString();
-                  console.log(s);
-                } else {
-                  const j = doc.toJSON();
-                  console.log(j);
-                }
-                break;
-              }
-              case 'set': {
-                const key = cmdSplit[1];
-                const value = cmdSplit[2];
-
-                if (key && value) {
                   const doc = getDoc();
-                  doc.transact(() => {
+                  if (key) {
                     const text = doc.getText(key);
-                    text.delete(0, text.length);
-                    text.insert(0, value);
-                  });
-                } else {
-                  throw new Error('expected 2 arguments');
+                    const s = text.toString();
+                    console.log(s);
+                  } else {
+                    const j = doc.toJSON();
+                    console.log(j);
+                  }
+                  break;
                 }
-                break;
-              }
-              default: {
-                console.log('unknown command', command);
-                break;
-              }
-            }
-          } else {
-            const userId = userAsset.id;
-            const name = userAsset.name;
-            await realms.sendChatMessage({
-              method: 'say',
-              userId,
-              name,
-              args: {
-                text: cmd,
-              },
-              timestamp: Date.now(),
-            });
-          }
-        }
+                case 'set': {
+                  const key = cmdSplit[1];
+                  const value = cmdSplit[2];
 
-        callback();
+                  if (key && value) {
+                    const doc = getDoc();
+                    doc.transact(() => {
+                      const text = doc.getText(key);
+                      text.delete(0, text.length);
+                      text.insert(0, value);
+                    });
+                  } else {
+                    throw new Error('expected 2 arguments');
+                  }
+                  break;
+                }
+                case 'mic': {
+                  toggleMic();
+                  break;
+                }
+                default: {
+                  console.log('unknown command', command);
+                  break;
+                }
+              }
+            } else {
+              await sendChatMessage(cmd);
+            }
+          }
+        } catch (err) {
+          error = err;
+        }
+        callback(error);
       },
       ignoreUndefined: true,
     });
