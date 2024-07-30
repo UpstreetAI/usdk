@@ -71,10 +71,6 @@ export class TerminalVideoRenderer {
     width,
     height,
   }) {
-    if (typeof width !== 'number' || typeof height !== 'number') {
-      throw new Error('width and height must be numbers');
-    }
-
     this.width = width;
     this.height = height;
 
@@ -185,11 +181,11 @@ export class TerminalVideoRenderer {
       const image = new Jimp(imageData.width, imageData.height);
       // image.bitmap.data.set(imageData.data);
       image.bitmap.data.set(imageData.data);
-      s = ansiEscapeSequences.cursor.previousLine(height / 2) + s;
       s += render(image, {
         width,
         height,
       });
+      s = ansiEscapeSequences.cursor.previousLine(image.bitmap.height / 2) + s;
     }
     if (typeof description === 'string') {
       // trim the description to width, breaking with newlines
@@ -215,8 +211,8 @@ export class TerminalVideoRenderer {
       }
 
       this.lastDescriptionLines = trimmedDescription.length;
-      s = ansiEscapeSequences.cursor.previousLine(this.lastDescriptionLines) + s;
       s += trimmedDescription.join('\n');
+      s = ansiEscapeSequences.cursor.previousLine(this.lastDescriptionLines - 1) + s;
     } else {
       this.lastDescriptionLines = 0;
     }
