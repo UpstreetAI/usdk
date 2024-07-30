@@ -77,7 +77,8 @@ import {
   InputDevices,
 } from './sdk/src/devices/input-devices.mjs';
 import {
-  AudioInput,
+  // AudioInput,
+  VoiceActivityMicrophoneInput,
   encodeMp3,
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
@@ -87,7 +88,6 @@ import {
   encodeWebp,
   describe,
 } from './sdk/src/devices/video-input.mjs';
-import vad from '@ricky0123/vad-node';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -1275,6 +1275,15 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
+    const ensureJwt = (() => {
+      let jwtPromise = null;
+      return () => {
+        if (jwtPromise === null) {
+          jwtPromise = getLoginJwt();
+        }
+        return jwtPromise;
+      };
+    })();
     const getDoc = () => {
       const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
       const { networkedCrdtClient } = headRealm;
@@ -2892,77 +2901,33 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const vadThreshold = 0.2;
-        const myvad = await vad.NonRealTimeVAD.new({
-          positiveSpeechThreshold: vadThreshold,
-          negativeSpeechThreshold: vadThreshold,
+        const microphoneInput = new VoiceActivityMicrophoneInput({
+          device: microphoneDevice,
         });
-        const microphoneQueueManager = new QueueManager();
-
-        const sampleRate = AudioInput.defaultSampleRate;
-        const numSamples = sampleRate * 0.5; // 1 second
-        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
-          sampleRate,
-          numSamples,
-        });
-
-        microphoneInput.on('start', e => {
+        microphoneInput.addEventListener('start', e => {
           console.log('listening...');
         });
+        microphoneInput.addEventListener('voicestart', e => {
+          console.log('capturing...');
+        });
+        microphoneInput.addEventListener('voice', async (e) => {
+          const {
+            buffers,
+            sampleRate,
+          } = e.data;
+          const mp3Buffer = await encodeMp3(buffers, {
+            sampleRate,
+          });
 
-        const bs = [];
-        let lastDetected = false;
-        // let index = 0;
-        microphoneInput.on('data', async (d) => {
-          // console.log('got mic data', d.length);
-          // (async () => {
-            await microphoneQueueManager.waitForTurn(async () => {
-              bs.push(d.slice());
-
-              // console.time('lol');
-              const asyncIterator = myvad.run(d, sampleRate);
-              // console.log('run iter', numSamples);
-              // const results = [];
-              let detected = false;
-              for await (const vadResult of asyncIterator) {
-                // console.log('got vad result', vadResult);
-                // results.push(vadResult);
-                detected = true;
-              }
-
-              // console.log('check detected', detected, lastDetected);
-
-              if (detected) {
-                if (!lastDetected) {
-                  console.log('capturing...')
-                }
-              } else {
-                if (lastDetected) {
-                  const mp3BufferPromise = encodeMp3(bs, {
-                    sampleRate,
-                  });
-                  bs.length = 0;
-                  const mp3Buffer = await mp3BufferPromise;
-
-                  if (execute) {
-                    console.log('transcribing...');
-                    // await fs.promises.writeFile(`out-${index++}.mp3`, mp3Buffer);
-                    const transcription = await transcribe(mp3Buffer, {
-                      jwt,
-                    });
-                    console.log(JSON.stringify(transcription));
-                  } else {
-                    console.log('got mp3 buffer', mp3Buffer);
-                  }
-                } else {
-                  // remove all except the last buffer
-                  bs.splice(0, bs.length - 1);
-                }
-              }
-              lastDetected = detected;
-              // console.timeEnd('lol');
+          if (execute) {
+            console.log('transcribing...');
+            const transcription = await transcribe(mp3Buffer, {
+              jwt,
             });
-          // })();
+            console.log(JSON.stringify(transcription));
+          } else {
+            console.log('got mp3 buffer', mp3Buffer);
+          }
         });
       }
       
