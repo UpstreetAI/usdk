@@ -66,6 +66,162 @@ export const describe = async (frame, query = `What's in this image?`, {
 
 //
 
+export class TerminalVideoRenderer {
+  constructor({
+    width,
+    height,
+  }) {
+    this.width = width;
+    this.height = height;
+
+    this.imageData = null;
+    this.description = null;
+
+    this.lastDescriptionLines = 0;
+  }
+  setImageData(imageData) {
+    this.imageData = imageData;
+  }
+  setDescription(description) {
+    this.description = description;
+  }
+  render() {
+    const {
+      imageData,
+      width,
+      height,
+      description,
+    } = this;
+
+    let s = '';
+    if (imageData) {
+      // `log-update` adds an extra newline so the generated frames need to be 2 pixels shorter.
+      const ROW_OFFSET = 2;
+
+      const PIXEL = '\u2584';
+
+      function scale(width, height, originalWidth, originalHeight) {
+        const originalRatio = originalWidth / originalHeight;
+        const factor = (width / height > originalRatio ? height / originalHeight : width / originalWidth);
+        width = factor * originalWidth;
+        height = factor * originalHeight;
+        return {width, height};
+      }
+
+      function checkAndGetDimensionValue(value, percentageBase) {
+        if (typeof value === 'string' && value.endsWith('%')) {
+          const percentageValue = Number.parseFloat(value);
+          if (!Number.isNaN(percentageValue) && percentageValue > 0 && percentageValue <= 100) {
+            return Math.floor(percentageValue / 100 * percentageBase);
+          }
+        }
+
+        if (typeof value === 'number') {
+          return value;
+        }
+
+        throw new Error(`${value} is not a valid dimension value`);
+      }
+
+      function calculateWidthHeight(imageWidth, imageHeight, inputWidth, inputHeight, preserveAspectRatio) {
+        const terminalColumns = process.stdout.columns || 80;
+        const terminalRows = process.stdout.rows - ROW_OFFSET || 24;
+
+        let width;
+        let height;
+
+        if (inputHeight && inputWidth) {
+          width = checkAndGetDimensionValue(inputWidth, terminalColumns);
+          height = checkAndGetDimensionValue(inputHeight, terminalRows) * 2;
+
+          if (preserveAspectRatio) {
+            ({width, height} = scale(width, height, imageWidth, imageHeight));
+          }
+        } else if (inputWidth) {
+          width = checkAndGetDimensionValue(inputWidth, terminalColumns);
+          height = imageHeight * width / imageWidth;
+        } else if (inputHeight) {
+          height = checkAndGetDimensionValue(inputHeight, terminalRows) * 2;
+          width = imageWidth * height / imageHeight;
+        } else {
+          ({width, height} = scale(terminalColumns, terminalRows * 2, imageWidth, imageHeight));
+        }
+
+        if (width > terminalColumns) {
+          ({width, height} = scale(terminalColumns, terminalRows * 2, width, height));
+        }
+
+        width = Math.round(width);
+        height = Math.round(height);
+
+        return {width, height};
+      }
+
+      function render(image, {width: inputWidth, height: inputHeight, preserveAspectRatio}) {
+        // const image = await Jimp.read(buffer);
+        const {bitmap} = image;
+
+        const {width, height} = calculateWidthHeight(bitmap.width, bitmap.height, inputWidth, inputHeight, preserveAspectRatio);
+
+        image.resize(width, height);
+
+        let result = '';
+        for (let y = 0; y < image.bitmap.height - 1; y += 2) {
+          for (let x = 0; x < image.bitmap.width; x++) {
+            const {r, g, b, a} = Jimp.intToRGBA(image.getPixelColor(x, y));
+            const {r: r2, g: g2, b: b2} = Jimp.intToRGBA(image.getPixelColor(x, y + 1));
+            result += a === 0 ? chalk.reset(' ') : chalk.bgRgb(r, g, b).rgb(r2, g2, b2)(PIXEL);
+          }
+
+          result += '\n';
+        }
+
+        return result;
+      }
+      const image = new Jimp(imageData.width, imageData.height);
+      // image.bitmap.data.set(imageData.data);
+      image.bitmap.data.set(imageData.data);
+      s = ansiEscapeSequences.cursor.previousLine(image.bitmap.height / 2) + s;
+      s += render(image, {
+        width,
+        height,
+      });
+    }
+    if (typeof description === 'string') {
+      // trim the description to width, breaking with newlines
+      const trimmedDescription = [];
+      let currentLine = '';
+      for (let i = 0; i < description.length; i++) {
+        currentLine += description[i];
+        if (currentLine.length >= width) {
+          trimmedDescription.push(currentLine);
+          currentLine = '';
+        }
+      }
+      if (currentLine.length > 0) {
+        trimmedDescription.push(currentLine);
+      }
+
+      // ensure the last line is full. pad with spaces.
+      if (trimmedDescription.length > 0) {
+        const lastLine = trimmedDescription[trimmedDescription.length - 1];
+        if (lastLine.length < width) {
+          trimmedDescription[trimmedDescription.length - 1] = lastLine.padEnd(width, ' ');
+        }
+      }
+
+      this.lastDescriptionLines = trimmedDescription.length;
+      s = ansiEscapeSequences.cursor.previousLine(this.lastDescriptionLines) + s;
+      s += trimmedDescription.join('\n');
+    } else {
+      this.lastDescriptionLines = 0;
+    }
+    process.stdout.write(s);
+  }
+}
+
+//
+
 export class VideoInput extends EventEmitter {
   queueManager = new QueueManager();
 
@@ -146,99 +302,5 @@ export class VideoInput extends EventEmitter {
     cp.on('error', err => {
       this.emit('error', err);
     });
-  }
-  drawImage(imageData, width, height) {
-    // `log-update` adds an extra newline so the generated frames need to be 2 pixels shorter.
-    const ROW_OFFSET = 2;
-
-    const PIXEL = '\u2584';
-
-    function scale(width, height, originalWidth, originalHeight) {
-      const originalRatio = originalWidth / originalHeight;
-      const factor = (width / height > originalRatio ? height / originalHeight : width / originalWidth);
-      width = factor * originalWidth;
-      height = factor * originalHeight;
-      return {width, height};
-    }
-
-    function checkAndGetDimensionValue(value, percentageBase) {
-      if (typeof value === 'string' && value.endsWith('%')) {
-        const percentageValue = Number.parseFloat(value);
-        if (!Number.isNaN(percentageValue) && percentageValue > 0 && percentageValue <= 100) {
-          return Math.floor(percentageValue / 100 * percentageBase);
-        }
-      }
-
-      if (typeof value === 'number') {
-        return value;
-      }
-
-      throw new Error(`${value} is not a valid dimension value`);
-    }
-
-    function calculateWidthHeight(imageWidth, imageHeight, inputWidth, inputHeight, preserveAspectRatio) {
-      const terminalColumns = process.stdout.columns || 80;
-      const terminalRows = process.stdout.rows - ROW_OFFSET || 24;
-
-      let width;
-      let height;
-
-      if (inputHeight && inputWidth) {
-        width = checkAndGetDimensionValue(inputWidth, terminalColumns);
-        height = checkAndGetDimensionValue(inputHeight, terminalRows) * 2;
-
-        if (preserveAspectRatio) {
-          ({width, height} = scale(width, height, imageWidth, imageHeight));
-        }
-      } else if (inputWidth) {
-        width = checkAndGetDimensionValue(inputWidth, terminalColumns);
-        height = imageHeight * width / imageWidth;
-      } else if (inputHeight) {
-        height = checkAndGetDimensionValue(inputHeight, terminalRows) * 2;
-        width = imageWidth * height / imageHeight;
-      } else {
-        ({width, height} = scale(terminalColumns, terminalRows * 2, imageWidth, imageHeight));
-      }
-
-      if (width > terminalColumns) {
-        ({width, height} = scale(terminalColumns, terminalRows * 2, width, height));
-      }
-
-      width = Math.round(width);
-      height = Math.round(height);
-
-      return {width, height};
-    }
-
-    function render(image, {width: inputWidth, height: inputHeight, preserveAspectRatio}) {
-      // const image = await Jimp.read(buffer);
-      const {bitmap} = image;
-
-      const {width, height} = calculateWidthHeight(bitmap.width, bitmap.height, inputWidth, inputHeight, preserveAspectRatio);
-
-      image.resize(width, height);
-
-      let result = '';
-      for (let y = 0; y < image.bitmap.height - 1; y += 2) {
-        for (let x = 0; x < image.bitmap.width; x++) {
-          const {r, g, b, a} = Jimp.intToRGBA(image.getPixelColor(x, y));
-          const {r: r2, g: g2, b: b2} = Jimp.intToRGBA(image.getPixelColor(x, y + 1));
-          result += a === 0 ? chalk.reset(' ') : chalk.bgRgb(r, g, b).rgb(r2, g2, b2)(PIXEL);
-        }
-
-        result += '\n';
-      }
-
-      return result;
-    }
-    const image = new Jimp(imageData.width, imageData.height);
-    // image.bitmap.data.set(imageData.data);
-    image.bitmap.data.set(imageData.data);
-    let s = render(image, {
-      width,
-      height,
-    });
-    s = ansiEscapeSequences.cursor.previousLine(image.bitmap.height / 2) + s;
-    process.stdout.write(s);
   }
 };
