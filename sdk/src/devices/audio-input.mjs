@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
-import { Transform } from 'stream';
 import child_process from 'child_process';
-import lamejs from 'lamejstmp';
+// import lamejs from 'lamejstmp';
+import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
 // import { OpusDecoderWebWorker } from 'opus-decoder';
 // import { OggOpusDecoderWebWorker } from 'ogg-opus-decoder';
 // import {
@@ -11,44 +11,9 @@ import {
   aiHost,
 } from '../util/endpoints.mjs';
 
-/* class OggDecodeTransformStream extends Transform {
-  constructor({
-    sampleRate,
-  }) {
-    super();
-
-    this.decoder = new OggOpusDecoderWebWorker();
-    this.queueManager = new QueueManager();
-
-    this.once('finish', () => {
-      decoder.free();
-    });
-  }
-  _transform(chunk, encoding, callback) {
-      (async () => {
-        await this.queueManager.waitForTurn(async () => {
-          await this.decoder.ready;
-          const {channelData, samplesDecoded, sampleRate: frameSampleRate} = await this.decoder.decode(chunk);
-          if (frameSampleRate === sampleRate) {
-            const samples = channelData[0]; // Float32Array
-            if (samples?.length > 0) {
-              this.push(samples);
-              // const b = Buffer.from(samples.buffer, samples.byteOffset, samples.byteLength);
-              // this.push(b);
-            }
-          } else {
-            console.warn('frame sample rate mismatch', frameSampleRate, sampleRate);
-          }
-        });
-        callback();
-      })();
-    }
-} */
-
 //
 
-// convert Float32Array to Int16Array
-const convertF32I16 = (samples) => {
+/* const convertF32I16 = (samples) => {
   const buffer = new ArrayBuffer(samples.length * Int16Array.BYTES_PER_ELEMENT);
   const view = new Int16Array(buffer);
   for (let i = 0; i < samples.length; i++) {
@@ -83,45 +48,63 @@ class Mp3EncodeStream extends Transform {
 
     callback();
   }
-}
+} */
 
-export const encodeMp3 = (bs) => {
-  if (!Array.isArray(bs)) {
+export const encodeMp3 = async (bs, {
+  sampleRate,
+}) => {
+  if (Array.isArray(bs)) {
+    bs = bs.slice();
+  } else {
     bs = [bs];
   }
 
-  const encodeStream = new Mp3EncodeStream();
-                  
-  // read encoded result
-  const resultPromise = new Promise((accept, reject) => {
-    const bs = [];
-    encodeStream.on('data', d => {
-      bs.push(d);
-    });
-    encodeStream.on('end', () => {
-      const b = Buffer.concat(bs);
-      accept(b);
-    });
+  // console.log('got bs', bs);
+
+  let bufferIndex = 0;
+  const inputStream = new ReadableStream({
+    // start(controller) {
+    // },
+    pull(controller) {
+      // console.log('pull', bufferIndex, bs.length);
+      if (bufferIndex < bs.length) {
+        const b = bs[bufferIndex++];
+        // console.log('enqueue b', b);
+        controller.enqueue(b);
+      } else {
+        controller.close();
+      }
+    },
   });
 
-  // write samples
-  for (const b of bs) {
-    encodeStream.write(b);
-  }
-  encodeStream.end();
+  const encodeTransformStream = new AudioEncodeStream({
+    type: 'audio/mpeg',
+    sampleRate,
+    transferBuffers: false,
+  });
 
-  return resultPromise;
+  const outputStream = inputStream.pipeThrough(encodeTransformStream);
+
+  // read the output
+  const outputs = [];
+  for await (const output of outputStream) {
+    const b = Buffer.from(output.buffer, output.byteOffset, output.byteLength);
+    outputs.push(b);
+  }
+  return Buffer.concat(outputs);
 };
 
 //
 
 const defaultTranscriptionModel = 'whisper-1';
-export const transcribe = async (file, {
+export const transcribe = async (data, {
   jwt,
 }) => {
   const fd = new FormData();
-  fd.append('file', file);
-  fd.append('mode', defaultTranscriptionModel);
+  fd.append('file', new Blob([data], {
+    type: 'audio/mpeg',
+  }));
+  fd.append('model', defaultTranscriptionModel);
   fd.append('language', 'en');
   // fd.append('response_format', 'json');
   
@@ -137,7 +120,8 @@ export const transcribe = async (file, {
     const { text } = j;
     return text;
   } else {
-    throw new Error('request failed: ' + res.status);
+    const text = await res.text();
+    throw new Error('request failed: ' + res.status + ': ' + text);
   }
 };
 
@@ -166,6 +150,21 @@ export class AudioInput extends EventEmitter {
         'pipe:1',
       ]);
       // cp.stderr.pipe(process.stderr);
+
+      const _listenForStart = () => {
+        let s = '';
+        cp.stderr.setEncoding('utf8');
+        const ondata = data => {
+          s += data;
+          if (/time=/.test(s)) {
+            this.emit('start');
+            cp.stderr.removeListener('data', ondata);
+          }
+        };
+        cp.stderr.on('data', ondata);
+      };
+      _listenForStart();
+
       const bs = [];
       let bsLength = 0;
 
