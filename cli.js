@@ -82,7 +82,8 @@ import {
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
 import {
-  VideoInput,
+  // VideoInput,
+  TerminalVideoRenderer,
   encodeWebp,
   describe,
 } from './sdk/src/devices/video-input.mjs';
@@ -2864,6 +2865,7 @@ const capture = async (args) => {
   const height = args.height;
   const rows = args.rows;
   const cols = args.cols ?? 80;
+  const query = args.query;
   const execute = !!args.execute;
 
   if (camera && screen) {
@@ -2976,12 +2978,14 @@ const capture = async (args) => {
           height,
           fps: 5,
         });
-        // cameraInput.on('data', (b) => {
-        //   console.log('got camera data', b);
-        // });
+        const videoRenderer = new TerminalVideoRenderer({
+          width: cols,
+          height: rows,
+        });
         cameraInput.on('frame', async (imageData) => {
           // console.log('got camera frame', imageData);
-          cameraInput.drawImage(imageData, cols, rows);
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
 
           if (execute) {
             await cameraQueueManager.waitForTurn(async () => {
@@ -2989,12 +2993,14 @@ const capture = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, undefined, {
+              const text = await describe(frame, query, {
                 jwt,
               });
-              for (let i = 0; i < 30; i++) {
-                console.log('description:', text);
-              }
+              videoRenderer.setDescription(text);
+              videoRenderer.render();
+              // for (let i = 0; i < 30; i++) {
+              //   console.log('description:', text);
+              // }
 
               // // send the video frame
               // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
@@ -3015,12 +3021,14 @@ const capture = async (args) => {
           height,
           fps: 5,
         });
-        // screenInput.on('data', (b) => {
-        //   console.log('got screen data', b);
-        // });
+        const videoRenderer = new TerminalVideoRenderer({
+          width: cols,
+          height: rows,
+        });
         screenInput.on('frame', async (imageData) => {
           // console.log('got screen frame', imageData);
-          screenInput.drawImage(imageData, cols, rows);
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
 
           if (execute) {
             await screenQueueManager.waitForTurn(async () => {
@@ -3028,12 +3036,14 @@ const capture = async (args) => {
               const frame = await encodeWebp(imageData);
 
               // describe the image
-              const text = await describe(frame, undefined, {
+              const text = await describe(frame, query, {
                 jwt,
               });
-              for (let i = 0; i < 30; i++) {
-                console.log('description:', text);
-              }
+              // for (let i = 0; i < 30; i++) {
+              //   console.log('description:', text);
+              // }
+              videoRenderer.setDescription(text);
+              videoRenderer.render();
 
               // // send the video frame
               // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
@@ -4080,6 +4090,7 @@ const main = async () => {
     .option('-r, --rows <rows>', 'Render rows')
     .option('-l, --cols <cols>', 'Render cols')
     .option('-x, --execute', 'Execute inference')
+    .option('-q, --query <string>', 'Inference query for video')
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
