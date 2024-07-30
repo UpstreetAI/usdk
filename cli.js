@@ -216,6 +216,50 @@ class TypingMap extends EventTarget {
     this.#internalMap.clear();
   }
 }
+class SpeakerMap extends EventTarget {
+  #internalMap = new Map(); // playerId: string -> boolean
+  #lastSpeakers = false;
+  getMap() {
+    return this.#internalMap;
+  }
+  set(playerId, speaking) {
+    this.#internalMap.set(playerId, speaking);
+    this.dispatchEvent(new MessageEvent('speakingchange', {
+      data: {
+        playerId,
+        speaking,
+      },
+    }));
+
+    const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
+    console.log('current speakers', {
+      currentSpeakers,
+      lastSpeakers: this.#lastSpeakers,
+    });
+    if (currentSpeakers && !this.#lastSpeakers) {
+      this.dispatchEvent(new MessageEvent('playingchange', {
+        data: true,
+      }));
+    } else if (!currentSpeakers && this.#lastSpeakers) {
+      this.dispatchEvent(new MessageEvent('playingchange', {
+        data: false,
+      }));
+    }
+    this.#lastSpeakers = currentSpeakers;
+  }
+  clear() {
+    for (const [playerId, speaking] of this.#internalMap) {
+      this.dispatchEvent(new MessageEvent('speakingchange', {
+        data: {
+          playerId,
+          speaking,
+        },
+      }));
+    }
+    this.#internalMap.clear();
+    this.#lastSpeakers = false;
+  }
+}
 
 const certsLocalPath = path.join(BASE_DIRNAME, 'certs-local');
 const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
