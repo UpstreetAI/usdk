@@ -995,32 +995,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
 
         connected = true;
 
-        // log the initial room state
-        // agentIds.push(userId);
-        /* const agentJsons = await Promise.all(
-          agentIds.map(async (agentId) => {
-            // current player
-            if (agentId === userId) {
-              return {
-                id: userId,
-                name,
-              };
-            // development agent
-            } else if (agentId === devAgentId) {
-              return {
-                id: devAgentId,
-                name,
-              };
-            } else {
-              const assetJson = await getAssetJson(supabase, agentId);
-              return {
-                id: agentId,
-                name: assetJson.name,
-              };
-            }
-          }),
-        ); */
-
         const agentJsons = Array.from(playersMap.values()).map(
           (player) => player.playerSpec,
         );
@@ -1387,70 +1361,6 @@ const startMultiplayerListener = ({
   };
   _bindRealmsLogging();
 };
-/* const createWebcamSource = ({ local }) => {
-  const webcamSource = new EventTarget();
-
-  const wss = new WebSocketServer({ noServer: true });
-  wss.binaryType = 'arraybuffer';
-
-  const serverOpts = getServerOpts();
-  const server = https.createServer(serverOpts, (req, res) => {
-    // set cors
-    const corsHeaders = makeCorsHeaders(req);
-    for (const { key, value } of corsHeaders) {
-      res.setHeader(key, value);
-    }
-
-    // handle methods
-    if (req.method === 'OPTIONS') {
-      res.end();
-    } else {
-      res.statusCode = 404;
-      res.end();
-    }
-  });
-  server.on('upgrade', (request, socket, head) => {
-    wss.handleUpgrade(request, socket, head, function done(ws) {
-      wss.emit('connection', ws, request);
-    });
-  });
-  wss.on('connection', (ws, request) => {
-    ws.addEventListener('message', e => {
-      // if it's an array buffer, send it to the room
-      if (e.data instanceof Buffer) {
-        webcamSource.dispatchEvent(new MessageEvent('frame', {
-          data: {
-            imageData: e.data,
-          },
-        }));
-      } else {
-        console.warn('got non-arraybuffer webcam message', e.data);
-      }
-    });
-  });
-  server.on('error', (err) => {
-    console.warn('callback server error', err);
-  });
-  // server.on('close', () => {
-  //   console.log('callback server closed');
-  // });
-  server.listen(webcamPort, '0.0.0.0', (err) => {
-    // console.log('callback server listening on port', {
-    //   callbackPort,
-    // });
-    if (err) {
-      console.warn(err);
-    } else {
-      const _webcamHost = local
-        ? `https://local.upstreet.ai:4443`
-        : `https://login.upstreet.ai`;
-      const p = `${_webcamHost}/webcamtool`;
-      // console.log(`Waiting for webcam connection at ${p}`);
-      open(p);
-    }
-  });
-  return webcamSource;
-}; */
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
