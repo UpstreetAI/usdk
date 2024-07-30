@@ -1,6 +1,6 @@
 // import lamejs from './lamejs/lame.all.js';
-import lamejs from './lamejs/lame.min.js';
-import {channelCount, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
+import lamejs from './lamejs/lame.min.mjs';
+import {channelCount, frameSize, voiceOptimization} from './ws-constants.mjs';
 
 function floatTo16Bit(inputArray){
   const output = new Int16Array(inputArray.length);
@@ -20,13 +20,14 @@ function floatTo16Bit(inputArray){
   return output;
 } */
 
-onmessage = e => {
+globalThis.onmessage = e => {
   const {
     sampleRate,
+    bitrate,
   } = e.data;
-  const mp3encoder = new lamejs.Mp3Encoder(channelCount, sampleRate, kbps);
+  const mp3encoder = new lamejs.Mp3Encoder(channelCount, sampleRate, bitrate);
 
-  onmessage = e => {
+  globalThis.onmessage = e => {
     if (e.data) {
       const samples = floatTo16Bit(e.data);
       const data = mp3encoder.encodeBuffer(samples);
