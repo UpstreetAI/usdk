@@ -296,7 +296,7 @@ export class VideoInput extends EventEmitter {
           fileSize += 8; // add header size
           if (bsLength >= fileSize) {
             const data = new Uint8Array(fileSize);
-            data.set(b);
+            data.set(b.slice(0, fileSize));
             await this.queueManager.waitForTurn(async () => {
               let imageData = await encoder.decode(data);
               if (typeof width === 'number' || typeof height === 'number') {
