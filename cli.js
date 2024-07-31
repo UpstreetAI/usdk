@@ -1395,17 +1395,19 @@ const startMultiplayerListener = ({
             // height: rows,
             footerHeight: 5,
           });
-          // let index = 0;
           cameraInput.on('frame', (imageData) => {
             videoRenderer.setImageData(imageData);
             videoRenderer.render();
-            // console.log('got frame ' + (++index));
             replServer.displayPrompt(true);
           });
           console.log('* cam enabled *');
+          replServer.displayPrompt(true);
         } else {
           cameraInput.close();
+          cameraInput = null;
           console.log('* cam disabled *');
+          replServer.displayPrompt(true);
+
         }
       });
     };
