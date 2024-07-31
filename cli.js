@@ -3064,9 +3064,10 @@ const capture = async (args) => {
               // encode to webp
               const webpEncoder = ensureWebpEncoder();
               const frame = await webpEncoder.encode(imageData);
+              const blob = new Blob([frame], { type: 'image/webp' });
 
               // describe the image
-              let text = await describe(frame, query, {
+              let text = await describe(blob, query, {
                 jwt,
               });
               text = text.replace(/[\r\n]/g, ' ');
@@ -3109,9 +3110,10 @@ const capture = async (args) => {
               // encode to webp
               const webpEncoder = ensureWebpEncoder();
               const frame = await webpEncoder.encode(imageData);
+              const blob = new Blob([frame], { type: 'image/webp' });
 
               // describe the image
-              let text = await describe(frame, query, {
+              let text = await describe(blob, query, {
                 jwt,
               });
               text = text.replace(/[\r\n]/g, ' ');

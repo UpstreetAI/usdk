@@ -135,3 +135,14 @@ export function base64ToBytes(str) {
 // export function base64decode(str, decoder = new TextDecoder()) {
 // 	return decoder.decode(base64ToBytes(str));
 // }
+
+export const blobToDataUrl = (blob) => {
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = () => {
+      resolve(reader.result.split(",")[1]);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
