@@ -1,4 +1,5 @@
 import {UPDATE_METHODS} from '../update-types.mjs';
+import {handlesMethod} from './networked-video-client-utils.mjs';
 import {parseUpdateObject, makeId} from '../util.mjs';
 import {zbencode} from '../../../zjs/encoding.mjs';
 
@@ -56,16 +57,13 @@ export class NetworkedVideoClient extends EventTarget {
         const updateObject = parseUpdateObject(uint8Array);
 
         const {method /*, args */} = updateObject;
-        if (this.handlesMethod(method)) {
+        if (handlesMethod(method)) {
           this.handleUpdateObject(updateObject);
         }
       } else {
         // debugger;
       }
     });
-  }
-  handlesMethod(method) {
-    return method === UPDATE_METHODS.VIDEO;
   }
   handleUpdateObject(updateObject) {
     const {method, args} = updateObject;

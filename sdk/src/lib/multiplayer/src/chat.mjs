@@ -63,12 +63,13 @@ import HTML from "./chat.html";
 import { getAssetFromKV, mapRequestToAsset } from '@cloudflare/kv-asset-handler'
 import manifestJSON from '__STATIC_CONTENT_MANIFEST'
 const assetManifest = JSON.parse(manifestJSON);
-import {zbencode, zbdecode} from "../public/encoding.mjs";
-import {DataClient, NetworkedDataClient, DCMap, DCArray} from "../public/data-client.mjs";
+// import {zbencode, zbdecode} from "../public/encoding.mjs";
+import {DataClient, NetworkedDataClient/*, DCMap, DCArray*/} from "../public/data-client.mjs";
 import {NetworkedIrcClient} from "../public/irc-client.mjs";
 import {NetworkedCrdtClient} from "../public/crdt-client.mjs";
 import {NetworkedLockClient} from "../public/lock-client.mjs";
 import {handlesMethod as networkedAudioClientHandlesMethod} from "../public/audio/networked-audio-client-utils.mjs";
+import {handlesMethod as networkedVideoClientHandlesMethod} from "../public/video/networked-video-client-utils.mjs";
 import {parseUpdateObject, serializeMessage} from "../public/util.mjs";
 import {UPDATE_METHODS} from "../public/update-types.mjs";
 
@@ -671,7 +672,10 @@ export class ChatRoom {
         // console.log('route', method, args, this.sessions);
         reflectMessageToPeers(uint8Array);
       }
-      if (networkedAudioClientHandlesMethod(method)) {
+      if (
+        networkedAudioClientHandlesMethod(method) ||
+        networkedVideoClientHandlesMethod(method)
+      ) {
         proxyMessageToPeers(uint8Array);
       }
     };
