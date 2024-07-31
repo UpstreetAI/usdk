@@ -22,11 +22,15 @@ const ADDENDUM_TYPES = (() => {
   result.set(Float64Array, ++iota);
   result.set(ArrayBuffer, ++iota);
 
-  const imageIota = ++iota;
-  result.set(HTMLImageElement, imageIota);
-  result.set(HTMLCanvasElement, imageIota);
-  result.set(ImageData, imageIota);
-  result.set(ImageBitmap, imageIota);
+  {
+    const imageIota = ++iota;
+    result.set(HTMLImageElement, imageIota);
+    result.set(HTMLCanvasElement, imageIota);
+    result.set(ImageData, imageIota);
+    result.set(ImageBitmap, imageIota);
+  }
+
+  result.set(Uint8ClampedArray, ++iota);
 
   return result;
 })();
@@ -53,6 +57,7 @@ const ADDENDUM_CONSTRUCTORS = (() => {
       const imageData = new ImageData(data, width, height);
       return imageData;
     },
+    _construct(Uint8ClampedArray),
   ];
 })();
 const ADDENDUM_SERIALIZERS = (() => {
@@ -107,6 +112,7 @@ const ADDENDUM_SERIALIZERS = (() => {
     _serializedTypedArray, // Float64Array
     _serializeArrayBuffer, // ArrayBuffer
     _serializeImage, // ImageData
+    _serializedTypedArray, // Uint8ClampedArray
   ];
 })();
 
@@ -128,6 +134,7 @@ const encodableConstructors = [
   HTMLCanvasElement,
   ImageData,
   ImageBitmap,
+  Uint8ClampedArray,
 ];
 const _isAddendumEncodable = o =>
   encodableConstructors.includes(
