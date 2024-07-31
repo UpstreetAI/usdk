@@ -9,10 +9,13 @@ export { describe } from '../util/vision.mjs';
 
 //
 
-export const encodeWebp = async (imageData) => {
+export const encodeWebp = async (imageData, {
+  quality = 75,
+  lossless = false,
+} = {}) => {
   return await webp.encode(imageData, {
-    quality: 75,
-    // lossless: 0,
+    quality,
+    lossless: +lossless,
   });
 };
 
