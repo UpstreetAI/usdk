@@ -232,10 +232,10 @@ class SpeakerMap extends EventTarget {
     }));
 
     const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
-    console.log('current speakers', {
-      currentSpeakers,
-      lastSpeakers: this.#lastSpeakers,
-    });
+    // console.log('current speakers', {
+    //   currentSpeakers,
+    //   lastSpeakers: this.#lastSpeakers,
+    // });
     if (currentSpeakers && !this.#lastSpeakers) {
       this.dispatchEvent(new MessageEvent('playingchange', {
         data: true,
