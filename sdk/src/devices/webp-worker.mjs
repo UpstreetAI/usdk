@@ -2,14 +2,8 @@ import webp from 'webp-wasm';
 import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
 import { QueueManager } from '../util/queue-manager.mjs';
 
-const encodeWebp = async (imageData, {
-  quality = 75,
-  lossless = false,
-} = {}) => {
-  const outputBuffer = await webp.encode(imageData, {
-    quality,
-    lossless: +lossless,
-  });
+const encodeWebp = async (imageData, opts) => {
+  const outputBuffer = await webp.encode(imageData, opts);
   const uint8Array = new Uint8Array(outputBuffer.buffer, outputBuffer.byteOffset, outputBuffer.byteLength);
   return uint8Array;
 };

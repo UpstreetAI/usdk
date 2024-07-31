@@ -40,12 +40,18 @@ export class WebPEncoder {
 
     this.promises = [];
   }
-  async encode(imageData, opts) {
+  async encode(imageData, {
+    quality = 75,
+    lossless = false,
+  } = {}) {
     const b = zbencode({
       method: 'encode',
       args: {
         imageData,
-        opts,
+        opts: {
+          quality,
+          lossless: +lossless, // int is expected in the backend
+        },
       },
     });
     this.worker.postMessage(b, [b.buffer]);
