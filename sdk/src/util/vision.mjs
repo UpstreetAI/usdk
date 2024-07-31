@@ -1,8 +1,10 @@
 import { aiProxyHost } from './endpoints.mjs';
+import { bytesToBase64 } from './base64.mjs';
 
 export const describe = async (frame, query = `What's in this image?`, {
   jwt,
 }) => {
+  const base64 = bytesToBase64(frame);
   const messages = [
     {
       role: 'user',
@@ -14,7 +16,7 @@ export const describe = async (frame, query = `What's in this image?`, {
         {
           "type": "image_url",
           "image_url": {
-            "url": `data:image/webp;base64,${frame.toString('base64')}`,
+            "url": `data:image/webp;base64,${base64}`,
           }
         }
       ],
