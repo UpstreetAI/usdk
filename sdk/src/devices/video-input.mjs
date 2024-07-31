@@ -227,9 +227,6 @@ export class TerminalVideoRenderer {
     if (footerHeight > 0) {
       s = ansiEscapeSequences.cursor.previousLine(footerHeight) + s;
       s += '\r' + Array(footerHeight + 1).join('\n');
-
-      // s = ansiEscapeSequences.cursor.previousLine(footerHeight - 1) + s;
-      // s += '\r' + Array(this.footerHeight + 1).join('\n');
     }
 
     process.stdout.write(s);
