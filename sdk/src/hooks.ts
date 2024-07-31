@@ -14,7 +14,6 @@ import {
   ChatArgs,
   TtsArgs,
   Tts,
-  Chat,
 } from './types';
 import {
   AppContext,
