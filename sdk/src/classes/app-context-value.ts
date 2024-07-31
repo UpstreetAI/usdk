@@ -66,7 +66,7 @@ export class AppContextValue {
     return this.supabase;
   }
 
-  useTts(opts?: TtsArgs) { // XXX memoize this
+  useTts(opts?: TtsArgs) {
     const voiceEndpointString = (() => {
       if (opts?.voiceEndpoint) {
         return opts.voiceEndpoint;
