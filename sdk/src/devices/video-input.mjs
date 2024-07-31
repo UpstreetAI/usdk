@@ -286,5 +286,6 @@ export class VideoInput extends EventEmitter {
   }
   close() {
     this.abortController.abort();
+    this.emit('close');
   }
 };
