@@ -246,6 +246,9 @@ export class VideoInput extends EventEmitter {
   } = {}) {
     super();
 
+    this.abortController = new AbortController();
+    const { signal } = this.abortController;
+
     // ffmpeg -f avfoundation -framerate 30 -i "0" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe -
     const cp = child_process.spawn('ffmpeg', [
       '-f', 'avfoundation',
@@ -257,6 +260,10 @@ export class VideoInput extends EventEmitter {
       '-f', 'image2pipe',
       '-',
     ]);
+    signal.addEventListener('abort', () => {
+      cp.kill();
+    });
+
     // cp.stderr.pipe(process.stderr);
     const bs = [];
     let bsLength = 0;
@@ -301,19 +308,31 @@ export class VideoInput extends EventEmitter {
         }
       }
     };
-    cp.stdout.on('data', data => {
+    const ondata = data => {
       this.emit('data', data);
 
       bs.push(data);
       bsLength += data.length;
 
       tryParseFrame();
-    });
-    cp.stdout.on('end', () => {
+    };
+    cp.stdout.on('data', ondata);
+    const onend = () => {
       this.emit('end');
-    });
-    cp.on('error', err => {
+    };
+    cp.stdout.on('end', onend);
+    const onerror = err => {
       this.emit('error', err);
+    };
+    cp.on('error', onerror);
+
+    signal.addEventListener('abort', () => {
+      cp.removeListener('data', ondata);
+      cp.removeListener('end', onend);
+      cp.removeListener('error', onerror);
     });
+  }
+  close() {
+    this.abortController.abort();
   }
 };
