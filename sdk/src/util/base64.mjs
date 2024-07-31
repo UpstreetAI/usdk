@@ -128,10 +128,10 @@ export function base64ToBytes(str) {
 	return result.subarray(0, result.length - missingOctets);
 }
 
-export function base64encode(str, encoder = new TextEncoder()) {
-	return bytesToBase64(encoder.encode(str));
-}
+// export function base64encode(str, encoder = new TextEncoder()) {
+// 	return bytesToBase64(encoder.encode(str));
+// }
 
-export function base64decode(str, decoder = new TextDecoder()) {
-	return decoder.decode(base64ToBytes(str));
-}
+// export function base64decode(str, decoder = new TextDecoder()) {
+// 	return decoder.decode(base64ToBytes(str));
+// }
