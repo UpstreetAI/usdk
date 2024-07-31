@@ -13,6 +13,7 @@
     "jest": "^29.7.0",
     "js-ago": "^2.1.1",
     "localstorage-polyfill": "^1.0.1",
+    "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",

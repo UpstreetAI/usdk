@@ -1,4 +1,5 @@
 import { useState, useMemo, useContext, useEffect, use } from 'react';
+import memoizeOne from 'memoize-one';
 import {
   SceneObject,
   AgentObject,
@@ -180,6 +181,8 @@ export const useStripe: () => any = () => {
 };
 
 export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
-  const appContextValue = useContext(AppContext);
-  return appContextValue.useTts(opts);
+  return memoizeOne((voiceEndpoint?: string, sampleRate?: number) => {
+    const appContextValue = useContext(AppContext);
+    return appContextValue.useTts(opts);
+  })(opts?.voiceEndpoint, opts?.sampleRate);
 };
