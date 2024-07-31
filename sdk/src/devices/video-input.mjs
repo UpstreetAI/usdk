@@ -1,23 +1,75 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
-import webp from 'webp-wasm';
 import Jimp from 'jimp';
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from '../util/queue-manager.mjs';
+import { zbencode, zbdecode } from '../lib/zjs/encoding.mjs';
+import { makePromise } from '../util/util.mjs';
 export { describe } from '../util/vision.mjs';
 
 //
 
-export const encodeWebp = async (imageData, {
-  quality = 75,
-  lossless = false,
-} = {}) => {
-  return await webp.encode(imageData, {
-    quality,
-    lossless: +lossless,
-  });
-};
+export class WebPEncoder {
+  constructor() {
+    this.worker = new Worker(new URL('./webp-worker.mjs', import.meta.url), {
+      type: 'module',
+    });
+
+    this.worker.onmessage = e => {
+      const promise = this.promises.shift();
+      if (promise) {
+        const b = e.data;
+        const o = zbdecode(b);
+        const {
+          error,
+          result,
+        } = o;
+        if (!error) {
+          promise.resolve(result);
+        } else {
+          promise.reject(result);
+        }
+      } else {
+        console.warn('WebPEncoder unexpected message', e.data);
+      }
+    };
+    this.worker.onerror = err => {
+      console.warn('WebPEncoder error', err);
+    };
+
+    this.promises = [];
+  }
+  async encode(imageData, opts) {
+    const b = zbencode({
+      method: 'encode',
+      args: {
+        imageData,
+        opts,
+      },
+    });
+    this.worker.postMessage(b, [b.buffer]);
+
+    const promise = makePromise();
+    this.promises.push(promise);
+
+    return await promise;
+  }
+  async decode(encodedData) {
+    const b = zbencode({
+      method: 'decode',
+      args: {
+        encodedData,
+      },
+    });
+    this.worker.postMessage(b, [b.buffer]);
+
+    const promise = makePromise();
+    this.promises.push(promise);
+
+    return await promise;
+  }
+}
 
 //
 
@@ -204,6 +256,11 @@ export class VideoInput extends EventEmitter {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
+    const encoder = new WebPEncoder();
+    signal.addEventListener('abort', () => {
+      encoder.close();
+    });
+
     // ffmpeg -f avfoundation -framerate 30 -i "0" -vf "fps=1" -c:v libwebp -lossless 1 -f image2pipe -
     const cp = child_process.spawn('ffmpeg', [
       '-f', 'avfoundation',
@@ -235,9 +292,10 @@ export class VideoInput extends EventEmitter {
           let fileSize = new DataView(b.buffer, b.byteOffset + 4, 4).getUint32(0, true); // little-endian
           fileSize += 8; // add header size
           if (bsLength >= fileSize) {
-            const data = b.slice(0, fileSize);
+            const data = new Uint8Array(fileSize);
+            data.set(b);
             await this.queueManager.waitForTurn(async () => {
-              let imageData = await webp.decode(data);
+              let imageData = await encoder.decode(data);
               if (typeof width === 'number' || typeof height === 'number') {
                 const image = new Jimp(imageData.width, imageData.height);
                 image.bitmap.data.set(imageData.data);
