@@ -2320,7 +2320,7 @@ const getCodeGenContext = async () => {
       BASE_DIRNAME,
       'sdk',
       'src',
-      'components.ts',
+      'components.tsx',
     );
     const paths = [
       defaultComponentsPath,
