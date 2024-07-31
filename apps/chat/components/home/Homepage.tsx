@@ -64,7 +64,7 @@ export default function Home() {
               <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
-              <Link href="/company/waitlist" className='bg-[#e5e2ee] inline-block hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+              <Link href="https://pages.viral-loops.com/upstreet.ai" target='_blank' className='bg-[#e5e2ee] inline-block hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
                 Join Waitlist
               </Link>
             </div>
@@ -146,7 +146,7 @@ export default function Home() {
           <div className='text-xl font-bold mb-12'>
             Join The Upstreet Waitlist For Early Access And More...
           </div>
-          <Link href="/company/waitlist" className='bg-[#0e0e10] hover:opacity-[0.6] text-xl font-bold text-white px-8 rounded-md py-4 mr-2'>
+          <Link href="https://pages.viral-loops.com/upstreet.ai" target='_blank' className='bg-[#0e0e10] hover:opacity-[0.6] text-xl font-bold text-white px-8 rounded-md py-4 mr-2'>
             JOIN WAITLIST
           </Link>
 
