@@ -1376,6 +1376,39 @@ const startMultiplayerListener = ({
         }
       });
     };
+    let cameraInput = null;
+    const cameraQueueManager = new QueueManager();
+    const toggleCam = async () => {
+      await cameraQueueManager.waitForTurn(async () => {
+        if (!cameraInput) {
+          const inputDevices = new InputDevices();
+          const devices = await inputDevices.listDevices();
+          const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
+
+          cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+            // width,
+            // height,
+            fps: 5,
+          });
+          const videoRenderer = new TerminalVideoRenderer({
+            width: 80,
+            // height: rows,
+            footerHeight: 5,
+          });
+          // let index = 0;
+          cameraInput.on('frame', (imageData) => {
+            videoRenderer.setImageData(imageData);
+            videoRenderer.render();
+            // console.log('got frame ' + (++index));
+            replServer.displayPrompt(true);
+          });
+          console.log('* cam enabled *');
+        } else {
+          cameraInput.close();
+          console.log('* cam disabled *');
+        }
+      });
+    };
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
       const name = userAsset.name;
@@ -1435,6 +1468,10 @@ const startMultiplayerListener = ({
                 }
                 case 'mic': {
                   toggleMic();
+                  break;
+                }
+                case 'cam': {
+                  toggleCam();
                   break;
                 }
                 default: {
