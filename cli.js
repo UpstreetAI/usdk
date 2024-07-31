@@ -77,15 +77,13 @@ import {
   InputDevices,
 } from './sdk/src/devices/input-devices.mjs';
 import {
-  // AudioInput,
   VoiceActivityMicrophoneInput,
   encodeMp3,
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
 import {
-  // VideoInput,
   TerminalVideoRenderer,
-  encodeWebp,
+  WebPEncoder,
   describe,
 } from './sdk/src/devices/video-input.mjs';
 
@@ -2967,6 +2965,15 @@ const test = async (args) => {
     process.exit(1);
   }
 };
+const ensureWebpEncoder = (() => {
+  let webpEncoder = null;
+  return () => {
+    if (webpEncoder === null) {
+      webpEncoder = new WebPEncoder();
+    }
+    return webpEncoder;
+  }
+})();
 const capture = async (args) => {
   const microphone = args.microphone;
   const camera = args.camera;
@@ -3049,14 +3056,14 @@ const capture = async (args) => {
           height: rows,
         });
         cameraInput.on('frame', async (imageData) => {
-          // console.log('got camera frame', imageData);
           videoRenderer.setImageData(imageData);
           videoRenderer.render();
 
           if (execute) {
             await cameraQueueManager.waitForTurn(async () => {
               // encode to webp
-              const frame = await encodeWebp(imageData);
+              const webpEncoder = ensureWebpEncoder();
+              const frame = await webpEncoder.encode(imageData);
 
               // describe the image
               let text = await describe(frame, query, {
@@ -3100,7 +3107,8 @@ const capture = async (args) => {
           if (execute) {
             await screenQueueManager.waitForTurn(async () => {
               // encode to webp
-              const frame = await encodeWebp(imageData);
+              const webpEncoder = ensureWebpEncoder();
+              const frame = await webpEncoder.encode(imageData);
 
               // describe the image
               let text = await describe(frame, query, {
