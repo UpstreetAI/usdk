@@ -218,6 +218,7 @@ class TypingMap extends EventTarget {
 }
 class SpeakerMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> boolean
+  #localSpeaking = false;
   #lastSpeakers = false;
   getMap() {
     return this.#internalMap;
@@ -246,6 +247,17 @@ class SpeakerMap extends EventTarget {
       }));
     }
     this.#lastSpeakers = currentSpeakers;
+  }
+  getLocal() {
+    return this.#localSpeaking;
+  }
+  setLocal(speaking) {
+    this.#localSpeaking = speaking;
+    this.dispatchEvent(new MessageEvent('localspeakingchange', {
+      data: {
+        speaking,
+      },
+    }));
   }
   clear() {
     for (const [playerId, speaking] of this.#internalMap) {
@@ -1200,7 +1212,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
             // console.log('got log message', JSON.stringify(args, null, 2));
             // const { userId, name, text } = args;
             // console.log(`\r${name}: ${text}`);
-            // replServer.displayPrompt(true);
+            // renderPrompt();
             const { text } = args;
             log(text);
             // console.log(eraseLine + JSON.stringify(args2, null, 2));
@@ -1228,7 +1240,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
             // console.log('got log message', JSON.stringify(args, null, 2));
             // const { userId, name, text } = args;
             // console.log(`\r${name}: ${text}`);
-            // replServer.displayPrompt(true);
+            // renderPrompt();
             log(`${name}: ${JSON.stringify(message)}`);
             // console.log(eraseLine + JSON.stringify(args2, null, 2));
           // }
@@ -1284,6 +1296,8 @@ const startMultiplayerListener = ({
     const name = userAsset.name;
 
     let s = `${name} (you): `;
+    
+    // typing
     const tm = typingMap.getMap();
     const specs = Array.from(tm.values()).filter((spec) => spec.typing);
     if (specs.length > 0) {
@@ -1291,13 +1305,31 @@ const startMultiplayerListener = ({
       const typingLine = `[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...] `;
       s = typingLine + s;
     }
+
+    // speaking
+    const localSpeaking = speakerMap.getLocal();
+    if (localSpeaking) {
+      s = `[🎤] ` + s;
+    }
+
     return s;
+  };
+  const updatePrompt = () => {
+    replServer.setPrompt(getPrompt());
+  };
+  const renderPrompt = () => {
+    replServer.displayPrompt(true);
   };
   typingMap.addEventListener('typingchange', (e) => {
     if (replServer) {
-      const s = getPrompt();
-      replServer.setPrompt(s);
-      replServer.displayPrompt(true);
+      updatePrompt();
+      renderPrompt();
+    }
+  });
+  speakerMap.addEventListener('localspeakingchange', (e) => {
+    if (replServer) {
+      updatePrompt();
+      renderPrompt();
     }
   });
 
@@ -1334,7 +1366,7 @@ const startMultiplayerListener = ({
 
           const onplayingchange = e => {
             const playing = e.data;
-            console.log('playing change', playing);
+            // console.log('playing change', playing);
             if (playing) {
               microphoneInput.pause();
             } else {
@@ -1352,6 +1384,12 @@ const startMultiplayerListener = ({
             });
           });
           console.log('* mic enabled *');
+          microphoneInput.addEventListener('voicestart', async (e) => {
+            speakerMap.setLocal(true);
+          });
+          microphoneInput.addEventListener('close', (e) => {
+            speakerMap.setLocal(false);
+          });
           microphoneInput.addEventListener('voice', async (e) => {
             const {
               buffers,
@@ -1367,12 +1405,14 @@ const startMultiplayerListener = ({
             replServer.clearBufferedCommand();
             console.log(transcription);
             sendChatMessage(transcription);
+
+            speakerMap.setLocal(false);
           });
-          replServer.displayPrompt(true);
+          renderPrompt();
         } else {
           microphoneInput.close();
           console.log('* mic disabled *');
-          replServer.displayPrompt(true);
+          renderPrompt();
         }
       });
     };
@@ -1398,15 +1438,15 @@ const startMultiplayerListener = ({
           cameraInput.on('frame', (imageData) => {
             videoRenderer.setImageData(imageData);
             videoRenderer.render();
-            replServer.displayPrompt(true);
+            renderPrompt();
           });
           console.log('* cam enabled *');
-          replServer.displayPrompt(true);
+          renderPrompt();
         } else {
           cameraInput.close();
           cameraInput = null;
           console.log('* cam disabled *');
-          replServer.displayPrompt(true);
+          renderPrompt();
         }
       });
     };
@@ -1504,7 +1544,7 @@ const startMultiplayerListener = ({
       process.stdout.write(eraseLine);
       console.log(...args);
       if (replServer) {
-        replServer.displayPrompt(true);
+        renderPrompt();
       }
     });
   };
