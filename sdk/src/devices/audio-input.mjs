@@ -247,7 +247,6 @@ export class VoiceActivityMicrophoneInput extends EventTarget {
     }));
   }
   pause() {
-    console.log('pause');
     if (!this.paused) {
       this.paused = true;
       this.dispatchEvent(new MessageEvent('pause', {
@@ -256,7 +255,6 @@ export class VoiceActivityMicrophoneInput extends EventTarget {
     }
   }
   resume() {
-    console.log('resume');
     if (this.paused) {
       this.paused = false;
       this.dispatchEvent(new MessageEvent('resume', {
