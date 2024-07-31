@@ -30,9 +30,6 @@ export class TerminalVideoRenderer {
     this.width = width;
     this.height = height;
     this.footerHeight = footerHeight;
-    if (footerHeight === 0) {
-      throw new Error('footerHeight must be greater than 0');
-    }
 
     this.imageData = null;
     this.description = null;
