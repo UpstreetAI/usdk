@@ -3073,14 +3073,6 @@ const capture = async (args) => {
               text = text.replace(/[\r\n]/g, ' ');
               videoRenderer.setDescription(text);
               videoRenderer.render();
-              // for (let i = 0; i < 30; i++) {
-              //   console.log('description:', text);
-              // }
-
-              // // send the video frame
-              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-              // const {networkedVideoClient} = headRealm;
-              // networkedVideoClient.sendVideoFrame(frame);
             });
           }
         });
@@ -3117,16 +3109,8 @@ const capture = async (args) => {
                 jwt,
               });
               text = text.replace(/[\r\n]/g, ' ');
-              // for (let i = 0; i < 30; i++) {
-              //   console.log('description:', text);
-              // }
               videoRenderer.setDescription(text);
               videoRenderer.render();
-
-              // // send the video frame
-              // const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-              // const {networkedVideoClient} = headRealm;
-              // networkedVideoClient.sendVideoFrame(frame);
             });
           }
         });
