@@ -1407,7 +1407,6 @@ const startMultiplayerListener = ({
           cameraInput = null;
           console.log('* cam disabled *');
           replServer.displayPrompt(true);
-
         }
       });
     };
