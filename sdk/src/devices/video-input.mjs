@@ -70,9 +70,14 @@ export class TerminalVideoRenderer {
   constructor({
     width,
     height,
+    footerHeight = 0,
   }) {
     this.width = width;
     this.height = height;
+    this.footerHeight = footerHeight;
+    if (footerHeight === 0) {
+      throw new Error('footerHeight must be greater than 0');
+    }
 
     this.imageData = null;
     this.description = null;
@@ -90,6 +95,7 @@ export class TerminalVideoRenderer {
       imageData,
       width,
       height,
+      footerHeight,
       description,
     } = this;
 
@@ -218,6 +224,14 @@ export class TerminalVideoRenderer {
     } else {
       this.lastDescriptionLines = 0;
     }
+    if (footerHeight > 0) {
+      s = ansiEscapeSequences.cursor.previousLine(footerHeight) + s;
+      s += '\r' + Array(footerHeight + 1).join('\n');
+
+      // s = ansiEscapeSequences.cursor.previousLine(footerHeight - 1) + s;
+      // s += '\r' + Array(this.footerHeight + 1).join('\n');
+    }
+
     process.stdout.write(s);
   }
 }
