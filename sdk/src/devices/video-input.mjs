@@ -75,6 +75,9 @@ export class WebPEncoder {
 
     return await promise;
   }
+  close() {
+    this.worker.terminate();
+  }
 }
 
 //
