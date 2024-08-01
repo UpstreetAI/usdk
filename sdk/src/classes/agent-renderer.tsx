@@ -344,16 +344,6 @@ export class AgentRenderer {
     // console.log('render 2');
   }
 
-  /* async renderAsync() {
-    // console.log('rerender 1');
-    await this.renderQueueManager.waitForTurn(async () => {
-      // console.log('rerender 2');
-      await this.rerender();
-      // console.log('rerender 3');
-    });
-    // console.log('rerender 4');
-  } */
-
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
   async waitForRender() {
