@@ -316,7 +316,7 @@ export const compileUserAgentTasks = async ({
         const agentRegistry = agent.registry;
         const agentTasksProps = agentRegistry.tasks;
 
-        // clear out any unnseen tasks
+        // clear out any unseen tasks
         const seenTasks = new Set<any>();
         for (const taskProps of agentTasksProps) {
           const { id: taskId } = taskProps;
