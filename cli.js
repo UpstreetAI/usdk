@@ -1056,11 +1056,14 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         log(dedent`
           ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
           In the room (${room}):
-          ${agentJsons
-            .map((agent) => {
-              return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
-            })
-            .join('\n')
+          ${agentJsons.length > 0 ?
+            agentJsons
+              .map((agent) => {
+                return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
+              })
+              .join('\n')
+            :
+              `* no one else is here`
           }
           http://local.upstreet.ai:${devServerPort}
         `,
