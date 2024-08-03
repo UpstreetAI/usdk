@@ -42,7 +42,7 @@ class MessageCache {
 //
 
 export class ConversationObject extends EventTarget {
-  id: string;
+  // id: string;
   room: string;
   endpointUrl: string;
   scene: SceneObject | null = null;
@@ -50,16 +50,6 @@ export class ConversationObject extends EventTarget {
   agentsMap: Map<string, Player> = new Map();
   messageCache = new MessageCache();
   numTyping: number = 0;
-
-  static getKey({
-    room,
-    endpointUrl,
-  }: {
-    room: string;
-    endpointUrl: string;
-  }) {
-    return `${endpointUrl}/${room}`;
-  }
 
   constructor({
     room,
@@ -70,10 +60,10 @@ export class ConversationObject extends EventTarget {
   }) {
     super();
 
-    this.id = ConversationObject.getKey({
-      room,
-      endpointUrl,
-    });
+    // this.id = ConversationObject.getKey({
+    //   room,
+    //   endpointUrl,
+    // });
     this.room = room;
     this.endpointUrl = endpointUrl;
   }
