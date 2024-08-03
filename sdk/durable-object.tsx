@@ -123,23 +123,35 @@ export class DurableObject extends EventTarget {
               const { method, args } = j;
               switch (method) {
                 case 'join': {
+                  const {
+                    room,
+                    endpointUrl = multiplayerEndpointUrl,
+                    only = false,
+                  } = args;
+                  if (only) {
+                    await this.chatsSpecification.leaveAll();
+                  }
                   await this.chatsSpecification.join({
-                    room: args.room,
-                    endpointUrl: args.endpointUrl || multiplayerEndpointUrl,
+                    room,
+                    endpointUrl,
                   });
                   break;
                 }
                 case 'leave': {
+                  const {
+                    room,
+                    endpointUrl = multiplayerEndpointUrl,
+                  } = args;
                   await this.chatsSpecification.leave({
-                    room: args.room,
-                    endpointUrl: args.endpointUrl || multiplayerEndpointUrl,
+                    room,
+                    endpointUrl,
                   });
                   break;
                 }
-                case 'leaveAll': {
-                  await this.chatsSpecification.leaveAll();
-                  break;
-                }
+                // case 'leaveAll': {
+                //   await this.chatsSpecification.leaveAll();
+                //   break;
+                // }
               }
             });
 
@@ -291,8 +303,13 @@ export class DurableObject extends EventTarget {
           const {
             room,
             endpointUrl = multiplayerEndpointUrl,
+            only = false,
           } = body ?? {};
           if (typeof room === 'string') {
+            if (only) {
+              await this.chatsSpecification.leaveAll();
+            }
+
             await this.chatsSpecification.join({
               room,
               endpointUrl,
@@ -334,13 +351,13 @@ export class DurableObject extends EventTarget {
             });
           }
         };
-        const handleLeaveAll = async () => {
-          await this.chatsSpecification.leaveAll();
+        // const handleLeaveAll = async () => {
+        //   await this.chatsSpecification.leaveAll();
 
-          return new Response(JSON.stringify({ ok: true }), {
-            headers,
-          });
-        };
+        //   return new Response(JSON.stringify({ ok: true }), {
+        //     headers,
+        //   });
+        // };
         const handleDefaultRequest = async () => {
           const serverResponse = await serverHandler(request, {
             agentRenderer: this.agentRenderer,
@@ -364,8 +381,8 @@ export class DurableObject extends EventTarget {
             return await handleJoin();
           case 'leave':
             return await handleLeave();
-          case 'leaveAll':
-            return await handleLeaveAll();
+          // case 'leaveAll':
+          //   return await handleLeaveAll();
           default:
             return await handleDefaultRequest();
         }
