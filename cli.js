@@ -599,7 +599,7 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
   }
   return cp;
 };
-const startWebcamServer = async () => {
+/* const startWebcamServer = async () => {
   const app = express();
   // app.use(express.static(cwd));
   const server = https.createServer(getServerOpts(), app);
@@ -618,12 +618,12 @@ const startWebcamServer = async () => {
       }
     });
   });
-};
-const startMultiplayerServer = async () => {
+}; */
+/* const startMultiplayerServer = async () => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBin,
-    ['dev', '--ip', '0.0.0.0', '--port', multiplayerPort],
+    ['dev', '--env=local', '--ip', '0.0.0.0', '--port', multiplayerPort],
     {
       stdio: 'pipe',
       // stdio: 'inherit',
@@ -633,7 +633,7 @@ const startMultiplayerServer = async () => {
   bindProcess(cp);
   await waitForProcessIo(cp, /ready/i);
   return cp;
-};
+}; */
 const getAssetJson = async (supabase, guid) => {
   const assetResult = await supabase
     .from('assets')
