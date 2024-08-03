@@ -1555,7 +1555,6 @@ const connect = async (args) => {
   const room = args._[0] ?? '';
   const local = !!args.local;
   const debug = !!args.debug;
-  // const vision = !!args.vision;
   const browser = !!args.browser;
   const media = !!args.media;
   const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
@@ -1585,25 +1584,6 @@ const connect = async (args) => {
         startRepl: true,
       });
     }
-
-    /* // set up the webcam, if needed
-    if (vision) {
-      const webcamSource = createWebcamSource({
-        local,
-      });
-      webcamSource.addEventListener('frame', (e) => {
-        const uint8Array = new Uint8Array(e.data.imageData.buffer, e.data.imageData.byteOffset, e.data.imageData.byteLength);
-        console.log('got webcam frame', uint8Array);
-        // XXX use a video client for this
-        // realms.sendChatMessage({
-        //   method: 'videoFrame',
-        //   userId,
-        //   args: {
-        //     imageData: e.data,
-        //   },
-        // });
-      });
-    } */
 
     return {
       userAsset,
@@ -1730,7 +1710,6 @@ const chat = async (args) => {
       media: !args.browser,
       debug: args.debug,
       local: args.local,
-      // vision: args.vision,
     });
 
     return {
@@ -2690,7 +2669,6 @@ const dev = async (args) => {
         _: [guidsOrDevPathIndexes],
         dev: true,
         local: args.local,
-        // vision: args.vision,
         debug: args.debug,
       });
 
@@ -2926,7 +2904,6 @@ const test = async (args) => {
         repl: false,
         debug,
         local: false,
-        // vision: false,
       });
 
       // run tests
@@ -4075,7 +4052,6 @@ const main = async () => {
     .option(`-l, --local`, `Connect to local servers`)
     .option(`-r, --room <room>`, `Room to join`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
-    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (subcommand = '', guids = [], opts = {}) => {
       // console.log(
@@ -4349,7 +4325,6 @@ const main = async () => {
   //     `-d, --dev`,
   //     `Use the local development guid instead of your account guid`,
   //   )
-  //   .option(`-v, --vision`, `Enable webcam vision`)
   //   .option(`-g, --debug`, `Enable debug logging`)
   //   .action(async (room = '', opts = {}) => {
   //     await handleError(async () => {
@@ -4376,7 +4351,6 @@ const main = async () => {
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
@@ -4398,7 +4372,6 @@ const main = async () => {
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
     // )
-    // .option(`-v, --vision`, `Enable webcam vision`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
