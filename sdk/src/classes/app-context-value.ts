@@ -8,10 +8,11 @@ import type {
   ChatMessages,
   RenderRegistry,
   ReadableAudioStream,
+  ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
-import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
-import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
+// import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
+// import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
 import {
   lembed,
 } from '../util/embedding.mjs';
@@ -19,17 +20,14 @@ import { fetchChatCompletion } from '../util/fetch.mjs';
 
 //
 
-const defaultSampleRate = 48000;
-
-//
-
 export class AppContextValue {
+  // members
   subtleAi: SubtleAi;
   agentJson: object;
   wallets: any;
   authToken: string;
   supabase: any;
-  registry: RenderRegistry;
+  chatsSpecification: ChatsSpecification;
 
   constructor({
     subtleAi,
@@ -37,18 +35,21 @@ export class AppContextValue {
     wallets,
     authToken,
     supabase,
+    chatsSpecification,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
     wallets: any;
     authToken: string;
     supabase: any;
+    chatsSpecification: ChatsSpecification;
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
+    this.chatsSpecification = chatsSpecification;
   }
 
   // hooks
@@ -62,8 +63,12 @@ export class AppContextValue {
   useAuthToken() {
     return this.authToken;
   }
+
   useSupabase() {
     return this.supabase;
+  }
+  useChatsSpecification() {
+    return this.chatsSpecification;
   }
 
   useTts(opts?: TtsArgs) {
