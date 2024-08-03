@@ -149,7 +149,7 @@ export type MemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
 };
-export type QueueManager = {
+export type QueueManager = EventTarget & {
   isIdle: () => boolean;
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
