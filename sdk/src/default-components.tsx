@@ -58,7 +58,6 @@ import {
 } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock, printZodSchema } from './util/util.mjs';
-import { DebounceManager } from './util/debounce-manager.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -1496,69 +1495,4 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   ]);
 
   return null;
-
-  /* // XXX move this to useTts
-  {
-    // XXX get the sampleRate for decode
-    const sampleRate = 48000;
-    const stream = tts.getStream(text, {
-      ...opts,
-      // sampleRate: this.audioManager.audioContext.sampleRate,
-      sampleRate,
-    });
-    const readableStream = stream.readable;
-    const audioSource = createOpusReadableStreamSource({
-      readableStream,
-      // audioContext,
-    });
-    chat.addAudioSource(audioSource);
-
-    audioSource.output.addEventListener('end', e => {
-      chat.removeAudioSource(audioSource);
-    });
-
-    // frontend
-    const ensureAudioStream = (playerId, streamId) => {
-      const key = `${playerId}:${streamId}`;
-      let audioStream = this.outputAudioStreams.get(key);
-      if (!audioStream) {
-        const {
-          audioContext,
-        } = this.audioManager;
-        const stream = createOpusAudioOutputStream({
-          audioContext,
-        });
-        
-        const audioManagerInput = this.audioManager.getInput();
-        stream.outputNode.connect(audioManagerInput);
-        console.log('connect node', stream.outputNode);
-
-        audioStreams.set(key, stream);
-        audioStream = stream;
-
-        // connect to avatar
-        (async () => {
-          const remotePlayer = this.playersMap.get(playerId);
-          if (remotePlayer) {
-            await remotePlayer.waitForAvatar();
-            // handle the race condition where the audio stream ends before the avatar is loaded
-            if (!audioStreams.has(key)) return;
-
-            remotePlayer.avatar.setAudioEnabled({
-              audioContext: this.audioManager.audioContext,
-            });
-            const audioInput = remotePlayer.avatar.getAudioInput();
-            stream.outputNode.connect(audioInput);
-          } else {
-            console.warn('remote player not found', {
-              playerId,
-              playersMap: this.playersMap,
-            });
-            debugger;
-          }
-        })();
-      }
-      return audioStream;
-    };
-  } */
 };
