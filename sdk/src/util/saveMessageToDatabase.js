@@ -5,11 +5,11 @@ import {
 export async function saveMessageToDatabase({
   supabase,
   jwt,
-  agentId,
+  userId,
   conversationId,
   message,
 }) {
-  const encodedMessage = await encodeMessage(message, jwt, agentId, conversationId);
+  const encodedMessage = await encodeMessage(message, jwt, userId, conversationId);
   const { error } = await supabase
     .from('agent_messages')
     .insert(encodedMessage);
@@ -20,7 +20,7 @@ export async function saveMessageToDatabase({
   }
 }
 
-async function encodeMessage(message, jwt, agentId, conversationId) {
+async function encodeMessage(message, jwt, userId, conversationId) {
   const embedding = await lembed(JSON.stringify({
     method: message.method,
     args: message.args,
@@ -29,7 +29,7 @@ async function encodeMessage(message, jwt, agentId, conversationId) {
     method: message.method,
     args: message.args,
     text: message.args.text,
-    user_id: agentId,
+    user_id: userId,
     conversation_id: conversationId,
     src_user_id: message.userId,
     src_name: message.name,
