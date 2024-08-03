@@ -29,13 +29,21 @@ export class PingManager {
     this.interval = setInterval(async () => {
       await this.queueManager.waitForTurn(async () => {
         // console.log('ping 1');
-        await this.supabase.from('pings')
+        const result = await this.supabase.from('pings')
           .upsert({
             user_id: this.userId,
             timestamp: new Date(),
           }, {
             onConflict: ['user_id'],
           });
+        const {
+          error,
+        } = result;
+        if (!error) {
+          // nothing
+        } else {
+          console.warn('ping error', error);
+        }
         // console.log('ping 2');
       });
     }, pingRate);
