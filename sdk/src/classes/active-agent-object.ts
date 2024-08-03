@@ -1,7 +1,7 @@
 import { useContext, useEffect } from 'react';
 // import type { Context } from 'react';
 import { z } from 'zod';
-import * as Y from 'yjs';
+// import * as Y from 'yjs';
 // import type { ZodTypeAny } from 'zod';
 import dedent from 'dedent';
 // import {
@@ -12,32 +12,9 @@ import {
 } from './agent-object';
 import type {
   AppContextValue,
-  ActionProps,
-  FormatterProps,
-  PromptProps,
-  ParserProps,
-  PerceptionProps,
-  TaskProps,
-  NameProps,
-  PersonalityProps,
-  ServerProps,
-  TaskObject,
-  PendingActionMessage,
   MemoryOpts,
-  SubtleAiCompleteOpts,
-  SubtleAiImageOpts,
-  ChatMessages,
-  ActionHistoryQuery,
   Memory,
-  ActionOpts,
-  PerceptionEventData,
-  ConversationChangeEventData,
-  ConversationAddEventData,
-  ConversationRemoveEventData,
-  ActionMessageEventData,
-  ActionMessageEvent,
-  MessagesUpdateEventData,
-  PlayableAudioStream,
+  ChatsSpecification,
 } from '../types';
 import {
   ConversationObject,
@@ -49,17 +26,14 @@ import {
   makePromise,
   parseCodeBlock,
 } from '../util/util.mjs';
-import { Player } from './player';
-import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
+// import { Player } from './player';
+// import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
 // import {
 //   loadMessagesFromDatabase,
 // } from '../util/loadMessagesFromDatabase.js';
-import {
-  saveMessageToDatabase,
-} from '../util/saveMessageToDatabase.js';
-import {
-  ExtendableMessageEvent,
-} from '../util/extendable-message-event';
+// import {
+//   ExtendableMessageEvent,
+// } from '../util/extendable-message-event';
 import {
   retry,
 } from '../util/util.mjs';
@@ -69,6 +43,13 @@ import {
 import {
   SceneObject,
 } from './scene-object';
+import {
+  ChatsManager,
+} from './chats-manager';
+import {
+  TaskManager,
+} from './task-manager';
+import { PingManager } from './ping-manager';
 import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
@@ -78,10 +59,10 @@ export class ActiveAgentObject extends AgentObject {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
-  rooms = new Map<string, NetworkRealms>();
-  tasks: Map<symbol, TaskObject> = new Map();
-  generativeQueueManager = new QueueManager();
-  incomingMessageQueueManager = new QueueManager();
+  chatsManager: ChatsManager;
+  taskManager: TaskManager;
+  pingManager: PingManager;
+  generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
 
   //
   
@@ -97,8 +78,24 @@ export class ActiveAgentObject extends AgentObject {
   ) {
     super(agentJson);
 
+    //
+
     this.appContextValue = appContextValue;
     this.registry = registry;
+
+    //
+
+    this.chatsManager = new ChatsManager({
+      agent: this,
+      chatsSpecification: this.appContextValue.useChatsSpecification(),
+    });
+    this.taskManager = new TaskManager({
+      agent: this,
+    });
+    this.pingManager = new PingManager({
+      userId: this.id,
+      supabase: this.useSupabase(),
+    });
   }
 
   // static hooks
@@ -125,383 +122,18 @@ export class ActiveAgentObject extends AgentObject {
     }, deps);
   }
 
-  /* useActions() {
-    const registry = this.useRegistry();
-    return registry.actions;
-  }
-  useFormatters() {
-    const registry = this.useRegistry();
-    return registry.formatters;
-  }
-
-  useName() {
-    const registry = this.useRegistry();
-    const names = registry.names;
-    return names.length > 0 ? names[0].children : this.name;
-  }
-  usePersonality() {
-    const registry = this.useRegistry();
-    const personalities = registry.personalities;
-    return personalities.length > 0 ? personalities[0].children : this.bio;
-  } */
-
-  // methods
-
-  async join({
-    room,
-    endpointUrl,
-  }) {
-    const guid = this.id;
-
-    const key = ConversationObject.getKey({
-      room,
-      endpointUrl,
-    });
-    // console.log('join room', {
-    //   room,
-    //   endpointUrl,
-    //   key,
-    // });
-    const conversation = new ConversationObject({
-      room,
-      endpointUrl,
-    });
-    this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-      data: {
-        conversation,
-      },
-    }));
-
-    const realmsPromise = (async () => {
-      const realms = new NetworkRealms({
-        endpointUrl,
-        playerId: guid,
-        audioManager: null,
-        metadata: {
-          conversation,
-        },
-      });
-
-      const virtualWorld = realms.getVirtualWorld();
-      const virtualPlayers = realms.getVirtualPlayers();
-
-      // Initiate network realms connection.
-      const connectPromise = makePromise();
-      const onConnect = async (e) => {
-        e.waitUntil(
-          (async () => {
-            const realmKey = e.data.rootRealmKey;
-
-            // Initialize network realms player.
-            const getJson = () => {
-              const {
-                name,
-                id,
-                description,
-                bio,
-                model,
-                address,
-              } = this;
-              return {
-                name,
-                id,
-                description,
-                bio,
-                model,
-                address,
-              };
-            };
-            const agentJson = getJson();
-            const localPlayer = new Player(guid, agentJson);
-
-            const _pushInitialPlayer = () => {
-              realms.localPlayer.initializePlayer(
-                {
-                  realmKey,
-                },
-                {},
-              );
-              realms.localPlayer.setKeyValue(
-                'playerSpec',
-                localPlayer.getPlayerSpec(),
-              );
-            };
-            _pushInitialPlayer();
-
-            const _bindRoom = () => {
-              const _bindAgent = () => {
-                conversation.setAgent(this);
-              };
-              _bindAgent();
-      
-              //
-      
-              const _bindScene = () => {
-                const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-                const { networkedCrdtClient } = headRealm;
-      
-                const doc = networkedCrdtClient.getDoc() as Y.Doc;
-                const name = doc.getText('name');
-                const description = doc.getText('description');
-                const getScene = () => new SceneObject({
-                  name: name.toString(),
-                  description: description.toString(),
-                });
-                const _updateScene = () => {
-                  const scene = getScene();
-                  conversation.setScene(scene);
-                };
-                _updateScene();
-                name.observe(_updateScene);
-                description.observe(_updateScene);
-              };
-              _bindScene();
-            };
-            _bindRoom();
-
-            connectPromise.resolve();
-          })(),
-        );
-      };
-      realms.addEventListener('connect', onConnect);
-
-      // console.log('track remote players');
-      const _trackRemotePlayers = () => {
-        virtualPlayers.addEventListener('join', (e) => {
-          const { playerId, player } = e.data;
-          console.log('remote player joined:', playerId);
-
-          const remotePlayer = new Player(playerId);
-          conversation.addAgent(playerId, remotePlayer);
-
-          // apply initial remote player state
-          {
-            const playerSpec = player.getKeyValue('playerSpec');
-            if (playerSpec) {
-              remotePlayer.setPlayerSpec(playerSpec);
-            }
-          }
-          // Handle remote player state updates
-          player.addEventListener('update', (e) => {
-            const { key, val } = e.data;
-            if (key === 'playerSpec') {
-              remotePlayer.setPlayerSpec(val);
-            }
-          });
-        });
-        virtualPlayers.addEventListener('leave', async (e) => {
-          const { playerId } = e.data;
-          console.log('remote player left:', playerId);
-          // const remotePlayer = conversation.getAgent(playerId);
-          // if (remotePlayer) {
-            conversation.removeAgent(playerId);
-          // } else {
-          //   console.warn('remote player not found', playerId);
-          //   debugger;
-          // }
-        });
-      };
-      _trackRemotePlayers();
-
-      const _bindMultiplayerChat = () => {
-        // console.log('bind multiplayer chat');
-
-        const handleRemoteUserMessage = async (message) => {
-          if (!message.hidden) {
-            conversation.addLocalMessage(message);
-          }
-        };
-        realms.addEventListener('chat', async (e) => {
-          try {
-            const { playerId, message } = e.data;
-            if (playerId !== guid) {
-              await handleRemoteUserMessage(message);
-            }
-          } catch (err) {
-            console.warn(err.stack);
-          }
-        });
-      };
-      _bindMultiplayerChat();
-
-      const _bindDisconnect = () => {
-        realms.addEventListener('disconnect', (e) => {
-          console.log('realms emitted disconnect');
-        });
-      };
-      _bindDisconnect();
-
-      const _bindConversation = () => {
-        conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
-          const { message } = e.data;
-          e.waitUntil((async () => {
-            await this.incomingMessageQueueManager.waitForTurn(async () => {
-              try {
-                // wait for re-render
-                {
-                  const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
-                  this.dispatchEvent(e);
-                  await e.waitForFinish();
-                }
-                
-                const allPerceptions = this.registry.perceptions;
-                const perceptionPromises = [];
-                for (const perception of allPerceptions) {
-                  if (perception.type === message.method) {
-                    const generativeAgent = this.generative({
-                      conversation,
-                    });
-                    const e = new MessageEvent<PerceptionEventData>('perception', {
-                      data: {
-                        agent: generativeAgent,
-                        message,
-                      },
-                    });
-                    const p = perception.handler(e);
-                    perceptionPromises.push(p);
-                  }
-                }
-                await Promise.all(perceptionPromises);
-      
-                (async () => {
-                  const supabase = this.useSupabase();
-                  const jwt = this.useAuthToken();
-                  await saveMessageToDatabase({
-                    supabase,
-                    jwt,
-                    agentId: guid,
-                    conversationId: key,
-                    message,
-                  });
-                })();
-              } catch (err) {
-                console.warn(err.stack);
-              }
-            });
-          })());
-        });
-  
-        conversation.addEventListener('remotemessage', async (e: MessageEvent) => {
-          const { message } = e.data;
-          if (realms.isConnected()) {
-            realms.sendChatMessage(message);
-          }
-  
-          (async () => {
-            const supabase = this.useSupabase();
-            const jwt = this.useAuthToken();
-            await saveMessageToDatabase({
-              supabase,
-              jwt,
-              agentId: guid,
-              conversationId: key,
-              message,
-            });
-          })();
-        });
-
-        //
-
-        conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-          const audioStream = e.data.audioStream as PlayableAudioStream;
-          (async () => {
-            const {
-              waitForFinish,
-            } = realms.addAudioSource(audioStream);
-            await waitForFinish();
-            realms.removeAudioSource(audioStream);
-          })();
-        });
-
-        //
-
-        const sendTyping = (typing: boolean) => {
-          if (realms.isConnected()) {
-            try {
-              realms.sendChatMessage({
-                method: 'typing',
-                userId: this.id,
-                name: this.name,
-                args: {
-                  typing,
-                },
-                hidden: true,
-              });
-            } catch (err) {
-              console.warn(err);
-            }
-          }
-        };
-        conversation.addEventListener('typingstart', (e: MessageEvent) => {
-          sendTyping(true);
-        });
-        conversation.addEventListener('typingend', (e: MessageEvent) => {
-          sendTyping(false);
-        });
-      };
-      _bindConversation();
-
-      this.rooms.set(key, realms);
-
-      await realms.updateRealmsKeys({
-        realmsKeys: [room],
-        rootRealmKey: room,
-      });
-
-      await connectPromise;
-    })();
-    try {
-      await realmsPromise;
-    } catch (err) {
-      console.warn(err);
-
-      const cleanup = () => {
-        this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-          data: {
-            conversation,
-          },
-        }));
-  
-        this.rooms.delete(key);
-      };
-      cleanup();
-    }
-  }
-  leave({
-    room,
-    endpointUrl,
-  }) {
-    const key = ConversationObject.getKey({
-      room,
-      endpointUrl,
-    });
-    console.log('leave room', {
-      room,
-      endpointUrl,
-      key,
-    });
-    const realms = this.rooms.get(key);
-    if (realms) {
-      const conversation = realms.metadata.conversation;
-      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-        data: {
-          conversation,
-        },
-      }));
-
-      this.rooms.delete(key);
-
-      realms.disconnect();
-    }
-  }
-
-  // convert this ActiveAgentObject to a GenerativeAgentObject for inference
+  // convert this ActiveAgentObject to a cached GenerativeAgentObject for inference
   generative({
     conversation,
   }: {
     conversation: ConversationObject;
   }) {
-    return new GenerativeAgentObject(this, conversation);
+    let generativeAgent = this.generativeAgentsMap.get(conversation);
+    if (!generativeAgent) {
+      generativeAgent = new GenerativeAgentObject(this, conversation);
+      this.generativeAgentsMap.set(conversation, generativeAgent);
+    }
+    return generativeAgent;
   }
 
   async getMemory(
@@ -628,5 +260,13 @@ export class ActiveAgentObject extends AgentObject {
     } else {
       throw new Error(JSON.stringify(error));
     }
+  }
+  live() {
+    this.chatsManager.live();
+    this.pingManager.live();
+  }
+  destroy() {
+    this.chatsManager.destroy();
+    this.pingManager.destroy();
   }
 }
