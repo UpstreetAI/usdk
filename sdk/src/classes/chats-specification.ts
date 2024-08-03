@@ -41,12 +41,12 @@ import type {
   // ActiveAgentObject,
   RoomSpecification,
 } from '../types';
+// import {
+//   ConversationObject,
+// } from './conversation-object';
 import {
-  ConversationObject,
-} from './conversation-object';
-import {
-  // QueueManager,
-  MultiQueueManager,
+  QueueManager,
+  // MultiQueueManager,
 } from '../util/queue-manager.mjs';
 // import {
 //   makePromise,
@@ -97,7 +97,7 @@ export class ChatsSpecification extends EventTarget {
   supabase: any;
   // state
   roomSpecifications: RoomSpecification[];
-  roomsQueueManager: MultiQueueManager;
+  roomsQueueManager: QueueManager;
   loadPromise: Promise<void>;
 
   constructor({
@@ -113,7 +113,7 @@ export class ChatsSpecification extends EventTarget {
     this.supabase = supabase;
 
     this.roomSpecifications = [];
-    this.roomsQueueManager = new MultiQueueManager();
+    this.roomsQueueManager = new QueueManager();
     this.loadPromise = (async () => {
       const result = await this.supabase.from('chat_specifications')
         .select('*')
@@ -148,8 +148,7 @@ export class ChatsSpecification extends EventTarget {
     await this.waitForLoad();
 
     // console.log('join room 1', roomSpecification);
-    const key = getRoomsSpecificationKey(roomSpecification);
-    return await this.roomsQueueManager.waitForTurn(key, async () => {
+    return await this.roomsQueueManager.waitForTurn(async () => {
       // console.log('join room 1.1', key, roomSpecification);
       const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
       if (index === -1) {
@@ -164,15 +163,16 @@ export class ChatsSpecification extends EventTarget {
           await e.waitForFinish();
         };
         const _insertRow = async () => {
+          const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
-          .upsert({
-            id: key,
-            user_id: this.userId,
-            data: {
-              room: roomSpecification.room,
-              endpoint_url: roomSpecification.endpointUrl,
-            },
-          });
+            .upsert({
+              id: key,
+              user_id: this.userId,
+              data: {
+                room: roomSpecification.room,
+                endpoint_url: roomSpecification.endpointUrl,
+              },
+            });
           const {
             error,
           } = result;
@@ -202,8 +202,7 @@ export class ChatsSpecification extends EventTarget {
     await this.waitForLoad();
 
     // console.log('leave room 1', roomSpecification);
-    const key = getRoomsSpecificationKey(roomSpecification);
-    return await this.roomsQueueManager.waitForTurn(key, async () => {
+    return await this.roomsQueueManager.waitForTurn(async () => {
       const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
       if (index !== -1) {
         this.roomSpecifications.splice(index, 1);
@@ -216,9 +215,10 @@ export class ChatsSpecification extends EventTarget {
           await e.waitForFinish();
         };
         const _deleteRow = async () => {
+          const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
-          .delete()
-          .eq('id', key);
+            .delete()
+            .eq('id', key);
           const {
             error,
           } = result;
@@ -236,6 +236,42 @@ export class ChatsSpecification extends EventTarget {
       } else {
         throw new Error('chat not joined: ' + JSON.stringify(roomSpecification));
       }
+    });
+  }
+  async leaveAll() {
+    await this.waitForLoad();
+
+    return await this.roomsQueueManager.waitForTurn(async () => {
+      const _emitLeaveEvent = async (roomSpecification: RoomSpecification) => {
+        const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
+          data: roomSpecification,
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      };
+      const _emitLeaveEvents = async () => {
+        return await Promise.all(this.roomSpecifications.map(async (roomSpecification) => {
+          await _emitLeaveEvent(roomSpecification);
+        }));
+      };
+      const _deleteAllRows = async () => {
+        const result = await this.supabase.from('chat_specifications')
+          .delete()
+          .eq('user_id', this.userId);
+        const {
+          error,
+        } = result;
+        if (!error) {
+          // nothing
+        } else {
+          throw new Error('failed to delete chat specifications: ' + JSON.stringify(error));
+        }
+      };
+
+      await Promise.all([
+        _emitLeaveEvents(),
+        _deleteAllRows(),
+      ]);
     });
   }
 

@@ -221,6 +221,7 @@ export type ChatsSpecification = EventTarget & {
   waitForLoad: () => Promise<void>;
   join: (opts: RoomSpecification) => Promise<void>;
   leave: (opts: RoomSpecification) => Promise<void>;
+  leaveAll: () => Promise<void>;
   tick: () => Promise<number>;
 };
 export type ChatsManager = EventTarget & {
@@ -230,7 +231,7 @@ export type ChatsManager = EventTarget & {
   // state
   rooms: Map<string, NetworkRealms>;
   incomingMessageQueueManager: QueueManager;
-  roomsQueueManager: MultiQueueManager;
+  roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
   // join: (opts: RoomSpecification) => Promise<void>;

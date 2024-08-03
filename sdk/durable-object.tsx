@@ -136,6 +136,10 @@ export class DurableObject extends EventTarget {
                   });
                   break;
                 }
+                case 'leaveAll': {
+                  await this.chatsSpecification.leaveAll();
+                  break;
+                }
               }
             });
 
@@ -330,6 +334,13 @@ export class DurableObject extends EventTarget {
             });
           }
         };
+        const handleLeaveAll = async () => {
+          await this.chatsSpecification.leaveAll();
+
+          return new Response(JSON.stringify({ ok: true }), {
+            headers,
+          });
+        };
         const handleDefaultRequest = async () => {
           const serverResponse = await serverHandler(request, {
             agentRenderer: this.agentRenderer,
@@ -353,6 +364,8 @@ export class DurableObject extends EventTarget {
             return await handleJoin();
           case 'leave':
             return await handleLeave();
+          case 'leaveAll':
+            return await handleLeaveAll();
           default:
             return await handleDefaultRequest();
         }
