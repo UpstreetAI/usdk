@@ -76,3 +76,25 @@ export class QueueManager extends EventTarget {
     }
   }
 }
+
+export class MultiQueueManager {
+  constructor(opts) {
+    this.opts = opts;
+
+    this.queueManagers = new Map();
+  }
+  async waitForTurn(key, fn) {
+    let queueManager = this.queueManagers.get(key);
+    if (!queueManager) {
+      queueManager = new QueueManager(this.opts);
+      this.queueManagers.set(key, queueManager);
+      queueManager.addEventListener('idlechange', e => {
+        const { idle } = e.data;
+        if (idle) {
+          this.queueManagers.delete(key);
+        }
+      });
+    }
+    return await queueManager.waitForTurn(fn);
+  }
+}
