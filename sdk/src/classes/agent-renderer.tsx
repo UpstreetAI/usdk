@@ -303,7 +303,7 @@ export class AgentRenderer {
       this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
-      true, // isStrictMode
+      env['WORKER_ENV'] === 'development', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
       logError, // onUncaughtError
