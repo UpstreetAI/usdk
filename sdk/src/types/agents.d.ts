@@ -48,6 +48,7 @@ export type AgentObject = EventTarget & {
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
+  generativeQueueManager: QueueManager;
   
   get location(): URL;
 
@@ -149,9 +150,12 @@ export type MemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
 };
-export type QueueManager = {
+export type QueueManager = EventTarget & {
   isIdle: () => boolean;
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
+};
+export type MultiQueueManager = {
+  waitForTurn: (key: string, fn: () => Promise<any>) => Promise<void>;
 };
 
 export type MessageCache = {
@@ -170,7 +174,7 @@ export type Player = {
   setPlayerSpec(playerSpec: object): void;
 };
 export type ConversationObject = EventTarget & {
-  id: string;
+  // id: string;
   room: string;
   endpointUrl: string;
   scene: SceneObject | null;
@@ -202,15 +206,56 @@ export type ConversationObject = EventTarget & {
   getAgents: () => Player[];
   addAgent: (agentId: string, player: Player) => void;
   removeAgent: (agentId: string) => void;
-}
+};
+export type RoomSpecification = {
+  room: string;
+  endpointUrl: string;
+};
+export type ChatsSpecification = EventTarget & {
+  userId: string;
+  supabase: any;
+  roomSpecifications: RoomSpecification[];
+  roomsQueueManager: MultiQueueManager;
+  loadPromise: Promise<void>;
+
+  waitForLoad: () => Promise<void>;
+  join: (opts: RoomSpecification) => Promise<void>;
+  leave: (opts: RoomSpecification) => Promise<void>;
+  leaveAll: () => Promise<void>;
+  tick: () => Promise<number>;
+};
+export type ChatsManager = EventTarget & {
+  // members
+  agent: ActiveAgentObject;
+  chatsSpecification: ChatsSpecification;
+  // state
+  rooms: Map<string, NetworkRealms>;
+  incomingMessageQueueManager: QueueManager;
+  roomsQueueManager: QueueManager;
+  abortController: AbortController | null;
+
+  // join: (opts: RoomSpecification) => Promise<void>;
+  // leave: (opts: RoomSpecification) => Promise<void>;
+  live: () => void;
+  destroy: () => void;
+};
+export type TaskManager = {
+  tick: () => Promise<number>;
+};
+export type PingManager = {
+  userId: string;
+  supabase: any;
+  interval: any;
+  live: () => void;
+  destroy: () => void;
+};
 export type ActiveAgentObject = AgentObject & {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 
-  rooms: Map<string, NetworkRealms>;
-  incomingMessageQueueManager: QueueManager;
-  generativeQueueManager: QueueManager;
-  tasks: Map<any, TaskObject>;
+  chatsManager: ChatsManager;
+  taskManager: TaskManager;
+  generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
 
@@ -244,14 +289,8 @@ export type ActiveAgentObject = AgentObject & {
     opts?: MemoryOpts,
   ) => Promise<void>;
 
-  join: (opts: {
-    room: string;
-    endpointUrl: string;
-  }) => Promise<void>;
-  leave: (opts: {
-    room: string;
-    endpointUrl: string;
-  }) => void;
+  live: () => void;
+  destroy: () => void;
 }
 
 // action events
@@ -486,6 +525,7 @@ export type AppContextValue = {
   useAuthToken: () => string;
 
   useSupabase: () => any;
+  useChatsSpecification: () => ChatsSpecification;
   useStripe: () => any;
 
   useTts: (ttsArgs: TtsArgs) => Tts;

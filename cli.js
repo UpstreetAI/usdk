@@ -584,7 +584,7 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBin,
-    ['dev', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
+    ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
     {
       stdio: 'pipe',
       // stdio: 'inherit',
@@ -599,7 +599,7 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
   }
   return cp;
 };
-const startWebcamServer = async () => {
+/* const startWebcamServer = async () => {
   const app = express();
   // app.use(express.static(cwd));
   const server = https.createServer(getServerOpts(), app);
@@ -618,12 +618,12 @@ const startWebcamServer = async () => {
       }
     });
   });
-};
-const startMultiplayerServer = async () => {
+}; */
+/* const startMultiplayerServer = async () => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBin,
-    ['dev', '--ip', '0.0.0.0', '--port', multiplayerPort],
+    ['dev', '--env=local', '--ip', '0.0.0.0', '--port', multiplayerPort],
     {
       stdio: 'pipe',
       // stdio: 'inherit',
@@ -633,7 +633,7 @@ const startMultiplayerServer = async () => {
   bindProcess(cp);
   await waitForProcessIo(cp, /ready/i);
   return cp;
-};
+}; */
 const getAssetJson = async (supabase, guid) => {
   const assetResult = await supabase
     .from('assets')
@@ -1597,7 +1597,7 @@ const connect = async (args) => {
     process.exit(1);
   }
 };
-const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
+/* const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
   new Promise((accept, reject) => {
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
@@ -1621,7 +1621,7 @@ const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
     // ws.addEventListener('message', (e) => {
     //   console.log('got ws message', e);
     // });
-  });
+  }); */
 const getGuidFromPath = async (p) => {
   const makeEnoent = () => new Error('not in an agent directory');
 
@@ -1692,16 +1692,15 @@ const chat = async (args) => {
     }
 
     // wait for agents to join the multiplayer room
-    const wsPromises = Promise.all(
+    await Promise.all(
       guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        return await join({
+        await join({
           _: [guidOrDevPathIndex, room],
           dev,
           // debug,
         });
       }),
     );
-    const webSockets = await wsPromises;
 
     // connect to the chat
     await connect({
@@ -1887,9 +1886,9 @@ const listen = async (args) => {
   if (dev) {
     // wait for agents to join the multiplayer 
     const room = makeRoomName();
-    const wsPromises = Promise.all(
+    await Promise.all(
       guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        return await join({
+        await join({
           _: [guidOrDevPathIndex, room],
           local: args.local,
           dev,
@@ -1901,7 +1900,6 @@ const listen = async (args) => {
         }); */
       }),
     );
-    webSockets = await wsPromises;
   }
 
 
@@ -2888,7 +2886,7 @@ const test = async (args) => {
 
       // wait for agents to join the multiplayer room
       const room = makeRoomName();
-      const ws = await join({
+      await join({
         _: [guidOrDevPathIndex, room],
         dev,
         // debug,
@@ -2911,7 +2909,6 @@ const test = async (args) => {
         await runJest(agentDirectory);
       } finally {
         // clean up
-        ws.close();
         realms.disconnect();
         process.kill(cp.pid, 'SIGTERM');
       }
@@ -3436,16 +3433,10 @@ const join = async (args) => {
   // const debug = !!args.debug;
 
   const _joinAgent = async () => {
-    // cause the agent to join the room
     const agentHost = getAgentHost(
       !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
     );
-    // console.log('get agent host', {
-    //   guidOrDevPathIndex,
-    //   agentHost,
-    // });
     const u = `${agentHost}/join`;
-    // console.log('join 1', u);
     const headers = {};
     if (!dev) {
       const jwt = await getLoginJwt();
@@ -3456,16 +3447,16 @@ const join = async (args) => {
       headers,
       body: JSON.stringify({
         room,
+        only: true,
       }),
     });
     if (joinReq.ok) {
       const joinJson = await joinReq.json();
-      // console.log('join 2', joinJson);
 
-      const ws = await connectAgentWs(guidOrDevPathIndex, {
-        dev,
-      });
-      return ws;
+      // const ws = await connectAgentWs(guidOrDevPathIndex, {
+      //   dev,
+      // });
+      // return ws;
     } else {
       const text = await joinReq.text();
       console.warn(

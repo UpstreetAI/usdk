@@ -68,6 +68,9 @@ import {
   RenderLoaderProvider,
 } from './classes/render-loader';
 // import { AgentContextValue } from './classes/agent-context-value';
+import {
+  getChatKey,
+} from './classes/chats-manager';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -108,24 +111,38 @@ export const Agent = forwardRef(({
   }), []);
   const [registryEpoch, setRegistryEpoch] = useState(0);
 
-  // events
+  // cleanup binding
+  useEffect(() => {
+    agent.live();
+
+    return () => {
+      agent.destroy();
+    };
+  }, [agent]);
+
+  // events bindings
   useEffect(() => {
     const onconversationadd = (e: ConversationAddEvent) => {
       setConversations((conversations) => conversations.concat([e.data.conversation]));
     };
-    agent.addEventListener('conversationadd', onconversationadd);
+    agent.chatsManager.addEventListener('conversationadd', onconversationadd);
     const onconversationremove = (e: ConversationRemoveEvent) => {
       setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
     };
-    agent.addEventListener('conversationremove', onconversationremove);
+    agent.chatsManager.addEventListener('conversationremove', onconversationremove);
+
+    return () => {
+      agent.chatsManager.removeEventListener('conversationadd', onconversationadd);
+      agent.chatsManager.removeEventListener('conversationremove', onconversationremove);
+    };
+  }, [agent]);
+  useEffect(() => {
     const onepochchange = (e: MessageEvent) => {
       setRegistryEpoch((registryEpoch) => registryEpoch + 1);
     };
     agent.addEventListener('epochchange', onepochchange);
 
     return () => {
-      agent.removeEventListener('conversationadd', onconversationadd);
-      agent.removeEventListener('conversationremove', onconversationremove);
       agent.removeEventListener('epochchange', onepochchange);
     };
   }, [agent]);
@@ -201,7 +218,7 @@ export const Conversation = (props: ConversationProps) => {
       <ConversationInstance
         agent={agent}
         conversation={conversation}
-        key={conversation.id}
+        key={getChatKey(conversation)}
       >
         {props.children}
       </ConversationInstance>
@@ -318,7 +335,6 @@ export const Task = /*memo(*/(props: TaskProps) => {
   const symbol = useMemo(makeSymbol, []);
 
   const deps = [
-    // props.id,
     props.handler.toString(),
     props.onDone?.toString(),
   ];

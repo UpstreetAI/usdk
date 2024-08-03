@@ -22,13 +22,18 @@ import {
 import {
   ActiveAgentObject,
 } from './active-agent-object';
+import {
+  QueueManager,
+} from '../util/queue-manager.mjs';
 
 //
 
 export class GenerativeAgentObject {
-  // arguments
+  // members
   agent: ActiveAgentObject;
   conversation: ConversationObject;
+  // state
+  generativeQueueManager = new QueueManager();
 
   //
   
@@ -39,6 +44,8 @@ export class GenerativeAgentObject {
     this.agent = agent;
     this.conversation = conversation;
   }
+
+  //
 
   get location() {
     return new URL(this.conversation.getBrowserUrl());
@@ -60,7 +67,7 @@ export class GenerativeAgentObject {
   // methods
 
   async think(hint?: string) {
-    await this.agent.generativeQueueManager.waitForTurn(async () => {
+    await this.generativeQueueManager.waitForTurn(async () => {
       // console.log('agent renderer think 1');
       await this.conversation.typing(async () => {
         // console.log('agent renderer think 2');

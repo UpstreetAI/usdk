@@ -18,13 +18,13 @@ export async function loadMessagesFromDatabase({
     .order( 'created_at', { ascending: true })
     .limit( limit );
   if (!error) {
-    return decodeMessage(data);
+    return decodeMessages(data);
   } else {
     throw new Error(`${error.code} ${error.message}`);
   }
 }
 
-function decodeMessage(messages) {
+function decodeMessages(messages) {
   return messages.map( message => ({
     method: message.method,
     args: message.args,

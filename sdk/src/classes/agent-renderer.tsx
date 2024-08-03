@@ -16,6 +16,7 @@ import { AppContext, ConfigurationContext } from '../context';
 import type {
   UserHandler,
   InstanceChild,
+  ChatsSpecification,
 } from '../types';
 // import inspect from 'browser-util-inspect';
 
@@ -139,6 +140,7 @@ const logError =
 export class AgentRenderer {
   env: object;
   userRender: UserHandler;
+  chatsSpecification: ChatsSpecification;
 
   registry: RenderRegistry;
   appContextValue: AppContextValue;
@@ -154,13 +156,16 @@ export class AgentRenderer {
   constructor({
     env,
     userRender,
+    chatsSpecification,
   }: {
     env: object;
     userRender: UserHandler;
+    chatsSpecification: ChatsSpecification;
   }) {
     // latch arguments
     this.env = env;
     this.userRender = userRender;
+    this.chatsSpecification = chatsSpecification;
 
     // create the app context
     this.registry = new RenderRegistry();
@@ -183,12 +188,16 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
+    const useChatsSpecification = () => {
+      return this.chatsSpecification;
+    };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
+      chatsSpecification: useChatsSpecification(),
     });
 
     // run the module to get the result
@@ -294,7 +303,7 @@ export class AgentRenderer {
       this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
-      true, // isStrictMode
+      env['WORKER_ENV'] === 'development', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
       logError, // onUncaughtError

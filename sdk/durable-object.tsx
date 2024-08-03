@@ -1,13 +1,19 @@
 import { headers } from './src/constants.js';
 import { makeAnonymousClient, getUserIdForJwt, getUserForJwt } from './src/util/supabase-client.mjs';
-import { multiplayerEndpointUrl } from './src/util/endpoints.mjs';
 import { AgentRenderer } from './src/classes/agent-renderer.js';
+import { ChatsSpecification } from './src/classes/chats-specification.js';
 import {
   serverHandler,
  } from './src/routes/server.js';
-import {
-  compileUserAgentTasks,
-} from './src/runtime.js';
+ import {
+  // aiHost,
+  // metamaskHost,
+  // deployEndpointUrl,
+  multiplayerEndpointUrl,
+  // r2EndpointUrl,
+  // chatEndpointUrl,
+  // workersHost,
+} from './src/util/endpoints.mjs';
 
 import userRender from '../agent'; // note: this will be copied in by the build process
 
@@ -22,6 +28,7 @@ export class DurableObject extends EventTarget {
   state: any;
   env: any;
   supabase: any;
+  chatsSpecification: ChatsSpecification;
   agentRenderer: AgentRenderer;
   loadPromise: Promise<void>;
 
@@ -32,89 +39,27 @@ export class DurableObject extends EventTarget {
     this.env = env;
     this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
 
+    this.chatsSpecification = new ChatsSpecification({
+      userId: this.#getGuid(),
+      supabase: this.supabase,
+    });
     this.agentRenderer = new AgentRenderer({
       env,
       userRender,
+      chatsSpecification: this.chatsSpecification,
     });
 
-    this.loadPromise = (async () => {
-      await this.agentRenderer.waitForRender();
+    this.loadPromise = Promise.all([
+      this.agentRenderer.waitForRender(),
+    ]).then(() => {});
 
-      (async () => {
-        await this.updateTasks();
-      })().catch(err => {
-        console.warn(err);
-      });
-    })().catch(err => {
-      console.warn(err);
-    });
+    (async () => {
+      await this.alarm();
+    })();
   }
 
   waitForLoad() {
     return this.loadPromise;
-  }
-
-  //
-
-  async join({
-    agentId = null,
-    room,
-    endpointUrl = multiplayerEndpointUrl,
-  }) {
-    const promises = [];
-    const registry = this.agentRenderer.registry;
-    const agents = registry.agents;
-    if (agentId !== null) {
-      // join for specific agent
-      const agent = agents.find(a => a.id === agentId);
-      if (agent) {
-        const p = agent.join({
-          room,
-          endpointUrl,
-        });
-        promises.push(p);
-      } else {
-        throw new Error('agent not found');
-      }
-    } else {
-      // join for all agents
-      for (const agent of agents) {
-        const p = agent.join({
-          room,
-          endpointUrl,
-        });
-        promises.push(p);
-      }
-    }
-    await Promise.all(promises);
-  }
-  async leave({
-    agentId = null,
-    room,
-    endpointUrl = multiplayerEndpointUrl,
-  }) {
-    const registry = this.agentRenderer.registry;
-    const agents = registry.agents;
-    if (agentId !== null) {
-      // leave for specific agent
-      const agent = agents.find(a => a.id === agentId);
-      if (agent) {
-        agent.leave({
-          room,
-          endpointUrl,
-        });
-      } else {
-        throw new Error('agent not found');
-      }
-    } else {
-      // leave for all agents
-      for (const agent of agents) {
-        agent.leave({
-          room,
-          endpointUrl,
-        });
-      }
-    }
   }
 
   //
@@ -131,7 +76,7 @@ export class DurableObject extends EventTarget {
   //
 
   // Handle HTTP requests from clients.
-  async fetch(request) {
+  async fetch(request: Request) {
     try {
       const u = new URL(request.url);
       console.log('worker request', request.method, u.href);
@@ -178,19 +123,35 @@ export class DurableObject extends EventTarget {
               const { method, args } = j;
               switch (method) {
                 case 'join': {
-                  await this.join({
-                    room: args.room,
-                    endpointUrl: args.endpointUrl,
+                  const {
+                    room,
+                    endpointUrl = multiplayerEndpointUrl,
+                    only = false,
+                  } = args;
+                  if (only) {
+                    await this.chatsSpecification.leaveAll();
+                  }
+                  await this.chatsSpecification.join({
+                    room,
+                    endpointUrl,
                   });
                   break;
                 }
                 case 'leave': {
-                  await this.leave({
-                    room: args.room,
-                    endpointUrl: args.endpointUrl,
+                  const {
+                    room,
+                    endpointUrl = multiplayerEndpointUrl,
+                  } = args;
+                  await this.chatsSpecification.leave({
+                    room,
+                    endpointUrl,
                   });
                   break;
                 }
+                // case 'leaveAll': {
+                //   await this.chatsSpecification.leaveAll();
+                //   break;
+                // }
               }
             });
 
@@ -339,9 +300,17 @@ export class DurableObject extends EventTarget {
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
-          const { room, endpointUrl } = body ?? {};
+          const {
+            room,
+            endpointUrl = multiplayerEndpointUrl,
+            only = false,
+          } = body ?? {};
           if (typeof room === 'string') {
-            await this.join({
+            if (only) {
+              await this.chatsSpecification.leaveAll();
+            }
+
+            await this.chatsSpecification.join({
               room,
               endpointUrl,
             });
@@ -360,9 +329,12 @@ export class DurableObject extends EventTarget {
         };
         const handleLeave = async () => {
           const body = await request.json();
-          const { room, endpointUrl } = body ?? {};
+          const {
+            room,
+            endpointUrl = multiplayerEndpointUrl,
+          } = body ?? {};
           if (typeof room === 'string') {
-            await this.leave({
+            await this.chatsSpecification.leave({
               room,
               endpointUrl,
             });
@@ -379,6 +351,13 @@ export class DurableObject extends EventTarget {
             });
           }
         };
+        // const handleLeaveAll = async () => {
+        //   await this.chatsSpecification.leaveAll();
+
+        //   return new Response(JSON.stringify({ ok: true }), {
+        //     headers,
+        //   });
+        // };
         const handleDefaultRequest = async () => {
           const serverResponse = await serverHandler(request, {
             agentRenderer: this.agentRenderer,
@@ -402,11 +381,13 @@ export class DurableObject extends EventTarget {
             return await handleJoin();
           case 'leave':
             return await handleLeave();
+          // case 'leaveAll':
+          //   return await handleLeaveAll();
           default:
             return await handleDefaultRequest();
         }
       } else {
-        return new Response('durable object: not found', {
+        return new Response('durable object: path not found', {
           headers,
           status: 404,
         });
@@ -420,19 +401,30 @@ export class DurableObject extends EventTarget {
       });
     }
   }
-  async updateTasks() {
-    // console.log('update tasks');
-    const taskUpdater = await compileUserAgentTasks({
-      agentRenderer: this.agentRenderer,
-    });
-    const timeout = await taskUpdater.update();
-    if (isFinite(timeout)) {
+  async schedule() {
+    const agents = this.agentRenderer.registry.agents;
+    const [
+      taskTimeouts,
+      chatSpecificationTimeout,
+    ] = await Promise.all([
+      Promise.all(agents.map(async (agent) => {
+        return await agent.taskManager.tick();
+      })),
+      this.chatsSpecification.tick(),
+    ]);
+    const timeouts = [
+      ...taskTimeouts,
+      chatSpecificationTimeout,
+    ];
+    const minTimeout = Math.min(...timeouts);
+    if (isFinite(minTimeout)) {
       // const now = Date.now();
       // console.log('set new task timeout in ' + (timeout - now) + 'ms');
-      this.state.storage.setAlarm(timeout);
+      this.state.storage.setAlarm(minTimeout);
     }
   }
   async alarm() {
-    await this.updateTasks();
+    await this.waitForLoad();
+    await this.schedule();
   }
 }
