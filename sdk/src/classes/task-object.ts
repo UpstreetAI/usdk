@@ -9,6 +9,9 @@ export class TaskObject {
     id = null,
     timestamp = new Date(0),
   } = {}) {
+    if (!(timestamp instanceof Date)) {
+      throw new Error('Invalid timestamp; must be a Date: ' + timestamp);
+    }
     this.id = id;
     this.timestamp = timestamp;
   }
