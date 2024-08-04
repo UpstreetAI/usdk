@@ -75,7 +75,7 @@ import {
 //
 
 const activeChatsAlarmRate = 10000;
-const roomsSpecificationEquals = (a: RoomSpecification, b: RoomSpecification) => {
+export const roomsSpecificationEquals = (a: RoomSpecification, b: RoomSpecification) => {
   return a.room === b.room && a.endpointUrl === b.endpointUrl;
 };
 
