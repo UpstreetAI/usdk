@@ -148,21 +148,21 @@ export class ChatsSpecification extends EventTarget {
     await this.waitForLoad();
 
     // console.log('join room 1', roomSpecification);
-    return await this.roomsQueueManager.waitForTurn(async () => {
-      // console.log('join room 1.1', key, roomSpecification);
-      const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
-      if (index === -1) {
-        this.roomSpecifications.push(roomSpecification);
+    // console.log('join room 1.1', key, roomSpecification);
+    const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
+    if (index === -1) {
+      this.roomSpecifications.push(roomSpecification);
 
-        const _emitJoinEvent = async () => {
-          // console.log('emit join event', roomSpecification);
-          const e = new ExtendableMessageEvent<RoomSpecification>('join', {
-            data: roomSpecification,
-          });
-          this.dispatchEvent(e);
-          await e.waitForFinish();
-        };
-        const _insertRow = async () => {
+      const _emitJoinEvent = async () => {
+        // console.log('emit join event', roomSpecification);
+        const e = new ExtendableMessageEvent<RoomSpecification>('join', {
+          data: roomSpecification,
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      };
+      const _insertRow = async () => {
+        await this.roomsQueueManager.waitForTurn(async () => {
           const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
             .upsert({
@@ -181,16 +181,16 @@ export class ChatsSpecification extends EventTarget {
           } else {
             throw new Error('failed to insert chat specification: ' + JSON.stringify(error));
           }
-        };
-        await Promise.all([
-          _emitJoinEvent(),
-          _insertRow(),
-        ]);
-        // console.log('join room 2');
-      } else {
-        throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
-      }
-    });
+        });
+      };
+      await Promise.all([
+        _emitJoinEvent(),
+        _insertRow(),
+      ]);
+      // console.log('join room 2');
+    } else {
+      throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
+    }
   }
   async leave(roomSpecification: RoomSpecification) {
     if (!roomSpecification.room || !roomSpecification.endpointUrl) {
@@ -202,19 +202,19 @@ export class ChatsSpecification extends EventTarget {
     await this.waitForLoad();
 
     // console.log('leave room 1', roomSpecification);
-    return await this.roomsQueueManager.waitForTurn(async () => {
-      const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
-      if (index !== -1) {
-        this.roomSpecifications.splice(index, 1);
+    const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
+    if (index !== -1) {
+      this.roomSpecifications.splice(index, 1);
 
-        const _emitLeaveEvent = async () => {
-          const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
-            data: roomSpecification,
-          });
-          this.dispatchEvent(e);
-          await e.waitForFinish();
-        };
-        const _deleteRow = async () => {
+      const _emitLeaveEvent = async () => {
+        const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
+          data: roomSpecification,
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      };
+      const _deleteRow = async () => {
+        await this.roomsQueueManager.waitForTurn(async () => {
           const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
             .delete()
@@ -227,34 +227,34 @@ export class ChatsSpecification extends EventTarget {
           } else {
             throw new Error('failed to delete chat specification: ' + JSON.stringify(error));
           }
-        };
-        await Promise.all([
-          _emitLeaveEvent(),
-          _deleteRow(),
-        ]);
-        // console.log('leave room 2', roomSpecification);
-      } else {
-        throw new Error('chat not joined: ' + JSON.stringify(roomSpecification));
-      }
-    });
+        });
+      };
+      await Promise.all([
+        _emitLeaveEvent(),
+        _deleteRow(),
+      ]);
+      // console.log('leave room 2', roomSpecification);
+    } else {
+      throw new Error('chat not joined: ' + JSON.stringify(roomSpecification));
+    }
   }
   async leaveAll() {
     await this.waitForLoad();
 
-    return await this.roomsQueueManager.waitForTurn(async () => {
-      const _emitLeaveEvent = async (roomSpecification: RoomSpecification) => {
-        const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
-          data: roomSpecification,
-        });
-        this.dispatchEvent(e);
-        await e.waitForFinish();
-      };
-      const _emitLeaveEvents = async () => {
-        return await Promise.all(this.roomSpecifications.map(async (roomSpecification) => {
-          await _emitLeaveEvent(roomSpecification);
-        }));
-      };
-      const _deleteAllRows = async () => {
+    const _emitLeaveEvent = async (roomSpecification: RoomSpecification) => {
+      const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
+        data: roomSpecification,
+      });
+      this.dispatchEvent(e);
+      await e.waitForFinish();
+    };
+    const _emitLeaveEvents = async () => {
+      return await Promise.all(this.roomSpecifications.map(async (roomSpecification) => {
+        await _emitLeaveEvent(roomSpecification);
+      }));
+    };
+    const _deleteAllRows = async () => {
+      await this.roomsQueueManager.waitForTurn(async () => {
         const result = await this.supabase.from('chat_specifications')
           .delete()
           .eq('user_id', this.userId);
@@ -266,13 +266,13 @@ export class ChatsSpecification extends EventTarget {
         } else {
           throw new Error('failed to delete chat specifications: ' + JSON.stringify(error));
         }
-      };
+      });
+    };
 
-      await Promise.all([
-        _emitLeaveEvents(),
-        _deleteAllRows(),
-      ]);
-    });
+    await Promise.all([
+      _emitLeaveEvents(),
+      _deleteAllRows(),
+    ]);
   }
 
   // return the next alarm time
