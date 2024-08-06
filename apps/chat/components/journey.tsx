@@ -1,0 +1,289 @@
+'use client';
+
+// import { createRoot } from 'react-dom/client'
+import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
+// import { useAspect } from '@react-three/drei'
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {
+  Vector2,
+  Vector3,
+  PerspectiveCamera,
+  Raycaster,
+  Plane,
+  Box2,
+  Box3,
+  Mesh,
+  TextureLoader,
+  NoToneMapping,
+  LinearSRGBColorSpace,
+  SRGBColorSpace,
+  Texture,
+  BufferGeometry,
+  BoxGeometry,
+} from 'three';
+
+// function Box(props: any) {
+//   // This reference will give us direct access to the mesh
+//   const meshRef = useRef()
+//   // Set up state for the hovered and active state
+//   const [hovered, setHover] = useState(false)
+//   const [active, setActive] = useState(false)
+//   // Subscribe this component to the render-loop, rotate the mesh every frame
+//   useFrame((state, delta) => (meshRef.current.rotation.x += delta))
+//   // Return view, these are regular three.js elements expressed in JSX
+//   return (
+//     <mesh
+//       {...props}
+//       ref={meshRef}
+//       scale={active ? 1.5 : 1}
+//       onClick={(event) => setActive(!active)}
+//       onPointerOver={(event) => setHover(true)}
+//       onPointerOut={(event) => setHover(false)}>
+//       <boxGeometry args={[1, 1, 1]} />
+//       <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+//     </mesh>
+//   )
+// }
+
+// createRoot(document.getElementById('root')).render(
+//   <Canvas>
+//     <ambientLight intensity={Math.PI / 2} />
+//     <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
+//     <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
+//     <Box position={[-1.2, 0, 0]} />
+//     <Box position={[1.2, 0, 0]} />
+//   </Canvas>,
+// )
+
+export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
+  const v = useThree((state) => state.viewport)
+  const aspectRatio = width / height
+
+  const adaptedWidth = v.aspect > aspectRatio ? v.height * aspectRatio : v.width
+  const adaptedHeight = v.aspect > aspectRatio ? v.height : v.width / aspectRatio
+
+  return [adaptedWidth * factor, adaptedHeight * factor, 1]
+}
+
+const makeBoxOutlineGeometry = (b: Box3) => {
+  let x1: number;
+  let y1: number;
+  let x2: number;
+  let y2: number;
+  if (b.min.x < b.max.x) {
+    x1 = b.min.x;
+    x2 = b.max.x;
+  } else {
+    x1 = b.max.x;
+    x2 = b.min.x;
+  }
+  if (b.min.y < b.max.y) {
+    y1 = b.min.y;
+    y2 = b.max.y;
+  } else {
+    y1 = b.max.y;
+    y2 = b.min.y;
+  }
+
+  const w = x2 - x1;
+  const h = y2 - y1;
+
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+
+  const outlineWidth = 0.005;
+  const baseGeometry = new BoxGeometry(outlineWidth, 1 + outlineWidth * 2, outlineWidth);
+  const geometries = [
+    // top
+    baseGeometry.clone()
+      .rotateZ(Math.PI / 2)
+      .scale(w, 1, 1)
+      .translate(mx, y1, 0),
+    // bottom
+    baseGeometry.clone()
+      .rotateZ(Math.PI / 2)
+      .scale(w, 1, 1)
+      .translate(mx, y2, 0),
+    // left
+    baseGeometry.clone()
+      .scale(1, h, 1)
+      .translate(x1, my, 0),
+    // right
+    baseGeometry.clone()
+      .scale(1, h, 1)
+      .translate(x2, my, 0),
+  ];
+  const g = BufferGeometryUtils.mergeGeometries(geometries);
+  // console.log('got g', x1, y1, x2, y2);
+  return g;
+};
+
+const JourneyScene = () => {
+  const [texture, setTexture] = useState<Texture | null>(null);
+  const scale = useAspectContain(
+    texture ? texture.source.data.width : 512, // Pixel-width
+    texture ? texture.source.data.height : 512, // Pixel-height
+    1                         // Optional scaling factor
+  );
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const plane = useMemo(() => new Plane(new Vector3(0, 0, 1), 0), []);
+  const planeMeshRef = useRef<Mesh>(null);
+  const pointerMeshRef = useRef<Mesh>(null);
+  const [dragBox, setDragBox] = useState<Box3 | null>(null);
+  const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
+  // const [mousePosition, setMousePosition] = useState(() => new Vector2(0, 0));
+
+  // useEffect(() => {
+  //   const canvas = canvasRef.current;
+  //   console.log('got canvas', canvas);
+  // }, [canvasRef.current])
+  useEffect(() => {
+    const t = new TextureLoader().load('/images/test-bg.webp', () => {
+      // const img = t.source.data;
+      setTexture(t);
+    });
+  }, []);
+
+  // const { size } = useThree();
+  const { camera } = useThree();
+  useFrame((state) => {
+    const pointerMesh = pointerMeshRef.current;
+    const planeMesh = planeMeshRef.current;
+    if (planeMesh && pointerMesh) {
+      const mousePosition = new Vector2(
+        // state.mouse.x * 2 - 1,
+        // -state.mouse.y * 2 + 1
+        state.mouse.x,
+        state.mouse.y,
+      );
+      // setMousePosition(mousePosition);
+
+      raycaster.setFromCamera(mousePosition, camera);
+      raycaster.ray.intersectPlane(plane, pointerMesh.position);
+
+      // get the bounding box of the plane mesh
+      const planeBox = new Box3().setFromObject(planeMesh);
+      planeBox.min.z = -1;
+      planeBox.max.z = 1;
+
+      pointerMesh.visible = planeBox.containsPoint(pointerMesh.position);
+
+      // pointerMesh.position.x = mousePosition.x;
+      // pointerMesh.position.y = mousePosition.y;
+      // pointerMesh.position.z = 0;
+      // pointerMesh.position.project(camera);
+      // console.log('got', pointerMesh.position);
+      // const p = new Vector3(mousePosition.x, mousePosition.y, 0).project(camera);
+      // pointerMesh.position.set(mousePosition.x, mousePosition.y, 0.1);
+      // pointerMesh.updateMatrixWorld();
+    }
+  });
+  // get the canvas using useThree
+  const { gl } = useThree();
+  const canvas = gl.domElement;
+  useEffect(() => {
+    const pointerMesh = pointerMeshRef.current;
+
+    if (pointerMesh) {
+      const mousedown = (e: any) => {
+        if (e.target === canvas) {
+          if (pointerMesh.visible) {
+            // console.log('got target', e.target);
+            const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
+            setDragBox(dragBox);
+            setDragGeometry(makeBoxOutlineGeometry(dragBox));
+          }
+        }
+      };
+      document.addEventListener('mousedown', mousedown);
+      const mouseup = (e: any) => {
+        setDragBox(null);
+      };
+      document.addEventListener('mouseup', mouseup);
+      const mousemove = (e: any) => {
+        if (dragBox) {
+          dragBox.max.copy(pointerMesh.position);
+          setDragGeometry(makeBoxOutlineGeometry(dragBox));
+          // console.log('set drag geometry', dragBox);
+        }
+      };
+      document.addEventListener('mousemove', mousemove);
+
+      return () => {
+        document.removeEventListener('mousedown', mousedown);
+        document.removeEventListener('mouseup', mouseup);
+        document.removeEventListener('mousemove', mousemove);
+      };
+    }
+  }, [pointerMeshRef.current, dragBox]);
+
+  return <>
+    {/* <ambientLight intensity={Math.PI / 2} />
+    <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
+    <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} /> */}
+    {/* <Box position={[-1.2, 0, 0]} />
+    <Box position={[1.2, 0, 0]} /> */}
+    {/* drag mesh */}
+    {dragBox && <mesh
+      geometry={dragGeometry}
+    >
+      {/* <boxGeometry args={[0.2, 0.2, 0.2]} /> */}
+      <meshBasicMaterial color="black" />
+    </mesh>}
+    {/* mouse mesh */}
+    <mesh
+      // onPointerEnter={e => {
+      //   const pointerMesh = pointerMeshRef.current;
+      //   if (pointerMesh) {
+      //     pointerMesh.visible = true;
+      //   }
+      // }}
+      // onPointerLeave={e => {
+      //   const pointerMesh = pointerMeshRef.current;
+      //   if (pointerMesh) {
+      //     pointerMesh.visible = false;
+      //   }
+      // }}
+      // onPointerMove={e => {
+      //   const pointerMesh = pointerMeshRef.current;
+      //   console.log('pointer move', e, pointerMesh);
+      //   if (pointerMesh) {
+      //     pointerMesh.position.copy(e.point);
+      //     pointerMesh.updateMatrixWorld();
+      //   }
+      // }}
+      ref={pointerMeshRef}
+    >
+      <boxGeometry args={[0.02, 0.02, 0.02]} />
+      <meshBasicMaterial color="red" />
+    </mesh>
+    {/* plane mesh */}
+    {texture && <mesh ref={planeMeshRef} scale={scale}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={texture} />
+    </mesh>}
+  </>
+}
+
+export function Journey() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  return (
+    <div className="relative w-screen h-[calc(100vh-64px)]">
+      <Canvas
+        camera={{
+          position: [0, 0, 1],
+        }}
+        onCreated={({ gl }) => {
+          gl.toneMapping = NoToneMapping;
+          // camera.aspect = canvasRef.current.width / canvasRef.current.height;
+          // camera.updateProjectionMatrix();
+        }}
+        ref={canvasRef}
+      >
+        <JourneyScene />
+      </Canvas>
+    </div>
+  )
+}
