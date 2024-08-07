@@ -427,6 +427,7 @@ const JourneyScene = () => {
   const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
+  const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
@@ -523,8 +524,10 @@ const JourneyScene = () => {
   const canvas = gl.domElement;
   useEffect(() => {
     const pointerMesh = pointerMeshRef.current;
+    const intersectionMesh = intersectionMeshRef.current;
+    const planeMesh = planeMeshRef.current;
 
-    if (pointerMesh) {
+    if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
         if (e.target === canvas) {
           if (pointerMesh.visible) {
@@ -539,6 +542,18 @@ const JourneyScene = () => {
             setDragGeometry(makeBoxOutlineGeometry(dragBox));
 
             setPressed(true);
+
+            // intersect plane
+            raycaster.ray.origin.copy(camera.position);
+            raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+            const intersections = raycaster.intersectObject(planeMesh, false, []);
+            if (intersections.length > 0) {
+              const intersection =  intersections[0];
+              intersectionMesh.position.copy(intersection.point);
+              intersectionMesh.visible = true;
+            } else {
+              intersectionMesh.visible = false;
+            }
           }
         }
       };
@@ -657,6 +672,14 @@ const JourneyScene = () => {
     >
       <boxGeometry args={[0.02, 0.02, 0.02]} />
       <meshBasicMaterial color="red" />
+    </mesh>
+    {/* intersection mesh */}
+    <mesh
+      visible={false}
+      ref={intersectionMeshRef}
+    >
+      <boxGeometry args={[0.02, 0.02, 0.02]} />
+      <meshBasicMaterial color="blue" />
     </mesh>
     {/* cursor mesh */}
     <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
