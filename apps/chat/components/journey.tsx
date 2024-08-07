@@ -1,7 +1,7 @@
 'use client';
 
 // import { createRoot } from 'react-dom/client'
-import React, { useEffect, useRef, useState, useMemo } from 'react'
+import React, { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 // import { useAspect } from '@react-three/drei'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -27,6 +27,9 @@ import {
   UnsignedByteType,
   NearestFilter,
   PlaneGeometry,
+  BufferAttribute,
+  ShaderMaterial,
+  MeshBasicMaterial,
 } from 'three';
 
 const geometryResolution = 256;
@@ -164,7 +167,7 @@ const makeDepthSpec = ({
   };
 };
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-const sampleData = (data: Float32Array, x: number, y: number, w: number, h: number) => {
+const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: number) => {
   // x *= (w - 1) / w;
   // y *= (h - 1) / h;
 
@@ -210,10 +213,185 @@ const sampleData = (data: Float32Array, x: number, y: number, w: number, h: numb
 
 //
 
+const StoryCursor = forwardRef(({
+  pressed,
+}: {
+  pressed: boolean,
+}, ref: any) => {
+  // const scale = 0.3;
+  const scale = 0.2;
+  const baseHeight = 0.2 * scale;
+  const baseWidth = 0.03 * scale;
+  const centerSpacing = baseWidth * scale;
+  const outlineSize = 0.015 * scale;
+    const baseWidth2 = baseWidth + outlineSize;
+    const baseHeight2 = baseHeight + outlineSize;
+  const pressTime = 0.2;
+
+  const [lastPressedValue, setLastPressedValue] = useState(0);
+  const [lastPressedTime, setLastPressedTime] = useState(-Infinity);
+  const [geometry, setGeometry] = useState(() => {
+    const _addYs = (geometry: BufferGeometry) => {
+      const ys = new Float32Array(geometry.attributes.position.array.length / 3);
+      for (let i = 0; i < ys.length; i++) {
+        ys[i] = 1 - geometry.attributes.position.array[i * 3 + 1] / baseHeight;
+      }
+      geometry.setAttribute('y', new BufferAttribute(ys, 1));
+    };
+    const _addDirection = (geometry: BufferGeometry, direction: Vector3) => {
+      const directions = new Float32Array(geometry.attributes.position.array.length);
+      for (let i = 0; i < directions.length / 3; i++) {
+        directions[i + 0] = direction.x;
+        directions[i + 1] = direction.y;
+        directions[i + 2] = direction.z;
+      }
+      geometry.setAttribute('direction', new BufferAttribute(directions, 3));
+    };
+    const _addMonocolor = (geometry: BufferGeometry, v: number) => {
+      const monocolor = new Float32Array(geometry.attributes.position.array.length / 3).fill(v);
+      geometry.setAttribute('monocolor', new BufferAttribute(monocolor, 1));
+    };
+
+    // top geometry
+    const topGeometry = new BoxGeometry(baseWidth, baseHeight, baseWidth)
+      .translate(0, baseHeight / 2 + centerSpacing, 0);
+    _addYs(topGeometry);
+    _addDirection(topGeometry, new Vector3(0, 1, 0));
+    _addMonocolor(topGeometry, 0);
+    // other geometries
+    const leftGeometry = topGeometry.clone()
+      .rotateZ(Math.PI / 2);
+    _addDirection(leftGeometry, new Vector3(-1, 0, 0));
+    _addMonocolor(leftGeometry, 0);
+    const bottomGeometry = topGeometry.clone()
+      .rotateZ(Math.PI);
+    _addDirection(bottomGeometry, new Vector3(0, -1, 0));
+    _addMonocolor(bottomGeometry, 0);
+    const rightGeometry = topGeometry.clone()
+      .rotateZ(-Math.PI / 2);
+    _addDirection(rightGeometry, new Vector3(1, 0, 0));
+    _addMonocolor(rightGeometry, 0);
+    const forwardGeometry = topGeometry.clone()
+      .rotateX(-Math.PI / 2);
+    _addDirection(forwardGeometry, new Vector3(0, 0, -1));
+    _addMonocolor(forwardGeometry, 0);
+    const backGeometry = topGeometry.clone()
+      .rotateX(Math.PI / 2);
+    _addDirection(backGeometry, new Vector3(0, 0, 1));
+    _addMonocolor(backGeometry, 0);
+    // same thing, but scaled and inverted
+    const topGeometry2 = new BoxGeometry(baseWidth2, baseHeight2, baseWidth2)
+      .scale(-1, -1, -1)
+      .translate(0, baseHeight / 2 + centerSpacing, 0);
+    _addYs(topGeometry2);
+    _addDirection(topGeometry2, new Vector3(0, 1, 0));
+    _addMonocolor(topGeometry2, 1);
+    const leftGeometry2 = topGeometry2.clone()
+      .rotateZ(Math.PI / 2);
+    _addDirection(leftGeometry2, new Vector3(-1, 0, 0));
+    _addMonocolor(leftGeometry2, 1);
+    const bottomGeometry2 = topGeometry2.clone()
+      .rotateZ(Math.PI);
+    _addDirection(bottomGeometry2, new Vector3(0, -1, 0));
+    _addMonocolor(bottomGeometry2, 1);
+    const rightGeometry2 = topGeometry2.clone()
+      .rotateZ(-Math.PI / 2);
+    _addDirection(rightGeometry2, new Vector3(1, 0, 0));
+    _addMonocolor(rightGeometry2, 1);
+    const forwardGeometry2 = topGeometry2.clone()
+      .rotateX(-Math.PI / 2);
+    _addDirection(forwardGeometry2, new Vector3(0, 0, -1));
+    _addMonocolor(forwardGeometry2, 1);
+    const backGeometry2 = topGeometry2.clone()
+      .rotateX(Math.PI / 2);
+    _addDirection(backGeometry2, new Vector3(0, 0, 1));
+    _addMonocolor(backGeometry2, 1);
+    // merged geometry
+    const geometries = [
+      topGeometry2,
+      leftGeometry2,
+      bottomGeometry2,
+      rightGeometry2,
+      forwardGeometry2,
+      backGeometry2,
+      topGeometry,
+      leftGeometry,
+      bottomGeometry,
+      rightGeometry,
+      forwardGeometry,
+      backGeometry,
+    ];
+    const geometry = BufferGeometryUtils.mergeGeometries(geometries);
+    return geometry;
+  });
+  const [material, setMaterial] = useState(() => {
+    const material = new ShaderMaterial({
+      uniforms: {
+        uPress: {
+          value: 0,
+          // value: 0,
+          // needsUpdate: true,
+        },
+      },
+      vertexShader: `\
+        uniform float uPress;
+        attribute float y;
+        attribute vec3 direction;
+        attribute float monocolor;
+        varying float vY;
+        varying vec2 vUv;
+        varying vec3 vDirection;
+        varying float vMonocolor;
+
+        void main() {
+          vUv = uv;
+          vY = y;
+          vDirection = direction; // XXX offset by direction and time
+          vMonocolor = monocolor;
+
+          vec3 p = position * (0.5 + (1. - uPress) * 0.5);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `\
+        varying vec2 vUv;
+        varying float vY;
+        varying vec3 vDirection;
+        varying float vMonocolor;
+
+        void main() {
+          vec3 c = vec3(0.1, 0.1, 0.1);
+          gl_FragColor = vec4(c, 1.);
+          gl_FragColor.rgb += vY * 0.15;
+          gl_FragColor.rgb += vMonocolor;
+          // gl_FragColor.rg += vUv * 0.2;
+        }
+      `,
+      transparent: true,
+    });
+    return material;
+  });
+  useEffect(() => {
+    const now = Date.now();
+    setLastPressedValue(material.uniforms.uPress.value);
+    setLastPressedTime(now);
+  }, [pressed]);
+  useFrame((state) => {
+    const now = Date.now();
+    const timeDiffS = (now - lastPressedTime) / 1000;
+    const timeFactor = Math.min(Math.max(timeDiffS / pressTime, 0), 1);
+    const pressedValue = +pressed;
+    material.uniforms.uPress.value = (pressedValue * timeFactor) + (lastPressedValue * (1 - timeFactor));
+  });
+
+  return (<mesh geometry={geometry} material={material} ref={ref}>
+  </mesh>);
+});
+
 const JourneyScene = () => {
+  const [depthSpec, setDepthSpec] = useState(() => makeDepthSpec());
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => {
     const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
-    const depthSpec = makeDepthSpec();
     const {
       width,
       height,
@@ -226,7 +404,7 @@ const JourneyScene = () => {
       p.fromArray(positions, i);
       const x = (p.x + 0.5) * width;
       const y = (p.y + 0.5) * height;
-      const d = sampleData(data, x, y, width, height);
+      const d = bilinearSample(data, x, y, width, height);
       // console.log('sample', x, y, d);
       positions[i + 2] = -d;
     }
@@ -241,14 +419,22 @@ const JourneyScene = () => {
   );
   const raycaster = useMemo(() => new Raycaster(), []);
   const plane = useMemo(() => new Plane(new Vector3(0, 0, 1), 0), []);
+  const basePlaneMesh = useMemo(() => {
+    const basePlaneGeometry = new PlaneGeometry(1, 1);
+    const basePlaneMesh = new Mesh(basePlaneGeometry, new MeshBasicMaterial({color: 0x000000}));
+    return basePlaneMesh;
+  }, []);
+  const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
+  const storyCursorMeshRef = useRef<Mesh>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
   // const [mousePosition, setMousePosition] = useState(() => new Vector2(0, 0));
+  const [pressed, setPressed] = useState(false);
 
-  const getUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
+  const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
     const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
       .multiply(new Vector3(...scale))
       .project(camera);
@@ -288,25 +474,39 @@ const JourneyScene = () => {
   const { camera } = useThree();
   useFrame((state) => {
     const pointerMesh = pointerMeshRef.current;
+    const storyCursorMesh = storyCursorMeshRef.current;
     const planeMesh = planeMeshRef.current;
-    if (planeMesh && pointerMesh) {
+    if (planeMesh && storyCursorMesh && pointerMesh) {
       const mousePosition = new Vector2(
-        // state.mouse.x * 2 - 1,
-        // -state.mouse.y * 2 + 1
         state.mouse.x,
         state.mouse.y,
       );
-      // setMousePosition(mousePosition);
 
-      raycaster.setFromCamera(mousePosition, camera);
-      raycaster.ray.intersectPlane(plane, pointerMesh.position);
-
-      // get the bounding box of the plane mesh
-      const planeBox = new Box3().setFromObject(planeMesh);
+      // plane
+      basePlaneMesh.scale.fromArray(scale);
+      basePlaneMesh.updateMatrixWorld();
+      planeBox.setFromObject(basePlaneMesh);
       planeBox.min.z = -1;
       planeBox.max.z = 1;
 
+      // position
+      raycaster.setFromCamera(mousePosition, camera);
+      raycaster.ray.intersectPlane(plane, pointerMesh.position);
+      // {
+      //   // depth
+      //   const pw = planeBox.max.x - planeBox.min.x;
+      //   const ph = planeBox.max.y - planeBox.min.y;
+      //   const px = (pointerMesh.position.x - planeBox.min.x) / pw * depthSpec.width;
+      //   const py = (pointerMesh.position.y - planeBox.min.y) / ph * depthSpec.height;
+      //   const d = bilinearSample(depthSpec.data, px, py, depthSpec.width, depthSpec.height);
+      //   pointerMesh.position.z = -d;
+      // }
+      // copy to story cursor
+      storyCursorMesh.position.copy(pointerMesh.position);
+
+      // visibility
       pointerMesh.visible = planeBox.containsPoint(pointerMesh.position);
+      storyCursorMesh.visible = pointerMesh.visible;
 
       // pointerMesh.position.x = mousePosition.x;
       // pointerMesh.position.y = mousePosition.y;
@@ -332,11 +532,13 @@ const JourneyScene = () => {
             const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
             setDragBox(dragBox);
 
-            const dragUv = getUvFromMouseEvent(e, new Vector2());
+            const dragUv = getPlaneUvFromMouseEvent(e, new Vector2());
             const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
             setDragUvBox(dragUvBox);
 
             setDragGeometry(makeBoxOutlineGeometry(dragBox));
+
+            setPressed(true);
           }
         }
       };
@@ -395,13 +597,14 @@ const JourneyScene = () => {
           }
           setDragBox(null);
           setDragUvBox(null);
+          setPressed(false);
         }
       };
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
         if (dragBox && dragUvBox && pointerMesh.visible) {
           dragBox.max.copy(pointerMesh.position);
-          getUvFromMouseEvent(e, dragUvBox.max);
+          getPlaneUvFromMouseEvent(e, dragUvBox.max);
           setDragGeometry(makeBoxOutlineGeometry(dragBox));
         }
       };
@@ -413,7 +616,7 @@ const JourneyScene = () => {
         document.removeEventListener('mousemove', mousemove);
       };
     }
-  }, [pointerMeshRef.current, scale, dragBox, dragUvBox]);
+  }, [pointerMeshRef.current, storyCursorMeshRef.current, scale, dragBox, dragUvBox]);
 
   return <>
     {/* <ambientLight intensity={Math.PI / 2} />
@@ -455,6 +658,8 @@ const JourneyScene = () => {
       <boxGeometry args={[0.02, 0.02, 0.02]} />
       <meshBasicMaterial color="red" />
     </mesh>
+    {/* cursor mesh */}
+    <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
     {/* plane mesh */}
     {planeGeometry && texture && <mesh geometry={planeGeometry} scale={scale} ref={planeMeshRef}>
       {/* <planeGeometry args={planeGeometry} /> */}
