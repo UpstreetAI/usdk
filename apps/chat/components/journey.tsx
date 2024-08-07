@@ -21,6 +21,11 @@ import {
   Texture,
   BufferGeometry,
   BoxGeometry,
+  DataTexture,
+  LuminanceFormat,
+  RGBAFormat,
+  UnsignedByteType,
+  NearestFilter,
 } from 'three';
 
 // function Box(props: any) {
@@ -118,9 +123,49 @@ const makeBoxOutlineGeometry = (b: Box3) => {
   // console.log('got g', x1, y1, x2, y2);
   return g;
 };
+const makePixelsArray = ({
+  width,
+  height,
+  x1,
+  y1,
+  x2,
+  y2,
+}: {
+  width: number,
+  height: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+}) => {
+  const result = new Uint8Array(width * height);
+  for (let y = y1; y < y2; y++) {
+    for (let x = x1; x < x2; x++) {
+      const index = y * width + x;
+      result[index] = 1;
+    }
+  }
+  return result;
+};
+const colorizePixelsArray = (uint8Array: Uint8Array) => {
+  const rgbaArray = new Uint8Array(uint8Array.length * 4);
+  {
+    let j = 0;
+    for (let i = 0; i < uint8Array.length; i++) {
+      const v = uint8Array[i] ? 255 : 0;
+      const a = uint8Array[i] ? 255 * 0.2 : 0;
+      rgbaArray[j++] = 0;
+      rgbaArray[j++] = v;
+      rgbaArray[j++] = 0;
+      rgbaArray[j++] = a;
+    }
+  }
+  return rgbaArray;
+};
 
 const JourneyScene = () => {
   const [texture, setTexture] = useState<Texture | null>(null);
+  const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const scale = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
     texture ? texture.source.data.height : 512, // Pixel-height
@@ -230,11 +275,57 @@ const JourneyScene = () => {
       document.addEventListener('mousedown', mousedown);
       const mouseup = (e: any) => {
         if (dragUvBox) {
+          const width = texture?.source.data.width as number;
+          const height = texture?.source.data.height as number;
+
+          let x1 = 0;
+          let y1 = 0;
+          let x2 = 0;
+          let y2 = 0;
+          if (dragUvBox.min.x < dragUvBox.max.x) {
+            x1 = dragUvBox.min.x;
+            x2 = dragUvBox.max.x;
+          } else {
+            x1 = dragUvBox.max.x;
+            x2 = dragUvBox.min.x;
+          }
+          if (dragUvBox.min.y < dragUvBox.max.y) {
+            y1 = dragUvBox.min.y;
+            y2 = dragUvBox.max.y;
+          } else {
+            y1 = dragUvBox.max.y;
+            y2 = dragUvBox.min.y;
+          }
+          x1 = Math.floor(x1 * width);
+          y1 = Math.floor(y1 * height);
+          x2 = Math.floor(x2 * width);
+          y2 = Math.floor(y2 * height);
+          const w = x2 - x1;
+          const h = y2 - y1;
+
           const distance = dragUvBox.min.distanceTo(dragUvBox.max);
-          if (distance <= 0.01) {
-            console.log('click', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+          if (w === 0 || h === 0 || distance <= 0.01) {
+            console.log('click', dragUvBox.max.x, dragUvBox.max.y);
           } else {
             console.log('select', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+
+            
+
+            const pixelsArray = makePixelsArray({
+              width,
+              height,
+              x1,
+              y1,
+              x2,
+              y2,
+            });
+            const colorArray = colorizePixelsArray(pixelsArray);
+            const ht = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+            ht.minFilter = NearestFilter;
+            ht.magFilter = NearestFilter;
+            ht.flipY = true;
+            ht.needsUpdate = true;
+            setHighlightTexture(ht);
           }
           setDragBox(null);
           setDragUvBox(null);
@@ -299,9 +390,15 @@ const JourneyScene = () => {
       <meshBasicMaterial color="red" />
     </mesh>
     {/* plane mesh */}
-    {texture && <mesh ref={planeMeshRef} scale={scale}>
+    {texture && <mesh scale={scale} ref={planeMeshRef}>
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial map={texture} />
+    </mesh>}
+    {/* plane mesh */}
+    {highlightTexture && <mesh position={[0, 0, 0.001]} scale={scale}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={highlightTexture} transparent />
+      {/* <meshBasicMaterial color="red" /> */}
     </mesh>}
   </>
 }
