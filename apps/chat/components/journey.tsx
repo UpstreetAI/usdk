@@ -26,40 +26,11 @@ import {
   RGBAFormat,
   UnsignedByteType,
   NearestFilter,
+  PlaneGeometry,
 } from 'three';
 
-// function Box(props: any) {
-//   // This reference will give us direct access to the mesh
-//   const meshRef = useRef()
-//   // Set up state for the hovered and active state
-//   const [hovered, setHover] = useState(false)
-//   const [active, setActive] = useState(false)
-//   // Subscribe this component to the render-loop, rotate the mesh every frame
-//   useFrame((state, delta) => (meshRef.current.rotation.x += delta))
-//   // Return view, these are regular three.js elements expressed in JSX
-//   return (
-//     <mesh
-//       {...props}
-//       ref={meshRef}
-//       scale={active ? 1.5 : 1}
-//       onClick={(event) => setActive(!active)}
-//       onPointerOver={(event) => setHover(true)}
-//       onPointerOut={(event) => setHover(false)}>
-//       <boxGeometry args={[1, 1, 1]} />
-//       <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-//     </mesh>
-//   )
-// }
-
-// createRoot(document.getElementById('root')).render(
-//   <Canvas>
-//     <ambientLight intensity={Math.PI / 2} />
-//     <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
-//     <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-//     <Box position={[-1.2, 0, 0]} />
-//     <Box position={[1.2, 0, 0]} />
-//   </Canvas>,
-// )
+const geometryResolution = 256;
+const outlineWidth = 0.005;
 
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => state.viewport)
@@ -71,7 +42,6 @@ export function useAspectContain(width: number, height: number, factor: number =
   return [adaptedWidth * factor, adaptedHeight * factor, 1]
 }
 
-const outlineWidth = 0.005;
 const makeBoxOutlineGeometry = (b: Box3) => {
   let x1: number;
   let y1: number;
@@ -123,6 +93,7 @@ const makeBoxOutlineGeometry = (b: Box3) => {
   // console.log('got g', x1, y1, x2, y2);
   return g;
 };
+
 const makePixelsArray = ({
   width,
   height,
@@ -163,7 +134,104 @@ const colorizePixelsArray = (uint8Array: Uint8Array) => {
   return rgbaArray;
 };
 
+const makeDepthSpec = ({
+  width = 256,
+  height = 256,
+}: {
+  width?: number,
+  height?: number,
+} = {}) => {
+  const cutoff = 0.25;
+
+  const data = new Float32Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+      const py = y / (height - 1);
+      let d = 0;
+      if (y < height * cutoff) {
+        d = (py / cutoff);
+      } else {
+        d = 1 - (py - cutoff) / (1 - cutoff);
+      }
+      data[index] = d;
+    }
+  }
+  return {
+    width,
+    height,
+    data,
+  };
+};
+const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+const sampleData = (data: Float32Array, x: number, y: number, w: number, h: number) => {
+  // x *= (w - 1) / w;
+  // y *= (h - 1) / h;
+
+  let topLeftX = Math.floor(x);
+  let topLeftY = Math.floor(y);
+  let bottomRightX = Math.ceil(x);
+  let bottomRightY = Math.ceil(y);
+
+  topLeftX = clamp(topLeftX, 0, w - 1);
+  topLeftY = clamp(topLeftY, 0, h - 1);
+  bottomRightX = clamp(bottomRightX, 0, w - 1);
+  bottomRightY = clamp(bottomRightY, 0, h - 1);
+
+  const topLeftIndex = topLeftY * w + topLeftX;
+  const topLeft = data[topLeftIndex];
+
+  const bottomLeftIndex = bottomRightY * w + topLeftX;
+  const bottomLeft = data[bottomLeftIndex];
+
+  const topRightIndex = topLeftY * w + bottomRightX;
+  const topRight = data[topRightIndex];
+
+  const bottomRightIndex = bottomRightY * w + bottomRightX;
+  const bottomRight = data[bottomRightIndex];
+
+  const pw = bottomRightX - topLeftX;
+  const ph = bottomRightY - topLeftY;
+
+  const left = ph > 0 ? (
+    topLeft * (y - topLeftY) +
+    bottomLeft * (bottomRightY - y)
+  ) : topLeft;
+  const right = ph > 0 ? (
+    topRight * (y - topLeftY) +
+    bottomRight * (bottomRightY - y)
+  ) : topRight;
+  const middle = pw > 0 ? (
+    left * (x - topLeftX) +
+    right * (bottomRightX - x)
+  ) : left;
+  return middle;
+};
+
+//
+
 const JourneyScene = () => {
+  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => {
+    const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
+    const depthSpec = makeDepthSpec();
+    const {
+      width,
+      height,
+      data,
+    } = depthSpec;
+    // console.log('got depth spec', depthSpec);
+    const positions = planeGeometry.attributes.position.array;
+    const p = new Vector3();
+    for (let i = 0; i < positions.length; i += 3) {
+      p.fromArray(positions, i);
+      const x = (p.x + 0.5) * width;
+      const y = (p.y + 0.5) * height;
+      const d = sampleData(data, x, y, width, height);
+      // console.log('sample', x, y, d);
+      positions[i + 2] = -d;
+    }
+    return planeGeometry;
+  });
   const [texture, setTexture] = useState<Texture | null>(null);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const scale = useAspectContain(
@@ -309,8 +377,6 @@ const JourneyScene = () => {
           } else {
             console.log('select', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
 
-            
-
             const pixelsArray = makePixelsArray({
               width,
               height,
@@ -390,15 +456,14 @@ const JourneyScene = () => {
       <meshBasicMaterial color="red" />
     </mesh>
     {/* plane mesh */}
-    {texture && <mesh scale={scale} ref={planeMeshRef}>
-      <planeGeometry args={[1, 1]} />
+    {planeGeometry && texture && <mesh geometry={planeGeometry} scale={scale} ref={planeMeshRef}>
+      {/* <planeGeometry args={planeGeometry} /> */}
       <meshBasicMaterial map={texture} />
     </mesh>}
     {/* plane mesh */}
     {highlightTexture && <mesh position={[0, 0, 0.001]} scale={scale}>
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial map={highlightTexture} transparent />
-      {/* <meshBasicMaterial color="red" /> */}
     </mesh>}
   </>
 }
