@@ -66,6 +66,7 @@ export function useAspectContain(width: number, height: number, factor: number =
   return [adaptedWidth * factor, adaptedHeight * factor, 1]
 }
 
+const outlineWidth = 0.005;
 const makeBoxOutlineGeometry = (b: Box3) => {
   let x1: number;
   let y1: number;
@@ -92,7 +93,6 @@ const makeBoxOutlineGeometry = (b: Box3) => {
   const mx = (x1 + x2) / 2;
   const my = (y1 + y2) / 2;
 
-  const outlineWidth = 0.005;
   const baseGeometry = new BoxGeometry(outlineWidth, 1 + outlineWidth * 2, outlineWidth);
   const geometries = [
     // top
@@ -131,13 +131,39 @@ const JourneyScene = () => {
   const planeMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
+  const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
   // const [mousePosition, setMousePosition] = useState(() => new Vector2(0, 0));
 
-  // useEffect(() => {
-  //   const canvas = canvasRef.current;
-  //   console.log('got canvas', canvas);
-  // }, [canvasRef.current])
+  const getUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
+    const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
+      .multiply(new Vector3(...scale))
+      .project(camera);
+    const planeTopLeftScreen = planeTopLeftPointNdc.clone();
+    planeTopLeftScreen.x = (planeTopLeftScreen.x + 1) * 0.5;
+    planeTopLeftScreen.y = (planeTopLeftScreen.y + 1) * 0.5;
+    const planeBottomRightPointNdc = new Vector3(0.5, -0.5, 0)
+      .multiply(new Vector3(...scale))
+      .project(camera);
+    const planeBottomRightScreen = planeBottomRightPointNdc.clone();
+    planeBottomRightScreen.x = (planeBottomRightScreen.x + 1) * 0.5;
+    planeBottomRightScreen.y = (planeBottomRightScreen.y + 1) * 0.5;
+  
+    const mousePosition = new Vector2(
+      e.offsetX / canvas.width * 2,
+      1 - e.offsetY / canvas.height * 2,
+    );
+  
+    const w = planeBottomRightScreen.x - planeTopLeftScreen.x;
+    const h = planeTopLeftScreen.y - planeBottomRightScreen.y;
+  
+    // compute u, v from the top left
+    const u = (mousePosition.x - planeTopLeftScreen.x) / w;
+    const v = (planeTopLeftScreen.y - mousePosition.y) / h;
+  
+    return target.set(u, v);
+  };
+
   useEffect(() => {
     const t = new TextureLoader().load('/images/test-bg.webp', () => {
       // const img = t.source.data;
@@ -189,23 +215,37 @@ const JourneyScene = () => {
       const mousedown = (e: any) => {
         if (e.target === canvas) {
           if (pointerMesh.visible) {
-            // console.log('got target', e.target);
+            // set states
             const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
             setDragBox(dragBox);
+
+            const dragUv = getUvFromMouseEvent(e, new Vector2());
+            const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
+            setDragUvBox(dragUvBox);
+
             setDragGeometry(makeBoxOutlineGeometry(dragBox));
           }
         }
       };
       document.addEventListener('mousedown', mousedown);
       const mouseup = (e: any) => {
-        setDragBox(null);
+        if (dragUvBox) {
+          const distance = dragUvBox.min.distanceTo(dragUvBox.max);
+          if (distance <= 0.01) {
+            console.log('click', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+          } else {
+            console.log('select', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+          }
+          setDragBox(null);
+          setDragUvBox(null);
+        }
       };
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
-        if (dragBox) {
+        if (dragBox && dragUvBox && pointerMesh.visible) {
           dragBox.max.copy(pointerMesh.position);
+          getUvFromMouseEvent(e, dragUvBox.max);
           setDragGeometry(makeBoxOutlineGeometry(dragBox));
-          // console.log('set drag geometry', dragBox);
         }
       };
       document.addEventListener('mousemove', mousemove);
@@ -216,7 +256,7 @@ const JourneyScene = () => {
         document.removeEventListener('mousemove', mousemove);
       };
     }
-  }, [pointerMeshRef.current, dragBox]);
+  }, [pointerMeshRef.current, scale, dragBox, dragUvBox]);
 
   return <>
     {/* <ambientLight intensity={Math.PI / 2} />
