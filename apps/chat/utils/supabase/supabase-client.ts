@@ -135,32 +135,42 @@ export const getClientFromToken = async (env: any, token?: string) => {
 };
 
 export const getUserIdForJwt = async (jwt: string) => {
-  const res = await fetch(`${aiHost}/checkLogin`, {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  if (res.ok) {
-    const j = await res.json();
-    return j.userId;
-  } else {
-    const text = await res.text();
-    console.warn(text);
+  try {
+    const res = await fetch(`${aiHost}/checkLogin`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    if (res.ok) {
+      const j = await res.json();
+      return j.userId;
+    } else {
+      const text = await res.text();
+      console.warn(text);
+      return null;
+    }
+  } catch (err) {
+    console.warn(err);
     return null;
   }
 };
 export const getUserForJwt = async (jwt: string) => {
-  const res = await fetch(`${aiHost}/${aiProxyAPI.getUser}`, {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-  });
-  if (res.ok) {
-    const j = await res.json();
-    return j.data;
-  } else {
-    const text = await res.text();
-    console.warn(text);
+  try {
+    const res = await fetch(`${aiHost}/${aiProxyAPI.getUser}`, {
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    if (res.ok) {
+      const j = await res.json();
+      return j.data;
+    } else {
+      const text = await res.text();
+      console.warn(text);
+      return null;
+    }
+  } catch (err) {
+    console.warn(err);
     return null;
   }
 };
