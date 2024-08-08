@@ -31,6 +31,13 @@ import {
   ShaderMaterial,
   MeshBasicMaterial,
 } from 'three';
+import { Button } from '@/components/ui/button';
+import {
+  describe,
+  getDepth,
+  detect,
+  segment,
+} from '../utils/vision.mjs';
 
 const geometryResolution = 256;
 const outlineWidth = 0.005;
@@ -166,49 +173,60 @@ const makeDepthSpec = ({
     data,
   };
 };
-const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+// const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+const floorVector2 = (v: Vector2) => {
+  v.x = Math.floor(v.x);
+  v.y = Math.floor(v.y);
+  return v;
+};
+// data is a float32array of w * h
+// x if a float between 0 and w inclusive
+// y if a float between 0 and h inclusive
 const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: number) => {
-  // x *= (w - 1) / w;
-  // y *= (h - 1) / h;
+  // Map x and y to be within the bounds of the image
+  x *= (w - 1) / w;
+  y *= (h - 1) / h;
+  
+  // Calculate the integer parts and the fractional parts of x and y
+  const x0 = Math.floor(x);
+  const x1 = Math.min(x0 + 1, w - 1);
+  const y0 = Math.floor(y);
+  const y1 = Math.min(y0 + 1, h - 1);
+  
+  const dx = x - x0;
+  const dy = y - y0;
+  
+  // Get the values at the four corners
+  const index = (x: number, y: number) => y * w + x;
+  const v00 = data[index(x0, y0)];
+  const v01 = data[index(x0, y1)];
+  const v10 = data[index(x1, y0)];
+  const v11 = data[index(x1, y1)];
+  
+  // Perform the bilinear interpolation
+  const v0 = v00 * (1 - dy) + v01 * dy;
+  const v1 = v10 * (1 - dy) + v11 * dy;
+  const value = v0 * (1 - dx) + v1 * dx;
+  
+  return value;
+};
 
-  let topLeftX = Math.floor(x);
-  let topLeftY = Math.floor(y);
-  let bottomRightX = Math.ceil(x);
-  let bottomRightY = Math.ceil(y);
-
-  topLeftX = clamp(topLeftX, 0, w - 1);
-  topLeftY = clamp(topLeftY, 0, h - 1);
-  bottomRightX = clamp(bottomRightX, 0, w - 1);
-  bottomRightY = clamp(bottomRightY, 0, h - 1);
-
-  const topLeftIndex = topLeftY * w + topLeftX;
-  const topLeft = data[topLeftIndex];
-
-  const bottomLeftIndex = bottomRightY * w + topLeftX;
-  const bottomLeft = data[bottomLeftIndex];
-
-  const topRightIndex = topLeftY * w + bottomRightX;
-  const topRight = data[topRightIndex];
-
-  const bottomRightIndex = bottomRightY * w + bottomRightX;
-  const bottomRight = data[bottomRightIndex];
-
-  const pw = bottomRightX - topLeftX;
-  const ph = bottomRightY - topLeftY;
-
-  const left = ph > 0 ? (
-    topLeft * (y - topLeftY) +
-    bottomLeft * (bottomRightY - y)
-  ) : topLeft;
-  const right = ph > 0 ? (
-    topRight * (y - topLeftY) +
-    bottomRight * (bottomRightY - y)
-  ) : topRight;
-  const middle = pw > 0 ? (
-    left * (x - topLeftX) +
-    right * (bottomRightX - x)
-  ) : left;
-  return middle;
+const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.drawImage(img, 0, 0);
+  const blob = await new Promise<Blob>((accept, reject) => {
+    canvas.toBlob(blob => {
+      if (blob) {
+        accept(blob);
+      } else {
+        reject(new Error('failed to convert canvas to blob'));
+      }
+    }, type, quality);
+  });
+  return blob;
 };
 
 //
@@ -388,7 +406,38 @@ const StoryCursor = forwardRef(({
   </mesh>);
 });
 
-const JourneyScene = () => {
+const JourneyForm = ({
+  eventTarget,
+}: {
+  eventTarget: EventTarget,
+}) => {
+  return (
+    <form className="flex" onSubmit={e => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        eventTarget.dispatchEvent(new MessageEvent('depth', {
+          data: null,
+        }));
+      }}>
+        Depth
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        eventTarget.dispatchEvent(new MessageEvent('detect', {
+          data: null,
+        }));
+      }}>
+        Detect
+      </Button>
+    </form>
+  )
+};
+const JourneyScene = ({
+  eventTarget,
+}: {
+  eventTarget: EventTarget,
+}) => {
   const [depthSpec, setDepthSpec] = useState(() => makeDepthSpec());
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => {
     const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
@@ -435,7 +484,7 @@ const JourneyScene = () => {
   // const [mousePosition, setMousePosition] = useState(() => new Vector2(0, 0));
   const [pressed, setPressed] = useState(false);
 
-  const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
+  /* const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
     const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
       .multiply(new Vector3(...scale))
       .project(camera);
@@ -462,8 +511,29 @@ const JourneyScene = () => {
     const v = (planeTopLeftScreen.y - mousePosition.y) / h;
   
     return target.set(u, v);
+  }; */
+  const segmentPoint = async (point: Vector2) => {
+    const image = texture?.source.data as HTMLImageElement;
+    const blob = await img2blob(image);
+    const segmentationUint8Array = await segment(blob, {
+      point_coords: [[point.x, point.y]],
+      point_labels: [1],
+      box: undefined,
+    });
+    return segmentationUint8Array;
+  };
+  const segmentBox = async (box: Box2) => {
+    const image = texture?.source.data as HTMLImageElement;
+    const blob = await img2blob(image);
+    const segmentationUint8Array = await segment(blob, {
+      point_coords: undefined,
+      point_labels: undefined,
+      box: [box.min.x, box.min.y, box.max.x, box.max.y],
+    });
+    return segmentationUint8Array;
   };
 
+  // load texture
   useEffect(() => {
     const t = new TextureLoader().load('/images/test-bg.webp', () => {
       // const img = t.source.data;
@@ -471,7 +541,7 @@ const JourneyScene = () => {
     });
   }, []);
 
-  // const { size } = useThree();
+  // track pointer
   const { camera } = useThree();
   useFrame((state) => {
     const pointerMesh = pointerMeshRef.current;
@@ -519,7 +589,8 @@ const JourneyScene = () => {
       // pointerMesh.updateMatrixWorld();
     }
   });
-  // get the canvas using useThree
+
+  // handle drag
   const { gl } = useThree();
   const canvas = gl.domElement;
   useEffect(() => {
@@ -531,37 +602,45 @@ const JourneyScene = () => {
       const mousedown = (e: any) => {
         if (e.target === canvas) {
           if (pointerMesh.visible) {
-            // set states
-            const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
-            setDragBox(dragBox);
-
-            const dragUv = getPlaneUvFromMouseEvent(e, new Vector2());
-            const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
-            setDragUvBox(dragUvBox);
-
-            setDragGeometry(makeBoxOutlineGeometry(dragBox));
-
-            setPressed(true);
-
             // intersect plane
             raycaster.ray.origin.copy(camera.position);
             raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
             const intersections = raycaster.intersectObject(planeMesh, false, []);
-            if (intersections.length > 0) {
-              const intersection =  intersections[0];
+            const intersection =  intersections[0];
+            if (intersection) {
               intersectionMesh.position.copy(intersection.point);
               intersectionMesh.visible = true;
             } else {
               intersectionMesh.visible = false;
             }
+
+            // set states
+            if (intersection) {
+              const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
+              setDragBox(dragBox);
+
+              // const dragUv = getPlaneUvFromMouseEvent(e, new Vector2());
+              const dragUv = (intersection.uv as Vector2).clone();
+              dragUv.y = 1 - dragUv.y;
+              const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
+              setDragUvBox(dragUvBox);
+
+              setDragGeometry(makeBoxOutlineGeometry(dragBox));
+            }
+
+            // animate cursor
+            setPressed(true);
           }
         }
       };
       document.addEventListener('mousedown', mousedown);
       const mouseup = (e: any) => {
         if (dragUvBox) {
-          const width = texture?.source.data.width as number;
-          const height = texture?.source.data.height as number;
+          const image = texture?.source.data as HTMLImageElement;
+          const {
+            width,
+            height,
+          } = image;
 
           let x1 = 0;
           let y1 = 0;
@@ -588,11 +667,31 @@ const JourneyScene = () => {
           const w = x2 - x1;
           const h = y2 - y1;
 
-          const distance = dragUvBox.min.distanceTo(dragUvBox.max);
-          if (w === 0 || h === 0 || distance <= 0.01) {
+          // const distance = dragUvBox.min.distanceTo(dragUvBox.max);
+          if (w === 0 || h === 0 /*|| distance <= 0.01 */) {
             console.log('click', dragUvBox.max.x, dragUvBox.max.y);
+
+            (async () => {
+              const point = dragUvBox.max.clone();
+              const textureSize = new Vector2(width, height);
+              point.multiply(textureSize);
+              floorVector2(point);
+              const segmentationUint8Array = await segmentPoint(point);
+              console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+            })();
           } else {
-            console.log('select', distance, dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+            console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+
+            (async () => {
+              const box = dragUvBox.clone();
+              const textureSize = new Vector2(width, height);
+              box.min.multiply(textureSize);
+              floorVector2(box.min);
+              box.max.multiply(textureSize);
+              floorVector2(box.max);
+              const segmentationUint8Array = await segmentBox(box);
+              console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+            })();
 
             const pixelsArray = makePixelsArray({
               width,
@@ -619,8 +718,21 @@ const JourneyScene = () => {
       const mousemove = (e: any) => {
         if (dragBox && dragUvBox && pointerMesh.visible) {
           dragBox.max.copy(pointerMesh.position);
-          getPlaneUvFromMouseEvent(e, dragUvBox.max);
+          // getPlaneUvFromMouseEvent(e, dragUvBox.max);
           setDragGeometry(makeBoxOutlineGeometry(dragBox));
+
+          // intersect plane
+          raycaster.ray.origin.copy(camera.position);
+          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+          const intersections = raycaster.intersectObject(planeMesh, false, []);
+          const intersection =  intersections[0];
+          if (intersection) {
+            const dragUv = (intersection.uv as Vector2).clone();
+            dragUv.y = 1 - dragUv.y;
+            dragUvBox.max.copy(dragUv);
+            // intersectionMesh.position.copy(intersection.point);
+            // intersectionMesh.visible = true;
+          }
         }
       };
       document.addEventListener('mousemove', mousemove);
@@ -633,12 +745,37 @@ const JourneyScene = () => {
     }
   }, [pointerMeshRef.current, storyCursorMeshRef.current, scale, dragBox, dragUvBox]);
 
+  // track events
+  useEffect(() => {
+    const ondepth = async (e: any) => {
+      const image = texture?.source.data;
+      const blob = await img2blob(image);
+      const depthFloat32Array = await getDepth(blob);
+      console.log('got depth', depthFloat32Array);
+    };
+    eventTarget.addEventListener('depth', ondepth);
+
+    const ondetect = async (e: any) => {
+      const query = prompt('Detect what?');
+      const queries = [query];
+
+      const image = texture?.source.data;
+      const blob = await img2blob(image);
+      const result = await detect(blob, {
+        queries,
+      });
+      console.log('got detect', JSON.stringify(result, null, 2));
+    };
+    eventTarget.addEventListener('detect', ondetect);
+
+    return () => {
+      eventTarget.removeEventListener('depth', ondepth);
+      eventTarget.removeEventListener('detect', ondetect);
+    };
+  }, [texture]);
+
+  // render
   return <>
-    {/* <ambientLight intensity={Math.PI / 2} />
-    <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
-    <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} /> */}
-    {/* <Box position={[-1.2, 0, 0]} />
-    <Box position={[1.2, 0, 0]} /> */}
     {/* drag mesh */}
     {dragBox && <mesh
       geometry={dragGeometry}
@@ -685,12 +822,10 @@ const JourneyScene = () => {
     <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
     {/* plane mesh */}
     {planeGeometry && texture && <mesh geometry={planeGeometry} scale={scale} ref={planeMeshRef}>
-      {/* <planeGeometry args={planeGeometry} /> */}
       <meshBasicMaterial map={texture} />
     </mesh>}
     {/* plane mesh */}
-    {highlightTexture && <mesh position={[0, 0, 0.001]} scale={scale}>
-      <planeGeometry args={[1, 1]} />
+    {highlightTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.001]} scale={scale}>
       <meshBasicMaterial map={highlightTexture} transparent />
     </mesh>}
   </>
@@ -698,6 +833,7 @@ const JourneyScene = () => {
 
 export function Journey() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const eventTarget = useMemo(() => new EventTarget(), []);
 
   return (
     <div className="relative w-screen h-[calc(100vh-64px)]">
@@ -712,8 +848,9 @@ export function Journey() {
         }}
         ref={canvasRef}
       >
-        <JourneyScene />
+        <JourneyScene eventTarget={eventTarget} />
       </Canvas>
+      <JourneyForm eventTarget={eventTarget} />
     </div>
   )
 }
