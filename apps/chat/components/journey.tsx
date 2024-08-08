@@ -37,6 +37,7 @@ import {
   getDepth,
   detect,
   segment,
+  segmentAll,
 } from '../utils/vision.mjs';
 
 const geometryResolution = 256;
@@ -445,6 +446,13 @@ const JourneyForm = ({
       }}>
         Detect
       </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        eventTarget.dispatchEvent(new MessageEvent('segment', {
+          data: null,
+        }));
+      }}>
+        Segment
+      </Button>
     </form>
   )
 };
@@ -789,9 +797,18 @@ const JourneyScene = ({
     };
     eventTarget.addEventListener('detect', ondetect);
 
+    const onsegment = async (e: any) => {
+      const image = texture?.source.data;
+      const blob = await img2blob(image);
+      const segmentationUint8Array = await segmentAll(blob);
+      console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+    };
+    eventTarget.addEventListener('segment', onsegment);
+
     return () => {
       eventTarget.removeEventListener('depth', ondepth);
       eventTarget.removeEventListener('detect', ondetect);
+      eventTarget.removeEventListener('segment', onsegment);
     };
   }, [texture]);
 

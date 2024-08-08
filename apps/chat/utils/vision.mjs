@@ -125,3 +125,18 @@ export const segment = async (blob, {
     throw new Error('invalid status code: ' + res.status + ': ' + text);
   }
 };
+export const segmentAll = async (blob) => {
+  const fd = new FormData();
+  fd.append('image', blob);
+  const res = await fetch(`${samEndpoint}/autosam2`, {
+    method: 'POST',
+    body: fd,
+  });
+  if (res.ok) {
+    const j = await res.arrayBuffer();
+    return new Uint8Array(j);
+  } else {
+    const text = await res.text();
+    throw new Error('invalid status code: ' + res.status + ': ' + text);
+  }
+};
