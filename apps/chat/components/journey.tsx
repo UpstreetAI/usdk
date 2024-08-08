@@ -745,8 +745,6 @@ const JourneyScene = ({
             const dragUv = (intersection.uv as Vector2).clone();
             dragUv.y = 1 - dragUv.y;
             dragUvBox.max.copy(dragUv);
-            // intersectionMesh.position.copy(intersection.point);
-            // intersectionMesh.visible = true;
           }
         }
       };
