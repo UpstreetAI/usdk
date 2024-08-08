@@ -411,21 +411,36 @@ const JourneyForm = ({
 }: {
   eventTarget: EventTarget,
 }) => {
+  const depthTypes = ['indoor', 'outdoor'];
+  const [depthType, setDepthType] = useState(depthTypes[0]);
+
   return (
     <form className="flex" onSubmit={e => {
       e.preventDefault();
       e.stopPropagation();
     }}>
+      <select className="text-xs mb-1" value={depthType} onChange={e => {
+        setDepthType(e.target.value);
+      }}>
+        {depthTypes.map(depthType => (
+          <option value={depthType} key={depthType}>{depthType}</option>
+        ))}
+      </select>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
         eventTarget.dispatchEvent(new MessageEvent('depth', {
-          data: null,
+          data: {
+            type: depthType,
+          },
         }));
       }}>
         Depth
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt('Detect what? (e.g. "path, tree")');
         eventTarget.dispatchEvent(new MessageEvent('detect', {
-          data: null,
+          data: {
+            prompt: promptString,
+          },
         }));
       }}>
         Detect
@@ -748,16 +763,24 @@ const JourneyScene = ({
   // track events
   useEffect(() => {
     const ondepth = async (e: any) => {
+      const {
+        type,
+      } = e.data;
+
       const image = texture?.source.data;
       const blob = await img2blob(image);
-      const depthFloat32Array = await getDepth(blob);
+      const depthFloat32Array = await getDepth(blob, {
+        type,
+      });
       console.log('got depth', depthFloat32Array);
     };
     eventTarget.addEventListener('depth', ondepth);
 
     const ondetect = async (e: any) => {
-      const query = prompt('Detect what?');
-      const queries = [query];
+      const {
+        prompt,
+      } = e.data;
+      const queries = prompt.split(',').map((s: string) => s.trim()).filter(Boolean);
 
       const image = texture?.source.data;
       const blob = await img2blob(image);
