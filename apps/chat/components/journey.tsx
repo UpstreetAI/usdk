@@ -581,6 +581,7 @@ const StoryCursor = forwardRef(({
   return (<mesh geometry={geometry} material={material} ref={ref}>
   </mesh>);
 });
+StoryCursor.displayName = 'StoryCursor';
 
 const JourneyForm = ({
   eventTarget,
