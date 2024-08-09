@@ -117,6 +117,11 @@ const matplotlibColors = {
   ]
 };
 const defaultColors = matplotlibColors.tab20b.concat(matplotlibColors.tab20c);
+const characterController = {
+  capsuleHalfHeight: 0.35, // Half-height of the character capsule
+  capsuleRadius: 0.3, // Radius of the character capsule
+  floatHeight: 0.3, // Height of the character when floating
+};
 
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => state.viewport)
@@ -651,7 +656,7 @@ const JourneyScene = ({
     return basePlaneMesh;
   }, []);
   const capsuleGeometry = useMemo(() =>
-    new CapsuleGeometry(0.3, 0.3, 1)
+    new CapsuleGeometry(characterController.capsuleRadius, characterController.capsuleRadius, characterController.capsuleHalfHeight * 2)
       .rotateZ(-Math.PI / 2),
   []);
   const planeBox = useMemo(() => new Box3(), []);
@@ -660,11 +665,16 @@ const JourneyScene = ({
   const pointerMeshRef = useRef<Mesh>(null);
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
+  const [depth, setDepth] = useState<{
+    width: number,
+    height: number,
+    data: Float32Array,
+  } | null>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
   const [pressed, setPressed] = useState(false);
-  const [cameraControlsEnabled, setCameraControlsEnabled] = useState(false);
+  const [controlsEnabled, setControlsEnabled] = useState(false);
 
   const scaleArray = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
@@ -688,11 +698,20 @@ const JourneyScene = ({
   ];
 
   useEffect(() => {
-    const newPlaneGeometry = makePlaneGeometryFromScale({
-      scale,
-    });
+    let newPlaneGeometry;
+    if (depth) {
+      newPlaneGeometry = makePlaneGeometryFromDepth({
+        depth,
+        camera,
+        scale,
+      });
+    } else {
+      newPlaneGeometry = makePlaneGeometryFromScale({
+        scale,
+      });
+    }
     setPlaneGeometry(newPlaneGeometry);
-  }, [scale.x, scale.y, scale.z]);
+  }, [depth, scale.x, scale.y, scale.z]);
 
   /* const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
     const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
@@ -1047,14 +1066,9 @@ const JourneyScene = ({
         height,
         data: depthFloat32Array,
       };
-      const newPlaneGeometry = makePlaneGeometryFromDepth({
-        depth,
-        camera,
-        scale,
-      });
-      setPlaneGeometry(newPlaneGeometry);
+      setDepth(depth);
 
-      setCameraControlsEnabled(true);
+      setControlsEnabled(true);
     };
     eventTarget.addEventListener('depth', ondepth);
 
@@ -1155,7 +1169,7 @@ const JourneyScene = ({
 
   // render
   return <>
-    {cameraControlsEnabled && <OrbitControls makeDefault />}
+    {controlsEnabled && <OrbitControls makeDefault />}
     {/* drag mesh */}
     {dragBox && <mesh
       geometry={dragGeometry}
@@ -1165,23 +1179,26 @@ const JourneyScene = ({
     </mesh>}
 
     {/* character capsule */}
+    {controlsEnabled && (
       <KeyboardControls map={keyboardMap}>
-      {/* Character Control */}
-      <Ecctrl
-        disableFollowCam={true}
-        disableFollowCamPos={new Vector3(0, 0, 1)}
-        disableFollowCamTarget={new Vector3(0, 0, 0)}
-        // debug
-      >
-        <mesh
-          position={[0, -0.5, -1]}
-          geometry={capsuleGeometry}
-          ref={capsuleMeshRef}
+        <Ecctrl
+          capsuleHalfHeight={characterController.capsuleHalfHeight}
+          capsuleRadius={characterController.capsuleRadius}
+          floatHeight={characterController.floatHeight}
+          disableFollowCam={true}
+          disableFollowCamPos={new Vector3(0, 0, 1)}
+          disableFollowCamTarget={new Vector3(0, 0, 0)}
         >
-          <meshBasicMaterial color="blue" transparent opacity={0.5} />
-        </mesh>
-      </Ecctrl>
-    </KeyboardControls>
+          <mesh
+            position={[0, 0, -6]}
+            geometry={capsuleGeometry}
+            ref={capsuleMeshRef}
+          >
+            <meshBasicMaterial color="blue" transparent opacity={0.5} />
+          </mesh>
+        </Ecctrl>
+      </KeyboardControls>
+    )}
     {/* mouse mesh */}
     <mesh
       // onPointerEnter={e => {
@@ -1254,7 +1271,9 @@ export function Journey() {
         ref={canvasRef}
       >
         <Suspense>
-          <Physics>
+          <Physics
+            debug
+          >
             <JourneyScene eventTarget={eventTarget} />
           </Physics>
         </Suspense>
