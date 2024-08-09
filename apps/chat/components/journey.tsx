@@ -2,12 +2,13 @@
 
 // import { createRoot } from 'react-dom/client'
 import React, { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
-import { Canvas, useThree, useFrame } from '@react-three/fiber'
+import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { useAspect } from '@react-three/drei'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
   Vector3,
+  Camera,
   PerspectiveCamera,
   Raycaster,
   Plane,
@@ -308,27 +309,82 @@ const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: 
   
   return value;
 };
-const makePlaneGeometryFromDepth = ({
-  width,
-  height,
-  data,
+const makePlaneGeometry = () => new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
+const makePlaneGeometryFromScale = ({
+  scale,
 }: {
-  width: number,
-  height: number,
-  data: Float32Array,
+  scale: Vector3,
 }) => {
   const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
   const positions = planeGeometry.attributes.position.array;
   const p = new Vector3();
   for (let i = 0; i < positions.length; i += 3) {
+    // load the point
     p.fromArray(positions, i);
+
+    // scale the point to match the plane's world dimensions
+    p.multiply(scale);
+
+    // save the point
+    p.toArray(positions, i);
+  }
+  return planeGeometry;
+};
+const makePlaneGeometryFromDepth = ({
+  depth,
+  camera,
+  scale,
+}: {
+  depth: {
+    width: number,
+    height: number,
+    data: Float32Array,
+  },
+  camera: Camera,
+  scale: Vector3,
+}) => {
+  const {
+    width,
+    height,
+    data,
+  } = depth;
+
+  const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
+  const positions = planeGeometry.attributes.position.array;
+  const p = new Vector3();
+  const pWorld = new Vector3();
+  const pNdc = new Vector3();
+  const pNear = new Vector3();
+  const pMid = new Vector3();
+  const pDirection = new Vector3();
+  const pTemp = new Vector3();
+  for (let i = 0; i < positions.length; i += 3) {
+    // load the point
+    p.fromArray(positions, i);
+
+    // sample point depth
     const x = (p.x + 0.5) * width;
     const y = (1 - (p.y + 0.5)) * height;
     const d = bilinearSample(data, x, y, width, height);
-    positions[i + 2] = -d;
+
+    // scale the point to match the plane's world dimensions
+    pWorld.copy(p).multiply(scale);
+    // project from world space to normalized device coordinates
+    pNdc.copy(pWorld).project(camera);
+    // get the near and mid points
+    pNear.copy(pNdc).setZ(-1).unproject(camera); // near plane
+    pMid.copy(pNdc).setZ(0).unproject(camera); // midpoint between near and far plane
+    // get the point direction
+    pDirection.copy(pMid).sub(pNear).normalize();
+    // push the point out from world space to the given depth
+    const pDelta = pTemp.copy(pDirection).multiplyScalar(d);
+    p.copy(pWorld).add(pDelta);
+
+    // save the point
+    p.toArray(positions, i);
   }
   return planeGeometry;
-}
+};
 
 const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
   const canvas = document.createElement('canvas');
@@ -355,7 +411,6 @@ const StoryCursor = forwardRef(({
 }: {
   pressed: boolean,
 }, ref: any) => {
-  // const scale = 0.3;
   const scale = 0.2;
   const baseHeight = 0.2 * scale;
   const baseWidth = 0.03 * scale;
@@ -579,16 +634,10 @@ const JourneyScene = ({
 }: {
   eventTarget: EventTarget,
 }) => {
-  // const [depthSpec, setDepthSpec] = useState(() => makeDepthSpec());
-  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => new PlaneGeometry(1, 1, geometryResolution, geometryResolution));
-  const [texture, setTexture] = useState<Texture | null>(null);
+  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(makePlaneGeometry);
+  const texture = useLoader(TextureLoader, '/images/test-bg.webp');
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
-  const scale = useAspectContain(
-    texture ? texture.source.data.width : 512, // Pixel-width
-    texture ? texture.source.data.height : 512, // Pixel-height
-    1                         // Optional scaling factor
-  );
   const raycaster = useMemo(() => new Raycaster(), []);
   const plane = useMemo(() => new Plane(new Vector3(0, 0, 1), 0), []);
   const basePlaneMesh = useMemo(() => {
@@ -604,8 +653,21 @@ const JourneyScene = ({
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
-  // const [mousePosition, setMousePosition] = useState(() => new Vector2(0, 0));
   const [pressed, setPressed] = useState(false);
+
+  const scaleArray = useAspectContain(
+    texture ? texture.source.data.width : 512, // Pixel-width
+    texture ? texture.source.data.height : 512, // Pixel-height
+    1                         // Optional scaling factor
+  );
+  const scale = new Vector3(...scaleArray);
+
+  useEffect(() => {
+    const newPlaneGeometry = makePlaneGeometryFromScale({
+      scale,
+    });
+    setPlaneGeometry(newPlaneGeometry);
+  }, [scale.x, scale.y, scale.z]);
 
   /* const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
     const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
@@ -655,15 +717,6 @@ const JourneyScene = ({
     });
     return segmentationUint8Array;
   };
-
-  // load texture
-  useEffect(() => {
-    const t = new TextureLoader().load('/images/test-bg.webp', () => {
-      // const img = t.source.data;
-      setTexture(t);
-    });
-  }, []);
-
   // track pointer
   const { camera } = useThree();
   useFrame((state) => {
@@ -677,7 +730,7 @@ const JourneyScene = ({
       );
 
       // plane
-      basePlaneMesh.scale.fromArray(scale);
+      basePlaneMesh.scale.copy(scale);
       basePlaneMesh.updateMatrixWorld();
       planeBox.setFromObject(basePlaneMesh);
       planeBox.min.z = -1;
@@ -764,6 +817,17 @@ const JourneyScene = ({
             width,
             height,
           } = image;
+
+          // intersect plane
+          raycaster.ray.origin.copy(camera.position);
+          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+          const intersections = raycaster.intersectObject(planeMesh, false, []);
+          const intersection =  intersections[0];
+          if (intersection) {
+            const dragUv = (intersection.uv as Vector2).clone();
+            dragUv.y = 1 - dragUv.y;
+            dragUvBox.max.copy(dragUv);
+          } 
 
           let x1 = 0;
           let y1 = 0;
@@ -864,7 +928,7 @@ const JourneyScene = ({
           // getPlaneUvFromMouseEvent(e, dragUvBox.max);
           setDragGeometry(makeBoxOutlineGeometry(dragBox));
 
-          // intersect plane
+          /* // intersect plane
           raycaster.ray.origin.copy(camera.position);
           raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
           const intersections = raycaster.intersectObject(planeMesh, false, []);
@@ -873,18 +937,42 @@ const JourneyScene = ({
             const dragUv = (intersection.uv as Vector2).clone();
             dragUv.y = 1 - dragUv.y;
             dragUvBox.max.copy(dragUv);
-          }
+          } */
         }
       };
       document.addEventListener('mousemove', mousemove);
+
+      const keydown = (e: any) => {
+        switch (e.key) {
+          // escape
+          case 'Escape': {
+            setDragBox(null);
+            setDragUvBox(null);
+            setPressed(false);
+            pointerMesh.visible = false;
+            break;
+          }
+        }
+      };
+      document.addEventListener('keydown', keydown);
 
       return () => {
         document.removeEventListener('mousedown', mousedown);
         document.removeEventListener('mouseup', mouseup);
         document.removeEventListener('mousemove', mousemove);
+        document.removeEventListener('keydown', keydown);
       };
     }
-  }, [pointerMeshRef.current, storyCursorMeshRef.current, scale, dragBox, dragUvBox]);
+  }, [
+    pointerMeshRef.current,
+    storyCursorMeshRef.current,
+    planeMeshRef.current,
+    scale.x,
+    scale.y,
+    scale.z,
+    dragBox,
+    dragUvBox,
+  ]);
 
   // track events
   useEffect(() => {
@@ -903,21 +991,19 @@ const JourneyScene = ({
         type,
       });
       console.log('got depth', depthFloat32Array);
-      // flip the depthFloat32Array y, using .set one row at a time
-      // const depthFloat32Array2 = new Float32Array(depthFloat32Array.length);
-      // for (let y = 0; y < height; y++) {
-      //   depthFloat32Array2.set(
-      //     depthFloat32Array.subarray((height - 1 - y) * width, (height - 1 - y + 1) * width),
-      //     y * width,
-      //   );
-      // }
-      const depthSpec = {
+      const depth = {
         width,
         height,
         data: depthFloat32Array,
       };
-      const newPlaneGeometry = makePlaneGeometryFromDepth(depthSpec);
+      const newPlaneGeometry = makePlaneGeometryFromDepth({
+        depth,
+        camera,
+        scale,
+      });
       setPlaneGeometry(newPlaneGeometry);
+
+      setCameraControlsEnabled(true);
     };
     eventTarget.addEventListener('depth', ondepth);
 
@@ -1063,15 +1149,15 @@ const JourneyScene = ({
     {/* cursor mesh */}
     <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
     {/* plane mesh */}
-    {planeGeometry && texture && <mesh geometry={planeGeometry} scale={scale} ref={planeMeshRef}>
+    <mesh geometry={planeGeometry} ref={planeMeshRef}>
       <meshBasicMaterial map={texture} />
-    </mesh>}
+    </mesh>
     {/* highlight mesh */}
-    {highlightTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.001]} scale={scale}>
+    {highlightTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.001]}>
       <meshBasicMaterial map={highlightTexture} transparent />
     </mesh>}
     {/* segment mesh */}
-    {segmentTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.002]} scale={scale}>
+    {segmentTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.002]}>
       <meshBasicMaterial map={segmentTexture} transparent />
     </mesh>}
   </>
