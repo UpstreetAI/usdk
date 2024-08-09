@@ -791,6 +791,30 @@ const JourneyScene = ({
     }
   });
 
+  /* // track capsule
+  const pqs = useMemo(() => {
+    const p = new Vector3();
+    const q = new Quaternion();
+    const s = new Vector3();
+    return {
+      p,
+      q,
+      s,
+    };
+  }, []);
+  useFrame(() => {
+    const capsuleMesh = capsuleMeshRef.current;
+    if (capsuleMesh) {
+      const {
+        p,
+        q,
+        s,
+      } = pqs;
+      capsuleMesh.matrixWorld.decompose(p, q, s);
+      // console.log('got capsule', p.toArray().join(','));
+    }
+  }); */
+
   // handle drag
   const { gl } = useThree();
   const canvas = gl.domElement;
