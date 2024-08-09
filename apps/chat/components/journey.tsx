@@ -130,7 +130,9 @@ type DepthSpec = {
 };
 
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
-  const v = useThree((state) => state.viewport)
+  const v = useThree((state) => {
+    return state.viewport;
+  });
   const aspectRatio = width / height
 
   const adaptedWidth = v.aspect > aspectRatio ? v.height * aspectRatio : v.width
@@ -331,6 +333,13 @@ const makePlaneGeometryFromDepth = ({
     data,
   } = depth;
 
+  // copy camera to avoid modifying the original
+  const baseCamera = camera.clone();
+  baseCamera.position.setScalar(0);
+  baseCamera.quaternion.set(0, 0, 0, 1);
+  baseCamera.scale.setScalar(1);
+  baseCamera.updateMatrix();
+
   const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
   const positions = planeGeometry.attributes.position.array;
   const p = new Vector3();
@@ -352,10 +361,10 @@ const makePlaneGeometryFromDepth = ({
     // scale the point to match the plane's world dimensions
     pWorld.copy(p).multiply(scale);
     // project from world space to normalized device coordinates
-    pNdc.copy(pWorld).project(camera);
+    pNdc.copy(pWorld).project(baseCamera);
     // get the near and mid points
-    pNear.copy(pNdc).setZ(-1).unproject(camera); // near plane
-    pMid.copy(pNdc).setZ(0).unproject(camera); // midpoint between near and far plane
+    pNear.copy(pNdc).setZ(-1).unproject(baseCamera); // near plane
+    pMid.copy(pNdc).setZ(0).unproject(baseCamera); // midpoint between near and far plane
     // get the point direction
     pDirection.copy(pMid).sub(pNear).normalize();
     // push the point out from world space to the given depth
