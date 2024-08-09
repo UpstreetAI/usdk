@@ -30,6 +30,7 @@ import {
   BufferAttribute,
   ShaderMaterial,
   MeshBasicMaterial,
+  Color,
 } from 'three';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,75 @@ import {
 
 const geometryResolution = 256;
 const outlineWidth = 0.005;
+const matplotlibColors = {
+  "tab20": [
+    "#1f77b4",
+    "#aec7e8",
+    "#ff7f0e",
+    "#ffbb78",
+    "#2ca02c",
+    "#98df8a",
+    "#d62728",
+    "#ff9896",
+    "#9467bd",
+    "#c5b0d5",
+    "#8c564b",
+    "#c49c94",
+    "#e377c2",
+    "#f7b6d2",
+    "#7f7f7f",
+    "#c7c7c7",
+    "#bcbd22",
+    "#dbdb8d",
+    "#17becf",
+    "#9edae5"
+  ],
+  "tab20b": [
+    "#393b79",
+    "#5254a3",
+    "#6b6ecf",
+    "#9c9ede",
+    "#637939",
+    "#8ca252",
+    "#b5cf6b",
+    "#cedb9c",
+    "#8c6d31",
+    "#bd9e39",
+    "#e7ba52",
+    "#e7cb94",
+    "#843c39",
+    "#ad494a",
+    "#d6616b",
+    "#e7969c",
+    "#7b4173",
+    "#a55194",
+    "#ce6dbd",
+    "#de9ed6"
+  ],
+  "tab20c": [
+    "#3182bd",
+    "#6baed6",
+    "#9ecae1",
+    "#c6dbef",
+    "#e6550d",
+    "#fd8d3c",
+    "#fdae6b",
+    "#fdd0a2",
+    "#31a354",
+    "#74c476",
+    "#a1d99b",
+    "#c7e9c0",
+    "#756bb1",
+    "#9e9ac8",
+    "#bcbddc",
+    "#dadaeb",
+    "#636363",
+    "#969696",
+    "#bdbdbd",
+    "#d9d9d9"
+  ]
+};
+const defaultColors = matplotlibColors.tab20b.concat(matplotlibColors.tab20c);
 
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => state.viewport)
@@ -129,16 +199,39 @@ const makePixelsArray = ({
   }
   return result;
 };
-const colorizePixelsArray = (uint8Array: Uint8Array) => {
+const colorizePixelsArrayMono = (uint8Array: Uint8Array, {
+  color = new Color(1, 0, 0),
+  alpha = 0.2,
+} = {}) => {
   const rgbaArray = new Uint8Array(uint8Array.length * 4);
   {
     let j = 0;
     for (let i = 0; i < uint8Array.length; i++) {
-      const v = uint8Array[i] ? 255 : 0;
-      const a = uint8Array[i] ? 255 * 0.2 : 0;
-      rgbaArray[j++] = 0;
-      rgbaArray[j++] = v;
-      rgbaArray[j++] = 0;
+      const v = !!uint8Array[i];
+      const a = v ? 255 * alpha : 0;
+      rgbaArray[j++] = v ? color.r * 255 : 0;
+      rgbaArray[j++] = v ? color.g * 255 : 0;
+      rgbaArray[j++] = v ? color.b * 255 : 0;
+      rgbaArray[j++] = a;
+    }
+  }
+  return rgbaArray;
+};
+const colorizePixelsArrayMulti = (uint8Array: Uint8Array, {
+  colors = defaultColors,
+  alpha = 0.5,
+} = {}) => {
+  const rgbaArray = new Uint8Array(uint8Array.length * 4);
+  {
+    const color = new Color();
+    let j = 0;
+    for (let i = 0; i < uint8Array.length; i++) {
+      const v = uint8Array[i];
+      color.set(colors[v % colors.length]);
+      const a = v ? 255 * alpha : 0;
+      rgbaArray[j++] = v ? color.r * 255 : 0;
+      rgbaArray[j++] = v ? color.g * 255 : 0;
+      rgbaArray[j++] = v ? color.b * 255 : 0;
       rgbaArray[j++] = a;
     }
   }
@@ -484,6 +577,7 @@ const JourneyScene = ({
   });
   const [texture, setTexture] = useState<Texture | null>(null);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
+  const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const scale = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
     texture ? texture.source.data.height : 512, // Pixel-height
@@ -701,6 +795,15 @@ const JourneyScene = ({
               floorVector2(point);
               const segmentationUint8Array = await segmentPoint(point);
               console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+              const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
+                color: new Color(0, 0, 1),
+              });
+              const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+              st.minFilter = NearestFilter;
+              st.magFilter = NearestFilter;
+              st.flipY = true;
+              st.needsUpdate = true;
+              setSegmentTexture(st);
             })();
           } else {
             console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
@@ -714,6 +817,15 @@ const JourneyScene = ({
               floorVector2(box.max);
               const segmentationUint8Array = await segmentBox(box);
               console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+              const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
+                color: new Color(0, 0, 1),
+              });
+              const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+              st.minFilter = NearestFilter;
+              st.magFilter = NearestFilter;
+              st.flipY = true;
+              st.needsUpdate = true;
+              setSegmentTexture(st);
             })();
 
             const pixelsArray = makePixelsArray({
@@ -724,7 +836,9 @@ const JourneyScene = ({
               x2,
               y2,
             });
-            const colorArray = colorizePixelsArray(pixelsArray);
+            const colorArray = colorizePixelsArrayMono(pixelsArray, {
+              color: new Color(0, 1, 0),
+            });
             const ht = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
             ht.minFilter = NearestFilter;
             ht.magFilter = NearestFilter;
@@ -799,9 +913,27 @@ const JourneyScene = ({
 
     const onsegment = async (e: any) => {
       const image = texture?.source.data;
+      const {
+        width,
+        height,
+      } = image;
       const blob = await img2blob(image);
       const segmentationUint8Array = await segmentAll(blob);
-      console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+      const countUniqueValues = (arr: Uint8Array) => {
+        const set = new Set();
+        for (let i = 0; i < arr.length; i++) {
+          set.add(arr[i]);
+        }
+        return set.size;
+      };
+      console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0), countUniqueValues(segmentationUint8Array));
+      const colorArray = colorizePixelsArrayMulti(segmentationUint8Array);
+      const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+      st.minFilter = NearestFilter;
+      st.magFilter = NearestFilter;
+      st.flipY = true;
+      st.needsUpdate = true;
+      setSegmentTexture(st);
     };
     eventTarget.addEventListener('segment', onsegment);
 
@@ -862,9 +994,13 @@ const JourneyScene = ({
     {planeGeometry && texture && <mesh geometry={planeGeometry} scale={scale} ref={planeMeshRef}>
       <meshBasicMaterial map={texture} />
     </mesh>}
-    {/* plane mesh */}
+    {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.001]} scale={scale}>
       <meshBasicMaterial map={highlightTexture} transparent />
+    </mesh>}
+    {/* segment mesh */}
+    {segmentTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.002]} scale={scale}>
+      <meshBasicMaterial map={segmentTexture} transparent />
     </mesh>}
   </>
 }
