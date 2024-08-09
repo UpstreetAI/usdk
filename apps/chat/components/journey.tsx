@@ -1,7 +1,7 @@
 'use client';
 
 // import { createRoot } from 'react-dom/client'
-import React, { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
+import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 // import { useAspect } from '@react-three/drei'
@@ -36,6 +36,7 @@ import {
   Color,
 } from 'three';
 import { Button } from '@/components/ui/button';
+import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
 import {
   describe,
   getDepth,
@@ -648,6 +649,10 @@ const JourneyScene = ({
     const basePlaneMesh = new Mesh(basePlaneGeometry, new MeshBasicMaterial({color: 0x000000}));
     return basePlaneMesh;
   }, []);
+  const capsuleGeometry = useMemo(() =>
+    new CapsuleGeometry(0.3, 0.3, 1)
+      .rotateZ(-Math.PI / 2),
+  []);
   const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
@@ -1116,6 +1121,13 @@ const JourneyScene = ({
       {/* <boxGeometry args={[0.2, 0.2, 0.2]} /> */}
       <meshBasicMaterial color="black" />
     </mesh>}
+    {/* capsule mesh */}
+    <mesh
+      position={[0, -0.5, -1]}
+      geometry={capsuleGeometry}
+    >
+      <meshBasicMaterial color="blue" transparent opacity={0.5} />
+    </mesh>
     {/* mouse mesh */}
     <mesh
       // onPointerEnter={e => {
@@ -1154,9 +1166,11 @@ const JourneyScene = ({
     {/* cursor mesh */}
     <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
     {/* plane mesh */}
-    <mesh geometry={planeGeometry} ref={planeMeshRef}>
-      <meshBasicMaterial map={texture} />
-    </mesh>
+    <RigidBody colliders='trimesh'>
+      <mesh geometry={planeGeometry} ref={planeMeshRef}>
+        <meshBasicMaterial map={texture} />
+      </mesh>
+    </RigidBody>
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
       <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} />
@@ -1185,7 +1199,11 @@ export function Journey() {
         }}
         ref={canvasRef}
       >
-        <JourneyScene eventTarget={eventTarget} />
+        <Suspense>
+          <Physics>
+            <JourneyScene eventTarget={eventTarget} />
+          </Physics>
+        </Suspense>
       </Canvas>
       <JourneyForm eventTarget={eventTarget} />
     </div>
