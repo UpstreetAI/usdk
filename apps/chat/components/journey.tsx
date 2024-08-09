@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { useAspect } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
@@ -654,6 +655,7 @@ const JourneyScene = ({
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
   const [pressed, setPressed] = useState(false);
+  const [cameraControlsEnabled, setCameraControlsEnabled] = useState(false);
 
   const scaleArray = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
@@ -1104,6 +1106,7 @@ const JourneyScene = ({
 
   // render
   return <>
+    {cameraControlsEnabled && <OrbitControls makeDefault />}
     {/* drag mesh */}
     {dragBox && <mesh
       geometry={dragGeometry}
