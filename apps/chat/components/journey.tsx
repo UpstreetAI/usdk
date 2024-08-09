@@ -267,7 +267,7 @@ const makeDepthSpec = ({
     data,
   };
 };
-// const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const floorVector2 = (v: Vector2) => {
   v.x = Math.floor(v.x);
   v.y = Math.floor(v.y);
@@ -277,10 +277,14 @@ const floorVector2 = (v: Vector2) => {
 // x if a float between 0 and w inclusive
 // y if a float between 0 and h inclusive
 const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: number) => {
-  // Map x and y to be within the bounds of the image
-  x *= (w - 1) / w;
-  y *= (h - 1) / h;
-  
+  // // Map x and y to be within the bounds of the image
+  // x *= (w - 1) / w;
+  // y *= (h - 1) / h;
+
+  // Clamp x and y to be within the bounds of the image
+  x = clamp(x, 0, w - 1);
+  y = clamp(y, 0, h - 1);
+
   // Calculate the integer parts and the fractional parts of x and y
   const x0 = Math.floor(x);
   const x1 = Math.min(x0 + 1, w - 1);
