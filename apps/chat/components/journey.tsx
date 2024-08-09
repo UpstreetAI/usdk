@@ -1,15 +1,16 @@
 'use client';
 
 // import { createRoot } from 'react-dom/client'
-import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef } from 'react'
+import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
-import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
-// import { useAspect } from '@react-three/drei'
-import { OrbitControls } from '@react-three/drei'
+import { Physics, RigidBody } from "@react-three/rapier";
+import { OrbitControls, KeyboardControls } from '@react-three/drei'
+import Ecctrl from 'ecctrl';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
   Vector3,
+  Quaternion,
   Camera,
   PerspectiveCamera,
   Raycaster,
@@ -655,6 +656,7 @@ const JourneyScene = ({
   []);
   const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
+  const capsuleMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
@@ -670,6 +672,20 @@ const JourneyScene = ({
     1                         // Optional scaling factor
   );
   const scale = new Vector3(...scaleArray);
+
+  const keyboardMap = [
+    { name: "forward", keys: ["ArrowUp", "KeyW"] },
+    { name: "backward", keys: ["ArrowDown", "KeyS"] },
+    { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
+    { name: "rightward", keys: ["ArrowRight", "KeyD"] },
+    { name: "jump", keys: ["Space"] },
+    { name: "run", keys: ["Shift"] },
+    // Optional animation key map
+    // { name: "action1", keys: ["1"] },
+    // { name: "action2", keys: ["2"] },
+    // { name: "action3", keys: ["3"] },
+    // { name: "action4", keys: ["KeyF"] },
+  ];
 
   useEffect(() => {
     const newPlaneGeometry = makePlaneGeometryFromScale({
@@ -1121,13 +1137,25 @@ const JourneyScene = ({
       {/* <boxGeometry args={[0.2, 0.2, 0.2]} /> */}
       <meshBasicMaterial color="black" />
     </mesh>}
-    {/* capsule mesh */}
-    <mesh
-      position={[0, -0.5, -1]}
-      geometry={capsuleGeometry}
-    >
-      <meshBasicMaterial color="blue" transparent opacity={0.5} />
-    </mesh>
+
+    {/* character capsule */}
+      <KeyboardControls map={keyboardMap}>
+      {/* Character Control */}
+      <Ecctrl
+        disableFollowCam={true}
+        disableFollowCamPos={new Vector3(0, 0, 1)}
+        disableFollowCamTarget={new Vector3(0, 0, 0)}
+        // debug
+      >
+        <mesh
+          position={[0, -0.5, -1]}
+          geometry={capsuleGeometry}
+          ref={capsuleMeshRef}
+        >
+          <meshBasicMaterial color="blue" transparent opacity={0.5} />
+        </mesh>
+      </Ecctrl>
+    </KeyboardControls>
     {/* mouse mesh */}
     <mesh
       // onPointerEnter={e => {
