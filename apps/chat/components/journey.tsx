@@ -131,7 +131,14 @@ type DepthSpec = {
 
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => {
-    return state.viewport;
+    const camera2 = state.camera.clone();
+    camera2.position.set(0, 0, 1);
+    camera2.quaternion.set(0, 0, 0, 1);
+    camera2.scale.setScalar(1);
+    camera2.updateMatrix();
+
+    const vp = state.viewport.getCurrentViewport(camera2);
+    return vp;
   });
   const aspectRatio = width / height
 
@@ -335,7 +342,7 @@ const makePlaneGeometryFromDepth = ({
 
   // copy camera to avoid modifying the original
   const baseCamera = camera.clone();
-  baseCamera.position.setScalar(0);
+  baseCamera.position.set(0, 0, 1);
   baseCamera.quaternion.set(0, 0, 0, 1);
   baseCamera.scale.setScalar(1);
   baseCamera.updateMatrix();
