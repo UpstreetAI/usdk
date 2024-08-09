@@ -1166,6 +1166,7 @@ const JourneyScene = ({
     {controlsEnabled && (
       <KeyboardControls map={keyboardMap}>
         <Ecctrl
+          position={[0, 0, -6]}
           capsuleHalfHeight={characterController.capsuleHalfHeight}
           capsuleRadius={characterController.capsuleRadius}
           floatHeight={characterController.floatHeight}
@@ -1174,7 +1175,6 @@ const JourneyScene = ({
           disableFollowCamTarget={new Vector3(0, 0, 0)}
         >
           <mesh
-            position={[0, 0, -6]}
             geometry={capsuleGeometry}
             ref={capsuleMeshRef}
           >
