@@ -998,7 +998,9 @@ const JourneyScene = ({
             setDragBox(null);
             setDragUvBox(null);
             setPressed(false);
-            pointerMesh.visible = false;
+            setHighlightTexture(null);
+            setSegmentTexture(null);
+            intersectionMesh.visible = false;
             break;
           }
         }
