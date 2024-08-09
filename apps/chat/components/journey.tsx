@@ -676,20 +676,20 @@ const JourneyScene = ({
   ];
 
   useEffect(() => {
-    let newPlaneGeometry;
     if (depth) {
-      newPlaneGeometry = makePlaneGeometryFromDepth({
+      const newPlaneGeometry = makePlaneGeometryFromDepth({
         depth,
         camera,
         scale,
       });
+      setPlaneGeometry(newPlaneGeometry);
     } else {
-      newPlaneGeometry = makePlaneGeometryFromScale({
+      const newPlaneGeometry = makePlaneGeometryFromScale({
         scale,
       });
+      setPlaneGeometry(newPlaneGeometry);
     }
-    setPlaneGeometry(newPlaneGeometry);
-  }, [depth, scale.x, scale.y, scale.z]);
+  }, [scale.x, scale.y, scale.z, depth]);
 
   /* const getPlaneUvFromMouseEvent = (e: MouseEvent, target: Vector2) => {
     const planeTopLeftPointNdc = new Vector3(-0.5, 0.5, 0)
@@ -1045,6 +1045,12 @@ const JourneyScene = ({
         data: depthFloat32Array,
       };
       setDepth(depth);
+      const newPlaneGeometry = makePlaneGeometryFromDepth({
+        depth,
+        camera,
+        scale,
+      });
+      setPlaneGeometry(newPlaneGeometry);
 
       setControlsEnabled(true);
     };
