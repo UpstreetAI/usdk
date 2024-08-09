@@ -123,6 +123,12 @@ const characterController = {
   floatHeight: 0.3, // Height of the character when floating
 };
 
+type DepthSpec = {
+  width: number,
+  height: number,
+  data: Float32Array,
+};
+
 export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => state.viewport)
   const aspectRatio = width / height
@@ -248,35 +254,6 @@ const colorizePixelsArrayMulti = (uint8Array: Uint8Array, {
   return rgbaArray;
 };
 
-/* const makeDepthSpec = ({
-  width = 256,
-  height = 256,
-}: {
-  width?: number,
-  height?: number,
-} = {}) => {
-  const cutoff = 0.25;
-
-  const data = new Float32Array(width * height);
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x;
-      const py = y / (height - 1);
-      let d = 0;
-      if (y < height * cutoff) {
-        d = (py / cutoff);
-      } else {
-        d = 1 - (py - cutoff) / (1 - cutoff);
-      }
-      data[index] = d;
-    }
-  }
-  return {
-    width,
-    height,
-    data,
-  };
-}; */
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const floorVector2 = (v: Vector2) => {
   v.x = Math.floor(v.x);
@@ -344,11 +321,7 @@ const makePlaneGeometryFromDepth = ({
   camera,
   scale,
 }: {
-  depth: {
-    width: number,
-    height: number,
-    data: Float32Array,
-  },
+  depth: DepthSpec,
   camera: Camera,
   scale: Vector3,
 }) => {
@@ -665,11 +638,7 @@ const JourneyScene = ({
   const pointerMeshRef = useRef<Mesh>(null);
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
-  const [depth, setDepth] = useState<{
-    width: number,
-    height: number,
-    data: Float32Array,
-  } | null>(null);
+  const [depth, setDepth] = useState<DepthSpec | null>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
