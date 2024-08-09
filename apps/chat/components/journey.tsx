@@ -3,6 +3,7 @@
 // import { createRoot } from 'react-dom/client'
 import React, { useEffect, useRef, useState, useMemo, forwardRef } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
+import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
 // import { useAspect } from '@react-three/drei'
 import { OrbitControls } from '@react-three/drei'
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
