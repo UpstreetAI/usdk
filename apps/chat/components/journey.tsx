@@ -1157,12 +1157,12 @@ const JourneyScene = ({
       <meshBasicMaterial map={texture} />
     </mesh>
     {/* highlight mesh */}
-    {highlightTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.001]}>
-      <meshBasicMaterial map={highlightTexture} transparent />
+    {highlightTexture && <mesh geometry={planeGeometry}>
+      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} />
     </mesh>}
     {/* segment mesh */}
-    {segmentTexture && <mesh geometry={planeGeometry} position={[0, 0, 0.002]}>
-      <meshBasicMaterial map={segmentTexture} transparent />
+    {segmentTexture && <mesh geometry={planeGeometry}>
+      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
     </mesh>}
   </>
 }
