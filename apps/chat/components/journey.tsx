@@ -903,11 +903,58 @@ const JourneyScene = ({
       const queries = prompt.split(',').map((s: string) => s.trim()).filter(Boolean);
 
       const image = texture?.source.data;
+      const {
+        width,
+        height,
+      } = image;
       const blob = await img2blob(image);
       const result = await detect(blob, {
         queries,
       });
       console.log('got detect', JSON.stringify(result, null, 2));
+
+      const boxes = result.map(([
+        x1,
+        y1,
+        x2,
+        y2,
+      ]: [
+        number,
+        number,
+        number,
+        number,
+      ]) => {
+        return new Box2(new Vector2(x1, y1), new Vector2(x2, y2));
+      });
+      const boxAreas = new Map<Box2, number>();
+      for (const box of boxes) {
+        const size = box.getSize(new Vector2());
+        boxAreas.set(box, size.x * size.y);
+      }
+      const largestBox = boxes.sort((a: Box2, b: Box2) => {
+        const aArea = boxAreas.get(a) as number;
+        const bArea = boxAreas.get(b) as number;
+        return bArea - aArea;
+      })[0];
+      console.log('got largest box', largestBox);
+
+      if (largestBox) {
+        floorVector2(largestBox.min);
+        floorVector2(largestBox.max);
+        const segmentationUint8Array = await segmentBox(largestBox);
+        console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+        const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
+          color: new Color(0, 0, 1),
+        });
+        const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+        st.minFilter = NearestFilter;
+        st.magFilter = NearestFilter;
+        st.flipY = true;
+        st.needsUpdate = true;
+        setSegmentTexture(st);
+      } else {
+        setSegmentTexture(null);
+      }
     };
     eventTarget.addEventListener('detect', ondetect);
 
