@@ -662,10 +662,10 @@ const JourneyScene = ({
   const scale = new Vector3(...scaleArray);
 
   const keyboardMap = [
-    { name: "forward", keys: ["ArrowUp", "KeyW"] },
-    { name: "backward", keys: ["ArrowDown", "KeyS"] },
-    { name: "leftward", keys: ["ArrowLeft", "KeyA"] },
-    { name: "rightward", keys: ["ArrowRight", "KeyD"] },
+    { name: "backward", keys: ["ArrowUp", "KeyW"] },
+    { name: "forward", keys: ["ArrowDown", "KeyS"] },
+    { name: "rightward", keys: ["ArrowLeft", "KeyA"] },
+    { name: "leftward", keys: ["ArrowRight", "KeyD"] },
     { name: "jump", keys: ["Space"] },
     { name: "run", keys: ["Shift"] },
     // Optional animation key map
