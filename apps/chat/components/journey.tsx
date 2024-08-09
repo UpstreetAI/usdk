@@ -1227,11 +1227,11 @@ const JourneyScene = ({
     </RigidBody>
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} />
+      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
     </mesh>}
     {/* segment mesh */}
     {segmentTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
+      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-4} />
     </mesh>}
   </>
 }
