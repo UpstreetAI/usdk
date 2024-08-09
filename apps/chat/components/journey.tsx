@@ -238,7 +238,7 @@ const colorizePixelsArrayMulti = (uint8Array: Uint8Array, {
   return rgbaArray;
 };
 
-const makeDepthSpec = ({
+/* const makeDepthSpec = ({
   width = 256,
   height = 256,
 }: {
@@ -266,7 +266,7 @@ const makeDepthSpec = ({
     height,
     data,
   };
-};
+}; */
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const floorVector2 = (v: Vector2) => {
   v.x = Math.floor(v.x);
@@ -308,6 +308,27 @@ const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: 
   
   return value;
 };
+const makePlaneGeometryFromDepth = ({
+  width,
+  height,
+  data,
+}: {
+  width: number,
+  height: number,
+  data: Float32Array,
+}) => {
+  const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
+  const positions = planeGeometry.attributes.position.array;
+  const p = new Vector3();
+  for (let i = 0; i < positions.length; i += 3) {
+    p.fromArray(positions, i);
+    const x = (p.x + 0.5) * width;
+    const y = (1 - (p.y + 0.5)) * height;
+    const d = bilinearSample(data, x, y, width, height);
+    positions[i + 2] = -d;
+  }
+  return planeGeometry;
+}
 
 const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
   const canvas = document.createElement('canvas');
@@ -558,27 +579,8 @@ const JourneyScene = ({
 }: {
   eventTarget: EventTarget,
 }) => {
-  const [depthSpec, setDepthSpec] = useState(() => makeDepthSpec());
-  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => {
-    const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
-    const {
-      width,
-      height,
-      data,
-    } = depthSpec;
-    // console.log('got depth spec', depthSpec);
-    const positions = planeGeometry.attributes.position.array;
-    const p = new Vector3();
-    for (let i = 0; i < positions.length; i += 3) {
-      p.fromArray(positions, i);
-      const x = (p.x + 0.5) * width;
-      const y = (p.y + 0.5) * height;
-      const d = bilinearSample(data, x, y, width, height);
-      // console.log('sample', x, y, d);
-      positions[i + 2] = -d;
-    }
-    return planeGeometry;
-  });
+  // const [depthSpec, setDepthSpec] = useState(() => makeDepthSpec());
+  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(() => new PlaneGeometry(1, 1, geometryResolution, geometryResolution));
   const [texture, setTexture] = useState<Texture | null>(null);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
@@ -892,11 +894,30 @@ const JourneyScene = ({
       } = e.data;
 
       const image = texture?.source.data;
+      const {
+        width,
+        height,
+      } = image;
       const blob = await img2blob(image);
       const depthFloat32Array = await getDepth(blob, {
         type,
       });
       console.log('got depth', depthFloat32Array);
+      // flip the depthFloat32Array y, using .set one row at a time
+      // const depthFloat32Array2 = new Float32Array(depthFloat32Array.length);
+      // for (let y = 0; y < height; y++) {
+      //   depthFloat32Array2.set(
+      //     depthFloat32Array.subarray((height - 1 - y) * width, (height - 1 - y + 1) * width),
+      //     y * width,
+      //   );
+      // }
+      const depthSpec = {
+        width,
+        height,
+        data: depthFloat32Array,
+      };
+      const newPlaneGeometry = makePlaneGeometryFromDepth(depthSpec);
+      setPlaneGeometry(newPlaneGeometry);
     };
     eventTarget.addEventListener('depth', ondepth);
 
