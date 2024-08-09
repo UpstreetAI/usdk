@@ -1221,11 +1221,22 @@ const JourneyScene = ({
     {/* cursor mesh */}
     <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
     {/* plane mesh */}
-    <RigidBody colliders='trimesh'>
-      <mesh geometry={planeGeometry} ref={planeMeshRef}>
-        <meshBasicMaterial map={texture} />
-      </mesh>
-    </RigidBody>
+    {(() => {
+      const children = (
+        <mesh geometry={planeGeometry} ref={planeMeshRef}>
+          <meshBasicMaterial map={texture} />
+        </mesh>
+      );
+      return controlsEnabled ? (
+        <RigidBody
+          colliders='trimesh'
+          lockTranslations
+          lockRotations
+        >
+          {children}
+        </RigidBody>
+      ) : (children);
+    })()}
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
       <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
