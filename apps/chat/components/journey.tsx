@@ -658,8 +658,14 @@ const JourneyScene = ({
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry | null>(null);
-  const [pressed, setPressed] = useState(false);
-  const [controlsEnabled, setControlsEnabled] = useState(false);
+  const [pressed, _setPressed] = useState(false);
+  const pressedRef = useRef(false);
+  const setPressed = (v: boolean) => {
+    _setPressed(v);
+    pressedRef.current = v;
+  };
+  const [keyboardControlsEnabled, setKeyboardControlsEnabled] = useState(false);
+  const [mouseControlsEnabled, setMouseControlsEnabled] = useState(false);
 
   const scaleArray = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
@@ -819,37 +825,35 @@ const JourneyScene = ({
 
     if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
-        if (e.target === canvas) {
-          if (pointerMesh.visible) {
-            // intersect plane
-            raycaster.ray.origin.copy(camera.position);
-            raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
-            const intersections = raycaster.intersectObject(planeMesh, false, []);
-            const intersection =  intersections[0];
-            if (intersection) {
-              intersectionMesh.position.copy(intersection.point);
-              intersectionMesh.visible = true;
-            } else {
-              intersectionMesh.visible = false;
-            }
-
-            // set states
-            if (intersection) {
-              const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
-              setDragBox(dragBox);
-
-              // const dragUv = getPlaneUvFromMouseEvent(e, new Vector2());
-              const dragUv = (intersection.uv as Vector2).clone();
-              dragUv.y = 1 - dragUv.y;
-              const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
-              setDragUvBox(dragUvBox);
-
-              setDragGeometry(makeBoxOutlineGeometry(dragBox));
-            }
-
-            // animate cursor
-            setPressed(true);
+        if (e.target === canvas && !mouseControlsEnabled && pointerMesh.visible) {
+          // intersect plane
+          raycaster.ray.origin.copy(camera.position);
+          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+          const intersections = raycaster.intersectObject(planeMesh, false, []);
+          const intersection =  intersections[0];
+          if (intersection) {
+            intersectionMesh.position.copy(intersection.point);
+            intersectionMesh.visible = true;
+          } else {
+            intersectionMesh.visible = false;
           }
+
+          // set states
+          if (intersection) {
+            const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
+            setDragBox(dragBox);
+
+            const dragUv = (intersection.uv as Vector2).clone();
+            dragUv.y = 1 - dragUv.y;
+            const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
+            setDragUvBox(dragUvBox);
+
+            console.log('set drag geo start');
+            setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
+          }
+
+          // animate cursor
+          setPressed(true);
         }
       };
       document.addEventListener('mousedown', mousedown);
@@ -967,10 +971,12 @@ const JourneyScene = ({
       };
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
-        if (dragBox && dragUvBox && pointerMesh.visible) {
+        if (dragBox && dragUvBox && dragGeometry && pointerMesh.visible && pressedRef.current) {
           dragBox.max.copy(pointerMesh.position);
+          setDragBox(dragBox);
           // getPlaneUvFromMouseEvent(e, dragUvBox.max);
-          setDragGeometry(makeBoxOutlineGeometry(dragBox));
+          console.log('set drag geom move');
+          setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
 
           /* // intersect plane
           raycaster.ray.origin.copy(camera.position);
@@ -1002,18 +1008,37 @@ const JourneyScene = ({
           // space
           case ' ': {
             e.preventDefault();
-            // e.stopPropagation();
+            break;
+          }
+          // C
+          case 'c': {
+            if (!mouseControlsEnabled) {
+              setMouseControlsEnabled(true);
+            }
             break;
           }
         }
       };
       document.addEventListener('keydown', keydown);
+      const keyup = (e: any) => {
+        switch (e.key) {
+          // C
+          case 'c': {
+            if (mouseControlsEnabled) {
+              setMouseControlsEnabled(false);
+            }
+            break;
+          }
+        }
+      };
+      document.addEventListener('keyup', keyup);
 
       return () => {
         document.removeEventListener('mousedown', mousedown);
         document.removeEventListener('mouseup', mouseup);
         document.removeEventListener('mousemove', mousemove);
         document.removeEventListener('keydown', keydown);
+        document.removeEventListener('keyup', keyup);
       };
     }
   }, [
@@ -1025,39 +1050,43 @@ const JourneyScene = ({
     scale.z,
     dragBox,
     dragUvBox,
+    dragGeometry,
+    mouseControlsEnabled,
   ]);
 
   // track events
   useEffect(() => {
     const ondepth = async (e: any) => {
-      const {
-        type,
-      } = e.data;
+      if (!keyboardControlsEnabled) {
+        const {
+          type,
+        } = e.data;
 
-      const image = texture?.source.data;
-      const {
-        width,
-        height,
-      } = image;
-      const blob = await img2blob(image);
-      const depthFloat32Array = await getDepth(blob, {
-        type,
-      });
-      console.log('got depth', depthFloat32Array);
-      const depth = {
-        width,
-        height,
-        data: depthFloat32Array,
-      };
-      setDepth(depth);
-      const newPlaneGeometry = makePlaneGeometryFromDepth({
-        depth,
-        camera,
-        scale,
-      });
-      setPlaneGeometry(newPlaneGeometry);
+        const image = texture?.source.data;
+        const {
+          width,
+          height,
+        } = image;
+        const blob = await img2blob(image);
+        const depthFloat32Array = await getDepth(blob, {
+          type,
+        });
+        console.log('got depth', depthFloat32Array);
+        const depth = {
+          width,
+          height,
+          data: depthFloat32Array,
+        };
+        setDepth(depth);
+        const newPlaneGeometry = makePlaneGeometryFromDepth({
+          depth,
+          camera,
+          scale,
+        });
+        setPlaneGeometry(newPlaneGeometry);
 
-      setControlsEnabled(true);
+        setKeyboardControlsEnabled(true);
+      }
     };
     eventTarget.addEventListener('depth', ondepth);
 
@@ -1154,21 +1183,20 @@ const JourneyScene = ({
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
     };
-  }, [texture]);
+  }, [texture, keyboardControlsEnabled]);
 
   // render
   return <>
-    {controlsEnabled && <OrbitControls makeDefault />}
+    {mouseControlsEnabled && <OrbitControls makeDefault />}
     {/* drag mesh */}
     {dragGeometry && <mesh
       geometry={dragGeometry}
     >
-      {/* <boxGeometry args={[0.2, 0.2, 0.2]} /> */}
-      <meshBasicMaterial color="black" />
+      <meshBasicMaterial color="black" transparent opacity={0.5} />
     </mesh>}
 
     {/* character capsule */}
-    {controlsEnabled && (
+    {keyboardControlsEnabled && (
       <KeyboardControls map={keyboardMap}>
         <Ecctrl
           position={[0, 0, -6]}
@@ -1236,7 +1264,7 @@ const JourneyScene = ({
           <meshBasicMaterial map={texture} />
         </mesh>
       );
-      return controlsEnabled ? (
+      return keyboardControlsEnabled ? (
         <RigidBody
           colliders='trimesh'
           lockTranslations
@@ -1248,11 +1276,11 @@ const JourneyScene = ({
     })()}
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
+      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} />
     </mesh>}
     {/* segment mesh */}
     {segmentTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-4} />
+      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
     </mesh>}
   </>
 }
