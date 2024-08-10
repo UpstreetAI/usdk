@@ -135,7 +135,7 @@ export function useAspectContain(width: number, height: number, factor: number =
     camera2.position.set(0, 0, 1);
     camera2.quaternion.set(0, 0, 0, 1);
     camera2.scale.setScalar(1);
-    camera2.updateMatrix();
+    camera2.updateMatrixWorld();
 
     const vp = state.viewport.getCurrentViewport(camera2);
     return vp;
