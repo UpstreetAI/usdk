@@ -344,7 +344,7 @@ const makePlaneGeometryFromDepth = ({
   baseCamera.position.set(0, 0, 1);
   baseCamera.quaternion.set(0, 0, 0, 1);
   baseCamera.scale.setScalar(1);
-  baseCamera.updateMatrix();
+  baseCamera.updateMatrixWorld();
 
   const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
   const positions = planeGeometry.attributes.position.array;
