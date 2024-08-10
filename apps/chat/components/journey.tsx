@@ -148,56 +148,55 @@ export function useAspectContain(width: number, height: number, factor: number =
   return [adaptedWidth * factor, adaptedHeight * factor, 1]
 }
 
-const makeBoxOutlineGeometry = (b: Box3) => {
-  let x1: number;
-  let y1: number;
-  let x2: number;
-  let y2: number;
-  if (b.min.x < b.max.x) {
-    x1 = b.min.x;
-    x2 = b.max.x;
-  } else {
-    x1 = b.max.x;
-    x2 = b.min.x;
+const makeBoxOutlineGeometry = (box: Box3, camera: Camera) => {
+  // project the box onto the camera near plane
+  const nearBox = box.clone();
+  nearBox.min.project(camera);
+  nearBox.max.project(camera);
+  nearBox.min.z = -1;
+  nearBox.max.z = -1;
+  // ensure the x and y are really min max
+  if (nearBox.min.x > nearBox.max.x) {
+    const t = nearBox.min.x;
+    nearBox.min.x = nearBox.max.x;
+    nearBox.max.x = t;
   }
-  if (b.min.y < b.max.y) {
-    y1 = b.min.y;
-    y2 = b.max.y;
-  } else {
-    y1 = b.max.y;
-    y2 = b.min.y;
+  if (nearBox.min.y > nearBox.max.y) {
+    const t = nearBox.min.y;
+    nearBox.min.y = nearBox.max.y;
+    nearBox.max.y = t;
   }
+  nearBox.min.unproject(camera);
+  nearBox.max.unproject(camera);
 
-  const w = x2 - x1;
-  const h = y2 - y1;
+  const topLeftPoint = nearBox.min;
+  const bottomRightPoint = nearBox.max;
 
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
+  const bottomPlane = new Plane().setFromNormalAndCoplanarPoint(
+    new Vector3(0, 1, 0)
+      .applyQuaternion(camera.quaternion),
+      bottomRightPoint
+  );
+  const rightPlane = new Plane().setFromNormalAndCoplanarPoint(
+    new Vector3(-1, 0, 0)
+      .applyQuaternion(camera.quaternion),
+      bottomRightPoint
+  );
 
-  const baseGeometry = new BoxGeometry(outlineWidth, 1 + outlineWidth * 2, outlineWidth);
-  const geometries = [
-    // top
-    baseGeometry.clone()
-      .rotateZ(Math.PI / 2)
-      .scale(w, 1, 1)
-      .translate(mx, y1, 0),
-    // bottom
-    baseGeometry.clone()
-      .rotateZ(Math.PI / 2)
-      .scale(w, 1, 1)
-      .translate(mx, y2, 0),
-    // left
-    baseGeometry.clone()
-      .scale(1, h, 1)
-      .translate(x1, my, 0),
-    // right
-    baseGeometry.clone()
-      .scale(1, h, 1)
-      .translate(x2, my, 0),
-  ];
-  const g = BufferGeometryUtils.mergeGeometries(geometries);
-  // console.log('got g', x1, y1, x2, y2);
-  return g;
+  const bottomLeftPoint = bottomPlane.projectPoint(nearBox.min, new Vector3());
+  const topRightPoint = rightPlane.projectPoint(nearBox.min, new Vector3());
+
+  const m = topLeftPoint.clone().add(bottomRightPoint).multiplyScalar(0.5);
+  m.add(
+    new Vector3(0, 0, -0.00001)
+      .applyQuaternion(camera.quaternion)
+  );
+  const w = topLeftPoint.distanceTo(topRightPoint);
+  const h = topLeftPoint.distanceTo(bottomLeftPoint);
+
+  return new PlaneGeometry(w, h, 1)
+    .applyQuaternion(camera.quaternion)
+    .translate(m.x, m.y, m.z);
 };
 
 const makePixelsArray = ({
