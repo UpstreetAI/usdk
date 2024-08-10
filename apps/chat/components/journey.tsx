@@ -650,8 +650,14 @@ const JourneyScene = ({
   const storyCursorMeshRef = useRef<Mesh>(null);
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
-  const [dragBox, setDragBox] = useState<Box3 | null>(null);
-  const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
+  const dragBoxRef = useRef<Box3 | null>(null);
+  const setDragBox = (v: Box3 | null) => {
+    dragBoxRef.current = v;
+  };
+  const dragUvBoxRef = useRef<Box2 | null>(null);
+  const setDragUvBox = (v: Box2 | null) => {
+    dragUvBoxRef.current = v;
+  };
   const [dragGeometry, setDragGeometry] = useState<BufferGeometry | null>(null);
   const [pressed, _setPressed] = useState(false);
   const pressedRef = useRef(false);
@@ -660,7 +666,12 @@ const JourneyScene = ({
     pressedRef.current = v;
   };
   const [keyboardControlsEnabled, setKeyboardControlsEnabled] = useState(false);
-  const [mouseControlsEnabled, setMouseControlsEnabled] = useState(false);
+  const [mouseControlsEnabled, _setMouseControlsEnabled] = useState(false);
+  const mouseControlsEnabledRef = useRef(false);
+  const setMouseControlsEnabled = (v: boolean) => {
+    _setMouseControlsEnabled(v);
+    mouseControlsEnabledRef.current = v;
+  };
 
   const scaleArray = useAspectContain(
     texture ? texture.source.data.width : 512, // Pixel-width
@@ -820,7 +831,11 @@ const JourneyScene = ({
 
     if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
-        if (e.target === canvas && !mouseControlsEnabled && pointerMesh.visible && !pressedRef.current) {
+        // const dragBox = dragBoxRef.current;
+        // const dragUvBox = dragUvBoxRef.current;
+        const pressed = pressedRef.current;
+
+        if (e.target === canvas && !mouseControlsEnabledRef.current && pointerMesh.visible && !pressed) {
           // intersect plane
           raycaster.ray.origin.copy(camera.position);
           raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
@@ -835,15 +850,15 @@ const JourneyScene = ({
 
           // set states
           if (intersection) {
-            const dragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
-            setDragBox(dragBox);
+            const newDragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
+            setDragBox(newDragBox);
 
             const dragUv = (intersection.uv as Vector2).clone();
             dragUv.y = 1 - dragUv.y;
             const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
             setDragUvBox(dragUvBox);
 
-            setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
+            setDragGeometry(makeBoxOutlineGeometry(newDragBox, camera));
           }
 
           // animate cursor
@@ -852,7 +867,11 @@ const JourneyScene = ({
       };
       document.addEventListener('mousedown', mousedown);
       const mouseup = (e: any) => {
-        if (dragUvBox) {
+        // const dragBox = dragBoxRef.current;
+        const dragUvBox = dragUvBoxRef.current;
+        const pressed = pressedRef.current;
+
+        if (dragUvBox && pressed) {
           const image = texture?.source.data as HTMLImageElement;
           const {
             width,
@@ -965,7 +984,11 @@ const JourneyScene = ({
       };
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
-        if (dragBox && dragUvBox && dragGeometry && pointerMesh.visible && pressedRef.current) {
+        const dragBox = dragBoxRef.current;
+        const dragUvBox = dragUvBoxRef.current;
+        const pressed = pressedRef.current;
+
+        if (dragBox && pointerMesh.visible && pressed) {
           dragBox.max.copy(pointerMesh.position);
           setDragBox(dragBox);
           // getPlaneUvFromMouseEvent(e, dragUvBox.max);
@@ -1005,7 +1028,7 @@ const JourneyScene = ({
           }
           // C
           case 'c': {
-            if (!mouseControlsEnabled) {
+            if (!mouseControlsEnabledRef.current) {
               setMouseControlsEnabled(true);
             }
             break;
@@ -1017,7 +1040,7 @@ const JourneyScene = ({
         switch (e.key) {
           // C
           case 'c': {
-            if (mouseControlsEnabled) {
+            if (mouseControlsEnabledRef.current) {
               setMouseControlsEnabled(false);
             }
             break;
@@ -1038,13 +1061,15 @@ const JourneyScene = ({
     pointerMeshRef.current,
     storyCursorMeshRef.current,
     planeMeshRef.current,
-    scale.x,
-    scale.y,
-    scale.z,
-    dragBox,
-    dragUvBox,
-    dragGeometry,
-    mouseControlsEnabled,
+    // scale.x,
+    // scale.y,
+    // scale.z,
+    // dragBox,
+    // dragUvBox,
+    // dragGeometry,
+    // segmentTexture,
+    // highlightTexture,
+    // mouseControlsEnabled,
   ]);
 
   // track events
@@ -1269,11 +1294,11 @@ const JourneyScene = ({
     })()}
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} />
+      <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} alphaTest={0.01} />
     </mesh>}
     {/* segment mesh */}
     {segmentTexture && <mesh geometry={planeGeometry}>
-      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} />
+      <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} alphaTest={0.01} />
     </mesh>}
   </>
 }
