@@ -4,7 +4,7 @@
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from "@react-three/rapier";
-import { OrbitControls, KeyboardControls } from '@react-three/drei'
+import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei'
 import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -12,6 +12,7 @@ import {
   Vector2,
   Vector3,
   Quaternion,
+  Object3D,
   Camera,
   PerspectiveCamera,
   Raycaster,
@@ -21,20 +22,16 @@ import {
   Mesh,
   TextureLoader,
   NoToneMapping,
-  LinearSRGBColorSpace,
-  SRGBColorSpace,
   Texture,
   BufferGeometry,
   BoxGeometry,
   DataTexture,
-  LuminanceFormat,
   RGBAFormat,
   UnsignedByteType,
   NearestFilter,
   PlaneGeometry,
   BufferAttribute,
   ShaderMaterial,
-  MeshBasicMaterial,
   Color,
 } from 'three';
 import { Button } from '@/components/ui/button';
@@ -47,10 +44,8 @@ import {
   segmentAll,
 } from '../utils/vision.mjs';
 import { getJWT } from '@/lib/jwt';
-import { createPrerenderState } from 'next/dist/server/app-render/dynamic-rendering';
 
 const geometryResolution = 256;
-// const outlineWidth = 0.005;
 const matplotlibColors = {
   "tab20": [
     "#1f77b4",
@@ -348,14 +343,14 @@ const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
   );
 
   // Ensure the bounds are within the image
-  const clampedBoundingBox = new Box2(
+  const safeBoundingBox = new Box2(
     new Vector2(clamp(expandedBoundingBox.min.x, 0, width), clamp(expandedBoundingBox.min.y, 0, height)),
     new Vector2(clamp(expandedBoundingBox.max.x, 0, width), clamp(expandedBoundingBox.max.y, 0, height))
   );
 
   // Calculate the width and height of the clipped image
-  const clippedWidth = clampedBoundingBox.max.x - clampedBoundingBox.min.x;
-  const clippedHeight = clampedBoundingBox.max.y - clampedBoundingBox.min.y;
+  const clippedWidth = safeBoundingBox.max.x - safeBoundingBox.min.x;
+  const clippedHeight = safeBoundingBox.max.y - safeBoundingBox.min.y;
 
   // Create a canvas to hold the clipped image
   const canvas = document.createElement('canvas');
@@ -366,8 +361,8 @@ const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
   // Draw the clipped image onto the canvas
   ctx.drawImage(
     image,
-    clampedBoundingBox.min.x,
-    clampedBoundingBox.min.y,
+    safeBoundingBox.min.x,
+    safeBoundingBox.min.y,
     clippedWidth,
     clippedHeight,
     0,
@@ -376,11 +371,21 @@ const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
     clippedHeight
   );
 
-  return canvas;
+  return {
+    boundingBox,
+    safeBoundingBox,
+    image: canvas,
+  };
 };
 const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Array: Uint8Array) => {
-  const hiImg = clipImage(image, segmentationUint8Array);
-  hiImg.style.cssText = `\
+  const {
+    boundingBox,
+    safeBoundingBox,
+    image: clippedImage,
+  } = clipImage(image, segmentationUint8Array);
+
+  // XXX debugging
+  clippedImage.style.cssText = `\
     position: fixed;
     bottom: 0;
     left: 0;
@@ -389,9 +394,10 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     z-index: 100;
     pointer-events: none;
   `;
-  document.body.appendChild(hiImg);
+  document.body.appendChild(clippedImage);
+
   const blob = await new Promise<Blob>((accept, reject) => {
-    hiImg.toBlob(blob => {
+    clippedImage.toBlob(blob => {
       if (blob) {
         accept(blob);
       } else {
@@ -406,7 +412,12 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
   `, {
     jwt,
   });
-  return description;
+  return {
+    boundingBox,
+    safeBoundingBox,
+    clippedImage,
+    description,
+  };
 }
 
 //
@@ -473,6 +484,43 @@ const makePlaneGeometryFromScale = ({
   }
   return planeGeometry;
 };
+const getPlanePositioner = ({
+  camera,
+  scale,
+}: {
+  camera: Camera,
+  scale: Vector3,
+}) => {
+  // copy camera to avoid modifying the original
+  const baseCamera = camera.clone();
+  baseCamera.position.set(0, 0, 1);
+  baseCamera.quaternion.set(0, 0, 0, 1);
+  baseCamera.scale.setScalar(1);
+  baseCamera.updateMatrixWorld();
+  
+  // temporary variables
+  const pWorld = new Vector3();
+  const pNdc = new Vector3();
+  const pNear = new Vector3();
+  const pMid = new Vector3();
+  const pDirection = new Vector3();
+  const pTemp = new Vector3();
+
+  return (p: Vector3, d: number, target: Vector3) => {
+    // scale the point to match the plane's world dimensions
+    pWorld.copy(p).multiply(scale);
+    // project from world space to normalized device coordinates
+    pNdc.copy(pWorld).project(baseCamera);
+    // get the near and mid points
+    pNear.copy(pNdc).setZ(-1).unproject(baseCamera); // near plane
+    pMid.copy(pNdc).setZ(0).unproject(baseCamera); // midpoint between near and far plane
+    // get the point direction
+    pDirection.copy(pMid).sub(pNear).normalize();
+    // push the point out from world space to the given depth
+    const pDelta = pTemp.copy(pDirection).multiplyScalar(d);
+    return target.copy(pWorld).add(pDelta);
+  };
+};
 const makePlaneGeometryFromDepth = ({
   depth,
   camera,
@@ -488,22 +536,14 @@ const makePlaneGeometryFromDepth = ({
     data,
   } = depth;
 
-  // copy camera to avoid modifying the original
-  const baseCamera = camera.clone();
-  baseCamera.position.set(0, 0, 1);
-  baseCamera.quaternion.set(0, 0, 0, 1);
-  baseCamera.scale.setScalar(1);
-  baseCamera.updateMatrixWorld();
+  const planePositioner = getPlanePositioner({
+    camera,
+    scale,
+  });
 
   const planeGeometry = new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
   const positions = planeGeometry.attributes.position.array;
   const p = new Vector3();
-  const pWorld = new Vector3();
-  const pNdc = new Vector3();
-  const pNear = new Vector3();
-  const pMid = new Vector3();
-  const pDirection = new Vector3();
-  const pTemp = new Vector3();
   for (let i = 0; i < positions.length; i += 3) {
     // load the point
     p.fromArray(positions, i);
@@ -513,18 +553,7 @@ const makePlaneGeometryFromDepth = ({
     const y = (1 - (p.y + 0.5)) * height;
     const d = bilinearSample(data, x, y, width, height);
 
-    // scale the point to match the plane's world dimensions
-    pWorld.copy(p).multiply(scale);
-    // project from world space to normalized device coordinates
-    pNdc.copy(pWorld).project(baseCamera);
-    // get the near and mid points
-    pNear.copy(pNdc).setZ(-1).unproject(baseCamera); // near plane
-    pMid.copy(pNdc).setZ(0).unproject(baseCamera); // midpoint between near and far plane
-    // get the point direction
-    pDirection.copy(pMid).sub(pNear).normalize();
-    // push the point out from world space to the given depth
-    const pDelta = pTemp.copy(pDirection).multiplyScalar(d);
-    p.copy(pWorld).add(pDelta);
+    planePositioner(p, d, p);
 
     // save the point
     p.toArray(positions, i);
@@ -549,6 +578,32 @@ const img2blob = async (img: HTMLImageElement | HTMLCanvasElement, type = 'image
   });
   return blob;
 };
+
+//
+
+/* let fontsPromise: Promise<void> | null = null;
+const useFonts = () => {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+  if (fontsPromise === null) {
+    fontsPromise = (async () => {
+      const fonts = [
+        new FontFace("WinchesterCaps", "url(fonts/WinchesterCaps.ttf)", {
+          // style: "italic",
+          weight: "400",
+          // stretch: "condensed",
+        }),
+        new FontFace("PlazaRegular", "url(fonts/Plaza%20Regular.ttf)", {
+          // style: "italic",
+          weight: "400",
+          // stretch: "condensed",
+        }),
+      ];
+      await Promise.all(fonts.map(font => font.load()));
+      setFontsLoaded(true);
+    })();
+  }
+  return fontsLoaded;
+}; */
 
 //
 
@@ -727,6 +782,83 @@ const StoryCursor = forwardRef(({
 });
 StoryCursor.displayName = 'StoryCursor';
 
+type AnchorXType = number | "center" | "left" | "right" | undefined;
+type AnchorYType = number | "top" | "bottom" | "top-baseline" | "middle" | "bottom-baseline" | undefined;
+type Text3DProps = {
+  children?: string,
+  font?: string,
+  fontSize?: number,
+  lineHeight?: number,
+  color?: number,
+  bgColor?: number,
+  anchorX?: AnchorXType,
+  anchorY?: AnchorYType,
+};
+const Text3D = forwardRef(({
+  children = '',
+  // font = 'fonts/WinchesterCaps.ttf',
+  font = 'fonts/Plaza Regular.ttf',
+  fontSize = 0.04,
+  lineHeight = 1.2,
+  color = 0xFFFFFF,
+  bgColor = 0x000000,
+  anchorX = "center",
+  anchorY = "top",
+  ...rest
+}: Text3DProps, ref: any) => {
+  const numLines = 8;
+  const boxWidth = 1;
+  const boxHeight = fontSize * lineHeight * numLines;
+  const padding = 0.02;
+  return (
+    <Suspense>
+      <object3D {...rest} ref={ref}>
+        <mesh position={[-padding, padding, 0]}>
+          <planeGeometry args={[boxWidth + padding * 2, boxHeight + padding * 2]} />
+          <meshBasicMaterial>
+          <GradientTexture
+            stops={[0, 1]} // As many stops as you want
+            colors={[0x111111, 0x222222]} // Colors need to match the number of stops
+            size={1024} // Size is optional, default = 1024
+          />
+        </meshBasicMaterial>
+        </mesh>
+        <Text
+          position={[0, boxHeight / 2 + padding, 0.001]}
+          font={font}
+          fontSize={fontSize}
+          lineHeight={lineHeight}
+          color={color}
+          maxWidth={boxWidth}
+          anchorX={anchorX}
+          anchorY={anchorY}
+        >
+          {children}
+        </Text>
+        <Text
+          position={[-0.005, boxHeight / 2 + padding + 0.005, 0.001 - 0.005]}
+          font={font}
+          fontSize={fontSize}
+          lineHeight={lineHeight}
+          color={bgColor}
+          maxWidth={boxWidth}
+          anchorX={anchorX}
+          anchorY={anchorY}
+        >
+          {children}
+        </Text>
+      </object3D>
+    </Suspense>
+  );
+});
+
+type DescriptionSpec = {
+  boundingBox: Box2,
+  safeBoundingBox: Box2,
+  clippedImage: HTMLCanvasElement,
+  description: string,
+};
+
 const JourneyForm = ({
   eventTarget,
 }: {
@@ -799,6 +931,8 @@ const JourneyScene = ({
   const storyCursorMeshRef = useRef<Mesh>(null);
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
+  const [description, setDescription] = useState<DescriptionSpec | null>(null);
+  const descriptionObject3DRef = useRef<Object3D | null>(null);
   const dragBoxRef = useRef<Box3 | null>(null);
   const setDragBox = (v: Box3 | null) => {
     dragBoxRef.current = v;
@@ -913,6 +1047,7 @@ const JourneyScene = ({
     });
     return segmentationUint8Array;
   };
+
   // track pointer
   const { camera } = useThree();
   const cameraDirection = useMemo(() => new Vector3(0, 0, -1), []);
@@ -952,29 +1087,47 @@ const JourneyScene = ({
     }
   });
 
-  /* // track capsule
-  const pqs = useMemo(() => {
-    const p = new Vector3();
-    const q = new Quaternion();
-    const s = new Vector3();
-    return {
-      p,
-      q,
-      s,
-    };
-  }, []);
-  useFrame(() => {
-    const capsuleMesh = capsuleMeshRef.current;
-    if (capsuleMesh) {
+  // track description object
+  useFrame((state) => {
+    const descriptionObject3D = descriptionObject3DRef.current;
+    if (description && descriptionObject3D) {
+      const boundingBoxCenter = description.safeBoundingBox.min.clone()
+        .add(description.safeBoundingBox.max)
+        .multiplyScalar(0.5);
+      // get the depth at the bounding box center
+      let d: number;
+      if (depth) {
+        const {
+          width,
+          height,
+          data,
+        } = depth;
+        d = bilinearSample(data, boundingBoxCenter.x, boundingBoxCenter.y, width, height);
+      } else {
+        d = 0;
+      }
+
+      // get the plane position
+      const image = texture?.source.data as HTMLImageElement;
       const {
-        p,
-        q,
-        s,
-      } = pqs;
-      capsuleMesh.matrixWorld.decompose(p, q, s);
-      // console.log('got capsule', p.toArray().join(','));
+        width,
+        height,
+      } = image;
+      const p = new Vector3(
+        boundingBoxCenter.x / width - 0.5,
+        0.5 - boundingBoxCenter.y / height,
+        0,
+      );
+      const planePositioner = getPlanePositioner({
+        camera,
+        scale,
+      });
+      const boundingBoxCenterWorld = planePositioner(p, d, new Vector3());
+      descriptionObject3D.position.copy(boundingBoxCenterWorld);
+      console.log('got p', p.toArray().join(','), boundingBoxCenterWorld.toArray().join(','));
+      descriptionObject3D.updateMatrixWorld();
     }
-  }); */
+  });
 
   // handle drag
   const { gl } = useThree();
@@ -1095,7 +1248,8 @@ const JourneyScene = ({
 
               // describe the image
               const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
-              console.log('got description', description);
+              setDescription(description);
+              console.log('got description', description.description);
             })();
           } else {
             console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
@@ -1124,7 +1278,8 @@ const JourneyScene = ({
 
               // describe the image
               const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
-              console.log('got description', description);
+              setDescription(description);
+              console.log('got description', description.description);
             })();
 
             const pixelsArray = makePixelsArray({
@@ -1154,7 +1309,7 @@ const JourneyScene = ({
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
         const dragBox = dragBoxRef.current;
-        const dragUvBox = dragUvBoxRef.current;
+        // const dragUvBox = dragUvBoxRef.current;
         const pressed = pressedRef.current;
 
         if (dragBox && pointerMesh.visible && pressed) {
@@ -1346,7 +1501,8 @@ const JourneyScene = ({
 
         // describe the image
         const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
-        console.log('got description', description);
+        setDescription(description);
+        console.log('got description', description.description);
       } else {
         setSegmentTexture(null);
       }
@@ -1489,6 +1645,10 @@ const JourneyScene = ({
     {segmentTexture && <mesh geometry={planeGeometry}>
       <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} alphaTest={0.01} />
     </mesh>}
+    {/* description mesh */}
+    {description && <Text3D
+      ref={descriptionObject3DRef}
+    >{description.description}</Text3D>}
   </>
 }
 
