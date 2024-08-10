@@ -825,7 +825,7 @@ const JourneyScene = ({
 
     if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
-        if (e.target === canvas && !mouseControlsEnabled && pointerMesh.visible) {
+        if (e.target === canvas && !mouseControlsEnabled && pointerMesh.visible && !pressedRef.current) {
           // intersect plane
           raycaster.ray.origin.copy(camera.position);
           raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
@@ -848,7 +848,6 @@ const JourneyScene = ({
             const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
             setDragUvBox(dragUvBox);
 
-            console.log('set drag geo start');
             setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
           }
 
@@ -975,7 +974,6 @@ const JourneyScene = ({
           dragBox.max.copy(pointerMesh.position);
           setDragBox(dragBox);
           // getPlaneUvFromMouseEvent(e, dragUvBox.max);
-          console.log('set drag geom move');
           setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
 
           /* // intersect plane
