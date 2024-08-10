@@ -6,6 +6,7 @@ import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls } from '@react-three/drei'
 import Ecctrl from 'ecctrl';
+import dedent from 'dedent';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
@@ -377,6 +378,38 @@ const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
 
   return canvas;
 };
+const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Array: Uint8Array) => {
+  const hiImg = clipImage(image, segmentationUint8Array);
+  hiImg.style.cssText = `\
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 300px;
+    opacity: 0.5;
+    z-index: 100;
+    pointer-events: none;
+  `;
+  document.body.appendChild(hiImg);
+  const blob = await new Promise<Blob>((accept, reject) => {
+    hiImg.toBlob(blob => {
+      if (blob) {
+        accept(blob);
+      } else {
+        reject(new Error('failed to convert canvas to blob'));
+      }
+    }, 'image/webp', 0.8);
+  });
+  const jwt = await getJWT();
+  const description = await describe(blob, dedent`\
+    Describe the image.
+    Do NOT start with "This is an image of..." or anything similar.
+  `, {
+    jwt,
+  });
+  return description;
+}
+
+//
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const floorVector2 = (v: Vector2) => {
@@ -1061,30 +1094,7 @@ const JourneyScene = ({
               setSegmentTexture(st);
 
               // describe the image
-              const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
-              hiImg.style.cssText = `\
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 300px;
-                opacity: 0.5;
-                z-index: 100;
-                pointer-events: none;
-              `;
-              document.body.appendChild(hiImg);
-              const blob = await new Promise<Blob>((accept, reject) => {
-                hiImg.toBlob(blob => {
-                  if (blob) {
-                    accept(blob);
-                  } else {
-                    reject(new Error('failed to convert canvas to blob'));
-                  }
-                }, 'image/webp', 0.8);
-              });
-              const jwt = await getJWT();
-              const description = await describe(blob, undefined, {
-                jwt,
-              });
+              const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
               console.log('got description', description);
             })();
           } else {
@@ -1113,22 +1123,7 @@ const JourneyScene = ({
               setSegmentTexture(st);
 
               // describe the image
-              const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
-              hiImg.style.cssText = `\
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 300px;
-                opacity: 0.5;
-                z-index: 100;
-                pointer-events: none;
-              `;
-              document.body.appendChild(hiImg);
-              const blob = await img2blob(hiImg);
-              const jwt = await getJWT();
-              const description = await describe(blob, undefined, {
-                jwt,
-              });
+              const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
               console.log('got description', description);
             })();
 
@@ -1350,12 +1345,7 @@ const JourneyScene = ({
         setSegmentTexture(st);
 
         // describe the image
-        const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
-        const blob = await img2blob(hiImg);
-        const jwt = await getJWT();
-        const description = await describe(blob, undefined, {
-          jwt,
-        });
+        const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
         console.log('got description', description);
       } else {
         setSegmentTexture(null);
