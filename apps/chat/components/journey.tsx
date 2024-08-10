@@ -639,25 +639,26 @@ const JourneyScene = ({
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const raycaster = useMemo(() => new Raycaster(), []);
   const plane = useMemo(() => new Plane(new Vector3(0, 0, 1), 0), []);
-  const basePlaneMesh = useMemo(() => {
-    const basePlaneGeometry = new PlaneGeometry(1, 1);
-    const basePlaneMesh = new Mesh(basePlaneGeometry, new MeshBasicMaterial({color: 0x000000}));
-    return basePlaneMesh;
-  }, []);
+  // const basePlaneMesh = useMemo(() => {
+  //   const basePlaneGeometry = new PlaneGeometry(1, 1);
+  //   const basePlaneMesh = new Mesh(basePlaneGeometry, new MeshBasicMaterial({color: 0x000000}));
+  //   return basePlaneMesh;
+  // }, []);
   const capsuleGeometry = useMemo(() =>
     new CapsuleGeometry(characterController.capsuleRadius, characterController.capsuleRadius, characterController.capsuleHalfHeight * 2)
       .rotateZ(-Math.PI / 2),
   []);
-  const planeBox = useMemo(() => new Box3(), []);
+  // const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
   const capsuleMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
+  const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
   const [dragBox, setDragBox] = useState<Box3 | null>(null);
   const [dragUvBox, setDragUvBox] = useState<Box2 | null>(null);
-  const [dragGeometry, setDragGeometry] = useState<BufferGeometry>(() => new BufferGeometry());
+  const [dragGeometry, setDragGeometry] = useState<BufferGeometry | null>(null);
   const [pressed, setPressed] = useState(false);
   const [controlsEnabled, setControlsEnabled] = useState(false);
 
@@ -748,7 +749,11 @@ const JourneyScene = ({
   };
   // track pointer
   const { camera } = useThree();
+  const cameraDirection = useMemo(() => new Vector3(0, 0, -1), []);
   useFrame((state) => {
+    cameraDirection.set(0, 0, -1).applyQuaternion(camera.quaternion);
+    cameraTarget.copy(camera.position).add(cameraDirection);
+
     const pointerMesh = pointerMeshRef.current;
     const storyCursorMesh = storyCursorMeshRef.current;
     const planeMesh = planeMeshRef.current;
@@ -758,40 +763,26 @@ const JourneyScene = ({
         state.mouse.y,
       );
 
-      // plane
-      basePlaneMesh.scale.copy(scale);
-      basePlaneMesh.updateMatrixWorld();
-      planeBox.setFromObject(basePlaneMesh);
-      planeBox.min.z = -1;
-      planeBox.max.z = 1;
+      // // plane
+      // basePlaneMesh.scale.copy(scale);
+      // basePlaneMesh.updateMatrixWorld();
+      // planeBox.setFromObject(basePlaneMesh);
+      // planeBox.min.z = -1;
+      // planeBox.max.z = 1;
 
       // position
       raycaster.setFromCamera(mousePosition, camera);
       raycaster.ray.intersectPlane(plane, pointerMesh.position);
-      // {
-      //   // depth
-      //   const pw = planeBox.max.x - planeBox.min.x;
-      //   const ph = planeBox.max.y - planeBox.min.y;
-      //   const px = (pointerMesh.position.x - planeBox.min.x) / pw * depthSpec.width;
-      //   const py = (pointerMesh.position.y - planeBox.min.y) / ph * depthSpec.height;
-      //   const d = bilinearSample(depthSpec.data, px, py, depthSpec.width, depthSpec.height);
-      //   pointerMesh.position.z = -d;
-      // }
-      // copy to story cursor
+      const intersections = raycaster.intersectObject(planeMesh, false, []);
+      const intersection =  intersections[0];
+      if (intersection) {
+        pointerMesh.position.copy(intersection.point);
+        pointerMesh.visible = true;
+      } else {
+        pointerMesh.visible = false;
+      }
       storyCursorMesh.position.copy(pointerMesh.position);
-
-      // visibility
-      pointerMesh.visible = planeBox.containsPoint(pointerMesh.position);
       storyCursorMesh.visible = pointerMesh.visible;
-
-      // pointerMesh.position.x = mousePosition.x;
-      // pointerMesh.position.y = mousePosition.y;
-      // pointerMesh.position.z = 0;
-      // pointerMesh.position.project(camera);
-      // console.log('got', pointerMesh.position);
-      // const p = new Vector3(mousePosition.x, mousePosition.y, 0).project(camera);
-      // pointerMesh.position.set(mousePosition.x, mousePosition.y, 0.1);
-      // pointerMesh.updateMatrixWorld();
     }
   });
 
@@ -971,6 +962,7 @@ const JourneyScene = ({
           }
           setDragBox(null);
           setDragUvBox(null);
+          setDragGeometry(null);
           setPressed(false);
         }
       };
@@ -1001,10 +993,17 @@ const JourneyScene = ({
           case 'Escape': {
             setDragBox(null);
             setDragUvBox(null);
+            setDragGeometry(null);
             setPressed(false);
             setHighlightTexture(null);
             setSegmentTexture(null);
             intersectionMesh.visible = false;
+            break;
+          }
+          // space
+          case ' ': {
+            e.preventDefault();
+            // e.stopPropagation();
             break;
           }
         }
@@ -1162,7 +1161,7 @@ const JourneyScene = ({
   return <>
     {controlsEnabled && <OrbitControls makeDefault />}
     {/* drag mesh */}
-    {dragBox && <mesh
+    {dragGeometry && <mesh
       geometry={dragGeometry}
     >
       {/* <boxGeometry args={[0.2, 0.2, 0.2]} /> */}
@@ -1178,8 +1177,12 @@ const JourneyScene = ({
           capsuleRadius={characterController.capsuleRadius}
           floatHeight={characterController.floatHeight}
           disableFollowCam={true}
-          disableFollowCamPos={new Vector3(0, 0, 1)}
-          disableFollowCamTarget={new Vector3(0, 0, 0)}
+          // disableFollowCamPos={new Vector3(0, 0, 1)}
+          // disableFollowCamTarget={new Vector3(0, 0, 0)}
+          disableFollowCamPos={camera.position}
+          disableFollowCamTarget={cameraTarget}
+          autoBalance={false}
+          turnSpeed={100}
         >
           <mesh
             geometry={capsuleGeometry}
@@ -1274,7 +1277,7 @@ export function Journey() {
       >
         <Suspense>
           <Physics
-            debug
+            // debug
           >
             <JourneyScene eventTarget={eventTarget} />
           </Physics>
