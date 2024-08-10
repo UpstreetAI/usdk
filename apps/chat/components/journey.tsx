@@ -638,11 +638,6 @@ const JourneyScene = ({
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const raycaster = useMemo(() => new Raycaster(), []);
   const plane = useMemo(() => new Plane(new Vector3(0, 0, 1), 0), []);
-  // const basePlaneMesh = useMemo(() => {
-  //   const basePlaneGeometry = new PlaneGeometry(1, 1);
-  //   const basePlaneMesh = new Mesh(basePlaneGeometry, new MeshBasicMaterial({color: 0x000000}));
-  //   return basePlaneMesh;
-  // }, []);
   const capsuleGeometry = useMemo(() =>
     new CapsuleGeometry(characterController.capsuleRadius, characterController.capsuleRadius, characterController.capsuleHalfHeight * 2)
       .rotateZ(-Math.PI / 2),
