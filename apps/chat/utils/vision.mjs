@@ -9,6 +9,9 @@ import { blobToDataUrl } from './base64.mjs';
 export const describe = async (blob, query = `What's in this image?`, {
   jwt,
 } = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
   const dataUrl = await blobToDataUrl(blob);
   const messages = [
     {
@@ -58,6 +61,9 @@ export const getDepth = async (blob, {
 } = {}, {
   jwt,
 } = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
   const fd = new FormData();
   fd.append('image', blob);
   if (type) {
@@ -66,6 +72,10 @@ export const getDepth = async (blob, {
   const res = await fetch(`${depthEndpoint}/depthanything`, {
     method: 'POST',
     body: fd,
+    headers: {
+      // 'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`,
+    },
   });
   if (res.ok) {
     const j = await res.arrayBuffer();
@@ -80,12 +90,19 @@ export const detect = async (blob, {
 } = {}, {
   jwt,
 } = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
   const fd = new FormData();
   fd.append('image', blob);
   fd.append('query', JSON.stringify(queries));
   const res = await fetch(`${dinoEndpoint}/dino`, {
     method: 'POST',
     body: fd,
+    headers: {
+      // 'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`,
+    },
   });
   if (res.ok) {
     const j = await res.json();
@@ -102,6 +119,9 @@ export const segment = async (blob, {
 } = {}, {
   jwt,
 } = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
   const fd = new FormData();
   fd.append('image', blob);
   if (point_coords) {
@@ -116,6 +136,10 @@ export const segment = async (blob, {
   const res = await fetch(`${samEndpoint}/sam2`, {
     method: 'POST',
     body: fd,
+    headers: {
+      // 'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`,
+    },
   });
   if (res.ok) {
     const j = await res.arrayBuffer();
@@ -125,12 +149,21 @@ export const segment = async (blob, {
     throw new Error('invalid status code: ' + res.status + ': ' + text);
   }
 };
-export const segmentAll = async (blob) => {
+export const segmentAll = async (blob, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
   const fd = new FormData();
   fd.append('image', blob);
   const res = await fetch(`${samEndpoint}/autosam2`, {
     method: 'POST',
     body: fd,
+    headers: {
+      // 'Content-Type': 'application/json',
+      'Authorization': `Bearer ${jwt}`,
+    },
   });
   if (res.ok) {
     const j = await res.arrayBuffer();
