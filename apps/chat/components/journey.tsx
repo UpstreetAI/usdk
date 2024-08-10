@@ -45,9 +45,11 @@ import {
   segment,
   segmentAll,
 } from '../utils/vision.mjs';
+import { getJWT } from '@/lib/jwt';
+import { createPrerenderState } from 'next/dist/server/app-render/dynamic-rendering';
 
 const geometryResolution = 256;
-const outlineWidth = 0.005;
+// const outlineWidth = 0.005;
 const matplotlibColors = {
   "tab20": [
     "#1f77b4",
@@ -261,6 +263,120 @@ const colorizePixelsArrayMulti = (uint8Array: Uint8Array, {
   }
   return rgbaArray;
 };
+/* const highlightImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
+  factor = 0.1,
+} = {}) => {
+  if (image.width * image.height !== segmentationMap.length) {
+    throw new Error('imageData.data.length !== segmentationMap.length * 4');
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.drawImage(image, 0, 0);
+  const imageData = ctx.getImageData(0, 0, image.width, image.height);
+  for (let i = 0; i < segmentationMap.length; i++) {
+    const j = i * 4;
+    if (!segmentationMap[i]) {
+      imageData.data[j + 0] *= factor;
+      imageData.data[j + 1] *= factor;
+      imageData.data[j + 2] *= factor;
+      // imageData.data[j + 3] = 255;
+    }
+  }
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}; */
+const getSegmentationBoundingBox = (segmentationMap: Uint8Array, width: number, height: number) => {
+  let minX = width;
+  let minY = height;
+  let maxX = 0;
+  let maxY = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+      const value = segmentationMap[index];
+
+      if (value > 0) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  return new Box2(
+    new Vector2(minX, minY),
+    new Vector2(maxX, maxY),
+  );
+};
+/*
+clip the image based on the segmentation map.
+steps:
+- get the bounding box
+- expand the bounding box by padding
+- ensure the bounds are within the image
+- clip the image based on the bounds
+- return the resulting canvas
+*/
+const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
+  padding = 0.1,
+} = {}) => {
+  const width = image.width;
+  const height = image.height;
+
+  // Get the segmentation bounding box
+  const boundingBox = getSegmentationBoundingBox(segmentationMap, width, height);
+
+  // Calculate the width and height of the bounding box
+  const boxWidth = boundingBox.max.x - boundingBox.min.x;
+  const boxHeight = boundingBox.max.y - boundingBox.min.y;
+
+  // Expand the bounding box by padding
+  const expandedBoundingBox = new Box2(
+    new Vector2(
+      boundingBox.min.x - boxWidth * padding,
+      boundingBox.min.y - boxHeight * padding
+    ),
+    new Vector2(
+      boundingBox.max.x + boxWidth * padding,
+      boundingBox.max.y + boxHeight * padding
+    )
+  );
+
+  // Ensure the bounds are within the image
+  const clampedBoundingBox = new Box2(
+    new Vector2(clamp(expandedBoundingBox.min.x, 0, width), clamp(expandedBoundingBox.min.y, 0, height)),
+    new Vector2(clamp(expandedBoundingBox.max.x, 0, width), clamp(expandedBoundingBox.max.y, 0, height))
+  );
+
+  // Calculate the width and height of the clipped image
+  const clippedWidth = clampedBoundingBox.max.x - clampedBoundingBox.min.x;
+  const clippedHeight = clampedBoundingBox.max.y - clampedBoundingBox.min.y;
+
+  // Create a canvas to hold the clipped image
+  const canvas = document.createElement('canvas');
+  canvas.width = clippedWidth;
+  canvas.height = clippedHeight;
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+
+  // Draw the clipped image onto the canvas
+  ctx.drawImage(
+    image,
+    clampedBoundingBox.min.x,
+    clampedBoundingBox.min.y,
+    clippedWidth,
+    clippedHeight,
+    0,
+    0,
+    clippedWidth,
+    clippedHeight
+  );
+
+  return canvas;
+};
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 const floorVector2 = (v: Vector2) => {
@@ -383,7 +499,7 @@ const makePlaneGeometryFromDepth = ({
   return planeGeometry;
 };
 
-const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
+const img2blob = async (img: HTMLImageElement | HTMLCanvasElement, type = 'image/webp', quality = 0.8) => {
   const canvas = document.createElement('canvas');
   canvas.width = img.width;
   canvas.height = img.height;
@@ -741,20 +857,26 @@ const JourneyScene = ({
   const segmentPoint = async (point: Vector2) => {
     const image = texture?.source.data as HTMLImageElement;
     const blob = await img2blob(image);
+    const jwt = await getJWT();
     const segmentationUint8Array = await segment(blob, {
       point_coords: [[point.x, point.y]],
       point_labels: [1],
       box: undefined,
+    }, {
+      jwt,
     });
     return segmentationUint8Array;
   };
   const segmentBox = async (box: Box2) => {
     const image = texture?.source.data as HTMLImageElement;
     const blob = await img2blob(image);
+    const jwt = await getJWT();
     const segmentationUint8Array = await segment(blob, {
       point_coords: undefined,
       point_labels: undefined,
       box: [box.min.x, box.min.y, box.max.x, box.max.y],
+    }, {
+      jwt,
     });
     return segmentationUint8Array;
   };
@@ -919,6 +1041,7 @@ const JourneyScene = ({
             console.log('click', dragUvBox.max.x, dragUvBox.max.y);
 
             (async () => {
+              // get the segmentation map
               const point = dragUvBox.max.clone();
               const textureSize = new Vector2(width, height);
               point.multiply(textureSize);
@@ -928,17 +1051,47 @@ const JourneyScene = ({
               const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
                 color: new Color(0, 0, 1),
               });
+
+              // visualize the segmentation map
               const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
               st.minFilter = NearestFilter;
               st.magFilter = NearestFilter;
               st.flipY = true;
               st.needsUpdate = true;
               setSegmentTexture(st);
+
+              // describe the image
+              const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
+              hiImg.style.cssText = `\
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 300px;
+                opacity: 0.5;
+                z-index: 100;
+                pointer-events: none;
+              `;
+              document.body.appendChild(hiImg);
+              const blob = await new Promise<Blob>((accept, reject) => {
+                hiImg.toBlob(blob => {
+                  if (blob) {
+                    accept(blob);
+                  } else {
+                    reject(new Error('failed to convert canvas to blob'));
+                  }
+                }, 'image/webp', 0.8);
+              });
+              const jwt = await getJWT();
+              const description = await describe(blob, undefined, {
+                jwt,
+              });
+              console.log('got description', description);
             })();
           } else {
             console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
 
             (async () => {
+              // get the segmentation map
               const box = dragUvBox.clone();
               const textureSize = new Vector2(width, height);
               box.min.multiply(textureSize);
@@ -950,12 +1103,33 @@ const JourneyScene = ({
               const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
                 color: new Color(0, 0, 1),
               });
+
+              // visualize the segmentation map
               const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
               st.minFilter = NearestFilter;
               st.magFilter = NearestFilter;
               st.flipY = true;
               st.needsUpdate = true;
               setSegmentTexture(st);
+
+              // describe the image
+              const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
+              hiImg.style.cssText = `\
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 300px;
+                opacity: 0.5;
+                z-index: 100;
+                pointer-events: none;
+              `;
+              document.body.appendChild(hiImg);
+              const blob = await img2blob(hiImg);
+              const jwt = await getJWT();
+              const description = await describe(blob, undefined, {
+                jwt,
+              });
+              console.log('got description', description);
             })();
 
             const pixelsArray = makePixelsArray({
@@ -1086,8 +1260,11 @@ const JourneyScene = ({
           height,
         } = image;
         const blob = await img2blob(image);
+        const jwt = await getJWT();
         const depthFloat32Array = await getDepth(blob, {
           type,
+        }, {
+          jwt,
         });
         console.log('got depth', depthFloat32Array);
         const depth = {
@@ -1120,11 +1297,15 @@ const JourneyScene = ({
         height,
       } = image;
       const blob = await img2blob(image);
+      const jwt = await getJWT();
       const result = await detect(blob, {
         queries,
+      }, {
+        jwt,
       });
       console.log('got detect', JSON.stringify(result, null, 2));
 
+      // get the largest box
       const boxes = result.map(([
         x1,
         y1,
@@ -1151,6 +1332,7 @@ const JourneyScene = ({
       console.log('got largest box', largestBox);
 
       if (largestBox) {
+        // get the segmentation map
         floorVector2(largestBox.min);
         floorVector2(largestBox.max);
         const segmentationUint8Array = await segmentBox(largestBox);
@@ -1158,12 +1340,23 @@ const JourneyScene = ({
         const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
           color: new Color(0, 0, 1),
         });
+
+        // visualize the segmentation map
         const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
         st.minFilter = NearestFilter;
         st.magFilter = NearestFilter;
         st.flipY = true;
         st.needsUpdate = true;
         setSegmentTexture(st);
+
+        // describe the image
+        const hiImg = clipImage(texture?.source.data, segmentationUint8Array);
+        const blob = await img2blob(hiImg);
+        const jwt = await getJWT();
+        const description = await describe(blob, undefined, {
+          jwt,
+        });
+        console.log('got description', description);
       } else {
         setSegmentTexture(null);
       }
@@ -1171,13 +1364,17 @@ const JourneyScene = ({
     eventTarget.addEventListener('detect', ondetect);
 
     const onsegment = async (e: any) => {
+      // get the multi segmentation map
       const image = texture?.source.data;
       const {
         width,
         height,
       } = image;
       const blob = await img2blob(image);
-      const segmentationUint8Array = await segmentAll(blob);
+      const jwt = await getJWT();
+      const segmentationUint8Array = await segmentAll(blob, {
+        jwt,
+      });
       const countUniqueValues = (arr: Uint8Array) => {
         const set = new Set();
         for (let i = 0; i < arr.length; i++) {
@@ -1186,6 +1383,8 @@ const JourneyScene = ({
         return set.size;
       };
       console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0), countUniqueValues(segmentationUint8Array));
+      
+      // visualize the multi segmentation map
       const colorArray = colorizePixelsArrayMulti(segmentationUint8Array);
       const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
       st.minFilter = NearestFilter;
