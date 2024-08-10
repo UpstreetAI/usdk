@@ -409,7 +409,7 @@ const StoryCursor = forwardRef(({
 }: {
   pressed: boolean,
 }, ref: any) => {
-  const scale = 0.2;
+  const scale = 1;
   const baseHeight = 0.2 * scale;
   const baseWidth = 0.03 * scale;
   const centerSpacing = baseWidth * scale;
