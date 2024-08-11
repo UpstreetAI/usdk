@@ -802,7 +802,7 @@ const Text3D = forwardRef(({
   lineHeight = 1.2,
   color = 0xFFFFFF,
   bgColor = 0x000000,
-  anchorX = "center",
+  anchorX = "left",
   anchorY = "top",
   ...rest
 }: Text3DProps, ref: any) => {
@@ -824,7 +824,7 @@ const Text3D = forwardRef(({
         </meshBasicMaterial>
         </mesh>
         <Text
-          position={[0, boxHeight / 2 + padding, 0.001]}
+          position={[-boxWidth / 2 - padding, boxHeight / 2 + padding, 0.001]}
           font={font}
           fontSize={fontSize}
           lineHeight={lineHeight}
@@ -836,7 +836,7 @@ const Text3D = forwardRef(({
           {children}
         </Text>
         <Text
-          position={[-0.005, boxHeight / 2 + padding + 0.005, 0.001 - 0.005]}
+          position={[-boxWidth / 2 - padding - 0.005, boxHeight / 2 + padding + 0.005, 0.001 - 0.005]}
           font={font}
           fontSize={fontSize}
           lineHeight={lineHeight}
@@ -1123,7 +1123,20 @@ const JourneyScene = ({
         scale,
       });
       const boundingBoxCenterWorld = planePositioner(p, d, new Vector3());
-      descriptionObject3D.position.copy(boundingBoxCenterWorld);
+      
+      // project the point to camera near
+      const cameraNearPoint = boundingBoxCenterWorld.clone().project(camera);
+      cameraNearPoint.z = -1;
+      cameraNearPoint.unproject(camera);
+      // get the direction vector
+      const cameraToBoundingBoxCenterDirection = boundingBoxCenterWorld.clone().sub(cameraNearPoint).normalize();
+      // get the float position
+      const floatOffset = 0.9;
+      const floatPosition = cameraNearPoint.clone().add(cameraToBoundingBoxCenterDirection.clone().multiplyScalar(floatOffset));
+
+      // set the description object position
+      descriptionObject3D.position.copy(floatPosition);
+      descriptionObject3D.quaternion.copy(camera.quaternion);
       // console.log('got p', p.toArray().join(','), boundingBoxCenterWorld.toArray().join(','));
       descriptionObject3D.updateMatrixWorld();
       // XXX should push this out to be in front of the camera
