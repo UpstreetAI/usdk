@@ -1,7 +1,6 @@
 import React from 'react';
 import { useState, useEffect, Component, Fragment, ReactNode } from 'react';
 // import dedent from 'dedent';
-import 'localstorage-polyfill';
 import ReactReconciler from 'react-reconciler';
 import {
   ConcurrentRoot,
