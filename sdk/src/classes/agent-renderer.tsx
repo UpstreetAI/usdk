@@ -235,6 +235,7 @@ export class AgentRenderer {
         //   depth: 3,
         // }));
       },
+      scheduleTimeout: setTimeout,
       clearContainer: (container: any) => {
         // console.log('clear container', [container]);
         container.children.length = 0;
