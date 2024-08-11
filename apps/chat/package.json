@@ -72,7 +72,7 @@
     "next": "14.2.3",
     "next-auth": "5.0.0-beta.4",
     "next-themes": "0.2.1",
-    "openai": "4.51.0",
+    "openai": "^4.55.4",
     "react": "18.2.0",
     "react-background-slider": "^4.0.0-next.3",
     "react-dom": "18.2.0",
@@ -92,7 +92,7 @@
     "three": "^0.167.1",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
-    "zod": "3.22.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tailwindcss/typography": "0.5.10",
