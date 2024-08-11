@@ -1064,13 +1064,6 @@ const JourneyScene = ({
         state.mouse.y,
       );
 
-      // // plane
-      // basePlaneMesh.scale.copy(scale);
-      // basePlaneMesh.updateMatrixWorld();
-      // planeBox.setFromObject(basePlaneMesh);
-      // planeBox.min.z = -1;
-      // planeBox.max.z = 1;
-
       // position
       raycaster.setFromCamera(mousePosition, camera);
       raycaster.ray.intersectPlane(plane, pointerMesh.position);
@@ -1331,17 +1324,6 @@ const JourneyScene = ({
           setDragBox(dragBox);
           // getPlaneUvFromMouseEvent(e, dragUvBox.max);
           setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
-
-          /* // intersect plane
-          raycaster.ray.origin.copy(camera.position);
-          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
-          const intersections = raycaster.intersectObject(planeMesh, false, []);
-          const intersection =  intersections[0];
-          if (intersection) {
-            const dragUv = (intersection.uv as Vector2).clone();
-            dragUv.y = 1 - dragUv.y;
-            dragUvBox.max.copy(dragUv);
-          } */
         }
       };
       document.addEventListener('mousemove', mousemove);
