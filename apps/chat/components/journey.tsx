@@ -44,6 +44,7 @@ import {
   segmentAll,
 } from '../utils/vision.mjs';
 import { getJWT } from '@/lib/jwt';
+import { fetchImageGeneration } from '../utils/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -259,30 +260,6 @@ const colorizePixelsArrayMulti = (uint8Array: Uint8Array, {
   }
   return rgbaArray;
 };
-/* const highlightImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
-  factor = 0.1,
-} = {}) => {
-  if (image.width * image.height !== segmentationMap.length) {
-    throw new Error('imageData.data.length !== segmentationMap.length * 4');
-  }
-  const canvas = document.createElement('canvas');
-  canvas.width = image.width;
-  canvas.height = image.height;
-  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  ctx.drawImage(image, 0, 0);
-  const imageData = ctx.getImageData(0, 0, image.width, image.height);
-  for (let i = 0; i < segmentationMap.length; i++) {
-    const j = i * 4;
-    if (!segmentationMap[i]) {
-      imageData.data[j + 0] *= factor;
-      imageData.data[j + 1] *= factor;
-      imageData.data[j + 2] *= factor;
-      // imageData.data[j + 3] = 255;
-    }
-  }
-  ctx.putImageData(imageData, 0, 0);
-  return canvas;
-}; */
 const getSegmentationBoundingBox = (segmentationMap: Uint8Array, width: number, height: number) => {
   let minX = width;
   let minY = height;
@@ -308,15 +285,6 @@ const getSegmentationBoundingBox = (segmentationMap: Uint8Array, width: number, 
     new Vector2(maxX, maxY),
   );
 };
-/*
-clip the image based on the segmentation map.
-steps:
-- get the bounding box
-- expand the bounding box by padding
-- ensure the bounds are within the image
-- clip the image based on the bounds
-- return the resulting canvas
-*/
 const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
   padding = 0.1,
 } = {}) => {
@@ -418,7 +386,47 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     clippedImage,
     description,
   };
-}
+};
+const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) => {
+  const img = new Image();
+  img.onload = () => {
+    accept(img);
+    cleanup();
+  };
+  img.onerror = err => {
+    reject(err);
+    cleanup();
+  };
+  const src = URL.createObjectURL(blob);
+  img.src = src;
+  const cleanup = () => {
+    URL.revokeObjectURL(src);
+  };
+});
+const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
+const generateCharacterImage = async (prompt = characterImageDefaultPrompt, {
+  stylePrompt = `full body, front view, standing straight, arms straight, neutral expression, white background, high resolution, digimon anime style`,
+} = {}) => {
+  const jwt = await getJWT();
+  const blob = await fetchImageGeneration(`${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`, {
+    image_size: 'portrait_4_3',
+  }, {
+    jwt,
+  });
+  return await blob2img(blob);
+};
+const generateObjectDefaultPrompt = `ancient health vial`;
+const generateObjectImage = async (prompt = generateObjectDefaultPrompt, {
+  stylePrompt = `object, concept art, front view, white background, outlined, anime style`,
+} = {}) => {
+  const jwt = await getJWT();
+  const blob = await fetchImageGeneration(`${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`, {
+    image_size: 'square',
+  }, {
+    jwt,
+  });
+  return await blob2img(blob);
+};
 
 //
 
@@ -890,11 +898,13 @@ const JourneyForm = ({
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
         const promptString = prompt('Detect what? (e.g. "path, tree")');
-        eventTarget.dispatchEvent(new MessageEvent('detect', {
-          data: {
-            prompt: promptString,
-          },
-        }));
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('detect', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
       }}>
         Detect
       </Button>
@@ -904,6 +914,30 @@ const JourneyForm = ({
         }));
       }}>
         Segment
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt(`Generate what character? (e.g. "${characterImageDefaultPrompt}")`);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('generateCharacter', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
+      }}>
+        Generate Character
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt(`Generate what object? (e.g. "${generateObjectDefaultPrompt}")`);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('generateObject', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
+      }}>
+        Generate Object
       </Button>
     </form>
   )
@@ -1537,11 +1571,44 @@ const JourneyScene = ({
       setSegmentTexture(st);
     };
     eventTarget.addEventListener('segment', onsegment);
+    const onGenerateCharacter = async (e: any) => {
+      const {
+        prompt,
+      } = e.data;
+      const image = await generateCharacterImage(prompt);
+      image.style.cssText = `\
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 250px;
+        z-index: 100;
+      `;
+      document.body.appendChild(image);
+    };
+    eventTarget.addEventListener('generateCharacter', onGenerateCharacter);
+    const onGenerateObject = async (e: any) => {
+      const {
+        prompt,
+      } = e.data;
+      const image = await generateObjectImage(prompt);
+      image.style.cssText = `\
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 250px;
+        z-index: 100;
+      `;
+      document.body.appendChild(image);
+    };
+    eventTarget.addEventListener('generateObject', onGenerateObject);
 
     return () => {
       eventTarget.removeEventListener('depth', ondepth);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
+      eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
+      eventTarget.removeEventListener('generateObject', onGenerateObject);
+
     };
   }, [texture, keyboardControlsEnabled]);
 
