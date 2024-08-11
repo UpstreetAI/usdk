@@ -3,6 +3,7 @@ import {
   dinoEndpoint,
   samEndpoint,
   depthEndpoint,
+  backgroundRemoverEndpoint,
 } from './const/endpoints.js';
 import { blobToDataUrl } from './base64.mjs';
 
@@ -168,6 +169,32 @@ export const segmentAll = async (blob, {
   if (res.ok) {
     const j = await res.arrayBuffer();
     return new Uint8Array(j);
+  } else {
+    const text = await res.text();
+    throw new Error('invalid status code: ' + res.status + ': ' + text);
+  }
+};
+export const removeBackground = async (blob, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const res = await fetch(`${backgroundRemoverEndpoint}`, {
+    method: 'POST',
+    body: blob,
+    headers: {
+      'Content-Type': blob.type,
+      'Authorization': `Bearer ${jwt}`,
+      'Format': 'image/webp',
+      'Quality': 0.8,
+      'Type': 'foreground',
+    },
+  });
+  if (res.ok) {
+    const blob = await res.blob();
+    return blob;
   } else {
     const text = await res.text();
     throw new Error('invalid status code: ' + res.status + ': ' + text);
