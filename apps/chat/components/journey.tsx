@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
+import { z } from 'zod';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei'
@@ -38,12 +39,13 @@ import { Button } from '@/components/ui/button';
 import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
 import {
   describe,
+  describeJson,
   getDepth,
   detect,
   segment,
   segmentAll,
   removeBackground,
-} from '@/utils/vision.mjs';
+} from '@/utils/vision';
 import { getJWT } from '@/lib/jwt';
 import { fetchImageGeneration } from '@/utils/generate-image.mjs';
 
@@ -375,10 +377,7 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     }, 'image/webp', 0.8);
   });
   const jwt = await getJWT();
-  const description = await describe(blob, dedent`\
-    Describe the image.
-    Do NOT start with "This is an image of..." or anything similar.
-  `, {
+  const description = await describe(blob, undefined, {
     jwt,
   });
   return {
@@ -457,15 +456,36 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
   `;
   document.body.appendChild(img);
 
-  const blob2 = await removeBackground(blob, {
-    jwt,
-  });
-  const image = await createImageBitmap(blob2, {
-    imageOrientation: 'flipY',
-  });
+  const [
+    metadata,
+    [blob2, image]
+  ] = await Promise.all([
+    describeJson(blob, dedent`\
+      width, height are in meters and can contain decimals.
+      weight is in kilograms and can contain decimals.
+    `, z.object({
+      object_visual_description: z.string(),
+      height: z.number(),
+      width: z.number(),
+      weight: z.number(),
+    }), {
+      jwt,
+    }),
+    (async () => {
+      const blob2 = await removeBackground(blob, {
+        jwt,
+      });
+      const image = await createImageBitmap(blob2, {
+        imageOrientation: 'flipY',
+      });
+      return [blob2, image];
+    })(),
+  ]);
+
   return {
     blob: blob2,
     image,
+    metadata,
   };
 };
 
@@ -627,32 +647,6 @@ const img2blob = async (img: HTMLImageElement | HTMLCanvasElement, type = 'image
   });
   return blob;
 };
-
-//
-
-/* let fontsPromise: Promise<void> | null = null;
-const useFonts = () => {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-  if (fontsPromise === null) {
-    fontsPromise = (async () => {
-      const fonts = [
-        new FontFace("WinchesterCaps", "url(fonts/WinchesterCaps.ttf)", {
-          // style: "italic",
-          weight: "400",
-          // stretch: "condensed",
-        }),
-        new FontFace("PlazaRegular", "url(fonts/Plaza%20Regular.ttf)", {
-          // style: "italic",
-          weight: "400",
-          // stretch: "condensed",
-        }),
-      ];
-      await Promise.all(fonts.map(font => font.load()));
-      setFontsLoaded(true);
-    })();
-  }
-  return fontsLoaded;
-}; */
 
 //
 
@@ -907,6 +901,16 @@ type DescriptionSpec = {
   clippedImage: HTMLCanvasElement,
   description: string,
 };
+type ObjectMetadata = {
+  description: string,
+  height: number,
+  width: number,
+  weight: number,
+};
+type ObjectSpec = {
+  texture: Texture,
+  metadata: ObjectMetadata,
+};
 
 const JourneyForm = ({
   eventTarget,
@@ -998,7 +1002,6 @@ const JourneyScene = ({
     new CapsuleGeometry(characterController.capsuleRadius, characterController.capsuleRadius, characterController.capsuleHalfHeight * 2)
       .rotateZ(-Math.PI / 2),
   []);
-  // const planeBox = useMemo(() => new Box3(), []);
   const planeMeshRef = useRef<Mesh>(null);
   const capsuleMeshRef = useRef<Mesh>(null);
   const pointerMeshRef = useRef<Mesh>(null);
@@ -1007,7 +1010,7 @@ const JourneyScene = ({
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
   const [characterTexture, setCharacterTexture] = useState<Texture | null>(null);
-  const [objectTexture, setObjectTexture] = useState<Texture | null>(null);
+  const [objectSpec, setObjectSpec] = useState<ObjectSpec | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
   const descriptionObject3DRef = useRef<Object3D | null>(null);
   const dragBoxRef = useRef<Box3 | null>(null);
@@ -1632,14 +1635,22 @@ const JourneyScene = ({
       const {
         prompt,
       } = e.data;
+      const objectSpec = await generateObject(prompt);
       const {
         blob,
         image,
-      } = await generateObject(prompt);
+        metadata,
+      } = objectSpec;
+      console.log('object spec', {
+        metadata,
+      });
 
       const objectTexture = new Texture(image);
       objectTexture.needsUpdate = true;
-      setObjectTexture(objectTexture);
+      setObjectSpec({
+        texture: objectTexture,
+        metadata,
+      });
     };
     eventTarget.addEventListener('generateObject', onGenerateObject);
 
@@ -1686,7 +1697,7 @@ const JourneyScene = ({
             <meshBasicMaterial color="blue" transparent opacity={0.5} />
           </mesh>}
           {characterTexture && <mesh
-            scale={[characterTexture?.source.data.width / characterTexture?.source.data.height, 1, 1]}
+            scale={[characterTexture.source.data.width / characterTexture.source.data.height, 1, 1]}
           >
             <planeGeometry args={[1, 1]} />
             <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
@@ -1694,6 +1705,12 @@ const JourneyScene = ({
         </Ecctrl>
       </KeyboardControls>
     )}
+    {objectSpec && <mesh
+      scale={[objectSpec.texture.source.data.width / objectSpec.texture.source.data.height, 1, 1]}
+    >
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial map={objectSpec.texture} side={DoubleSide} transparent />
+    </mesh>}
     {/* mouse mesh */}
     <mesh
       // onPointerEnter={e => {
