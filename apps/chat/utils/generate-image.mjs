@@ -18,7 +18,6 @@ export const fetchImageGeneration = async (prompt, opts, {
       image_size,
     };
 
-    console.log('call u', u);
     const res = await fetch(u, {
       method: 'POST',
       headers: {
