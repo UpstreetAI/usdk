@@ -49,7 +49,7 @@ import {
   SceneObject,
 } from './scene-object';
 import {
-  getRoomsSpecificationKey,
+  roomsSpecificationEquals,
 } from './chats-specification';
 // import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
@@ -92,14 +92,12 @@ export class ChatsManager extends EventTarget {
     this.chatsSpecification = chatsSpecification;
   }
 
-  async #join({
-    room,
-    endpointUrl,
-  }: RoomSpecification) {
-    const key = getChatKey({
+  async #join(roomSpecification: RoomSpecification) {
+    const {
       room,
       endpointUrl,
-    });
+    } = roomSpecification;
+    const key = getChatKey(roomSpecification);
     // console.log('chats manager join room', {
     //   room,
     //   endpointUrl,
@@ -121,6 +119,16 @@ export class ChatsManager extends EventTarget {
         },
       }));
 
+      const cleanup = () => {
+        this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+          data: {
+            conversation,
+          },
+        }));
+  
+        this.rooms.delete(key);
+      };
+
       const realmsPromise = (async () => {
         const realms = new NetworkRealms({
           endpointUrl,
@@ -130,6 +138,7 @@ export class ChatsManager extends EventTarget {
             conversation,
           },
         });
+        this.rooms.set(key, realms);
 
         const virtualWorld = realms.getVirtualWorld();
         const virtualPlayers = realms.getVirtualPlayers();
@@ -276,6 +285,13 @@ export class ChatsManager extends EventTarget {
         const _bindDisconnect = () => {
           realms.addEventListener('disconnect', (e) => {
             console.log('realms emitted disconnect');
+
+            cleanup();
+
+            // try to reconnect, if applicable
+            if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
+              this.#join(roomSpecification);
+            }
           });
         };
         _bindDisconnect();
@@ -390,8 +406,6 @@ export class ChatsManager extends EventTarget {
         };
         _bindConversation();
 
-        this.rooms.set(key, realms);
-
         await realms.updateRealmsKeys({
           realmsKeys: [room],
           rootRealmKey: room,
@@ -404,27 +418,16 @@ export class ChatsManager extends EventTarget {
       } catch (err) {
         console.warn(err);
 
-        const cleanup = () => {
-          this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-            data: {
-              conversation,
-            },
-          }));
-    
-          this.rooms.delete(key);
-        };
         cleanup();
       }
     });
   }
-  async #leave({
-    room,
-    endpointUrl,
-  }: RoomSpecification) {
-    const key = getChatKey({
+  async #leave(roomSpecification: RoomSpecification) {
+    const {
       room,
       endpointUrl,
-    });
+    } = roomSpecification;
+    const key = getChatKey(roomSpecification);
     console.log('chats manager leave room', {
       room,
       endpointUrl,
