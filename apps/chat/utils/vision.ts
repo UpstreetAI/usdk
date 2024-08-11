@@ -115,7 +115,8 @@ export const describeJson = async (blob: Blob, hint = '', format: z.ZodTypeAny =
   });
   if (res.ok) {
     const j = await res.json();
-    return j.choices[0].message.content;
+    const s = j.choices[0].message.content;
+    return JSON.parse(s);
   } else {
     const text = await res.text();
     throw new Error('invalid status code: ' + res.status + ': ' + text);
