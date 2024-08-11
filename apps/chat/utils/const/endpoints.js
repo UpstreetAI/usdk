@@ -5,8 +5,8 @@ export const metamaskHost = 'https://metamask.upstreet.ai';
 export const multiplayerEndpointUrl = 'wss://multiplayer.isekaichat.workers.dev';
 export const r2EndpointUrl = `https://r2.upstreet.ai`;
 
-export const dinoEndpoint = `https://jit9ls0uhzmsfn-9000.proxy.runpod.net`;
-export const samEndpoint = `https://jit9ls0uhzmsfn-10000.proxy.runpod.net`;
-export const depthEndpoint = `https://jit9ls0uhzmsfn-9999.proxy.runpod.net`;
+export const dinoEndpoint = `https://fzdv0mup0646co-9000.proxy.runpod.net`;
+export const samEndpoint = `https://fzdv0mup0646co-10000.proxy.runpod.net`;
+export const depthEndpoint = `https://fzdv0mup0646co-9999.proxy.runpod.net`;
 
-export const backgroundRemoverEndpoint = `https://background-remover-api.fly.dev`;
+export const backgroundRemoverEndpoint = `https://fzdv0mup0646co-4444.proxy.runpod.net/`;
