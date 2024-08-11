@@ -290,6 +290,31 @@ const getSegmentationBoundingBox = (segmentationMap: Uint8Array, width: number, 
     new Vector2(maxX, maxY),
   );
 };
+const getAlphaBoundingBox = (rgbaArray: Uint8Array, width: number, height: number) => {
+  let minX = width;
+  let minY = height;
+  let maxX = 0;
+  let maxY = 0;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = (y * width + x) * 4;
+      const a = rgbaArray[index + 3];
+
+      if (a > 0) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  return new Box2(
+    new Vector2(minX, minY),
+    new Vector2(maxX, maxY),
+  );
+};
 const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
   padding = 0.1,
 } = {}) => {
@@ -357,17 +382,17 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     image: clippedImage,
   } = clipImage(image, segmentationUint8Array);
 
-  // XXX debugging
-  clippedImage.style.cssText = `\
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 300px;
-    opacity: 0.5;
-    z-index: 100;
-    pointer-events: none;
-  `;
-  document.body.appendChild(clippedImage);
+  // // XXX debugging
+  // clippedImage.style.cssText = `\
+  //   position: fixed;
+  //   bottom: 0;
+  //   left: 0;
+  //   width: 300px;
+  //   opacity: 0.5;
+  //   z-index: 100;
+  //   pointer-events: none;
+  // `;
+  // document.body.appendChild(clippedImage);
 
   const blob = await new Promise<Blob>((accept, reject) => {
     clippedImage.toBlob(blob => {
@@ -426,14 +451,13 @@ const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   `;
   document.body.appendChild(img);
 
-  const blob2 = await removeBackground(blob, {
+  const cleanBlob = await removeBackground(blob, {
     jwt,
   });
-  const image = await createImageBitmap(blob2, {
+  const image = await createImageBitmap(cleanBlob, {
     imageOrientation: 'flipY',
   });
   return {
-    blob: blob2,
     image,
   };
 };
@@ -448,45 +472,86 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
     jwt,
   });
 
-  const img = await blob2img(blob);
-  img.style.cssText = `\
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 250px;
-    z-index: 100;
-  `;
-  document.body.appendChild(img);
+  {
+    const img = await blob2img(blob);
+    img.style.cssText = `\
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 250px;
+      z-index: 100;
+    `;
+    document.body.appendChild(img);
+  }
 
   const [
     metadata,
-    [blob2, image]
+    clippedImage,
   ] = await Promise.all([
     describeJson(blob, dedent`\
       width, height are in meters and can contain decimals.
       weight is in kilograms and can contain decimals.
+      price is in dollars and can contain decimals.
     `, z.object({
       object_visual_description: z.string(),
       height: z.number(),
       width: z.number(),
       weight: z.number(),
+      price: z.number(),
     }), {
       jwt,
     }),
     (async () => {
-      const blob2 = await removeBackground(blob, {
+      const cleanBlob = await removeBackground(blob, {
         jwt,
       });
-      const image = await createImageBitmap(blob2, {
-        imageOrientation: 'flipY',
+      const image = await createImageBitmap(cleanBlob, {
+        // imageOrientation: 'flipY',
       });
-      return [blob2, image];
+      const imageData = (() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        ctx.drawImage(image, 0, 0);
+        return ctx.getImageData(0, 0, image.width, image.height);
+      })();
+      const boundingBox = getAlphaBoundingBox(imageData.data as unknown as Uint8Array, image.width, image.height);
+      const clippedImage = await createImageBitmap(
+        image,
+        boundingBox.min.x,
+        boundingBox.min.y,
+        boundingBox.max.x - boundingBox.min.x,
+        boundingBox.max.y - boundingBox.min.y,
+        {
+          imageOrientation: 'flipY',
+        },
+      );
+      
+      {
+        const canvas = document.createElement('canvas');
+        canvas.width = clippedImage.width;
+        canvas.height = clippedImage.height;
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        ctx.translate(0, clippedImage.height);
+        ctx.scale(1, -1);
+        ctx.drawImage(clippedImage, 0, 0);
+        canvas.style.cssText = `\
+          position: absolute;
+          right: 250px;
+          bottom: 0;
+          width: 250px;
+          z-index: 100;
+        `;
+        document.body.appendChild(canvas);
+      }
+
+      return clippedImage;
     })(),
   ]);
 
   return {
-    blob: blob2,
-    image,
+    image: clippedImage,
     metadata,
   };
 };
@@ -1624,12 +1689,12 @@ const JourneyScene = ({
         prompt,
       } = e.data;
       const {
-        blob,
         image,
       } = await generateCharacter(prompt);
 
       const characterTexture = new Texture(image);
       characterTexture.needsUpdate = true;
+      // characterTexture.flipY = true;
       setCharacterTexture(characterTexture);
     };
     eventTarget.addEventListener('generateCharacter', onGenerateCharacter);
@@ -1639,7 +1704,6 @@ const JourneyScene = ({
       } = e.data;
       const objectSpec = await generateObject(prompt);
       const {
-        blob,
         image,
         metadata,
       } = objectSpec;
@@ -1649,6 +1713,7 @@ const JourneyScene = ({
 
       const objectTexture = new Texture(image);
       objectTexture.needsUpdate = true;
+      // objectTexture.flipY = true;
       setObjectSpec({
         texture: objectTexture,
         metadata,
