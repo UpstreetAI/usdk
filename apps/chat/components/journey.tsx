@@ -1774,8 +1774,6 @@ export function Journey() {
         }}
         onCreated={({ gl }) => {
           gl.toneMapping = NoToneMapping;
-          // camera.aspect = canvasRef.current.width / canvasRef.current.height;
-          // camera.updateProjectionMatrix();
         }}
         ref={canvasRef}
       >
