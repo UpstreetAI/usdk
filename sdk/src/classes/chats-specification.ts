@@ -123,7 +123,16 @@ export class ChatsSpecification extends EventTarget {
         data,
       } = result;
       if (!error) {
-        const initialChatSpecifications = data.map((o: any) => o.data) as RoomSpecification[];
+        const initialChatSpecifications = data.map((o: any) => {
+          const {
+            room,
+            endpoint_url: endpointUrl,
+          } = o;
+          return {
+            room,
+            endpointUrl,
+          };
+        }) as RoomSpecification[];
         // console.log('initial chat specifications', initialChatSpecifications);
         await Promise.all(initialChatSpecifications.map((chatSpecification) => {
           return this.join(chatSpecification);
