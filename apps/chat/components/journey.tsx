@@ -406,7 +406,7 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
 });
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
 const generateCharacter = async (prompt = characterImageDefaultPrompt, {
-  stylePrompt = `full body, front view, standing straight, arms straight, neutral expression, white background, high resolution, digimon anime style`,
+  stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
 } = {}) => {
   const jwt = await getJWT();
   const blob = await fetchImageGeneration(`${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`, {
@@ -414,6 +414,17 @@ const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   }, {
     jwt,
   });
+
+  const img = await blob2img(blob);
+  img.style.cssText = `\
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 100;
+  `;
+  document.body.appendChild(img);
+
   const blob2 = await removeBackground(blob, {
     jwt,
   });
@@ -435,6 +446,17 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
   }, {
     jwt,
   });
+
+  const img = await blob2img(blob);
+  img.style.cssText = `\
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 100;
+  `;
+  document.body.appendChild(img);
+
   const blob2 = await removeBackground(blob, {
     jwt,
   });
@@ -1601,16 +1623,6 @@ const JourneyScene = ({
         image,
       } = await generateCharacter(prompt);
 
-      const img = await blob2img(blob);
-      img.style.cssText = `\
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 250px;
-        z-index: 100;
-      `;
-      document.body.appendChild(img);
-
       const characterTexture = new Texture(image);
       characterTexture.needsUpdate = true;
       setCharacterTexture(characterTexture);
@@ -1624,16 +1636,6 @@ const JourneyScene = ({
         blob,
         image,
       } = await generateObject(prompt);
-
-      const img = await blob2img(blob);
-      img.style.cssText = `\
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        width: 250px;
-        z-index: 100;
-      `;
-      document.body.appendChild(img);
 
       const objectTexture = new Texture(image);
       objectTexture.needsUpdate = true;
@@ -1683,11 +1685,10 @@ const JourneyScene = ({
           >
             <meshBasicMaterial color="blue" transparent opacity={0.5} />
           </mesh>}
-          {characterTexture && <mesh>
-            <planeGeometry args={[
-              characterTexture?.source.data.width / characterTexture?.source.data.height,
-              1,
-            ]} />
+          {characterTexture && <mesh
+            scale={[characterTexture?.source.data.width / characterTexture?.source.data.height, 1, 1]}
+          >
+            <planeGeometry args={[1, 1]} />
             <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
           </mesh>}
         </Ecctrl>
