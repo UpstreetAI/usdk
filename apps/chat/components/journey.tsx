@@ -124,6 +124,8 @@ const characterController = {
   capsuleRadius: 0.3, // Radius of the character capsule
   floatHeight: 0.3, // Height of the character when floating
 };
+const spawnOffset: [number, number, number] = [0, 0, -6];
+const objectSpawnOffset: [number, number, number] = [0, -2, -8];
 
 type DepthSpec = {
   width: number,
@@ -1678,7 +1680,7 @@ const JourneyScene = ({
     {keyboardControlsEnabled && (
       <KeyboardControls map={keyboardMap}>
         <Ecctrl
-          position={[0, 0, -6]}
+          position={spawnOffset}
           capsuleHalfHeight={characterController.capsuleHalfHeight}
           capsuleRadius={characterController.capsuleRadius}
           floatHeight={characterController.floatHeight}
@@ -1706,9 +1708,12 @@ const JourneyScene = ({
       </KeyboardControls>
     )}
     {objectSpec && <mesh
-      scale={[objectSpec.texture.source.data.width / objectSpec.texture.source.data.height, 1, 1]}
+      position={[objectSpawnOffset[0], objectSpawnOffset[1] + objectSpec.metadata.height * 0.5, objectSpawnOffset[2]]}
     >
-      <planeGeometry args={[1, 1]} />
+      <planeGeometry args={[
+        objectSpec.metadata.height * objectSpec.texture.source.data.width / objectSpec.texture.source.data.height,
+        objectSpec.metadata.height,
+      ]} />
       <meshBasicMaterial map={objectSpec.texture} side={DoubleSide} transparent />
     </mesh>}
     {/* mouse mesh */}
