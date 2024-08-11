@@ -1124,8 +1124,9 @@ const JourneyScene = ({
       });
       const boundingBoxCenterWorld = planePositioner(p, d, new Vector3());
       descriptionObject3D.position.copy(boundingBoxCenterWorld);
-      console.log('got p', p.toArray().join(','), boundingBoxCenterWorld.toArray().join(','));
+      // console.log('got p', p.toArray().join(','), boundingBoxCenterWorld.toArray().join(','));
       descriptionObject3D.updateMatrixWorld();
+      // XXX should push this out to be in front of the camera
     }
   });
 
