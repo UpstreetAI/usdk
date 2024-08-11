@@ -1,6 +1,5 @@
 'use client';
 
-// import { createRoot } from 'react-dom/client'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RigidBody } from "@react-three/rapier";
@@ -33,6 +32,7 @@ import {
   BufferAttribute,
   ShaderMaterial,
   Color,
+  DoubleSide,
 } from 'three';
 import { Button } from '@/components/ui/button';
 import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
@@ -42,9 +42,10 @@ import {
   detect,
   segment,
   segmentAll,
-} from '../utils/vision.mjs';
+  removeBackground,
+} from '@/utils/vision.mjs';
 import { getJWT } from '@/lib/jwt';
-import { fetchImageGeneration } from '../utils/generate-image.mjs';
+import { fetchImageGeneration } from '@/utils/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -404,7 +405,7 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
   };
 });
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
-const generateCharacterImage = async (prompt = characterImageDefaultPrompt, {
+const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   stylePrompt = `full body, front view, standing straight, arms straight, neutral expression, white background, high resolution, digimon anime style`,
 } = {}) => {
   const jwt = await getJWT();
@@ -413,10 +414,19 @@ const generateCharacterImage = async (prompt = characterImageDefaultPrompt, {
   }, {
     jwt,
   });
-  return await blob2img(blob);
+  const blob2 = await removeBackground(blob, {
+    jwt,
+  });
+  const image = await createImageBitmap(blob2, {
+    imageOrientation: 'flipY',
+  });
+  return {
+    blob: blob2,
+    image,
+  };
 };
 const generateObjectDefaultPrompt = `ancient health vial`;
-const generateObjectImage = async (prompt = generateObjectDefaultPrompt, {
+const generateObject = async (prompt = generateObjectDefaultPrompt, {
   stylePrompt = `object, concept art, front view, white background, outlined, anime style`,
 } = {}) => {
   const jwt = await getJWT();
@@ -425,7 +435,16 @@ const generateObjectImage = async (prompt = generateObjectDefaultPrompt, {
   }, {
     jwt,
   });
-  return await blob2img(blob);
+  const blob2 = await removeBackground(blob, {
+    jwt,
+  });
+  const image = await createImageBitmap(blob2, {
+    imageOrientation: 'flipY',
+  });
+  return {
+    blob: blob2,
+    image,
+  };
 };
 
 //
@@ -965,6 +984,8 @@ const JourneyScene = ({
   const storyCursorMeshRef = useRef<Mesh>(null);
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
+  const [characterTexture, setCharacterTexture] = useState<Texture | null>(null);
+  const [objectTexture, setObjectTexture] = useState<Texture | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
   const descriptionObject3DRef = useRef<Object3D | null>(null);
   const dragBoxRef = useRef<Box3 | null>(null);
@@ -1575,30 +1596,48 @@ const JourneyScene = ({
       const {
         prompt,
       } = e.data;
-      const image = await generateCharacterImage(prompt);
-      image.style.cssText = `\
+      const {
+        blob,
+        image,
+      } = await generateCharacter(prompt);
+
+      const img = await blob2img(blob);
+      img.style.cssText = `\
         position: absolute;
         right: 0;
         bottom: 0;
         width: 250px;
         z-index: 100;
       `;
-      document.body.appendChild(image);
+      document.body.appendChild(img);
+
+      const characterTexture = new Texture(image);
+      characterTexture.needsUpdate = true;
+      setCharacterTexture(characterTexture);
     };
     eventTarget.addEventListener('generateCharacter', onGenerateCharacter);
     const onGenerateObject = async (e: any) => {
       const {
         prompt,
       } = e.data;
-      const image = await generateObjectImage(prompt);
-      image.style.cssText = `\
+      const {
+        blob,
+        image,
+      } = await generateObject(prompt);
+
+      const img = await blob2img(blob);
+      img.style.cssText = `\
         position: absolute;
         right: 0;
         bottom: 0;
         width: 250px;
         z-index: 100;
       `;
-      document.body.appendChild(image);
+      document.body.appendChild(img);
+
+      const objectTexture = new Texture(image);
+      objectTexture.needsUpdate = true;
+      setObjectTexture(objectTexture);
     };
     eventTarget.addEventListener('generateObject', onGenerateObject);
 
@@ -1638,12 +1677,19 @@ const JourneyScene = ({
           autoBalance={false}
           turnSpeed={100}
         >
-          <mesh
+          {!characterTexture && <mesh
             geometry={capsuleGeometry}
             ref={capsuleMeshRef}
           >
             <meshBasicMaterial color="blue" transparent opacity={0.5} />
-          </mesh>
+          </mesh>}
+          {characterTexture && <mesh>
+            <planeGeometry args={[
+              characterTexture?.source.data.width / characterTexture?.source.data.height,
+              1,
+            ]} />
+            <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
+          </mesh>}
         </Ecctrl>
       </KeyboardControls>
     )}
