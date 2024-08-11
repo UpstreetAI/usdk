@@ -140,7 +140,7 @@ export const blobToDataUrl = (blob) => {
   const reader = new FileReader();
   return new Promise((resolve, reject) => {
     reader.onload = () => {
-      resolve(reader.result.split(",")[1]);
+      resolve(reader.result);
     };
     reader.onerror = reject;
     reader.readAsDataURL(blob);
