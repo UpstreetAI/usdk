@@ -59,6 +59,7 @@ export type GenerativeAgentObject =  {
 
   think: (hint?: string) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+  generateImage: (prompt: string, opts?: SubtleAiImageOpts) => Promise<Blob>;
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
 
@@ -141,7 +142,7 @@ export type SubtleAi = {
   generateImage: (
     prompt: string,
     opts?: SubtleAiImageOpts,
-  ) => Promise<ArrayBuffer>;
+  ) => Promise<Blob>;
 };
 export type ActionOpts = {
   conversation?: ConversationObject;
@@ -538,7 +539,7 @@ export type AppContextValue = {
   generateImage: (
     text: string,
     opts: SubtleAiImageOpts,
-  ) => Promise<ArrayBuffer>;
+  ) => Promise<Blob>;
 };
 export type ConfigurationContextValue = {
   get: (key: string) => any;

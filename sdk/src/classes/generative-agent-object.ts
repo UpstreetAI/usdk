@@ -5,6 +5,7 @@ import type { ZodTypeAny } from 'zod';
 import type {
   ActionMessage,
   ChatMessages,
+  SubtleAiImageOpts,
   PendingActionMessage,
   ReadableAudioStream,
   PlayableAudioStream,
@@ -62,6 +63,9 @@ export class GenerativeAgentObject {
     return await this.agent.appContextValue.complete(messages, {
       model: this.agent.model,
     });
+  }
+  async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
+    return await this.agent.appContextValue.generateImage(prompt, opts);
   }
 
   // methods
