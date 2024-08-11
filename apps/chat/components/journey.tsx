@@ -1343,6 +1343,7 @@ const JourneyScene = ({
             setPressed(false);
             setHighlightTexture(null);
             setSegmentTexture(null);
+            setDescription(null);
             intersectionMesh.visible = false;
             break;
           }
