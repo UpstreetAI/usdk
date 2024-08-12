@@ -1250,10 +1250,10 @@ const JourneyScene = ({
 
   // track pointer
   const { camera } = useThree();
-  const cameraDirection = useMemo(() => new Vector3(0, 0, -1), []);
+  // const cameraDirection = useMemo(() => new Vector3(0, 0, -1), []);
   useFrame((state) => {
-    cameraDirection.set(0, 0, -1).applyQuaternion(camera.quaternion);
-    cameraTarget.copy(camera.position).add(cameraDirection);
+    // cameraDirection.set(0, 0, -1).applyQuaternion(camera.quaternion);
+    // cameraTarget.copy(camera.position).add(cameraDirection);
 
     const pointerMesh = pointerMeshRef.current;
     const storyCursorMesh = storyCursorMeshRef.current;
@@ -1342,7 +1342,6 @@ const JourneyScene = ({
     const intersectionMesh = intersectionMeshRef.current;
     const planeMesh = planeMeshRef.current;
 
-    console.log('got meshes', pointerMesh, intersectionMesh, planeMesh);
     if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
         // const dragBox = dragBoxRef.current;
@@ -1437,7 +1436,7 @@ const JourneyScene = ({
               point.multiply(textureSize);
               floorVector2(point);
               const segmentationUint8Array = await segmentPoint(point);
-              console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+              console.log('got segmentation point', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
               const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
                 color: new Color(0, 0, 1),
               });
@@ -1467,7 +1466,7 @@ const JourneyScene = ({
               box.max.multiply(textureSize);
               floorVector2(box.max);
               const segmentationUint8Array = await segmentBox(box);
-              console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+              console.log('got segmentation box', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
               const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
                 color: new Color(0, 0, 1),
               });
@@ -1700,7 +1699,7 @@ const JourneyScene = ({
         floorVector2(largestBox.min);
         floorVector2(largestBox.max);
         const segmentationUint8Array = await segmentBox(largestBox);
-        console.log('got segmentation', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+        console.log('got segmentation all', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
         const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
           color: new Color(0, 0, 1),
         });
