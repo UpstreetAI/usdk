@@ -152,6 +152,9 @@ function useAspectContain(width: number, height: number, factor: number = 1): [n
   return [adaptedWidth * factor, adaptedHeight * factor, 1]
 }
 
+const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
+const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
+
 const makeBoxOutlineGeometry = (box: Box3, camera: Camera) => {
   // project the box onto the camera near plane
   const nearBox = box.clone();
@@ -318,8 +321,8 @@ const getAlphaBoundingBox = (rgbaArray: Uint8Array, width: number, height: numbe
 const clipImage = (image: HTMLImageElement, segmentationMap: Uint8Array, {
   padding = 0.1,
 } = {}) => {
-  const width = image.width;
-  const height = image.height;
+  const width = getWidth(image);
+  const height = getHeight(image);
 
   // Get the segmentation bounding box
   const boundingBox = getSegmentationBoundingBox(segmentationMap, width, height);
@@ -505,15 +508,17 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
         jwt,
       });
       const image = await blob2img(cleanBlob);
+      const width = getWidth(image);
+      const height = getHeight(image);
       const imageData = (() => {
         const canvas = document.createElement('canvas');
-        canvas.width = image.width;
-        canvas.height = image.height;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
         ctx.drawImage(image, 0, 0);
-        return ctx.getImageData(0, 0, image.width, image.height);
+        return ctx.getImageData(0, 0, width, height);
       })();
-      const boundingBox = getAlphaBoundingBox(imageData.data as unknown as Uint8Array, image.width, image.height);
+      const boundingBox = getAlphaBoundingBox(imageData.data as unknown as Uint8Array, width, height);
       const clippedImage = (() => {
         const canvas = document.createElement('canvas');
         canvas.width = boundingBox.max.x - boundingBox.min.x;
@@ -702,16 +707,15 @@ const makePlaneGeometryFromDepth = ({
   return planeGeometry;
 };
 
-const img2blob = async (img: HTMLImageElement | HTMLCanvasElement, type = 'image/webp', quality = 0.8) => {
+const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
+  const width = getWidth(img);
+  const height = getHeight(img);
+
   const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
+  canvas.width = width;
+  canvas.height = height;
+  console.log('got w', canvas.width, 'h', canvas.height);
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-  // flip if it's an ImageBitmap
-  // if (img instanceof ImageBitmap) {
-  //   ctx.translate(0, img.height);
-  //   ctx.scale(1, -1);
-  // }
   ctx.drawImage(img, 0, 0);
   const blob = await new Promise<Blob>((accept, reject) => {
     canvas.toBlob(blob => {
@@ -1127,8 +1131,8 @@ const JourneyScene = ({
   };
 
   const scaleArray = useAspectContain(
-    texture ? texture.source.data.width : 512, // Pixel-width
-    texture ? texture.source.data.height : 512, // Pixel-height
+    texture ? getWidth(texture.source.data) : 512, // Pixel-width
+    texture ? getHeight(texture.source.data) : 512, // Pixel-height
     1                         // Optional scaling factor
   );
   const scale = new Vector3(...scaleArray);
@@ -1273,10 +1277,8 @@ const JourneyScene = ({
 
       // get the plane position
       const image = texture?.source.data as HTMLImageElement;
-      const {
-        width,
-        height,
-      } = image;
+      const width = getWidth(image);
+      const height = getHeight(image);
       const p = new Vector3(
         boundingBoxCenter.x / width - 0.5,
         0.5 - boundingBoxCenter.y / height,
@@ -1360,10 +1362,8 @@ const JourneyScene = ({
 
         if (dragUvBox && pressed) {
           const image = texture?.source.data as HTMLImageElement;
-          const {
-            width,
-            height,
-          } = image;
+          const width = getWidth(image);
+          const height = getHeight(image);
 
           // intersect plane
           raycaster.ray.origin.copy(camera.position);
@@ -1589,11 +1589,9 @@ const JourneyScene = ({
           type,
         } = e.data;
 
-        const image = texture?.source.data;
-        const {
-          width,
-          height,
-        } = image;
+        const image = texture?.source.data as HTMLImageElement;
+        const width = getWidth(image);
+        const height = getHeight(image);
         const blob = await img2blob(image);
         const jwt = await getJWT();
         const depthFloat32Array = await getDepth(blob, {
@@ -1626,11 +1624,17 @@ const JourneyScene = ({
       } = e.data;
       const queries = prompt.split(',').map((s: string) => s.trim()).filter(Boolean);
 
-      const image = texture?.source.data;
-      const {
-        width,
-        height,
-      } = image;
+      const image = texture?.source.data as HTMLImageElement;
+      image.style.cssText = `\
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 250px;
+        z-index: 100;
+      `;
+      document.body.appendChild(image);
+      const width = getWidth(image);
+      const height = getHeight(image);
       const blob = await img2blob(image);
       const jwt = await getJWT();
       const result = await detect(blob, {
@@ -1696,11 +1700,9 @@ const JourneyScene = ({
 
     const onsegment = async (e: any) => {
       // get the multi segmentation map
-      const image = texture?.source.data;
-      const {
-        width,
-        height,
-      } = image;
+      const image = texture?.source.data as HTMLImageElement;
+      const width = getWidth(image);
+      const height = getHeight(image);
       const blob = await img2blob(image);
       const jwt = await getJWT();
       const segmentationUint8Array = await segmentAll(blob, {
@@ -1805,7 +1807,7 @@ const JourneyScene = ({
             <meshBasicMaterial color="blue" transparent opacity={0.5} />
           </mesh>}
           {characterTexture && <mesh
-            scale={[characterTexture.source.data.width / characterTexture.source.data.height, 1, 1]}
+            scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
           >
             <planeGeometry args={[1, 1]} />
             <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
@@ -1817,7 +1819,7 @@ const JourneyScene = ({
       position={[objectSpawnOffset[0], objectSpawnOffset[1] + objectSpec.metadata.height * 0.5, objectSpawnOffset[2]]}
     >
       <planeGeometry args={[
-        objectSpec.metadata.height * objectSpec.texture.source.data.width / objectSpec.texture.source.data.height,
+        objectSpec.metadata.height * getWidth(objectSpec.texture.source.data) / getHeight(objectSpec.texture.source.data),
         objectSpec.metadata.height,
       ]} />
       <meshBasicMaterial map={objectSpec.texture} side={DoubleSide} transparent />
