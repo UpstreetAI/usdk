@@ -46,6 +46,9 @@ import {
   segmentAll,
   removeBackground,
 } from '@/utils/vision';
+import {
+  generateSound,
+} from '@/utils/sound';
 import { getJWT } from '@/lib/jwt';
 import { fetchImageGeneration } from '@/utils/generate-image.mjs';
 
@@ -565,6 +568,16 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
     metadata,
   };
 };
+const generateSoundDefaultPrompt = `slowly dripping water with echo in a dark cave`;
+const generateSoundBlob = async (prompt = generateSoundDefaultPrompt) => {
+  const jwt = await getJWT();
+  const blob = await generateSound(prompt, {
+    // duration_seconds: 30,
+  }, {
+    jwt,
+  });
+  return blob;
+};
 
 //
 
@@ -1075,6 +1088,18 @@ const JourneyForm = ({
         }
       }}>
         Generate Object
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt(`Generate what sound? (e.g. "${generateSoundDefaultPrompt}")`, generateSoundDefaultPrompt);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('generateSound', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
+      }}>
+        Generate Sound
       </Button>
     </form>
   )
@@ -1763,6 +1788,28 @@ const JourneyScene = ({
       });
     };
     eventTarget.addEventListener('generateObject', onGenerateObject);
+    const onGenerateSound = async (e: any) => {
+      const {
+        prompt,
+      } = e.data;
+      const blob = await generateSoundBlob(prompt);
+      console.log('got sound', blob);
+      const src = URL.createObjectURL(blob);
+      const cleanup = () => {
+        URL.revokeObjectURL(src);
+      };
+      const audio = new Audio(src);
+      try {
+        await new Promise((accept, reject) => {
+          audio.oncanplay = accept;
+          audio.onerror = reject;
+        });
+        audio.play();
+      } finally {
+        cleanup();
+      }
+    };
+    eventTarget.addEventListener('generateSound', onGenerateSound);
 
     return () => {
       eventTarget.removeEventListener('regenerate', onregenerate);
@@ -1771,6 +1818,7 @@ const JourneyScene = ({
       eventTarget.removeEventListener('segment', onsegment);
       eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
       eventTarget.removeEventListener('generateObject', onGenerateObject);
+      eventTarget.removeEventListener('generateSound', onGenerateSound);
     };
   }, [texture, keyboardControlsEnabled]);
 
