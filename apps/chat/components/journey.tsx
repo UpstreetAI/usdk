@@ -382,17 +382,17 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     image: clippedImage,
   } = clipImage(image, segmentationUint8Array);
 
-  // // XXX debugging
-  // clippedImage.style.cssText = `\
-  //   position: fixed;
-  //   bottom: 0;
-  //   left: 0;
-  //   width: 300px;
-  //   opacity: 0.5;
-  //   z-index: 100;
-  //   pointer-events: none;
-  // `;
-  // document.body.appendChild(clippedImage);
+  // XXX debugging
+  clippedImage.style.cssText = `\
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 300px;
+    opacity: 0.5;
+    z-index: 100;
+    pointer-events: none;
+  `;
+  document.body.appendChild(clippedImage);
 
   const blob = await new Promise<Blob>((accept, reject) => {
     clippedImage.toBlob(blob => {
@@ -430,6 +430,7 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
     URL.revokeObjectURL(src);
   };
 });
+const sceneImageDefaultPrompt = `genshin impact fantasy anime style background screenshot, lush nature cavern, ancient technology, cyberpunk platform`;
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
 const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
@@ -454,9 +455,7 @@ const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   const cleanBlob = await removeBackground(blob, {
     jwt,
   });
-  const image = await createImageBitmap(cleanBlob, {
-    imageOrientation: 'flipY',
-  });
+  const image = await blob2img(cleanBlob);
   return {
     image,
   };
@@ -505,9 +504,7 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
       const cleanBlob = await removeBackground(blob, {
         jwt,
       });
-      const image = await createImageBitmap(cleanBlob, {
-        // imageOrientation: 'flipY',
-      });
+      const image = await blob2img(cleanBlob);
       const imageData = (() => {
         const canvas = document.createElement('canvas');
         canvas.width = image.width;
@@ -517,24 +514,32 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
         return ctx.getImageData(0, 0, image.width, image.height);
       })();
       const boundingBox = getAlphaBoundingBox(imageData.data as unknown as Uint8Array, image.width, image.height);
-      const clippedImage = await createImageBitmap(
-        image,
-        boundingBox.min.x,
-        boundingBox.min.y,
-        boundingBox.max.x - boundingBox.min.x,
-        boundingBox.max.y - boundingBox.min.y,
-        {
-          imageOrientation: 'flipY',
-        },
-      );
+      const clippedImage = (() => {
+        const canvas = document.createElement('canvas');
+        canvas.width = boundingBox.max.x - boundingBox.min.x;
+        canvas.height = boundingBox.max.y - boundingBox.min.y;
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        ctx.drawImage(
+          image,
+          boundingBox.min.x,
+          boundingBox.min.y,
+          boundingBox.max.x - boundingBox.min.x,
+          boundingBox.max.y - boundingBox.min.y,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+        return canvas;
+      })();
       
       {
         const canvas = document.createElement('canvas');
         canvas.width = clippedImage.width;
         canvas.height = clippedImage.height;
         const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-        ctx.translate(0, clippedImage.height);
-        ctx.scale(1, -1);
+        // ctx.translate(0, clippedImage.height);
+        // ctx.scale(1, -1);
         ctx.drawImage(clippedImage, 0, 0);
         canvas.style.cssText = `\
           position: absolute;
@@ -702,6 +707,11 @@ const img2blob = async (img: HTMLImageElement | HTMLCanvasElement, type = 'image
   canvas.width = img.width;
   canvas.height = img.height;
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  // flip if it's an ImageBitmap
+  // if (img instanceof ImageBitmap) {
+  //   ctx.translate(0, img.height);
+  //   ctx.scale(1, -1);
+  // }
   ctx.drawImage(img, 0, 0);
   const blob = await new Promise<Blob>((accept, reject) => {
     canvas.toBlob(blob => {
@@ -992,6 +1002,16 @@ const JourneyForm = ({
       e.preventDefault();
       e.stopPropagation();
     }}>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt(`Generate what scene? (e.g. "${sceneImageDefaultPrompt}")`, sceneImageDefaultPrompt);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('regenerate', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
+      }}>Regenerate</Button>
       <select className="text-xs mb-1" value={depthType} onChange={e => {
         setDepthType(e.target.value);
       }}>
@@ -1060,7 +1080,9 @@ const JourneyScene = ({
   eventTarget: EventTarget,
 }) => {
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(makePlaneGeometry);
-  const texture = useLoader(TextureLoader, '/images/test-bg.webp');
+  const textureLoader = useMemo(() => new TextureLoader(), []);
+  const initialTexture = useLoader(TextureLoader, '/images/test-bg.webp');
+  const [texture, setTexture] = useState<Texture | null>(() => initialTexture);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const raycaster = useMemo(() => new Raycaster(), []);
@@ -1124,6 +1146,7 @@ const JourneyScene = ({
     // { name: "action4", keys: ["KeyF"] },
   ];
 
+  // update plane geometry
   useEffect(() => {
     if (depth) {
       const newPlaneGeometry = makePlaneGeometryFromDepth({
@@ -1291,6 +1314,7 @@ const JourneyScene = ({
     const intersectionMesh = intersectionMeshRef.current;
     const planeMesh = planeMeshRef.current;
 
+    console.log('got meshes', pointerMesh, intersectionMesh, planeMesh);
     if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
         // const dragBox = dragBoxRef.current;
@@ -1529,19 +1553,35 @@ const JourneyScene = ({
     pointerMeshRef.current,
     storyCursorMeshRef.current,
     planeMeshRef.current,
-    // scale.x,
-    // scale.y,
-    // scale.z,
-    // dragBox,
-    // dragUvBox,
-    // dragGeometry,
-    // segmentTexture,
-    // highlightTexture,
-    // mouseControlsEnabled,
+    texture,
   ]);
 
   // track events
   useEffect(() => {
+    const onregenerate = async (e: any) => {
+      if (!keyboardControlsEnabled) {
+        const {
+          prompt,
+        } = e.data;
+
+        const jwt = await getJWT();
+        const blob = await fetchImageGeneration(prompt, {
+          image_size: 'square_hd',
+        }, {
+          jwt,
+        });
+        const image = await blob2img(blob);
+        const texture = new Texture(image);
+        texture.needsUpdate = true;
+
+        setTexture(texture);
+        setDepth(null);
+        // setPlaneGeometry(makePlaneGeometry());
+        setKeyboardControlsEnabled(false);
+      }
+    };
+    eventTarget.addEventListener('regenerate', onregenerate);
+
     const ondepth = async (e: any) => {
       if (!keyboardControlsEnabled) {
         const {
@@ -1722,12 +1762,12 @@ const JourneyScene = ({
     eventTarget.addEventListener('generateObject', onGenerateObject);
 
     return () => {
+      eventTarget.removeEventListener('regenerate', onregenerate);
       eventTarget.removeEventListener('depth', ondepth);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
       eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
       eventTarget.removeEventListener('generateObject', onGenerateObject);
-
     };
   }, [texture, keyboardControlsEnabled]);
 
