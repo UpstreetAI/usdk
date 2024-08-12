@@ -1,31 +1,31 @@
-import { aiProxyHost } from "./endpoints.mjs";
+// import type {
+//   ActiveAgentObject,
+//   SubtleAi,
+//   TtsArgs,
+//   ChatArgs,
+//   SubtleAiCompleteOpts,
+//   SubtleAiImageOpts,
+//   ChatMessages,
+//   RenderRegistry,
+//   ReadableAudioStream,
+//   ChatsSpecification,
+// } from '../types';
 import { getCleanJwt } from './jwt-util.mjs';
+import { aiProxyHost } from './endpoints.mjs';
 
-const fetchImageGenerationFns = {
-  openai: async ({ prompt, opts }) => {
-    const jwt = getCleanJwt();
-    opts = opts || {};
-    
-    const {
-      model = 'dall-e-3',
-      width = 1024,
-      height = 1024,
-      quality = 'hd',
-    } = {
-      model: opts.model ?? 'dall-e-3',
-      width: opts.width ?? 1024,
-      height: opts.height ?? 1024,
-      quality: opts.quality ?? 'hd',
-    };
-
-    const u = `https://${aiProxyHost}/api/ai/images/generations`;
+export const fetchImageGeneration = async (prompt, opts) => {
+  const {
+    model = 'black-forest-labs:flux',
+  } = opts ?? {};
+  if (model === 'black-forest-labs:flux') {
+    const u = `https://${aiProxyHost}/api/fal-ai/flux/dev`;
     const j = {
       prompt,
-      model,
-      size: `${width}x${height}`,
-      quality,
-      n: 1,
+      image_size: 'landscape_4_3', // "square_hd", "square", "portrait_4_3", "portrait_16_9", "landscape_4_3", "landscape_16_9"
     };
+    const jwt = getCleanJwt();
+
+    console.log('call u', u);
     const res = await fetch(u, {
       method: 'POST',
       headers: {
@@ -34,36 +34,48 @@ const fetchImageGenerationFns = {
       },
       body: JSON.stringify(j),
     });
-
     if (res.ok) {
-      const arrayBuffer = await res.arrayBuffer();
-      return arrayBuffer;
+      const blob = await res.blob();
+      return blob;
     } else {
-      const json = await res.json();
-      const { error } = json;
-      console.log('got generate image error', error);
-      throw new Error(`image generation error: ${error}`);
+      const text = await res.text();
+      console.log('got generate image error', text);
+      throw new Error(`image generation error: ${text}`);
     }
-  },
-};
+  } else if (model === 'openai:dall-e-3') {
+    const {
+      width = 1024, // [1024, 1792]
+      height = 1024,
+      quality = 'hd', // ['hd', 'standard']
+    } = opts ?? {};
+    const u = `https://${aiProxyHost}/api/ai/images/generations`;
+    const j = {
+      prompt,
+      model: 'dall-e-3',
+      size: `${width}x${height}`,
+      quality,
+      n: 1,
+    };
+    const jwt = getCleanJwt();
 
-export const fetchImageGeneration = async (prompt, opts) => {
-  opts = opts || {};
-  opts.model = opts.model || 'openai:dall-e-3';
-
-  const model = opts.model;
-  const match = model.match(/^(.+?):/);
-
-  if (match) {
-    const modelType = match[1];
-    const fn = fetchImageGenerationFns[modelType];
-    if (fn) {
-      const res = await fn({ prompt, opts });
-      return res;
+    const res = await fetch(u, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: JSON.stringify(j),
+    });
+    if (res.ok) {
+      const blob = await res.blob();
+      return blob;
     } else {
-      throw new Error('invalid model type: ' + JSON.stringify(modelType));
+      const text = await res.text();
+      // const { error } = json;
+      console.log('got generate image error', text);
+      throw new Error(`image generation error: ${text}`);
     }
   } else {
-    throw new Error('invalid model: ' + JSON.stringify(model));
+    throw new Error('unknown image generation model: ' + model);
   }
 };
