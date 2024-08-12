@@ -1,4 +1,5 @@
 import { aiProxyHost } from "./endpoints.mjs";
+import { getCleanJwt } from './jwt-util.mjs';
 
 const fetchImageGenerationFns = {
   openai: async ({ prompt, opts }) => {
