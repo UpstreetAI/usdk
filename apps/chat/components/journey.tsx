@@ -125,7 +125,7 @@ const defaultColors = matplotlibColors.tab20b.concat(matplotlibColors.tab20c);
 const characterController = {
   capsuleHalfHeight: 0.35, // Half-height of the character capsule
   capsuleRadius: 0.3, // Radius of the character capsule
-  floatHeight: 0.3, // Height of the character when floating
+  floatHeight: 0, // Height of the character when floating
 };
 const spawnOffset: [number, number, number] = [0, 0, -6];
 const objectSpawnOffset: [number, number, number] = [0, -2, -8];
