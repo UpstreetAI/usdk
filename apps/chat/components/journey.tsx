@@ -13,6 +13,7 @@ import {
   Vector3,
   Quaternion,
   Object3D,
+  Scene,
   Camera,
   PerspectiveCamera,
   Raycaster,
@@ -35,8 +36,12 @@ import {
   Color,
   DoubleSide,
 } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Button } from '@/components/ui/button';
 import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
+import {
+  r2EndpointUrl,
+} from '@/utils/const/endpoints';
 import {
   describe,
   describeJson,
@@ -49,6 +54,9 @@ import {
 import {
   generateSound,
 } from '@/utils/sound';
+import {
+  generateModel,
+} from '@/utils/generate-model';
 import { getJWT } from '@/lib/jwt';
 import { fetchImageGeneration } from '@/utils/generate-image.mjs';
 
@@ -442,7 +450,8 @@ const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
 } = {}) => {
   const jwt = await getJWT();
-  const blob = await fetchImageGeneration(`${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`, {
+  const fullPrompt = `${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`;
+  const blob = await fetchImageGeneration(fullPrompt, {
     image_size: 'portrait_4_3',
   }, {
     jwt,
@@ -578,6 +587,35 @@ const generateSoundBlob = async (prompt = generateSoundDefaultPrompt) => {
   });
   return blob;
 };
+const generateModelDefaultPrompt = `modern jrpg health potion device`;
+const generateModelBlob = async (prompt = generateModelDefaultPrompt, {
+  stylePrompt = `white background`,
+} = {}) => {
+  const jwt = await getJWT();
+  const fullPrompt = `${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`;
+  const blob = await fetchImageGeneration(fullPrompt, {
+    image_size: 'square_hd',
+  }, {
+    jwt,
+  });
+
+  // XXX debugging
+  const img = await blob2img(blob);
+  img.style.cssText = `\
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 100;
+  `;
+  document.body.appendChild(img);
+
+  const blob2 = await generateModel(blob, {
+    jwt,
+  });
+  return blob2;
+};
+
 
 //
 
@@ -931,6 +969,17 @@ type Text3DProps = {
   anchorX?: AnchorXType,
   anchorY?: AnchorYType,
 };
+const MeshUrl = forwardRef(({
+  src = '',
+}: {
+  src: string,
+}, ref: any) => {
+  const gltf = useLoader(GLTFLoader, src);
+  return (
+    <primitive object={gltf.scene} />
+  );
+});
+MeshUrl.displayName = 'MeshUrl';
 const Text3D = forwardRef(({
   children = '',
   // font = 'fonts/WinchesterCaps.ttf',
@@ -1090,6 +1139,18 @@ const JourneyForm = ({
         Generate Object
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        const promptString = prompt(`Generate what model? (e.g. "${generateModelDefaultPrompt}")`, generateModelDefaultPrompt);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('generateModel', {
+            data: {
+              prompt: promptString,
+            },
+          }));
+        }
+      }}>
+        Generate Model
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
         const promptString = prompt(`Generate what sound? (e.g. "${generateSoundDefaultPrompt}")`, generateSoundDefaultPrompt);
         if (promptString) {
           eventTarget.dispatchEvent(new MessageEvent('generateSound', {
@@ -1110,7 +1171,7 @@ const JourneyScene = ({
   eventTarget: EventTarget,
 }) => {
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(makePlaneGeometry);
-  const textureLoader = useMemo(() => new TextureLoader(), []);
+  // const textureLoader = useMemo(() => new TextureLoader(), []);
   const initialTexture = useLoader(TextureLoader, '/images/test-bg.webp');
   const [texture, setTexture] = useState<Texture | null>(() => initialTexture);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
@@ -1130,7 +1191,9 @@ const JourneyScene = ({
   const [depth, setDepth] = useState<DepthSpec | null>(null);
   const [characterTexture, setCharacterTexture] = useState<Texture | null>(null);
   const [objectSpec, setObjectSpec] = useState<ObjectSpec | null>(null);
+  const [modelBlobUrl, setModelBlobUrl] = useState<string | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
+  const modelRef = useRef<Scene | null>(null);
   const descriptionObject3DRef = useRef<Object3D | null>(null);
   const dragBoxRef = useRef<Box3 | null>(null);
   const setDragBox = (v: Box3 | null) => {
@@ -1787,6 +1850,32 @@ const JourneyScene = ({
       });
     };
     eventTarget.addEventListener('generateObject', onGenerateObject);
+    const onGenerateModel = async (e: any) => {
+      const {
+        prompt,
+      } = e.data;
+      const blob = await generateModelBlob(prompt);
+      console.log('got model', blob);
+
+      // upload to r2
+      const guid = crypto.randomUUID();
+      const jwt = await getJWT();
+      const res = await fetch(`${r2EndpointUrl}/${guid}/model.glb`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: blob,
+      });
+      if (res.ok) {
+        const u = await res.json();
+        setModelBlobUrl(u);
+      } else {
+        throw new Error(`failed to upload model: ${res.status}`);
+      }
+    };
+    eventTarget.addEventListener('generateModel', onGenerateModel);
     const onGenerateSound = async (e: any) => {
       const {
         prompt,
@@ -1925,6 +2014,11 @@ const JourneyScene = ({
         </RigidBody>
       ) : (children);
     })()}
+    {/* description mesh */}
+    {modelBlobUrl && <MeshUrl
+      src={modelBlobUrl}
+      ref={modelRef}
+    />}
     {/* highlight mesh */}
     {highlightTexture && <mesh geometry={planeGeometry}>
       <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} alphaTest={0.01} />
