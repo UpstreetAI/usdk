@@ -971,6 +971,7 @@ const Text3D = forwardRef(({
     </Suspense>
   );
 });
+Text3D.displayName = 'Text3D';
 
 type DescriptionSpec = {
   boundingBox: Box2,
