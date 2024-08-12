@@ -1066,7 +1066,7 @@ const JourneyForm = ({
         Segment
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
-        const promptString = prompt(`Generate what character? (e.g. "${characterImageDefaultPrompt}")`);
+        const promptString = prompt(`Generate what character? (e.g. "${characterImageDefaultPrompt}")`, characterImageDefaultPrompt);
         if (promptString) {
           eventTarget.dispatchEvent(new MessageEvent('generateCharacter', {
             data: {
@@ -1078,7 +1078,7 @@ const JourneyForm = ({
         Generate Character
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
-        const promptString = prompt(`Generate what object? (e.g. "${generateObjectDefaultPrompt}")`);
+        const promptString = prompt(`Generate what object? (e.g. "${generateObjectDefaultPrompt}")`, generateObjectDefaultPrompt);
         if (promptString) {
           eventTarget.dispatchEvent(new MessageEvent('generateObject', {
             data: {
