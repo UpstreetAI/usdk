@@ -1913,7 +1913,13 @@ const JourneyScene = ({
 
   // render
   return <>
-    {mouseControlsEnabled && <OrbitControls makeDefault />}
+    {/* lighting */}
+    <ambientLight />
+    <directionalLight position={[1, 1, 1]} />
+    {/* orbit controls */}
+    {mouseControlsEnabled && <OrbitControls
+      target={[0, 0, -1]}
+    />}
     {/* drag mesh */}
     {dragGeometry && <mesh
       geometry={dragGeometry}
