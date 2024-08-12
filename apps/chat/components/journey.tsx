@@ -133,7 +133,7 @@ type DepthSpec = {
   data: Float32Array,
 };
 
-export function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
+function useAspectContain(width: number, height: number, factor: number = 1): [number, number, number] {
   const v = useThree((state) => {
     const camera2 = state.camera.clone();
     camera2.position.set(0, 0, 1);
