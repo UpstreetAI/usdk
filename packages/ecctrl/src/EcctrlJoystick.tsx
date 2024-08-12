@@ -19,7 +19,7 @@ const JoystickComponents = (props: EcctrlJoystickProps) => {
     const joystickMovementVec2 = useMemo(() => new THREE.Vector2(), [])
 
     const [windowSize, setWindowSize] = useState({ innerHeight, innerWidth })
-    const joystickDiv: HTMLDivElement = document.querySelector("#ecctrl-joystick")
+    const joystickDiv: HTMLDivElement = document.querySelector("#ecctrl-joystick") as HTMLDivElement
 
     /**
      * Animation preset
@@ -116,12 +116,12 @@ const JoystickComponents = (props: EcctrlJoystickProps) => {
         joystickDiv.addEventListener("touchmove", onTouchMove, { passive: false })
         joystickDiv.addEventListener("touchend", onTouchEnd)
 
-        window.visualViewport.addEventListener("resize", onWindowResize)
+        window.visualViewport?.addEventListener("resize", onWindowResize)
 
         return () => {
             joystickDiv.removeEventListener("touchmove", onTouchMove)
             joystickDiv.removeEventListener("touchend", onTouchEnd)
-            window.visualViewport.removeEventListener("resize", onWindowResize)
+            window.visualViewport?.removeEventListener("resize", onWindowResize)
         }
     })
 
@@ -160,7 +160,7 @@ const ButtonComponents = ({ buttonNumber = 1, ...props }: EcctrlJoystickProps) =
     const buttonTop4Material = useMemo(() => new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.5 }), [])
     const buttonTop5Material = useMemo(() => new THREE.MeshNormalMaterial({ transparent: true, opacity: 0.5 }), [])
 
-    const buttonDiv: HTMLDivElement = document.querySelector("#ecctrl-button")
+    const buttonDiv: HTMLDivElement = document.querySelector("#ecctrl-button") as HTMLDivElement
 
     /**
     * Animation preset
