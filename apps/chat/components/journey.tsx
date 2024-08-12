@@ -2051,6 +2051,7 @@ export function Journey() {
       >
         <Suspense>
           <Physics
+            timeStep='vary'
             // debug
           >
             <JourneyScene eventTarget={eventTarget} />
