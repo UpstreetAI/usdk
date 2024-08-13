@@ -35,7 +35,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 import { generationModel } from './const.js';
 import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import packageJson from './package.json' with { type: 'json' };
-import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
+import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import {
@@ -976,7 +976,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
 
       // use a default asset spec
       if (!user) {
-        const userId = makeDevGuid();
+        const userId = crypto.randomUUID();
         user = {
           id: userId,
           name: makeName(),
@@ -2451,11 +2451,14 @@ export const create = async (args, opts) => {
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
 
-  const guid = makeDevGuid();
   const jwt = opts?.jwt || await getLoginJwt();
+  let guid = null;
   let agentToken = null;
   let userPrivate = null;
   if (jwt !== null) {
+    guid = await createAgentGuid({
+      jwt,
+    });
     [agentToken, userPrivate] = await Promise.all([
       getAgentToken(jwt, guid),
       getUserForJwt(jwt, {
