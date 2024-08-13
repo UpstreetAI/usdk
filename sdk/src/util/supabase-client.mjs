@@ -158,7 +158,6 @@ export const getUserForJwt = async (jwt, {
     return j.data;
   } else {
     const text = await res.text();
-    console.warn('getUserForJwt: ' + text);
-    return null;
+    throw new Error('getUserForJwt error: ' + res.status + ' : ' + text);
   }
 };
