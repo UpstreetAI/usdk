@@ -10,7 +10,6 @@ import util from 'util';
 
 import ansi from 'ansi-escapes';
 import { program } from 'commander';
-import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
