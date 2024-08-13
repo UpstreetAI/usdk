@@ -850,7 +850,7 @@ const authorize = async (args) => {
     process.exit(1);
   }
 };
-const wear = async (args) => {
+/* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
   if (guid) {
@@ -961,7 +961,7 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     // throw new Error('could not get user');
     return null;
   }
-};
+}; */
 const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const getUserAsset = async () => {
     if (!anonymous) {
