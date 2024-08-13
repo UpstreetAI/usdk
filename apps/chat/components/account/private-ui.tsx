@@ -3,9 +3,7 @@
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
 import React, { useEffect, useState, useMemo } from 'react'
-import { env } from '@/lib/env'
 import { getJWT } from '@/lib/jwt';
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
 import { cn } from '@/lib/utils'
 
 //
@@ -227,8 +225,6 @@ const StripeConnect = ({
       </h1>
       <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
         Earn money from your agents.
-        <br />
-        30% platform fee.
       </p>
       {!stripe_connect_account_id ? (
         <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
