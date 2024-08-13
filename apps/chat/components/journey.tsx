@@ -3,7 +3,7 @@
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
-import { Physics, RigidBody } from "@react-three/rapier";
+import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei'
 import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
@@ -1187,6 +1187,7 @@ const JourneyScene = ({
   const pointerMeshRef = useRef<Mesh>(null);
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
+  const ecctrlRef = useRef<RapierRigidBody>(null);
   const [cameraPosition, setCameraPosition] = useState(new Vector3(0, 0, 1));
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
@@ -1341,6 +1342,19 @@ const JourneyScene = ({
       }
       storyCursorMesh.position.copy(pointerMesh.position);
       storyCursorMesh.visible = pointerMesh.visible;
+    }
+  });
+
+  useFrame(() => {
+    const characterRigidBody = ecctrlRef.current;
+    if (characterRigidBody) {
+      const killFloorHeight = -10;
+      const translation = characterRigidBody.translation();
+      if (translation.y < killFloorHeight) {
+        characterRigidBody.setTranslation(new Vector3(...spawnOffset), true);
+        characterRigidBody.setLinvel(new Vector3(0, 0, 0), true);
+        characterRigidBody.setAngvel(new Vector3(0, 0, 0), true);
+      }
     }
   });
 
@@ -1941,6 +1955,8 @@ const JourneyScene = ({
           disableFollowCamTarget={cameraTarget}
           autoBalance={false}
           turnSpeed={100}
+          friction={0.1}
+          ref={ecctrlRef}
         >
           {!characterTexture && <mesh
             geometry={capsuleGeometry}
