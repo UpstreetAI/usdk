@@ -23,10 +23,6 @@ export const generateSound = async (prompt: string, {
     throw new Error('no jwt');
   }
 
-  console.log('generate sound', {
-    prompt,
-  });
-
   const res = await fetch(`https://${aiProxyHost}/api/ai/sound-generation`, {
     method: 'POST',
 
