@@ -3198,12 +3198,7 @@ const deploy = async (args) => {
         });
         req.on('error', reject);
       });
-      const { guid, url, wranglerToml } = j;
-
-      
-      // write back the new wrangler.toml
-      const wranglerTomlPath = path.join(agentDirectory, 'wrangler.toml');
-      await fs.promises.writeFile(wranglerTomlPath, wranglerToml);
+      const { guid, url } = j;
       
       console.log();
       console.group(pc.green('Agent Deployed Successfully:'), '\n');
