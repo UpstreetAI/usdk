@@ -10,7 +10,6 @@ import util from 'util';
 
 import ansi from 'ansi-escapes';
 import { program } from 'commander';
-import express from 'express';
 import WebSocket, { WebSocketServer } from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
@@ -36,7 +35,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 import { generationModel } from './const.js';
 import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import packageJson from './package.json' with { type: 'json' };
-import { isGuid, makeDevGuid, makeZeroGuid } from './sdk/src/util/guid-util.mjs';
+import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import {
@@ -111,7 +110,7 @@ const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
 const multiplayerDirectory = path.join(BASE_DIRNAME, 'multiplayer');
 const jestBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'jest');
 
-const multiplayerPort = 2222;
+// const multiplayerPort = 2222;
 
 const wranglerTomlPath = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
@@ -126,6 +125,7 @@ const shortName = () => uniqueNamesGenerator({
   separator: ' ',
 });
 const makeName = () => capitalize(shortName());
+const getAgentUrlFromGuid = (guid) => `https://user-agent-${guid}.${workersHost}`;
 
 //
 
@@ -977,7 +977,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
 
       // use a default asset spec
       if (!user) {
-        const userId = makeDevGuid();
+        const userId = crypto.randomUUID();
         user = {
           id: userId,
           name: makeName(),
@@ -2397,21 +2397,20 @@ const buildWranglerToml = (
   { name, guid, agentJson, mnemonic, agentToken },
 ) => {
   t.name = name;
-  // t.tail_consumers[0].service = name;
   t.vars.GUID = guid;
   t.vars.AGENT_JSON = JSON.stringify(agentJson);
   t.vars.WALLET_MNEMONIC = mnemonic;
-  if (agentToken) {
+  // if (agentToken) {
     t.vars.AGENT_TOKEN = agentToken;
-  } else {
-    console.warn(
-      dedent`
-        Note: you are not logged in, so the agent token will not be set. You can set this later by doing:
-          usdk login
-          usdk authorize
-      `,
-    );
-  }
+  // } else {
+  //   console.warn(
+  //     dedent`
+  //       Note: you are not logged in, so the agent token will not be set. You can set this later by doing:
+  //         usdk login
+  //         usdk authorize
+  //     `,
+  //   );
+  // }
   return t;
 };
 const setWranglerTomlAgentToken = (
@@ -2452,11 +2451,14 @@ export const create = async (args, opts) => {
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
 
-  const guid = makeDevGuid();
   const jwt = opts?.jwt || await getLoginJwt();
+  let guid = null;
   let agentToken = null;
   let userPrivate = null;
   if (jwt !== null) {
+    guid = await createAgentGuid({
+      jwt,
+    });
     [agentToken, userPrivate] = await Promise.all([
       getAgentToken(jwt, guid),
       getUserForJwt(jwt, {
@@ -3167,7 +3169,7 @@ const deploy = async (args) => {
         logSize(uint8Array.length);
         console.log();
       })();
-      const j = await new Promise((accept, reject) => {
+      const wranglerTomlJson = await new Promise((accept, reject) => {
         req.on('response', async (res) => {
           // console.log('got response', res.statusCode);
 
@@ -3194,12 +3196,8 @@ const deploy = async (args) => {
         });
         req.on('error', reject);
       });
-      const { guid, url, wranglerToml } = j;
-
-      
-      // write back the new wrangler.toml
-      const wranglerTomlPath = path.join(agentDirectory, 'wrangler.toml');
-      await fs.promises.writeFile(wranglerTomlPath, wranglerToml);
+      const guid = wranglerTomlJson.vars.GUID;
+      const url = getAgentUrlFromGuid(guid);
       
       console.log();
       console.group(pc.green('Agent Deployed Successfully:'), '\n');
