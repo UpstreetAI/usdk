@@ -125,6 +125,7 @@ const shortName = () => uniqueNamesGenerator({
   separator: ' ',
 });
 const makeName = () => capitalize(shortName());
+const getAgentUrlFromGuid = (guid) => `https://user-agent-${guid}.${workersHost}`;
 
 //
 
@@ -3171,7 +3172,7 @@ const deploy = async (args) => {
         logSize(uint8Array.length);
         console.log();
       })();
-      const j = await new Promise((accept, reject) => {
+      const wranglerTomlJson = await new Promise((accept, reject) => {
         req.on('response', async (res) => {
           // console.log('got response', res.statusCode);
 
@@ -3198,7 +3199,8 @@ const deploy = async (args) => {
         });
         req.on('error', reject);
       });
-      const { guid, url } = j;
+      const guid = wranglerTomlJson.vars.GUID;
+      const url = getAgentUrlFromGuid(guid);
       
       console.log();
       console.group(pc.green('Agent Deployed Successfully:'), '\n');
