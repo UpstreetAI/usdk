@@ -110,7 +110,7 @@ const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
 const multiplayerDirectory = path.join(BASE_DIRNAME, 'multiplayer');
 const jestBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'jest');
 
-const multiplayerPort = 2222;
+// const multiplayerPort = 2222;
 
 const wranglerTomlPath = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
