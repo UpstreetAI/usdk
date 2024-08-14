@@ -2400,20 +2400,17 @@ const buildWranglerToml = (
   t.vars.GUID = guid;
   t.vars.AGENT_JSON = JSON.stringify(agentJson);
   t.vars.WALLET_MNEMONIC = mnemonic;
-  for (const route of t.routes) {
-    route.pattern = `user-agent-${guid}.upstreet.ai`;
-  }
-  if (agentToken) {
+  // if (agentToken) {
     t.vars.AGENT_TOKEN = agentToken;
-  } else {
-    console.warn(
-      dedent`
-        Note: you are not logged in, so the agent token will not be set. You can set this later by doing:
-          usdk login
-          usdk authorize
-      `,
-    );
-  }
+  // } else {
+  //   console.warn(
+  //     dedent`
+  //       Note: you are not logged in, so the agent token will not be set. You can set this later by doing:
+  //         usdk login
+  //         usdk authorize
+  //     `,
+  //   );
+  // }
   return t;
 };
 const setWranglerTomlAgentToken = (
