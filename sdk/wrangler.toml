@@ -1,18 +1,8 @@
-name = "upstreet-agent"
+name = ""
 main = "sdk/main.jsx"
 compatibility_date = "2023-11-21"
 node_compat = true
 workers_dev = true
-
-r2_buckets  = [
-  { binding = "DATA", bucket_name = "data"}
-]
-routes = [
-  { pattern = "AGENT_URL", custom_domain = true }
-]
-# tail_consumers = [{service = "upstreet-agent"}]
-# browser = { binding = "BROWSER" }
-# services = [ { binding = "AI_PROXY", service = "ai-proxy" } ]
 
 [[durable_objects.bindings]]
 name = "AGENT"
