@@ -2396,10 +2396,12 @@ const buildWranglerToml = (
   { name, guid, agentJson, mnemonic, agentToken },
 ) => {
   t.name = name;
-  // t.tail_consumers[0].service = name;
   t.vars.GUID = guid;
   t.vars.AGENT_JSON = JSON.stringify(agentJson);
   t.vars.WALLET_MNEMONIC = mnemonic;
+  for (const route of t.routes) {
+    route.pattern = `user-agent-${guid}.upstreet.ai`;
+  }
   if (agentToken) {
     t.vars.AGENT_TOKEN = agentToken;
   } else {
