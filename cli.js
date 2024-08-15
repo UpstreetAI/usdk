@@ -2236,59 +2236,6 @@ const generateImage = async (prompt) => {
     localStorage.setItem('jwt', JSON.stringify(jwt));
     const blob = await fetchImageGeneration(prompt);
     return blob;
-
-    // const numRetries = 5;
-    // for (let i = 0; i < numRetries; i++) {
-    //   const {
-    //     // model = 'dall-e-3',
-    //     // width = 1024, // [1024, 1792]
-    //     // height = 1024,
-    //     // quality = 'hd', // ['hd', 'standard']
-    //     model = 'black-forest-labs:flux',
-    //     image_size = 'landscape_4_3', // "square_hd", "square", "portrait_4_3", "portrait_16_9", "landscape_4_3", "landscape_16_9"
-    //   } = opts;
-    //   // localStorage.setItem('jwt', JSON.stringify(jwt));
-    //   const u = `${aiHost}/api/ai/images/generations`;
-    //   const j = {
-    //     prompt,
-    //     model,
-    //     size: `${width}x${height}`,
-    //     quality,
-    //     n: 1,
-    //   };
-    //   const res = await fetch(u, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       Authorization: `Bearer ${jwt}`,
-    //     },
-    //     body: JSON.stringify(j),
-    //   });
-    //   if (res.ok) {
-    //     const json = await res.json();
-    //     const imageUrl = json.data[0].url;
-    //     const res2 = await fetch(imageUrl);
-    //     if (res2.ok) {
-    //       const arrayBuffer = await res2.arrayBuffer();
-    //       return arrayBuffer;
-    //     } else {
-    //       const text = await res2.text();
-    //       console.warn('generate image fetch error', text);
-    //       // throw new Error(`image generation error: ${text}`);
-    //       continue;
-    //     }
-    //   } else {
-    //     const json = await res.json();
-    //     const { error } = json;
-    //     console.log('got generate image error', {
-    //       prompt,
-    //       error,
-    //     });
-    //     // throw new Error(`image generation error: ${error}`);
-    //     continue;
-    //   }
-    // }
-    // throw new Error('image generation failed');
   } else {
     throw new Error('not logged in');
   }
