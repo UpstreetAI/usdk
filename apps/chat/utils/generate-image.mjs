@@ -1,4 +1,5 @@
 import { aiProxyHost, inpaintEndpoint } from './const/endpoints.js';
+import { defaultQuality } from './const/defaults.js';
 
 export const fetchImageGeneration = async (prompt, opts, {
   jwt,
@@ -74,6 +75,8 @@ export const fetchImageGeneration = async (prompt, opts, {
 
 export const inpaintImage = async (blob, maskBlob, {
   prompt = '',
+  quality = defaultQuality,
+  lossless = false,
 } = {}, {
   jwt,
 } = {}) => {
@@ -86,6 +89,12 @@ export const inpaintImage = async (blob, maskBlob, {
   fd.append('image', blob);
   fd.append('mask', maskBlob);
   fd.append('prompt', prompt);
+  if (typeof quality === 'number') {
+    fd.append('quality', JSON.stringify(Math.round(quality * 100)));
+  }
+  if (lossless) {
+    fd.append('lossless', JSON.stringify(true));
+  }
   const res = await fetch(u, {
     method: 'POST',
     headers: {
