@@ -62,6 +62,7 @@ import {
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
+import { fetchImageGeneration } from './sdk/src/util/generate-image.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
@@ -2229,59 +2230,65 @@ const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime styl
     throw new Error('not logged in');
   }
 };
-const generateImage = async (prompt, opts = {}) => {
+const generateImage = async (prompt) => {
   const jwt = await getLoginJwt();
   if (jwt) {
-    const numRetries = 5;
-    for (let i = 0; i < numRetries; i++) {
-      const {
-        model = 'dall-e-3',
-        width = 1024, // [1024, 1792]
-        height = 1024,
-        quality = 'hd', // ['hd', 'standard']
-      } = opts;
-      // localStorage.setItem('jwt', JSON.stringify(jwt));
-      const u = `${aiHost}/api/ai/images/generations`;
-      const j = {
-        prompt,
-        model,
-        size: `${width}x${height}`,
-        quality,
-        n: 1,
-      };
-      const res = await fetch(u, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify(j),
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const imageUrl = json.data[0].url;
-        const res2 = await fetch(imageUrl);
-        if (res2.ok) {
-          const arrayBuffer = await res2.arrayBuffer();
-          return arrayBuffer;
-        } else {
-          const text = await res2.text();
-          console.warn('generate image fetch error', text);
-          // throw new Error(`image generation error: ${text}`);
-          continue;
-        }
-      } else {
-        const json = await res.json();
-        const { error } = json;
-        console.log('got generate image error', {
-          prompt,
-          error,
-        });
-        // throw new Error(`image generation error: ${error}`);
-        continue;
-      }
-    }
-    throw new Error('image generation failed');
+    localStorage.setItem('jwt', JSON.stringify(jwt));
+    const blob = await fetchImageGeneration(prompt);
+    return blob;
+
+    // const numRetries = 5;
+    // for (let i = 0; i < numRetries; i++) {
+    //   const {
+    //     // model = 'dall-e-3',
+    //     // width = 1024, // [1024, 1792]
+    //     // height = 1024,
+    //     // quality = 'hd', // ['hd', 'standard']
+    //     model = 'black-forest-labs:flux',
+    //     image_size = 'landscape_4_3', // "square_hd", "square", "portrait_4_3", "portrait_16_9", "landscape_4_3", "landscape_16_9"
+    //   } = opts;
+    //   // localStorage.setItem('jwt', JSON.stringify(jwt));
+    //   const u = `${aiHost}/api/ai/images/generations`;
+    //   const j = {
+    //     prompt,
+    //     model,
+    //     size: `${width}x${height}`,
+    //     quality,
+    //     n: 1,
+    //   };
+    //   const res = await fetch(u, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       Authorization: `Bearer ${jwt}`,
+    //     },
+    //     body: JSON.stringify(j),
+    //   });
+    //   if (res.ok) {
+    //     const json = await res.json();
+    //     const imageUrl = json.data[0].url;
+    //     const res2 = await fetch(imageUrl);
+    //     if (res2.ok) {
+    //       const arrayBuffer = await res2.arrayBuffer();
+    //       return arrayBuffer;
+    //     } else {
+    //       const text = await res2.text();
+    //       console.warn('generate image fetch error', text);
+    //       // throw new Error(`image generation error: ${text}`);
+    //       continue;
+    //     }
+    //   } else {
+    //     const json = await res.json();
+    //     const { error } = json;
+    //     console.log('got generate image error', {
+    //       prompt,
+    //       error,
+    //     });
+    //     // throw new Error(`image generation error: ${error}`);
+    //     continue;
+    //   }
+    // }
+    // throw new Error('image generation failed');
   } else {
     throw new Error('not logged in');
   }
@@ -2374,10 +2381,10 @@ const generateTemplateFromPrompt = async (prompt) => {
 
   console.log(pc.italic('Generating avatar...'));
   // generate the agent preview_url
-  const imageArrayBuffer = await generateImage(agentJson.visualDescription);
+  const blob = await generateImage(agentJson.visualDescription);
   // upload to r2
   const imageGuid = crypto.randomUUID();
-  const previewUrl = await putFile(`previews/${imageGuid}.png`, imageArrayBuffer);
+  const previewUrl = await putFile(`previews/${imageGuid}.png`, blob);
   // set the agentJson preview url
   agentJson.previewUrl = previewUrl;
 
