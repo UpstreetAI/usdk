@@ -58,7 +58,7 @@ import {
   generateModel,
 } from '@/utils/generate-model';
 import { getJWT } from '@/lib/jwt';
-import { fetchImageGeneration } from '@/utils/generate-image.mjs';
+import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -1096,6 +1096,13 @@ const JourneyForm = ({
         Depth
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        eventTarget.dispatchEvent(new MessageEvent('inpaint', {
+          data: null,
+        }));
+      }}>
+        Inpaint
+      </Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
         const promptString = prompt('Detect what? (e.g. "path, tree")');
         if (promptString) {
           eventTarget.dispatchEvent(new MessageEvent('detect', {
@@ -1720,6 +1727,55 @@ const JourneyScene = ({
     };
     eventTarget.addEventListener('depth', ondepth);
 
+    const oninpaint = async (e: any) => {
+      const image = texture?.source.data as HTMLImageElement;
+      const width = getWidth(image);
+      const height = getHeight(image);
+      const blob = await img2blob(image);
+
+      const maskBlob = await new Promise<Blob>((accept, reject) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.cssText = `\
+          position: fixed;
+          bottom: 0;
+          right: 0;
+          width: 250px;
+          z-index: 100;
+        `;
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(width / 4, height / 4, width / 2, height / 2);
+        canvas.toBlob(blob => {
+          if (blob) {
+            accept(blob);
+          } else {
+            reject(new Error('failed to get mask blob'));
+          }
+        });
+      });
+
+      const jwt = await getJWT();
+      const inpaintedBlob = await inpaintImage(blob, maskBlob, {
+        prompt: `cyberpunk anime background, dark tunnel, lush vegetation, ancient device, metal platform`,
+      }, {
+        jwt,
+      });
+      console.log('got inpaint', inpaintedBlob);
+      const inpaintedImage = await blob2img(inpaintedBlob);
+      inpaintedImage.style.cssText = `\
+        position: fixed;
+        bottom: 0;
+        right: 250px;
+        width: 250px;
+        z-index: 100;
+      `;
+      document.body.appendChild(inpaintedImage);
+    };
+    eventTarget.addEventListener('inpaint', oninpaint);
+
     const ondetect = async (e: any) => {
       const {
         prompt,
@@ -1917,6 +1973,7 @@ const JourneyScene = ({
     return () => {
       eventTarget.removeEventListener('regenerate', onregenerate);
       eventTarget.removeEventListener('depth', ondepth);
+      eventTarget.removeEventListener('inpaint', oninpaint);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
       eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
