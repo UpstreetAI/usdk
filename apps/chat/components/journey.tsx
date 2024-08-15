@@ -43,6 +43,9 @@ import {
   r2EndpointUrl,
 } from '@/utils/const/endpoints';
 import {
+  defaultQuality,
+} from '@/utils/const/defaults';
+import {
   describe,
   describeJson,
   getDepth,
@@ -415,7 +418,7 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
       } else {
         reject(new Error('failed to convert canvas to blob'));
       }
-    }, 'image/webp', 0.8);
+    }, 'image/webp', defaultQuality);
   });
   const jwt = await getJWT();
   const description = await describe(blob, undefined, {
@@ -758,7 +761,7 @@ const makePlaneGeometryFromDepth = ({
   return planeGeometry;
 };
 
-const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = 0.8) => {
+const img2blob = async (img: HTMLImageElement, type = 'image/webp', quality = defaultQuality) => {
   const width = getWidth(img);
   const height = getHeight(img);
 
@@ -1760,6 +1763,7 @@ const JourneyScene = ({
       const jwt = await getJWT();
       const inpaintedBlob = await inpaintImage(blob, maskBlob, {
         prompt: `cyberpunk anime background, dark tunnel, lush vegetation, ancient device, metal platform`,
+        lossless: true,
       }, {
         jwt,
       });
