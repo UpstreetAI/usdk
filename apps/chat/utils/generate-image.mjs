@@ -1,4 +1,4 @@
-import { aiProxyHost } from './const/endpoints.js';
+import { aiProxyHost, inpaintEndpoint } from './const/endpoints.js';
 
 export const fetchImageGeneration = async (prompt, opts, {
   jwt,
@@ -71,3 +71,34 @@ export const fetchImageGeneration = async (prompt, opts, {
     throw new Error('unknown image generation model: ' + model);
   }
 };
+
+export const inpaintImage = async (blob, maskBlob, {
+  prompt = '',
+} = {}, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const u = `${inpaintEndpoint}/flux-inpaint`;
+  const fd = new FormData();
+  fd.append('image', blob);
+  fd.append('mask', maskBlob);
+  fd.append('prompt', prompt);
+  const res = await fetch(u, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: fd,
+  });
+  if (res.ok) {
+    const blob = await res.blob();
+    return blob;
+  } else {
+    const text = await res.text();
+    console.log('got inpaint image error', text);
+    throw new Error(`inpaint image error: ${text}`);
+  }
+}
