@@ -1,15 +1,16 @@
 'use client';
 
+import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import localforage from 'localforage';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
-import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
+// import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls } from '@react-three/drei'
 // import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
-// import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
   Vector3,
@@ -55,13 +56,43 @@ import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 //
 
 const mapDefaultPrompt = `isekai style anime adventure`;
+const mapStyle = `anime style map segment, top down overhead view`;
 
-const planeScale = 0.9;
+//
+
+class SquareGeometry extends BufferGeometry {
+  constructor(w: number, h: number, borderSize: number) {
+    const vBarGeometry = new BoxGeometry(w, h + borderSize * 2, borderSize);
+    const hBarGeometry = vBarGeometry.clone().applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2));
+    const geometries = [
+      // left
+      vBarGeometry.clone()
+        .translate(-h / 2, 0, 0),
+      // right
+      vBarGeometry.clone()
+        .translate(h / 2, 0, 0),
+      // top
+      hBarGeometry.clone()
+        .translate(0, h / 2, 0),
+      // bottom
+      hBarGeometry.clone()
+        .translate(0, -h / 2, 0),
+    ];
+    const geometry = BufferGeometryUtils.mergeGeometries(geometries);
+
+    super();
+    this.copy(geometry);
+  }
+}
+
+// const planeScale = 0.9;
 const planeGeometry = new PlaneGeometry(1, 1)
-  .scale(planeScale, planeScale, 1)
+  // .scale(planeScale, planeScale, 1)
   .rotateX(-Math.PI / 2);
 const rotateXQuaternion = new Quaternion()
   .setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
+const squareGeometry = new SquareGeometry(0.05, 1, 0.02)
+  .rotateX(-Math.PI / 2);
 
 const biomesEnum = z.enum([
   "badlands",
@@ -137,7 +168,7 @@ type Coord2D = {
 type TileSpec = {
   coord: Coord2D,
   name: string,
-  description: string,
+  visual_description: string,
   biome: string,
   temperature: number,
   wetness: number,
@@ -201,8 +232,8 @@ const generateMap = async ({
       role: 'user',
       content: dedent`\
         Generate an array of JSON map tile descriptions for an RPG game overworld.
-        The tiles are roughly 100x100 meters, so they should change gradually. That is, a lush jungle tile should not be next to a city or a glacier.
-        The tiles are shown from an overhead view, in a ${width}x${height} grid.
+        The tiles are roughly 100x100 meters, so they should change gradually over distance. For example, a lush jungle tile should not be next to a city or a glacier.
+        Tiles are shown from an overhead view, in a ${width}x${height} grid.
         The top-left tile is at (x, z) = (0, 0), and the bottom-right tile is at (${width - 1}, ${height - 1}).
         The JSON representation is a 2D array of objects, west to east, north to south.
         \`temperature\` is a number from 0 to 1 representing how hot or cold the tile is.
@@ -221,7 +252,7 @@ const generateMap = async ({
         z: z.number(),
       }),
       name: z.string(),
-      description: z.string(),
+      visual_description: z.string(),
       biome: biomesEnum,
       temperature: z.number(),
       wetness: z.number(),
@@ -416,16 +447,101 @@ const MapForm = ({
     </form>
   )
 };
+const Tile = ({
+  tileSpec,
+  tileLoad,
+  textureLoader,
+  // onRef,
+  onMeshRef,
+  children,
+}: {
+  tileSpec: TileSpec,
+  tileLoad: TileLoad,
+  textureLoader: TextureLoader,
+  // onRef?: (ref: Object3D | null) => void,
+  onMeshRef?: (mesh: Mesh | null) => void,
+  children?: React.ReactNode,
+}) => {
+  const {
+    coord: {
+      x,
+      z,
+    },
+    name,
+    visual_description,
+    image,
+  } = tileSpec;
+
+  //
+
+  const ref = useRef<Object3D>(null);
+  const meshRef = useRef<Mesh>(null);
+  const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
+
+  // useEffect(() => {
+  //   onRef && onRef(ref.current);
+  // }, [ref.current]);
+  useEffect(() => {
+    onMeshRef && onMeshRef(meshRef.current);
+  }, [meshRef.current]);
+
+  //
+
+  const position = new Vector3(x, 0, z);
+  const color = tileLoad?.loading ? 0x0000FF : image ? 0x00FF00 : 0xFFFFFF;
+  const texture = (() => {
+    if (image) {
+      let texture = textureCache.get(image);
+      if (!texture) {
+        const src = URL.createObjectURL(image);
+        texture = textureLoader.load(src, () => {
+          URL.revokeObjectURL(src);
+        });
+        textureCache.set(image, texture);
+      }
+      return texture;
+    } else {
+      return null;
+    }
+  })();
+
+  return (
+    <object3D position={position} ref={ref}>
+      <mesh geometry={planeGeometry} ref={meshRef}>
+        {texture ?
+          <meshBasicMaterial map={texture} />
+        :
+          <meshPhongMaterial color={color} />
+        }
+      </mesh>
+      <Text3D position={[0, 0.01, 0]} quaternion={rotateXQuaternion}>{visual_description}</Text3D>
+      {children}
+    </object3D>
+  );
+}
 const MapScene = ({
   eventTarget,
+  highlightedTile,
+  setHighlightedTile,
 }: {
   eventTarget: EventTarget,
+  highlightedTile: TileSpec | null,
+  setHighlightedTile: (tile: TileSpec | null) => void,
 }) => {
   const tileLoader = useMemo(() => new TileLoader(), []);
+  const raycaster = useMemo(() => new Raycaster(), []);
+
   const [loading, setLoading] = useState(false);
   const [tileSpecs, setTileSpecs] = useState<TileSpec[]>([]);
   const [tileLoads, setTileLoads] = useState<TileLoad[]>([]);
   const [tileEpoch, setTileEpoch] = useState(0);
+
+  const textureLoader = useMemo(() => new TextureLoader(), []);
+  const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
+
+  const [tileMeshes, setTileMeshes] = useState<Map<TileSpec, Object3D>>(new Map());
+
+  //
 
   const loadTiles = async ({
     signal,
@@ -448,6 +564,9 @@ const MapScene = ({
       signal,
     });
   };
+  const updateTileEpoch = () => {
+    setTileEpoch(tileEpoch => tileEpoch);
+  };
 
   // initial load
   useEffect(() => {
@@ -462,6 +581,22 @@ const MapScene = ({
       abortController.abort();
     };
   }, []);
+
+  // mouse raycasting
+  useFrame(({ pointer, camera }) => {
+    raycaster.setFromCamera(pointer, camera);
+
+    const meshes = Array.from(tileMeshes.values());
+    const intersects = raycaster.intersectObjects(meshes, false);
+
+    if (intersects.length > 0) {
+      // Handle the intersection here
+      const intersectedTile = intersects[0].object;
+      // Do something with the intersected tile
+      // console.log('intersected tile', intersectedTile);
+      setHighlightedTile((intersectedTile as any).metadata?.tileSpec ?? null);
+    }
+  });
 
   // generation
   useEffect(() => {
@@ -516,7 +651,7 @@ const MapScene = ({
       }
     }
     if (added) {
-      setTileEpoch(tileEpoch => tileEpoch + 1);
+      updateTileEpoch();
     }
 
     const isLoading = tileLoads.some(load => load.loading);
@@ -526,28 +661,34 @@ const MapScene = ({
       // console.log('missing load', missingLoad);
       if (missingTile) {
         // start loading
-        const { coord, name, description } = missingTile;
+        const { coord, name, visual_description } = missingTile;
         const missingLoad = tileLoads.find(load =>
           load.coord.x === coord.x &&
           load.coord.z === coord.z
         );
         if (missingLoad) {
-          console.log('loading', name, description);
+          console.log('loading', name, visual_description);
 
           (async () => {
             missingLoad.loading = true;
-            setTileEpoch(tileEpoch => tileEpoch + 1);
+            updateTileEpoch();
 
             {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-              missingTile.image = new Blob([], {
-                type: 'image/webp',
+              // await new Promise(resolve => setTimeout(resolve, 1000));
+              const prompt = `${mapStyle}\n${visual_description}`;
+              const jwt = await getJWT();
+              const blob = await fetchImageGeneration(prompt, {
+                image_size: 'square_hd',
+              }, {
+                jwt,
               });
+              console.log('got blob', blob);
+              missingTile.image = blob;
               saveTiles(tileSpecs);
             }
 
             missingLoad.loading = false;
-            setTileEpoch(tileEpoch => tileEpoch + 1);
+            updateTileEpoch();
           })();
         } else {
           throw new Error('missing load not found');
@@ -575,34 +716,39 @@ const MapScene = ({
     {/* <StoryCursor pressed={pressed} ref={storyCursorMeshRef} /> */}
     {/* plane mesh */}
     {(() => {
-      const children = tileSpecs.map(({
-        coord: {
-          x,
-          z,
-        },
-        name,
-        description,
-        image,
-      }, index) => {
+      const children = tileSpecs.map((tileSpec, index) => {
         const tileLoad = tileLoads.find(load =>
-          load.coord.x === x &&
-          load.coord.z === z
-        );
-        const loading = tileLoad?.loading ?? false;
-        const loaded = !!image;
-
-        const position = new Vector3(x, 0, z);
-
-        const color = loading ? 0x0000FF : loaded ? 0x00FF00 : 0xFFFFFF;
-
+          load.coord.x === tileSpec.coord.x &&
+          load.coord.z === tileSpec.coord.z
+        ) as TileLoad;
         return (
-          <object3D position={position} key={index}>
-            <mesh geometry={planeGeometry}>
-              <meshPhongMaterial color={color} />
-            </mesh>
-            <Text3D position={[0, 0.01, 0]} quaternion={rotateXQuaternion}>{description}</Text3D>
-          </object3D>
-        );
+          <Tile
+            key={index}
+            tileSpec={tileSpec}
+            tileLoad={tileLoad}
+            textureLoader={textureLoader}
+            onMeshRef={(mesh: Mesh | null) => {
+              if (mesh) {
+                (mesh as any).metadata = {
+                  tileSpec,
+                };
+              }
+
+              setTileMeshes(tileMeshes => {
+                if (mesh) {
+                  tileMeshes.set(tileSpec, mesh);
+                } else {
+                  tileMeshes.delete(tileSpec);
+                }
+                return tileMeshes;
+              });
+            }}
+          >
+            {highlightedTile === tileSpec && <mesh geometry={squareGeometry}>
+              <meshBasicMaterial color={0x111111} />
+            </mesh>}
+          </Tile>
+        )
       });
       return children;
     })()}
@@ -613,8 +759,24 @@ function MapComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
 
+  const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
+
+  const router = useRouter();
+
   return (
-    <div className="relative w-screen h-[calc(100vh-64px)]">
+    <div className="relative w-screen h-[calc(100vh-64px)]"
+      onDoubleClick={e => {
+        if (highlightedTile) {
+          const { coord } = highlightedTile;
+          const { x, z } = coord;
+
+          const u = new URL(location.href);
+          u.pathname = `/land/${[x, z].join(',')}`;
+          const s = u + '';
+          router.push(s);
+        }
+      }}
+    >
       <Canvas
         camera={{
           position: [0, 1, 0],
@@ -629,7 +791,11 @@ function MapComponent() {
             timeStep='vary'
             // debug
           > */}
-            <MapScene eventTarget={eventTarget} />
+            <MapScene
+              eventTarget={eventTarget}
+              highlightedTile={highlightedTile}
+              setHighlightedTile={setHighlightedTile}
+            />
           {/* </Physics> */}
         {/* </Suspense> */}
       </Canvas>
