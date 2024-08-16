@@ -49,8 +49,6 @@ export const fetchImageGeneration = async (prompt, opts, {
       quality,
       n: 1,
     };
-    const jwt = getCleanJwt();
-
     const res = await fetch(u, {
       method: 'POST',
       headers: {
