@@ -481,7 +481,7 @@ const MapScene = ({
         return (
           <object3D position={position} key={index}>
             <mesh geometry={planeGeometry}>
-              <meshBasicMaterial color={color} />
+              <meshPhongMaterial color={color} />
             </mesh>
             <Text3D position={[0, 0.01, 0]} quaternion={rotateXQuaternion}>{description}</Text3D>
           </object3D>
