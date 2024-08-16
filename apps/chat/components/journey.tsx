@@ -1099,9 +1099,14 @@ const JourneyForm = ({
         Depth
       </Button>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
-        eventTarget.dispatchEvent(new MessageEvent('inpaint', {
-          data: null,
-        }));
+        const promptString = prompt('Inpaint prompt?', `cyberpunk anime background, dark tunnel, lush vegetation, ancient device, metal platform`);
+        if (promptString) {
+          eventTarget.dispatchEvent(new MessageEvent('inpaint', {
+            data: {
+              prompt: promptString,
+            }
+          }));
+        }
       }}>
         Inpaint
       </Button>
@@ -1731,6 +1736,9 @@ const JourneyScene = ({
     eventTarget.addEventListener('depth', ondepth);
 
     const oninpaint = async (e: any) => {
+      // XXX compute this prompt from the image
+      const prompt = e.data.prompt;
+
       const image = texture?.source.data as HTMLImageElement;
       const width = getWidth(image);
       const height = getHeight(image);
@@ -1762,7 +1770,7 @@ const JourneyScene = ({
 
       const jwt = await getJWT();
       const inpaintedBlob = await inpaintImage(blob, maskBlob, {
-        prompt: `cyberpunk anime background, dark tunnel, lush vegetation, ancient device, metal platform`,
+        prompt,
         lossless: true,
       }, {
         jwt,
