@@ -7,10 +7,11 @@ import {
   samEndpoint,
   depthEndpoint,
   backgroundRemoverEndpoint,
-} from './const/endpoints.js';
-import { blobToDataUrl } from './base64.mjs';
-
-const defaultModel = 'gpt-4o-2024-08-06';
+} from '@/utils/const/endpoints.js';
+import {
+  defaultOpenAIModel,
+} from '@/utils/const/defaults.js';
+import { blobToDataUrl } from '@/utils/base64.mjs';
 
 export const describe = async (blob: Blob, query = dedent`\
   Describe the image.
@@ -50,7 +51,7 @@ export const describe = async (blob: Blob, query = dedent`\
     },
 
     body: JSON.stringify({
-      model: defaultModel,
+      model: defaultOpenAIModel,
       messages,
 
       // stream,
@@ -104,7 +105,7 @@ export const describeJson = async (blob: Blob, hint = '', format: z.ZodTypeAny =
     },
 
     body: JSON.stringify({
-      model: defaultModel,
+      model: defaultOpenAIModel,
       messages,
 
       response_format: zodResponseFormat(format, 'json_description'),
@@ -116,7 +117,8 @@ export const describeJson = async (blob: Blob, hint = '', format: z.ZodTypeAny =
   if (res.ok) {
     const j = await res.json();
     const s = j.choices[0].message.content;
-    return JSON.parse(s);
+    const o = JSON.parse(s);
+    return o;
   } else {
     const text = await res.text();
     throw new Error('invalid status code: ' + res.status + ': ' + text);
