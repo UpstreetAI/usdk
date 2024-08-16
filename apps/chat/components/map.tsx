@@ -3,6 +3,7 @@
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
+import localforage from 'localforage';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls } from '@react-three/drei'
@@ -45,6 +46,9 @@ import {
   aiProxyHost,
 } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
+import {
+  QueueManager,
+} from '@/utils/queue-manager.mjs';
 import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 
@@ -139,11 +143,11 @@ type TileSpec = {
   wetness: number,
   points_of_interest: string[],
   exits: string[],
+  image: Blob | null,
 };
 type TileLoad = {
   coord: Coord2D,
   loading: boolean,
-  image: HTMLImageElement | null,
 };
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
@@ -234,15 +238,70 @@ const generateMap = async ({
       throw new Error(`row ${z} has length ${row.length} instead of ${width}`);
     }
     for (let x = 0; x < width; x++) {
-      const tileSpec = row[x];
+      let tileSpec = row[x];
       if (tileSpec.coord.x !== x || tileSpec.coord.z !== z) {
         throw new Error(`tile at (${x}, ${z}) has x, z of ${tileSpec.x}, ${tileSpec.z}`);
       }
+      tileSpec = {
+        ...tileSpec,
+        image: null,
+      };
       tileSpecs.push(tileSpec);
     }
   }
   return tileSpecs;
 };
+
+//
+
+class TileLoader {
+  queueManager = new QueueManager();
+  // constructor() {
+  // }
+  async load({
+    signal,
+  }: {
+    signal?: AbortSignal,
+  } = {}): Promise<TileSpec[]> {
+    return await this.queueManager.waitForTurn(async () => {
+      let live = true;
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          live = false;
+        });
+      }
+
+      let tileSpecs = await localforage.getItem('tileSpecs');
+      if (!live) return [];
+      if (!tileSpecs) {
+        tileSpecs = [];
+      }
+
+      return tileSpecs;
+    });
+  }
+  async save(tileSpecs: TileSpec[], {
+    signal,
+  }: {
+    signal?: AbortSignal,
+  } = {}): Promise<void> {
+    if (!tileSpecs) {
+      tileSpecs = [];
+    }
+
+    return await this.queueManager.waitForTurn(async () => {
+      let live = true;
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          live = false;
+        });
+      }
+
+      await localforage.setItem('tileSpecs', tileSpecs);
+      if (!live) return;
+    });
+  }
+}
 
 //
 
@@ -349,6 +408,11 @@ const MapForm = ({
           }));
         }
       }}>Generate</Button>
+      <Button variant="outline" className="text-xs mb-1" onClick={e => {
+        eventTarget.dispatchEvent(new MessageEvent('clearMap', {
+          data: null,
+        }));
+      }}>Clear</Button>
     </form>
   )
 };
@@ -357,15 +421,52 @@ const MapScene = ({
 }: {
   eventTarget: EventTarget,
 }) => {
-  const [generating, setGenerating] = useState(false);
+  const tileLoader = useMemo(() => new TileLoader(), []);
+  const [loading, setLoading] = useState(false);
   const [tileSpecs, setTileSpecs] = useState<TileSpec[]>([]);
   const [tileLoads, setTileLoads] = useState<TileLoad[]>([]);
-  const [tileLoadEpoch, setTileLoadEpoch] = useState(0);
+  const [tileEpoch, setTileEpoch] = useState(0);
+
+  const loadTiles = async ({
+    signal,
+  }: {
+    signal?: AbortSignal,
+  } = {}) => {
+    setLoading(true);
+    const loadedTileSpecs = await tileLoader.load({
+      signal,
+    });
+    setTileSpecs(loadedTileSpecs);
+    setLoading(false);
+  };
+  const saveTiles = async (tileSpecs: TileSpec[], {
+    signal,
+  }: {
+    signal?: AbortSignal,
+  } = {}) => {
+    await tileLoader.save(tileSpecs, {
+      signal,
+    });
+  };
+
+  // initial load
+  useEffect(() => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    loadTiles({
+      signal,
+    });
+
+    return () => {
+      abortController.abort();
+    };
+  }, []);
 
   // generation
   useEffect(() => {
     const onGenerateMap = async (e: any) => {
-      setGenerating(true);
+      setLoading(true);
       setTileSpecs([]);
       setTileLoads([]);
 
@@ -377,12 +478,22 @@ const MapScene = ({
       });
       console.log('newTileSpecs', newTileSpecs);
       setTileSpecs(newTileSpecs);
-      setGenerating(false);
+      saveTiles(newTileSpecs);
+      setLoading(false);
     };
     eventTarget.addEventListener('generateMap', onGenerateMap);
 
+    const onClearMap = async (e: any) => {
+      setLoading(false);
+      setTileSpecs([]);
+      setTileLoads([]);
+      saveTiles([]);
+    };
+    eventTarget.addEventListener('clearMap', onClearMap);
+
     return () => {
       eventTarget.removeEventListener('generateMap', onGenerateMap);
+      eventTarget.removeEventListener('clearMap', onClearMap);
     };
   }, []);
 
@@ -399,45 +510,47 @@ const MapScene = ({
         tileLoad = {
           coord: structuredClone(tileSpec.coord),
           loading: false,
-          image: null,
         };
         tileLoads.push(tileLoad);
         added = true;
       }
     }
     if (added) {
-      setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+      setTileEpoch(tileEpoch => tileEpoch + 1);
     }
 
     const isLoading = tileLoads.some(load => load.loading);
-    console.log('is loading', isLoading);
+    // console.log('is loading', isLoading);
     if (!isLoading) {
-      const missingLoad = tileLoads.find(load => !load.image);
-      console.log('missing load', missingLoad);
-      if (missingLoad) {
+      const missingTile = tileSpecs.find(tile => !tile.image);
+      // console.log('missing load', missingLoad);
+      if (missingTile) {
         // start loading
-        const { coord } = missingLoad;
-        const { x, z } = coord;
-        const missingTile = tileSpecs.find(tileSpec =>
-          tileSpec.coord.x === x &&
-          tileSpec.coord.z === z
+        const { coord, name, description } = missingTile;
+        const missingLoad = tileLoads.find(load =>
+          load.coord.x === coord.x &&
+          load.coord.z === coord.z
         );
-        if (missingTile) {
-          const { name, description } = missingTile;
+        if (missingLoad) {
           console.log('loading', name, description);
 
           (async () => {
             missingLoad.loading = true;
-            setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+            setTileEpoch(tileEpoch => tileEpoch + 1);
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              missingTile.image = new Blob([], {
+                type: 'image/webp',
+              });
+              saveTiles(tileSpecs);
+            }
 
-            missingLoad.image = new Image();
             missingLoad.loading = false;
-            setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+            setTileEpoch(tileEpoch => tileEpoch + 1);
           })();
         } else {
-          throw new Error(`missing tile at (${x}, ${z})`);
+          throw new Error('missing load not found');
         }
       } else {
         // all loaded
@@ -445,7 +558,7 @@ const MapScene = ({
     } else {
       // already loading
     }
-  }, [tileSpecs, tileLoads, tileLoadEpoch]);
+  }, [tileSpecs, tileLoads, tileEpoch]);
 
   // render
   return <>
@@ -456,7 +569,7 @@ const MapScene = ({
     <directionalLight position={[1, 1, 1]} />
     {/* test box */}
     <mesh position={[0, -0.01, 0]} geometry={planeGeometry}>
-      <meshPhongMaterial color={generating ? 0x0000FF : 0x333333} />
+      <meshPhongMaterial color={loading ? 0x0000FF : 0x333333} />
     </mesh>
     {/* cursor mesh */}
     {/* <StoryCursor pressed={pressed} ref={storyCursorMeshRef} /> */}
@@ -469,10 +582,14 @@ const MapScene = ({
         },
         name,
         description,
+        image,
       }, index) => {
-        const tileLoad = tileLoads.find(load => load.coord.x === x && load.coord.z === z);
+        const tileLoad = tileLoads.find(load =>
+          load.coord.x === x &&
+          load.coord.z === z
+        );
         const loading = tileLoad?.loading ?? false;
-        const loaded = !!tileLoad?.image;
+        const loaded = !!image;
 
         const position = new Vector3(x, 0, z);
 
