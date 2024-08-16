@@ -7,7 +7,7 @@ import { zodResponseFormat } from 'openai/helpers/zod';
 import localforage from 'localforage';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
-import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls } from '@react-three/drei'
+import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
 // import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -15,6 +15,7 @@ import {
   Vector2,
   Vector3,
   Quaternion,
+  Matrix4,
   Object3D,
   Scene,
   Camera,
@@ -24,6 +25,7 @@ import {
   Box2,
   Box3,
   Mesh,
+  InstancedMesh,
   TextureLoader,
   NoToneMapping,
   Texture,
@@ -61,8 +63,8 @@ const mapStyle = `anime style map segment, top down overhead view`;
 //
 
 class SquareGeometry extends BufferGeometry {
-  constructor(w: number, h: number, borderSize: number) {
-    const vBarGeometry = new BoxGeometry(w, h + borderSize * 2, borderSize);
+  constructor(h: number, borderSize: number) {
+    const vBarGeometry = new BoxGeometry(borderSize, h + borderSize, borderSize);
     const hBarGeometry = vBarGeometry.clone().applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2));
     const geometries = [
       // left
@@ -84,6 +86,14 @@ class SquareGeometry extends BufferGeometry {
     this.copy(geometry);
   }
 }
+enum Controls {
+  forward = 'forward',
+  back = 'back',
+  left = 'left',
+  right = 'right',
+  shift = 'shift',
+  jump = 'jump',
+};
 
 // const planeScale = 0.9;
 const planeGeometry = new PlaneGeometry(1, 1)
@@ -91,7 +101,7 @@ const planeGeometry = new PlaneGeometry(1, 1)
   .rotateX(-Math.PI / 2);
 const rotateXQuaternion = new Quaternion()
   .setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-const squareGeometry = new SquareGeometry(0.05, 1, 0.02)
+const squareGeometry = new SquareGeometry(1, 0.02)
   .rotateX(-Math.PI / 2);
 
 const biomesEnum = z.enum([
@@ -519,6 +529,191 @@ const Tile = ({
     </object3D>
   );
 }
+const Controllable = forwardRef(({
+  onMoving,
+  children,
+}: {
+  onMoving?: (moving: boolean) => void,
+  children: React.ReactNode,
+}, ref: React.ForwardedRef<Object3D>) => {
+  const internalRef = useRef<Object3D>(null);
+
+  const [sub, get] = useKeyboardControls<Controls>();
+
+  const initialValue = useMemo(() => Date.now(), []);
+  const lastFrameTime = useRef<number>(initialValue);
+  const lastFrameMoving = useRef<boolean>(false);
+
+  const moveCameraOffset = useMemo(() => new Vector3(0, 2, 1).normalize().multiplyScalar(3), []);
+
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref(internalRef.current);
+      } else {
+        ref.current = internalRef.current;
+      }
+    }
+  }, [ref, internalRef.current]);
+
+  useFrame(() => {
+    const object = internalRef.current;
+    if (object) {
+      const now = Date.now();
+      const timeDiff = now - lastFrameTime.current;
+
+      const moveDirection = new Vector3();
+      const state = get();
+      if (state.forward) {
+        moveDirection.z = -1;
+      }
+      if (state.back) {
+        moveDirection.z = 1;
+      }
+      if (state.left) {
+        moveDirection.x = -1;
+      }
+      if (state.right) {
+        moveDirection.x = 1;
+      }
+
+      const moving = moveDirection.lengthSq() > 0;
+      if (moving) {
+        moveDirection.normalize();
+
+        const speed = 0.001 * (state.shift ? 3 : 1);
+        const moveDelta = moveDirection.clone().multiplyScalar(speed * timeDiff);
+
+        object.position.add(moveDelta);
+
+        camera.position.copy(object.position)
+          .add(
+            moveCameraOffset.normalize()
+          );
+        camera.lookAt(object.position);
+      }
+
+      if (onMoving) {
+        if (moving && !lastFrameMoving.current) {
+          onMoving(true);
+        } else if (!moving && lastFrameMoving.current) {
+          onMoving(false);
+        }
+      }
+
+      lastFrameTime.current = now;
+      lastFrameMoving.current = moving;
+    }
+  });
+
+  /* useEffect(() => {
+    const fns = [
+      sub(
+        (state) => state.forward,
+        (pressed) => {
+          console.log('forward', pressed)
+        }
+      ),
+      sub(
+        (state) => state.back,
+        (pressed) => {
+          console.log('back', pressed)
+        }
+      ),
+      sub(
+        (state) => state.left,
+        (pressed) => {
+          console.log('left', pressed)
+        },
+      ),
+      sub(
+        (state) => state.right,
+        (pressed) => {
+          console.log('right', pressed)
+        },
+      ),
+      sub(
+        (state) => state.shift,
+        (pressed) => {
+          console.log('shift', pressed)
+        },
+      ),
+      sub(
+        (state) => state.jump,
+        (pressed) => {
+          console.log('jump', pressed)
+        },
+      ),
+    ];
+    return () => {
+      for (const fn of fns) {
+        fn();
+      }
+    };
+  }, []); */
+
+  return (
+    <object3D ref={internalRef}>
+      {children}
+    </object3D>
+  );
+});
+Controllable.displayName = 'Controllable';
+const MiniPlayer = forwardRef(({
+  pfpUrl,
+}: {
+  pfpUrl: string,
+}, ref) => {
+  const circleSize = 0.2;
+  const innerFactor = 0.9;
+  const instanceCount = 5;
+
+  const circlesMeshRef = useRef<Object3D>(null);
+  const instancedMeshRef = useRef<InstancedMesh>(null);
+
+  useFrame(({ camera }) => {
+    if (circlesMeshRef.current) {
+      circlesMeshRef.current.quaternion.copy(camera.quaternion);
+    }
+  });
+
+  useEffect(() => {
+    const instancedMesh = instancedMeshRef.current;
+    if (instancedMesh) {
+      const startPoint = new Vector3(0, circleSize + circleSize / 2, 0);
+      const endPoint = new Vector3(0, 0, 0);
+      for (let i = 0; i < instanceCount; i++) {
+        const lerpFactor = (0.5 + i) / instanceCount;
+        const v = new Vector3().lerpVectors(startPoint, endPoint, lerpFactor);
+        instancedMesh.setMatrixAt(i, new Matrix4().makeTranslation(v.x, v.y, v.z));
+      }
+      instancedMesh.instanceMatrix.needsUpdate = true;
+    }
+  }, []);
+
+  return (
+    <object3D>
+      <object3D position={[0, circleSize + circleSize / 2, 0]} ref={circlesMeshRef}>
+        <mesh>
+          <circleGeometry args={[circleSize * 0.5, 32]} />
+          <meshBasicMaterial color={0xFFFFFF} />
+        </mesh>
+        <mesh position={[0, 0, 0.001]}>
+          <circleGeometry args={[circleSize * innerFactor * 0.5, 32]} />
+          <meshBasicMaterial color={0x111111} />
+        </mesh>
+      </object3D>
+      {/* instanced spheres mesh from the circles to the local origin */}
+      <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, instanceCount]}>
+        <sphereGeometry args={[0.005, 32, 32]} />
+        <meshBasicMaterial color={0x000000} />
+      </instancedMesh>
+    </object3D>
+  );
+});
+MiniPlayer.displayName = 'MiniPlayer';
 const MapScene = ({
   eventTarget,
   highlightedTile,
@@ -540,6 +735,11 @@ const MapScene = ({
   const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
 
   const [tileMeshes, setTileMeshes] = useState<Map<TileSpec, Object3D>>(new Map());
+
+  const playerControlsRef = useRef<Object3D>(null);
+  // const [target, setTarget] = useState(() => new Vector3(0, -1, 0));
+  // globalThis.setTarget = (x: number, y: number, z: number) => setTarget(new Vector3(x, y, z));
+  const [moving, setMoving] = useState(false);
 
   //
 
@@ -701,10 +901,20 @@ const MapScene = ({
     }
   }, [tileSpecs, tileLoads, tileEpoch]);
 
+  // controls
+  const map = useMemo<KeyboardControlsEntry<Controls>[]>(()=>[
+    { name: Controls.forward, keys: ['ArrowUp', 'KeyW'] },
+    { name: Controls.back, keys: ['ArrowDown', 'KeyS'] },
+    { name: Controls.left, keys: ['ArrowLeft', 'KeyA'] },
+    { name: Controls.right, keys: ['ArrowRight', 'KeyD'] },
+    { name: Controls.shift, keys: ['ShiftLeft', 'ShiftRight'] },
+    { name: Controls.jump, keys: ['Space'] },
+  ], []);
+
   // render
   return <>
     {/* controls */}
-    <MapControls makeDefault target={[0, -1, 0]} />
+    {!moving && <MapControls target={playerControlsRef.current?.position ?? new Vector3(0, -1, 0)} />}
     {/* lighting */}
     <ambientLight />
     <directionalLight position={[1, 1, 1]} />
@@ -714,6 +924,47 @@ const MapScene = ({
     </mesh>
     {/* cursor mesh */}
     {/* <StoryCursor pressed={pressed} ref={storyCursorMeshRef} /> */}
+    {/*
+      local character keyboard controls
+      // type KeyboardControlsState<T extends string = string> = { [K in T]: boolean }
+
+      // type <KeyboardControls>Entry<T extends string = string> = {
+      //   /** Name of the action */
+      //   name: T
+      //   /** The keys that define it, you can use either event.key, or event.code */
+      //   keys: string[]
+      //   /** If the event receives the keyup event, true by default */
+      //   up?: boolean
+      // }
+
+      // type KeyboardControlsProps = {
+      //   /** A map of named keys */
+      //   map: KeyboardControlsEntry[]
+      //   /** All children will be able to useKeyboardControls */
+      //   children: React.ReactNode
+      //   /** Optional onchange event */
+      //   onChange: (name: string, pressed: boolean, state: KeyboardControlsState) => void
+      //   /** Optional event source */
+      //   domElement?: HTMLElement
+      // }
+      // };
+    }
+    <KeyboardControls
+      map={map}
+      // onChange={(name, pressed, state) => {
+      //   console.log('keyboard controls', name, pressed, state);
+      // }}
+    >
+      <Controllable
+        onMoving={setMoving}
+        ref={playerControlsRef}
+      >
+        {/* local mini player mesh */}
+        <MiniPlayer
+          pfpUrl=""
+        />
+      </Controllable>
+    </KeyboardControls>
     {/* plane mesh */}
     {(() => {
       const children = tileSpecs.map((tileSpec, index) => {
@@ -780,6 +1031,7 @@ function MapComponent() {
       <Canvas
         camera={{
           position: [0, 1, 0],
+          quaternion: new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2),
         }}
         onCreated={({ gl }) => {
           gl.toneMapping = NoToneMapping;
