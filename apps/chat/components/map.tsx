@@ -44,26 +44,8 @@ import {
   // r2EndpointUrl,
   aiProxyHost,
 } from '@/utils/const/endpoints';
-// import {
-//   defaultQuality,
-// } from '@/utils/const/defaults';
-import {
-  describe,
-  describeJson,
-  getDepth,
-  detect,
-  segment,
-  segmentAll,
-  removeBackground,
-} from '@/utils/vision';
-// import {
-//   generateSound,
-// } from '@/utils/sound';
-// import {
-//   generateModel,
-// } from '@/utils/generate-model';
 import { getJWT } from '@/lib/jwt';
-// import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
+import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 
 //
@@ -144,9 +126,12 @@ const biomesEnum = z.enum([
   "wooded_badlands"
 ]);
 
-type TileSpec = {
+type Coord2D = {
   x: number,
   z: number,
+};
+type TileSpec = {
+  coord: Coord2D,
   name: string,
   description: string,
   biome: string,
@@ -154,6 +139,11 @@ type TileSpec = {
   wetness: number,
   points_of_interest: string[],
   exits: string[],
+};
+type TileLoad = {
+  coord: Coord2D,
+  loading: boolean,
+  image: HTMLImageElement | null,
 };
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
@@ -222,8 +212,10 @@ const generateMap = async ({
   ];
   const format = z.object({
     tiles: z.array(z.array(z.object({
-      x: z.number(),
-      z: z.number(),
+      coord: z.object({
+        x: z.number(),
+        z: z.number(),
+      }),
       name: z.string(),
       description: z.string(),
       biome: biomesEnum,
@@ -243,7 +235,7 @@ const generateMap = async ({
     }
     for (let x = 0; x < width; x++) {
       const tileSpec = row[x];
-      if (tileSpec.x !== x || tileSpec.z !== z) {
+      if (tileSpec.coord.x !== x || tileSpec.coord.z !== z) {
         throw new Error(`tile at (${x}, ${z}) has x, z of ${tileSpec.x}, ${tileSpec.z}`);
       }
       tileSpecs.push(tileSpec);
@@ -365,38 +357,27 @@ const MapScene = ({
 }: {
   eventTarget: EventTarget,
 }) => {
-  // const grid = useMemo(() => {
-  //   const result = [];
-  //   for (let z = -1; z <= 1; z++) {
-  //     for (let x = -1; x <= 1; x++) {
-  //       const position = new Vector3(x, 0, z);
-  //       const description = `(${x}, ${z})`;
-  //       result.push({
-  //         position,
-  //         description,
-  //       });
-  //     }
-  //   }
-  //   return result;
-  // }, []);
-  // const camera = useMemo(() => {
-  //   const camera = new PerspectiveCamera();
-  //   camera.position.set(0, 1, 1);
-  //   camera.up.set(0, 0, -1);
-  //   return camera;
-  // }, []);
+  const [generating, setGenerating] = useState(false);
   const [tileSpecs, setTileSpecs] = useState<TileSpec[]>([]);
+  const [tileLoads, setTileLoads] = useState<TileLoad[]>([]);
+  const [tileLoadEpoch, setTileLoadEpoch] = useState(0);
 
+  // generation
   useEffect(() => {
     const onGenerateMap = async (e: any) => {
+      setGenerating(true);
+      setTileSpecs([]);
+      setTileLoads([]);
+
       const prompt = e.data.prompt as string;
       const newTileSpecs = await generateMap({
         prompt,
         width: 3,
         height: 3,
       });
-      console.log('got new tile specs', newTileSpecs);
+      console.log('newTileSpecs', newTileSpecs);
       setTileSpecs(newTileSpecs);
+      setGenerating(false);
     };
     eventTarget.addEventListener('generateMap', onGenerateMap);
 
@@ -404,6 +385,67 @@ const MapScene = ({
       eventTarget.removeEventListener('generateMap', onGenerateMap);
     };
   }, []);
+
+  // tiles loading
+  useEffect(() => {
+    // add missing tile loads
+    let added = false;
+    for (const tileSpec of tileSpecs) {
+      let tileLoad = tileLoads.find(tileLoad =>
+        tileLoad.coord.x === tileSpec.coord.x &&
+        tileLoad.coord.z === tileSpec.coord.z
+      );
+      if (!tileLoad) {
+        tileLoad = {
+          coord: structuredClone(tileSpec.coord),
+          loading: false,
+          image: null,
+        };
+        tileLoads.push(tileLoad);
+        added = true;
+      }
+    }
+    if (added) {
+      setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+    }
+
+    const isLoading = tileLoads.some(load => load.loading);
+    console.log('is loading', isLoading);
+    if (!isLoading) {
+      const missingLoad = tileLoads.find(load => !load.image);
+      console.log('missing load', missingLoad);
+      if (missingLoad) {
+        // start loading
+        const { coord } = missingLoad;
+        const { x, z } = coord;
+        const missingTile = tileSpecs.find(tileSpec =>
+          tileSpec.coord.x === x &&
+          tileSpec.coord.z === z
+        );
+        if (missingTile) {
+          const { name, description } = missingTile;
+          console.log('loading', name, description);
+
+          (async () => {
+            missingLoad.loading = true;
+            setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            missingLoad.image = new Image();
+            missingLoad.loading = false;
+            setTileLoadEpoch(tileLoadEpoch => tileLoadEpoch + 1);
+          })();
+        } else {
+          throw new Error(`missing tile at (${x}, ${z})`);
+        }
+      } else {
+        // all loaded
+      }
+    } else {
+      // already loading
+    }
+  }, [tileSpecs, tileLoads, tileLoadEpoch]);
 
   // render
   return <>
@@ -414,23 +456,32 @@ const MapScene = ({
     <directionalLight position={[1, 1, 1]} />
     {/* test box */}
     <mesh position={[0, -0.01, 0]} geometry={planeGeometry}>
-      <meshPhongMaterial color={0xFF00FF} />
+      <meshPhongMaterial color={generating ? 0x0000FF : 0x333333} />
     </mesh>
     {/* cursor mesh */}
     {/* <StoryCursor pressed={pressed} ref={storyCursorMeshRef} /> */}
     {/* plane mesh */}
     {(() => {
       const children = tileSpecs.map(({
-        x,
-        z,
+        coord: {
+          x,
+          z,
+        },
         name,
         description,
       }, index) => {
+        const tileLoad = tileLoads.find(load => load.coord.x === x && load.coord.z === z);
+        const loading = tileLoad?.loading ?? false;
+        const loaded = !!tileLoad?.image;
+
         const position = new Vector3(x, 0, z);
+
+        const color = loading ? 0x0000FF : loaded ? 0x00FF00 : 0xFFFFFF;
+
         return (
           <object3D position={position} key={index}>
             <mesh geometry={planeGeometry}>
-              <meshBasicMaterial color={0xFFFFFF} />
+              <meshBasicMaterial color={color} />
             </mesh>
             <Text3D position={[0, 0.01, 0]} quaternion={rotateXQuaternion}>{description}</Text3D>
           </object3D>
@@ -441,7 +492,7 @@ const MapScene = ({
   </>
 }
 
-export function Map() {
+function MapComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
 
@@ -469,3 +520,6 @@ export function Map() {
     </div>
   )
 }
+export {
+  MapComponent as Map,
+};
