@@ -67,6 +67,7 @@
     "framer-motion": "10.18.0",
     "geist": "1.2.1",
     "javascript-time-ago": "^2.5.10",
+    "localforage": "^1.10.0",
     "lucide-react": "0.330.0",
     "nanoid": "5.0.4",
     "next": "14.2.3",
