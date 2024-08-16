@@ -716,13 +716,13 @@ const MiniPlayer = forwardRef(({
 MiniPlayer.displayName = 'MiniPlayer';
 const MapScene = ({
   eventTarget,
-  highlightedTile,
-  setHighlightedTile,
+  focused,
 }: {
   eventTarget: EventTarget,
-  highlightedTile: TileSpec | null,
-  setHighlightedTile: (tile: TileSpec | null) => void,
+  focused: boolean,
 }) => {
+  const router = useRouter();
+
   const tileLoader = useMemo(() => new TileLoader(), []);
   const raycaster = useMemo(() => new Raycaster(), []);
 
@@ -740,6 +740,55 @@ const MapScene = ({
   // const [target, setTarget] = useState(() => new Vector3(0, -1, 0));
   // globalThis.setTarget = (x: number, y: number, z: number) => setTarget(new Vector3(x, y, z));
   const [moving, setMoving] = useState(false);
+
+  const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
+  const [hoveredTile, setHoveredTile] = useState<TileSpec | null>(null);
+
+  // handle doubleclick
+  const { gl } = useThree();
+  useEffect(() => {
+    if (focused) {
+      const click = (tile: TileSpec) => {
+        const { coord } = tile;
+        const { x, z } = coord;
+    
+        const u = new URL(location.href);
+        u.pathname = `/land/${[x, z].join(',')}`;
+        const s = u + '';
+        router.push(s);
+      };
+      const onDoubleClick = (e: MouseEvent) => {
+        if (e.target === gl.domElement) {
+          if (highlightedTile) {
+            click(highlightedTile);
+          }
+        }
+      };
+      document.addEventListener('dblclick', onDoubleClick);
+
+      const onKeyDown = (e: KeyboardEvent) => {
+        switch (e.key) {
+          case ' ': {
+            e.preventDefault();
+            e.stopPropagation();
+            if (hoveredTile) {
+              click(hoveredTile);
+            }
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
+
+      return () => {
+        document.removeEventListener('dblclick', onDoubleClick);
+        document.removeEventListener('keydown', onKeyDown);
+      };
+    }
+  }, [focused, hoveredTile, highlightedTile]);
 
   //
 
@@ -784,18 +833,35 @@ const MapScene = ({
 
   // mouse raycasting
   useFrame(({ pointer, camera }) => {
+    const getIntersection = (raycaster: Raycaster) => {
+      const meshes = Array.from(tileMeshes.values());
+      const intersects = raycaster.intersectObjects(meshes, false);
+
+      if (intersects.length > 0) {
+        const intersectedTile = intersects[0].object;
+        return intersectedTile;
+      } else {
+        return null;
+      }
+    };
+
+    camera.updateMatrixWorld();
     raycaster.setFromCamera(pointer, camera);
+    const newHighlightedTile = getIntersection(raycaster);
+    setHighlightedTile((newHighlightedTile as any)?.metadata?.tileSpec ?? null);
 
-    const meshes = Array.from(tileMeshes.values());
-    const intersects = raycaster.intersectObjects(meshes, false);
-
-    if (intersects.length > 0) {
-      // Handle the intersection here
-      const intersectedTile = intersects[0].object;
-      // Do something with the intersected tile
-      // console.log('intersected tile', intersectedTile);
-      setHighlightedTile((intersectedTile as any).metadata?.tileSpec ?? null);
-    }
+    const newHoveredTile = (() => {
+      const playerControls = playerControlsRef.current;
+      if (playerControls) {
+        raycaster.ray.origin.copy(playerControls.position)
+          .add(new Vector3(0, 1, 0));
+        raycaster.ray.direction.set(0, -1, 0);
+        return getIntersection(raycaster);
+      } else {
+        return null;
+      }
+    })();
+    setHoveredTile((newHoveredTile as any)?.metadata?.tileSpec ?? null);
   });
 
   // generation
@@ -902,7 +968,7 @@ const MapScene = ({
   }, [tileSpecs, tileLoads, tileEpoch]);
 
   // controls
-  const map = useMemo<KeyboardControlsEntry<Controls>[]>(()=>[
+  const keyMap = useMemo<KeyboardControlsEntry<Controls>[]>(()=>[
     { name: Controls.forward, keys: ['ArrowUp', 'KeyW'] },
     { name: Controls.back, keys: ['ArrowDown', 'KeyS'] },
     { name: Controls.left, keys: ['ArrowLeft', 'KeyA'] },
@@ -950,7 +1016,7 @@ const MapScene = ({
       // };
     }
     <KeyboardControls
-      map={map}
+      map={focused ? keyMap : []}
       // onChange={(name, pressed, state) => {
       //   console.log('keyboard controls', name, pressed, state);
       // }}
@@ -995,7 +1061,7 @@ const MapScene = ({
               });
             }}
           >
-            {highlightedTile === tileSpec && <mesh geometry={squareGeometry}>
+            {((highlightedTile === tileSpec && !moving) || hoveredTile === tileSpec) && <mesh geometry={squareGeometry}>
               <meshBasicMaterial color={0x111111} />
             </mesh>}
           </Tile>
@@ -1009,25 +1075,10 @@ const MapScene = ({
 function MapComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
-
-  const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
-
-  const router = useRouter();
+  const [focused, setFocused] = useState(true);
 
   return (
-    <div className="relative w-screen h-[calc(100vh-64px)]"
-      onDoubleClick={e => {
-        if (highlightedTile) {
-          const { coord } = highlightedTile;
-          const { x, z } = coord;
-
-          const u = new URL(location.href);
-          u.pathname = `/land/${[x, z].join(',')}`;
-          const s = u + '';
-          router.push(s);
-        }
-      }}
-    >
+    <div className="relative w-screen h-[calc(100vh-64px)]">
       <Canvas
         camera={{
           position: [0, 1, 0],
@@ -1036,7 +1087,15 @@ function MapComponent() {
         onCreated={({ gl }) => {
           gl.toneMapping = NoToneMapping;
         }}
+        onFocus={() => {
+          setFocused(true);
+        }}
+        onBlur={() => {
+          setFocused(false);
+        }}
+        tabIndex={-1}
         ref={canvasRef}
+        className="outline-none"
       >
         {/* <Suspense> */}
           {/* <Physics
@@ -1045,8 +1104,7 @@ function MapComponent() {
           > */}
             <MapScene
               eventTarget={eventTarget}
-              highlightedTile={highlightedTile}
-              setHighlightedTile={setHighlightedTile}
+              focused={focused}
             />
           {/* </Physics> */}
         {/* </Suspense> */}
