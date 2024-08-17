@@ -142,6 +142,16 @@ const characterController = {
 const spawnOffset: [number, number, number] = [0, 0, -6];
 const objectSpawnOffset: [number, number, number] = [0, -2, -8];
 
+const useScale = (texture: Texture | null) => {
+  const scaleArray = useAspectContain(
+    texture ? getWidth(texture.source.data) : 512, // Pixel-width
+    texture ? getHeight(texture.source.data) : 512, // Pixel-height
+    1                         // Optional scaling factor
+  );
+  const scale = new Vector3(...scaleArray);
+  return scale;
+};
+
 type DepthSpec = {
   width: number,
   height: number,
@@ -620,7 +630,6 @@ const generateModelBlob = async (prompt = generateModelDefaultPrompt, {
   return blob2;
 };
 
-
 //
 
 const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
@@ -664,7 +673,7 @@ const bilinearSample = (data: Float32Array, x: number, y: number, w: number, h: 
   
   return value;
 };
-const makePlaneGeometry = () => new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
+// const makePlaneGeometry = () => new PlaneGeometry(1, 1, geometryResolution, geometryResolution);
 const makePlaneGeometryFromScale = ({
   scale,
 }: {
@@ -1062,10 +1071,12 @@ type ObjectSpec = {
 
 const LandTopForm = ({
   layerName: [layerName, setLayerName],
+  loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
 }: {
   layerName: [string, (v: string) => void],
+  loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
 }) => {
@@ -1095,47 +1106,46 @@ const LandTopForm = ({
         </select>
       </div>
       <div className="absolute bottom-0 left-0 flex">
-        <button
+        <Button
           onClick={e => {
             console.log('back');
             if (layerSpecIndex > 0) {
               setLayerName(layerSpecs[layerSpecIndex - 1].name);
             }
           }}
-          className="p-2 mx-2 rounded outline pointer-events-auto"
+          className="pointer-events-auto"
           disabled={!(layerSpecIndex > 0)}
-        >Back</button>
+        >Back</Button>
       </div>
       <div className="absolute bottom-0 right-0 flex">
         {!isValid ?
-          <button
+          <Button
             onClick={e => {
               console.log('generate');
               // eventTarget.dispatchEvent(new MessageEvent('generate', {
               //   data: null,
               // }));
             }}
-            className="p-2 mx-2 rounded outline pointer-events-auto"
-          >Generate</button>
+            className="pointer-events-auto"
+          >Generate</Button>
         :
-          <button
+          <Button
             onClick={e => {
               console.log('regenerate');
               // eventTarget.dispatchEvent(new MessageEvent('regenerate', {
               //   data: null,
               // }));
             }}
-            className="p-2 mx-2 rounded outline pointer-events-auto"
-          >Regenerate</button>
+            className="pointer-events-auto"
+          >Regenerate</Button>
         }
-        <button
+        <Button
           onClick={async e => {
             console.log('next');
             // eventTarget.dispatchEvent(new MessageEvent('next', {
             //   data: null,
             // }));
 
-            {/* XXX pass this in as a prop */}
             setLoadState('Generating...');
             await new Promise((accept, reject) => {
               setTimeout(accept, 1000);
@@ -1152,9 +1162,9 @@ const LandTopForm = ({
               setLayerName(layerSpecs[layerSpecIndex + 1].name);
             }
           }}
-          className="p-2 mx-2 rounded outline pointer-events-auto"
+          className="pointer-events-auto"
           disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1)}
-        >Next</button>
+        >Next</Button>
       </div>
     </form>
   )
@@ -1305,32 +1315,96 @@ const LandCanvas1D = ({
   const [prompt, setPrompt] = useState(sceneImageDefaultPrompt);
 
   return (
-    <form className="flex flex-col" onSubmit={e => {
+    <form className="mx-auto max-w-4xl flex flex-col" onSubmit={e => {
       e.preventDefault();
       e.stopPropagation();
     }}>
-      <input
-        value={prompt}
-        onChange={e => {
-          setPrompt(e.target.value);
-        }}
-      />
+      <label className="w-full my-4 flex flex-col text-xs mb-1">
+        <div>Prompt</div>
+        <input
+          value={prompt}
+          onChange={e => {
+            setPrompt(e.target.value);
+          }}
+          placeholder='Prompt'
+          className="my-2 p-2 border rounded outline-none"
+        />
+      </label>
     </form>
   );
 }
-const LandCanvas2D = ({
+const LandCanvas2D = (props: LandCanvasProps) => {
+  return (
+    <Canvas
+      camera={{
+        position: [0, 0, 1],
+      }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = NoToneMapping;
+      }}
+    >
+      <LandCanvas2DScene
+        {...props}
+      />
+    </Canvas>
+  );
+};
+const LandCanvas2DScene = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
 }: LandCanvasProps) => {
-  return <></>;
-}
-const LandCanvas3D = ({
+  const texture = useLoader(TextureLoader, '/images/test-bg.webp');
+  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
+  const planeMeshRef = useRef<Mesh>(null);
+
+  const scale = useScale(texture);
+
+  // update plane geometry
+  useEffect(() => {
+    const newPlaneGeometry = makePlaneGeometryFromScale({
+      scale,
+    });
+    setPlaneGeometry(newPlaneGeometry);
+  }, [scale.x, scale.y, scale.z]);
+
+  return (
+    <>
+      {planeGeometry && <mesh geometry={planeGeometry} ref={planeMeshRef}>
+        <meshBasicMaterial map={texture} />
+      </mesh>}
+    </>
+  );
+};
+const LandCanvas3D = (props: LandCanvasProps) => {
+  const {
+    eventTarget,
+  } = props;
+
+  return (
+    <>
+      <Canvas
+        camera={{
+          position: [0, 0, 1],
+        }}
+        onCreated={({ gl }) => {
+          gl.toneMapping = NoToneMapping;
+        }}
+      >
+        <LandCanvas3DScene
+          {...props}
+        />
+      </Canvas>
+      <LandEditForm eventTarget={eventTarget} />
+    </>
+  );
+};
+const LandCanvas3DScene = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
 }: LandCanvasProps) => {
-  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry>(makePlaneGeometry);
+  const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
   // const textureLoader = useMemo(() => new TextureLoader(), []);
   const initialTexture = useLoader(TextureLoader, '/images/test-bg.webp');
   const [texture, setTexture] = useState<Texture | null>(() => initialTexture);
@@ -1380,12 +1454,7 @@ const LandCanvas3D = ({
     mouseControlsEnabledRef.current = v;
   };
 
-  const scaleArray = useAspectContain(
-    texture ? getWidth(texture.source.data) : 512, // Pixel-width
-    texture ? getHeight(texture.source.data) : 512, // Pixel-height
-    1                         // Optional scaling factor
-  );
-  const scale = new Vector3(...scaleArray);
+  const scale = useScale(texture);
 
   const segmentPoint = async (point: Vector2) => {
     const image = texture?.source.data as HTMLImageElement;
@@ -2097,153 +2166,148 @@ const LandCanvas3D = ({
   }, [texture, keyboardControlsEnabled]);
 
   return (
-    <Canvas
-      camera={{
-        position: [0, 0, 1],
-      }}
-      onCreated={({ gl }) => {
-        gl.toneMapping = NoToneMapping;
-      }}
-    >
-      <Suspense>
-        <Physics
-          timeStep='vary'
-          // debug
+    <Suspense>
+      <Physics
+        timeStep='vary'
+        // debug
+      >
+        {/* lighting */}
+        <ambientLight />
+        <directionalLight position={[1, 1, 1]} />
+        {/* orbit controls */}
+        {mouseControlsEnabled && <OrbitControls
+          target={[0, 0, -1]}
+        />}
+        {/* drag mesh */}
+        {dragGeometry && <mesh
+          geometry={dragGeometry}
         >
-          {/* lighting */}
-          <ambientLight />
-          <directionalLight position={[1, 1, 1]} />
-          {/* orbit controls */}
-          {mouseControlsEnabled && <OrbitControls
-            target={[0, 0, -1]}
-          />}
-          {/* drag mesh */}
-          {dragGeometry && <mesh
-            geometry={dragGeometry}
-          >
-            <meshBasicMaterial color="black" transparent opacity={0.5} />
-          </mesh>}
+          <meshBasicMaterial color="black" transparent opacity={0.5} />
+        </mesh>}
 
-          {/* character capsule */}
-          {keyboardControlsEnabled && (
-            <KeyboardControls map={keyboardMap}>
-              <Ecctrl
-                position={spawnOffset}
-                capsuleHalfHeight={characterController.capsuleHalfHeight}
-                capsuleRadius={characterController.capsuleRadius}
-                floatHeight={characterController.floatHeight}
-                fallingGravityScale={1}
-                disableFollowCam={true}
-                disableFollowCamPos={cameraPosition}
-                disableFollowCamTarget={cameraTarget}
-                autoBalance={false}
-                turnSpeed={100}
-                friction={0.1}
-                ref={ecctrlRef}
+        {/* character capsule */}
+        {keyboardControlsEnabled && (
+          <KeyboardControls map={keyboardMap}>
+            <Ecctrl
+              position={spawnOffset}
+              capsuleHalfHeight={characterController.capsuleHalfHeight}
+              capsuleRadius={characterController.capsuleRadius}
+              floatHeight={characterController.floatHeight}
+              fallingGravityScale={1}
+              disableFollowCam={true}
+              disableFollowCamPos={cameraPosition}
+              disableFollowCamTarget={cameraTarget}
+              autoBalance={false}
+              turnSpeed={100}
+              friction={0.1}
+              ref={ecctrlRef}
+            >
+              {!characterTexture && <mesh
+                geometry={capsuleGeometry}
+                ref={capsuleMeshRef}
               >
-                {!characterTexture && <mesh
-                  geometry={capsuleGeometry}
-                  ref={capsuleMeshRef}
-                >
-                  <meshBasicMaterial color="blue" transparent opacity={0.5} />
-                </mesh>}
-                {characterTexture && <mesh
-                  scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
-                >
-                  <planeGeometry args={[1, 1]} />
-                  <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
-                </mesh>}
-              </Ecctrl>
-            </KeyboardControls>
-          )}
-          {objectSpec && <mesh
-            position={[objectSpawnOffset[0], objectSpawnOffset[1] + objectSpec.metadata.height * 0.5, objectSpawnOffset[2]]}
-          >
-            <planeGeometry args={[
-              objectSpec.metadata.height * getWidth(objectSpec.texture.source.data) / getHeight(objectSpec.texture.source.data),
-              objectSpec.metadata.height,
-            ]} />
-            <meshBasicMaterial map={objectSpec.texture} side={DoubleSide} transparent />
-          </mesh>}
-          {/* mouse mesh */}
-          <mesh
-            // onPointerEnter={e => {
-            //   const pointerMesh = pointerMeshRef.current;
-            //   if (pointerMesh) {
-            //     pointerMesh.visible = true;
-            //   }
-            // }}
-            // onPointerLeave={e => {
-            //   const pointerMesh = pointerMeshRef.current;
-            //   if (pointerMesh) {
-            //     pointerMesh.visible = false;
-            //   }
-            // }}
-            // onPointerMove={e => {
-            //   const pointerMesh = pointerMeshRef.current;
-            //   console.log('pointer move', e, pointerMesh);
-            //   if (pointerMesh) {
-            //     pointerMesh.position.copy(e.point);
-            //     pointerMesh.updateMatrixWorld();
-            //   }
-            // }}
-            ref={pointerMeshRef}
-          >
-            <boxGeometry args={[0.02, 0.02, 0.02]} />
-            <meshBasicMaterial color="red" />
-          </mesh>
-          {/* intersection mesh */}
-          <mesh
-            visible={false}
-            ref={intersectionMeshRef}
-          >
-            <boxGeometry args={[0.02, 0.02, 0.02]} />
-            <meshBasicMaterial color="blue" />
-          </mesh>
-          {/* cursor mesh */}
-          <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
-          {/* plane mesh */}
-          {(() => {
-            const children = (
-              <mesh geometry={planeGeometry} ref={planeMeshRef}>
-                <meshBasicMaterial map={texture} />
-              </mesh>
-            );
-            return keyboardControlsEnabled ? (
-              <RigidBody
-                colliders='trimesh'
-                lockTranslations
-                lockRotations
+                <meshBasicMaterial color="blue" transparent opacity={0.5} />
+              </mesh>}
+              {characterTexture && <mesh
+                scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
               >
-                {children}
-              </RigidBody>
-            ) : (children);
-          })()}
-          {/* description mesh */}
-          {modelBlobUrl && <MeshUrl
-            src={modelBlobUrl}
-            ref={modelRef}
-          />}
-          {/* highlight mesh */}
-          {highlightTexture && <mesh geometry={planeGeometry}>
-            <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} alphaTest={0.01} />
-          </mesh>}
-          {/* segment mesh */}
-          {segmentTexture && <mesh geometry={planeGeometry}>
-            <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} alphaTest={0.01} />
-          </mesh>}
-          {/* description mesh */}
-          {description && <Text3D
-            ref={descriptionObject3DRef}
-          >{description.description}</Text3D>}
-        </Physics>
-      </Suspense>
-      <LandEditForm eventTarget={eventTarget} />
-    </Canvas>
+                <planeGeometry args={[1, 1]} />
+                <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
+              </mesh>}
+            </Ecctrl>
+          </KeyboardControls>
+        )}
+        {objectSpec && <mesh
+          position={[objectSpawnOffset[0], objectSpawnOffset[1] + objectSpec.metadata.height * 0.5, objectSpawnOffset[2]]}
+        >
+          <planeGeometry args={[
+            objectSpec.metadata.height * getWidth(objectSpec.texture.source.data) / getHeight(objectSpec.texture.source.data),
+            objectSpec.metadata.height,
+          ]} />
+          <meshBasicMaterial map={objectSpec.texture} side={DoubleSide} transparent />
+        </mesh>}
+        {/* mouse mesh */}
+        <mesh
+          // onPointerEnter={e => {
+          //   const pointerMesh = pointerMeshRef.current;
+          //   if (pointerMesh) {
+          //     pointerMesh.visible = true;
+          //   }
+          // }}
+          // onPointerLeave={e => {
+          //   const pointerMesh = pointerMeshRef.current;
+          //   if (pointerMesh) {
+          //     pointerMesh.visible = false;
+          //   }
+          // }}
+          // onPointerMove={e => {
+          //   const pointerMesh = pointerMeshRef.current;
+          //   console.log('pointer move', e, pointerMesh);
+          //   if (pointerMesh) {
+          //     pointerMesh.position.copy(e.point);
+          //     pointerMesh.updateMatrixWorld();
+          //   }
+          // }}
+          ref={pointerMeshRef}
+        >
+          <boxGeometry args={[0.02, 0.02, 0.02]} />
+          <meshBasicMaterial color="red" />
+        </mesh>
+        {/* intersection mesh */}
+        <mesh
+          visible={false}
+          ref={intersectionMeshRef}
+        >
+          <boxGeometry args={[0.02, 0.02, 0.02]} />
+          <meshBasicMaterial color="blue" />
+        </mesh>
+        {/* cursor mesh */}
+        <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
+        {/* plane mesh */}
+        {(() => {
+          const children = planeGeometry && (
+            <mesh geometry={planeGeometry} ref={planeMeshRef}>
+              <meshBasicMaterial map={texture} />
+            </mesh>
+          );
+          return keyboardControlsEnabled ? (
+            <RigidBody
+              colliders='trimesh'
+              lockTranslations
+              lockRotations
+            >
+              {children}
+            </RigidBody>
+          ) : (children);
+        })()}
+        {/* description mesh */}
+        {modelBlobUrl && <MeshUrl
+          src={modelBlobUrl}
+          ref={modelRef}
+        />}
+        {/* highlight mesh */}
+        {planeGeometry && highlightTexture && <mesh geometry={planeGeometry}>
+          <meshBasicMaterial map={highlightTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-1} alphaTest={0.01} />
+        </mesh>}
+        {/* segment mesh */}
+        {planeGeometry && segmentTexture && <mesh geometry={planeGeometry}>
+          <meshBasicMaterial map={segmentTexture} transparent polygonOffset polygonOffsetFactor={0} polygonOffsetUnits={-2} alphaTest={0.01} />
+        </mesh>}
+        {/* description mesh */}
+        {description && <Text3D
+          ref={descriptionObject3DRef}
+        >{description.description}</Text3D>}
+      </Physics>
+    </Suspense>
   );
 };
 
-const layerSpecs = [
+type LayerSpec = {
+  name: string,
+  Component: React.ComponentType<any>,
+  isValid: (landSpec: LandSpec) => boolean,
+};
+const layerSpecs: LayerSpec[] = [
   {
     name: '1D',
     Component: LandCanvas1D,
@@ -2295,23 +2359,42 @@ const keyboardMap = [
   { name: "run", keys: ["Shift"] },
 ];
 const LandLayer = ({
-  id,
   layerName: [layerName, setLayerName],
+  loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
 }: {
-  id: string,
   layerName: [string, (v: string) => void],
+  loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
 }) => {
-  const landLoader = useMemo(() => new LandLoader({ id }), [id]);
-
-  const [loadState, setLoadState] = useState<string | null>(null);
-
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   const layerSpec = layerSpecs[layerSpecIndex];
   const { Component: LayerComponent } = layerSpec;
+
+  // render
+  return (
+    <LayerComponent
+      landSpec={[landSpec, setLandSpec]}
+      loadState={[loadState, setLoadState]}
+      eventTarget={eventTarget}
+    />
+  );
+}
+
+type LandProps = {
+  id: string,
+};
+export function Land({
+  id,
+}: LandProps) {
+  const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
+  const [loadState, setLoadState] = useState<string | null>(null);
+  const [landSpec, setLandSpec] = useState<LandSpec>({});
+  const eventTarget = useMemo(() => new EventTarget(), []);
+
+  const landLoader = useMemo(() => new LandLoader({ id }), [id]);
 
   // load helpers
   const loadLand = async ({
@@ -2350,36 +2433,17 @@ const LandLayer = ({
     };
   }, []);
 
-  // render
-  return (
-    <LayerComponent
-      landSpec={[landSpec, setLandSpec]}
-      loadState={[loadState, setLoadState]}
-      eventTarget={eventTarget}
-    />
-  );
-}
-
-type LandProps = {
-  id: string,
-};
-export function Land({
-  id,
-}: LandProps) {
-  const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
-  const [landSpec, setLandSpec] = useState<LandSpec>({});
-  const eventTarget = useMemo(() => new EventTarget(), []);
-
   return (
     <div className="relative w-screen h-[calc(100vh-64px)]">
       <LandTopForm
         layerName={[layerName, setLayerName]}
+        loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
       />
       <LandLayer
-        id={id}
         layerName={[layerName, setLayerName]}
+        loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
       />
