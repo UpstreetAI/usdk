@@ -124,10 +124,12 @@ export class ChatsSpecification extends EventTarget {
       } = result;
       if (!error) {
         const initialChatSpecifications = data.map((o: any) => {
+
+          // o.data contains the room and endpoint_url
           const {
             room,
             endpoint_url: endpointUrl,
-          } = o;
+          } = o.data;
           return {
             room,
             endpointUrl,
@@ -149,7 +151,7 @@ export class ChatsSpecification extends EventTarget {
 
   async join(roomSpecification: RoomSpecification) {
     if (!roomSpecification.room || !roomSpecification.endpointUrl) {
-      throw new Error('roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
+      throw new Error('join | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
     }
 
     // console.log('join room 0', roomSpecification);
@@ -157,7 +159,7 @@ export class ChatsSpecification extends EventTarget {
     await this.waitForLoad();
 
     // console.log('join room 1', roomSpecification);
-    // console.log('join room 1.1', key, roomSpecification);
+    // console.log('join room 1.1',  roomSpecification);
     const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
     if (index === -1) {
       this.roomSpecifications.push(roomSpecification);
@@ -203,7 +205,7 @@ export class ChatsSpecification extends EventTarget {
   }
   async leave(roomSpecification: RoomSpecification) {
     if (!roomSpecification.room || !roomSpecification.endpointUrl) {
-      throw new Error('roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
+      throw new Error('leave | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
     }
 
     // console.log('leave room 0', roomSpecification);
