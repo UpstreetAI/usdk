@@ -1407,7 +1407,7 @@ const LandCanvas3DScene = ({
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
   // const textureLoader = useMemo(() => new TextureLoader(), []);
   const initialTexture = useLoader(TextureLoader, '/images/test-bg.webp');
-  const [texture, setTexture] = useState<Texture | null>(() => initialTexture);
+  const [texture, setTexture] = useState<Texture>(initialTexture);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const raycaster = useMemo(() => new Raycaster(), []);
@@ -1422,6 +1422,8 @@ const LandCanvas3DScene = ({
   const intersectionMeshRef = useRef<Mesh>(null);
   const storyCursorMeshRef = useRef<Mesh>(null);
   const ecctrlRef = useRef<RapierRigidBody>(null);
+  const modelRef = useRef<Scene | null>(null);
+  const descriptionObject3DRef = useRef<Object3D | null>(null);
   const [cameraPosition, setCameraPosition] = useState(new Vector3(0, 0, 1));
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
@@ -1429,8 +1431,6 @@ const LandCanvas3DScene = ({
   const [objectSpec, setObjectSpec] = useState<ObjectSpec | null>(null);
   const [modelBlobUrl, setModelBlobUrl] = useState<string | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
-  const modelRef = useRef<Scene | null>(null);
-  const descriptionObject3DRef = useRef<Object3D | null>(null);
   const dragBoxRef = useRef<Box3 | null>(null);
   const setDragBox = (v: Box3 | null) => {
     dragBoxRef.current = v;
@@ -1606,184 +1606,193 @@ const LandCanvas3DScene = ({
     const intersectionMesh = intersectionMeshRef.current;
     const planeMesh = planeMeshRef.current;
 
-    if (pointerMesh && intersectionMesh && planeMesh) {
+    console.log('check meshes', [
+      pointerMesh, intersectionMesh, planeMesh,
+    ])
+    // if (pointerMesh && intersectionMesh && planeMesh) {
       const mousedown = (e: any) => {
-        // const dragBox = dragBoxRef.current;
-        // const dragUvBox = dragUvBoxRef.current;
-        const pressed = pressedRef.current;
+        if (pointerMesh && intersectionMesh && planeMesh) {
+          // const dragBox = dragBoxRef.current;
+          // const dragUvBox = dragUvBoxRef.current;
+          const pressed = pressedRef.current;
 
-        if (e.target === canvas && !mouseControlsEnabledRef.current && pointerMesh.visible && !pressed) {
-          // intersect plane
-          raycaster.ray.origin.copy(camera.position);
-          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
-          const intersections = raycaster.intersectObject(planeMesh, false, []);
-          const intersection =  intersections[0];
-          if (intersection) {
-            intersectionMesh.position.copy(intersection.point);
-            intersectionMesh.visible = true;
-          } else {
-            intersectionMesh.visible = false;
+          if (e.target === canvas && !mouseControlsEnabledRef.current && pointerMesh.visible && !pressed) {
+            // intersect plane
+            raycaster.ray.origin.copy(camera.position);
+            raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+            const intersections = raycaster.intersectObject(planeMesh, false, []);
+            const intersection =  intersections[0];
+            if (intersection) {
+              intersectionMesh.position.copy(intersection.point);
+              intersectionMesh.visible = true;
+            } else {
+              intersectionMesh.visible = false;
+            }
+
+            // set states
+            if (intersection) {
+              const newDragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
+              setDragBox(newDragBox);
+
+              const dragUv = (intersection.uv as Vector2).clone();
+              dragUv.y = 1 - dragUv.y;
+              const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
+              setDragUvBox(dragUvBox);
+
+              setDragGeometry(makeBoxOutlineGeometry(newDragBox, camera));
+            }
+
+            // animate cursor
+            setPressed(true);
           }
-
-          // set states
-          if (intersection) {
-            const newDragBox = new Box3(pointerMesh.position.clone(), pointerMesh.position.clone());
-            setDragBox(newDragBox);
-
-            const dragUv = (intersection.uv as Vector2).clone();
-            dragUv.y = 1 - dragUv.y;
-            const dragUvBox = new Box2(dragUv.clone(), dragUv.clone())
-            setDragUvBox(dragUvBox);
-
-            setDragGeometry(makeBoxOutlineGeometry(newDragBox, camera));
-          }
-
-          // animate cursor
-          setPressed(true);
         }
       };
       document.addEventListener('mousedown', mousedown);
       const mouseup = (e: any) => {
-        // const dragBox = dragBoxRef.current;
-        const dragUvBox = dragUvBoxRef.current;
-        const pressed = pressedRef.current;
+        if (pointerMesh && planeMesh) {
+          // const dragBox = dragBoxRef.current;
+          const dragUvBox = dragUvBoxRef.current;
+          const pressed = pressedRef.current;
 
-        if (dragUvBox && pressed) {
-          const image = texture?.source.data as HTMLImageElement;
-          const width = getWidth(image);
-          const height = getHeight(image);
+          if (dragUvBox && pressed) {
+            const image = texture?.source.data as HTMLImageElement;
+            const width = getWidth(image);
+            const height = getHeight(image);
 
-          // intersect plane
-          raycaster.ray.origin.copy(camera.position);
-          raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
-          const intersections = raycaster.intersectObject(planeMesh, false, []);
-          const intersection =  intersections[0];
-          if (intersection) {
-            const dragUv = (intersection.uv as Vector2).clone();
-            dragUv.y = 1 - dragUv.y;
-            dragUvBox.max.copy(dragUv);
-          } 
+            // intersect plane
+            raycaster.ray.origin.copy(camera.position);
+            raycaster.ray.direction.copy(pointerMesh.position).sub(camera.position).normalize();
+            const intersections = raycaster.intersectObject(planeMesh, false, []);
+            const intersection =  intersections[0];
+            if (intersection) {
+              const dragUv = (intersection.uv as Vector2).clone();
+              dragUv.y = 1 - dragUv.y;
+              dragUvBox.max.copy(dragUv);
+            } 
 
-          let x1 = 0;
-          let y1 = 0;
-          let x2 = 0;
-          let y2 = 0;
-          if (dragUvBox.min.x < dragUvBox.max.x) {
-            x1 = dragUvBox.min.x;
-            x2 = dragUvBox.max.x;
-          } else {
-            x1 = dragUvBox.max.x;
-            x2 = dragUvBox.min.x;
-          }
-          if (dragUvBox.min.y < dragUvBox.max.y) {
-            y1 = dragUvBox.min.y;
-            y2 = dragUvBox.max.y;
-          } else {
-            y1 = dragUvBox.max.y;
-            y2 = dragUvBox.min.y;
-          }
-          x1 = Math.floor(x1 * width);
-          y1 = Math.floor(y1 * height);
-          x2 = Math.floor(x2 * width);
-          y2 = Math.floor(y2 * height);
-          const w = x2 - x1;
-          const h = y2 - y1;
+            let x1 = 0;
+            let y1 = 0;
+            let x2 = 0;
+            let y2 = 0;
+            if (dragUvBox.min.x < dragUvBox.max.x) {
+              x1 = dragUvBox.min.x;
+              x2 = dragUvBox.max.x;
+            } else {
+              x1 = dragUvBox.max.x;
+              x2 = dragUvBox.min.x;
+            }
+            if (dragUvBox.min.y < dragUvBox.max.y) {
+              y1 = dragUvBox.min.y;
+              y2 = dragUvBox.max.y;
+            } else {
+              y1 = dragUvBox.max.y;
+              y2 = dragUvBox.min.y;
+            }
+            x1 = Math.floor(x1 * width);
+            y1 = Math.floor(y1 * height);
+            x2 = Math.floor(x2 * width);
+            y2 = Math.floor(y2 * height);
+            const w = x2 - x1;
+            const h = y2 - y1;
 
-          // const distance = dragUvBox.min.distanceTo(dragUvBox.max);
-          if (w === 0 || h === 0 /*|| distance <= 0.01 */) {
-            console.log('click', dragUvBox.max.x, dragUvBox.max.y);
+            // const distance = dragUvBox.min.distanceTo(dragUvBox.max);
+            if (w === 0 || h === 0 /*|| distance <= 0.01 */) {
+              console.log('click', dragUvBox.max.x, dragUvBox.max.y);
 
-            (async () => {
-              // get the segmentation map
-              const point = dragUvBox.max.clone();
-              const textureSize = new Vector2(width, height);
-              point.multiply(textureSize);
-              floorVector2(point);
-              const segmentationUint8Array = await segmentPoint(point);
-              console.log('got segmentation point', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
-              const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
-                color: new Color(0, 0, 1),
+              (async () => {
+                // get the segmentation map
+                const point = dragUvBox.max.clone();
+                const textureSize = new Vector2(width, height);
+                point.multiply(textureSize);
+                floorVector2(point);
+                const segmentationUint8Array = await segmentPoint(point);
+                console.log('got segmentation point', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+                const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
+                  color: new Color(0, 0, 1),
+                });
+
+                // visualize the segmentation map
+                const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+                st.minFilter = NearestFilter;
+                st.magFilter = NearestFilter;
+                st.flipY = true;
+                st.needsUpdate = true;
+                setSegmentTexture(st);
+
+                // describe the image
+                const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
+                setDescription(description);
+                console.log('got description', description.description);
+              })();
+            } else {
+              console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
+
+              (async () => {
+                // get the segmentation map
+                const box = dragUvBox.clone();
+                const textureSize = new Vector2(width, height);
+                box.min.multiply(textureSize);
+                floorVector2(box.min);
+                box.max.multiply(textureSize);
+                floorVector2(box.max);
+                const segmentationUint8Array = await segmentBox(box);
+                console.log('got segmentation box', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
+                const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
+                  color: new Color(0, 0, 1),
+                });
+
+                // visualize the segmentation map
+                const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+                st.minFilter = NearestFilter;
+                st.magFilter = NearestFilter;
+                st.flipY = true;
+                st.needsUpdate = true;
+                setSegmentTexture(st);
+
+                // describe the image
+                const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
+                setDescription(description);
+                console.log('got description', description.description);
+              })();
+
+              const pixelsArray = makePixelsArray({
+                width,
+                height,
+                x1,
+                y1,
+                x2,
+                y2,
               });
-
-              // visualize the segmentation map
-              const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
-              st.minFilter = NearestFilter;
-              st.magFilter = NearestFilter;
-              st.flipY = true;
-              st.needsUpdate = true;
-              setSegmentTexture(st);
-
-              // describe the image
-              const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
-              setDescription(description);
-              console.log('got description', description.description);
-            })();
-          } else {
-            console.log('select', dragUvBox.min.x, dragUvBox.min.y, dragUvBox.max.x, dragUvBox.max.y);
-
-            (async () => {
-              // get the segmentation map
-              const box = dragUvBox.clone();
-              const textureSize = new Vector2(width, height);
-              box.min.multiply(textureSize);
-              floorVector2(box.min);
-              box.max.multiply(textureSize);
-              floorVector2(box.max);
-              const segmentationUint8Array = await segmentBox(box);
-              console.log('got segmentation box', segmentationUint8Array, segmentationUint8Array.filter(n => n !== 0));
-              const colorArray = colorizePixelsArrayMono(segmentationUint8Array, {
-                color: new Color(0, 0, 1),
+              const colorArray = colorizePixelsArrayMono(pixelsArray, {
+                color: new Color(0, 1, 0),
               });
-
-              // visualize the segmentation map
-              const st = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
-              st.minFilter = NearestFilter;
-              st.magFilter = NearestFilter;
-              st.flipY = true;
-              st.needsUpdate = true;
-              setSegmentTexture(st);
-
-              // describe the image
-              const description = await describeImageSegment(texture?.source.data, segmentationUint8Array);
-              setDescription(description);
-              console.log('got description', description.description);
-            })();
-
-            const pixelsArray = makePixelsArray({
-              width,
-              height,
-              x1,
-              y1,
-              x2,
-              y2,
-            });
-            const colorArray = colorizePixelsArrayMono(pixelsArray, {
-              color: new Color(0, 1, 0),
-            });
-            const ht = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
-            ht.minFilter = NearestFilter;
-            ht.magFilter = NearestFilter;
-            ht.flipY = true;
-            ht.needsUpdate = true;
-            setHighlightTexture(ht);
+              const ht = new DataTexture(colorArray, width, height, RGBAFormat, UnsignedByteType);
+              ht.minFilter = NearestFilter;
+              ht.magFilter = NearestFilter;
+              ht.flipY = true;
+              ht.needsUpdate = true;
+              setHighlightTexture(ht);
+            }
+            setDragBox(null);
+            setDragUvBox(null);
+            setDragGeometry(null);
+            setPressed(false);
           }
-          setDragBox(null);
-          setDragUvBox(null);
-          setDragGeometry(null);
-          setPressed(false);
         }
       };
       document.addEventListener('mouseup', mouseup);
       const mousemove = (e: any) => {
-        const dragBox = dragBoxRef.current;
-        // const dragUvBox = dragUvBoxRef.current;
-        const pressed = pressedRef.current;
+        if (pointerMesh) {
+          const dragBox = dragBoxRef.current;
+          // const dragUvBox = dragUvBoxRef.current;
+          const pressed = pressedRef.current;
 
-        if (dragBox && pointerMesh.visible && pressed) {
-          dragBox.max.copy(pointerMesh.position);
-          setDragBox(dragBox);
-          // getPlaneUvFromMouseEvent(e, dragUvBox.max);
-          setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
+          if (dragBox && pointerMesh.visible && pressed) {
+            dragBox.max.copy(pointerMesh.position);
+            setDragBox(dragBox);
+            // getPlaneUvFromMouseEvent(e, dragUvBox.max);
+            setDragGeometry(makeBoxOutlineGeometry(dragBox, camera));
+          }
         }
       };
       document.addEventListener('mousemove', mousemove);
@@ -1799,7 +1808,9 @@ const LandCanvas3DScene = ({
             setHighlightTexture(null);
             setSegmentTexture(null);
             setDescription(null);
-            intersectionMesh.visible = false;
+            if (intersectionMesh) {
+              intersectionMesh.visible = false;
+            }
             break;
           }
           // space
@@ -1837,7 +1848,7 @@ const LandCanvas3DScene = ({
         document.removeEventListener('keydown', keydown);
         document.removeEventListener('keyup', keyup);
       };
-    }
+    // }
   }, [
     pointerMeshRef.current,
     storyCursorMeshRef.current,
