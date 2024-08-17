@@ -40,6 +40,7 @@ import {
   ShaderMaterial,
   Color,
   DoubleSide,
+  SphereGeometry,
 } from 'three';
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Button } from '@/components/ui/button';
@@ -670,6 +671,39 @@ const MiniPlayer = forwardRef(({
   const innerFactor = 0.9;
   const instanceCount = 5;
 
+  const doubleSphereGeometry = useMemo(() => {
+    // black color
+    const sphereGeometry = new SphereGeometry(0.01, 32, 32);
+    const makeColorsArray = (c: Color, count: number) => {
+      const colorsArray = new Uint8Array(count * 3);
+      for (let i = 0; i < colorsArray.length; i += 3) {
+        colorsArray[i] = c.r * 255;
+        colorsArray[i + 1] = c.g * 255;
+        colorsArray[i + 2] = c.b * 255;
+      }
+      return colorsArray;
+    };
+
+    const blackColor = new Color(0x000000);
+    const blackColorsArray = makeColorsArray(blackColor, sphereGeometry.attributes.position.count);
+    const blackColorsGeometry = sphereGeometry.clone();
+    blackColorsGeometry.attributes.color = new BufferAttribute(blackColorsArray, 3);
+
+    const whiteColor = new Color(0xFFFFFF);
+    const whiteColorsArray = makeColorsArray(whiteColor, sphereGeometry.attributes.position.count);
+    const whiteColorsGeometry = sphereGeometry.clone();
+    whiteColorsGeometry.attributes.color = new BufferAttribute(whiteColorsArray, 3);
+    // invert normals
+    const outerScale = 1.2;
+    whiteColorsGeometry.scale(-outerScale, -outerScale, -outerScale);
+
+    const geometries = [
+      whiteColorsGeometry,
+      blackColorsGeometry,
+    ];
+    const geometry = BufferGeometryUtils.mergeGeometries(geometries);
+    return geometry;
+  }, []);
   const circlesMeshRef = useRef<Object3D>(null);
   const instancedMeshRef = useRef<InstancedMesh>(null);
 
@@ -706,9 +740,8 @@ const MiniPlayer = forwardRef(({
         </mesh>
       </object3D>
       {/* instanced spheres mesh from the circles to the local origin */}
-      <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, instanceCount]}>
-        <sphereGeometry args={[0.005, 32, 32]} />
-        <meshBasicMaterial color={0x000000} />
+      <instancedMesh ref={instancedMeshRef} args={[undefined, undefined, instanceCount]} geometry={doubleSphereGeometry}>
+        <meshBasicMaterial vertexColors />
       </instancedMesh>
     </object3D>
   );
