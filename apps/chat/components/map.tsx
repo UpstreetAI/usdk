@@ -368,8 +368,8 @@ const Text3D = forwardRef(({
   position,
   quaternion,
   scale,
-  // font = 'fonts/WinchesterCaps.ttf',
-  font = 'fonts/Plaza Regular.ttf',
+  // font = '/fonts/WinchesterCaps.ttf',
+  font = '/fonts/Plaza Regular.ttf',
   fontSize = 0.05,
   lineHeight = 1.2,
   color = 0xFFFFFF,
@@ -689,6 +689,7 @@ const MiniPlayer = forwardRef(({
     const blackColorsGeometry = sphereGeometry.clone();
     blackColorsGeometry.attributes.color = new BufferAttribute(blackColorsArray, 3);
 
+    // white color
     const whiteColor = new Color(0xFFFFFF);
     const whiteColorsArray = makeColorsArray(whiteColor, sphereGeometry.attributes.position.count);
     const whiteColorsGeometry = sphereGeometry.clone();

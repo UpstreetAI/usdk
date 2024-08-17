@@ -985,8 +985,8 @@ const MeshUrl = forwardRef(({
 MeshUrl.displayName = 'MeshUrl';
 const Text3D = forwardRef(({
   children = '',
-  // font = 'fonts/WinchesterCaps.ttf',
-  font = 'fonts/Plaza Regular.ttf',
+  // font = '/fonts/WinchesterCaps.ttf',
+  font = '/fonts/Plaza Regular.ttf',
   fontSize = 0.04,
   lineHeight = 1.2,
   color = 0xFFFFFF,
@@ -1059,7 +1059,7 @@ type ObjectSpec = {
   metadata: ObjectMetadata,
 };
 
-const JourneyForm = ({
+const LandForm = ({
   eventTarget,
 }: {
   eventTarget: EventTarget,
@@ -1180,7 +1180,7 @@ const JourneyForm = ({
     </form>
   )
 };
-const JourneyScene = ({
+const LandScene = ({
   eventTarget,
 }: {
   eventTarget: EventTarget,
@@ -2125,7 +2125,7 @@ const JourneyScene = ({
   </>
 }
 
-export function Journey() {
+export function Land() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
 
@@ -2145,11 +2145,11 @@ export function Journey() {
             timeStep='vary'
             // debug
           >
-            <JourneyScene eventTarget={eventTarget} />
+            <LandScene eventTarget={eventTarget} />
           </Physics>
         </Suspense>
       </Canvas>
-      <JourneyForm eventTarget={eventTarget} />
+      <LandForm eventTarget={eventTarget} />
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import { Journey } from '@/components/journey'
+import { Land } from '@/components/land'
 
-export default function JourneyPage() {
+export default function LandPage() {
   return (
-    <Journey />
+    <Land />
   );
 }
