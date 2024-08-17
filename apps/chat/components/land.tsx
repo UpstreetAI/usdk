@@ -62,6 +62,7 @@ import {
 } from '@/utils/generate-model';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
+import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
 import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 
 const geometryResolution = 256;
@@ -1085,6 +1086,21 @@ const LandTopForm = ({
   const maxValidLayerIndex = getMaxValidLayerIndex(landSpec);
   const isValid = maxValidLayerIndex >= layerSpecIndex;
 
+  //
+
+  const regenerate = async () => {
+    console.log('regenerate 1');
+    setLoadState(`Generating ${layerSpec.name}...`);
+    {
+      const newLandSpec = await layerSpec.generate(landSpec);
+      console.log('regenerate 2', newLandSpec);
+      setLandSpec(newLandSpec);
+    }
+    setLoadState(null);
+  };
+
+  //
+
   return (
     <form className="absolute top-0 bottom-0 left-0 right-0 z-10 pointer-events-none" onSubmit={e => {
       e.preventDefault();
@@ -1120,23 +1136,15 @@ const LandTopForm = ({
       <div className="absolute bottom-0 right-0 flex">
         {!isValid ?
           <Button
-            onClick={e => {
-              console.log('generate');
-              // eventTarget.dispatchEvent(new MessageEvent('generate', {
-              //   data: null,
-              // }));
-            }}
+            onClick={regenerate}
             className="pointer-events-auto"
+            disabled={!!loadState}
           >Generate</Button>
         :
           <Button
-            onClick={e => {
-              console.log('regenerate');
-              // eventTarget.dispatchEvent(new MessageEvent('regenerate', {
-              //   data: null,
-              // }));
-            }}
+            onClick={regenerate}
             className="pointer-events-auto"
+            disabled={!!loadState}
           >Regenerate</Button>
         }
         <Button
@@ -1146,24 +1154,23 @@ const LandTopForm = ({
             //   data: null,
             // }));
 
-            setLoadState('Generating...');
-            await new Promise((accept, reject) => {
-              setTimeout(accept, 1000);
-            });
-            const res = await fetch('/images/test-bg.webp');
-            const blob = await res.blob();
-            setLandSpec({
-              ...landSpec,
-              image: blob,
-            });
-            setLoadState(null);
-
             if (layerSpecIndex < layerSpecs.length - 1) {
+              const nextLayerSpec = layerSpecs[layerSpecIndex + 1];
+
+              setLoadState(`Generating ${nextLayerSpec.name}...`);
+              {
+                if (!nextLayerSpec.isValid(landSpec)) {
+                  const newLandSpec = await nextLayerSpec.generate(landSpec);
+                  setLandSpec(newLandSpec);
+                }
+              }
+              setLoadState(null);
+
               setLayerName(layerSpecs[layerSpecIndex + 1].name);
             }
           }}
           className="pointer-events-auto"
-          disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1)}
+          disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1) || !!loadState}
         >Next</Button>
       </div>
     </form>
@@ -1312,7 +1319,18 @@ const LandCanvas1D = ({
   loadState: [loadState, setLoadState],
   eventTarget,
 }: LandCanvasProps) => {
-  const [prompt, setPrompt] = useState(sceneImageDefaultPrompt);
+  const [prompt, setPrompt] = useState(() => {
+    console.log('loaded', landSpec.prompt, structuredClone(landSpec));
+    return landSpec.prompt;
+  });
+
+  // track external prompt changes
+  useEffect(() => {
+    const newPrompt = landSpec.prompt ?? '';
+    if (prompt !== newPrompt) {
+      setPrompt(newPrompt);
+    }
+  }, [prompt, landSpec.prompt]);
 
   return (
     <form className="mx-auto max-w-4xl flex flex-col" onSubmit={e => {
@@ -1324,9 +1342,15 @@ const LandCanvas1D = ({
         <input
           value={prompt}
           onChange={e => {
-            setPrompt(e.target.value);
+            // update the land spec externally
+            const prompt = e.target.value;
+            setPrompt(prompt);
+            setLandSpec({
+              ...landSpec,
+              prompt,
+            });
           }}
-          placeholder='Prompt'
+          placeholder={sceneImageDefaultPrompt}
           className="my-2 p-2 border rounded outline-none"
         />
       </label>
@@ -1354,11 +1378,25 @@ const LandCanvas2DScene = ({
   loadState: [loadState, setLoadState],
   eventTarget,
 }: LandCanvasProps) => {
-  const texture = useLoader(TextureLoader, '/images/test-bg.webp');
+  const [imgSrc, setImgSrc] = useState<string>('');
+  const texture = imgSrc ? useLoader(TextureLoader, imgSrc) : null;
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
   const planeMeshRef = useRef<Mesh>(null);
 
   const scale = useScale(texture);
+
+  // load image blob
+  useEffect(() => {
+    if (landSpec.image) {
+      const src = URL.createObjectURL(landSpec.image);
+      setImgSrc(src);
+      return () => {
+        URL.revokeObjectURL(src);
+      };
+    } else {
+      throw new Error('land spec contains no image, which is required for this layer');
+    }
+  }, [landSpec.image]);
 
   // update plane geometry
   useEffect(() => {
@@ -1404,10 +1442,10 @@ const LandCanvas3DScene = ({
   loadState: [loadState, setLoadState],
   eventTarget,
 }: LandCanvasProps) => {
+  const [imgSrc, setImgSrc] = useState<string>('');
+  const texture = imgSrc ? useLoader(TextureLoader, imgSrc) : null;
+
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
-  // const textureLoader = useMemo(() => new TextureLoader(), []);
-  const initialTexture = useLoader(TextureLoader, '/images/test-bg.webp');
-  const [texture, setTexture] = useState<Texture>(initialTexture);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
   const [segmentTexture, setSegmentTexture] = useState<Texture | null>(null);
   const raycaster = useMemo(() => new Raycaster(), []);
@@ -1482,6 +1520,19 @@ const LandCanvas3DScene = ({
     });
     return segmentationUint8Array;
   };
+
+  // load image blob
+  useEffect(() => {
+    if (landSpec.image) {
+      const src = URL.createObjectURL(landSpec.image);
+      setImgSrc(src);
+      return () => {
+        URL.revokeObjectURL(src);
+      };
+    } else {
+      throw new Error('land spec contains no image, which is required for this layer');
+    }
+  }, [landSpec.image]);
 
   // update plane geometry
   useEffect(() => {
@@ -2316,12 +2367,51 @@ type LayerSpec = {
   name: string,
   Component: React.ComponentType<any>,
   isValid: (landSpec: LandSpec) => boolean,
+  generate: (landSpec: LandSpec) => Promise<LandSpec>,
 };
 const layerSpecs: LayerSpec[] = [
   {
     name: '1D',
     Component: LandCanvas1D,
-    isValid: (landSpec: LandSpec) => true,
+    isValid: (landSpec: LandSpec) => (
+      !!landSpec.prompt
+    ),
+    generate: async (landSpec: LandSpec) => {
+      const jwt = await getJWT();
+      if (jwt) {
+        const messages = [
+          {
+            role: 'user',
+            content: dedent`\
+              Generate a visual description of role playing video game background, using a few keywords in a line.
+              Use JSON format.
+              e.g.
+              ${JSON.stringify({
+                visual_description: sceneImageDefaultPrompt,
+              })}
+            `,
+          },
+        ];
+        const result = await fetchJsonCompletion({
+          messages,
+        }, z.object({
+          visual_description: z.string(),
+        }), {
+          jwt,
+        });
+        const {
+          visual_description: newPrompt,
+        } = result;
+        return {
+          ...landSpec,
+          prompt: newPrompt,
+          image: undefined,
+          depthImage: undefined,
+        };
+      } else {
+        throw new Error('no jwt');
+      }
+    },
   },
   {
     name: '2D',
@@ -2329,6 +2419,20 @@ const layerSpecs: LayerSpec[] = [
     isValid: (landSpec: LandSpec) => (
       !!landSpec.image
     ),
+    generate: async (landSpec: LandSpec) => {
+      const jwt = await getJWT();
+      const blob = await fetchImageGeneration(landSpec.prompt, {
+        image_size: 'square_hd',
+      }, {
+        jwt,
+      });
+      // const image = await blob2img(blob);
+      return {
+        ...landSpec,
+        image: blob,
+        depth: null,
+      };
+    },
   },
   {
     name: '3D',
@@ -2336,6 +2440,9 @@ const layerSpecs: LayerSpec[] = [
     isValid: (landSpec: LandSpec) => (
       !!landSpec.depthImage
     ),
+    generate: async (landSpec: LandSpec) => {
+      return landSpec; // XXX finish this
+    },
   },
 ];
 const getMaxValidLayerIndex = (landSpec: LandSpec) => {
@@ -2348,6 +2455,9 @@ const getMaxValidLayerIndex = (landSpec: LandSpec) => {
   return -1;
 };
 
+const makeEmptyLandSpec = () => ({
+  prompt: '',
+});
 class LandLoader extends LocalforageLoader<LandSpec> {
   constructor({
     id,
@@ -2356,7 +2466,7 @@ class LandLoader extends LocalforageLoader<LandSpec> {
   }) {
     super({
       key: `landSpec${id}`,
-      defaultValue: () => ({}),
+      defaultValue: makeEmptyLandSpec,
     });
   }
 }
@@ -2384,13 +2494,34 @@ const LandLayer = ({
   const { Component: LayerComponent } = layerSpec;
 
   // render
-  return (
-    <LayerComponent
-      landSpec={[landSpec, setLandSpec]}
-      loadState={[loadState, setLoadState]}
-      eventTarget={eventTarget}
-    />
-  );
+  if (!loadState) {
+    const maxValidLayerIndex = getMaxValidLayerIndex(landSpec);
+    const isEnabled =
+      maxValidLayerIndex >= layerSpecIndex ||
+      // the first layer is always enabled
+      layerSpecIndex === 0;
+    if (isEnabled) {
+      return (
+        <LayerComponent
+          landSpec={[landSpec, setLandSpec]}
+          loadState={[loadState, setLoadState]}
+          eventTarget={eventTarget}
+        />
+      );
+    } else {
+      return (
+        <div className="mx-auto max-w-4xl">
+          Invalid layer
+        </div>
+      );
+    }
+  } else {
+    return (
+      <div className="mx-auto max-w-4xl">
+        {loadState}
+      </div>
+    );
+  }
 }
 
 type LandProps = {
@@ -2401,7 +2532,7 @@ export function Land({
 }: LandProps) {
   const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
   const [loadState, setLoadState] = useState<string | null>(null);
-  const [landSpec, setLandSpec] = useState<LandSpec>({});
+  const [landSpec, setLandSpec] = useState<LandSpec>(makeEmptyLandSpec);
   const eventTarget = useMemo(() => new EventTarget(), []);
 
   const landLoader = useMemo(() => new LandLoader({ id }), [id]);
@@ -2413,9 +2544,11 @@ export function Land({
     signal?: AbortSignal,
   } = {}) => {
     setLoadState('Loading storage...');
+    // console.log('load storage 1');
     const loadedLandSpec = await landLoader.load({
       signal,
     });
+    // console.log('load storage 2', loadedLandSpec);
     setLandSpec(loadedLandSpec);
     setLoadState(null);
   };
