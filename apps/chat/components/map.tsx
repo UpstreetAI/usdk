@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import localforage from 'localforage';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
@@ -50,9 +49,7 @@ import {
   aiProxyHost,
 } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import {
-  QueueManager,
-} from '@/utils/queue-manager.mjs';
+import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 
@@ -296,51 +293,11 @@ const generateMap = async ({
 
 //
 
-class TileLoader {
-  queueManager = new QueueManager();
-  // constructor() {
-  // }
-  async load({
-    signal,
-  }: {
-    signal?: AbortSignal,
-  } = {}): Promise<TileSpec[]> {
-    return await this.queueManager.waitForTurn(async () => {
-      let live = true;
-      if (signal) {
-        signal.addEventListener('abort', () => {
-          live = false;
-        });
-      }
-
-      let tileSpecs = await localforage.getItem('tileSpecs');
-      if (!live) return [];
-      if (!tileSpecs) {
-        tileSpecs = [];
-      }
-
-      return tileSpecs;
-    });
-  }
-  async save(tileSpecs: TileSpec[], {
-    signal,
-  }: {
-    signal?: AbortSignal,
-  } = {}): Promise<void> {
-    if (!tileSpecs) {
-      tileSpecs = [];
-    }
-
-    return await this.queueManager.waitForTurn(async () => {
-      let live = true;
-      if (signal) {
-        signal.addEventListener('abort', () => {
-          live = false;
-        });
-      }
-
-      await localforage.setItem('tileSpecs', tileSpecs);
-      if (!live) return;
+class TileLoader extends LocalforageLoader<TileSpec[]> {
+  constructor() {
+    super({
+      key: 'tileSpecs',
+      defaultValue: () => [],
     });
   }
 }
@@ -778,54 +735,12 @@ const MapScene = ({
   const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileSpec | null>(null);
 
-  // handle doubleclick
-  const { gl } = useThree();
-  useEffect(() => {
-    if (focused) {
-      const click = (tile: TileSpec) => {
-        const { coord } = tile;
-        const { x, z } = coord;
-    
-        const u = new URL(location.href);
-        u.pathname = `/land/${[x, z].join(',')}`;
-        const s = u + '';
-        router.push(s);
-      };
-      const onDoubleClick = (e: MouseEvent) => {
-        if (e.target === gl.domElement) {
-          if (highlightedTile) {
-            click(highlightedTile);
-          }
-        }
-      };
-      document.addEventListener('dblclick', onDoubleClick);
+  // state helper
+  const updateTileEpoch = () => {
+    setTileEpoch(tileEpoch => tileEpoch);
+  };
 
-      const onKeyDown = (e: KeyboardEvent) => {
-        switch (e.key) {
-          case ' ': {
-            e.preventDefault();
-            e.stopPropagation();
-            if (hoveredTile) {
-              click(hoveredTile);
-            }
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-      };
-      document.addEventListener('keydown', onKeyDown);
-
-      return () => {
-        document.removeEventListener('dblclick', onDoubleClick);
-        document.removeEventListener('keydown', onKeyDown);
-      };
-    }
-  }, [focused, hoveredTile, highlightedTile]);
-
-  //
-
+  // load helpers
   const loadTiles = async ({
     signal,
   }: {
@@ -847,11 +762,8 @@ const MapScene = ({
       signal,
     });
   };
-  const updateTileEpoch = () => {
-    setTileEpoch(tileEpoch => tileEpoch);
-  };
 
-  // initial load
+  // initial map load
   useEffect(() => {
     const abortController = new AbortController();
     const { signal } = abortController;
@@ -897,6 +809,52 @@ const MapScene = ({
     })();
     setHoveredTile((newHoveredTile as any)?.metadata?.tileSpec ?? null);
   });
+
+  // handle doubleclick
+  const { gl } = useThree();
+  useEffect(() => {
+    if (focused) {
+      const click = (tile: TileSpec) => {
+        const { coord } = tile;
+        const { x, z } = coord;
+    
+        const u = new URL(location.href);
+        u.pathname = `/land/${[x, z].join(',')}`;
+        const s = u + '';
+        router.push(s);
+      };
+      const onDoubleClick = (e: MouseEvent) => {
+        if (e.target === gl.domElement) {
+          if (highlightedTile) {
+            click(highlightedTile);
+          }
+        }
+      };
+      document.addEventListener('dblclick', onDoubleClick);
+
+      const onKeyDown = (e: KeyboardEvent) => {
+        switch (e.key) {
+          case ' ': {
+            e.preventDefault();
+            e.stopPropagation();
+            if (hoveredTile) {
+              click(hoveredTile);
+            }
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      };
+      document.addEventListener('keydown', onKeyDown);
+
+      return () => {
+        document.removeEventListener('dblclick', onDoubleClick);
+        document.removeEventListener('keydown', onKeyDown);
+      };
+    }
+  }, [focused, hoveredTile, highlightedTile]);
 
   // generation
   useEffect(() => {
