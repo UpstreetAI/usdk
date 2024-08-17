@@ -33,10 +33,11 @@ export class LocalforageLoader<T> {
       }
 
       let v: T | null = await localforage.getItem(this.key);
-      if (!live) return [];
+      // console.log('get item 1', this.key, v);
       if (v === null) {
         v = this.defaultValue();
       }
+      // console.log('get item 2', this.key, v);
 
       return v;
     });
