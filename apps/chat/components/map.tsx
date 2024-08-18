@@ -191,6 +191,7 @@ type TileLoad = {
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
 // const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
+const makeLandUrl = ({ x, z }: Coord2D) => `/land/${[x, z].join(',')}`;
 
 const fetchJsonCompletion = async (messages: any[], format: z.ZodTypeAny) => {
   const jwt = await getJWT();
@@ -819,7 +820,7 @@ const MapScene = ({
         const { x, z } = coord;
     
         const u = new URL(location.href);
-        u.pathname = `/land/${[x, z].join(',')}`;
+        u.pathname = makeLandUrl(coord);
         const s = u + '';
         router.push(s);
       };
