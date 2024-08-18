@@ -62,6 +62,38 @@ const mapStyle = `anime style map segment, top down overhead view`;
 
 //
 
+const coordSep = ':';
+export const getMapUrlCoord = (u: URL) => {
+  const query = u.searchParams;
+  const coordString = query.get('coord');
+  if (coordString) {
+    const [x, z] = coordString.split(coordSep).map(parseFloat);
+    if (!isNaN(x) && !isNaN(z)) {
+      const coord = { x, z } as Coord2D;
+      return coord;
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+};
+export const setMapUrlCoord = async (coord: Coord2D, {
+  router,
+}: {
+  router: any,
+}) => {
+  const u = new URL(location.href);
+  u.searchParams.set('coord', `${coord.x.toFixed(2)}${coordSep}${coord.z.toFixed(2)}`);
+  // const s = u.pathname + u.search;
+  const s = u + '';
+  // console.log('onMove replace', s, new Error().stack);
+  // await router.replace(s);
+  history.replaceState(null, '', s);
+};
+
+//
+
 class SquareGeometry extends BufferGeometry {
   constructor(h: number, borderSize: number) {
     const vBarGeometry = new BoxGeometry(borderSize, h + borderSize, borderSize);
@@ -860,12 +892,20 @@ const MapScene = ({
       const click = (tile: TileSpec) => {
         const { coord } = tile;
     
-        const urlString = makeLandUrl(coord, {
-          edit,
-        });
         setLoadState(`Loading [${String(coord.x)}, ${String(coord.z)}]...`);
-        router.push(urlString);
-        console.log('router pushed', urlString);
+        (async () => {
+          await setMapUrlCoord(coord, {
+            router,
+          });
+
+          const urlString = makeLandUrl(coord, {
+            edit,
+          });
+          router.push(urlString);
+          console.log('router pushed', urlString);
+        })().catch(e => {
+          console.error('click error', e);
+        });
       };
       const onDoubleClick = (e: MouseEvent) => {
         if (e.target === gl.domElement) {
