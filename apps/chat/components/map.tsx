@@ -90,7 +90,8 @@ export const setMapUrlCoord = async (coord: Coord2D, {
   // await router.replace(s);
   history.replaceState(null, '', s);
 };
-const getCoordKey = (x: number, z: number) => `${x}${coordSep}${z}`;
+const getCoordsKey = (x: number, z: number) => `${x}${coordSep}${z}`;
+const getCoordKey = (coord: Coord2D) => getCoordsKey(coord.x, coord.z);
 
 //
 
@@ -212,13 +213,15 @@ interface TileCandidateSpec {
   coord: Coord2D,
 }
 type TileSpec = TileCandidateSpec & {
-  name: string,
-  visual_description: string,
-  biome: string,
-  temperature: number,
-  wetness: number,
-  points_of_interest: string[],
-  exits: string[],
+  json: {
+    name: string,
+    visual_description: string,
+    biome: string,
+    temperature: number,
+    wetness: number,
+    points_of_interest: string[],
+    exits: string[],
+  } | null,
   image: Blob | null,
 };
 interface TileLoad {
@@ -240,6 +243,18 @@ const makeLandUrl = ({ x, z }: Coord2D, {
     .replace(/=&/g, '');
 };
 
+const generateTile = async (tileSpec: TileSpec, {
+  prompt,
+  tileSpecs,
+}: {
+  prompt: string,
+  tileSpecs: TileSpec[],
+}) => {
+  // XXX finish this
+  await new Promise((resolve, reject) => {
+    setTimeout(resolve, 1000);
+  });
+};
 const generateMap = async ({
   prompt,
   width = 3,
@@ -315,9 +330,11 @@ const generateMap = async ({
 //
 
 class TileLoader extends LocalforageLoader<TileSpec[]> {
-  constructor() {
+  constructor({
+    id = '',
+  } = {}) {
     super({
-      key: 'tileSpecs',
+      key: `tiles:${id}`,
       defaultValue: () => [],
     });
   }
@@ -459,10 +476,13 @@ const Tile = ({
       x,
       z,
     },
+    json,
+  } = tileSpec;
+  const {
     // name,
     visual_description,
     image,
-  } = tileSpec;
+  } = json ?? {};
   const tileLoad = tileLoads.find(load =>
     load.coord.x === tileSpec.coord.x &&
     load.coord.z === tileSpec.coord.z
@@ -484,7 +504,7 @@ const Tile = ({
   //
 
   const position = new Vector3(x, 0, z);
-  const color = tileLoad?.loading ? 0x0000FF : image ? 0x00FF00 : 0xFFFFFF;
+  const color = tileLoad?.loading ? 0x0000FF : image ? 0x00FF00 : 0x000000;
   const texture = (() => {
     if (image) {
       let texture = textureCache.get(image);
@@ -554,7 +574,7 @@ const TileCandidate = ({
   return (
     <object3D position={position} ref={ref}>
       <mesh geometry={planeGeometry} ref={meshRef}>
-        <meshBasicMaterial transparent opacity={0} alphaTest={0.5} />
+        <meshBasicMaterial color={0xff0000} transparent opacity={0} alphaTest={0.5} />
       </mesh>
       <mesh geometry={squareGeometry}>
         <meshBasicMaterial color={color} />
@@ -855,7 +875,9 @@ const MapScene = ({
 }) => {
   const router = useRouter();
 
-  const tileLoader = useMemo(() => new TileLoader(), []);
+  const tileLoader = useMemo(() => new TileLoader({
+    id,
+  }), []);
   const raycaster = useMemo(() => new Raycaster(), []);
 
   const [loading, setLoading] = useState(false);
@@ -865,16 +887,16 @@ const MapScene = ({
   const [tileEpoch, setTileEpoch] = useState(0);
 
   const textureLoader = useMemo(() => new TextureLoader(), []);
-  // const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
 
   const [tileMeshes, setTileMeshes] = useState<Map<TileCandidateSpec, Object3D>>(new Map());
+
+  const [promptString, setPromptString] = useState('');
 
   const playerControlsRef = useRef<Object3D>(null);
   const [moving, setMoving] = useState(false);
 
-  const [highlightedTile, setHighlightedTile] = useState<TileCandidateSpec | null>(null);
-  const [hoveredTile, setHoveredTile] = useState<TileSpec | null>(null);
-
+  const [highlightedCoord, setHighlightedCoord] = useState<string | null>(null);
+  const [hoveredCoord, setHoveredCoord] = useState<string | null>(null);
 
   // debounce events
   const onMove = useMemo(() => onMoveRaw && debounce(onMoveRaw, onMoveRate), []);
@@ -886,7 +908,7 @@ const MapScene = ({
 
   // state helper
   const updateTileEpoch = () => {
-    setTileEpoch(tileEpoch => tileEpoch);
+    setTileEpoch(tileEpoch => tileEpoch + 1);
   };
 
   // load helpers
@@ -915,33 +937,38 @@ const MapScene = ({
       signal,
     });
   };
+  const isTileSpecValid = (tileSpec: TileSpec) => (
+    !!tileSpec.json
+  );
   const makeTileCandidateSpecs = (tileSpecs: TileSpec[]) => {
     const result: TileCandidateSpec[] = [];
 
     if (tileSpecs.length > 0) {
       const seenTileKeys = new Set<string>();
       for (const tileSpec of tileSpecs) {
-        const coordKey = getCoordKey(tileSpec.coord.x, tileSpec.coord.z);
+        const coordKey = getCoordKey(tileSpec.coord);
         seenTileKeys.add(coordKey);
       }
 
       const seenTileCandidateKeys = new Set<string>();
       for (const tileSpec of tileSpecs) {
-        const { coord } = tileSpec;
-        const { x, z } = coord;
-        for (let dz = -1; dz <= 1; dz++) {
-          for (let dx = -1; dx <= 1; dx++) {
-            const ax = x + dx;
-            const az = z + dz;
-            const coordKey = getCoordKey(ax, az);
-            if (!seenTileKeys.has(coordKey) && !seenTileCandidateKeys.has(coordKey)) {
-              seenTileCandidateKeys.add(coordKey);
-              result.push({
-                coord: {
-                  x: ax,
-                  z: az,
-                },
-              });
+        if (isTileSpecValid(tileSpec)) { // only expand out of valid tile specs
+          const { coord } = tileSpec;
+          const { x, z } = coord;
+          for (let dz = -1; dz <= 1; dz++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              const ax = x + dx;
+              const az = z + dz;
+              const coordKey = getCoordsKey(ax, az);
+              if (!seenTileKeys.has(coordKey) && !seenTileCandidateKeys.has(coordKey)) {
+                seenTileCandidateKeys.add(coordKey);
+                result.push({
+                  coord: {
+                    x: ax,
+                    z: az,
+                  },
+                });
+              }
             }
           }
         }
@@ -989,7 +1016,9 @@ const MapScene = ({
     camera.updateMatrixWorld();
     raycaster.setFromCamera(pointer, camera);
     const newHighlightedTile = getIntersection(raycaster);
-    setHighlightedTile((newHighlightedTile as any)?.metadata?.tileSpec ?? null);
+    const highlightedTileSpec = ((newHighlightedTile as any)?.metadata?.tileSpec as TileSpec) ?? null;
+    const highlightedCoord = highlightedTileSpec && getCoordKey(highlightedTileSpec.coord);
+    setHighlightedCoord(highlightedCoord);
 
     const newHoveredTile = (() => {
       const playerControls = playerControlsRef.current;
@@ -1002,7 +1031,9 @@ const MapScene = ({
         return null;
       }
     })();
-    setHoveredTile((newHoveredTile as any)?.metadata?.tileSpec ?? null);
+    const hoveredTileSpec = ((newHoveredTile as any)?.metadata?.tileSpec as TileSpec) ?? null;
+    const hoveredCoord = hoveredTileSpec && getCoordKey(hoveredTileSpec.coord);
+    setHoveredCoord(hoveredCoord);
   });
 
   // handle doubleclick
@@ -1023,19 +1054,78 @@ const MapScene = ({
               edit,
             });
             router.push(urlString);
-            console.log('router pushed', urlString);
+            // console.log('router pushed', urlString);
           })().catch(e => {
             console.error('click error', e);
           });
         } else if (tileCandidateSpecs.includes(tile)) {
           const { coord } = tile;
-          console.log('click tile candidate', coord);
+          const { x, z } = coord;
+          // console.log('click tile candidate', coord);
+
+          // add tile spec
+          const tileSpec = {
+            coord: { x, z, },
+            json: null,
+            image: null,
+          } as TileSpec;
+          setTileSpecs(tileSpecs => {
+            tileSpecs.push(tileSpec);
+            return tileSpecs;
+          });
+
+          // add tile load
+          const tileLoad = {
+            coord: { x, z, },
+            loading: true,
+          };
+          setTileLoads(tileLoads => {
+            tileLoads.push(tileLoad);
+            return tileLoads;
+          });
+
+          // remove tile candidate spec
+          const newTileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+          setTileCandidateSpecs(newTileCandidateSpecs);
+
+          // generate tile
+          (async () => {
+            await generateTile(tileSpec,{
+              prompt: promptString,
+              tileSpecs,
+            });
+
+            tileSpec.json = {
+              name: 'Lol',
+              visual_description: 'Generated',
+              biome: 'plains',
+              temperature: 0.5,
+              wetness: 0.5,
+              points_of_interest: [],
+              exits: [],
+            };
+            tileLoad.loading = false;
+
+            const newTileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+            setTileCandidateSpecs(newTileCandidateSpecs);
+          })().catch(e => {
+            console.error('generate tile error', e);
+          });
         }
       };
       const onDoubleClick = (e: MouseEvent) => {
         if (e.target === gl.domElement) {
-          if (highlightedTile) {
-            click(highlightedTile);
+          if (highlightedCoord) {
+            const highlightedTile: TileCandidateSpec | null =
+              tileSpecs.find(tileSpec =>
+                getCoordKey(tileSpec.coord) === highlightedCoord
+              ) ??
+              tileCandidateSpecs.find(tileSpec =>
+                getCoordKey(tileSpec.coord) === highlightedCoord
+              ) ?? null;
+            if (highlightedTile) {
+              click(highlightedTile);
+            }
           }
         }
       };
@@ -1046,8 +1136,17 @@ const MapScene = ({
           case ' ': {
             e.preventDefault();
             e.stopPropagation();
-            if (hoveredTile) {
-              click(hoveredTile);
+            if (hoveredCoord) {
+              const hoveredTile: TileCandidateSpec | null =
+                tileSpecs.find(tileSpec =>
+                  getCoordKey(tileSpec.coord) === hoveredCoord
+                ) ??
+                tileCandidateSpecs.find(tileSpec =>
+                  getCoordKey(tileSpec.coord) === hoveredCoord
+                ) ?? null;
+              if (hoveredTile) {
+                click(hoveredTile);
+              }
             }
             break;
           }
@@ -1063,7 +1162,7 @@ const MapScene = ({
         document.removeEventListener('keydown', onKeyDown);
       };
     }
-  }, [focused, hoveredTile, highlightedTile]);
+  }, [focused, hoveredCoord, highlightedCoord]);
 
   // generation
   useEffect(() => {
@@ -1088,7 +1187,7 @@ const MapScene = ({
     const onClearMap = async (e: any) => {
       setLoading(false);
 
-      const newTileSpecs = [];
+      const newTileSpecs: TileSpec[] = [];
       setTileSpecs(newTileSpecs);
       setTileLoads([]);
       const newTileCandidateSpecs = makeTileCandidateSpecs(newTileSpecs);
@@ -1108,7 +1207,7 @@ const MapScene = ({
     };
   }, []);
 
-  // tiles loading
+  /* // tiles loading
   useEffect(() => {
     // add missing tile loads
     let added = false;
@@ -1118,8 +1217,9 @@ const MapScene = ({
         tileLoad.coord.z === tileSpec.coord.z
       );
       if (!tileLoad) {
+        const { x, z } = tileSpec.coord;
         tileLoad = {
-          coord: structuredClone(tileSpec.coord),
+          coord: { x, z },
           loading: false,
         };
         tileLoads.push(tileLoad);
@@ -1175,7 +1275,7 @@ const MapScene = ({
     } else {
       // already loading
     }
-  }, [tileSpecs, tileLoads, tileEpoch]);
+  }, [tileSpecs, tileLoads, tileEpoch]); */
 
   // controls
   const keyMap = useMemo<KeyboardControlsEntry<Controls>[]>(()=>[
@@ -1210,10 +1310,10 @@ const MapScene = ({
     {/* lighting */}
     <ambientLight />
     <directionalLight position={[1, 1, 1]} />
-    {/* test box */}
-    <mesh position={[0, -0.01, 0]} geometry={planeGeometry}>
+    {/* loading box */}
+    {/* <mesh position={[0, -0.01, 0]} geometry={planeGeometry}>
       <meshPhongMaterial color={loading ? 0x0000FF : 0x333333} />
-    </mesh>
+    </mesh> */}
     {/* cursor mesh */}
     {/* <StoryCursor pressed={pressed} ref={storyCursorMeshRef} /> */}
     {/*
@@ -1280,30 +1380,32 @@ const MapScene = ({
         };
 
       return [
-        ...tileSpecs.map((tileSpec, index) => {
+        ...tileSpecs.map((tileSpec) => {
+          const coordKey = getCoordKey(tileSpec.coord);
           return (
             <Tile
-              key={getCoordKey(tileSpec.coord.x, tileSpec.coord.z)}
+              key={coordKey}
               tileSpec={tileSpec}
               textureLoader={textureLoader}
               tileLoads={tileLoads}
               onMeshRef={addMesh(tileSpec)}
             >
-              {((highlightedTile === tileSpec && !moving) || (hoveredTile === tileSpec)) && <mesh geometry={squareGeometry}>
+              {((highlightedCoord === coordKey && !moving) || (hoveredCoord === coordKey)) && <mesh geometry={squareGeometry}>
                 <meshBasicMaterial color={0x111111} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1}  />
               </mesh>}
             </Tile>
           );
         }),
-        ...tileCandidateSpecs.map((tileCandidateSpec, index) => {
+        ...tileCandidateSpecs.map((tileCandidateSpec) => {
+          const coordKey = getCoordKey(tileCandidateSpec.coord);
           return (
             <TileCandidate
-              key={getCoordKey(tileCandidateSpec.coord.x, tileCandidateSpec.coord.z)}
+              key={coordKey}
               tileCandidateSpec={tileCandidateSpec}
               tileLoads={tileLoads}
               onMeshRef={addMesh(tileCandidateSpec)}
             >
-              {((highlightedTile === tileCandidateSpec && !moving) || (hoveredTile === tileCandidateSpec)) && <mesh geometry={squareGeometry}>
+              {((highlightedCoord === coordKey && !moving) || (hoveredCoord === coordKey)) && <mesh geometry={squareGeometry}>
                 <meshBasicMaterial color={0x111111} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
               </mesh>}
             </TileCandidate>
