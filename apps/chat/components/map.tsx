@@ -1065,7 +1065,13 @@ const MapScene = ({
   </>
 }
 
-function MapComponent() {
+function MapComponent({
+  id,
+  edit = false,
+}: {
+  id: string,
+  edit?: boolean,
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
   const [focused, setFocused] = useState(true);

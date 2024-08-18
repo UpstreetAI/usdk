@@ -1,7 +1,21 @@
-import { Land } from '@/components/land'
+'use client';
 
-export default function LandPage() {
+import { Land } from '@/components/land'
+import { useSearchParams } from 'next/navigation'
+
+export default function LandPage({
+  id,
+}: {
+  string,
+}) {
+  // parse the query string
+  const query = useSearchParams();
+  const edit = !!query.get('edit');
+  
   return (
-    <Land />
+    <Land
+      id={id}
+      edit={edit}
+    />
   );
 }

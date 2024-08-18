@@ -2493,9 +2493,11 @@ const LandLayer = ({
 
 type LandProps = {
   id: string,
+  edit?: boolean,
 };
 export function Land({
   id,
+  edit = false,
 }: LandProps) {
   const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
   const [loadState, setLoadState] = useState<string | null>(null);
