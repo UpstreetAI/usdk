@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
-// import debounce from 'debounce';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
