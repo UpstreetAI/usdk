@@ -10,11 +10,6 @@ const roundToDecimals = (n: number, decimals: number) => {
   return Math.round(n * p) / p;
 };
 
-const coordSep = ':';
-
-const loadUrl = new URL(location.href);
-const query = loadUrl.searchParams;
-
 export default function MapPage({
   id,
 }: {
@@ -22,6 +17,8 @@ export default function MapPage({
 }) {
   const router = useRouter();
 
+  const loadUrl = new URL(location.href);
+  const query = loadUrl.searchParams;
   const edit = query.get('edit') !== null;
   const coord = (() => {
     const q = query.get('coord');
