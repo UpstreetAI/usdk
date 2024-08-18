@@ -90,28 +90,30 @@ export const setMapUrlCoord = async (coord: Coord2D, {
   // await router.replace(s);
   history.replaceState(null, '', s);
 };
+const getCoordKey = (x: number, z: number) => `${x}${coordSep}${z}`;
 
 //
 
 class SquareGeometry extends BufferGeometry {
   constructor(h: number, borderSize: number) {
-    const vBarGeometry = new BoxGeometry(borderSize, h + borderSize, borderSize);
+    const vBarGeometry = new BoxGeometry(borderSize, h, borderSize);
     const hBarGeometry = vBarGeometry.clone().applyQuaternion(new Quaternion().setFromAxisAngle(new Vector3(0, 0, 1), Math.PI / 2));
     const geometries = [
       // left
       vBarGeometry.clone()
-        .translate(-h / 2, 0, 0),
+        .translate(-h / 2 + borderSize / 2, 0, 0),
       // right
       vBarGeometry.clone()
-        .translate(h / 2, 0, 0),
+        .translate(h / 2 - borderSize / 2, 0, 0),
       // top
       hBarGeometry.clone()
-        .translate(0, h / 2, 0),
+        .translate(0, h / 2 - borderSize / 2, 0),
       // bottom
       hBarGeometry.clone()
-        .translate(0, -h / 2, 0),
+        .translate(0, -h / 2 + borderSize / 2, 0),
     ];
-    const geometry = BufferGeometryUtils.mergeGeometries(geometries);
+    const geometry = BufferGeometryUtils.mergeGeometries(geometries)
+      .scale(1, 1, 0);
 
     super();
     this.copy(geometry);
@@ -206,8 +208,10 @@ export interface Coord2D {
   x: number,
   z: number,
 }
-interface TileSpec {
+interface TileCandidateSpec {
   coord: Coord2D,
+}
+type TileSpec = TileCandidateSpec & {
   name: string,
   visual_description: string,
   biome: string,
@@ -216,7 +220,7 @@ interface TileSpec {
   points_of_interest: string[],
   exits: string[],
   image: Blob | null,
-}
+};
 interface TileLoad {
   coord: Coord2D,
   loading: boolean,
@@ -337,15 +341,18 @@ type Text3DProps = {
   scale?: [number, number, number] | Vector3,
 };
 
+// const defaultFont = '/fonts/WinchesterCaps.ttf',
+const defaultFont = '/fonts/Plaza Regular.ttf';
+const defaultFontSize = 0.05;
+const defaultLineHeight = 1.2;
 const Text3D = forwardRef(({
   children = '',
   position,
   quaternion,
   scale,
-  // font = '/fonts/WinchesterCaps.ttf',
-  font = '/fonts/Plaza Regular.ttf',
-  fontSize = 0.05,
-  lineHeight = 1.2,
+  font = defaultFont,
+  fontSize = defaultFontSize,
+  lineHeight = defaultLineHeight,
   color = 0xFFFFFF,
   bgColor = 0x000000,
   anchorX = "left",
@@ -434,15 +441,15 @@ const MapForm = ({
 };
 const Tile = ({
   tileSpec,
-  tileLoad,
   textureLoader,
+  tileLoads,
   // onRef,
   onMeshRef,
   children,
 }: {
   tileSpec: TileSpec,
-  tileLoad?: TileLoad,
   textureLoader: TextureLoader,
+  tileLoads: TileLoad[],
   // onRef?: (ref: Object3D | null) => void,
   onMeshRef?: (mesh: Mesh | null) => void,
   children?: React.ReactNode,
@@ -456,6 +463,10 @@ const Tile = ({
     visual_description,
     image,
   } = tileSpec;
+  const tileLoad = tileLoads.find(load =>
+    load.coord.x === tileSpec.coord.x &&
+    load.coord.z === tileSpec.coord.z
+  ) as TileLoad;
 
   //
 
@@ -503,7 +514,73 @@ const Tile = ({
       {children}
     </object3D>
   );
-}
+};
+const TileCandidate = ({
+  tileCandidateSpec,
+  tileLoads,
+  onMeshRef,
+  children,
+}: {
+  tileCandidateSpec: TileCandidateSpec,
+  tileLoads: TileLoad[],
+  onMeshRef?: (mesh: Mesh | null) => void,
+  children?: React.ReactNode,
+}) => {
+  const {
+    coord: {
+      x,
+      z,
+    },
+  } = tileCandidateSpec;
+  const tileLoad = tileLoads.find(load =>
+    load.coord.x === tileCandidateSpec.coord.x &&
+    load.coord.z === tileCandidateSpec.coord.z
+  ) as TileLoad;
+
+  //
+
+  const ref = useRef<Object3D>(null);
+  const meshRef = useRef<Mesh>(null);
+
+  useEffect(() => {
+    onMeshRef && onMeshRef(meshRef.current);
+  }, [meshRef.current]);
+
+  //
+
+  const position = new Vector3(x, 0, z);
+  const color = tileLoad?.loading ? 0x0000FF : 0x333333;
+
+  return (
+    <object3D position={position} ref={ref}>
+      <mesh geometry={planeGeometry} ref={meshRef}>
+        <meshBasicMaterial transparent opacity={0} alphaTest={0.5} />
+      </mesh>
+      <mesh geometry={squareGeometry}>
+        <meshBasicMaterial color={color} />
+      </mesh>
+      <Text
+        position={[0, 0.001, 0]}
+        quaternion={rotateXQuaternion}
+        font={defaultFont}
+        fontSize={0.3}
+        lineHeight={defaultLineHeight}
+        color={color}
+        maxWidth={1}
+        anchorX='center'
+        anchorY='middle'
+      >
+        ?
+      </Text>
+      {/* <Text3D
+        position={[0, 0.01, 0]}
+        color={color}
+        quaternion={rotateXQuaternion}
+      >?</Text3D> */}
+      {children}
+    </object3D>
+  );
+};
 const ControllableObject = forwardRef(({
   position,
   onMove,
@@ -783,29 +860,27 @@ const MapScene = ({
 
   const [loading, setLoading] = useState(false);
   const [tileSpecs, setTileSpecs] = useState<TileSpec[]>([]);
+  const [tileCandidateSpecs, setTileCandidateSpecs] = useState<TileCandidateSpec[]>([]);
   const [tileLoads, setTileLoads] = useState<TileLoad[]>([]);
   const [tileEpoch, setTileEpoch] = useState(0);
 
   const textureLoader = useMemo(() => new TextureLoader(), []);
   // const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
 
-  const [tileMeshes, setTileMeshes] = useState<Map<TileSpec, Object3D>>(new Map());
+  const [tileMeshes, setTileMeshes] = useState<Map<TileCandidateSpec, Object3D>>(new Map());
 
   const playerControlsRef = useRef<Object3D>(null);
   const [moving, setMoving] = useState(false);
 
-  const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
+  const [highlightedTile, setHighlightedTile] = useState<TileCandidateSpec | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileSpec | null>(null);
 
 
   // debounce events
   const onMove = useMemo(() => onMoveRaw && debounce(onMoveRaw, onMoveRate), []);
   useEffect(() => {
-    console.log('debounce mount');
     return () => {
-      console.log('debounce cancel 1');
       onMove && onMove.cancel();
-      console.log('debounce cancel 2');
     };
   }, []);
 
@@ -825,6 +900,10 @@ const MapScene = ({
       signal,
     });
     setTileSpecs(loadedTileSpecs);
+    
+    const tileCandidateSpecs = makeTileCandidateSpecs(loadedTileSpecs);
+    setTileCandidateSpecs(tileCandidateSpecs);
+    
     setLoading(false);
   };
   const saveTiles = async (tileSpecs: TileSpec[], {
@@ -835,6 +914,41 @@ const MapScene = ({
     await tileLoader.save(tileSpecs, {
       signal,
     });
+  };
+  const makeTileCandidateSpecs = (tileSpecs: TileSpec[]) => {
+    const result: TileCandidateSpec[] = [];
+
+    const seenTileKeys = new Set<string>();
+    for (const tileSpec of tileSpecs) {
+      const coordKey = getCoordKey(tileSpec.coord.x, tileSpec.coord.z);
+      seenTileKeys.add(coordKey);
+    }
+
+    // console.log('initial see 1', structuredClone(seenTileKeys));
+
+    const seenTileCandidateKeys = new Set<string>();
+    for (const tileSpec of tileSpecs) {
+      const { coord } = tileSpec;
+      const { x, z } = coord;
+      for (let dz = -1; dz <= 1; dz++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const ax = x + dx;
+          const az = z + dz;
+          const coordKey = getCoordKey(ax, az);
+          if (!seenTileKeys.has(coordKey) && !seenTileCandidateKeys.has(coordKey)) {
+            seenTileCandidateKeys.add(coordKey);
+            result.push({
+              coord: {
+                x: ax,
+                z: az,
+              },
+            });
+          }
+        }
+      }
+    }
+    // console.log('initial seen 2', structuredClone(seenTileKeys), structuredClone(seenTileCandidateKeys));
+    return result;
   };
 
   // initial map load
@@ -888,23 +1002,28 @@ const MapScene = ({
   const { gl } = useThree();
   useEffect(() => {
     if (focused) {
-      const click = (tile: TileSpec) => {
-        const { coord } = tile;
-    
-        setLoadState(`Loading [${String(coord.x)}, ${String(coord.z)}]...`);
-        (async () => {
-          await setMapUrlCoord(coord, {
-            router,
-          });
+      const click = (tile: TileCandidateSpec) => {
+        if (tileSpecs.includes(tile as TileSpec)) {
+          const { coord } = tile;
 
-          const urlString = makeLandUrl(coord, {
-            edit,
+          setLoadState(`Loading [${String(coord.x)}, ${String(coord.z)}]...`);
+          (async () => {
+            await setMapUrlCoord(coord, {
+              router,
+            });
+
+            const urlString = makeLandUrl(coord, {
+              edit,
+            });
+            router.push(urlString);
+            console.log('router pushed', urlString);
+          })().catch(e => {
+            console.error('click error', e);
           });
-          router.push(urlString);
-          console.log('router pushed', urlString);
-        })().catch(e => {
-          console.error('click error', e);
-        });
+        } else if (tileCandidateSpecs.includes(tile)) {
+          const { coord } = tile;
+          console.log('click tile candidate', coord);
+        }
       };
       const onDoubleClick = (e: MouseEvent) => {
         if (e.target === gl.domElement) {
@@ -963,12 +1082,17 @@ const MapScene = ({
       setLoading(false);
       setTileSpecs([]);
       setTileLoads([]);
-      saveTiles([]);
+
+      (async () => {
+        await saveTiles([]);
+      })().catch(e => {
+        console.error('clear map error', e);
+      });
     };
     eventTarget.addEventListener('clearMap', onClearMap);
 
     return () => {
-      eventTarget.removeEventListener('generateMap', onGenerateMap);
+      // eventTarget.removeEventListener('generateMap', onGenerateMap);
       eventTarget.removeEventListener('clearMap', onClearMap);
     };
   }, []);
@@ -1126,41 +1250,55 @@ const MapScene = ({
     </KeyboardControls>
     {/* plane mesh */}
     {(() => {
-      const children = tileSpecs.map((tileSpec, index) => {
-        const tileLoad = tileLoads.find(load =>
-          load.coord.x === tileSpec.coord.x &&
-          load.coord.z === tileSpec.coord.z
-        ) as TileLoad;
-        return (
-          <Tile
-            key={index}
-            tileSpec={tileSpec}
-            tileLoad={tileLoad}
-            textureLoader={textureLoader}
-            onMeshRef={(mesh: Mesh | null) => {
-              if (mesh) {
-                (mesh as any).metadata = {
-                  tileSpec,
-                };
-              }
+      const addMesh = (tileSpec: TileCandidateSpec) =>
+        (mesh: Mesh | null) => {
+          if (mesh) {
+            (mesh as any).metadata = {
+              tileSpec,
+            };
+          }
 
-              setTileMeshes(tileMeshes => {
-                if (mesh) {
-                  tileMeshes.set(tileSpec, mesh);
-                } else {
-                  tileMeshes.delete(tileSpec);
-                }
-                return tileMeshes;
-              });
-            }}
-          >
-            {((highlightedTile === tileSpec && !moving) || hoveredTile === tileSpec) && <mesh geometry={squareGeometry}>
-              <meshBasicMaterial color={0x111111} />
-            </mesh>}
-          </Tile>
-        )
-      });
-      return children;
+          setTileMeshes(tileMeshes => {
+            if (mesh) {
+              tileMeshes.set(tileSpec, mesh);
+            } else {
+              tileMeshes.delete(tileSpec);
+            }
+            return tileMeshes;
+          });
+        };
+
+      return [
+        ...tileSpecs.map((tileSpec, index) => {
+          return (
+            <Tile
+              key={getCoordKey(tileSpec.coord.x, tileSpec.coord.z)}
+              tileSpec={tileSpec}
+              textureLoader={textureLoader}
+              tileLoads={tileLoads}
+              onMeshRef={addMesh(tileSpec)}
+            >
+              {((highlightedTile === tileSpec && !moving) || (hoveredTile === tileSpec)) && <mesh geometry={squareGeometry}>
+                <meshBasicMaterial color={0x111111} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1}  />
+              </mesh>}
+            </Tile>
+          );
+        }),
+        ...tileCandidateSpecs.map((tileCandidateSpec, index) => {
+          return (
+            <TileCandidate
+              key={getCoordKey(tileCandidateSpec.coord.x, tileCandidateSpec.coord.z)}
+              tileCandidateSpec={tileCandidateSpec}
+              tileLoads={tileLoads}
+              onMeshRef={addMesh(tileCandidateSpec)}
+            >
+              {((highlightedTile === tileCandidateSpec && !moving) || (hoveredTile === tileCandidateSpec)) && <mesh geometry={squareGeometry}>
+                <meshBasicMaterial color={0x111111} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+              </mesh>}
+            </TileCandidate>
+          )
+        }),
+      ];
     })()}
   </>
 }
