@@ -1191,32 +1191,6 @@ const LandEditForm = ({
       e.stopPropagation();
     }}>
       <Button variant="outline" className="text-xs mb-1" onClick={e => {
-        const promptString = prompt(`Generate what scene? (e.g. "${sceneImageDefaultPrompt}")`, sceneImageDefaultPrompt);
-        if (promptString) {
-          eventTarget.dispatchEvent(new MessageEvent('regenerate', {
-            data: {
-              prompt: promptString,
-            },
-          }));
-        }
-      }}>Regenerate</Button>
-      <select className="text-xs mb-1" value={depthType} onChange={e => {
-        setDepthType(e.target.value);
-      }}>
-        {depthTypes.map(depthType => (
-          <option value={depthType} key={depthType}>{depthType}</option>
-        ))}
-      </select>
-      <Button variant="outline" className="text-xs mb-1" onClick={e => {
-        eventTarget.dispatchEvent(new MessageEvent('depth', {
-          data: {
-            type: depthType,
-          },
-        }));
-      }}>
-        Depth
-      </Button>
-      <Button variant="outline" className="text-xs mb-1" onClick={e => {
         const promptString = prompt('Inpaint prompt?', `cyberpunk anime background, dark tunnel, lush vegetation, ancient device, metal platform`);
         if (promptString) {
           eventTarget.dispatchEvent(new MessageEvent('inpaint', {
@@ -1931,65 +1905,6 @@ const LandCanvas3DScene = ({
 
   // track events
   useEffect(() => {
-    const onregenerate = async (e: any) => {
-      if (!keyboardControlsEnabled) {
-        const {
-          prompt,
-        } = e.data;
-
-        const jwt = await getJWT();
-        const blob = await fetchImageGeneration(prompt, {
-          image_size: 'square_hd',
-        }, {
-          jwt,
-        });
-        const image = await blob2img(blob);
-        const texture = new Texture(image);
-        texture.needsUpdate = true;
-
-        setTexture(texture);
-        setDepth(null);
-        // setPlaneGeometry(makePlaneGeometry());
-        setKeyboardControlsEnabled(false);
-      }
-    };
-    eventTarget.addEventListener('regenerate', onregenerate);
-
-    const ondepth = async (e: any) => {
-      if (!keyboardControlsEnabled) {
-        const {
-          type,
-        } = e.data;
-
-        const image = texture?.source.data as HTMLImageElement;
-        const width = getWidth(image);
-        const height = getHeight(image);
-        const blob = await img2blob(image);
-        const jwt = await getJWT();
-        const depthFloat32Array = await getDepth(blob, {
-          type,
-        }, {
-          jwt,
-        });
-        console.log('got depth', depthFloat32Array);
-        const depth = {
-          width,
-          height,
-          data: depthFloat32Array,
-        };
-        setDepth(depth);
-        const newPlaneGeometry = makePlaneGeometryFromDepth({
-          depth,
-          camera,
-          scale,
-        });
-        setPlaneGeometry(newPlaneGeometry);
-
-        setKeyboardControlsEnabled(true);
-      }
-    };
-    eventTarget.addEventListener('depth', ondepth);
-
     const oninpaint = async (e: any) => {
       // XXX compute this prompt from the image
       const prompt = e.data.prompt;
@@ -2238,8 +2153,6 @@ const LandCanvas3DScene = ({
     eventTarget.addEventListener('generateSound', onGenerateSound);
 
     return () => {
-      eventTarget.removeEventListener('regenerate', onregenerate);
-      eventTarget.removeEventListener('depth', ondepth);
       eventTarget.removeEventListener('inpaint', oninpaint);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
