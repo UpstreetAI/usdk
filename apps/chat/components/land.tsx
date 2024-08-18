@@ -460,7 +460,8 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
     URL.revokeObjectURL(src);
   };
 });
-const sceneImageDefaultPrompt = `genshin impact fantasy anime style background screenshot, lush nature cavern, ancient technology, cyberpunk platform`;
+const sceneImageStyle = `studio ghibli magical fantasy anime screencap style background`;
+const sceneImageDefaultPrompt = `lush nature cavern, ancient technology, cyberpunk platform`;
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
 const generateCharacter = async (prompt = characterImageDefaultPrompt, {
   stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
@@ -2362,7 +2363,8 @@ const layerSpecs: LayerSpec[] = [
     ),
     generate: async (landSpec: LandSpec) => {
       const jwt = await getJWT();
-      const blob = await fetchImageGeneration(landSpec.prompt, {
+      const fullPrompt = `${landSpec.prompt}\n${sceneImageDefaultPrompt}`;
+      const blob = await fetchImageGeneration(fullPrompt, {
         image_size: 'square_hd',
       }, {
         jwt,
