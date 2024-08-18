@@ -15,10 +15,10 @@ export type ChatMessage = {
     },
   },
 };
-const fetchChatCompletionFns: Map<
+const fetchChatCompletionFns = new Map<
   string,
-  (args: any, opts: any) => Promise<any>
-> = new Map(Object.entries({
+  (args: any, opts: any) => Promise<string>
+>(Object.entries({
   openai: async ({
     model,
     messages,
@@ -61,7 +61,7 @@ const fetchChatCompletionFns: Map<
     });
     if (res.ok) {
       const j = await res.json();
-      const content = j.choices[0].message.content;
+      const content = j.choices[0].message.content as string;
       return content;
     } else {
       const text = await res.text();
@@ -103,7 +103,7 @@ const fetchChatCompletionFns: Map<
     });
     if (res.ok) {
       const j = await res.json();
-      const text = j.content[0].text;
+      const text = j.content[0].text as string;
       return text;
     } else {
       const text = await res.text();
@@ -132,7 +132,7 @@ export const fetchChatCompletion = async ({
     const modelName = model.slice(match[0].length);
     const fn = fetchChatCompletionFns.get(modelType);
     if (fn) {
-      const res = await fn({
+      const content = await fn({
         model: modelName,
         messages,
         stream,
@@ -140,7 +140,7 @@ export const fetchChatCompletion = async ({
       }, {
         jwt,
       });
-      return res;
+      return content;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
@@ -185,8 +185,8 @@ export const fetchJsonCompletion = async ({
   });
   if (res.ok) {
     const j = await res.json();
-    const s = j.choices[0].message.content;
-    const o = JSON.parse(s);
+    const s = j.choices[0].message.content as string;
+    const o = JSON.parse(s) as object;
     return o;
   } else {
     const text = await res.text();
