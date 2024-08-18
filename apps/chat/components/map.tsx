@@ -191,7 +191,17 @@ type TileLoad = {
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
 // const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
-const makeLandUrl = ({ x, z }: Coord2D) => `/land/${[x, z].join(',')}`;
+const makeLandUrl = ({ x, z }: Coord2D, {
+  edit,
+}: {
+  edit: boolean,
+}) => {
+  const u = new URL(`/land/${[x, z].join(',')}`, location.href);
+  edit && u.searchParams.set('edit', '');
+  return u.href
+    .replace(/=$/g, '')
+    .replace(/=&/g, '');
+};
 
 const fetchJsonCompletion = async (messages: any[], format: z.ZodTypeAny) => {
   const jwt = await getJWT();
@@ -707,9 +717,11 @@ const MiniPlayer = forwardRef(({
 });
 MiniPlayer.displayName = 'MiniPlayer';
 const MapScene = ({
+  edit,
   eventTarget,
   focused,
 }: {
+  edit: boolean
   eventTarget: EventTarget,
   focused: boolean,
 }) => {
@@ -819,10 +831,10 @@ const MapScene = ({
         const { coord } = tile;
         const { x, z } = coord;
     
-        const u = new URL(location.href);
-        u.pathname = makeLandUrl(coord);
-        const s = u + '';
-        router.push(s);
+        const urlString = makeLandUrl(coord, {
+          edit,
+        });
+        router.push(urlString);
       };
       const onDoubleClick = (e: MouseEvent) => {
         if (e.target === gl.domElement) {
@@ -1069,7 +1081,7 @@ function MapComponent({
   id,
   edit = false,
 }: {
-  id: string,
+  id?: string,
   edit?: boolean,
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1102,6 +1114,7 @@ function MapComponent({
             // debug
           > */}
             <MapScene
+              edit={edit}
               eventTarget={eventTarget}
               focused={focused}
             />
