@@ -918,36 +918,43 @@ const MapScene = ({
   const makeTileCandidateSpecs = (tileSpecs: TileSpec[]) => {
     const result: TileCandidateSpec[] = [];
 
-    const seenTileKeys = new Set<string>();
-    for (const tileSpec of tileSpecs) {
-      const coordKey = getCoordKey(tileSpec.coord.x, tileSpec.coord.z);
-      seenTileKeys.add(coordKey);
-    }
+    if (tileSpecs.length > 0) {
+      const seenTileKeys = new Set<string>();
+      for (const tileSpec of tileSpecs) {
+        const coordKey = getCoordKey(tileSpec.coord.x, tileSpec.coord.z);
+        seenTileKeys.add(coordKey);
+      }
 
-    // console.log('initial see 1', structuredClone(seenTileKeys));
-
-    const seenTileCandidateKeys = new Set<string>();
-    for (const tileSpec of tileSpecs) {
-      const { coord } = tileSpec;
-      const { x, z } = coord;
-      for (let dz = -1; dz <= 1; dz++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          const ax = x + dx;
-          const az = z + dz;
-          const coordKey = getCoordKey(ax, az);
-          if (!seenTileKeys.has(coordKey) && !seenTileCandidateKeys.has(coordKey)) {
-            seenTileCandidateKeys.add(coordKey);
-            result.push({
-              coord: {
-                x: ax,
-                z: az,
-              },
-            });
+      const seenTileCandidateKeys = new Set<string>();
+      for (const tileSpec of tileSpecs) {
+        const { coord } = tileSpec;
+        const { x, z } = coord;
+        for (let dz = -1; dz <= 1; dz++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const ax = x + dx;
+            const az = z + dz;
+            const coordKey = getCoordKey(ax, az);
+            if (!seenTileKeys.has(coordKey) && !seenTileCandidateKeys.has(coordKey)) {
+              seenTileCandidateKeys.add(coordKey);
+              result.push({
+                coord: {
+                  x: ax,
+                  z: az,
+                },
+              });
+            }
           }
         }
       }
+    } else {
+      result.push({
+        coord: {
+          x: 0,
+          z: 0,
+        },
+      });
     }
-    // console.log('initial seen 2', structuredClone(seenTileKeys), structuredClone(seenTileCandidateKeys));
+
     return result;
   };
 
@@ -1060,7 +1067,7 @@ const MapScene = ({
 
   // generation
   useEffect(() => {
-    const onGenerateMap = async (e: any) => {
+    /* const onGenerateMap = async (e: any) => {
       setLoading(true);
       setTileSpecs([]);
       setTileLoads([]);
@@ -1071,17 +1078,21 @@ const MapScene = ({
         width: 3,
         height: 3,
       });
-      console.log('newTileSpecs', newTileSpecs);
+      // console.log('newTileSpecs', newTileSpecs);
       setTileSpecs(newTileSpecs);
       saveTiles(newTileSpecs);
       setLoading(false);
     };
-    eventTarget.addEventListener('generateMap', onGenerateMap);
+    eventTarget.addEventListener('generateMap', onGenerateMap); */
 
     const onClearMap = async (e: any) => {
       setLoading(false);
-      setTileSpecs([]);
+
+      const newTileSpecs = [];
+      setTileSpecs(newTileSpecs);
       setTileLoads([]);
+      const newTileCandidateSpecs = makeTileCandidateSpecs(newTileSpecs);
+      setTileCandidateSpecs(newTileCandidateSpecs);
 
       (async () => {
         await saveTiles([]);
