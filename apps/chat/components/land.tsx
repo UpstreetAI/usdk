@@ -1091,10 +1091,24 @@ const LandTopForm = ({
 
   const regenerate = async () => {
     console.log('regenerate 1');
-    setLoadState(`Generating ${layerSpec.name}...`);
+    let newLandSpec = landSpec;
     {
-      const newLandSpec = await layerSpec.generate(landSpec);
-      console.log('regenerate 2', newLandSpec);
+      // ensure all layers above this one are generated
+      for (let i = 0; i < layerSpecIndex; i++) {
+        const layerSpec = layerSpecs[i];
+        if (!layerSpec.isValid(landSpec)) {
+          setLoadState(`Generating ${layerSpec.name}...`);
+          newLandSpec = await layerSpec.generate(newLandSpec);
+          console.log('regenerate layer', layerSpec.name, newLandSpec);
+          setLandSpec(newLandSpec);
+        }
+      }
+    }
+    {
+      // generate this layer
+      setLoadState(`Generating ${layerSpec.name}...`);
+      newLandSpec = await layerSpec.generate(newLandSpec);
+      console.log('regenerate layer', layerSpec.name, newLandSpec);
       setLandSpec(newLandSpec);
     }
     setLoadState(null);
@@ -1183,7 +1197,7 @@ const LandEditForm = ({
 }: {
   eventTarget: EventTarget,
 }) => {
-  const [depthType, setDepthType] = useState(depthTypes[0]);
+  // const [depthType, setDepthType] = useState(depthTypes[0]);
 
   return (
     <form className="flex" onSubmit={e => {
@@ -1540,11 +1554,11 @@ const LandCanvas3DScene = ({
         scale,
       });
       setPlaneGeometry(newPlaneGeometry);
-    } else {
-      const newPlaneGeometry = makePlaneGeometryFromScale({
-        scale,
-      });
-      setPlaneGeometry(newPlaneGeometry);
+    // } else {
+    //   const newPlaneGeometry = makePlaneGeometryFromScale({
+    //     scale,
+    //   });
+    //   setPlaneGeometry(newPlaneGeometry);
     }
   }, [scale.x, scale.y, scale.z, depth]);
 
@@ -2259,7 +2273,7 @@ const LandCanvas3DScene = ({
         {/* cursor mesh */}
         <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
         {/* plane mesh */}
-        <RigidBody
+        {planeGeometry && <RigidBody
           colliders='trimesh'
           lockTranslations
           lockRotations
@@ -2267,7 +2281,7 @@ const LandCanvas3DScene = ({
           <mesh geometry={planeGeometry} ref={planeMeshRef}>
             <meshBasicMaterial map={texture} />
           </mesh>
-        </RigidBody>
+        </RigidBody>}
         {/* description mesh */}
         {modelBlobUrl && <MeshUrl
           src={modelBlobUrl}
