@@ -7,6 +7,7 @@ import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei'
 import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
+import { zbencode, zbdecode } from '../../../packages/zjs/encoding.mjs';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
   Vector2,
@@ -1176,12 +1177,12 @@ const LandTopForm = ({
     </form>
   )
 };
+const depthTypes = ['indoor', 'outdoor'];
 const LandEditForm = ({
   eventTarget,
 }: {
   eventTarget: EventTarget,
 }) => {
-  const depthTypes = ['indoor', 'outdoor'];
   const [depthType, setDepthType] = useState(depthTypes[0]);
 
   return (
@@ -1533,6 +1534,28 @@ const LandCanvas3DScene = ({
       throw new Error('land spec contains no image, which is required for this layer');
     }
   }, [landSpec.image]);
+  // load depth blob
+  useEffect(() => {
+    if (landSpec.depthImage) {
+      const depthImage = landSpec.depthImage;
+
+      let live = true;
+      (async () => {
+        const arrayBuffer = await depthImage.arrayBuffer();
+        if (!live) return;
+
+        const encodedData = new Uint8Array(arrayBuffer);
+        const depth = zbdecode(encodedData) as DepthSpec;
+        setDepth(depth);
+      })();
+
+      return () => {
+        live = false;
+      };
+    } else {
+      throw new Error('land spec contains no depth, which is required for this layer');
+    }
+  }, [landSpec.depthImage]);
 
   // update plane geometry
   useEffect(() => {
@@ -2430,7 +2453,7 @@ const layerSpecs: LayerSpec[] = [
       return {
         ...landSpec,
         image: blob,
-        depth: null,
+        depthImage: undefined,
       };
     },
   },
@@ -2441,7 +2464,30 @@ const layerSpecs: LayerSpec[] = [
       !!landSpec.depthImage
     ),
     generate: async (landSpec: LandSpec) => {
-      return landSpec; // XXX finish this
+      const blob = landSpec.image as Blob;
+      const img = await blob2img(blob);
+      const width = getWidth(img);
+      const height = getHeight(img);
+
+      const jwt = await getJWT();
+      const depthFloat32Array = await getDepth(blob, {
+        type: depthTypes[0],
+      }, {
+        jwt,
+      });
+      const depth = {
+        width,
+        height,
+        data: depthFloat32Array,
+      };
+      const encodedData = zbencode(depth);
+      const depthImageBlob = new Blob([encodedData], {
+        type: 'application/octet-stream',
+      });
+      return {
+        ...landSpec,
+        depthImage: depthImageBlob,
+      };
     },
   },
 ];
@@ -2452,7 +2498,7 @@ const getMaxValidLayerIndex = (landSpec: LandSpec) => {
       return i - 1;
     }
   }
-  return -1;
+  return layerSpecs.length - 1;
 };
 
 const makeEmptyLandSpec = () => ({
@@ -2493,13 +2539,16 @@ const LandLayer = ({
   const layerSpec = layerSpecs[layerSpecIndex];
   const { Component: LayerComponent } = layerSpec;
 
+  const maxValidLayerIndex = getMaxValidLayerIndex(landSpec);
+  const isEnabled =
+    maxValidLayerIndex >= layerSpecIndex ||
+    // the first layer is always enabled
+    layerSpecIndex === 0;
+
+  console.log('check enabled', {maxValidLayerIndex, layerSpecIndex, isEnabled, landSpec});
+
   // render
   if (!loadState) {
-    const maxValidLayerIndex = getMaxValidLayerIndex(landSpec);
-    const isEnabled =
-      maxValidLayerIndex >= layerSpecIndex ||
-      // the first layer is always enabled
-      layerSpecIndex === 0;
     if (isEnabled) {
       return (
         <LayerComponent
