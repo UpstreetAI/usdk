@@ -2183,37 +2183,35 @@ const LandCanvas3DScene = ({
         </mesh>}
 
         {/* character capsule */}
-        {keyboardControlsEnabled && (
-          <KeyboardControls map={keyboardMap}>
-            <Ecctrl
-              position={spawnOffset}
-              capsuleHalfHeight={characterController.capsuleHalfHeight}
-              capsuleRadius={characterController.capsuleRadius}
-              floatHeight={characterController.floatHeight}
-              fallingGravityScale={1}
-              disableFollowCam={true}
-              disableFollowCamPos={cameraPosition}
-              disableFollowCamTarget={cameraTarget}
-              autoBalance={false}
-              turnSpeed={100}
-              friction={0.1}
-              ref={ecctrlRef}
+        <KeyboardControls map={keyboardMap}>
+          <Ecctrl
+            position={spawnOffset}
+            capsuleHalfHeight={characterController.capsuleHalfHeight}
+            capsuleRadius={characterController.capsuleRadius}
+            floatHeight={characterController.floatHeight}
+            fallingGravityScale={1}
+            disableFollowCam={true}
+            disableFollowCamPos={cameraPosition}
+            disableFollowCamTarget={cameraTarget}
+            autoBalance={false}
+            turnSpeed={100}
+            friction={0.1}
+            ref={ecctrlRef}
+          >
+            {!characterTexture && <mesh
+              geometry={capsuleGeometry}
+              ref={capsuleMeshRef}
             >
-              {!characterTexture && <mesh
-                geometry={capsuleGeometry}
-                ref={capsuleMeshRef}
-              >
-                <meshBasicMaterial color="blue" transparent opacity={0.5} />
-              </mesh>}
-              {characterTexture && <mesh
-                scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
-              >
-                <planeGeometry args={[1, 1]} />
-                <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
-              </mesh>}
-            </Ecctrl>
-          </KeyboardControls>
-        )}
+              <meshBasicMaterial color="blue" transparent opacity={0.5} />
+            </mesh>}
+            {characterTexture && <mesh
+              scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
+            >
+              <planeGeometry args={[1, 1]} />
+              <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
+            </mesh>}
+          </Ecctrl>
+        </KeyboardControls>
         {objectSpec && <mesh
           position={[objectSpawnOffset[0], objectSpawnOffset[1] + objectSpec.metadata.height * 0.5, objectSpawnOffset[2]]}
         >
@@ -2261,22 +2259,15 @@ const LandCanvas3DScene = ({
         {/* cursor mesh */}
         <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
         {/* plane mesh */}
-        {(() => {
-          const children = planeGeometry && (
-            <mesh geometry={planeGeometry} ref={planeMeshRef}>
-              <meshBasicMaterial map={texture} />
-            </mesh>
-          );
-          return keyboardControlsEnabled ? (
-            <RigidBody
-              colliders='trimesh'
-              lockTranslations
-              lockRotations
-            >
-              {children}
-            </RigidBody>
-          ) : (children);
-        })()}
+        <RigidBody
+          colliders='trimesh'
+          lockTranslations
+          lockRotations
+        >
+          <mesh geometry={planeGeometry} ref={planeMeshRef}>
+            <meshBasicMaterial map={texture} />
+          </mesh>
+        </RigidBody>
         {/* description mesh */}
         {modelBlobUrl && <MeshUrl
           src={modelBlobUrl}
