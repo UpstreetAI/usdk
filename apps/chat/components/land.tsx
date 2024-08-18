@@ -2478,7 +2478,7 @@ const LandLayer = ({
     } else {
       return (
         <div className="mx-auto max-w-4xl">
-          Invalid layer
+          Layer missing data
         </div>
       );
     }
