@@ -3,11 +3,11 @@
 import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
+// import debounce from 'debounce';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
-// import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {
@@ -50,8 +50,10 @@ import {
 } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
+import { fetchJsonCompletion } from '@/utils/fetch';
 import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
 import { defaultOpenAIModel } from '@/utils/const/defaults.js';
+import { ChatMessage } from '@/utils/fetch';
 
 //
 
@@ -169,11 +171,11 @@ const biomesEnum = z.enum([
   "wooded_badlands"
 ]);
 
-type Coord2D = {
+export interface Coord2D {
   x: number,
   z: number,
-};
-type TileSpec = {
+}
+interface TileSpec {
   coord: Coord2D,
   name: string,
   visual_description: string,
@@ -183,11 +185,11 @@ type TileSpec = {
   points_of_interest: string[],
   exits: string[],
   image: Blob | null,
-};
-type TileLoad = {
+}
+interface TileLoad {
   coord: Coord2D,
   loading: boolean,
-};
+}
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
 // const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
@@ -203,40 +205,6 @@ const makeLandUrl = ({ x, z }: Coord2D, {
     .replace(/=&/g, '');
 };
 
-const fetchJsonCompletion = async (messages: any[], format: z.ZodTypeAny) => {
-  const jwt = await getJWT();
-
-  // console.log('got response format', zodResponseFormat(format, 'json_tiles'));
-
-  const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-    method: 'POST',
-
-    headers: {
-      'Content-Type': 'application/json',
-      // 'OpenAI-Beta': 'assistants=v1',
-      Authorization: `Bearer ${jwt}`,
-    },
-
-    body: JSON.stringify({
-      model: defaultOpenAIModel,
-      messages,
-
-      response_format: zodResponseFormat(format, 'json_tiles'),
-
-      // stream,
-    }),
-    // signal,
-  });
-  if (res.ok) {
-    const j = await res.json();
-    const s = j.choices[0].message.content;
-    const o = JSON.parse(s);
-    return o;
-  } else {
-    const text = await res.text();
-    throw new Error('invalid status code: ' + res.status + ': ' + text);
-  }
-};
 const generateMap = async ({
   prompt,
   width = 3,
@@ -246,60 +214,67 @@ const generateMap = async ({
   width?: number,
   height?: number,
 }) => {
-  const messages = [
-    {
-      role: 'user',
-      content: dedent`\
-        Generate an array of JSON map tile descriptions for an RPG game overworld.
-        The tiles are roughly 100x100 meters, so they should change gradually over distance. For example, a lush jungle tile should not be next to a city or a glacier.
-        Tiles are shown from an overhead view, in a ${width}x${height} grid.
-        The top-left tile is at (x, z) = (0, 0), and the bottom-right tile is at (${width - 1}, ${height - 1}).
-        The JSON representation is a 2D array of objects, west to east, north to south.
-        \`temperature\` is a number from 0 to 1 representing how hot or cold the tile is.
-        \`wetness\` is a number from 0 to 1 representing how wet or dry the tile is.
-        The \`exits\` key represents whether it is possible for a character to traverse to the next tile in that direction.
+  const jwt = await getJWT();
+  if (jwt) {
+    const messages: ChatMessage[] = [
+      {
+        role: 'user',
+        content: dedent`\
+          Generate an array of JSON map tile descriptions for an RPG game overworld.
+          The tiles are roughly 100x100 meters, so they should change gradually over distance. For example, a lush jungle tile should not be next to a city or a glacier.
+          Tiles are shown from an overhead view, in a ${width}x${height} grid.
+          The top-left tile is at (x, z) = (0, 0), and the bottom-right tile is at (${width - 1}, ${height - 1}).
+          The JSON representation is a 2D array of objects, west to east, north to south.
+          \`temperature\` is a number from 0 to 1 representing how hot or cold the tile is.
+          \`wetness\` is a number from 0 to 1 representing how wet or dry the tile is.
+          The \`exits\` key represents whether it is possible for a character to traverse to the next tile in that direction.
 
-        Use the following prompt:
-      ` + '\n' +
-        prompt,
-    },
-  ];
-  const format = z.object({
-    tiles: z.array(z.array(z.object({
-      coord: z.object({
-        x: z.number(),
-        z: z.number(),
-      }),
-      name: z.string(),
-      visual_description: z.string(),
-      biome: biomesEnum,
-      temperature: z.number(),
-      wetness: z.number(),
-      points_of_interest: z.array(z.string()),
-      exits: z.array(z.enum(['north', 'south', 'east', 'west'])),
-    }))),
-  });
-  const grid = await fetchJsonCompletion(messages, format);
+          Use the following prompt:
+        ` + '\n' +
+          prompt,
+      },
+    ];
+    const format = z.object({
+      tiles: z.array(z.array(z.object({
+        coord: z.object({
+          x: z.number(),
+          z: z.number(),
+        }),
+        name: z.string(),
+        visual_description: z.string(),
+        biome: biomesEnum,
+        temperature: z.number(),
+        wetness: z.number(),
+        points_of_interest: z.array(z.string()),
+        exits: z.array(z.enum(['north', 'south', 'east', 'west'])),
+      }))),
+    });
+    const grid = await fetchJsonCompletion(messages, format, {
+      jwt,
+    });
 
-  const tileSpecs: TileSpec[] = [];
-  for (let z = 0; z < height; z++) {
-    const row = grid.tiles[z];
-    if (row.length !== width) {
-      throw new Error(`row ${z} has length ${row.length} instead of ${width}`);
-    }
-    for (let x = 0; x < width; x++) {
-      let tileSpec = row[x];
-      if (tileSpec.coord.x !== x || tileSpec.coord.z !== z) {
-        throw new Error(`tile at (${x}, ${z}) has x, z of ${tileSpec.x}, ${tileSpec.z}`);
+    const tileSpecs: TileSpec[] = [];
+    for (let z = 0; z < height; z++) {
+      const row = grid.tiles[z];
+      if (row.length !== width) {
+        throw new Error(`row ${z} has length ${row.length} instead of ${width}`);
       }
-      tileSpec = {
-        ...tileSpec,
-        image: null,
-      };
-      tileSpecs.push(tileSpec);
+      for (let x = 0; x < width; x++) {
+        let tileSpec = row[x];
+        if (tileSpec.coord.x !== x || tileSpec.coord.z !== z) {
+          throw new Error(`tile at (${x}, ${z}) has x, z of ${tileSpec.x}, ${tileSpec.z}`);
+        }
+        tileSpec = {
+          ...tileSpec,
+          image: null,
+        };
+        tileSpecs.push(tileSpec);
+      }
     }
+    return tileSpecs;
+  } else {
+    throw new Error('no jwt');
   }
-  return tileSpecs;
 };
 
 //
@@ -435,7 +410,7 @@ const Tile = ({
   children,
 }: {
   tileSpec: TileSpec,
-  tileLoad: TileLoad,
+  tileLoad?: TileLoad,
   textureLoader: TextureLoader,
   // onRef?: (ref: Object3D | null) => void,
   onMeshRef?: (mesh: Mesh | null) => void,
@@ -446,7 +421,7 @@ const Tile = ({
       x,
       z,
     },
-    name,
+    // name,
     visual_description,
     image,
   } = tileSpec;
@@ -498,10 +473,14 @@ const Tile = ({
     </object3D>
   );
 }
-const Controllable = forwardRef(({
+const ControllableObject = forwardRef(({
+  position,
+  onMove,
   onMoving,
   children,
 }: {
+  position: [number, number, number],
+  onMove?: (position: Vector3) => any,
   onMoving?: (moving: boolean) => void,
   children: React.ReactNode,
 }, ref: React.ForwardedRef<Object3D>) => {
@@ -517,6 +496,7 @@ const Controllable = forwardRef(({
 
   const { camera } = useThree();
 
+  // bind the ref
   useEffect(() => {
     if (ref) {
       if (typeof ref === 'function') {
@@ -527,6 +507,26 @@ const Controllable = forwardRef(({
     }
   }, [ref, internalRef.current]);
 
+  // initialize camera
+  useEffect(() => {
+    camera.position.fromArray(position)
+      .add(
+        new Vector3(0, 1, 0)
+      );
+    // camera.quaternion.setFromRotationMatrix(
+    //   new Matrix4().lookAt(
+    //     camera.position,
+    //     camera.position.clone()
+    //       .add(
+    //         new Vector3(0, -1, 0)
+    //       ),
+    //     new Vector3(0, 0, -1),
+    //   )
+    // );
+    camera.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI * 0.5);
+  }, []);
+
+  // movement
   useFrame(() => {
     const object = internalRef.current;
     if (object) {
@@ -557,11 +557,16 @@ const Controllable = forwardRef(({
 
         object.position.add(moveDelta);
 
+        // console.log('set camera', object.position.toArray().join(', '));
         camera.position.copy(object.position)
           .add(
             moveCameraOffset.normalize()
           );
-        camera.lookAt(object.position);
+        camera.quaternion.setFromRotationMatrix(
+          new Matrix4().lookAt(camera.position, object.position, new Vector3(0, 0, -1))
+        );
+
+        onMove && onMove(object.position);
       }
 
       if (onMoving) {
@@ -623,13 +628,18 @@ const Controllable = forwardRef(({
     };
   }, []); */
 
+  // console.log('initialize controllable', position);
+
   return (
-    <object3D ref={internalRef}>
+    <object3D
+      position={position}
+      ref={internalRef}
+    >
       {children}
     </object3D>
   );
 });
-Controllable.displayName = 'Controllable';
+ControllableObject.displayName = 'Controllable';
 const MiniPlayer = forwardRef(({
   pfpUrl,
 }: {
@@ -717,11 +727,21 @@ const MiniPlayer = forwardRef(({
 });
 MiniPlayer.displayName = 'MiniPlayer';
 const MapScene = ({
+  id,
   edit,
+  coord,
+  onMove: onMoveRaw,
+  onMoveRate = 1000,
+  loadState: [loadState, setLoadState],
   eventTarget,
   focused,
 }: {
-  edit: boolean
+  id: string,
+  edit: boolean,
+  coord: Coord2D,
+  onMove?: (position: Vector3) => any,
+  onMoveRate?: number,
+  loadState: [string | null, (newLoadState: string | null) => void],
   eventTarget: EventTarget,
   focused: boolean,
 }) => {
@@ -736,17 +756,27 @@ const MapScene = ({
   const [tileEpoch, setTileEpoch] = useState(0);
 
   const textureLoader = useMemo(() => new TextureLoader(), []);
-  const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
+  // const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
 
   const [tileMeshes, setTileMeshes] = useState<Map<TileSpec, Object3D>>(new Map());
 
   const playerControlsRef = useRef<Object3D>(null);
-  // const [target, setTarget] = useState(() => new Vector3(0, -1, 0));
-  // globalThis.setTarget = (x: number, y: number, z: number) => setTarget(new Vector3(x, y, z));
   const [moving, setMoving] = useState(false);
 
   const [highlightedTile, setHighlightedTile] = useState<TileSpec | null>(null);
   const [hoveredTile, setHoveredTile] = useState<TileSpec | null>(null);
+
+
+  // debounce events
+  const onMove = useMemo(() => onMoveRaw && debounce(onMoveRaw, onMoveRate), []);
+  useEffect(() => {
+    console.log('debounce mount');
+    return () => {
+      console.log('debounce cancel 1');
+      onMove && onMove.cancel();
+      console.log('debounce cancel 2');
+    };
+  }, []);
 
   // state helper
   const updateTileEpoch = () => {
@@ -829,12 +859,13 @@ const MapScene = ({
     if (focused) {
       const click = (tile: TileSpec) => {
         const { coord } = tile;
-        const { x, z } = coord;
     
         const urlString = makeLandUrl(coord, {
           edit,
         });
+        setLoadState(`Loading [${String(coord.x)}, ${String(coord.z)}]...`);
         router.push(urlString);
+        console.log('router pushed', urlString);
       };
       const onDoubleClick = (e: MouseEvent) => {
         if (e.target === gl.domElement) {
@@ -982,10 +1013,26 @@ const MapScene = ({
     { name: Controls.jump, keys: ['Space'] },
   ], []);
 
+  // // create a proxy for the camera, intercepting the 'up' property to be new Vector3(0, 0, -1)
+  // const camera = useThree(({ camera }) => camera);
+  // const fakeUp = useMemo(() => new Vector3(0, 0, -1), []);
+  // const fakeCamera = new Proxy(camera, {
+  //   get(target, prop, receiver) {
+  //     if (prop === 'up') {
+  //       return fakeUp;
+  //     } else {
+  //       return Reflect.get(target, prop, receiver);
+  //     }
+  //   },
+  // }) as Camera;
+
   // render
   return <>
     {/* controls */}
-    {!moving && <MapControls target={playerControlsRef.current?.position ?? new Vector3(0, -1, 0)} />}
+    {!moving && <MapControls
+      // camera={fakeCamera}
+      target={playerControlsRef.current?.position ?? new Vector3(coord.x, -1, coord.z)}
+    />}
     {/* lighting */}
     <ambientLight />
     <directionalLight position={[1, 1, 1]} />
@@ -1026,7 +1073,9 @@ const MapScene = ({
       //   console.log('keyboard controls', name, pressed, state);
       // }}
     >
-      <Controllable
+      <ControllableObject
+        position={[coord.x, 0, coord.z]}
+        onMove={onMove}
         onMoving={setMoving}
         ref={playerControlsRef}
       >
@@ -1034,7 +1083,7 @@ const MapScene = ({
         <MiniPlayer
           pfpUrl=""
         />
-      </Controllable>
+      </ControllableObject>
     </KeyboardControls>
     {/* plane mesh */}
     {(() => {
@@ -1077,23 +1126,72 @@ const MapScene = ({
   </>
 }
 
+const debounce = (fn: (...args: any[]) => any, delay: number) => {
+  let lastRunTime = -Infinity;
+  let timeout: any = null;
+  const debouncedFn = (...args: any[]) => {
+    const now = Date.now();
+    if (now - lastRunTime > delay) {
+      lastRunTime = now;
+      fn(...args);
+    } else {
+      if (timeout) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      const delayRemaining = delay - (now - lastRunTime);
+      timeout = setTimeout(() => {
+        lastRunTime = Date.now();
+        fn(...args);
+      }, delayRemaining);
+    }
+  };
+  debouncedFn.cancel = () => {
+    lastRunTime = -Infinity;
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  };
+  return debouncedFn;
+};
+
 function MapComponent({
   id,
   edit = false,
+  coord = {
+    x: 0,
+    z: 0,
+  },
+  onMove,
 }: {
-  id?: string,
+  id: string,
   edit?: boolean,
+  coord?: Coord2D,
+  onMove?: (position: Vector3) => any,
+  onMoveRate?: number,
 }) {
+  const [loadState, setLoadState] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventTarget = useMemo(() => new EventTarget(), []);
   const [focused, setFocused] = useState(true);
 
+  if (loadState) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        {loadState}
+      </div>
+    );
+  }
   return (
     <div className="relative w-screen h-[calc(100vh-64px)]">
       <Canvas
         camera={{
-          position: [0, 1, 0],
-          quaternion: new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2),
+          position: [coord.x, 1, coord.z],
+          // position: [0, 1, 0],
+          // position: [0, 1, 0],
+          // quaternion: new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2).toArray(),
+          // up: [0, 0, -1],
         }}
         onCreated={({ gl }) => {
           gl.toneMapping = NoToneMapping;
@@ -1114,7 +1212,11 @@ function MapComponent({
             // debug
           > */}
             <MapScene
+              id={id}
               edit={edit}
+              coord={coord}
+              onMove={onMove}
+              loadState={[loadState, setLoadState]}
               eventTarget={eventTarget}
               focused={focused}
             />

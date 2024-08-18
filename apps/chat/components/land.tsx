@@ -1309,7 +1309,7 @@ const LandCanvas1D = ({
   eventTarget,
 }: LandCanvasProps) => {
   const [prompt, setPrompt] = useState(() => {
-    console.log('loaded', landSpec.prompt, structuredClone(landSpec));
+    // console.log('loaded prompt', landSpec.prompt, structuredClone(landSpec));
     return landSpec.prompt;
   });
 
@@ -2463,42 +2463,37 @@ const LandLayer = ({
     // the first layer is always enabled
     layerSpecIndex === 0;
 
-  console.log('check enabled', {maxValidLayerIndex, layerSpecIndex, isEnabled, landSpec});
-
   // render
-  if (!loadState) {
-    if (isEnabled) {
-      return (
-        <LayerComponent
-          landSpec={[landSpec, setLandSpec]}
-          loadState={[loadState, setLoadState]}
-          eventTarget={eventTarget}
-        />
-      );
-    } else {
-      return (
-        <div className="mx-auto max-w-4xl">
-          Layer missing data
-        </div>
-      );
-    }
-  } else {
+  if (loadState) {
     return (
       <div className="mx-auto max-w-4xl">
         {loadState}
       </div>
     );
   }
+  if (!isEnabled) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        Layer missing data
+      </div>
+    );
+  }
+  return (
+    <LayerComponent
+      landSpec={[landSpec, setLandSpec]}
+      loadState={[loadState, setLoadState]}
+      eventTarget={eventTarget}
+    />
+  );
 }
 
-type LandProps = {
-  id?: string,
-  edit?: boolean,
-};
 export function Land({
   id,
   edit = false,
-}: LandProps) {
+}: {
+  id: string,
+  edit?: boolean,
+}) {
   const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
   const [loadState, setLoadState] = useState<string | null>(null);
   const [landSpec, setLandSpec] = useState<LandSpec>(makeEmptyLandSpec);
