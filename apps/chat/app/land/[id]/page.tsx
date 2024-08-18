@@ -6,11 +6,11 @@ import { useSearchParams } from 'next/navigation'
 export default function LandPage({
   id,
 }: {
-  string,
+  id: string,
 }) {
   // parse the query string
   const query = useSearchParams();
-  const edit = !!query.get('edit');
+  const edit = query.get('edit') !== null;
   
   return (
     <Land

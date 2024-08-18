@@ -2492,7 +2492,7 @@ const LandLayer = ({
 }
 
 type LandProps = {
-  id: string,
+  id?: string,
   edit?: boolean,
 };
 export function Land({
