@@ -3372,6 +3372,7 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
+  const dev = !!args.dev;
   const guidOrDevPathIndex = // guid or dev path index
     args._[0] ??
     (dev
