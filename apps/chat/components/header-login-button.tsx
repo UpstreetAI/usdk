@@ -16,26 +16,28 @@ export function HeaderLoginButton({
   const [isLoading, setIsLoading] = React.useState(false)
 
   return (
-    <Button
-      variant="ghost"
-      onClick={async () => {
-        setIsLoading( true )
-        // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-        await redirectToLoginTool()
-      }}
-      disabled={isLoading}
-      className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded-none")}
-      {...props}
-    >
-      <div className="mr-2">
-        {
-          isLoading
-            ? <IconSpinner className="animate-spin"/>
-            : <IconLogin className='mr-2 size-5' />
-        }
-      </div>
+    <div className='flex mr-4'>
+      <Button
+        variant="ghost"
+        onClick={async () => {
+          setIsLoading( true )
+          // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
+          await redirectToLoginTool()
+        }}
+        disabled={isLoading}
+        className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded")}
+        {...props}
+      >
+        <div className="mr-2">
+          {
+            isLoading
+              ? <IconSpinner className="animate-spin"/>
+              : <IconLogin className='mr-2 size-5' />
+          }
+        </div>
 
-      <span>Login</span>
-    </Button>
-  )
+        <span>Login</span>
+      </Button>
+    </div>
+  );
 }

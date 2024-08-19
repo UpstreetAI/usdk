@@ -1,10 +1,11 @@
 'use client'
 
 import React from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link';
 import { ChatMessage } from '@/components/chat/chat-message'
 // import { ChatMessageOld } from '@/components/chat/chat-message-old'
 // import { type User } from '@supabase/supabase-js';
-import { useEffect, useState } from 'react'
 // import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat/chat-list'
@@ -20,21 +21,28 @@ import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 // import { resolveRelativeUrl } from '@/lib/utils'
 import { useSupabase } from '@/lib/hooks/use-supabase';
 
+
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 
 import { Button } from '@/components/ui/button'
+import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 
+type MessageMedia = {
+  type: string
+  url: string
+}
 type Message = {
   args: {
-    text: string
-    audio?: string
-    image?: string
-    video?: string
+    text?: string
+    // audio?: string
+    // image?: string
+    // video?: string
+    media?: MessageMedia
   }
 
   method: string
   name: string
-  timestamp: number
+  timestamp: Date
   userId: string
 }
 
@@ -48,8 +56,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 
 export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps) {
-  const router = useRouter()
-  const path = usePathname()
+  // const router = useRouter()
+  // const path = usePathname()
   const [input, setInput] = useState('')
   // const [messages] = useUIState()
   // const [aiState] = useAIState()
@@ -62,19 +70,23 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     messages: rawMessages,
     setMultiplayerConnectionParameters,
     sendRawMessage,
-    sendChatMessage,
+    // sendChatMessage,
   } = useMultiplayerActions()
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
+    const message = {
+      ...rawMessage,
+      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
+    };
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, rawMessage, playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index + '', playersCache, sendRawMessage),
       };
     // } else {
     //   return null;
     // }
-  }).filter((message) => message !== null) as unknown as any[];
+  })/*.filter((message) => message !== null) as unknown */as any[];
 
   /*useEffect(() => {
     if (user) {
@@ -103,7 +115,6 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
 
   useEffect(() => {
     if (room && user) {
-      console.log('got user', user);
       const localPlayerSpec: PlayerSpec = {
         id: (user as any).id as string,
         name: (user as any).name as string,
@@ -120,11 +131,13 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   }, [room, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor()
+    useScrollAnchor();
 
+  const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
+  
   return (
     <div
-      className="group w-full overflow-auto pl-0 peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
+      className={`group w-full duration-300 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
       ref={scrollRef}
     >
       <div
@@ -155,7 +168,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   )
 }
 
-function getMessageComponent(room: string, message: Message, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
+function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
  
   switch (message.method) {
 
@@ -178,29 +191,30 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       const player = playersCache.get(message.userId);
 
-      let media = null;
+      // let media = null;
 
-      if(message.args.audio) media = { type: 'audio', url: message.args.audio };
-      if(message.args.video) media = { type: 'video', url: message.args.video };
-      if(message.args.image) media = { type: 'image', url: message.args.image };
+      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
+      // if(message.args.video) media = { type: 'video', url: message.args.video };
+      // if(message.args.image) media = { type: 'image', url: message.args.image };
 
       // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
       // Usage:
       // test audio [AUDIO_URL]
       // test video [VIDEO_URL]
       // test image [IMAGE_URL]
-      const match = message.args.text.match(/\[([^\]]+)\]/);
-      const url = match && match[1]
-      if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
-      if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
-      if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
+      // const match = message.args.text.match(/\[([^\]]+)\]/);
+      // const url = match && match[1]
+      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
+      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
+      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
       // TEST MESSAGE COMPONENTS END
 
       return (
         <ChatMessage
-          content={message.args.text}
+          id={id}
           name={ message.name }
-          media={ media }
+          content={message.args.text}
+          media={message.args.media}
           player={player}
           room={room}
           timestamp={message.timestamp}
@@ -215,20 +229,37 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       let media = null;
 
+      const {
+        args,
+      } = message;
+      const {
+        amount,
+        currency,
+        url,
+        productName,
+        productDescription,
+        productQuantity,
+      } = args as any;
+
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
                 <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
-                <div className="mb-4">{(message.args as any).description}</div>
-                <Button onClick={e => {
+                <div className="mb-4">{productQuantity} x {productName}: {productDescription}</div>
+                <div className="mb-4">{amount / 100} {currency}</div>
+                {/* <Button onClick={e => {
                   sendRawMessage('paymentResponse', {
                     description: 'Payment accepted',
-                    amount: (message.args as any).amount,
-                    currency: (message.args as any).currency,
+                    amount,
+                    currency,
                   });
-                }}>Pay {(message.args as any).amount / 100} {(message.args as any).currency}</Button>
+                }}>Pay {amount / 100} {currency}</Button> */}
+                <Link href={url}>
+                  <Button>Checkout</Button>
+                </Link>
               </div>
             </>
           }
@@ -250,6 +281,7 @@ function getMessageComponent(room: string, message: Message, playersCache: Map<s
 
       return (
         <ChatMessage
+          id={id}
           content={
             <>
               <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">

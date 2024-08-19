@@ -2,11 +2,11 @@
 
 import { Button } from '@/components/ui/button'
 import { IconEdit } from '@/components/ui/icons'
-import { r2Endpoint } from '@/utils/const/endpoints'
+import { r2EndpointUrl } from '@/utils/const/endpoints'
 import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { resolveRelativeUrl } from '@/lib/utils'
+import { isValidUrl, resolveRelativeUrl } from '@/lib/utils'
 
 
 export interface ProfileImageProps {
@@ -15,16 +15,16 @@ export interface ProfileImageProps {
 }
 
 export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
-  const { supabase } = useSupabase()
+  const { supabase } = useSupabase();
 
   return (
-    <div className="m-auto mb-3 relative">
+    <div className="mr-8 relative">
       <Image
         alt=""
-        className="border-2 rounded-3xl drop-shadow-xl"
-        src={resolveRelativeUrl( user.preview_url )}
+        src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}
         height={100}
         width={100}
+        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48"
       />
       {userIsCurrentUser ? (
         <Button
@@ -40,7 +40,7 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
               if (extension) {
                 const imageID = crypto.randomUUID()
 
-                const url = `${r2Endpoint}/${user.id}/${imageID}.${extension}`
+                const url = `${r2EndpointUrl}/${user.id}/${imageID}.${extension}`
 
                 try {
                   const res = await fetch(url, {

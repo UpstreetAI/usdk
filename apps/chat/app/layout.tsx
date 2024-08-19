@@ -9,6 +9,7 @@ import { Providers } from '@/components/providers'
 import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 import { Body } from '@/components/body'
+import Footer from '@/components/ui/Footer'
 
 
 export const metadata = {
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           {/*</Suspense>*/}
 
           <TailwindIndicator/>
+          <Footer />
         </Providers>
       </body>
     </html>

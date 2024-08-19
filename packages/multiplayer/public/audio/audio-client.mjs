@@ -1,10 +1,10 @@
 // import {UPDATE_METHODS} from '../update-types.js';
-// import {parseUpdateObject, makeId} from '../util.mjs';
 // import {zbencode} from '../../../zjs/encoding.mjs';
 // import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
-import {WsMediaStreamAudioReader, OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder, FakeAudioData} from './ws-codec.js';
-import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './ws-util.js';
-import {makeId, makePromise} from '../../../engine/util.js';
+import {WsMediaStreamAudioReader, OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder, FakeAudioData} from './ws-codec.mjs';
+import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './audio-util.mjs';
+import { makeId, makePromise } from '../util.mjs';
+
 
 //
 // AUDIO OUTPUTS
@@ -373,6 +373,7 @@ export function createMp3MicrophoneSource({
 
 export function createMp3DecodeTransformStream({
   sampleRate,
+  format = 'f32',
 }) {
   if (!sampleRate) {
     debugger;
@@ -408,6 +409,7 @@ export function createMp3DecodeTransformStream({
   }
   const audioDecoder = new Mp3AudioDecoder({
     sampleRate,
+    format,
     output: muxAndSend,
     error: onDecoderError,
   });

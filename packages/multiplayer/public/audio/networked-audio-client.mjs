@@ -6,29 +6,77 @@ import {handlesMethod} from './networked-audio-client-utils.mjs';
 export class NetworkedAudioClient extends EventTarget {
   constructor({
     playerId = makeId(),
-    audioManager,
+    // audioManager,
   }) {
     super();
 
     this.playerId = playerId;
-    this.audioManager = audioManager;
+    // this.audioManager = audioManager;
 
     this.ws = null;
 
     this.audioSourceCleanups = new Map(); // playerId:streamId -> function
-    this.outputAudioStreams = new Map(); // playerId:streamId -> stream
+    // this.outputAudioStreams = new Map(); // playerId:streamId -> stream
   }
 
-  addAudioSource(audioSource) {
+  addAudioSource(playableAudioStream) {
     // console.log('add audio source', new Error().stack);
 
-    // add the cleanup fn
     const {
       id,
-      output,
-    } = audioSource;
+      // output,
+      type,
+    } = playableAudioStream;
+    if (typeof id !== 'string') {
+      throw new Error('audio source id must be a string');
+    }
+    if (typeof type !== 'string') {
+      throw new Error('audio source type must be a string');
+    }
+
+    // const id = crypto.randomUUID();
+
+    // console.log('send start', [
+    //   this.playerId,
+    //   id,
+    //   type,
+    // ]);
+    this.ws.send(zbencode({
+      method: UPDATE_METHODS.AUDIO_START,
+      args: [
+        this.playerId,
+        id,
+        type,
+      ],
+    }));
+
+    // pump the reader
+    let live = true;
+    const finishPromise = (async () => {
+      for await (const chunk of playableAudioStream) {
+        if (live) {
+          // console.log('send audio', [
+          //   this.playerId,
+          //   id,
+          //   chunk,
+          // ]);
+          this.ws.send(zbencode({
+            method: UPDATE_METHODS.AUDIO,
+            args: [
+              this.playerId,
+              id,
+              chunk,
+            ],
+          }));
+        } else {
+          break;
+        }
+      }
+    })();
+
+    // add the cleanup fn
     const cleanup = () => {
-      output.removeEventListener('data', data);
+      live = false;
 
       // console.log('send audio end', [
       //   this.playerId,
@@ -44,34 +92,22 @@ export class NetworkedAudioClient extends EventTarget {
     };
     this.audioSourceCleanups.set(id, cleanup);
 
-    const data = e => {
-      // console.log('send data', [
-      //   this.playerId,
-      //   id,
-      //   e.data,
-      // ]);
-      this.ws.send(zbencode({
-        method: UPDATE_METHODS.AUDIO,
-        args: [
-          this.playerId,
-          id,
-          e.data,
-        ],
-      }));
+    return {
+      waitForFinish: () => finishPromise,
     };
-    output.addEventListener('data', data);
   }
 
-  removeAudioSource(microphoneSource) {
-    console.log('remove audio source');
-    this.audioSourceCleanups.get(microphoneSource.id)();
-    this.audioSourceCleanups.delete(microphoneSource.id);
+  removeAudioSource(readableAudioStream) {
+    // console.log('remove audio source');
+    const cleanupFn = this.audioSourceCleanups.get(readableAudioStream.id);
+    cleanupFn();
+    this.audioSourceCleanups.delete(readableAudioStream.id);
   }
 
   async connect(ws) {
     this.ws = ws;
 
-    await new Promise((resolve, reject) => {
+    const _waitForOpen = () => new Promise((resolve, reject) => {
       resolve = (resolve => () => {
         resolve();
         _cleanup();
@@ -89,6 +125,7 @@ export class NetworkedAudioClient extends EventTarget {
         this.ws.removeEventListener('error', reject);
       };
     });
+    await _waitForOpen();
 
     // console.log('irc listen');
     this.ws.addEventListener('message', e => {
@@ -124,6 +161,20 @@ export class NetworkedAudioClient extends EventTarget {
           playerId,
           streamId,
           data,
+        },
+      }));
+    } else if (method === UPDATE_METHODS.AUDIO_START) {
+      const [
+        playerId,
+        streamId,
+        type,
+      ] = args;
+
+      this.dispatchEvent(new MessageEvent('audiostart', {
+        data: {
+          playerId,
+          streamId,
+          type,
         },
       }));
     } else if (method === UPDATE_METHODS.AUDIO_END) {

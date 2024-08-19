@@ -23,11 +23,11 @@ export function Header() {
         </div>
       </div>
       <SearchBar/>
-      <div className='md:m-w-[200px] md:w-[200px]'>
+      {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
         <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
           <AccountOrLogin/>
         </React.Suspense>
-      </div>
+      {/* </div> */}
     </header>
   );
 }

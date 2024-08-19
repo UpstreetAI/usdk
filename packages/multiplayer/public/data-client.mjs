@@ -1139,7 +1139,7 @@ export class NetworkedDataClient extends EventTarget {
   async connect(ws) {
     this.ws = ws;
 
-    await new Promise((resolve, reject) => {
+    const _waitForOpen = () => new Promise((resolve, reject) => {
       resolve = (resolve => () => {
         resolve();
         _cleanup();
@@ -1157,7 +1157,6 @@ export class NetworkedDataClient extends EventTarget {
         this.ws.removeEventListener('error', reject);
       };
     });
-
     const _waitForInitialImport = async () => {
       await new Promise((resolve, reject) => {
         const initialMessage = e => {
@@ -1203,7 +1202,10 @@ export class NetworkedDataClient extends EventTarget {
         this.ws.addEventListener('message', initialMessage);
       });
     };
-    await _waitForInitialImport();
+    await Promise.all([
+      _waitForOpen,
+      _waitForInitialImport(),
+    ]);
 
     const mainMessage = e => {
       // if some other listener hasn't consumed the message already
