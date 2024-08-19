@@ -556,7 +556,7 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
+const startDevServer = async ({ directory = cwd } = {}, portIndex = 0, {
   debug = false,
 } = {}) => {
   // spawn the wrangler child process
@@ -566,7 +566,7 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
     {
       stdio: 'pipe',
       // stdio: 'inherit',
-      cwd: agentDirectory,
+      cwd: directory,
     },
   );
   bindProcess(cp);
