@@ -3382,8 +3382,6 @@ const join = async (args) => {
         }
       : '');
   const room = args._[1] ?? makeRoomName();
-  const dev = !!args.dev;
-  // const debug = !!args.debug;
 
   const _joinAgent = async () => {
     const agentHost = getAgentHost(
