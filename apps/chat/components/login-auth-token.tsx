@@ -28,18 +28,18 @@ async function getJWTFromOtp() {
   let href = location.href;
 
   // bugfix supabase munging the URL by simply appending ?auth_token=... to the end...
-  {
-    let match;
-    if ((match = href.match(/(\?auth_token=([A-Za-z0-9+/=]+))$/))) {
-      const end = match[1];
-      const authToken = match[2];
-      const start = href.slice(0, href.length - end.length);
+  // {
+  //   let match;
+  //   if ((match = href.match(/(\?auth_token=([A-Za-z0-9+/=]+))$/))) {
+  //     const end = match[1];
+  //     const authToken = match[2];
+  //     const start = href.slice(0, href.length - end.length);
 
-      const tempUrl = new URL(start);
-      tempUrl.searchParams.set('auth_token', authToken);
-      href = tempUrl.toString();
-    }
-  }
+  //     const tempUrl = new URL(start);
+  //     tempUrl.searchParams.set('auth_token', authToken);
+  //     href = tempUrl.toString();
+  //   }
+  // }
 
   const u = new URL(href);
   const { searchParams } = u;
