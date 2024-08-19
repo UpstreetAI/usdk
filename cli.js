@@ -185,16 +185,9 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
 };
 const getAgentName = (guid) => `user-agent-${guid}`;
 const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
-const getAgentHost = (guidOrPortIndex) => {
-  const agentHost = typeof guidOrPortIndex === 'string'
-    ? `https://${getAgentName(guidOrPortIndex)}.${workersHost}`
-    : `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
-  return agentHost;
-};
-/* const pause = () =>
-  new Promise((accept, reject) => {
-    // nothing
-  }); */
+const getLocalAgentHost = (portIndex = 0) => `http://localhost:${devServerPort + portIndex}`;
+const getCloudAgentHost = (guid) => `https://${getAgentName(guid)}.${workersHost}`;
+const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost() : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
@@ -347,22 +340,6 @@ const putFile = async (pathname, file) => {
   const j = await res.json();
   return j;
 };
-/* const getFiles = async (agentDirectory) => {
-  let files = await recursiveReaddir(agentDirectory);
-  // filter out directories
-  const filterDirectories = ['node_modules', '.git'];
-  files = files.filter((filePath) => {
-    const parts = filePath.split(path.sep);
-    for (const filterDirectory of filterDirectories) {
-      if (parts.includes(filterDirectory)) {
-        return false;
-      }
-    }
-    return true;
-  });
-  files = files.map((f) => f.slice(agentDirectory.length + 1));
-  return files;
-}; */
 const getLoginJwt = async () => {
   const loginFile = await tryReadFileAsync(loginLocation);
   if (loginFile) {
@@ -491,7 +468,7 @@ const ensureAgentJsonDefaults = (spec) => {
 };
 const compileAgentJson = (agentJson, { guid, name, description, stripeConnectAccountId, walletAddress }) => {
   agentJson.id = guid;
-  agentJson.startUrl = getAgentHost(guid);
+  agentJson.startUrl = getCloudAgentHost(guid);
   if (name) {
     agentJson.name = name;
   }
@@ -579,7 +556,7 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
+const startDevServer = async ({ directory = cwd } = {}, portIndex = 0, {
   debug = false,
 } = {}) => {
   // spawn the wrangler child process
@@ -589,7 +566,7 @@ const startDevServer = async ({ agentDirectory = cwd, portIndex = 0 } = {}, {
     {
       stdio: 'pipe',
       // stdio: 'inherit',
-      cwd: agentDirectory,
+      cwd: directory,
     },
   );
   bindProcess(cp);
@@ -1598,31 +1575,6 @@ const connect = async (args) => {
     process.exit(1);
   }
 };
-/* const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
-  new Promise((accept, reject) => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-    // console.log('got agent host', guidOrDevPathIndex, agentHost);
-    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
-    // console.log('handle websocket', u);
-    // await pause();
-    const ws = new WebSocket(u);
-    ws.addEventListener('open', () => {
-      accept(ws);
-    });
-    ws.addEventListener('message', (e) => {
-      // const message = e.data;
-      // console.log('got ws message', guid, message);
-    });
-    ws.addEventListener('error', (err) => {
-      console.warn('unhandled ws rejection', err);
-      reject(err);
-    });
-    // ws.addEventListener('message', (e) => {
-    //   console.log('got ws message', e);
-    // });
-  }); */
 const getGuidFromPath = async (p) => {
   const makeEnoent = () => new Error('not in an agent directory');
 
@@ -1644,47 +1596,66 @@ const getGuidFromPath = async (p) => {
     }
   }
 };
-const normalizeGuidInputs = async (guidsOrDevPathIndexes, { dev }) => {
-  if (guidsOrDevPathIndexes.length === 0) {
-    if (!dev) {
-      const guid = await getGuidFromPath(cwd);
-      guidsOrDevPathIndexes = [guid];
-    } else {
-      guidsOrDevPathIndexes = [{
-        agentDirectory: cwd,
-        portIndex: 0,
-      }];
-    }
-  } else {
-    if (!dev) {
-      guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        if (isGuid(guidOrDevPathIndex)) {
-          return guidOrDevPathIndex;
-        } else {
-          const guid = await getGuidFromPath(guidOrDevPathIndex);
-          return guid;
-        }
-      }));
-    }
+/*
+returns: [{ guid: string, directory: string | null }]
+*/
+const parseAgentSpecs = async (agentRefSpecs = []) => {
+  if (!Array.isArray(agentRefSpecs)) {
+    throw new Error('expected agent ref specs to be an array; got ' + JSON.stringify(agentRefSpecs));
   }
-  return guidsOrDevPathIndexes;
+  if (!agentRefSpecs.every((agentRefSpec) => typeof agentRefSpec === 'string')) {
+    throw new Error('expected agent ref specs to be strings; got ' + JSON.stringify(agentRefSpecs));
+  }
+
+  if (agentRefSpecs.length === 0) {
+    // if no agent refs are provided, use the current directory
+    const directory = cwd;
+    const guid = await getGuidFromPath(directory);
+    return [
+      {
+        ref: directory,
+        guid,
+        directory,
+      },
+    ];
+  } else {
+    console.log('case 2', agentRefSpecs);
+    // treat each agent ref as a guid or directory
+    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec) => {
+      if (isGuid(agentRefSpec)) {
+        // if it's a cloud agent
+        return {
+          ref: agentRefSpec,
+          guid: agentRefSpec,
+          directory: null,
+        };
+      } else {
+        // if it's a directory agent
+        const directory = agentRefSpec;
+        const guid = await getGuidFromPath(directory);
+        return {
+          ref: directory,
+          guid,
+          directory,
+        };
+      }
+    });
+    return await Promise.all(agentSpecsPromises);
+  }
 };
 const chat = async (args) => {
   // console.log('got chat args', JSON.stringify(args));
-  let guidsOrDevPathIndexes = args._[0] ?? [];
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
-
-  // ensure guids
-  guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, { dev });
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start the dev agents, if applicable
     if (dev) {
-      const devServerPromises = guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        const cp = await startDevServer(guidOrDevPathIndex, {
+      const devServerPromises = agentSpecs.map(async (agentSpec, index) => {
+        const cp = await startDevServer(agentSpec, index, {
           debug,
         });
         return cp;
@@ -1694,9 +1665,9 @@ const chat = async (args) => {
 
     // wait for agents to join the multiplayer room
     await Promise.all(
-      guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+      agentSpecs.map(async (agentSpec) => {
         await join({
-          _: [guidOrDevPathIndex, room],
+          _: [agentSpec.ref, room],
           dev,
           // debug,
         });
@@ -1712,14 +1683,14 @@ const chat = async (args) => {
       local: args.local,
     });
 
-    return {
-      // ws: webSockets[0],
-      close: () => {
-        for (const ws of webSockets) {
-          ws.close();
-        }
-      },
-    };
+    // return {
+    //   // ws: webSockets[0],
+    //   close: () => {
+    //     for (const ws of webSockets) {
+    //       ws.close();
+    //     }
+    //   },
+    // };
   } else {
     console.log('not logged in');
     process.exit(1);
@@ -1811,16 +1782,13 @@ const chat = async (args) => {
   };
 }; */
 const logs = async (args) => {
-  let guidsOrDevPathIndexes = args._[0] ?? [];
-
-  guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, {
-    dev: false,
-  });
+  const agentSpecs = await parseAgentSpecs(args._[0]);
 
   const jwt = await getLoginJwt();
   if (jwt) {
-    const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
-      const u = `${deployEndpointUrl}/agents/${guidOrDevPathIndex}/logs`;
+    const eventSources = agentSpecs.map((agentSpec) => {
+      const { directory } = agentSpec;
+      const u = `${deployEndpointUrl}/agents/${directory}/logs`;
       const eventSource = new EventSource(u, {
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -1855,42 +1823,21 @@ const logs = async (args) => {
   }
 };
 const listen = async (args) => {
-  let guidsOrDevPathIndexes = args._[0] ?? [];
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const dev = !!args.dev;
   const debug = !!args.debug;
 
-  // ensure guids
-  if (guidsOrDevPathIndexes.length === 0) {
-    if (!dev) {
-      const guid = await getGuidFromPath(cwd);
-      guidsOrDevPathIndexes = [guid];
-    } else {
-      guidsOrDevPathIndexes = [{
-        agentDirectory: cwd,
-        portIndex: 0,
-      }];
-    }
-  } else {
-    if (!dev) {
-      guidsOrDevPathIndexes = await Promise.all(guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
-        if (isGuid(guidOrDevPathIndex)) {
-          return guidOrDevPathIndex;
-        } else {
-          const guid = await getGuidFromPath(guidOrDevPathIndex);
-          return guid;
-        }
-      }));
-    }
-  }
+  const localAgentSpecs = agentSpecs.filter((agentSpec) => !!agentSpec.directory);
+  const cloudAgentSpecs = agentSpecs.filter((agentSpec) => !agentSpec.directory);
 
   let webSockets = [];
   if (dev) {
     // wait for agents to join the multiplayer 
     const room = makeRoomName();
     await Promise.all(
-      guidsOrDevPathIndexes.map(async (guidOrDevPathIndex) => {
+      localAgentSpecs.map(async (agentSpec) => {
         await join({
-          _: [guidOrDevPathIndex, room],
+          _: [agentSpec.ref, room],
           local: args.local,
           dev,
           debug,
@@ -1903,13 +1850,8 @@ const listen = async (args) => {
     );
   }
 
-
-  const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-
-    const eventSource = new EventSource(`${agentHost}/events`);
+  const connectEventSource = (src) => {
+    const eventSource = new EventSource(src);
     eventSource.addEventListener('message', (e) => {
       const j = JSON.parse(e.data);
       console.log('event source', j);
@@ -1920,7 +1862,15 @@ const listen = async (args) => {
     eventSource.addEventListener('close', (e) => {
       process.exit(0);
     });
-  });
+    return eventSource;
+  }
+
+  const eventsPath = `/events`;
+  const eventSources = localAgentSpecs.map((agentSpec, index) =>
+    connectEventSource(`${getLocalAgentHost(index)}${eventsPath}`)
+  ).concat(cloudAgentSpecs.map((agentSpec) =>
+    connectEventSource(`${getCloudAgentHost(agentSpec.guid)}${eventsPath}`)
+  ));
 
   return {
     // ws: webSockets[0],
@@ -2723,11 +2673,11 @@ const ensureNpmRoot = (() => {
     return npmRootPromise;
   };
 })();
-const runJest = async (agentDirectory) => {
+const runJest = async (directory) => {
   const npmRoot = await ensureNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
-    cwd: agentDirectory,
+    cwd: directory,
     env: {
       NODE_PATH: npmRoot, // needed to import usdk
     },
@@ -2824,21 +2774,17 @@ const extractZip = async (zipBuffer, tempPath) => {
   };
 };
 const test = async (args) => {
-  let guidsOrDevPathIndexes = args._[0] ?? [];
   const all = !!args.all;
   const dev = true;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    const runAgentTest = async (guidOrDevPathIndex) => {
+    const runAgentTest = async (agentSpec, index) => {
       // console.log('got chat args', JSON.stringify(args));
-      const {
-        agentDirectory,
-      } = guidOrDevPathIndex;
 
       // start the dev agents
-      const cp = await startDevServer(guidOrDevPathIndex, {
+      const cp = await startDevServer(agentSpec, index, {
         debug,
       });
 
@@ -2864,7 +2810,7 @@ const test = async (args) => {
 
       // run tests
       try {
-        await runJest(agentDirectory);
+        await runJest(agentSpec.directory);
       } finally {
         // clean up
         realms.disconnect();
@@ -2875,13 +2821,13 @@ const test = async (args) => {
       console.log('running template test: ' + template);
 
       // create the template
-      const agentDirectory = await makeTempDir();
+      const testDirectory = await makeTempDir();
       await create({
-        _: [agentDirectory],
+        _: [testDirectory],
         template,
       });
 
-      await runAgentTest(agentDirectory);
+      await runAgentTest(testDirectory);
     };
 
     if (all) {
@@ -2890,9 +2836,10 @@ const test = async (args) => {
         await testTemplate(template);
       }
     } else {
-      guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, { dev });
-      for (const guidOrDevPathIndex of guidsOrDevPathIndexes) {
-        await runAgentTest(guidOrDevPathIndex);
+      const agentSpecs = parseAgentSpecs(args._[0]);
+      for (let i = 0; i < agentSpecs.length; i++) {
+        const agentSpec = agentSpecs[i];
+        await runAgentTest(agentSpec, i);
       }
     }
   } else {
@@ -3061,7 +3008,7 @@ const capture = async (args) => {
 };
 const deploy = async (args) => {
   try {
-    const agentDirectory = args._[0] ?? cwd;
+    const agentDirectory = await parseAgentSpecs(args._[0]);
 
     // log in
     const jwt = await getLoginJwt();
@@ -3198,7 +3145,7 @@ const ls = async (args) => {
     const promises = [];
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
-      const agentHost = getAgentHost(agent.id);
+      const agentHost = getCloudAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
         const statusPromise = (async () => {
           const u = `${agentHost}/status`;
@@ -3374,132 +3321,72 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const dev = !!args.dev;
-  const guidOrDevPathIndex = // guid or dev path index
-    args._[0] ??
-    (dev
-      ? {
-          agentDirectory: cwd,
-          portIndex: 0,
-        }
-      : '');
+  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
+  // const dev = !!args.dev;
 
-  const _joinAgent = async () => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-    const u = `${agentHost}/join`;
-    const headers = {};
-    if (!dev) {
-      const jwt = await getLoginJwt();
-      headers.Authorization = `Bearer ${jwt}`;
-    }
-    const joinReq = await fetch(u, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        room,
-        only: true,
-      }),
-    });
-    if (joinReq.ok) {
-      const joinJson = await joinReq.json();
+  if (agentSpecs.length === 1) {
+    const _joinAgent = async (agentSpec, room) => {
+      const u = `${getAgentSpecHost(agentSpec)}/join`;
+      const joinReq = await fetch(u, {
+        method: 'POST',
+        body: JSON.stringify({
+          room,
+          only: true,
+        }),
+      });
+      if (joinReq.ok) {
+        const joinJson = await joinReq.json();
+        // console.log('join json', joinJson);
+      } else {
+        const text = await joinReq.text();
+        console.warn(
+          'failed to join, status code: ' + joinReq.status + ': ' + text,
+        );
+        process.exit(1);
+      }
+    };
 
-      // const ws = await connectAgentWs(guidOrDevPathIndex, {
-      //   dev,
-      // });
-      // return ws;
-    } else {
-      const text = await joinReq.text();
-      console.warn(
-        'failed to join, status code: ' + joinReq.status + ': ' + text,
-      );
-      process.exit(1);
-    }
-  };
-
-  // need guide and room
-  if (guidOrDevPathIndex) {
     if (room) {
-      return await _joinAgent();
+      return await _joinAgent(agentSpecs[0], room);
     } else {
       console.log('no room name provided');
       process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('expected 1 agent argument');
     process.exit(1);
   }
 };
 const leave = async (args) => {
-  const guid = args._[0] ?? '';
+  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? '';
-  const dev = !!args.dev;
+  // const dev = !!args.dev;
 
-  if (guid) {
+  if (agentSpecs.length === 1) {
     if (room) {
-      const jwt = await getLoginJwt();
-      const userId = jwt && (await getUserIdForJwt(jwt));
-      if (userId) {
-        const agentHost = getAgentHost(guid);
-        const leaveReq = await fetch(`${agentHost}/leave`, {
+      const _leaveAgent = async (agentSpec, room) => {
+        const u = `${getAgentSpecHost(agentSpec)}/leave`;
+        const leaveReq = await fetch(u, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
           body: JSON.stringify({
             room,
           }),
         });
-        const joinJson = await leaveReq.json();
-        console.log(joinJson);
-      } else {
-        console.log('not logged in');
-        process.exit(1);
-      }
+        const leaveJson = await leaveReq.json();
+        // console.log('leave json', leaveJson);
+      };
+
+      return await _leaveAgent(agentSpecs[0], room);
     } else {
       console.log('no room name provided');
       process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('expected 1 agent argument');
     process.exit(1);
   }
 };
-/* const enableDisable = (enabled) => async (args) => {
-  const guid = args._[0] ?? '';
-  const local = !!args.local;
-  const _agentsHost = local ? localAgentsHost : agentsHost;
-
-  if (guid) {
-    const jwt = await getLoginJwt();
-    // const userId = jwt && (await getUserIdForJwt(jwt));
-    // if (userId) {
-    if (jwt) {
-      const statusReq = await fetch(`${_agentsHost}/agents/${guid}/status`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({
-          enabled,
-        }),
-      });
-      const statusJson = await statusReq.json();
-
-      console.log(`enabled agent ${guid}:`, statusJson);
-    } else {
-      console.log('not logged in');
-      process.exit(1);
-    }
-  } else {
-    console.log('no guid provided');
-    process.exit(1);
-  }
-};
-const enable = enableDisable(true);
-const disable = enableDisable(false); */
 const voice = async (args) => {
   const subcommand = args._[0] ?? '';
   const subcommandArgs = args._[1] ?? [];
@@ -4004,23 +3891,7 @@ const main = async () => {
       // );
       await handleError(async () => {
         commandExecuted = true;
-        let args;
-        if (guids.length === 0) {
-          guids = [
-            {
-              agentDirectory: cwd,
-              portIndex: 0,
-            },
-          ];
-        } else {
-          guids = guids.map((guid, i) => {
-            return {
-              agentDirectory: path.join(cwd, guid),
-              portIndex: i,
-            };
-          });
-        }
-        args = {
+        const args = {
           _: [subcommand, guids],
           ...opts,
         };
