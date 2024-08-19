@@ -3891,23 +3891,7 @@ const main = async () => {
       // );
       await handleError(async () => {
         commandExecuted = true;
-        let args;
-        if (guids.length === 0) {
-          guids = [
-            {
-              agentDirectory: cwd,
-              portIndex: 0,
-            },
-          ];
-        } else {
-          guids = guids.map((guid, i) => {
-            return {
-              agentDirectory: path.join(cwd, guid),
-              portIndex: i,
-            };
-          });
-        }
-        args = {
+        const args = {
           _: [subcommand, guids],
           ...opts,
         };
