@@ -77,11 +77,7 @@ export const getMapUrlCoord = (u: URL) => {
     return undefined;
   }
 };
-export const setMapUrlCoord = async (coord: Coord2D, {
-  router,
-}: {
-  router: any,
-}) => {
+export const setMapUrlCoord = (coord: Coord2D) => {
   const u = new URL(location.href);
   u.searchParams.set('coord', `${coord.x.toFixed(2)}${coordSep}${coord.z.toFixed(2)}`);
   // const s = u.pathname + u.search;
@@ -89,6 +85,16 @@ export const setMapUrlCoord = async (coord: Coord2D, {
   // console.log('onMove replace', s, new Error().stack);
   // await router.replace(s);
   history.replaceState(null, '', s);
+};
+const roundToDecimals = (n: number, decimals: number) => {
+  const p = Math.pow(10, decimals);
+  return Math.round(n * p) / p;
+};
+export const snapCoord = (coord: Coord2D) => {
+  return {
+    x: roundToDecimals(coord.x, 2),
+    z: roundToDecimals(coord.z, 2),
+  } as Coord2D;
 };
 const getCoordsKey = (x: number, z: number) => `${x}${coordSep}${z}`;
 const getCoordKey = (coord: Coord2D) => getCoordsKey(coord.x, coord.z);
@@ -1228,24 +1234,26 @@ const MapScene = ({
   const { gl } = useThree();
   useEffect(() => {
     if (focused) {
-      const click = (tile: TileCandidateSpec) => {
+      const click = (tile: TileCandidateSpec, {
+        source,
+      }: {
+        source: 'click' | 'player',
+      }) => {
         if (tileSpecs.includes(tile as TileSpec)) {
           const { coord } = tile;
 
           setLoadState(`Loading [${String(coord.x)}, ${String(coord.z)}]...`);
-          (async () => {
-            await setMapUrlCoord(coord, {
-              router,
-            });
 
-            const urlString = makeLandUrl(coord, {
-              edit,
-            });
-            router.push(urlString);
-            // console.log('router pushed', urlString);
-          })().catch(e => {
-            console.error('click error', e);
+          const snappedPlayerCoord = (source === 'player' && playerControlsRef.current) ? snapCoord({
+            x: playerControlsRef.current.position.x,
+            z: playerControlsRef.current.position.z,
+          }) : coord;
+          setMapUrlCoord(snappedPlayerCoord);
+          const urlString = makeLandUrl(coord, {
+            edit,
           });
+          router.push(urlString);
+          // console.log('router pushed', urlString);
         } else if (tileCandidateSpecs.includes(tile)) {
           const { coord } = tile;
           const { x, z } = coord;
@@ -1304,7 +1312,9 @@ const MapScene = ({
                 getCoordKey(tileSpec.coord) === highlightedCoord
               ) ?? null;
             if (highlightedTile) {
-              click(highlightedTile);
+              click(highlightedTile, {
+                source: 'click',
+              });
             }
           }
         }
@@ -1325,7 +1335,9 @@ const MapScene = ({
                   getCoordKey(tileSpec.coord) === hoveredCoord
                 ) ?? null;
               if (hoveredTile) {
-                click(hoveredTile);
+                click(hoveredTile, {
+                  source: 'player',
+                });
               }
             }
             break;
