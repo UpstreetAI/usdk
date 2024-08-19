@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 
 
 const authTokenParam = 'auth_token'
+const referrerUrlParam = 'referrer_url'
 const aiHost = 'https://ai.upstreet.ai'
 // const aiHost = 'http://localhost:7998'
 const otpURL = `${aiHost}/api/otp`
@@ -24,11 +25,29 @@ export default function LoginAuthToken() {
 
 
 async function getJWTFromOtp() {
-  const
-    searchParams = new URL(location.href).searchParams,
-    authToken = searchParams.get(authTokenParam)
+  let href = location.href;
 
-  console.log( 'GET JWT!' )
+  // bugfix supabase munging the URL by simply appending ?auth_token=... to the end...
+  {
+    let match;
+    if ((match = href.match(/(\?auth_token=([A-Za-z0-9+/=]+))$/))) {
+      const end = match[1];
+      const authToken = match[2];
+      const start = href.slice(0, href.length - end.length);
+
+      const tempUrl = new URL(start);
+      tempUrl.searchParams.set('auth_token', authToken);
+      href = tempUrl.toString();
+    }
+  }
+
+  const u = new URL(href);
+  const { searchParams } = u;
+  const authToken = searchParams.get(authTokenParam);
+  const referrerUrl = searchParams.get(referrerUrlParam);
+  const nextUrl = referrerUrl || '/';
+
+  console.log( 'GET JWT!', { authToken, referrerUrl } )
 
   if ( authToken ){
     // Get JWT.
@@ -39,7 +58,6 @@ async function getJWTFromOtp() {
         const jwt = await res.text();
 
         if ( jwt ) {
-          const cookies = document.cookie
           document.cookie = `auth-jwt=${jwt}`
         } else {
           throw new Error()
@@ -48,7 +66,9 @@ async function getJWTFromOtp() {
     } catch(e) {
       console.warn('Failed to get JWT.')
     }
-
-    if (location.pathname !== '/') location.href = '/'
+  } else {
+    console.warn('No auth token passed.')
   }
+
+  location.href = nextUrl;
 }
