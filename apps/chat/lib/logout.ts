@@ -8,6 +8,7 @@ export function logout() {
       resolve();
     // }
   }).then(() => {
-    location.replace('/');
+    // location.replace('/');
+    location.reload();
   });
 }
