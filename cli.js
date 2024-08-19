@@ -3329,132 +3329,72 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const dev = !!args.dev;
-  const guidOrDevPathIndex = // guid or dev path index
-    args._[0] ??
-    (dev
-      ? {
-          agentDirectory: cwd,
-          portIndex: 0,
-        }
-      : '');
+  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
+  // const dev = !!args.dev;
 
-  const _joinAgent = async () => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-    const u = `${agentHost}/join`;
-    const headers = {};
-    if (!dev) {
-      const jwt = await getLoginJwt();
-      headers.Authorization = `Bearer ${jwt}`;
-    }
-    const joinReq = await fetch(u, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        room,
-        only: true,
-      }),
-    });
-    if (joinReq.ok) {
-      const joinJson = await joinReq.json();
+  if (agentSpecs.length === 1) {
+    const _joinAgent = async (agentSpec, room) => {
+      const u = `${getAgentSpecHost(agentSpec)}/join`;
+      const joinReq = await fetch(u, {
+        method: 'POST',
+        body: JSON.stringify({
+          room,
+          only: true,
+        }),
+      });
+      if (joinReq.ok) {
+        const joinJson = await joinReq.json();
+        // console.log('join json', joinJson);
+      } else {
+        const text = await joinReq.text();
+        console.warn(
+          'failed to join, status code: ' + joinReq.status + ': ' + text,
+        );
+        process.exit(1);
+      }
+    };
 
-      // const ws = await connectAgentWs(guidOrDevPathIndex, {
-      //   dev,
-      // });
-      // return ws;
-    } else {
-      const text = await joinReq.text();
-      console.warn(
-        'failed to join, status code: ' + joinReq.status + ': ' + text,
-      );
-      process.exit(1);
-    }
-  };
-
-  // need guide and room
-  if (guidOrDevPathIndex) {
     if (room) {
-      return await _joinAgent();
+      return await _joinAgent(agentSpecs[0], room);
     } else {
       console.log('no room name provided');
       process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('expected 1 agent argument');
     process.exit(1);
   }
 };
 const leave = async (args) => {
-  const guid = args._[0] ?? '';
+  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? '';
-  const dev = !!args.dev;
+  // const dev = !!args.dev;
 
-  if (guid) {
+  if (agentSpecs.length === 1) {
     if (room) {
-      const jwt = await getLoginJwt();
-      const userId = jwt && (await getUserIdForJwt(jwt));
-      if (userId) {
-        const agentHost = getAgentHost(guid);
-        const leaveReq = await fetch(`${agentHost}/leave`, {
+      const _leaveAgent = async (agentSpec, room) => {
+        const u = `${getAgentSpecHost(agentSpec)}/leave`;
+        const leaveReq = await fetch(u, {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-          },
           body: JSON.stringify({
             room,
           }),
         });
-        const joinJson = await leaveReq.json();
-        console.log(joinJson);
-      } else {
-        console.log('not logged in');
-        process.exit(1);
-      }
+        const leaveJson = await leaveReq.json();
+        // console.log('leave json', leaveJson);
+      };
+
+      return await _leaveAgent(agentSpecs[0], room);
     } else {
       console.log('no room name provided');
       process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('expected 1 agent argument');
     process.exit(1);
   }
 };
-/* const enableDisable = (enabled) => async (args) => {
-  const guid = args._[0] ?? '';
-  const local = !!args.local;
-  const _agentsHost = local ? localAgentsHost : agentsHost;
-
-  if (guid) {
-    const jwt = await getLoginJwt();
-    // const userId = jwt && (await getUserIdForJwt(jwt));
-    // if (userId) {
-    if (jwt) {
-      const statusReq = await fetch(`${_agentsHost}/agents/${guid}/status`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify({
-          enabled,
-        }),
-      });
-      const statusJson = await statusReq.json();
-
-      console.log(`enabled agent ${guid}:`, statusJson);
-    } else {
-      console.log('not logged in');
-      process.exit(1);
-    }
-  } else {
-    console.log('no guid provided');
-    process.exit(1);
-  }
-};
-const enable = enableDisable(true);
-const disable = enableDisable(false); */
 const voice = async (args) => {
   const subcommand = args._[0] ?? '';
   const subcommandArgs = args._[1] ?? [];
