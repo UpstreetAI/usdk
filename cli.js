@@ -3374,6 +3374,7 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
+  const dev = !!args.dev;
   const guidOrDevPathIndex = // guid or dev path index
     args._[0] ??
     (dev
@@ -3383,8 +3384,6 @@ const join = async (args) => {
         }
       : '');
   const room = args._[1] ?? makeRoomName();
-  const dev = !!args.dev;
-  // const debug = !!args.debug;
 
   const _joinAgent = async () => {
     const agentHost = getAgentHost(
