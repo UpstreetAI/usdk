@@ -244,6 +244,46 @@ const makeLandUrl = ({ x, z }: Coord2D, {
     .replace(/=&/g, '');
 };
 
+const isTileValid = (tileSpec: TileSpec) => (
+  !!tileSpec.json
+);
+const isTileGenerated = (tileSpec: TileSpec) => (
+  !!tileSpec.json &&
+  !!tileSpec.image
+);
+const ensureTile = async ({
+  tileSpec,
+  tileLoad,
+}: {
+  tileSpec: TileSpec,
+  tileLoad: TileLoad,
+}, {
+ prompt,
+ tileSpecs,
+}: {
+  prompt: string,
+  tileSpecs: TileSpec[],
+}, onChange: () => void) => {
+  const { coord } = tileSpec;
+
+  let { json } = tileSpec;
+  if (!json) {
+    json = await generateTileJson(coord, {
+      prompt,
+      tileSpecs,
+    });
+    tileSpec.json = json;
+    onChange();
+  }
+
+  let { image } = tileSpec;
+  if (!image) {
+    image = await generateTileImage(json);
+    tileSpec.image = image;
+    tileLoad.loading = false; // note: must happen before onChange so it gets picked up
+    onChange();
+  }
+};
 const generateTileJson = async (rootCoord: Coord2D, {
   prompt,
   tileSpecs,
@@ -1001,7 +1041,6 @@ const MapScene = ({
   const [tileSpecs, setTileSpecs] = useState<TileSpec[]>([]);
   const [tileCandidateSpecs, setTileCandidateSpecs] = useState<TileCandidateSpec[]>([]);
   const [tileLoads, setTileLoads] = useState<TileLoad[]>([]);
-  const [tileEpoch, setTileEpoch] = useState(0);
 
   const textureLoader = useMemo(() => new TextureLoader(), []);
 
@@ -1023,40 +1062,72 @@ const MapScene = ({
     };
   }, []);
 
-  // state helper
-  const updateTileEpoch = () => {
-    setTileEpoch(tileEpoch => tileEpoch + 1);
-  };
-
   // load helpers
-  const loadTiles = async ({
+  const loadTiles = ({
     signal,
   }: {
     signal?: AbortSignal,
   } = {}) => {
     setLoading(true);
-    const loadedTileSpecs = await tileLoader.load({
-      signal,
+
+    (async () => {
+      const tileSpecs = await tileLoader.load({
+        signal,
+      });
+      setTileSpecs(tileSpecs);
+
+      // ensure all tiles are generated
+      const newTileLoads = [];
+      for (const tileSpec of tileSpecs) {
+        if (!isTileGenerated(tileSpec)) {
+          const tileLoad = {
+            coord: structuredClone(tileSpec.coord),
+            loading: true,
+          };
+          newTileLoads.push(tileLoad);
+
+          (async () => {
+            await ensureTile({
+              tileSpec,
+              tileLoad,
+            }, {
+              prompt: promptString,
+              tileSpecs,
+            }, () => {
+              saveTiles(tileSpecs);
+              setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
+            });
+          })().catch((e: any) => {
+            console.error('ensure tile error', e, {
+              tileSpec,
+              tileLoad,
+            });
+          });
+        }
+      }
+      setTileLoads(newTileLoads);
+      
+      const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+      setTileCandidateSpecs(tileCandidateSpecs);
+    })().catch(e => {
+      console.error('load tiles error', e);
+    }).finally(() => {
+      setLoading(false);
     });
-    setTileSpecs(loadedTileSpecs);
-    
-    const tileCandidateSpecs = makeTileCandidateSpecs(loadedTileSpecs);
-    setTileCandidateSpecs(tileCandidateSpecs);
-    
-    setLoading(false);
   };
-  const saveTiles = async (tileSpecs: TileSpec[], {
+  const saveTiles = (tileSpecs: TileSpec[], {
     signal,
   }: {
     signal?: AbortSignal,
   } = {}) => {
-    await tileLoader.save(tileSpecs, {
-      signal,
+    (async () => {
+      await tileLoader.save(tileSpecs, {
+        signal,
+      });
+    })().catch(e => {
+      console.error('save tiles error', e);
     });
   };
-  const isTileSpecValid = (tileSpec: TileSpec) => (
-    !!tileSpec.json
-  );
   const makeTileCandidateSpecs = (tileSpecs: TileSpec[]) => {
     const result: TileCandidateSpec[] = [];
 
@@ -1069,7 +1140,7 @@ const MapScene = ({
 
       const seenTileCandidateKeys = new Set<string>();
       for (const tileSpec of tileSpecs) {
-        if (isTileSpecValid(tileSpec)) { // only expand out of valid tile specs
+        if (isTileValid(tileSpec)) { // only expand out of valid tile specs
           const { coord } = tileSpec;
           const { x, z } = coord;
           for (let dz = -1; dz <= 1; dz++) {
@@ -1190,6 +1261,7 @@ const MapScene = ({
             tileSpecs.push(tileSpec);
             return tileSpecs;
           });
+          saveTiles(tileSpecs);
 
           // add tile load
           const tileLoad = {
@@ -1202,24 +1274,22 @@ const MapScene = ({
           });
 
           // remove tile candidate spec
-          const newTileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
-          setTileCandidateSpecs(newTileCandidateSpecs);
+          setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
 
           // generate tile
           (async () => {
-            const json = await generateTileJson(coord, {
+            await ensureTile({
+              tileSpec,
+              tileLoad,
+            }, {
               prompt: promptString,
               tileSpecs,
+            }, () => {
+              saveTiles(tileSpecs);
+              setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
             });
-            tileSpec.json = json;
-            setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
-
-            const image = await generateTileImage(json);
-            tileSpec.image = image;
-            tileLoad.loading = false;
-            setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
-          })().catch(e => {
-            console.error('generate tile error', e);
+          })().catch((e: any) => {
+            console.error('click tile candidate error', e);
           });
         }
       };
@@ -1276,20 +1346,16 @@ const MapScene = ({
 
   // generation
   useEffect(() => {
-    const onClearMap = async (e: any) => {
+    const onClearMap = (e: any) => {
       setLoading(false);
 
       const newTileSpecs: TileSpec[] = [];
       setTileSpecs(newTileSpecs);
-      setTileLoads([]);
-      const newTileCandidateSpecs = makeTileCandidateSpecs(newTileSpecs);
-      setTileCandidateSpecs(newTileCandidateSpecs);
+      saveTiles([]);
 
-      (async () => {
-        await saveTiles([]);
-      })().catch(e => {
-        console.error('clear map error', e);
-      });
+      setTileLoads([]);
+
+      setTileCandidateSpecs(makeTileCandidateSpecs(newTileSpecs));
     };
     eventTarget.addEventListener('clearMap', onClearMap);
 
@@ -1297,76 +1363,6 @@ const MapScene = ({
       eventTarget.removeEventListener('clearMap', onClearMap);
     };
   }, []);
-
-  /* // tiles loading
-  useEffect(() => {
-    // add missing tile loads
-    let added = false;
-    for (const tileSpec of tileSpecs) {
-      let tileLoad = tileLoads.find(tileLoad =>
-        tileLoad.coord.x === tileSpec.coord.x &&
-        tileLoad.coord.z === tileSpec.coord.z
-      );
-      if (!tileLoad) {
-        const { x, z } = tileSpec.coord;
-        tileLoad = {
-          coord: { x, z },
-          loading: false,
-        };
-        tileLoads.push(tileLoad);
-        added = true;
-      }
-    }
-    if (added) {
-      updateTileEpoch();
-    }
-
-    const isLoading = tileLoads.some(load => load.loading);
-    // console.log('is loading', isLoading);
-    if (!isLoading) {
-      const missingTile = tileSpecs.find(tile => !tile.image);
-      // console.log('missing load', missingLoad);
-      if (missingTile) {
-        // start loading
-        const { coord, name, visual_description } = missingTile;
-        const missingLoad = tileLoads.find(load =>
-          load.coord.x === coord.x &&
-          load.coord.z === coord.z
-        );
-        if (missingLoad) {
-          console.log('loading', name, visual_description);
-
-          (async () => {
-            missingLoad.loading = true;
-            updateTileEpoch();
-
-            {
-              // await new Promise(resolve => setTimeout(resolve, 1000));
-              const prompt = `${mapStyle}\n${visual_description}`;
-              const jwt = await getJWT();
-              const blob = await fetchImageGeneration(prompt, {
-                image_size: 'square_hd',
-              }, {
-                jwt,
-              });
-              console.log('got blob', blob);
-              missingTile.image = blob;
-              saveTiles(tileSpecs);
-            }
-
-            missingLoad.loading = false;
-            updateTileEpoch();
-          })();
-        } else {
-          throw new Error('missing load not found');
-        }
-      } else {
-        // all loaded
-      }
-    } else {
-      // already loading
-    }
-  }, [tileSpecs, tileLoads, tileEpoch]); */
 
   // controls
   const keyMap = useMemo<KeyboardControlsEntry<Controls>[]>(()=>[
