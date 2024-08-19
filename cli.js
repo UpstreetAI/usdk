@@ -340,22 +340,6 @@ const putFile = async (pathname, file) => {
   const j = await res.json();
   return j;
 };
-/* const getFiles = async (agentDirectory) => {
-  let files = await recursiveReaddir(agentDirectory);
-  // filter out directories
-  const filterDirectories = ['node_modules', '.git'];
-  files = files.filter((filePath) => {
-    const parts = filePath.split(path.sep);
-    for (const filterDirectory of filterDirectories) {
-      if (parts.includes(filterDirectory)) {
-        return false;
-      }
-    }
-    return true;
-  });
-  files = files.map((f) => f.slice(agentDirectory.length + 1));
-  return files;
-}; */
 const getLoginJwt = async () => {
   const loginFile = await tryReadFileAsync(loginLocation);
   if (loginFile) {
@@ -1591,31 +1575,6 @@ const connect = async (args) => {
     process.exit(1);
   }
 };
-/* const connectAgentWs = (guidOrDevPathIndex, { dev }) =>
-  new Promise((accept, reject) => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-    // console.log('got agent host', guidOrDevPathIndex, agentHost);
-    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
-    // console.log('handle websocket', u);
-    // await pause();
-    const ws = new WebSocket(u);
-    ws.addEventListener('open', () => {
-      accept(ws);
-    });
-    ws.addEventListener('message', (e) => {
-      // const message = e.data;
-      // console.log('got ws message', guid, message);
-    });
-    ws.addEventListener('error', (err) => {
-      console.warn('unhandled ws rejection', err);
-      reject(err);
-    });
-    // ws.addEventListener('message', (e) => {
-    //   console.log('got ws message', e);
-    // });
-  }); */
 const getGuidFromPath = async (p) => {
   const makeEnoent = () => new Error('not in an agent directory');
 
@@ -1705,14 +1664,14 @@ const chat = async (args) => {
       local: args.local,
     });
 
-    return {
-      // ws: webSockets[0],
-      close: () => {
-        for (const ws of webSockets) {
-          ws.close();
-        }
-      },
-    };
+    // return {
+    //   // ws: webSockets[0],
+    //   close: () => {
+    //     for (const ws of webSockets) {
+    //       ws.close();
+    //     }
+    //   },
+    // };
   } else {
     console.log('not logged in');
     process.exit(1);
