@@ -259,6 +259,9 @@ export class ChatsSpecification extends EventTarget {
   async leaveAll() {
     await this.waitForLoad();
 
+    return await this.#leaveAllInternal();
+  }
+  async #leaveAllInternal() {
     const _emitLeaveEvent = async (roomSpecification: RoomSpecification) => {
       const e = new ExtendableMessageEvent<RoomSpecification>('leave', {
         data: roomSpecification,
