@@ -2334,6 +2334,8 @@ const generateTemplateFromPrompt = async (prompt) => {
   const previewUrl = await putFile(`previews/${imageGuid}.png`, blob);
   // set the agentJson preview url
   agentJson.previewUrl = previewUrl;
+  // set the agentJson version
+  agentJson.version = packageJson.version;
 
   // write back the generated the agent json
   await fs.promises.writeFile(
