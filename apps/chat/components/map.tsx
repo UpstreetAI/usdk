@@ -243,19 +243,127 @@ const makeLandUrl = ({ x, z }: Coord2D, {
     .replace(/=&/g, '');
 };
 
-const generateTile = async (tileSpec: TileSpec, {
+const generateTile = async (rootCoord: Coord2D, {
   prompt,
   tileSpecs,
 }: {
   prompt: string,
   tileSpecs: TileSpec[],
 }) => {
-  // XXX finish this
-  await new Promise((resolve, reject) => {
-    setTimeout(resolve, 1000);
-  });
+  const jwt = await getJWT();
+  if (jwt) {
+    const tilePromptRange = 3;
+    if (tilePromptRange % 2 === 0) {
+      throw new Error('tilePromptRange must be odd');
+    }
+    const rangeDelta = Math.floor((tilePromptRange - 1) / 2);
+
+    const promptGrid = (() => {
+      const result: TileSpec[][] = [];
+      for (let dz = -rangeDelta; dz <= rangeDelta; dz++) {
+        const row: TileSpec[] = [];
+
+        for (let dx = -rangeDelta; dx <= rangeDelta; dx++) {
+          const x = rootCoord.x + dx;
+          const z = rootCoord.z + dz;
+          const gridCoord = { x, z };
+
+          const localTileSpec: TileSpec | undefined = tileSpecs.find(tileSpec =>
+            tileSpec.coord.x === gridCoord.x &&
+            tileSpec.coord.z === gridCoord.z
+          );
+          if (localTileSpec) {
+            row.push({
+              coord: gridCoord,
+              json: localTileSpec.json,
+              image: null,
+            });
+          } else {
+            row.push({
+              coord: gridCoord,
+              json: null,
+              image: null,
+            });
+          }
+        }
+
+        result.push(row);
+      }
+      return result;
+    })();
+
+    const messages: ChatMessage[] = [
+      {
+        role: 'user',
+        content: dedent`\
+          Generate a JSON location in an RPG video game overworld to fill in a hole in our map.
+          Locations are roughly 100x100 meters, so they should change gradually over distance. For example, a lush jungle should not be next to a city or a glacier.
+          Tiles are shown from an overhead view, in a ${tilePromptRange}x${tilePromptRange} grid.
+          The top-left tile is at (x, z) = (0, 0), and the bottom-right tile is at (${tilePromptRange - 1}, ${tilePromptRange - 1}).
+          The JSON representation is a 2D array of objects viewed from top down. Laid out west to east, north to south.
+          \`temperature\` is a number from 0 to 1 representing how hot or cold the tile is.
+          \`wetness\` is a number from 0 to 1 representing how wet or dry the tile is.
+          The \`exits\` key represents whether it is possible for a character to traverse to the next tile in that direction.
+
+          # Current layout
+          GENERATE_THIS marks the location to fill in
+          \`\`\`
+          ${promptGrid.map(row => {
+            return row.map(col => {
+              if (col.coord.x === rootCoord.x && col.coord.z === rootCoord.z) {
+                return `GENERATE_THIS, // "coord":${JSON.stringify(col.coord)}`;
+              } else {
+                const {
+                  coord,
+                  json,
+                } = col;
+                return JSON.stringify({
+                  coord,
+                  json,
+                }) + ',';
+              }
+            }).join('\n');
+          }).join(',\n')}
+          \`\`\`
+
+          # Prompt
+          \`\`\`
+        ` + '\n' +
+          prompt + '\n' +
+        `\`\`\``,
+      },
+    ];
+    const format = z.object({
+      tile: z.object({
+        coord: z.object({
+          x: z.number(),
+          z: z.number(),
+        }),
+        json: z.object({
+          name: z.string(),
+          visual_description: z.string(),
+          biome: biomesEnum,
+          temperature: z.number(),
+          wetness: z.number(),
+          points_of_interest: z.array(z.string()),
+          exits: z.array(z.enum(['north', 'south', 'east', 'west'])),
+        }),
+      }),
+    });
+    // console.log('got request', { messages });
+    const o = await fetchJsonCompletion({
+      messages,
+    }, format, {
+      jwt,
+    });
+    const tileSpec = (o as any).tile as TileSpec;
+    // console.log('got response', tileSpec);
+    return tileSpec.json;
+  } else {
+    throw new Error('no jwt');
+  }
 };
-const generateMap = async ({
+/* const generateMap = async ({
   prompt,
   width = 3,
   height = 3,
@@ -325,7 +433,7 @@ const generateMap = async ({
   } else {
     throw new Error('no jwt');
   }
-};
+}; */
 
 //
 
@@ -890,7 +998,7 @@ const MapScene = ({
 
   const [tileMeshes, setTileMeshes] = useState<Map<TileCandidateSpec, Object3D>>(new Map());
 
-  const [promptString, setPromptString] = useState('');
+  const [promptString, setPromptString] = useState(`${mapDefaultPrompt}\n${mapStyle}`);
 
   const playerControlsRef = useRef<Object3D>(null);
   const [moving, setMoving] = useState(false);
@@ -1065,7 +1173,7 @@ const MapScene = ({
 
           // add tile spec
           const tileSpec = {
-            coord: { x, z, },
+            coord: { x, z },
             json: null,
             image: null,
           } as TileSpec;
@@ -1090,20 +1198,11 @@ const MapScene = ({
 
           // generate tile
           (async () => {
-            await generateTile(tileSpec,{
+            const json = await generateTile(coord, {
               prompt: promptString,
               tileSpecs,
             });
-
-            tileSpec.json = {
-              name: 'Lol',
-              visual_description: 'Generated',
-              biome: 'plains',
-              temperature: 0.5,
-              wetness: 0.5,
-              points_of_interest: [],
-              exits: [],
-            };
+            tileSpec.json = json;
             tileLoad.loading = false;
 
             const newTileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
