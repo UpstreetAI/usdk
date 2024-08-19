@@ -10,11 +10,12 @@ const roundToDecimals = (n: number, decimals: number) => {
   return Math.round(n * p) / p;
 };
 
-export default function MapPage({
-  id,
-}: {
-  id: string,
+export default function MapPage(props: {
+  params: {
+    id: string
+  },
 }) {
+  const { id } = props.params;
   const router = useRouter();
 
   const loadUrl = new URL(location.href);
@@ -39,4 +40,4 @@ export default function MapPage({
       onMove={onMove}
     />
   );
-}
+};

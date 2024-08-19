@@ -2361,7 +2361,9 @@ const layerSpecs: LayerSpec[] = [
           visual_description: z.string(),
         }), {
           jwt,
-        });
+        }) as {
+          visual_description: string,
+        };
         const {
           visual_description: newPrompt,
         } = result;
