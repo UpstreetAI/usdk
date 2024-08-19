@@ -305,7 +305,7 @@ export class ChatsManager extends EventTarget {
                   // wait for re-render
                   {
                     const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
-                    this.dispatchEvent(e);
+                    this.agent.dispatchEvent(e);
                     await e.waitForFinish();
                   }
                   
