@@ -468,7 +468,7 @@ const ensureAgentJsonDefaults = (spec) => {
 };
 const compileAgentJson = (agentJson, { guid, name, description, stripeConnectAccountId, walletAddress }) => {
   agentJson.id = guid;
-  agentJson.startUrl = getAgentHost(guid);
+  agentJson.startUrl = getCloudAgentHost(guid);
   if (name) {
     agentJson.name = name;
   }
