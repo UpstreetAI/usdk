@@ -212,16 +212,17 @@ export interface Coord2D {
 interface TileCandidateSpec {
   coord: Coord2D,
 }
+interface TileSpecJson {
+  name: string,
+  visual_description: string,
+  biome: string,
+  temperature: number,
+  wetness: number,
+  points_of_interest: string[],
+  exits: string[],
+}
 type TileSpec = TileCandidateSpec & {
-  json: {
-    name: string,
-    visual_description: string,
-    biome: string,
-    temperature: number,
-    wetness: number,
-    points_of_interest: string[],
-    exits: string[],
-  } | null,
+  json: TileSpecJson | null,
   image: Blob | null,
 };
 interface TileLoad {
@@ -243,7 +244,7 @@ const makeLandUrl = ({ x, z }: Coord2D, {
     .replace(/=&/g, '');
 };
 
-const generateTile = async (rootCoord: Coord2D, {
+const generateTileJson = async (rootCoord: Coord2D, {
   prompt,
   tileSpecs,
 }: {
@@ -358,10 +359,21 @@ const generateTile = async (rootCoord: Coord2D, {
     });
     const tileSpec = (o as any).tile as TileSpec;
     // console.log('got response', tileSpec);
-    return tileSpec.json;
+    const json = tileSpec.json as TileSpecJson;
+    return json;
   } else {
     throw new Error('no jwt');
   }
+};
+const generateTileImage = async (tileJson: TileSpecJson) => {
+  const prompt = `${mapStyle}\n${tileJson.visual_description}`;
+  const jwt = await getJWT();
+  const blob = await fetchImageGeneration(prompt, {
+    image_size: 'square_hd',
+  }, {
+    jwt,
+  });
+  return blob;
 };
 /* const generateMap = async ({
   prompt,
@@ -585,11 +597,11 @@ const Tile = ({
       z,
     },
     json,
+    image,
   } = tileSpec;
   const {
     // name,
     visual_description,
-    image,
   } = json ?? {};
   const tileLoad = tileLoads.find(load =>
     load.coord.x === tileSpec.coord.x &&
@@ -602,9 +614,6 @@ const Tile = ({
   const meshRef = useRef<Mesh>(null);
   const textureCache = useMemo(() => new WeakMap<Blob, Texture>(), []);
 
-  // useEffect(() => {
-  //   onRef && onRef(ref.current);
-  // }, [ref.current]);
   useEffect(() => {
     onMeshRef && onMeshRef(meshRef.current);
   }, [meshRef.current]);
@@ -1198,15 +1207,17 @@ const MapScene = ({
 
           // generate tile
           (async () => {
-            const json = await generateTile(coord, {
+            const json = await generateTileJson(coord, {
               prompt: promptString,
               tileSpecs,
             });
             tileSpec.json = json;
-            tileLoad.loading = false;
+            setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
 
-            const newTileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
-            setTileCandidateSpecs(newTileCandidateSpecs);
+            const image = await generateTileImage(json);
+            tileSpec.image = image;
+            tileLoad.loading = false;
+            setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
           })().catch(e => {
             console.error('generate tile error', e);
           });
@@ -1265,24 +1276,6 @@ const MapScene = ({
 
   // generation
   useEffect(() => {
-    /* const onGenerateMap = async (e: any) => {
-      setLoading(true);
-      setTileSpecs([]);
-      setTileLoads([]);
-
-      const prompt = e.data.prompt as string;
-      const newTileSpecs = await generateMap({
-        prompt,
-        width: 3,
-        height: 3,
-      });
-      // console.log('newTileSpecs', newTileSpecs);
-      setTileSpecs(newTileSpecs);
-      saveTiles(newTileSpecs);
-      setLoading(false);
-    };
-    eventTarget.addEventListener('generateMap', onGenerateMap); */
-
     const onClearMap = async (e: any) => {
       setLoading(false);
 
@@ -1301,7 +1294,6 @@ const MapScene = ({
     eventTarget.addEventListener('clearMap', onClearMap);
 
     return () => {
-      // eventTarget.removeEventListener('generateMap', onGenerateMap);
       eventTarget.removeEventListener('clearMap', onClearMap);
     };
   }, []);
