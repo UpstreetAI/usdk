@@ -3831,26 +3831,10 @@ const main = async () => {
     .action(() => {
       program.help();
     }); */
-
-  // account
-  program
-    .command('status')
-    .description('Print the current login status of the SDK')
-    // .argument('<string>', 'string to split')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await status(args);
-      });
-    });
   program
     .command('login')
     .description('Log in to the SDK')
-    .option(`-l, --local`, `Connect to localhost app server instead of hosted`)
+    // .option(`-l, --local`, `Connect to localhost app server instead of hosted`)
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -3861,20 +3845,20 @@ const main = async () => {
         await login(args);
       });
     });
-  program
-    .command('authorize')
-    .description('Authorize an agent of the SDK')
-    .argument(`[directory]`, `The directory to create the project in`)
-    .action(async (directory = '',opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [directory],
-          ...opts,
-        };
-        await authorize(args);
-      });
-    });
+  // program
+  //   .command('authorize')
+  //   .description('Authorize an agent of the SDK')
+  //   .argument(`[directory]`, `The directory to create the project in`)
+  //   .action(async (directory = '',opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [directory],
+  //         ...opts,
+  //       };
+  //       await authorize(args);
+  //     });
+  //   });
   program
     .command('logout')
     .description('Log out of the SDK')
@@ -3888,6 +3872,22 @@ const main = async () => {
         await logout(args);
       });
     });
+
+    // account
+  program
+  .command('status')
+  .description('Print the current login status of the SDK')
+  // .argument('<string>', 'string to split')
+  .action(async (opts = {}) => {
+    await handleError(async () => {
+      commandExecuted = true;
+      const args = {
+        _: [],
+        ...opts,
+      };
+      await status(args);
+    });
+  });
   /* program
     .command('wear')
     .description('Wear the character with the given guid')
@@ -4026,65 +4026,89 @@ const main = async () => {
         await dev(args);
       });
     });
-  program
-    .command('search')
-    .description(
-      'Find an agent to do something',
-    )
-    .argument(
-      `[query]`,
-      `Prompt to search for`,
-    )
-    // .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (prompt = '', opts = {}) => {
+
+    program
+    .command('chat')
+    .description(`Chat with agents in a multiplayer room`)
+    .argument(`[guids...]`, `Guids of the agents to join the room`)
+    .option(`-b, --browser`, `Open the chat room in a browser window`)
+    .option(`-r, --room`, `The room name to join`)
+    // .option(
+    //   `-d, --dev`,
+    //   `Chat with a local development agent`,
+    // )
+    .option(`-g, --debug`, `Enable debug logging`)
+    .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
         let args;
         args = {
-          _: [prompt],
+          _: [guids],
           ...opts,
         };
-        await search(args);
+        await chat(args);
       });
     });
-  program
-    .command('test')
-    .description('Run agent tests')
-    .argument(`[directories...]`, `Directories containing the agent projects to test`)
-    .option('-a, --all', 'Run all tests')
-    .option('-g, --debug', 'Enable debug logging')
-    .action(async (directories = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [directories],
-          ...opts,
-        };
-        await test(args);
-      });
-    });
-  program
-    .command('capture')
-    .description('Test display functionality; with no arguments, list available devices')
-    .option('-m, --microphone [id]', 'Enable microphone')
-    .option('-c, --camera [id]', 'Enable camera')
-    .option('-s, --screen [id]', 'Enable screen capture')
-    .option('-w, --width <width>', 'Render width')
-    .option('-h, --height <height>', 'Render height')
-    .option('-r, --rows <rows>', 'Render rows')
-    .option('-l, --cols <cols>', 'Render cols')
-    .option('-x, --execute', 'Execute inference')
-    .option('-q, --query <string>', 'Inference query for video')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await capture(args);
-      });
-    });
+    
+  // program
+  //   .command('search')
+  //   .description(
+  //     'Find an agent to do something',
+  //   )
+  //   .argument(
+  //     `[query]`,
+  //     `Prompt to search for`,
+  //   )
+  //   // .option(`-g, --debug`, `Enable debug logging`)
+  //   .action(async (prompt = '', opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       let args;
+  //       args = {
+  //         _: [prompt],
+  //         ...opts,
+  //       };
+  //       await search(args);
+  //     });
+  //   });
+  // program
+  //   .command('test')
+  //   .description('Run agent tests')
+  //   .argument(`[directories...]`, `Directories containing the agent projects to test`)
+  //   .option('-a, --all', 'Run all tests')
+  //   .option('-g, --debug', 'Enable debug logging')
+  //   .action(async (directories = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [directories],
+  //         ...opts,
+  //       };
+  //       await test(args);
+  //     });
+  //   });
+  // program
+  //   .command('capture')
+  //   .description('Test display functionality; with no arguments, list available devices')
+  //   .option('-m, --microphone [id]', 'Enable microphone')
+  //   .option('-c, --camera [id]', 'Enable camera')
+  //   .option('-s, --screen [id]', 'Enable screen capture')
+  //   .option('-w, --width <width>', 'Render width')
+  //   .option('-h, --height <height>', 'Render height')
+  //   .option('-r, --rows <rows>', 'Render rows')
+  //   .option('-l, --cols <cols>', 'Render cols')
+  //   .option('-x, --execute', 'Execute inference')
+  //   .option('-q, --query <string>', 'Inference query for video')
+  //   .action(async (opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [],
+  //         ...opts,
+  //       };
+  //       await capture(args);
+  //     });
+  //   });
   program
     .command('deploy')
     .description('Deploy an agent to the network')
@@ -4153,43 +4177,43 @@ const main = async () => {
         await rm(args);
       });
     });
-  program
-    .command('join')
-    .description(`Make an agent join a multiplayer room`)
-    .argument(`<guid>`, `Guid of the agent to`)
-    .argument(`<room>`, `Name of the room to join`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await rm(args);
-      });
-    });
-  program
-    .command('leave')
-    .description(`Make an agent leave a multiplayer room`)
-    .argument(`<guid>`, `Guid of the agent`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await leave(args);
-      });
-    });
+  // program
+  //   .command('join')
+  //   .description(`Make an agent join a multiplayer room`)
+  //   .argument(`<guid>`, `Guid of the agent to`)
+  //   .argument(`<room>`, `Name of the room to join`)
+  //   .option(
+  //     `-l, --local`,
+  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+  //   )
+  //   .action(async (opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [],
+  //         ...opts,
+  //       };
+  //       await rm(args);
+  //     });
+  //   });
+  // program
+  //   .command('leave')
+  //   .description(`Make an agent leave a multiplayer room`)
+  //   .argument(`<guid>`, `Guid of the agent`)
+  //   .option(
+  //     `-l, --local`,
+  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+  //   )
+  //   .action(async (opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [],
+  //         ...opts,
+  //       };
+  //       await leave(args);
+  //     });
+  //   });
   /* program
     .command('enable')
     .description(`Enable an agent for autonomous operation`)
@@ -4233,29 +4257,29 @@ const main = async () => {
     'add',
     'remove',
   ];
-  program
-    .command('voice')
-    .description(
-      'Manage agent voices',
-    )
-    .argument(
-      `[subcommand]`,
-      `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
-    )
-    .argument(
-      `[args...]`,
-      `Arguments to pass to the subcommand`,
-    )
-    .action(async (subcommand = '', args = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        args = {
-          _: [subcommand, args],
-          ...opts,
-        };
-        await voice(args);
-      });
-    });
+  // program
+  //   .command('voice')
+  //   .description(
+  //     'Manage agent voices',
+  //   )
+  //   .argument(
+  //     `[subcommand]`,
+  //     `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
+  //   )
+  //   .argument(
+  //     `[args...]`,
+  //     `Arguments to pass to the subcommand`,
+  //   )
+  //   .action(async (subcommand = '', args = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       args = {
+  //         _: [subcommand, args],
+  //         ...opts,
+  //       };
+  //       await voice(args);
+  //     });
+  //   });
   // program
   //   .command('connect')
   //   .description(`Connect to a multiplayer room`)
@@ -4284,28 +4308,7 @@ const main = async () => {
   //       }
   //     });
   //   });
-  program
-    .command('chat')
-    .description(`Chat with agents in a multiplayer room`)
-    .argument(`[guids...]`, `Guids of the agents to join the room`)
-    .option(`-b, --browser`, `Open the chat room in a browser window`)
-    .option(`-r, --room`, `The room name to join`)
-    // .option(
-    //   `-d, --dev`,
-    //   `Chat with a local development agent`,
-    // )
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        args = {
-          _: [guids],
-          ...opts,
-        };
-        await chat(args);
-      });
-    });
+
   /* program
     .command('simulate')
     .description('Simulate an interaction between agents')
@@ -4332,44 +4335,44 @@ const main = async () => {
         }
       });
     }); */
-  program
-    .command('logs')
-    .description(`Stream an agent's logs`)
-    .argument(`[guids...]`, `The guids of the agents to listen to`)
-    // .option(
-    //   `-d, --dev`,
-    //   `Chat with a local development agent`,
-    // )
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        args = {
-          _: [guids],
-          ...opts,
-        };
-        await logs(args);
-      });
-    });
-  program
-    .command('listen')
-    .description(`Stream an agent's action events`)
-    .argument(`[guids...]`, `The guids of the agents to listen to`)
-    // .option(
-    //   `-d, --dev`,
-    //   `Chat with a local development agent`,
-    // )
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        args = {
-          _: guids,
-          ...opts,
-        };
-        await listen(args);
-      });
-    });
+  // program
+  //   .command('logs')
+  //   .description(`Stream an agent's logs`)
+  //   .argument(`[guids...]`, `The guids of the agents to listen to`)
+  //   // .option(
+  //   //   `-d, --dev`,
+  //   //   `Chat with a local development agent`,
+  //   // )
+  //   .action(async (guids = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       let args;
+  //       args = {
+  //         _: [guids],
+  //         ...opts,
+  //       };
+  //       await logs(args);
+  //     });
+  //   });
+  // program
+  //   .command('listen')
+  //   .description(`Stream an agent's action events`)
+  //   .argument(`[guids...]`, `The guids of the agents to listen to`)
+  //   // .option(
+  //   //   `-d, --dev`,
+  //   //   `Chat with a local development agent`,
+  //   // )
+  //   .action(async (guids = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       let args;
+  //       args = {
+  //         _: guids,
+  //         ...opts,
+  //       };
+  //       await listen(args);
+  //     });
+  //   });
 
   // wallet
   /* program
