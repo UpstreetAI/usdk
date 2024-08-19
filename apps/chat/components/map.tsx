@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
+import { Canvas, useThree, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
 import dedent from 'dedent';

@@ -1303,11 +1303,13 @@ type LandCanvasProps = {
   landSpec: [LandSpec, (landSpec: LandSpec) => void],
   loadState: [string | null, (loadState: string | null) => void],
   eventTarget: EventTarget,
+  textureLoader: TextureLoader,
 };
 const LandCanvas1D = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
+  textureLoader,
 }: LandCanvasProps) => {
   const [prompt, setPrompt] = useState(() => {
     // console.log('loaded prompt', landSpec.prompt, structuredClone(landSpec));
@@ -1363,30 +1365,59 @@ const LandCanvas2D = (props: LandCanvasProps) => {
     </Canvas>
   );
 };
+const useTextureLoader = (blob: Blob | null, { textureLoader }: { textureLoader: TextureLoader }) => {
+  const blobRef = useRef<Blob | null>(null);
+  const textureRef = useRef<Texture | null>(null);
+  const srcRef = useRef<string | null>(null);
+  const [textureEpoch, setTextureEpoch] = useState(0);
+
+  const gc = () => {
+    if (textureRef.current) {
+      textureRef.current.dispose();
+      textureRef.current = null;
+    }
+    if (srcRef.current) {
+      URL.revokeObjectURL(srcRef.current);
+      srcRef.current = null;
+    }
+  };
+  useEffect(() => {
+    return gc;
+  }, []);
+
+  if (blob !== blobRef.current) {
+    gc();
+    blobRef.current = blob;
+  }
+
+  if (!!blob && textureRef.current === null) {
+    const src = URL.createObjectURL(blob);
+    textureLoader.load(src, (texture) => {
+      if (blobRef.current === blob) {
+        // console.log('got source data', [texture, texture?.source, texture?.source?.data]);
+        textureRef.current = texture;
+        setTextureEpoch(textureEpoch => textureEpoch + 1);
+      }
+    });
+    srcRef.current = src;
+  }
+  // console.log('returning texture', textureRef.current);
+  return textureRef.current;
+};
 const LandCanvas2DScene = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
+  textureLoader,
 }: LandCanvasProps) => {
-  const [imgSrc, setImgSrc] = useState<string>('');
-  const texture = imgSrc ? useLoader(TextureLoader, imgSrc) : null;
+  const texture = useTextureLoader(landSpec.image ?? null, {
+    textureLoader,
+  });
+
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
   const planeMeshRef = useRef<Mesh>(null);
 
   const scale = useScale(texture);
-
-  // load image blob
-  useEffect(() => {
-    if (landSpec.image) {
-      const src = URL.createObjectURL(landSpec.image);
-      setImgSrc(src);
-      return () => {
-        URL.revokeObjectURL(src);
-      };
-    } else {
-      throw new Error('land spec contains no image, which is required for this layer');
-    }
-  }, [landSpec.image]);
 
   // update plane geometry
   useEffect(() => {
@@ -1398,7 +1429,7 @@ const LandCanvas2DScene = ({
 
   return (
     <>
-      {planeGeometry && <mesh geometry={planeGeometry} ref={planeMeshRef}>
+      {planeGeometry && texture && <mesh geometry={planeGeometry} ref={planeMeshRef}>
         <meshBasicMaterial map={texture} />
       </mesh>}
     </>
@@ -1431,9 +1462,11 @@ const LandCanvas3DScene = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
+  textureLoader,
 }: LandCanvasProps) => {
-  const [imgSrc, setImgSrc] = useState<string>('');
-  const texture = imgSrc ? useLoader(TextureLoader, imgSrc) : null;
+  const texture = useTextureLoader(landSpec.image ?? null, {
+    textureLoader,
+  });
 
   const [planeGeometry, setPlaneGeometry] = useState<BufferGeometry | null>(null);
   const [highlightTexture, setHighlightTexture] = useState<Texture | null>(null);
@@ -1511,18 +1544,6 @@ const LandCanvas3DScene = ({
     return segmentationUint8Array;
   };
 
-  // load image blob
-  useEffect(() => {
-    if (landSpec.image) {
-      const src = URL.createObjectURL(landSpec.image);
-      setImgSrc(src);
-      return () => {
-        URL.revokeObjectURL(src);
-      };
-    } else {
-      throw new Error('land spec contains no image, which is required for this layer');
-    }
-  }, [landSpec.image]);
   // load depth blob
   useEffect(() => {
     if (landSpec.depthImage) {
@@ -2274,7 +2295,7 @@ const LandCanvas3DScene = ({
         {/* cursor mesh */}
         <StoryCursor pressed={pressed} ref={storyCursorMeshRef} />
         {/* plane mesh */}
-        {planeGeometry && <RigidBody
+        {planeGeometry && texture && <RigidBody
           colliders='trimesh'
           lockTranslations
           lockRotations
@@ -2305,12 +2326,12 @@ const LandCanvas3DScene = ({
   );
 };
 
-type LayerSpec = {
+interface LayerSpec {
   name: string,
   Component: React.ComponentType<any>,
   isValid: (landSpec: LandSpec) => boolean,
   generate: (landSpec: LandSpec) => Promise<LandSpec>,
-};
+}
 const layerSpecs: LayerSpec[] = [
   {
     name: '1D',
@@ -2449,11 +2470,13 @@ const LandLayer = ({
   loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
+  textureLoader,
 }: {
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
+  textureLoader: TextureLoader,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   const layerSpec = layerSpecs[layerSpecIndex];
@@ -2485,6 +2508,7 @@ const LandLayer = ({
       landSpec={[landSpec, setLandSpec]}
       loadState={[loadState, setLoadState]}
       eventTarget={eventTarget}
+      textureLoader={textureLoader}
     />
   );
 }
@@ -2500,6 +2524,7 @@ export function Land({
   const [loadState, setLoadState] = useState<string | null>(null);
   const [landSpec, setLandSpec] = useState<LandSpec>(makeEmptyLandSpec);
   const eventTarget = useMemo(() => new EventTarget(), []);
+  const textureLoader = useMemo(() => new TextureLoader(), []);
 
   const landLoader = useMemo(() => new LandLoader({ id }), [id]);
 
@@ -2555,6 +2580,7 @@ export function Land({
         loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
+        textureLoader={textureLoader}
       />
     </div>
   );
