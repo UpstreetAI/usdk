@@ -2678,11 +2678,11 @@ const ensureNpmRoot = (() => {
     return npmRootPromise;
   };
 })();
-const runJest = async (agentDirectory) => {
+const runJest = async (directory) => {
   const npmRoot = await ensureNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
     stdio: 'inherit',
-    cwd: agentDirectory,
+    cwd: directory,
     env: {
       NODE_PATH: npmRoot, // needed to import usdk
     },
@@ -2779,21 +2779,17 @@ const extractZip = async (zipBuffer, tempPath) => {
   };
 };
 const test = async (args) => {
-  let guidsOrDevPathIndexes = args._[0] ?? [];
   const all = !!args.all;
   const dev = true;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    const runAgentTest = async (guidOrDevPathIndex) => {
+    const runAgentTest = async (agentSpec, index) => {
       // console.log('got chat args', JSON.stringify(args));
-      const {
-        agentDirectory,
-      } = guidOrDevPathIndex;
 
       // start the dev agents
-      const cp = await startDevServer(guidOrDevPathIndex, {
+      const cp = await startDevServer(agentSpec, index, {
         debug,
       });
 
@@ -2819,7 +2815,7 @@ const test = async (args) => {
 
       // run tests
       try {
-        await runJest(agentDirectory);
+        await runJest(agentSpec.directory);
       } finally {
         // clean up
         realms.disconnect();
@@ -2830,13 +2826,13 @@ const test = async (args) => {
       console.log('running template test: ' + template);
 
       // create the template
-      const agentDirectory = await makeTempDir();
+      const testDirectory = await makeTempDir();
       await create({
-        _: [agentDirectory],
+        _: [testDirectory],
         template,
       });
 
-      await runAgentTest(agentDirectory);
+      await runAgentTest(testDirectory);
     };
 
     if (all) {
@@ -2845,9 +2841,10 @@ const test = async (args) => {
         await testTemplate(template);
       }
     } else {
-      guidsOrDevPathIndexes = await normalizeGuidInputs(guidsOrDevPathIndexes, { dev });
-      for (const guidOrDevPathIndex of guidsOrDevPathIndexes) {
-        await runAgentTest(guidOrDevPathIndex);
+      const agentSpecs = parseAgentSpecs(args._[0]);
+      for (let i = 0; i < agentSpecs.length; i++) {
+        const agentSpec = agentSpecs[i];
+        await runAgentTest(agentSpec, i);
       }
     }
   } else {
