@@ -1855,13 +1855,8 @@ const listen = async (args) => {
     );
   }
 
-
-  const eventSources = guidsOrDevPathIndexes.map((guidOrDevPathIndex) => {
-    const agentHost = getAgentHost(
-      !dev ? guidOrDevPathIndex : guidOrDevPathIndex.portIndex,
-    );
-
-    const eventSource = new EventSource(`${agentHost}/events`);
+  const connectEventSource = (src) => {
+    const eventSource = new EventSource(src);
     eventSource.addEventListener('message', (e) => {
       const j = JSON.parse(e.data);
       console.log('event source', j);
@@ -1872,7 +1867,15 @@ const listen = async (args) => {
     eventSource.addEventListener('close', (e) => {
       process.exit(0);
     });
-  });
+    return eventSource;
+  }
+
+  const eventsPath = `/events`;
+  const eventSources = localAgentSpecs.map((agentSpec, index) =>
+    connectEventSource(`${getLocalAgentHost(index)}${eventsPath}`)
+  ).concat(cloudAgentSpecs.map((agentSpec) =>
+    connectEventSource(`${getCloudAgentHost(agentSpec.guid)}${eventsPath}`)
+  ));
 
   return {
     // ws: webSockets[0],
