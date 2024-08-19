@@ -137,14 +137,18 @@ export function base64ToBytes(str) {
 // }
 
 export const blobToDataUrl = (blob) => {
-	return new Promise((resolve, reject) => {
-	  const reader = new Response(blob).arrayBuffer();
-	  reader.then(buffer => {
-      const base64String = btoa(
-        new Uint8Array(buffer)
-          .reduce((data, byte) => data + String.fromCharCode(byte), '')
-      );
+  return new Promise((resolve, reject) => {
+    blob.arrayBuffer().then(buffer => {
+      const bytes = new Uint8Array(buffer);
+      let binaryString = '';
+      
+      // Manually build the string instead of using .reduce
+      for (let i = 0; i < bytes.length; i++) {
+        binaryString += String.fromCharCode(bytes[i]);
+      }
+
+      const base64String = btoa(binaryString);
       resolve(`data:${blob.type};base64,${base64String}`);
-	  }).catch(reject);
-	});
-};
+    }).catch(reject);
+  });
+}
