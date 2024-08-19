@@ -185,16 +185,9 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
 };
 const getAgentName = (guid) => `user-agent-${guid}`;
 const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
-const getAgentHost = (guidOrPortIndex) => {
-  const agentHost = typeof guidOrPortIndex === 'string'
-    ? `https://${getAgentName(guidOrPortIndex)}.${workersHost}`
-    : `http://local.upstreet.ai:${devServerPort + guidOrPortIndex}`
-  return agentHost;
-};
-/* const pause = () =>
-  new Promise((accept, reject) => {
-    // nothing
-  }); */
+const getLocalAgentHost = (portIndex = 0) => `http://localhost:${devServerPort + portIndex}`;
+const getCloudAgentHost = (guid) => `https://${getAgentName(guid)}.${workersHost}`;
+const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost() : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
