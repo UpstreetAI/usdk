@@ -574,7 +574,7 @@ const MapForm = ({
         }));
       }}>Clear</Button>
     </form>
-  )
+  );
 };
 const Tile = ({
   tileSpec,
