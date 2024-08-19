@@ -136,8 +136,9 @@ export class ChatsSpecification extends EventTarget {
           };
         }) as RoomSpecification[];
         // console.log('initial chat specifications', initialChatSpecifications);
-        await Promise.all(initialChatSpecifications.map((chatSpecification) => {
-          return this.join(chatSpecification);
+        await Promise.all(initialChatSpecifications.map(async (chatSpecification) => {
+          const result = await this.#joinInternal(chatSpecification);
+          return result;
         }));
       } else {
         console.warn('failed to load initial chats: ' + JSON.stringify(error));
@@ -154,9 +155,14 @@ export class ChatsSpecification extends EventTarget {
       throw new Error('join | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
     }
 
-    // console.log('join room 0', roomSpecification);
-
     await this.waitForLoad();
+
+    return await this.#joinInternal(roomSpecification);
+  }
+  async #joinInternal(roomSpecification: RoomSpecification) {
+    if (!roomSpecification.room || !roomSpecification.endpointUrl) {
+      throw new Error('join | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
+    }
 
     // console.log('join room 1', roomSpecification);
     // console.log('join room 1.1',  roomSpecification);
@@ -208,10 +214,11 @@ export class ChatsSpecification extends EventTarget {
       throw new Error('leave | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
     }
 
-    // console.log('leave room 0', roomSpecification);
-
     await this.waitForLoad();
 
+    return await this.#leaveInternal(roomSpecification);
+  }
+  async #leaveInternal(roomSpecification: RoomSpecification) {
     // console.log('leave room 1', roomSpecification);
     const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
     if (index !== -1) {
