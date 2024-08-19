@@ -137,12 +137,14 @@ export function base64ToBytes(str) {
 // }
 
 export const blobToDataUrl = (blob) => {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = () => {
-      resolve(reader.result);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
+	return new Promise((resolve, reject) => {
+	  const reader = new Response(blob).arrayBuffer();
+	  reader.then(buffer => {
+      const base64String = btoa(
+        new Uint8Array(buffer)
+          .reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+      resolve(`data:${blob.type};base64,${base64String}`);
+	  }).catch(reject);
+	});
+};
