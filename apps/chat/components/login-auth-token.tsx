@@ -58,7 +58,6 @@ async function getJWTFromOtp() {
         const jwt = await res.text();
 
         if ( jwt ) {
-          const cookies = document.cookie
           document.cookie = `auth-jwt=${jwt}`
         } else {
           throw new Error()
