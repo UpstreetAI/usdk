@@ -4,7 +4,8 @@ import { Agents } from '@/components/account/agents'
 import { AccountPrivateUi } from './private-ui';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
-import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
+import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
+import { Tabs } from './tabs';
 
 
 export interface AccountProps {
@@ -17,6 +18,7 @@ export async function Account({ params: { id }}: AccountProps) {
   let user = null
   let userPrivate = null
   let credits = 0
+  let creditsUsageHistory = null;
   let userIsCurrentUser = false
 
   const currentUser = await waitForUser()
@@ -40,11 +42,14 @@ export async function Account({ params: { id }}: AccountProps) {
   }
   // load private data
   if (userIsCurrentUser) {
-    [userPrivate, credits] = await Promise.all([
+    [userPrivate, credits, creditsUsageHistory] = await Promise.all([
       getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan'),
       getCredits(user.id),
+      getCreditsUsageHistory(user.id)
     ]);
   }
+
+  console.log("CCCCCCC", creditsUsageHistory)
 
   const agents = await agentsPromise;
 
@@ -60,9 +65,12 @@ export async function Account({ params: { id }}: AccountProps) {
           </p>
         </div>
       </div>
-      <Info user={user} userIsCurrentUser={userIsCurrentUser} />
+
+      <Tabs user={user} creditsUsageHistory={creditsUsageHistory} agents={agents} userIsCurrentUser={userIsCurrentUser} />
+
+      {/* <Info user={user} userIsCurrentUser={userIsCurrentUser} />
       <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
-      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />}
+      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />} */}
     </div>
   );
 }

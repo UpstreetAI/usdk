@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useSupabase } from '@/lib/hooks/use-supabase'
 import React, { useState } from 'react'
@@ -6,12 +6,12 @@ import { ProfileImage } from '@/components/account/profile-image'
 import { Button } from '@/components/ui/button';
 
 
-export interface InfoProps {
+export interface ProfileProps {
   user: any
   userIsCurrentUser: boolean
 }
 
-export function Info({ user, userIsCurrentUser }: InfoProps) {
+export function Profile({ user, userIsCurrentUser }: ProfileProps) {
   const { supabase } = useSupabase()
 
   const [name, setName] = useState<string>(user.name);
@@ -40,9 +40,8 @@ export function Info({ user, userIsCurrentUser }: InfoProps) {
     <div className="flex m-auto w-full max-w-4xl">
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
-          <h3 className="mb-1 text-2xl font-medium">Personal Info</h3>
-          <p className="text-zinc-300">Your personal information, including your name, bio, and image, will be used during interactions with agents and other users. This helps create a personalized and tailored experience.</p>
-          <div className="mt-8 mb-4 text-xl font-semibold flex">
+          <h3 className="mb-1 text-2xl font-medium">Profile</h3>
+          <div className="mt-5 mb-4 text-xl font-semibold flex">
             <ProfileImage user={user} userIsCurrentUser={userIsCurrentUser} />
             <div className='w-full'>
               <input

@@ -25,11 +25,11 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
   const { agentJoin } = useMultiplayerActions()
 
   return (
-    <>
-      <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-        Agents
-      </h1>
-      <div className="flex flex-col m-auto mt-5 w-full max-w-4xl">
+    <div className="flex m-auto w-full max-w-4xl">
+      <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
+        <div className="px-5 py-4">
+          <h3 className="mb-1 text-2xl font-medium">Agents</h3>
+          <div className="flex flex-col m-auto mt-5 w-full max-w-4xl">
         {agents.map((agent: object, i: number) => {
           const {
             id,
@@ -112,6 +112,8 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
           );
         })}
       </div>
-    </>
+    </div>
+    </div>
+    </div>
   )
 }
