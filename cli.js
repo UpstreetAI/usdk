@@ -3009,109 +3009,96 @@ const capture = async (args) => {
 };
 const deploy = async (args) => {
   try {
-    const agentDirectory = await parseAgentSpecs(args._);
-
-    // getDirectoryZip requires the path object, available in the 
-    const agentDirectoryPath = agentDirectory[0].directory;
+    const agentSpecs = await parseAgentSpecs(args._[0]);
+    if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
+      throw new Error('all agent specs must have directories');
+    }
 
     // log in
     const jwt = await getLoginJwt();
-    const userId = jwt && (await getUserIdForJwt(jwt));
-    if (userId) {
-      const uint8Array = await getDirectoryZip(agentDirectoryPath, {
-        exclude: [/\/node_modules\//],
-      });
-      // console.log('got zip', agentDirectory, uint8Array.byteLength);
+    if (jwt) {
+      for (const agentSpec of agentSpecs) {
+        const { directory } = agentSpec;
 
-      // // XXX unzip to test location
-      // const tempDir = await makeTempDir();
-      // const { files, cleanup } = await extractZip(uint8Array, tempDir);
-      // console.log('got temp dir', tempDir);
-
-      // upload the agent
-      const u = `${deployEndpointUrl}/agent`;
-      // const proxyRes = await fetch(u, {
-      //   method: 'PUT',
-      //   headers: {
-      //     Authorization: `Bearer ${jwt}`,
-      //     'Content-Type': 'application/zip',
-      //   },
-      //   body: uint8Array,
-      // });
-      const req = https.request(u, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          'Content-Length': uint8Array.byteLength,
-        },
-      });
-      // create a stream to pass to the request
-      const dataStream = new stream.PassThrough();
-      dataStream.pipe(req);
-      // dataStream.on('data', (b) => {
-      // });
-      // dataStream.on('end', (b) => {
-      // });
-      // pump the loop
-      (async () => {
-        const chunkSize = 4 * 1024;
-        const logSize = (i) => {
-          process.stdout.write(
-            `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
-          );
-        };
-        for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
-          logSize(i);
-          const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
-          const ok = dataStream.write(slice);
-          if (!ok) {
-            await new Promise((accept) => {
-              dataStream.once('drain', accept);
-            });
-          }
-        }
-        dataStream.end();
-
-        logSize(uint8Array.length);
-        console.log();
-      })();
-      const wranglerTomlJson = await new Promise((accept, reject) => {
-        req.on('response', async (res) => {
-          // console.log('got response', res.statusCode);
-
-          const b = await new Promise((accept, reject) => {
-            const bs = [];
-            res.on('data', (b) => {
-              bs.push(b);
-            });
-            res.on('end', async () => {
-              const b = Buffer.concat(bs);
-              accept(b);
-            });
-            res.on('error', reject);
-          });
-          const s = b.toString('utf8');
-          // console.log('got response output', s);
-
-          if (res.statusCode === 200) {
-            const j = JSON.parse(s);
-            accept(j);
-          } else {
-            reject(new Error('deploy failed: ' + s));
-          }
+        const uint8Array = await getDirectoryZip(directory, {
+          exclude: [/\/node_modules\//],
         });
-        req.on('error', reject);
-      });
-      const guid = wranglerTomlJson.vars.GUID;
-      const url = getAgentUrlFromGuid(guid);
-      
-      console.log();
-      console.group(pc.green('Agent Deployed Successfully:'), '\n');
-      console.log(pc.cyan('✓ Host:'), url, '\n');
-      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
-      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
+        // upload the agent
+        const u = `${deployEndpointUrl}/agent`;
+        const req = https.request(u, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+            'Content-Type': 'application/zip',
+            'Content-Length': uint8Array.byteLength,
+          },
+        });
+        // create a stream to pass to the request
+        const dataStream = new stream.PassThrough();
+        dataStream.pipe(req);
+        // dataStream.on('data', (b) => {
+        // });
+        // dataStream.on('end', (b) => {
+        // });
+        // pump the loop
+        (async () => {
+          const chunkSize = 4 * 1024;
+          const logSize = (i) => {
+            process.stdout.write(
+              `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
+            );
+          };
+          for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
+            logSize(i);
+            const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
+            const ok = dataStream.write(slice);
+            if (!ok) {
+              await new Promise((accept) => {
+                dataStream.once('drain', accept);
+              });
+            }
+          }
+          dataStream.end();
 
+          logSize(uint8Array.length);
+          console.log();
+        })();
+        const wranglerTomlJson = await new Promise((accept, reject) => {
+          req.on('response', async (res) => {
+            // console.log('got response', res.statusCode);
+
+            const b = await new Promise((accept, reject) => {
+              const bs = [];
+              res.on('data', (b) => {
+                bs.push(b);
+              });
+              res.on('end', async () => {
+                const b = Buffer.concat(bs);
+                accept(b);
+              });
+              res.on('error', reject);
+            });
+            const s = b.toString('utf8');
+            // console.log('got response output', s);
+
+            if (res.statusCode === 200) {
+              const j = JSON.parse(s);
+              accept(j);
+            } else {
+              reject(new Error('deploy failed: ' + s));
+            }
+          });
+          req.on('error', reject);
+        });
+        const guid = wranglerTomlJson.vars.GUID;
+        const url = getAgentUrlFromGuid(guid);
+        
+        console.log();
+        console.group(pc.green('Agent Deployed Successfully:'), '\n');
+        console.log(pc.cyan('✓ Host:'), url, '\n');
+        console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+        console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
+      }
     } else {
       console.log('not logged in');
       process.exit(1);
