@@ -3975,19 +3975,19 @@ const main = async () => {
   program
     .command('deploy')
     .description('Deploy an agent to the network')
-    .argument(`[directory]`, `Directory containing the agent project to deploy`)
+    .argument(`[guids...]`, `Guids of the agents to join the room`)
     // .argument(
     //   `[type]`,
     //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
     // )
-    .action(async (directory, opts = {}) => {
+    .action(async (agentRefs, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
 
         let args;
         if (typeof directory === 'string') {
           args = {
-            _: [directory],
+            _: [agentRefs],
             ...opts,
           };
         } else {
