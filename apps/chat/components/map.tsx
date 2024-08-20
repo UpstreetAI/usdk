@@ -238,12 +238,12 @@ interface TileLoad {
 
 // const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
 // const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
-const makeLandUrl = ({ x, z }: Coord2D, {
+const makeLandUrl = (id: string, { x, z }: Coord2D, {
   edit,
 }: {
   edit: boolean,
 }) => {
-  const u = new URL(`/land/${[x, z].join(',')}`, location.href);
+  const u = new URL(`/land/${id}/${[x, z].join(',')}`, location.href);
   edit && u.searchParams.set('edit', '');
   return u.href
     .replace(/=$/g, '')
@@ -1303,7 +1303,7 @@ const MapScene = ({
             z: playerControlsRef.current.position.z,
           }) : coord;
           setMapUrlCoord(snappedPlayerCoord);
-          const urlString = makeLandUrl(coord, {
+          const urlString = makeLandUrl(id, coord, {
             edit,
           });
           router.push(urlString);
