@@ -4,3 +4,4 @@ export const deployEndpointUrl = `https://deploy.upstreet.ai`;
 export const metamaskHost = 'https://metamask.upstreet.ai';
 export const multiplayerEndpointUrl = 'wss://multiplayer.isekaichat.workers.dev';
 export const r2EndpointUrl = `https://r2.upstreet.ai`;
+export const loginEndpointUrl = `https://login.upstreet.ai/logintool`
