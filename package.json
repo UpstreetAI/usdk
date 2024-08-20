@@ -14,12 +14,7 @@
   ],
   "devDependencies": {
     "@eslint/js": "^9.4.0",
-    "@stylistic/eslint-plugin": "^2.1.0",
-    "concurrently": "^8.2.2",
-    "globals": "^15.4.0",
-    "npm-check-updates": "^16.14.20",
-    "typescript": "^5.4.5",
-    "typescript-eslint": "^7.13.0"
+    "@stylistic/eslint-plugin": "^2.1.0"
   }
 }
  
