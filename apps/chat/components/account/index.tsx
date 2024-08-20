@@ -5,7 +5,7 @@ import { AccountPrivateUi } from './private-ui';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
 import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
-
+import { LoginRedirect } from '@/components/login-redirect';
 
 export interface AccountProps {
   params: {
@@ -13,15 +13,20 @@ export interface AccountProps {
   }
 }
 
-export async function Account({ params: { id }}: AccountProps) {
+export async function AccountForm({
+  id,
+}: {
+  id: string
+}) {
   let user = null
   let userPrivate = null
   let credits = 0
   let userIsCurrentUser = false
 
-  const currentUser = await waitForUser()
+  const currentUser = await waitForUser();
   if (!currentUser) {
-    return redirect( routes.home )
+    // return redirect( routes.home )
+    return null;
   }
 
   const agentsPromise = getAgents(id || currentUser.id);
@@ -64,5 +69,14 @@ export async function Account({ params: { id }}: AccountProps) {
       <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
       {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />}
     </div>
+  );
+}
+
+export async function Account({ params: { id }}: AccountProps) {
+  return (
+    <>
+      <LoginRedirect />
+      <AccountForm id={id} />
+    </>
   );
 }
