@@ -236,8 +236,6 @@ interface TileLoad {
   loading: boolean,
 }
 
-// const getWidth = (i: any) => i.naturalWidth ?? i.videoWidth ?? i.width;
-// const getHeight = (i: any) => i.naturalHeight ?? i.videoHeight ?? i.height;
 const makeLandUrl = (id: string, { x, z }: Coord2D, {
   edit,
 }: {
