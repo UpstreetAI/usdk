@@ -1084,35 +1084,16 @@ const LandTopForm = ({
   eventTarget: EventTarget,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
-  const layerSpec = layerSpecs[layerSpecIndex];
+  // const layerSpec = layerSpecs[layerSpecIndex];
   const maxValidLayerIndex = getMaxValidLayerIndex(landSpec);
   const isValid = maxValidLayerIndex >= layerSpecIndex;
 
   //
 
-  const regenerate = async () => {
-    console.log('regenerate 1');
-    let newLandSpec = landSpec;
-    {
-      // ensure all layers above this one are generated
-      for (let i = 0; i < layerSpecIndex; i++) {
-        const layerSpec = layerSpecs[i];
-        if (!layerSpec.isValid(landSpec)) {
-          setLoadState(`Generating ${layerSpec.name}...`);
-          newLandSpec = await layerSpec.generate(newLandSpec);
-          console.log('generated layer', layerSpec.name, newLandSpec);
-          setLandSpec(newLandSpec);
-        }
-      }
-    }
-    {
-      // generate this layer
-      setLoadState(`Generating ${layerSpec.name}...`);
-      newLandSpec = await layerSpec.generate(newLandSpec);
-      console.log('generated layer', layerSpec.name, newLandSpec);
-      setLandSpec(newLandSpec);
-    }
-    setLoadState(null);
+  const generate = () => {
+    eventTarget.dispatchEvent(new MessageEvent('generate', {
+      data: null,
+    }));
   };
 
   //
@@ -1140,10 +1121,9 @@ const LandTopForm = ({
       <div className="absolute bottom-0 left-0 flex">
         <Button
           onClick={e => {
-            console.log('back');
-            if (layerSpecIndex > 0) {
-              setLayerName(layerSpecs[layerSpecIndex - 1].name);
-            }
+            eventTarget.dispatchEvent(new MessageEvent('back', {
+              data: null,
+            }));
           }}
           className="pointer-events-auto"
           disabled={!(layerSpecIndex > 0)}
@@ -1152,38 +1132,22 @@ const LandTopForm = ({
       <div className="absolute bottom-0 right-0 flex">
         {!isValid ?
           <Button
-            onClick={regenerate}
+            onClick={generate}
             className="pointer-events-auto"
             disabled={!!loadState}
           >Generate</Button>
         :
           <Button
-            onClick={regenerate}
+            onClick={generate}
             className="pointer-events-auto"
             disabled={!!loadState}
           >Regenerate</Button>
         }
         <Button
-          onClick={async e => {
-            console.log('next');
-            // eventTarget.dispatchEvent(new MessageEvent('next', {
-            //   data: null,
-            // }));
-
-            if (layerSpecIndex < layerSpecs.length - 1) {
-              const nextLayerSpec = layerSpecs[layerSpecIndex + 1];
-
-              setLoadState(`Generating ${nextLayerSpec.name}...`);
-              {
-                if (!nextLayerSpec.isValid(landSpec)) {
-                  const newLandSpec = await nextLayerSpec.generate(landSpec);
-                  setLandSpec(newLandSpec);
-                }
-              }
-              setLoadState(null);
-
-              setLayerName(layerSpecs[layerSpecIndex + 1].name);
-            }
+          onClick={e => {
+            eventTarget.dispatchEvent(new MessageEvent('next', {
+              data: null,
+            }));
           }}
           className="pointer-events-auto"
           disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1) || !!loadState}
@@ -1337,10 +1301,12 @@ const LandCanvas1D = ({
             // update the land spec externally
             const prompt = e.target.value;
             setPrompt(prompt);
-            setLandSpec({
-              ...landSpec,
-              prompt,
-            });
+
+            eventTarget.dispatchEvent(new MessageEvent('promptchange', {
+              data: {
+                prompt,
+              }
+            }));
           }}
           placeholder={sceneImageDefaultPrompt}
           className="my-2 p-2 border rounded outline-none"
@@ -1517,6 +1483,7 @@ const LandCanvas3DScene = ({
 
   const scale = useScale(texture);
 
+  // helpers
   const segmentPoint = async (point: Vector2) => {
     const image = texture?.source.data as HTMLImageElement;
     const blob = await img2blob(image);
@@ -2531,28 +2498,36 @@ export function Land({
   const landLoader = useMemo(() => new LandLoader({ id }), [id]);
 
   // load helpers
-  const ensureLand = async ({
+  const ensureLand = async (landSpec: LandSpec, {
     signal,
   }: {
     signal?: AbortSignal,
   }) => {
-    setLoadState('Generating land...');
-    let landSpec: LandSpec = makeEmptyLandSpec();
-    for (const layerSpec of layerSpecs) {
-      if (!layerSpec.isValid(landSpec)) {
-        setLoadState(`Generating ${layerSpec.name}...`);
-        landSpec = await layerSpec.generate(landSpec);
-        setLandSpec(landSpec);
-        setLayerName(layerSpec.name);
-        if (signal?.aborted) {
-          // setLoadState(null);
-          return;
+    if (!layerSpecs.every(layerSpec => layerSpec.isValid(landSpec))) {
+      setLoadState('Generating land...');
+      let landSpec: LandSpec = makeEmptyLandSpec();
+      for (const layerSpec of layerSpecs) {
+        if (!layerSpec.isValid(landSpec)) {
+          setLoadState(`Generating ${layerSpec.name}...`);
+          landSpec = await layerSpec.generate(landSpec);
+          if (signal?.aborted) return;
+          setLandSpec(landSpec);
+          (async () => {
+            await saveLand(landSpec);
+          })().catch(err => {
+            console.error(err);
+          });
+          console.log('generated layer', layerSpec.name, landSpec);
         }
-        console.log('generated layer', name, landSpec);
       }
+      setLandSpec(landSpec);
+      (async () => {
+        await saveLand(landSpec);
+      })().catch(err => {
+        console.error(err);
+      });
+      setLoadState(null);
     }
-    setLandSpec(landSpec);
-    setLoadState(null);
   };
   const loadLand = async ({
     signal,
@@ -2560,15 +2535,18 @@ export function Land({
     signal?: AbortSignal,
   } = {}) => {
     setLoadState('Loading storage...');
-    const loadedLandSpec = await landLoader.load({
+    const landSpec = await landLoader.load({
       signal,
     });
     if (signal?.aborted) {
       // setLoadState(null);
       return;
     }
-    setLandSpec(loadedLandSpec);
+    setLandSpec(landSpec);
     setLoadState(null);
+    return {
+      landSpec,
+    };
   };
   const saveLand = async (landSpec: LandSpec, {
     signal,
@@ -2585,20 +2563,131 @@ export function Land({
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    if (!edit) {
-      ensureLand({
+    (async () => {
+      const result = await loadLand({
         signal,
       });
-    } else {
-      loadLand({
-        signal,
-      });
-    }
+      const landSpec = result?.landSpec;
+      if (landSpec && !edit) {
+        await ensureLand(landSpec, {
+          signal,
+        });
+        const lastLayerSpec = layerSpecs[layerSpecs.length - 1];
+        setLayerName(lastLayerSpec.name);
+      }
+    })().catch(err => {
+      console.error(err);
+    });
 
     return () => {
       abortController.abort();
     };
   }, []);
+
+  // bind event listeners
+  useEffect(() => {
+    const onprompt = (e: any) => {
+      const prompt = e.data.prompt as string;
+
+      const newLandSpec = {
+        ...landSpec,
+        prompt,
+      };
+      setLandSpec(newLandSpec);
+      (async () => {
+        await saveLand(newLandSpec);
+      })().catch(err => {
+        console.warn(err);
+      });
+    };
+    eventTarget.addEventListener('prompt', onprompt);
+
+    const ongenerate = (e: any) => {
+      (async () => {
+        const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
+
+        console.log('generate 1');
+        let newLandSpec = landSpec;
+        {
+          // ensure all layers above this one are generated
+          for (let i = 0; i < layerSpecIndex; i++) {
+            const layerSpec = layerSpecs[i];
+            if (!layerSpec.isValid(landSpec)) {
+              setLoadState(`Generating ${layerSpec.name}...`);
+              newLandSpec = await layerSpec.generate(newLandSpec);
+              console.log('generated layer ok', layerSpec.name, structuredClone(newLandSpec));
+              setLandSpec(newLandSpec);
+              (async () => {
+                await saveLand(newLandSpec);
+              })().catch(err => {
+                console.error(err);
+              });
+            }
+          }
+        }
+        {
+          // generate this layer
+          const layerSpec = layerSpecs[layerSpecIndex];
+          setLoadState(`Generating ${layerSpec.name}...`);
+          newLandSpec = await layerSpec.generate(newLandSpec);
+          console.log('generated layer ok', layerSpec.name, structuredClone(newLandSpec));
+          setLandSpec(newLandSpec);
+          (async () => {
+            await saveLand(newLandSpec);
+          })().catch(err => {
+            console.error(err);
+          });
+        }
+        setLoadState(null);
+      })().catch(err => {
+        console.error(err);
+        setLoadState(err.stack);
+      });
+    };
+    eventTarget.addEventListener('generate', ongenerate);
+
+    const onnext = (e: any) => {
+      (async () => {
+        const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
+        if (layerSpecIndex < layerSpecs.length - 1) {
+          const nextLayerSpec = layerSpecs[layerSpecIndex + 1];
+
+          setLoadState(`Generating ${nextLayerSpec.name}...`);
+          if (!nextLayerSpec.isValid(landSpec)) {
+            const newLandSpec = await nextLayerSpec.generate(landSpec);
+            setLandSpec(newLandSpec);
+            (async () => {
+              await saveLand(newLandSpec);
+            })().catch(err => {
+              console.error(err);
+            });
+          }
+          setLoadState(null);
+
+          setLayerName(layerSpecs[layerSpecIndex + 1].name);
+        }
+      })().catch(err => {
+        console.warn(err);
+        setLoadState(null);
+      });
+    };
+    eventTarget.addEventListener('next', onnext);
+
+    const onback = (e: any) => {
+      const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
+      if (layerSpecIndex > 0) {
+        setLayerName(layerSpecs[layerSpecIndex - 1].name);
+      }
+    };
+    eventTarget.addEventListener('back', onback);
+
+    return () => {
+      eventTarget.removeEventListener('prompt', onprompt);
+      eventTarget.removeEventListener('generate', ongenerate);
+      eventTarget.removeEventListener('next', onnext);
+      eventTarget.removeEventListener('back', onback);
+    };
+  }, [landSpec, layerName]);
 
   return (
     <div className="relative w-screen h-[calc(100vh-64px)]">

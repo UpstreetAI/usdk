@@ -1069,46 +1069,48 @@ const MapScene = ({
   }, []);
 
   // load helpers
-  const ensureTiles = async ({
+  const ensureTiles = async (tileSpecs: TileSpec[], {
     signal,
   }: {
     signal?: AbortSignal,
   }) => {
-    setLoading(true);
+    if (tileSpecs.length === 0) {
+      setLoading(true);
 
-    const tileSpec = {
-      coord,
-      json: null,
-      image: null,
-    } as TileSpec;
-    const tileSpecs = [
-      tileSpec,
-    ];
-    setTileSpecs(tileSpecs);
-    saveTiles(tileSpecs);
-
-    const tileLoad = {
-      coord: structuredClone(tileSpec.coord),
-      loading: true,
-    };
-    const tileLoads = [
-      tileLoad,
-    ];
-    setTileLoads(tileLoads);
-    
-    const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
-    setTileCandidateSpecs(tileCandidateSpecs);
-
-    await ensureTile({
-      tileSpec,
-      tileLoad,
-    }, {
-      prompt: promptString,
-      tileSpecs,
-    }, () => {
+      const tileSpec = {
+        coord,
+        json: null,
+        image: null,
+      } as TileSpec;
+      const tileSpecs = [
+        tileSpec,
+      ];
+      setTileSpecs(tileSpecs);
       saveTiles(tileSpecs);
-      setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
-    });
+
+      const tileLoad = {
+        coord: structuredClone(tileSpec.coord),
+        loading: true,
+      };
+      const tileLoads = [
+        tileLoad,
+      ];
+      setTileLoads(tileLoads);
+      
+      const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+      setTileCandidateSpecs(tileCandidateSpecs);
+
+      await ensureTile({
+        tileSpec,
+        tileLoad,
+      }, {
+        prompt: promptString,
+        tileSpecs,
+      }, () => {
+        saveTiles(tileSpecs);
+        setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
+      });
+    }
   };
   const loadTiles = async ({
     signal,
@@ -1120,6 +1122,7 @@ const MapScene = ({
     const tileSpecs = await tileLoader.load({
       signal,
     });
+    if (signal?.aborted) return;
     setTileSpecs(tileSpecs);
 
     // ensure all tiles are generated
@@ -1152,6 +1155,7 @@ const MapScene = ({
     setTileCandidateSpecs(tileCandidateSpecs);
 
     await Promise.all(tileLoadPromises);
+    if (signal?.aborted) return;
   
     setLoading(false);
 
@@ -1225,13 +1229,12 @@ const MapScene = ({
     const { signal } = abortController;
 
     (async () => {
-      const {
-        tileSpecs,
-      } = await loadTiles({
+      const result = await loadTiles({
         signal,
       });
-      if (tileSpecs.length === 0 && !edit) {
-        await ensureTiles({
+      const tileSpecs = result?.tileSpecs;
+      if (tileSpecs && !edit) {
+        await ensureTiles(tileSpecs, {
           signal,
         });
       }
