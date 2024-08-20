@@ -1437,19 +1437,6 @@ const MapScene = ({
     { name: Controls.jump, keys: ['Space'] },
   ], []);
 
-  // // create a proxy for the camera, intercepting the 'up' property to be new Vector3(0, 0, -1)
-  // const camera = useThree(({ camera }) => camera);
-  // const fakeUp = useMemo(() => new Vector3(0, 0, -1), []);
-  // const fakeCamera = new Proxy(camera, {
-  //   get(target, prop, receiver) {
-  //     if (prop === 'up') {
-  //       return fakeUp;
-  //     } else {
-  //       return Reflect.get(target, prop, receiver);
-  //     }
-  //   },
-  // }) as Camera;
-
   // render
   return <>
     {/* controls */}
@@ -1628,10 +1615,6 @@ function MapComponent({
       <Canvas
         camera={{
           position: [coord.x, 1, coord.z],
-          // position: [0, 1, 0],
-          // position: [0, 1, 0],
-          // quaternion: new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2).toArray(),
-          // up: [0, 0, -1],
         }}
         onCreated={({ gl }) => {
           gl.toneMapping = NoToneMapping;
@@ -1665,7 +1648,7 @@ function MapComponent({
       </Canvas>
       <MapForm eventTarget={eventTarget} />
     </div>
-  )
+  );
 }
 export {
   MapComponent as Map,
