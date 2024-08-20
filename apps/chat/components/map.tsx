@@ -1069,57 +1069,97 @@ const MapScene = ({
   }, []);
 
   // load helpers
-  const loadTiles = ({
+  const ensureTiles = async ({
+    signal,
+  }: {
+    signal?: AbortSignal,
+  }) => {
+    setLoading(true);
+
+    const tileSpec = {
+      coord,
+      json: null,
+      image: null,
+    } as TileSpec;
+    const tileSpecs = [
+      tileSpec,
+    ];
+    setTileSpecs(tileSpecs);
+    saveTiles(tileSpecs);
+
+    const tileLoad = {
+      coord: structuredClone(tileSpec.coord),
+      loading: true,
+    };
+    const tileLoads = [
+      tileLoad,
+    ];
+    setTileLoads(tileLoads);
+    
+    const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+    setTileCandidateSpecs(tileCandidateSpecs);
+
+    await ensureTile({
+      tileSpec,
+      tileLoad,
+    }, {
+      prompt: promptString,
+      tileSpecs,
+    }, () => {
+      saveTiles(tileSpecs);
+      setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
+    });
+  };
+  const loadTiles = async ({
     signal,
   }: {
     signal?: AbortSignal,
   } = {}) => {
     setLoading(true);
 
-    (async () => {
-      const tileSpecs = await tileLoader.load({
-        signal,
-      });
-      setTileSpecs(tileSpecs);
-
-      // ensure all tiles are generated
-      const newTileLoads = [];
-      for (const tileSpec of tileSpecs) {
-        if (!isTileGenerated(tileSpec)) {
-          const tileLoad = {
-            coord: structuredClone(tileSpec.coord),
-            loading: true,
-          };
-          newTileLoads.push(tileLoad);
-
-          (async () => {
-            await ensureTile({
-              tileSpec,
-              tileLoad,
-            }, {
-              prompt: promptString,
-              tileSpecs,
-            }, () => {
-              saveTiles(tileSpecs);
-              setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
-            });
-          })().catch((e: any) => {
-            console.error('ensure tile error', e, {
-              tileSpec,
-              tileLoad,
-            });
-          });
-        }
-      }
-      setTileLoads(newTileLoads);
-      
-      const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
-      setTileCandidateSpecs(tileCandidateSpecs);
-    })().catch(e => {
-      console.error('load tiles error', e);
-    }).finally(() => {
-      setLoading(false);
+    const tileSpecs = await tileLoader.load({
+      signal,
     });
+    setTileSpecs(tileSpecs);
+
+    // ensure all tiles are generated
+    const newTileLoads = [];
+    const tileLoadPromises = [];
+    for (const tileSpec of tileSpecs) {
+      if (!isTileGenerated(tileSpec)) {
+        const tileLoad = {
+          coord: structuredClone(tileSpec.coord),
+          loading: true,
+        };
+        newTileLoads.push(tileLoad);
+
+        const p = ensureTile({
+          tileSpec,
+          tileLoad,
+        }, {
+          prompt: promptString,
+          tileSpecs,
+        }, () => {
+          saveTiles(tileSpecs);
+          setTileCandidateSpecs(makeTileCandidateSpecs(tileSpecs));
+        });
+        tileLoadPromises.push(p);
+      }
+    }
+    setTileLoads(newTileLoads);
+    
+    const tileCandidateSpecs = makeTileCandidateSpecs(tileSpecs);
+    setTileCandidateSpecs(tileCandidateSpecs);
+
+    await Promise.all(tileLoadPromises);
+  
+    setLoading(false);
+
+    return {
+      tileSpecs,
+      tileLoads: newTileLoads,
+      tileCandidateSpecs,
+    };
   };
   const saveTiles = (tileSpecs: TileSpec[], {
     signal,
@@ -1184,8 +1224,19 @@ const MapScene = ({
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    loadTiles({
-      signal,
+    (async () => {
+      const {
+        tileSpecs,
+      } = await loadTiles({
+        signal,
+      });
+      if (tileSpecs.length === 0 && !edit) {
+        await ensureTiles({
+          signal,
+        });
+      }
+    })().catch(err => {
+      console.warn('error loading tiles', err);
     });
 
     return () => {
