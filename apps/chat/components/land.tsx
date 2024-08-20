@@ -2531,17 +2531,42 @@ export function Land({
   const landLoader = useMemo(() => new LandLoader({ id }), [id]);
 
   // load helpers
+  const ensureLand = async ({
+    signal,
+  }: {
+    signal?: AbortSignal,
+  }) => {
+    setLoadState('Generating land...');
+    let landSpec: LandSpec = makeEmptyLandSpec();
+    for (const layerSpec of layerSpecs) {
+      if (!layerSpec.isValid(landSpec)) {
+        setLoadState(`Generating ${layerSpec.name}...`);
+        landSpec = await layerSpec.generate(landSpec);
+        setLandSpec(landSpec);
+        setLayerName(layerSpec.name);
+        if (signal?.aborted) {
+          // setLoadState(null);
+          return;
+        }
+        console.log('generated layer', name, landSpec);
+      }
+    }
+    setLandSpec(landSpec);
+    setLoadState(null);
+  };
   const loadLand = async ({
     signal,
   }: {
     signal?: AbortSignal,
   } = {}) => {
     setLoadState('Loading storage...');
-    // console.log('load storage 1');
     const loadedLandSpec = await landLoader.load({
       signal,
     });
-    // console.log('load storage 2', loadedLandSpec);
+    if (signal?.aborted) {
+      // setLoadState(null);
+      return;
+    }
     setLandSpec(loadedLandSpec);
     setLoadState(null);
   };
@@ -2555,14 +2580,20 @@ export function Land({
     });
   };
 
-  // initial land load
+  // trigger land load
   useEffect(() => {
     const abortController = new AbortController();
     const { signal } = abortController;
 
-    loadLand({
-      signal,
-    });
+    if (!edit) {
+      ensureLand({
+        signal,
+      });
+    } else {
+      loadLand({
+        signal,
+      });
+    }
 
     return () => {
       abortController.abort();
