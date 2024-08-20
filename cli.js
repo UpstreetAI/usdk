@@ -465,6 +465,9 @@ const ensureAgentJsonDefaults = (spec) => {
   if (!Array.isArray(spec.capabilities)) {
     spec.capabilities = [];
   }
+  if (typeof spec.version !== 'string') {
+    spec.version = packageJson.version;
+  }
 };
 const compileAgentJson = (agentJson, { guid, name, description, stripeConnectAccountId, walletAddress }) => {
   agentJson.id = guid;
@@ -2284,8 +2287,6 @@ const generateTemplateFromPrompt = async (prompt) => {
   const previewUrl = await putFile(`previews/${imageGuid}.png`, blob);
   // set the agentJson preview url
   agentJson.previewUrl = previewUrl;
-  // set the agentJson version
-  agentJson.version = packageJson.version;
 
   // write back the generated the agent json
   await fs.promises.writeFile(
@@ -3008,13 +3009,16 @@ const capture = async (args) => {
 };
 const deploy = async (args) => {
   try {
-    const agentDirectory = await parseAgentSpecs(args._[0]);
+    const agentDirectory = await parseAgentSpecs(args._);
+
+    // getDirectoryZip requires the path object, available in the 
+    const agentDirectoryPath = agentDirectory[0].directory;
 
     // log in
     const jwt = await getLoginJwt();
     const userId = jwt && (await getUserIdForJwt(jwt));
     if (userId) {
-      const uint8Array = await getDirectoryZip(agentDirectory, {
+      const uint8Array = await getDirectoryZip(agentDirectoryPath, {
         exclude: [/\/node_modules\//],
       });
       // console.log('got zip', agentDirectory, uint8Array.byteLength);
