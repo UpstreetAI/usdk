@@ -2557,13 +2557,13 @@ const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
   const subcommand = args._[0] ?? '';
-  const guidsOrDevPathIndexes = args._[1] ?? [];
+  const agentRefs = args._[1] ?? [];
 
   switch (subcommand) {
     case 'chat': {
       // defer to conversation mode
       await chat({
-        _: [guidsOrDevPathIndexes],
+        _: [agentRefs],
         browser: args.browser,
         dev: true,
         debug: args.debug,
@@ -2573,7 +2573,7 @@ const dev = async (args) => {
     }
     case 'listen': {
       await listen({
-        _: [guidsOrDevPathIndexes],
+        _: [agentRefs],
         dev: true,
         local: args.local,
         debug: args.debug,
