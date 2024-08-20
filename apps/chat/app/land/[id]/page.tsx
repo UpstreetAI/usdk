@@ -1,11 +1,11 @@
 'use client';
 
-import { Land } from '@/components/land'
-// import { useSearchParams } from 'next/navigation'
+import { Land } from '@/components/land';
+// import { useSearchParams } from 'next/navigation';
 
 export default function LandPage(props: {
   params: {
-    id: string
+    id: string,
   },
 }) {
   const { id } = props.params;
