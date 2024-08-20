@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "chat": "npm run -w @upstreet/chat --",
-    "docs": "npm run -w @upstreet/docs --"
+    "docs": "npm run -w @upstreet/docs --",
+    "sdk": "cd packages/sdk/ && usdk --"
   },
   "workspaces": [
-    "apps/**/*",
-    "packages/**/*"
+    "apps/*",
+    "packages/*"
   ],
   "devDependencies": {
     "@eslint/js": "^9.4.0",
