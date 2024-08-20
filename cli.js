@@ -2557,13 +2557,13 @@ const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
   const subcommand = args._[0] ?? '';
-  const guidsOrDevPathIndexes = args._[1] ?? [];
+  const agentRefs = args._[1] ?? [];
 
   switch (subcommand) {
     case 'chat': {
       // defer to conversation mode
       await chat({
-        _: [guidsOrDevPathIndexes],
+        _: [agentRefs],
         browser: args.browser,
         dev: true,
         debug: args.debug,
@@ -2573,7 +2573,7 @@ const dev = async (args) => {
     }
     case 'listen': {
       await listen({
-        _: [guidsOrDevPathIndexes],
+        _: [agentRefs],
         dev: true,
         local: args.local,
         debug: args.debug,
@@ -3008,36 +3008,22 @@ const capture = async (args) => {
   }
 };
 const deploy = async (args) => {
-  try {
-    const agentDirectory = await parseAgentSpecs(args._);
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
+    throw new Error('all agent specs must have directories');
+  }
 
-    // getDirectoryZip requires the path object, available in the 
-    const agentDirectoryPath = agentDirectory[0].directory;
+  // log in
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    for (const agentSpec of agentSpecs) {
+      const { directory } = agentSpec;
 
-    // log in
-    const jwt = await getLoginJwt();
-    const userId = jwt && (await getUserIdForJwt(jwt));
-    if (userId) {
-      const uint8Array = await getDirectoryZip(agentDirectoryPath, {
+      const uint8Array = await getDirectoryZip(directory, {
         exclude: [/\/node_modules\//],
       });
-      // console.log('got zip', agentDirectory, uint8Array.byteLength);
-
-      // // XXX unzip to test location
-      // const tempDir = await makeTempDir();
-      // const { files, cleanup } = await extractZip(uint8Array, tempDir);
-      // console.log('got temp dir', tempDir);
-
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
-      // const proxyRes = await fetch(u, {
-      //   method: 'PUT',
-      //   headers: {
-      //     Authorization: `Bearer ${jwt}`,
-      //     'Content-Type': 'application/zip',
-      //   },
-      //   body: uint8Array,
-      // });
       const req = https.request(u, {
         method: 'PUT',
         headers: {
@@ -3111,13 +3097,9 @@ const deploy = async (args) => {
       console.log(pc.cyan('✓ Host:'), url, '\n');
       console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
       console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
-
-    } else {
-      console.log('not logged in');
-      process.exit(1);
     }
-  } catch (e) {
-    console.error(e);
+  } else {
+    console.log('not logged in');
     process.exit(1);
   }
 };
@@ -3275,12 +3257,12 @@ const ls = async (args) => {
   }
 };
 const rm = async (args) => {
-  const guid = args._[0] ?? '';
+  const agentSpecs = await parseAgentSpecs(args._[0]);
 
-  if (guid) {
-    const jwt = await getLoginJwt();
-    const userId = jwt && (await getUserIdForJwt(jwt));
-    if (userId) {
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    for (const agentSpec of agentSpecs) {
+      const { guid } = agentSpec;
       const u = `${deployEndpointUrl}/agent`;
       const req = await fetch(u, {
         method: 'DELETE',
@@ -3300,27 +3282,9 @@ const rm = async (args) => {
         const text = await req.text();
         console.warn(`could not delete agent ${guid}: ${text}`);
       }
-
-      // const supabase = makeSupabase(jwt);
-      // const assetsResult = await supabase
-      //   .from('assets')
-      //   .delete()
-      //   .eq('id', guid)
-      //   .eq('type', 'npc')
-      //   .single();
-
-      // const { error, data } = assetsResult;
-      // if (!error) {
-      //   console.log(`deleted agent ${guid}`);
-      // } else {
-      //   console.warn(`could not delete agent ${guid}: ${JSON.stringify(error)}`);
-      // }
-    } else {
-      console.log('not logged in');
-      process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('not logged in');
     process.exit(1);
   }
 };
@@ -3988,19 +3952,19 @@ const main = async () => {
   program
     .command('deploy')
     .description('Deploy an agent to the network')
-    .argument(`[directory]`, `Directory containing the agent project to deploy`)
+    .argument(`[guids...]`, `Guids of the agents to deploy`)
     // .argument(
     //   `[type]`,
     //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
     // )
-    .action(async (directory, opts = {}) => {
+    .action(async (agentRefs, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
 
         let args;
         if (typeof directory === 'string') {
           args = {
-            _: [directory],
+            _: [agentRefs],
             ...opts,
           };
         } else {
@@ -4013,7 +3977,7 @@ const main = async () => {
         await deploy(args);
       });
     });
-  const networkOptions = ['baseSepolia', 'opMainnet'];
+  // const networkOptions = ['baseSepolia', 'opMainnet'];
   /* program
     .command('ls')
     .description('List the currently deployed agents')
@@ -4042,12 +4006,12 @@ const main = async () => {
   program
     .command('rm')
     .description('Remove a deployed agent from the network')
-    .argument(`<guid>`, `Guid of the agent to delete`)
-    .action(async (guid = '', opts) => {
+    .argument(`[guids...]`, `Guids of the agents to delete`)
+    .action(async (guids = '', opts) => {
       await handleError(async () => {
         commandExecuted = true;
         const args = {
-          _: [guid],
+          _: [guids],
           ...opts,
         };
         await rm(args);
