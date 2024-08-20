@@ -4000,7 +4000,7 @@ const main = async () => {
         await deploy(args);
       });
     });
-  const networkOptions = ['baseSepolia', 'opMainnet'];
+  // const networkOptions = ['baseSepolia', 'opMainnet'];
   /* program
     .command('ls')
     .description('List the currently deployed agents')
