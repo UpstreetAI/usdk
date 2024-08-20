@@ -1100,7 +1100,7 @@ const LandTopForm = ({
         if (!layerSpec.isValid(landSpec)) {
           setLoadState(`Generating ${layerSpec.name}...`);
           newLandSpec = await layerSpec.generate(newLandSpec);
-          console.log('regenerate layer', layerSpec.name, newLandSpec);
+          console.log('generated layer', layerSpec.name, newLandSpec);
           setLandSpec(newLandSpec);
         }
       }
@@ -1109,7 +1109,7 @@ const LandTopForm = ({
       // generate this layer
       setLoadState(`Generating ${layerSpec.name}...`);
       newLandSpec = await layerSpec.generate(newLandSpec);
-      console.log('regenerate layer', layerSpec.name, newLandSpec);
+      console.log('generated layer', layerSpec.name, newLandSpec);
       setLandSpec(newLandSpec);
     }
     setLoadState(null);
