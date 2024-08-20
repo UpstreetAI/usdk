@@ -3008,103 +3008,98 @@ const capture = async (args) => {
   }
 };
 const deploy = async (args) => {
-  try {
-    const agentSpecs = await parseAgentSpecs(args._[0]);
-    if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
-      throw new Error('all agent specs must have directories');
-    }
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
+    throw new Error('all agent specs must have directories');
+  }
 
-    // log in
-    const jwt = await getLoginJwt();
-    if (jwt) {
-      for (const agentSpec of agentSpecs) {
-        const { directory } = agentSpec;
+  // log in
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    for (const agentSpec of agentSpecs) {
+      const { directory } = agentSpec;
 
-        const uint8Array = await getDirectoryZip(directory, {
-          exclude: [/\/node_modules\//],
-        });
-        // upload the agent
-        const u = `${deployEndpointUrl}/agent`;
-        const req = https.request(u, {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${jwt}`,
-            'Content-Type': 'application/zip',
-            'Content-Length': uint8Array.byteLength,
-          },
-        });
-        // create a stream to pass to the request
-        const dataStream = new stream.PassThrough();
-        dataStream.pipe(req);
-        // dataStream.on('data', (b) => {
-        // });
-        // dataStream.on('end', (b) => {
-        // });
-        // pump the loop
-        (async () => {
-          const chunkSize = 4 * 1024;
-          const logSize = (i) => {
-            process.stdout.write(
-              `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
-            );
-          };
-          for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
-            logSize(i);
-            const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
-            const ok = dataStream.write(slice);
-            if (!ok) {
-              await new Promise((accept) => {
-                dataStream.once('drain', accept);
-              });
-            }
-          }
-          dataStream.end();
-
-          logSize(uint8Array.length);
-          console.log();
-        })();
-        const wranglerTomlJson = await new Promise((accept, reject) => {
-          req.on('response', async (res) => {
-            // console.log('got response', res.statusCode);
-
-            const b = await new Promise((accept, reject) => {
-              const bs = [];
-              res.on('data', (b) => {
-                bs.push(b);
-              });
-              res.on('end', async () => {
-                const b = Buffer.concat(bs);
-                accept(b);
-              });
-              res.on('error', reject);
+      const uint8Array = await getDirectoryZip(directory, {
+        exclude: [/\/node_modules\//],
+      });
+      // upload the agent
+      const u = `${deployEndpointUrl}/agent`;
+      const req = https.request(u, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          'Content-Type': 'application/zip',
+          'Content-Length': uint8Array.byteLength,
+        },
+      });
+      // create a stream to pass to the request
+      const dataStream = new stream.PassThrough();
+      dataStream.pipe(req);
+      // dataStream.on('data', (b) => {
+      // });
+      // dataStream.on('end', (b) => {
+      // });
+      // pump the loop
+      (async () => {
+        const chunkSize = 4 * 1024;
+        const logSize = (i) => {
+          process.stdout.write(
+            `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
+          );
+        };
+        for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
+          logSize(i);
+          const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
+          const ok = dataStream.write(slice);
+          if (!ok) {
+            await new Promise((accept) => {
+              dataStream.once('drain', accept);
             });
-            const s = b.toString('utf8');
-            // console.log('got response output', s);
+          }
+        }
+        dataStream.end();
 
-            if (res.statusCode === 200) {
-              const j = JSON.parse(s);
-              accept(j);
-            } else {
-              reject(new Error('deploy failed: ' + s));
-            }
-          });
-          req.on('error', reject);
-        });
-        const guid = wranglerTomlJson.vars.GUID;
-        const url = getAgentUrlFromGuid(guid);
-        
+        logSize(uint8Array.length);
         console.log();
-        console.group(pc.green('Agent Deployed Successfully:'), '\n');
-        console.log(pc.cyan('✓ Host:'), url, '\n');
-        console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
-        console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
-      }
-    } else {
-      console.log('not logged in');
-      process.exit(1);
+      })();
+      const wranglerTomlJson = await new Promise((accept, reject) => {
+        req.on('response', async (res) => {
+          // console.log('got response', res.statusCode);
+
+          const b = await new Promise((accept, reject) => {
+            const bs = [];
+            res.on('data', (b) => {
+              bs.push(b);
+            });
+            res.on('end', async () => {
+              const b = Buffer.concat(bs);
+              accept(b);
+            });
+            res.on('error', reject);
+          });
+          const s = b.toString('utf8');
+          // console.log('got response output', s);
+
+          if (res.statusCode === 200) {
+            const j = JSON.parse(s);
+            accept(j);
+          } else {
+            reject(new Error('deploy failed: ' + s));
+          }
+        });
+        req.on('error', reject);
+      });
+      const guid = wranglerTomlJson.vars.GUID;
+      const url = getAgentUrlFromGuid(guid);
+      
+      console.log();
+      console.group(pc.green('Agent Deployed Successfully:'), '\n');
+      console.log(pc.cyan('✓ Host:'), url, '\n');
+      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
     }
-  } catch (e) {
-    console.error(e);
+  } else {
+    console.log('not logged in');
     process.exit(1);
   }
 };
@@ -3262,12 +3257,12 @@ const ls = async (args) => {
   }
 };
 const rm = async (args) => {
-  const guid = args._[0] ?? '';
+  const agentSpecs = await parseAgentSpecs(args._[0]);
 
-  if (guid) {
-    const jwt = await getLoginJwt();
-    const userId = jwt && (await getUserIdForJwt(jwt));
-    if (userId) {
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    for (const agentSpec of agentSpecs) {
+      const { guid } = agentSpec;
       const u = `${deployEndpointUrl}/agent`;
       const req = await fetch(u, {
         method: 'DELETE',
@@ -3287,27 +3282,9 @@ const rm = async (args) => {
         const text = await req.text();
         console.warn(`could not delete agent ${guid}: ${text}`);
       }
-
-      // const supabase = makeSupabase(jwt);
-      // const assetsResult = await supabase
-      //   .from('assets')
-      //   .delete()
-      //   .eq('id', guid)
-      //   .eq('type', 'npc')
-      //   .single();
-
-      // const { error, data } = assetsResult;
-      // if (!error) {
-      //   console.log(`deleted agent ${guid}`);
-      // } else {
-      //   console.warn(`could not delete agent ${guid}: ${JSON.stringify(error)}`);
-      // }
-    } else {
-      console.log('not logged in');
-      process.exit(1);
     }
   } else {
-    console.log('no guid provided');
+    console.log('not logged in');
     process.exit(1);
   }
 };
@@ -3975,7 +3952,7 @@ const main = async () => {
   program
     .command('deploy')
     .description('Deploy an agent to the network')
-    .argument(`[guids...]`, `Guids of the agents to join the room`)
+    .argument(`[guids...]`, `Guids of the agents to deploy`)
     // .argument(
     //   `[type]`,
     //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
@@ -4029,12 +4006,12 @@ const main = async () => {
   program
     .command('rm')
     .description('Remove a deployed agent from the network')
-    .argument(`<guid>`, `Guid of the agent to delete`)
-    .action(async (guid = '', opts) => {
+    .argument(`[guids...]`, `Guids of the agents to delete`)
+    .action(async (guids = '', opts) => {
       await handleError(async () => {
         commandExecuted = true;
         const args = {
-          _: [guid],
+          _: [guids],
           ...opts,
         };
         await rm(args);
