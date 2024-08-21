@@ -52,22 +52,6 @@ const creditUnit = 1000; // is multiplied by the value in plans array
 
 //
 
-/* const useStripeSubscription = () => {
-  const u = new URL(location.href);
-  const id = u.searchParams.get('stripe_subscription_id');
-  const plan = u.searchParams.get('plan');
-  if (id) {
-    return {
-      id,
-      plan,
-    };
-  } else {
-    return null;
-  }
-}; */
-
-//
-
 const SubscriptionPlans = ({
   user,
   userPrivate,
