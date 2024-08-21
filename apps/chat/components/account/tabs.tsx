@@ -2,21 +2,25 @@
 
 import React, { useState } from 'react';
 import { Agents } from './agents';
-import { Profile } from './Profile';
+import { Profile } from './profile';
 import { Credits } from './credits';
+import { AccountPrivateUi } from './private-ui';
 
 
 export interface TabsProps {
   user: unknown;
   agents: object[];
-  creditsUsageHistory: object[];
+  creditsUsageHistory: object[] | null;
   userIsCurrentUser: boolean;
+  userPrivate: unknown;
 }
 
-export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurrentUser }: TabsProps) {
+export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
 
   const [ tab, setTab ] = useState<string>('profile');
   const [agents, setAgents] = useState(() => agentsInit);
+
+  creditsUsageHistory = creditsUsageHistory ?? [];
 
   const activeClass = 'text-purple-600 hover:text-purple-600 dark:text-purple-500 dark:hover:text-purple-500 border-purple-600 dark:border-purple-500';
   const inactiveClass = 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-pointer';
@@ -35,10 +39,7 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
             <button onClick={() => { setTab('credits'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'credits' ? activeClass : inactiveClass}`}>Credits</button>
           </li>
           <li role="presentation">
-            <button onClick={() => { setTab('subscriptions'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'subscriptions' ? activeClass : inactiveClass}`}>Subscription</button>
-          </li>
-          <li role="presentation">
-            <button onClick={() => { setTab('monetization'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'monetization' ? activeClass : inactiveClass}`}>Agent Monetization</button>
+            <button onClick={() => { setTab('subscriptions'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'subscriptions' ? activeClass : inactiveClass}`}>Subscription & Monetization</button>
           </li>
         </ul>
       </div>
@@ -53,10 +54,7 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
           <Credits creditsUsageHistory={creditsUsageHistory} />
         </div>
         <div className={tab === 'subscriptions' ? 'block w-full' : 'hidden'}>
-          <p></p>
-        </div>
-        <div className={tab === 'monetization' ? 'block w-full' : 'hidden'}>
-          <p></p>
+          <AccountPrivateUi user={user} userPrivate={userPrivate} />
         </div>
       </div>
     </div>

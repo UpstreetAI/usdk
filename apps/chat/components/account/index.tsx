@@ -1,7 +1,4 @@
 import React from 'react';
-import { Info } from '@/components/account/info'
-import { Agents } from '@/components/account/agents'
-import { AccountPrivateUi } from './private-ui';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
 import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
@@ -26,7 +23,11 @@ export async function Account({ params: { id }}: AccountProps) {
     return redirect( routes.home )
   }
 
-  const agentsPromise = getAgents(id || currentUser.id);
+  // Fetch agents with the linked credits_usage table data
+  const agentsPromise = getAgents(id || currentUser.id, `
+    *,
+    credits_usage ( * )  
+  `);
 
   // Display user for given ID if provided, else get current user.
   if (id) {
@@ -49,8 +50,6 @@ export async function Account({ params: { id }}: AccountProps) {
     ]);
   }
 
-  console.log("CCCCCCC", creditsUsageHistory)
-
   const agents = await agentsPromise;
 
   return (
@@ -61,16 +60,13 @@ export async function Account({ params: { id }}: AccountProps) {
             Welcome, {user?.name}
           </h1>
           <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-            Manage your info, privacy, and subscriptions to make your experience at Upstreet better.
+            Credits Available: <span className='text-purple-500'>{credits}</span>
           </p>
         </div>
       </div>
 
-      <Tabs user={user} creditsUsageHistory={creditsUsageHistory} agents={agents} userIsCurrentUser={userIsCurrentUser} />
+      <Tabs user={user} creditsUsageHistory={creditsUsageHistory} userPrivate={userPrivate} agents={agents} userIsCurrentUser={userIsCurrentUser} />
 
-      {/* <Info user={user} userIsCurrentUser={userIsCurrentUser} />
-      <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
-      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />} */}
     </div>
   );
 }

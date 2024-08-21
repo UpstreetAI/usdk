@@ -1,17 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 export interface AgentsProps {
-  user: object[];
-  creditsUsageHistory: object[]; 
-  userIsCurrentUser: boolean;
+  creditsUsageHistory: any;
 }
 
 export function Credits({ creditsUsageHistory }: AgentsProps) {
-  
-  console.log(creditsUsageHistory);
-
   return (
     <div className="flex m-auto w-full max-w-4xl">
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
@@ -25,9 +20,9 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                 <p className='w-40 font-bold text-right'>Amount</p>
                 </div>
 
-            {creditsUsageHistory.map((creditHistoryItem: object, i: number) => {
+            {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => {
               return (
-                <div className='flex text-[#efefef]'>
+                <div className='flex text-[#efefef]' key={i}>
                 <p className='w-full'>{creditHistoryItem?.created_at}</p>
                 <p className='w-60 text-right'>{creditHistoryItem?.service}</p>
                 <p className='w-40 text-right'>{creditHistoryItem?.amount}</p>
