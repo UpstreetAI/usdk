@@ -2,10 +2,9 @@
 
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
-// import { dev } from '@/lib/dev';
 
 //
 
@@ -349,15 +348,14 @@ const Subscriptions = ({
   );
 }
 
-export function AccountPrivateUi({
+export function AccountSubscriptions({
   user,
   userPrivate: initUserPrivate,
 }: AccountPrivateUiProps) {
   const [userPrivate, setUserPrivate] = useState(() => initUserPrivate);
   return (
-    <div className='w-full md:w-[900px]'>
+    <div className='w-full'>
       <Subscriptions user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
-      <StripeConnect userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
     </div>
   );
 }
