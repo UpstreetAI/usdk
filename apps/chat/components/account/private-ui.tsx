@@ -5,7 +5,6 @@ import { aiHost } from '@/utils/const/endpoints';
 import React, { useEffect, useState, useMemo } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
-import { env } from '@/lib/env';
 
 //
 
@@ -76,8 +75,6 @@ const SubscriptionPlans = ({
   userPrivate: any;
   setUserPrivate: (userPrivate: any) => void;
 }) => {
-  console.log('read env', env);
-
   const {
     plan: currentPlan,
   }: {
