@@ -34,7 +34,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
           Agents
         </h1>
         <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
-          Manage your agents: <span className='text-purple-500 font-bold'>{agents.length}</span>
+          Deployed agents: <span className='text-purple-500 font-bold'>{agents.length}</span>
         </p>
       </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
@@ -48,11 +48,10 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                       
                       <thead className="text-xs text-gray-50 uppercase bg-border">
                         <tr>
-                          <th key={'preview'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Preview</th>
-                          <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Info</th>
-                          <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Credits Used</th>
+                          <th key={'preview'} scope="col" className="px-6 w-[60px] py-3 text-[rgba(255,255,255,0.6)]">PFP</th>
+                          <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Agent Info</th>
+                          <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-center">Credits Used</th>
                           <th key={'chart'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Chart</th>
-                          <th key={'version'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Version</th>
                           <th key={'actions'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">
                             Actions
                           </th>
@@ -81,7 +80,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           return (
                             <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
 
-                              <td key={'t-0'} className="px-6 py-4 text-md capitalize align-top">
+                              <td key={'t-0'} className="px-6 w-[60px] pr-0 py-4 text-md capitalize align-top">
                                 <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                                   {preview_url && isValidUrl(preview_url) ? (
                                     <Image className="flex" width={60} height={60} src={preview_url} alt='Profile picture' />
@@ -92,20 +91,17 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                               </td>
 
                               <td key={'t-1'} className="px-6 py-4 text-md capitalize align-top">
-                                <div>{name}</div>
-                                <div>{description}</div>
+                                <div className='font-bold truncate'>{name}</div>
+                                <div className='truncate'>{description}</div>
+                                <div className='mt-1 text-gray-400 font-bold'>Version: {version}</div>
                               </td>
 
-                              <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
+                              <td key={'t-2'} className="px-6 py-4 text-md capitalize text-2xl align-middle text-center">
                                 {Math.round(overallCreditsUsed)}
                               </td>
 
                               <td key={'chart'} className="px-6 py-4 text-md capitalize align-top">
                                 <SparkLineChart data={sparklineData} colors={['#a855f7']} height={50} width={100} />
-                              </td>
-
-                              <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
-                                {version}
                               </td>
 
                               <td key={'t-4'} className="relative px-6 py-4 text-md capitalize align-top">

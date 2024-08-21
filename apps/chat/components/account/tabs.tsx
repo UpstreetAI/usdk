@@ -27,7 +27,7 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
   const inactiveClass = 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-pointer';
 
   return (
-    <div>
+    <div className='pb-16'>
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full">
         <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
           <li className="me-2" role="presentation">
