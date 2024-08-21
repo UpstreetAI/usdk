@@ -68,14 +68,14 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     } = agent as any;
 
                     // Prepare sparkline data by filtering out insignificant amounts
-                    const sparklineData = credits_usage?.reduce((acc, credit) => {
+                    const sparklineData = credits_usage?.reduce((acc: any, credit: any) => {
                       const amount = credit.amount * 1000;
                       if (amount >= 0.1) acc.push(amount);
                       return acc;
                     }, []) || [];
 
                     // Calculate the total credits used by the agent
-                    const overallCreditsUsed = credits_usage?.reduce((total, credit) => total + credit.amount * 1000, 0) || 0;
+                    const overallCreditsUsed = credits_usage?.reduce((total: any, credit: any) => total + credit.amount * 1000, 0) || 0;
 
                     return (
                       <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
