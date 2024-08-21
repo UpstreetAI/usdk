@@ -29,7 +29,7 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
   return (
     <div className='pb-16'>
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full">
-        <ul className="flex flex-wrap -mb-px text-sm font-medium text-center" role="tablist">
+        <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-px text-sm font-medium text-center" role="tablist">
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('profile'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'profile' ? activeClass : inactiveClass}`}>Profile</button>
           </li>
