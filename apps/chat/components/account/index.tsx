@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
 import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
 import { Tabs } from './tabs';
-
+import { LoginRedirect } from '@/components/login-redirect';
 
 export interface AccountProps {
   params: {
@@ -11,16 +11,21 @@ export interface AccountProps {
   }
 }
 
-export async function Account({ params: { id }}: AccountProps) {
+export async function AccountForm({
+  id,
+}: {
+  id: string
+}) {
   let user = null
   let userPrivate = null
   let credits = 0
   let creditsUsageHistory = null;
   let userIsCurrentUser = false
 
-  const currentUser = await waitForUser()
+  const currentUser = await waitForUser();
   if (!currentUser) {
-    return redirect( routes.home )
+    // return redirect( routes.home )
+    return null;
   }
 
   // Fetch agents with the linked credits_usage table data
@@ -68,5 +73,14 @@ export async function Account({ params: { id }}: AccountProps) {
       <Tabs user={user} creditsUsageHistory={creditsUsageHistory} userPrivate={userPrivate} agents={agents} userIsCurrentUser={userIsCurrentUser} />
 
     </div>
+  );
+}
+
+export async function Account({ params: { id }}: AccountProps) {
+  return (
+    <>
+      <LoginRedirect />
+      <AccountForm id={id} />
+    </>
   );
 }

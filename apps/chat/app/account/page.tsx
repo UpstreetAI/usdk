@@ -1,6 +1,5 @@
 import { Account } from '@/components/account'
 
-
 interface Props {
   params: {
     id: string
