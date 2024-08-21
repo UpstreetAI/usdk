@@ -5,6 +5,7 @@ import { Agents } from './agents';
 import { Profile } from './profile';
 import { Credits } from './credits';
 import { AccountPrivateUi } from './private-ui';
+import useHash from '@/lib/hooks/use-hash';
 
 
 export interface TabsProps {
@@ -17,7 +18,7 @@ export interface TabsProps {
 
 export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
 
-  const [ tab, setTab ] = useState<string>('profile');
+  const [ tab, setTab ] = useHash('profile'); // Default to 'profile'
   const [agents, setAgents] = useState(() => agentsInit);
 
   creditsUsageHistory = creditsUsageHistory ?? [];
