@@ -8,6 +8,8 @@ import stream from 'stream';
 import repl from 'repl';
 import util from 'util';
 
+import { z } from 'zod';
+import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
 import { program } from 'commander';
 import WebSocket, { WebSocketServer } from 'ws';
@@ -24,6 +26,18 @@ import jsAgo from 'js-ago';
 import 'localstorage-polyfill';
 import JSZip from 'jszip';
 import { doc } from 'tsdoc-extractor';
+import {
+  input,
+  // select,
+  // checkbox,
+  // confirm,
+  // search,
+  // password,
+  // expand,
+  // editor,
+  // number,
+  // rawlist,
+} from '@inquirer/prompts';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -34,7 +48,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 
 import { generationModel } from './const.js';
 import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
-import packageJson from './package.json' with { type: 'json' };
+import { Interactor } from './lib/interactor.js';
 import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
@@ -44,6 +58,7 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from './sdk/src/util/supabase-client.mjs';
+import packageJson from './package.json' with { type: 'json' };
 
 import {
   providers,
@@ -60,9 +75,9 @@ import {
   workersHost,
 } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
-import { makeId, shuffle, parseCodeBlock } from './sdk/src/util/util.mjs';
+import { makeId, shuffle, parseCodeBlock, makePromise } from './sdk/src/util/util.mjs';
 import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
-import { fetchImageGeneration } from './sdk/src/util/generate-image.mjs';
+import { fetchImageGeneration, generateCharacterImage } from './sdk/src/util/generate-image.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
@@ -82,6 +97,7 @@ import {
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
 import {
+  ImageRenderer,
   TerminalVideoRenderer,
   WebPEncoder,
   describe,
@@ -2350,7 +2366,7 @@ const getAgentToken = async (jwt, guid) => {
 };
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
-  const prompt = args._[1] ?? '';
+  const prompt = args.prompt ?? '';
   const name = args.name;
   const description = args.description;
   const template = args.template ?? 'basic';
@@ -2443,21 +2459,96 @@ export const create = async (args, opts) => {
   // generate the agent if necessary
   let srcTemplateDir;
   let agentJson = {};
-  if (prompt) {
-    if (jwt) {
-      console.log(pc.italic('Generating agent...'));
-      const generateTemplateResponse =
-        await generateTemplateFromPrompt(prompt);
+  if (jwt) {
+    console.log(pc.italic('Generating agent...'));
+    // const generateTemplateResponse =
+    //   await generateTemplateFromPrompt(prompt);
 
-      agentJson = generateTemplateResponse.agentJson;
-      srcTemplateDir = generateTemplateResponse.templateDirectory;
+    // agentJson = generateTemplateResponse.agentJson;
+    // srcTemplateDir = generateTemplateResponse.templateDirectory;
 
-      console.log(pc.italic('Generated agent.'));
-    } else {
-      throw new Error('not logged in: cannot generate agent from prompt');
+    const interview = async () => {
+      const interactor = new Interactor({
+        prompt: dedent`\
+          Generate and configure an AI agent with various capabilities.
+        `,
+        objectFormat: z.object({
+          name: z.string().optional(),
+          description: z.string().optional(),
+          visualDescription: z.string().optional(),
+        }),
+        jwt,
+      });
+      const p = makePromise();
+      interactor.addEventListener('message', async (e) => {
+        const o = e.data;
+        const {
+          response,
+          update_object,
+          done,
+          object,
+        } = o;
+        if (!done) {
+          const answer = await input({
+            message: response,
+          });
+          interactor.send(answer);
+        } else {
+          p.resolve(object);
+        }
+      });
+      interactor.send(prompt);
+      const object = await p;
+      return object;
+    };
+
+    // listen for the user pressing the tab key
+    {
+      process.stdin.setRawMode(true);
+      process.stdin.setEncoding('utf8');
+      process.stdin.resume();
+      process.stdin.on('data', (key) => {
+        if (key === '\u0009') { // tab
+          console.log('got tab');
+        }
+        if (key === '\u0003') { // ctrl-c
+          console.log('got ctrl-c');
+          process.exit();
+        }
+      });
     }
-  } else {
+
+    const object = await interview();
+    console.log(pc.italic('Agent build complete.'));
+    console.log(pc.green('Name:'), object.name);
+    console.log(pc.green('Bio:'), object.description);
+    console.log(pc.green('Visual Description:'), object.visualDescription);
+
+    const {
+      blob,
+    } = await generateCharacterImage(object.visualDescription, undefined, {
+      jwt,
+    });
+    const ab = await blob.arrayBuffer();
+    const b = Buffer.from(ab);
+    const jimp = await Jimp.read(b);
+    const imageRenderer = new ImageRenderer();
+    const {
+      text: imageText,
+    } = imageRenderer.render(jimp.bitmap, 120, undefined);
+    console.log(imageText);
+    // console.log('rendered');
+    // const cleanBlob = await removeBackground(blob, {
+    //   jwt,
+    // });
+    // const image = await blob2img(cleanBlob);
+
+    return;
     srcTemplateDir = path.join(templatesDirectory, template);
+
+    console.log(pc.italic('Generated agent.'));
+  } else {
+    throw new Error('not logged in: cannot generate agent from prompt');
   }
   const srcTemplateFilter = (p) => !/^(?:package\.json|agent\.json)$/.test(p);
 
@@ -3795,6 +3886,7 @@ const main = async () => {
     .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
     .option(`-n, --name <string>`, `Agent name`)
     .option(`-d, --description <string>`, `Agent description`)
+    .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
@@ -3802,26 +3894,17 @@ const main = async () => {
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
     )
-    .action(async (directory = undefined, prompt = undefined, opts = {}) => {
+    .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
         let args;
         if (typeof directory === 'string') {
-          if (typeof prompt === 'string') {
-            args = {
-              _: [directory, prompt],
-              ...opts,
-            };
-          } else {
-            prompt = undefined;
-            args = {
-              _: [directory],
-              ...opts,
-            };
-          }
+          args = {
+            _: [directory],
+            ...opts,
+          };
         } else {
           directory = undefined;
-          prompt = undefined;
           args = {
             _: [],
             ...opts,
