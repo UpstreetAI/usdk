@@ -49,7 +49,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Agent Info</th>
                     <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-center">Credits Used</th>
                     <th key={'chart'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Chart</th>
-                    <th key={'actions'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">
+                    <th key={'actions'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-right">
                       Actions
                     </th>
                   </tr>
@@ -101,8 +101,8 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           <SparkLineChart data={sparklineData} colors={['#a855f7']} height={50} width={100} />
                         </td>
 
-                        <td key={'t-4'} className="relative px-6 py-4 text-md capitalize align-top">
-                          <div className='relative w-8'>
+                        <td key={'t-4'} className="relative px-6 py-4 text-md capitalize align-middle text-right">
+                          <div className='relative inline-block w-8'>
                             {userIsCurrentUser && <>
                               <div className="w-8 text-center flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30" onClick={e => {
                                 setOpenAgentIndex(i === openAgentIndex ? -1 : i);
@@ -157,7 +157,6 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           </div>
                         </td>
                       </tr>
-
                     );
                   })}
 

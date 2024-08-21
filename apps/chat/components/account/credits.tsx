@@ -19,7 +19,6 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
       </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
-
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
 
             <thead className="text-xs text-gray-50 uppercase bg-border">
@@ -55,5 +54,5 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
