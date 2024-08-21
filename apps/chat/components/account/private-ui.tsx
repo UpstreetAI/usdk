@@ -176,7 +176,8 @@ const SubscriptionPlans = ({
                         // } = j;
                         // location.href = url;
                       } else {
-                        console.warn('failed to create checkout session:', res.status);
+                        const text = await res.text();
+                        console.warn('failed to create checkout session:', res.status, text);
                       }
                     }}
                   >
