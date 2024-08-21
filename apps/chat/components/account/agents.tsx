@@ -67,12 +67,15 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                       credits_usage
                     } = agent as any;
 
-                    const sparklineData = credits_usage
-                      ? credits_usage.map((credit: { created_at: any; amount: number; }) => (credit.amount * 1000))
-                      : [];
+                    // Prepare sparkline data by filtering out insignificant amounts
+                    const sparklineData = credits_usage?.reduce((acc, credit) => {
+                      const amount = credit.amount * 1000;
+                      if (amount >= 0.1) acc.push(amount);
+                      return acc;
+                    }, []) || [];
 
-                    // Get the sum of all credits used by the agent
-                    const overallCreditsUsed = sparklineData.reduce((total: any, currentValue: any) => total + currentValue, 0) ?? 0;
+                    // Calculate the total credits used by the agent
+                    const overallCreditsUsed = credits_usage?.reduce((total, credit) => total + credit.amount * 1000, 0) || 0;
 
                     return (
                       <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
