@@ -20,28 +20,28 @@ export interface AccountPrivateUiProps {
 const stripePathname = `/stripe_test`;
 const plans = [
   {
-    price: null,
+    // price: null,
     name: 'free',
     value: 0,
     currency: `$`,
     interval: 'mo'
   },
   {
-    price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
+    // price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
     name: 'hobby',
     value: 20,
     currency: `$`,
     interval: 'mo'
   },
   {
-    price: 'price_1PeZLaGQNhufWPO8830LJKJg',
+    // price: 'price_1PeZLaGQNhufWPO8830LJKJg',
     name: 'developer',
     value: 50,
     currency: `$`,
     interval: 'mo'
   },
   {
-    price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
+    // price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
     name: 'business',
     value: 200,
     currency: `$`,
@@ -74,7 +74,7 @@ const SubscriptionPlans = ({
         {plans.map((plan, i) => {
           const {
             name,
-            price,
+            // price,
             currency,
             value,
             interval
@@ -105,7 +105,7 @@ const SubscriptionPlans = ({
                     {value > 0 ? `/${interval}` : '\xa0'}
                   </span>
                 </p>
-                {price ?
+                {value > 0 ?
                   <Button
                     className='w-full mt-8'
                     disabled={currentPlan === name}
