@@ -28,12 +28,18 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
   const { agentJoin } = useMultiplayerActions();
 
   return (
-    <div className="flex m-auto w-full max-w-4xl">
+    <div className="m-auto w-full max-w-4xl">
+      <div className="sm:flex sm:flex-col sm:align-center pt-4 pb-4">
+        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
+          Agents
+        </h1>
+        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
+          Manage your agents.
+        </p>
+      </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
-
           <div className="w-full">
-            <div className="mb-8 text-2xl">Agents</div>
             <div className="flex">
               <div className="w-full">
                 <div className="relative">
