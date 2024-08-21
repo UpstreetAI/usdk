@@ -16,8 +16,7 @@ export interface AccountPrivateUiProps {
 
 //
 
-// const stripePathname = `/stripe`;
-const stripePathname = `/stripe_test`;
+const devSuffix = `_test`;
 const plans = [
   {
     // price: null,
@@ -119,7 +118,7 @@ const SubscriptionPlans = ({
                       // const success_url = (success_url_object + '').replace('CHECKOUT_SESSION_ID', '{CHECKOUT_SESSION_ID}');
                       const success_url = location.href;
 
-                      const res = await fetch(`${aiHost}${stripePathname}/checkout/session`, {
+                      const res = await fetch(`${aiHost}/stripe${devSuffix}/checkout/session`, {
                         method: 'POST',
                         headers: {
                           'Content-Type': 'application/json',
@@ -153,7 +152,7 @@ const SubscriptionPlans = ({
                     onClick={async (e) => {
                       // cancel the plan
                       const jwt = await getJWT();
-                      const res = await fetch(`${aiHost}/plans`, {
+                      const res = await fetch(`${aiHost}/plans${devSuffix}`, {
                         method: 'DELETE',
                         headers: {
                           'Content-Type': 'application/json',
@@ -227,7 +226,7 @@ const StripeConnect = ({
                   console.log('stripe connect');
 
                   const jwt = await getJWT();
-                  const res = await fetch(`${aiHost}${stripePathname}/account`, {
+                  const res = await fetch(`${aiHost}/stripe${devSuffix}/account`, {
                     method: 'POST',
                     headers: {
                       Authorization: `Bearer ${jwt}`,
@@ -237,12 +236,12 @@ const StripeConnect = ({
                     const j = await res.json();
                     console.log('created account', j);
 
-                    const return_url = new URL(`${aiHost}${stripePathname}/account/redirect`);
+                    const return_url = new URL(`${aiHost}/stripe${devSuffix}/account/redirect`);
                     return_url.searchParams.set('stripe_connect_account_id', j.account);
                     return_url.searchParams.set('redirect_url', window.location.href);
                     const refresh_url = return_url;
                     
-                    const res2 = await fetch(`${aiHost}${stripePathname}/account_link`, {
+                    const res2 = await fetch(`${aiHost}/stripe${devSuffix}/account_link`, {
                       method: "POST",
                       headers: {
                         'Content-Type': 'application/json',
@@ -293,7 +292,7 @@ const StripeConnect = ({
                   console.log('stripe disconnect');
 
                   const jwt = await getJWT();
-                  const res = await fetch(`${aiHost}${stripePathname}/account`, {
+                  const res = await fetch(`${aiHost}/stripe${devSuffix}/account`, {
                     method: 'DELETE',
                     headers: {
                       Authorization: `Bearer ${jwt}`,
