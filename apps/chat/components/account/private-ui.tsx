@@ -19,28 +19,24 @@ export interface AccountPrivateUiProps {
 const devSuffix = `_test`;
 const plans = [
   {
-    // price: null,
     name: 'free',
     value: 0,
     currency: `$`,
     interval: 'mo'
   },
   {
-    // price: 'price_1PeZL6GQNhufWPO8mlI4H88D',
     name: 'hobby',
     value: 20,
     currency: `$`,
     interval: 'mo'
   },
   {
-    // price: 'price_1PeZLaGQNhufWPO8830LJKJg',
     name: 'developer',
     value: 50,
     currency: `$`,
     interval: 'mo'
   },
   {
-    // price: 'price_1PeZLmGQNhufWPO8OgwLkWlH',
     name: 'business',
     value: 200,
     currency: `$`,
@@ -73,7 +69,6 @@ const SubscriptionPlans = ({
         {plans.map((plan, i) => {
           const {
             name,
-            // price,
             currency,
             value,
             interval
