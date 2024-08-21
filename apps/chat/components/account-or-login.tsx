@@ -9,6 +9,7 @@ import { HeaderLoginButton } from '@/components/header-login-button'
 // import { SidebarToggle } from '@/components/sidebar-toggle'
 // import { Session } from '@/lib/types'
 import { getJWT } from '@/utils/supabase/server'
+import { SearchBar } from './searchbar'
 
 // import { logout } from '@/lib/logout'
 
@@ -26,9 +27,15 @@ export async function AccountOrLogin() {
   return (
     <>
       {user ? (
-        <AccountButton user={user}/>
+        <>
+          <SearchBar/>
+          <AccountButton user={user}/>
+        </>
       ) : (
-        <HeaderLoginButton />
+        <>
+          <SearchBar disabled />
+          <HeaderLoginButton />
+        </>
       )}
     </>
   )
