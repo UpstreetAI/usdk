@@ -1,14 +1,17 @@
+import { zodResponseFormat } from 'openai/helpers/zod';
+import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
 import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
-import Together from 'together-ai';
 
 const fetchChatCompletionFns = {
-  openai: async ({ model, messages, stream, signal }) => {
-    const jwt = getCleanJwt();
+  openai: async ({ model, messages, stream, signal }, {
+    jwt,
+  }) => {
     if (!jwt) {
       throw new Error('no jwt');
     }
+
     const aiFetch = getAiFetch();
     const res = await aiFetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
       method: 'POST',
@@ -41,7 +44,13 @@ const fetchChatCompletionFns = {
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  anthropic: async ({ model, max_tokens, messages, stream, signal }) => {
+  anthropic: async ({ model, max_tokens, messages, stream, signal }, {
+    jwt,
+  }) => {
+    if (!jwt) {
+      throw new Error('no jwt');
+    }
+
     const res = await aiFetch(`https://${aiProxyHost}/api/claude/messages`, {
       method: 'POST',
 
@@ -67,11 +76,13 @@ const fetchChatCompletionFns = {
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  together: async ({ model, messages, stream, signal }) => {
-    const jwt = getCleanJwt();
+  together: async ({ model, messages, stream, signal }, {
+    jwt,
+  }) => {
     if (!jwt) {
       throw new Error('no jwt');
     }
+
     const together = new Together({
       baseURL: `https://api.together.xyz/v1`,
       apiKey: jwt,
@@ -276,7 +287,16 @@ export const fetchChatCompletion = async ({
   messages,
   stream = undefined,
   signal = undefined,
-}) => {
+}, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    jwt = getCleanJwt();
+  }
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
   const match = model.match(/^(.+?):/);
   if (match) {
     const modelType = match[1];
@@ -288,6 +308,8 @@ export const fetchChatCompletion = async ({
         messages,
         stream,
         signal,
+      }, {
+        jwt,
       });
       return res;
     } else {
@@ -297,18 +319,60 @@ export const fetchChatCompletion = async ({
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
 };
-/* export const getAnonUser = async () => {
-  const id = crypto.randomUUID();
-  // curl -X POST -H "Content-Type: application/json" -d '{"id": "lol"}' https://metamask.upstreet.ai/anon
-  const res = await fetch('https://metamask.upstreet.ai/anon', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id,
-    }),
-  });
-  const jwtString = await res.json();
-  return jwtString;
-}; */
+export const fetchJsonCompletion = async ({
+  model,
+  messages,
+  stream,
+  signal,
+}, format, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    jwt = getCleanJwt();
+  }
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const match = model.match(/^(.+?):/);
+  if (match) {
+    // XXX support different model types; for now openai is assumed
+    // const modelType = match[1];
+    const modelName = model.slice(match[0].length);
+    // const fn = fetchChatCompletionFns[modelType];
+    // if (fn) {
+      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json',
+          // 'OpenAI-Beta': 'assistants=v1',
+          Authorization: `Bearer ${jwt}`,
+        },
+
+        body: JSON.stringify({
+          model: modelName,
+          messages,
+
+          response_format: zodResponseFormat(format, 'result'),
+
+          stream,
+        }),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const s = j.choices[0].message.content;
+        const o = JSON.parse(s);
+        return o;
+      } else {
+        const text = await res.text();
+        throw new Error('invalid status code: ' + res.status + ': ' + text);
+      }
+    // } else {
+    //   throw new Error('invalid model type: ' + JSON.stringify(modelType));
+    // }
+  } else {
+    throw new Error('invalid model: ' + JSON.stringify(model));
+  }
+};
