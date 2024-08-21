@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils'
 export interface AccountPrivateUiProps {
   user: any
   userPrivate: any
-  credits: number
 }
 
 //
@@ -222,7 +221,7 @@ const StripeConnect = ({
   } = userPrivate;
 
   return (
-    <div className="flex flex-col m-auto w-full max-w-4xl mt-8">
+    <div className="flex flex-col m-auto w-full max-w-4xl mt-16">
       <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
         Agent Monetization
       </h1>
@@ -347,25 +346,6 @@ const StripeConnect = ({
   );
 };
 
-const Credits = ({
-  credits,
-}: {
-  credits: number,
-}) => {
-  return (
-    <>
-      <div className="sm:flex sm:flex-col sm:align-center pt-8">
-        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-          Credits
-        </h1>
-        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-          {credits}
-        </p>
-      </div>
-    </>
-  );
-};
-
 const Subscriptions = ({
   user,
   userPrivate,
@@ -393,47 +373,12 @@ const Subscriptions = ({
 export function AccountPrivateUi({
   user,
   userPrivate: initUserPrivate,
-  credits,
 }: AccountPrivateUiProps) {
   const [userPrivate, setUserPrivate] = useState(() => initUserPrivate);
-
-  /* const stripeSubscription = useStripeSubscription();
-  useEffect(() => {
-    if (stripeSubscription) {
-      console.log('got stripe subscription', stripeSubscription);
-      const {
-        id: stripeSubscriptionId,
-        plan,
-      } = stripeSubscription;
-      (async () => {
-        const jwt = await getJWT();
-        const supabase = makeAnonymousClient(env, jwt);
-        await supabase
-          .from('accounts_private')
-          .update({
-            stripe_subscription_id: stripeSubscriptionId,
-            plan,
-          })
-          .eq('id', user.id);
-
-        setUserPrivate((userPrivate: object) => {
-          return {
-            ...userPrivate,
-            stripe_subscription_id: stripeSubscriptionId,
-            plan,
-          };
-        });
-
-       history.replaceState(null, '', location.pathname);
-      })();
-    }
-  }, [stripeSubscription?.id]); */
-
   return (
-    <>
-      <Credits credits={credits} />
+    <div className='w-full md:w-[900px]'>
       <Subscriptions user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
       <StripeConnect userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
-    </>
+    </div>
   );
 }

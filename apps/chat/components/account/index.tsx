@@ -1,10 +1,8 @@
 import React from 'react';
-import { Info } from '@/components/account/info'
-import { Agents } from '@/components/account/agents'
-import { AccountPrivateUi } from './private-ui';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
-import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser } from '@/utils/supabase/server';
+import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
+import { Tabs } from './tabs';
 import { LoginRedirect } from '@/components/login-redirect';
 
 export interface AccountProps {
@@ -21,6 +19,7 @@ export async function AccountForm({
   let user = null
   let userPrivate = null
   let credits = 0
+  let creditsUsageHistory = null;
   let userIsCurrentUser = false
 
   const currentUser = await waitForUser();
@@ -29,7 +28,11 @@ export async function AccountForm({
     return null;
   }
 
-  const agentsPromise = getAgents(id || currentUser.id);
+  // Fetch agents with the linked credits_usage table data
+  const agentsPromise = getAgents(id || currentUser.id, `
+    *,
+    credits_usage ( * )  
+  `);
 
   // Display user for given ID if provided, else get current user.
   if (id) {
@@ -45,9 +48,10 @@ export async function AccountForm({
   }
   // load private data
   if (userIsCurrentUser) {
-    [userPrivate, credits] = await Promise.all([
+    [userPrivate, credits, creditsUsageHistory] = await Promise.all([
       getUserAccountPrivate(user.id, 'stripe_connect_account_id,stripe_subscription_id,plan'),
       getCredits(user.id),
+      getCreditsUsageHistory(user.id)
     ]);
   }
 
@@ -61,13 +65,13 @@ export async function AccountForm({
             Welcome, {user?.name}
           </h1>
           <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-            Manage your info, privacy, and subscriptions to make your experience at Upstreet better.
+            Credits Available: <span className='text-purple-500'>{credits}</span>
           </p>
         </div>
       </div>
-      <Info user={user} userIsCurrentUser={userIsCurrentUser} />
-      <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
-      {userIsCurrentUser && <AccountPrivateUi user={user} userPrivate={userPrivate} credits={credits} />}
+
+      <Tabs user={user} creditsUsageHistory={creditsUsageHistory} userPrivate={userPrivate} agents={agents} userIsCurrentUser={userIsCurrentUser} />
+
     </div>
   );
 }

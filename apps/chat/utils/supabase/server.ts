@@ -100,6 +100,15 @@ export async function getCredits(id: string, select = '*', supabaseClient = make
   return (data?.[0] as any|null)?.credits;
 }
 
+export async function getCreditsUsageHistory(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { data } = await supabaseClient
+    .from('credits_usage')
+    .select(select)
+    .eq('user_id', id);
+    // .single()
+  return data;
+}
+
  
 
 export function getJWT() {
