@@ -27,13 +27,7 @@ const StripeConnect = ({
   } = userPrivate;
 
   return (
-    <div className="flex flex-col m-auto w-full max-w-4xl mt-16">
-      <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-        Agent Monetization
-      </h1>
-      <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-        Earn money from your agents.
-      </p>
+    <div className="flex flex-col m-auto w-full max-w-4xl mt-4">
       {!stripe_connect_account_id ? (
         <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
           <div className="px-5 py-4">
@@ -152,7 +146,15 @@ export function Monetization({
 }: MonetizationProps) {
   const [userPrivate, setUserPrivate] = useState(() => initUserPrivate);
   return (
-    <div className='w-full md:w-[900px]'>
+    <div>
+      <div className="sm:flex sm:flex-col sm:align-center pt-4">
+        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
+          Agent monetization
+        </h1>
+        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
+          Earn money from your agents.
+        </p>
+      </div>
       <StripeConnect userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
     </div>
   );

@@ -64,7 +64,7 @@ const SubscriptionPlans = ({
 
   return (
     <div>
-      <div className="mt-12 space-y-4 sm:mt-16 sm:space-y-0 flex flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
+      <div className="mt-8 space-y-4 sm:mt-8 sm:space-y-0 flex flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
         {plans.map((plan, i) => {
           const {
             name,
@@ -198,11 +198,11 @@ const Subscriptions = ({
 }) => {
   return (
     <>
-      <div className="sm:flex sm:flex-col sm:align-center pt-8">
-        <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
+      <div className="sm:flex sm:flex-col sm:align-center pt-4">
+        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
           Subscription Plans
         </h1>
-        <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
+        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
           Subscribe to a plan to get monthly credits.
         </p>
       </div>
