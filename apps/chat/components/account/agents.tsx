@@ -36,8 +36,8 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
             <div className="mb-8 text-2xl">Agents</div>
             <div className="flex">
               <div className="w-full">
-                <div className="relative overflow-x-auto">
-                  <div className="relative overflow-x-auto shadow-md sm:rounded-lg">
+                <div className="relative">
+                  <div className="relative shadow-md sm:rounded-lg">
                     <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                       
                       <thead className="text-xs text-gray-50 uppercase bg-border">
@@ -76,7 +76,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                             <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
 
                               <td key={'t-0'} className="px-6 py-4 text-md capitalize align-top">
-                                <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                                <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                                   {preview_url && isValidUrl(preview_url) ? (
                                     <Image className="flex" width={60} height={60} src={preview_url} alt='Profile picture' />
                                   ) : (
@@ -95,21 +95,22 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                               </td>
 
                               <td key={'chart'} className="px-6 py-4 text-md capitalize align-top">
-                                <SparkLineChart data={sparklineData} colors={['#a855f7']} height={50} />
+                                <SparkLineChart data={sparklineData} colors={['#a855f7']} height={50} width={100} />
                               </td>
 
                               <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
                                 {version}
                               </td>
 
-                              <td key={'t-4'} className="px-6 py-4 text-md capitalize align-top">
+                              <td key={'t-4'} className="relative px-6 py-4 text-md capitalize align-top">
+                                <div className='relative w-8'>
                                 {userIsCurrentUser && <>
-                                  <div className="flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30" onClick={e => {
+                                  <div className="w-8 text-center flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30" onClick={e => {
                                     setOpenAgentIndex(i === openAgentIndex ? -1 : i);
                                   }}>
                                     <IconDots />
                                   </div>
-                                  {i === openAgentIndex && <div className="absolute flex flex-col top-8 right-0 p-2 rounded border cursor-auto bg-primary/10">
+                                  {i === openAgentIndex && <div className="absolute flex flex-col top-0 right-10 p-2 rounded border cursor-auto bg-primary/10">
                                     <Button variant="outline" className="text-xs mb-1" onClick={e => {
                                       setOpenAgentIndex(-1);
 
@@ -154,8 +155,8 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                                     }}>Delete</Button>
                                   </div>}
                                 </>}
+                                </div>
                               </td>
-
                             </tr>
 
                           );
