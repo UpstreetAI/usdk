@@ -65,7 +65,7 @@ export async function AccountForm({
             Welcome, {user?.name}
           </h1>
           <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-            Credits Available: <span className='text-purple-500'>{credits}</span>
+            Credits Available: <span className='text-purple-500'>{Math.round(credits * 1000)}</span>
           </p>
         </div>
       </div>
