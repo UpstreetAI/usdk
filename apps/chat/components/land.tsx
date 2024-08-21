@@ -460,7 +460,7 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
     URL.revokeObjectURL(src);
   };
 });
-const sceneImageStyle = `studio ghibli magical fantasy anime screencap style background`;
+// const sceneImageStyle = `studio ghibli magical fantasy anime screencap style background`;
 const sceneImageDefaultPrompt = `lush nature cavern, ancient technology, cyberpunk platform`;
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
 const generateCharacter = async (prompt = characterImageDefaultPrompt, {
