@@ -37,10 +37,17 @@ export function Profile({ user, userIsCurrentUser }: ProfileProps) {
   }
 
   return (
-    <div className="flex m-auto w-full max-w-4xl">
+    <div className="m-auto w-full max-w-4xl">
+      <div className="sm:flex sm:flex-col sm:align-center pt-4 pb-4">
+        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
+          Profile
+        </h1>
+        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
+          Update your profile information.
+        </p>
+      </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
-          <h3 className="mb-1 text-2xl font-medium">Profile</h3>
           <div className="mt-5 mb-4 text-xl font-semibold flex">
             <ProfileImage user={user} userIsCurrentUser={userIsCurrentUser} />
             <div className='w-full'>

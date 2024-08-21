@@ -22,7 +22,6 @@ export function Header() {
           </Link>
         </div>
       </div>
-      <SearchBar/>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
         <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
           <AccountOrLogin/>
