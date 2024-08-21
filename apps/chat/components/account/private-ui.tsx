@@ -218,7 +218,7 @@ const StripeConnect = ({
   } = userPrivate;
 
   return (
-    <div className="flex flex-col m-auto w-full max-w-4xl mt-8">
+    <div className="flex flex-col m-auto w-full max-w-4xl mt-16">
       <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
         Agent Monetization
       </h1>
@@ -373,9 +373,9 @@ export function AccountPrivateUi({
 }: AccountPrivateUiProps) {
   const [userPrivate, setUserPrivate] = useState(() => initUserPrivate);
   return (
-    <>
+    <div className='w-full md:w-[900px]'>
       <Subscriptions user={user} userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
       <StripeConnect userPrivate={userPrivate} setUserPrivate={setUserPrivate} />
-    </>
+    </div>
   );
 }

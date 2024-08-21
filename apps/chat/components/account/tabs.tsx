@@ -35,9 +35,9 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('agents'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'agents' ? activeClass : inactiveClass}`}>Agents</button>
           </li>
-          <li className="me-2" role="presentation">
+          {/* <li className="me-2" role="presentation">
             <button onClick={() => { setTab('credits'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'credits' ? activeClass : inactiveClass}`}>Credits</button>
-          </li>
+          </li> */}
           <li role="presentation">
             <button onClick={() => { setTab('subscriptions'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'subscriptions' ? activeClass : inactiveClass}`}>Subscription & Monetization</button>
           </li>
