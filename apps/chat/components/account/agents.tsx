@@ -34,7 +34,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
           Agents
         </h1>
         <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
-          Manage your agents.
+          Manage your agents: <span className='text-purple-500 font-bold'>{agents.length}</span>
         </p>
       </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
