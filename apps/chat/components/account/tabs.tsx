@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Agents } from './agents';
 import { Profile } from './profile';
 import { Credits } from './credits';
-import { AccountPrivateUi, AccountSubscriptions, Subscriptions } from './subscriptions';
+import { AccountSubscriptions } from './subscriptions';
 import { Monetization } from './monetization';
 
 
