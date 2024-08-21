@@ -12,7 +12,6 @@ export const LoginRedirect = () => {
 
       (async () => {
         const jwt = await getJWT();
-        console.log('got jwt', jwt);
         if (!jwt) {
           redirectToLoginTool();
         }
