@@ -71,6 +71,29 @@ export const fetchImageGeneration = async (prompt, opts, {
   }
 };
 
+export const generateCharacterImage = async (prompt = characterImageDefaultPrompt, {
+  stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
+} = {}, {
+  jwt,
+} = {}) => {
+  // const jwt = await getJWT();
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const fullPrompt = `${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`;
+  const blob = await fetchImageGeneration(fullPrompt, {
+    image_size: 'portrait_4_3',
+  }, {
+    jwt,
+  });
+
+  return {
+    fullPrompt,
+    blob,
+  };
+};
+
 export const inpaintImage = async (blob, maskBlob, {
   prompt = '',
   quality = defaultQuality,

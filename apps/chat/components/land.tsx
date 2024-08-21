@@ -64,7 +64,7 @@ import {
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
-import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
+import { fetchImageGeneration, generateCharacterImage, inpaintImage } from '@/utils/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -463,35 +463,6 @@ const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) 
 // const sceneImageStyle = `studio ghibli magical fantasy anime screencap style background`;
 const sceneImageDefaultPrompt = `lush nature cavern, ancient technology, cyberpunk platform`;
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
-const generateCharacter = async (prompt = characterImageDefaultPrompt, {
-  stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
-} = {}) => {
-  const jwt = await getJWT();
-  const fullPrompt = `${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`;
-  const blob = await fetchImageGeneration(fullPrompt, {
-    image_size: 'portrait_4_3',
-  }, {
-    jwt,
-  });
-
-  const img = await blob2img(blob);
-  img.style.cssText = `\
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 250px;
-    z-index: 100;
-  `;
-  document.body.appendChild(img);
-
-  const cleanBlob = await removeBackground(blob, {
-    jwt,
-  });
-  const image = await blob2img(cleanBlob);
-  return {
-    image,
-  };
-};
 const generateObjectDefaultPrompt = `ancient health vial`;
 const generateObject = async (prompt = generateObjectDefaultPrompt, {
   stylePrompt = `object, concept art, front view, white background, outlined, anime style`,
@@ -503,21 +474,25 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
     jwt,
   });
 
-  {
-    const img = await blob2img(blob);
-    img.style.cssText = `\
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      width: 250px;
-      z-index: 100;
-    `;
-    document.body.appendChild(img);
-  }
+  // {
+  //   const img = await blob2img(blob);
+  //   img.style.cssText = `\
+  //     position: absolute;
+  //     right: 0;
+  //     bottom: 0;
+  //     width: 250px;
+  //     z-index: 100;
+  //   `;
+  //   document.body.appendChild(img);
+  // }
 
   const [
     metadata,
-    clippedImage,
+    {
+      originalBlob,
+      blob: cleanBlob,
+      image,
+    },
   ] = await Promise.all([
     describeJson(blob, dedent`\
       width, height are in meters and can contain decimals.
@@ -567,31 +542,37 @@ const generateObject = async (prompt = generateObjectDefaultPrompt, {
         return canvas;
       })();
       
-      {
-        const canvas = document.createElement('canvas');
-        canvas.width = clippedImage.width;
-        canvas.height = clippedImage.height;
-        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-        // ctx.translate(0, clippedImage.height);
-        // ctx.scale(1, -1);
-        ctx.drawImage(clippedImage, 0, 0);
-        canvas.style.cssText = `\
-          position: absolute;
-          right: 250px;
-          bottom: 0;
-          width: 250px;
-          z-index: 100;
-        `;
-        document.body.appendChild(canvas);
-      }
+      // {
+      //   const canvas = document.createElement('canvas');
+      //   canvas.width = clippedImage.width;
+      //   canvas.height = clippedImage.height;
+      //   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+      //   // ctx.translate(0, clippedImage.height);
+      //   // ctx.scale(1, -1);
+      //   ctx.drawImage(clippedImage, 0, 0);
+      //   canvas.style.cssText = `\
+      //     position: absolute;
+      //     right: 250px;
+      //     bottom: 0;
+      //     width: 250px;
+      //     z-index: 100;
+      //   `;
+      //   document.body.appendChild(canvas);
+      // }
 
-      return clippedImage;
+      return {
+        originalBlob: blob,
+        blob: cleanBlob,
+        image: clippedImage,
+      };
     })(),
   ]);
 
   return {
-    image: clippedImage,
     metadata,
+    originalBlob,
+    blob: cleanBlob,
+    image,
   };
 };
 const generateSoundDefaultPrompt = `slowly dripping water with echo in a dark cave`;
@@ -2074,9 +2055,29 @@ const LandCanvas3DScene = ({
       const {
         prompt,
       } = e.data;
+
+      const jwt = await getJWT();
       const {
-        image,
-      } = await generateCharacter(prompt);
+        blob,
+      } = await generateCharacterImage(prompt, undefined, {
+        jwt,
+      });
+      const cleanBlob = await removeBackground(blob, {
+        jwt,
+      });
+      const image = await blob2img(cleanBlob);
+
+      // {
+      //   const img = await blob2img(blob);
+      //   img.style.cssText = `\
+      //     position: absolute;
+      //     right: 0;
+      //     bottom: 0;
+      //     width: 250px;
+      //     z-index: 100;
+      //   `;
+      //   document.body.appendChild(img);
+      // }
 
       const characterTexture = new Texture(image);
       characterTexture.needsUpdate = true;
@@ -2090,12 +2091,25 @@ const LandCanvas3DScene = ({
       } = e.data;
       const objectSpec = await generateObject(prompt);
       const {
-        image,
         metadata,
+        blob,
+        image,
       } = objectSpec;
       console.log('object spec', {
         metadata,
       });
+
+      {
+        const img = await blob2img(blob);
+        img.style.cssText = `\
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          width: 250px;
+          z-index: 100;
+        `;
+        document.body.appendChild(img);
+      }
 
       const objectTexture = new Texture(image);
       objectTexture.needsUpdate = true;
