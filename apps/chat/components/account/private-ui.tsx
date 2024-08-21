@@ -5,7 +5,7 @@ import { aiHost } from '@/utils/const/endpoints';
 import React, { useEffect, useState, useMemo } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
-import { dev } from '@/lib/dev';
+// import { dev } from '@/lib/dev';
 
 //
 
@@ -17,7 +17,8 @@ export interface AccountPrivateUiProps {
 
 //
 
-const stripePathname = `/stripe${dev ? '_test' : ''}`;
+// const stripePathname = `/stripe`;
+const stripePathname = `/stripe_test`;
 const plans = [
   {
     price: null,
