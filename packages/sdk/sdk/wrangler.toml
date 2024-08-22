@@ -13,7 +13,6 @@ tag = "v1"
 new_classes = ["DurableObject"]
 
 [vars]
-GUID = ""
 AGENT_JSON = ""
 WALLET_MNEMONIC = ""
 AGENT_TOKEN = ""
