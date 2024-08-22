@@ -198,11 +198,11 @@ const Subscriptions = ({
 }) => {
   return (
     <>
-      <div className="sm:flex sm:flex-col sm:align-center pt-4">
+      <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
         <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
           Subscription Plans
         </h1>
-        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
+        <p className="max-w-2xl m-auto md:mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
           Subscribe to a plan to get monthly credits.
         </p>
       </div>
