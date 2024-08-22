@@ -90,6 +90,12 @@ import {
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+const wranglerBinPath = path.join(path.resolve(require.resolve('wrangler'), '../../../'), '.bin/wrangler');
+const wranglerBin = wranglerBinPath;
+
 const BASE_DIRNAME = (() => {
   let metaUrl = decodeURI(import.meta.url).replace('file://', '');
   if (os.platform() === 'win32') {
@@ -107,7 +113,7 @@ const BASE_DIRNAME = (() => {
     );
   }
 })();
-const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
+// const wranglerBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'wrangler');
 const multiplayerDirectory = path.join(BASE_DIRNAME, 'multiplayer');
 const jestBin = path.join(BASE_DIRNAME, 'node_modules', '.bin', 'jest');
 
