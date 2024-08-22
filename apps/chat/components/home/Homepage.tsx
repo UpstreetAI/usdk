@@ -64,9 +64,6 @@ export default function Home() {
               <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
-              <Link href="https://pages.viral-loops.com/upstreet.ai" target='_blank' className='bg-[#e5e2ee] inline-block hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
-                Join Waitlist
-              </Link>
             </div>
           </div>
 

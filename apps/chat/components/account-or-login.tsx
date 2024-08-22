@@ -3,14 +3,9 @@
 import { AccountButton } from '@/components/account-button'
 import { getUserForJwt } from '@/utils/supabase/supabase-client'
 import * as React from 'react'
-// import { auth } from '@/auth'
-// import { ChatHistory } from '@/components/chat/chat-history'
 import { HeaderLoginButton } from '@/components/header-login-button'
-// import { SidebarToggle } from '@/components/sidebar-toggle'
-// import { Session } from '@/lib/types'
 import { getJWT } from '@/utils/supabase/server'
-
-// import { logout } from '@/lib/logout'
+import { SearchBar } from './searchbar'
 
 
 export async function AccountOrLogin() {
@@ -26,9 +21,15 @@ export async function AccountOrLogin() {
   return (
     <>
       {user ? (
-        <AccountButton user={user}/>
+        <>
+          <SearchBar/>
+          <AccountButton user={user}/>
+        </>
       ) : (
-        <HeaderLoginButton />
+        <>
+          <SearchBar disabled />
+          <HeaderLoginButton />
+        </>
       )}
     </>
   )

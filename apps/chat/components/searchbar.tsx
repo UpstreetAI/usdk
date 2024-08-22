@@ -74,7 +74,7 @@ function AgentLink(props: any) {
   )
 }
 
-export function SearchBar() {
+export function SearchBar({ disabled = false }) {
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
 
@@ -133,7 +133,7 @@ export function SearchBar() {
         }}>
           <IconClose />
         </div>
-        <input type="text" className={cn("size-full rounded-lg px-2")} value={value} placeholder="Find an agent..." onChange={e => {
+        <input type="text" disabled={disabled} className={cn("size-full rounded-lg px-2")} value={value} placeholder={disabled ? "Login to start searching for agents..." : "Find an agent to..."} onChange={e => {
           setValue(e.target.value);
         }} ref={inputRef} />
         <div className={cn("fixed md:absolute left-0 top-16 px-0 h-[calc(100vh-64px)] md:max-h-[calc(100vh-64px)] md:h-auto md:px-4 w-full sm:max-w-2xl", !focus && 'hidden', !value && 'hidden')}>
