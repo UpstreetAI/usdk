@@ -47,7 +47,7 @@ import { wordlist } from '@scure/bip39/wordlists/english';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { generationModel } from './const.js';
-import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
+// import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import { Interactor } from './lib/interactor.js';
 import { ValueUpdater } from './lib/value-updater.js';
 import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
@@ -2251,7 +2251,7 @@ const getCodeGenContext = async () => {
     nodes,
   };
 };
-const generateTemplateFromPrompt = async (prompt) => {
+/* const generateTemplateFromPrompt = async (prompt) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
 
@@ -2297,7 +2297,7 @@ const generateTemplateFromPrompt = async (prompt) => {
     templateDirectory,
     agentJson,
   };
-};
+}; */
 const generateTemplateFromAgentJson = async (agentJson, {
   template = 'empty',
 } = {}) => {
