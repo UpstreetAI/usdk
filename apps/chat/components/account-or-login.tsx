@@ -3,7 +3,7 @@
 import { AccountButton } from '@/components/account-button'
 import { getUserForJwt } from '@/utils/supabase/supabase-client'
 import * as React from 'react'
-import { HeaderLoginButton } from '@/components/header-login-button'
+import { LoginButton } from '@/components/login-button'
 import { getJWT } from '@/utils/supabase/server'
 import { SearchBar } from './searchbar'
 
@@ -28,9 +28,9 @@ export async function AccountOrLogin() {
       ) : (
         <>
           <SearchBar disabled />
-          <HeaderLoginButton />
+          <LoginButton className='mr-4' text={"Login"} />
         </>
       )}
     </>
-  )
+  );
 }
