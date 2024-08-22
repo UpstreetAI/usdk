@@ -28,7 +28,7 @@ export default function Footer() {
           <ul className="flex flex-col flex-initial md:flex-1">
           <li className="py-3 md:py-0 md:pb-4">
               <Link
-                href="/account"
+                href="/pricing"
                 className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
               >
                 Pricing
@@ -51,23 +51,6 @@ export default function Footer() {
                 SDK
               </Link>
             </li>
-            {/* <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="/company/careers"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Careers
-              </Link>
-            </li> */}
-            <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="https://pages.viral-loops.com/upstreet.ai" 
-                target='_blank'
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Waitlist
-              </Link>
-            </li>
           </ul>
         </div>
         <div className="col-span-1 lg:col-span-2">
@@ -77,14 +60,6 @@ export default function Footer() {
                 LEGAL
               </p>
             </li>
-            {/* <li className="py-3 md:py-0 md:pb-4">
-              <Link
-                href="/"
-                className="text-white transition duration-150 ease-in-out hover:text-zinc-200"
-              >
-                Privacy Policy
-              </Link>
-            </li> */}
             <li className="py-3 md:py-0 md:pb-4">
               <Link
                 href="/company/terms"
@@ -94,16 +69,6 @@ export default function Footer() {
               </Link>
             </li>
           </ul>
-        </div>
-        <div className="flex items-start col-span-1 text-white lg:col-span-6 lg:justify-end">
-          {/* <div className="flex items-center h-10 space-x-6">
-            <a
-              aria-label="Github Repository"
-              href="https://github.com/upstreetai"
-            >
-              <IconUpstreet />
-            </a>
-          </div> */}
         </div>
       </div>
       <div className="text-center py-8 space-y-4 md:flex-row">

@@ -18,7 +18,7 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
   const { supabase } = useSupabase();
 
   return (
-    <div className="mr-8 relative">
+    <div className="md:mr-8 relative inline-block">
       <Image
         alt=""
         src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}

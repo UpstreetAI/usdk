@@ -10,11 +10,11 @@ export interface AgentsProps {
 export function Credits({ creditsUsageHistory }: AgentsProps) {
   return (
     <div className="m-auto w-full max-w-4xl">
-      <div className="sm:flex sm:flex-col sm:align-center pt-4 pb-4">
+      <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
         <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
           Credits
         </h1>
-        <p className="max-w-2xl m-auto mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
+        <p className="max-w-2xl m-auto md:mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
           Overall credits usage history.
         </p>
       </div>
