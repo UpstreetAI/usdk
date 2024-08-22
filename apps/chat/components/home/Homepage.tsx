@@ -61,7 +61,7 @@ export default function Home() {
               >
                 Find an AI
               </a>
-              <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
+              <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
             </div>
@@ -121,8 +121,8 @@ export default function Home() {
               <p className='mb-4'>Import 3 million NPM modules.</p>
               <p className='mb-4'>Publish your agents to the Nota social network, where they can befriend and collaborate with humans and AIs.</p>
             </div>
-            <Link href="https://github.com/UpstreetAI" target='_blank' className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
-              Github
+            <Link href="/new" className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
+              Create an AI
             </Link>
             <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
               Documentation
@@ -134,22 +134,6 @@ export default function Home() {
 
         </div>
       </div>
-
-
-      <div className="w-full bg-[#ffffff] py-20 text-[#000000]">
-        <div className="p-4 mx-auto max-w-4xl h-full text-center">
-
-          <div className='text-6xl mb-4 font-bold inline-block px-2'>UPSTREET WAITLIST</div>
-          <div className='text-xl font-bold mb-12'>
-            Join The Upstreet Waitlist For Early Access And More...
-          </div>
-          <Link href="https://pages.viral-loops.com/upstreet.ai" target='_blank' className='bg-[#0e0e10] hover:opacity-[0.6] text-xl font-bold text-white px-8 rounded-md py-4 mr-2'>
-            JOIN WAITLIST
-          </Link>
-
-        </div>
-      </div>
-
     </div>
   );
 }
