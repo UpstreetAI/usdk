@@ -62,27 +62,20 @@ export class Interactor extends EventTarget {
     this.object = object || generateEmptyObjectFromSchema(objectFormat);
     this.messages = [
       {
-        role: 'user',
+        role: 'system',
         content: prompt + '\n\n' +
           dedent`\
             You are an interactive configuration assistant designed to update a JSON configuration object on behalf of the user.
             Prompt the user for a question you need answered to update the configuration object.
-            Be informal and succinct; try to hide the complexity and internal state, and auto-fill details where you can.
+            Be informal and succinct; do not simply ask for the form fields. Hide the complexity and internal state, and auto-fill details where you can.
             Feel free to use artistic license or ask clarifying questions.
-            Do not reveal the form fields.
-
-            The current state of the configuration object is:
-            \`\`\`
-          ` + '\n' +
-          JSON.stringify(this.object, null, 2) + '\n' +
-          '\`\`\`' + '\n\n' +
-          dedent`\
+            
             Reply with a JSON object including a response to the user, an optional update object to merge with the existing one, and a done flag when you think it's time to end the conversation.
           `,
       },
     ];
   }
-  async send(text = '') {
+  async write(text = '') {
     const { jwt, objectFormat, object, messages } = this;
 
     if (text) {
@@ -96,7 +89,7 @@ export class Interactor extends EventTarget {
       messages,
     }, z.object({
       response: z.string(),
-      update_object: z.union([
+      updateObject: z.union([
         objectFormat,
         z.null(),
       ]),
@@ -104,13 +97,59 @@ export class Interactor extends EventTarget {
     }), {
       jwt,
     });
-
     const {
-      update_object,
+      updateObject,
     } = o;
-    if (update_object) {
-      for (const key in update_object) {
-        object[key] = update_object[key];
+    if (updateObject) {
+      for (const key in updateObject) {
+        object[key] = updateObject[key];
+      }
+    }
+
+    {
+      const content = JSON.stringify(o, null, 2);
+      const responseMessage = {
+        role: 'assistant',
+        content,
+      };
+      messages.push(responseMessage);
+    }
+
+    this.dispatchEvent(new MessageEvent('message', {
+      data: {
+        ...o,
+        object,
+      },
+    }));
+  }
+  async end(text = '') {
+    const { jwt, objectFormat, object, messages } = this;
+
+    if (text) {
+      messages.push({
+        role: 'user',
+        content: text,
+      });
+    }
+    let o = await fetchJsonCompletion({
+      model: generationModel,
+      messages,
+    }, z.object({
+      output: objectFormat,
+    }), {
+      jwt,
+    });
+    o = {
+      response: '',
+      updateObject: o.output,
+      done: true,
+    };
+    const {
+      updateObject,
+    } = o;
+    if (updateObject) {
+      for (const key in updateObject) {
+        object[key] = updateObject[key];
       }
     }
 

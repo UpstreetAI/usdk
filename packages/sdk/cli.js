@@ -2282,7 +2282,9 @@ const getCodeGenContext = async () => {
   };
 }; */
 const generateTemplateFromAgentJson = async (agentJson, {
-  template = 'empty',
+  // template = 'empty',
+  template = 'basic',
+  capabilities = [],
 } = {}) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
@@ -2291,13 +2293,24 @@ const generateTemplateFromAgentJson = async (agentJson, {
   const basicTemplateDirectory = path.join(templatesDirectory, template);
   await recursiveCopy(basicTemplateDirectory, templateDirectory);
 
-  // generate the agent json
-  // const agentJson = await generateAgentJsonFromPrompt(prompt);
+  // update agent jsx as needed
+  // console.log(pc.italic('Generating code...'));
+  if (capabilities.length > 0) {
+    const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
+    let agentJSX = await fs.promises.readFile(agentJSXPath, 'utf8');
 
-  console.log(pc.italic('Generating code...'));
-  const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
+    const includedCapabilitySpecs = capabilities.map(capabilityName => capabilitySpecs.find(capabilitySpec => capabilitySpec.name === capabilityName));
 
-  // console.log(pc.italic('Generating avatar...'));
+    const importsHookRegex = /\/\* IMPORTS REGEX HOOK \*\//g;
+    const impotsString = includedCapabilitySpecs.flatMap(capabilitySpec => capabilitySpec.imports).map(importName => `${importName},`).join(',');
+    agentJSX = agentJSX.replace(importsHookRegex, impotsString);
+
+    const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
+    const jsxString = includedCapabilitySpecs.map(capabilitySpec => `${capabilitySpec.tsx},`).join('\n');
+    agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
+
+    await fs.promises.writeFile(agentJSXPath, agentJSX);
+  }
 
   // write back the generated the agent json
   await fs.promises.writeFile(
@@ -2346,16 +2359,33 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-const makeAgentJson = (agentJsonInit) => {
+const makeAgentJson = ({
+  name = null,
+  bio = null,
+  visualDescription = null,
+  previewUrl = null,
+}) => {
   return {
     id: crypto.randomUUID(),
-    name: undefined,
-    bio: undefined,
-    visualDescription: undefined,
-    previewUrl: undefined,
-    ...agentJsonInit,
+    name,
+    bio,
+    visualDescription,
+    previewUrl,
   };
 };
+const capabilitySpecs = [
+  {
+    name: 'voice',
+    description: 'The agent can speak.',
+    imports: [
+      'TTS',
+    ],
+    tsx: dedent`
+      <TTS />
+    `,
+  },
+];
+const capabilityNames = capabilitySpecs.map(capability => capability.name);
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
@@ -2451,6 +2481,7 @@ export const create = async (args, opts) => {
   // generate the agent if necessary
   let srcTemplateDir;
   let agentJson;
+  let capabilities;
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
 
@@ -2511,28 +2542,36 @@ export const create = async (args, opts) => {
 
       const interactor = new Interactor({
         prompt: dedent`\
-          Generate and configure an AI agent with various capabilities.
-        `,
+          Generate and configure an AI agent.
+        ` + '\n' +
+          (prompt ? ('User prompt:\n' + prompt + '\n\n') : '') +
+          dedent`\
+            Capabilities list:
+          ` + '\n' +
+          capabilitySpecs.map(({ name, description }) => {
+            return `'${name}': ${description}`;
+          }).join('\n'),
         object: agentJson,
         objectFormat: z.object({
           name: z.string().optional(),
           bio: z.string().optional(),
           visualDescription: z.string().optional(),
+          capabilities: z.array(z.enum(capabilityNames)),
         }),
         jwt,
       });
-      const agentJsonPromise = makePromise();
+      const interviewPromise = makePromise();
       interactor.addEventListener('message', async (e) => {
         const o = e.data;
         const {
           response,
-          update_object,
+          updateObject,
           done,
           object,
         } = o;
 
-        if (update_object?.visualDescription) {
-          visualDescriptionValueUpdater.set(update_object.visualDescription);
+        if (updateObject?.visualDescription) {
+          visualDescriptionValueUpdater.set(updateObject.visualDescription);
         }
 
         if (!done) {
@@ -2540,7 +2579,7 @@ export const create = async (args, opts) => {
           while (!(answer = await input({
             message: response,
           }))) {}
-          interactor.send(answer);
+          interactor.write(answer);
         } else {
           agentJson = makeAgentJson(object);
           agentJson.previewUrl = await (async () => {
@@ -2577,14 +2616,25 @@ export const create = async (args, opts) => {
               throw new Error('invalid result type: ' + typeof result);
             }
           })();
-          agentJsonPromise.resolve(agentJson);
+          const {
+            capabilities,
+          } = object;
+          const interviewResult = {
+            agentJson,
+            capabilities,
+          };
+          interviewPromise.resolve(interviewResult);
         }
       });
-      interactor.send(prompt);
-      agentJson = await agentJsonPromise;
-      return agentJson;
+      if (!prompt) {
+        interactor.write();
+      } else {
+        interactor.end();
+      }
+      const interviewResult = await interviewPromise;
+      return interviewResult;
     };
-    const getAgentJson = async () => {
+    const generateAgentMetadata = async () => {
       const agentJson = makeAgentJson(agentJsonString ? JSON.parse(agentJsonString) : {});
       const {
         name,
@@ -2595,29 +2645,39 @@ export const create = async (args, opts) => {
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
       if (isComplete || agentJsonString || source || yes) {
-        return agentJson;
+        return {
+          agentJson,
+        };
       } else {
-        return await interview({
+        const interviewResult = await interview({
           name,
           bio,
           visualDescription,
           previewUrl,
         });
+        return interviewResult;
       }
     };
 
-    agentJson = await getAgentJson();
-    console.log(pc.italic('Agent complete.'));
+    const interviewResult = await generateAgentMetadata();
+    agentJson = interviewResult.agentJson;
+    capabilities = interviewResult.capabilities;
+    console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
+    console.log(pc.green('Capabilities:'), capabilities.length > 0
+      ? capabilities.join(', ')
+      : '*none*'
+    );
 
-    console.log(pc.italic('Compiling agent...'));
+    console.log(pc.italic('Building agent...'));
     srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
       template,
+      capabilities,
     });
-    console.log(pc.italic('Agent compiled.'));
+    console.log(pc.italic('Agent built.'));
   } else {
     throw new Error('not logged in: cannot generate agent from prompt');
   }
@@ -3957,7 +4017,7 @@ const main = async () => {
     // .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
     // .option(`-n, --name <string>`, `Agent name`)
     // .option(`-d, --description <string>`, `Agent description`)
-    // .option(`-p, --prompt <string>`, `Creation prompt`)
+    .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
     .option(`-f, --force`, `Overwrite existing files`)
