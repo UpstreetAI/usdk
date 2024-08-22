@@ -2571,50 +2571,50 @@ const dev = async (args) => {
 
       break;
     }
-    case 'listen': {
-      await listen({
-        _: [agentRefs],
-        dev: true,
-        local: args.local,
-        debug: args.debug,
-      });
+    // case 'listen': {
+    //   await listen({
+    //     _: [agentRefs],
+    //     dev: true,
+    //     local: args.local,
+    //     debug: args.debug,
+    //   });
 
-      break;
-    }
+    //   break;
+    // }
 
-    case 'ls': {
-      await ls({
-        _: [],
-        dev: true,
-        network: args.network,
-      });
+    // case 'ls': {
+    //   await ls({
+    //     _: [],
+    //     dev: true,
+    //     network: args.network,
+    //   });
 
-      break;
-    }
-    case 'fund': {
-      await fund({
-        _: [],
-        local: args.local,
-        network: args.network,
-        dev: true,
-      });
+    //   break;
+    // }
+    // case 'fund': {
+    //   await fund({
+    //     _: [],
+    //     local: args.local,
+    //     network: args.network,
+    //     dev: true,
+    //   });
 
-      break;
-    }
-    case 'deposit': {
-      await deposit({
-        _: [],
-        local: args.local,
-        network: args.network,
-        dev: true,
-      });
+    //   break;
+    // }
+    // case 'deposit': {
+    //   await deposit({
+    //     _: [],
+    //     local: args.local,
+    //     network: args.network,
+    //     dev: true,
+    //   });
 
-      break;
-    }
-    case '': {
-      // nothing
-      break;
-    }
+    //   break;
+    // }
+    // case '': {
+    //   // nothing
+    //   break;
+    // }
     default: {
       console.warn(`unknown subcommand: ${subcommand}`);
       process.exit(1);
@@ -3833,10 +3833,10 @@ const main = async () => {
   const devSubcommands = [
     'chat',
     // 'simulate',
-    'listen',
-    'ls',
-    'fund',
-    'deposit',
+    // 'listen',
+    // 'ls',
+    // 'fund',
+    // 'deposit',
   ];
   program
     .command('dev')
