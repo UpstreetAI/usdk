@@ -13,14 +13,16 @@ export class SpeakerOutputStream extends WritableStream {
       //   controller = c;
       // },
       write: (chunk, controller) => {
-        // console.log('decode data 1', chunk);
-        // audioDecoder.decode(chunk);
-        // controller.enqueue(chunk);
-        this.speaker.write(chunk);
+        // console.log('speaker write', chunk);
+        let uint8Array;
+        if (chunk instanceof Uint8Array) {
+          uint8Array = chunk;
+        } else {
+          uint8Array = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+        }
+        this.speaker.write(uint8Array);
       },
       close: async () => {
-        // audioDecoder.decode(null);
-        // await donePromise;
         this.speaker.end();
         await new Promise((accept, reject) => {
           this.speaker.once('finish', accept);
