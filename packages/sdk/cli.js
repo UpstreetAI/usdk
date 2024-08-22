@@ -1590,9 +1590,11 @@ const getGuidFromPath = async (p) => {
   try {
     const wranglerTomString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
     const wranglerToml = toml.parse(wranglerTomString);
-    const guid = wranglerToml.vars.GUID;
-    if (guid) {
-      return guid;
+    const agentJsonString = wranglerToml.vars.AGENT_JSON;
+    const agentJson = agentJsonString && JSON.parse(agentJsonString);
+    const id = agentJson?.id;
+    if (id) {
+      return id;
     } else {
       throw makeEnoent();
     }
