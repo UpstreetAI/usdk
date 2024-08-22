@@ -1663,29 +1663,33 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
 const chat = async (args) => {
   // console.log('got chat args', JSON.stringify(args));
   const agentSpecs = await parseAgentSpecs(args._[0]);
-  const dev = !!args.dev;
+  // const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    // start the dev agents, if applicable
-    if (dev) {
-      const devServerPromises = agentSpecs.map(async (agentSpec, index) => {
-        const cp = await startDevServer(agentSpec, index, {
-          debug,
-        });
-        return cp;
-      });
-      await Promise.all(devServerPromises);
-    }
+    // start dev servers for the agents
+    const devServerPromises = agentSpecs
+      .map(async (agentSpec, index) => {
+        if (agentSpec.directory) {
+          const cp = await startDevServer(agentSpec, index, {
+            debug,
+          });
+          return cp;
+        } else {
+          return null;
+        }
+      })
+      .filter(Boolean);
+    await Promise.all(devServerPromises);
 
     // wait for agents to join the multiplayer room
     await Promise.all(
       agentSpecs.map(async (agentSpec) => {
         await join({
           _: [agentSpec.ref, room],
-          dev,
+          // dev,
           // debug,
         });
       }),
@@ -1856,7 +1860,7 @@ const listen = async (args) => {
         await join({
           _: [agentSpec.ref, room],
           local: args.local,
-          dev,
+          // dev,
           debug,
         })/* .then(() => {
           console.log('join promise ok');
@@ -2796,70 +2800,23 @@ const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
 const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
-  const subcommand = args._[0] ?? '';
-  const agentRefs = args._[1] ?? [];
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  const debug = !!args.debug;
 
-  switch (subcommand) {
-    case 'chat': {
-      // defer to conversation mode
-      await chat({
-        _: [agentRefs],
-        browser: args.browser,
-        dev: true,
-        debug: args.debug,
-      });
-
-      break;
-    }
-    // case 'listen': {
-    //   await listen({
-    //     _: [agentRefs],
-    //     dev: true,
-    //     local: args.local,
-    //     debug: args.debug,
-    //   });
-
-    //   break;
-    // }
-
-    // case 'ls': {
-    //   await ls({
-    //     _: [],
-    //     dev: true,
-    //     network: args.network,
-    //   });
-
-    //   break;
-    // }
-    // case 'fund': {
-    //   await fund({
-    //     _: [],
-    //     local: args.local,
-    //     network: args.network,
-    //     dev: true,
-    //   });
-
-    //   break;
-    // }
-    // case 'deposit': {
-    //   await deposit({
-    //     _: [],
-    //     local: args.local,
-    //     network: args.network,
-    //     dev: true,
-    //   });
-
-    //   break;
-    // }
-    case '': {
-      // nothing
-      break;
-    }
-    default: {
-      console.warn(`unknown subcommand: ${subcommand}`);
-      process.exit(1);
-    }
-  }
+  // start dev servers for the agents
+  const devServerPromises = agentSpecs
+    .map(async (agentSpec, index) => {
+      if (agentSpec.directory) {
+        const cp = await startDevServer(agentSpec, index, {
+          debug,
+        });
+        return cp;
+      } else {
+        return null;
+      }
+    })
+    .filter(Boolean);
+  await Promise.all(devServerPromises);
 };
 const search = async (args) => {
   const prompt = args._[0] ?? '';
@@ -3033,7 +2990,7 @@ const test = async (args) => {
       const room = makeRoomName();
       await join({
         _: [guidOrDevPathIndex, room],
-        dev,
+        // dev,
         // debug,
       });
 
@@ -3077,7 +3034,7 @@ const test = async (args) => {
         await testTemplate(template);
       }
     } else {
-      const agentSpecs = parseAgentSpecs(args._[0]);
+      const agentSpecs = await parseAgentSpecs(args._[0]);
       for (let i = 0; i < agentSpecs.length; i++) {
         const agentSpec = agentSpecs[i];
         await runAgentTest(agentSpec, i);
@@ -3531,7 +3488,6 @@ const rm = async (args) => {
 const join = async (args) => {
   const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
-  // const dev = !!args.dev;
 
   if (agentSpecs.length === 1) {
     const _joinAgent = async (agentSpec, room) => {
@@ -3569,7 +3525,6 @@ const join = async (args) => {
 const leave = async (args) => {
   const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? '';
-  // const dev = !!args.dev;
 
   if (agentSpecs.length === 1) {
     if (room) {
@@ -4076,24 +4031,13 @@ const main = async () => {
     .description(
       'Start a dev server for the agent in the current directory, and optionally run a subcommand',
     )
-    .argument(
-      `[subcommand]`,
-      `Optional subcommand to run after starting the dev server; one of [${JSON.stringify(devSubcommands)}]`,
-    )
     .argument(`[guids...]`, `Guids of the agents to connect to`)
-    .option(`-l, --local`, `Connect to local servers`)
-    .option(`-r, --room <room>`, `Room to join`)
-    .option(`-b, --browser`, `Open the chat room in a browser window`)
     .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (subcommand = '', guids = [], opts = {}) => {
-      // console.log(
-      //   'dev args',
-      //   JSON.stringify([subcommand, guids, opts], null, 2),
-      // );
+    .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
         const args = {
-          _: [subcommand, guids],
+          _: [guids],
           ...opts,
         };
         await dev(args);
