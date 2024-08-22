@@ -23,6 +23,7 @@ import {
   DefaultParsers,
   DefaultPerceptions,
   DefaultSchedulers,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -114,6 +115,7 @@ export default function MyAgent() {
   return (
     <Agent>
       <MemoryActions />
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }

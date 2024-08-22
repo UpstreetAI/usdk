@@ -1,20 +1,22 @@
 import React from 'react';
 import {
   Agent,
-  AgentAppProps,
-  DefaultAgentComponents,
-  DefaultActions,
-  DefaultPrompts,
-  DefaultParsers,
-  DefaultPerceptions,
-  DefaultSchedulers,
-  DefaultServers,
+  // AgentAppProps,
+  // DefaultAgentComponents,
+  // DefaultActions,
+  // DefaultPrompts,
+  // DefaultParsers,
+  // DefaultPerceptions,
+  // DefaultSchedulers,
+  // DefaultServers,
 
   useAgents,
   useCurrentAgent,
 
   Action,
   PendingActionEvent,
+
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -50,6 +52,7 @@ export default function MyAgent(props) {
   return (
     <Agent>
       <SendEthAction />
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }

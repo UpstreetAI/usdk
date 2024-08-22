@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Agent,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -8,7 +9,7 @@ import {
 export default function MyAgent() {
   return (
     <Agent>
-      {/* ... */}
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }
