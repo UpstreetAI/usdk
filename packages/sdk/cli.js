@@ -2580,7 +2580,7 @@ export const create = async (args, opts) => {
             } else if (result instanceof Blob) {
               // upload to r2
               const blob = result;
-              const keyPath = ['assets', agentJson.id].join('/');
+              const keyPath = ['assets', `${agentJson.id}.json`].join('/');
               const r2Url = `${r2EndpointUrl}/${keyPath}`;
               let previewUrl = '';
               try {
