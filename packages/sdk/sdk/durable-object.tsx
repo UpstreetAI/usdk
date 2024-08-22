@@ -24,6 +24,18 @@ const textEncoder = new TextEncoder();
 
 //
 
+const cachedGet = (fn: () => any) => {
+  let value = null;
+  let ran = false;
+  return function() {
+    if (!ran) {
+      value = fn.call(this);
+      ran = true;
+    }
+    return value;
+  };
+};
+
 // CloudFlare Worker Durable Object class
 export class DurableObject extends EventTarget {
   state: any;
@@ -65,14 +77,14 @@ export class DurableObject extends EventTarget {
 
   //
 
-  #getGuid() {
-    return this.env.GUID;
-  }
-  #getAgentJson() {
+  #getGuid = cachedGet(function() {
+    return this.#getAgentJson().id;
+  })
+  #getAgentJson = cachedGet(function() {
     const agentJsonString = this.env.AGENT_JSON;
     const agentJson = JSON.parse(agentJsonString);
     return agentJson;
-  }
+  })
 
   //
 
