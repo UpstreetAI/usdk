@@ -2489,9 +2489,10 @@ export const create = async (args, opts) => {
           object,
         } = o;
         if (!done) {
-          const answer = await input({
+          let answer;
+          while (!(answer = await input({
             message: response,
-          });
+          }))) {}
           interactor.send(answer);
         } else {
           p.resolve(object);
