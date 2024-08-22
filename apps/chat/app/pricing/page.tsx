@@ -9,7 +9,7 @@ export default async function Pricing() {
   }
   return (
     <div className="w-full mx-auto max-w-6xl px-6 pt-8 pb-16 markdown">
-      <AccountSubscriptions />
+      <AccountSubscriptions user={null} userPrivate={null} />
     </div>
   );
 };
