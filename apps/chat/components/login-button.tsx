@@ -7,16 +7,18 @@ import { cn } from '@/lib/utils'
 import { Button, type ButtonProps, buttonVariants } from '@/components/ui/button'
 import { IconLogin, IconSpinner, IconUser } from '@/components/ui/icons'
 
-interface LoginButtonProps extends ButtonProps {}
+interface LoginButtonProps extends ButtonProps {
+  text: string
+}
 
-export function HeaderLoginButton({
+export function LoginButton({
   className,
+  text,
   ...props
 }: LoginButtonProps) {
   const [isLoading, setIsLoading] = React.useState(false)
 
   return (
-    <div className='flex mr-4'>
       <Button
         variant="ghost"
         onClick={async () => {
@@ -25,7 +27,7 @@ export function HeaderLoginButton({
           await redirectToLoginTool()
         }}
         disabled={isLoading}
-        className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded")}
+        className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded", className)}
         {...props}
       >
         <div className="mr-2">
@@ -36,8 +38,7 @@ export function HeaderLoginButton({
           }
         </div>
 
-        <span>Login</span>
+        <span>{text ? text : 'Login'}</span>
       </Button>
-    </div>
   );
 }

@@ -5,6 +5,8 @@ import { aiHost } from '@/utils/const/endpoints';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
+import { Link } from 'lucide-react';
+import { LoginButton } from '../login-button';
 
 //
 
@@ -55,6 +57,48 @@ const SubscriptionPlans = ({
   userPrivate: any;
   setUserPrivate: (userPrivate: any) => void;
 }) => {
+
+  if (!user) {
+    return (
+      <div>
+        <div className="mt-4 md:mt-8 space-y-4 sm:mt-8 sm:space-y-0 md:flex md:flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
+          {plans.map((plan, i) => {
+            const { name, currency, value, interval } = plan;
+            return (
+              <div
+                key={i}
+                className={cn(
+                  'w-[25%] flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
+                  'flex-1',
+                  'basis-1/6',
+                  'md:max-w-xs'
+                )}
+              >
+                <div className="p-6">
+                  <h2 className="text-2xl font-semibold leading-6 text-white capitalize">
+                    {name}
+                  </h2>
+                  <p className="mt-4 text-zinc-300">{value ? (value * creditUnit) + ' Credits' : '5000 Credits'}</p>
+                  <p className="mt-8">
+                    <span className="text-5xl font-extrabold white">
+                      {value > 0 ? `${currency}${value}` : '$0'}
+                    </span>
+                    <span className="text-base font-medium text-zinc-100">
+                      {value > 0 ? `/${interval}` : '/m'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+          <div className='w-full text-center'>
+            <LoginButton className='text-xl' text="Login to you account to subscribe!" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const {
     plan: currentPlan,
   }: {
@@ -105,7 +149,7 @@ const SubscriptionPlans = ({
                     onClick={async (e) => {
                       // create the checkout session
                       const jwt = await getJWT();
-                      
+
                       // const success_url_object = new URL(`${aiHost}/plans/redirect`);
                       // success_url_object.searchParams.set('stripe_session_id', 'CHECKOUT_SESSION_ID');
                       // success_url_object.searchParams.set('redirect_url', location.href);
@@ -140,7 +184,7 @@ const SubscriptionPlans = ({
                   >
                     {currentPlan !== name ? 'Subscribe' : 'Current'}
                   </Button>
-                :
+                  :
                   (currentPlan && <Button
                     className='w-full mt-8'
                     onClick={async (e) => {
