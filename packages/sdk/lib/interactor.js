@@ -51,6 +51,7 @@ export class Interactor extends EventTarget {
   messages;
   constructor({
     prompt,
+    object,
     objectFormat,
     jwt,
   }) {
@@ -58,7 +59,7 @@ export class Interactor extends EventTarget {
 
     this.jwt = jwt;
     this.objectFormat = objectFormat;
-    this.object = generateEmptyObjectFromSchema(objectFormat);
+    this.object = object || generateEmptyObjectFromSchema(objectFormat);
     this.messages = [
       {
         role: 'user',
