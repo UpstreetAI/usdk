@@ -19,23 +19,21 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
         </p>
       </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
-        <div className="px-5 py-4 overflow-x-scroll md:overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+        <div className="px-5 py-4">
 
-            <thead className="text-xs text-gray-50 uppercase bg-border">
-              <tr>
-                <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Service</th>
-                <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Credits Used</th>
-                <th key={'preview'} scope="col" className="px-6 text-right py-3 text-[rgba(255,255,255,0.6)]">Date</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => {
-
-                return (
+          {/* Desktop View */}
+          <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-50 uppercase bg-border">
+                <tr>
+                  <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Service</th>
+                  <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Credits Used</th>
+                  <th key={'preview'} scope="col" className="px-6 text-right py-3 text-[rgba(255,255,255,0.6)]">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => (
                   <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
-
                     <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
                       {creditHistoryItem?.service}
                     </td>
@@ -43,15 +41,33 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                       {creditHistoryItem?.amount}
                     </td>
                     <td key={'t-1'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
-                      { formatDateStringMoment(creditHistoryItem?.created_at, 'MMMM Do YYYY, h:mm:ss A') }
+                      {formatDateStringMoment(creditHistoryItem?.created_at, 'MMMM Do YYYY, h:mm:ss A')}
                     </td>
-
                   </tr>
-                );
-              })}
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            </tbody>
-          </table>
+          {/* Mobile View */}
+          <div className="md:hidden block space-y-4">
+            {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => (
+              <div className="bg-[rgba(255,255,255,0.1)] rounded-lg p-4" key={i}>
+                <div className="flex flex-col space-y-2">
+                  <div className="text-lg font-bold text-white">
+                    {creditHistoryItem?.service}
+                  </div>
+                  <div className="text-md text-white">
+                    Credits Used: {creditHistoryItem?.amount}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    {formatDateStringMoment(creditHistoryItem?.created_at, 'MMMM Do YYYY, h:mm:ss A')}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       </div>
     </div>
