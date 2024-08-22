@@ -26,6 +26,96 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
 
   const { agentJoin } = useMultiplayerActions();
 
+  // Agent row actions
+  const RowActions = ({agentId, index}) => {
+
+    const id = agentId;
+    const i = index;
+
+    return (
+      <>
+        <div
+          className="w-8 text-center flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30"
+          onClick={(e) => {
+            setOpenAgentIndex(
+              i === openAgentIndex ? -1 : i
+            );
+          }}
+        >
+          <IconDots />
+        </div>
+        {i === openAgentIndex && (
+          <div className="absolute flex flex-col top-0 right-10 p-2 rounded border cursor-auto bg-primary/10">
+            <Button
+              variant="outline"
+              className="text-xs mb-1"
+              onClick={(e) => {
+                setOpenAgentIndex(-1);
+
+                (async () => {
+                  await agentJoin(id);
+                })();
+              }}
+            >
+              Chat
+            </Button>
+            <Button
+              variant="outline"
+              className="text-xs mb-1"
+              onClick={(e) => {
+                setOpenAgentIndex(-1);
+
+                router.push(`/agents/${id}/logs`);
+              }}
+            >
+              Logs
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-xs"
+              onClick={(e) => {
+                setOpenAgentIndex(-1);
+
+                (async () => {
+                  const jwt = await getJWT();
+                  const res = await fetch(
+                    `${deployEndpointUrl}/agent`,
+                    {
+                      method: 'DELETE',
+                      body: JSON.stringify({
+                        guid: id,
+                      }),
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${jwt}`,
+                      },
+                    }
+                  );
+                  if (res.ok) {
+                    await res.blob();
+
+                    setAgents((agents: object[]) => {
+                      return agents.filter(
+                        (agent: any) =>
+                          agent.id !== id
+                      );
+                    });
+                  } else {
+                    console.warn(
+                      `invalid status code: ${res.status}`
+                    );
+                  }
+                })();
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="m-auto w-full max-w-4xl">
       <div className="sm:flex sm:flex-col sm:align-center pt-4 pb-4">
@@ -77,91 +167,6 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                         0
                       ) || 0;
 
-                    const RowActions = () => {
-                      return (
-                        <>
-                          <div
-                            className="w-8 text-center flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30"
-                            onClick={(e) => {
-                              setOpenAgentIndex(
-                                i === openAgentIndex ? -1 : i
-                              );
-                            }}
-                          >
-                            <IconDots />
-                          </div>
-                          {i === openAgentIndex && (
-                            <div className="absolute flex flex-col top-0 right-10 p-2 rounded border cursor-auto bg-primary/10">
-                              <Button
-                                variant="outline"
-                                className="text-xs mb-1"
-                                onClick={(e) => {
-                                  setOpenAgentIndex(-1);
-
-                                  (async () => {
-                                    await agentJoin(id);
-                                  })();
-                                }}
-                              >
-                                Chat
-                              </Button>
-                              <Button
-                                variant="outline"
-                                className="text-xs mb-1"
-                                onClick={(e) => {
-                                  setOpenAgentIndex(-1);
-
-                                  router.push(`/agents/${id}/logs`);
-                                }}
-                              >
-                                Logs
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                className="text-xs"
-                                onClick={(e) => {
-                                  setOpenAgentIndex(-1);
-
-                                  (async () => {
-                                    const jwt = await getJWT();
-                                    const res = await fetch(
-                                      `${deployEndpointUrl}/agent`,
-                                      {
-                                        method: 'DELETE',
-                                        body: JSON.stringify({
-                                          guid: id,
-                                        }),
-                                        headers: {
-                                          'Content-Type': 'application/json',
-                                          Authorization: `Bearer ${jwt}`,
-                                        },
-                                      }
-                                    );
-                                    if (res.ok) {
-                                      await res.blob();
-
-                                      setAgents((agents: object[]) => {
-                                        return agents.filter(
-                                          (agent: any) =>
-                                            agent.id !== id
-                                        );
-                                      });
-                                    } else {
-                                      console.warn(
-                                        `invalid status code: ${res.status}`
-                                      );
-                                    }
-                                  })();
-                                }}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          )}
-                        </>
-                      );
-                    };
-
                     return (
                       <tr
                         className="w-full hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1"
@@ -206,7 +211,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                         </td>
                         <td className="relative px-2 md:px-6 py-4 text-md capitalize align-middle text-right">
                           <div className="relative inline-block w-8">
-                            {userIsCurrentUser && <RowActions />}
+                            {userIsCurrentUser && <RowActions agentId={id} index={i} />}
                           </div>
                         </td>
                       </tr>
@@ -243,88 +248,6 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     0
                   ) || 0;
 
-                const RowActions = () => {
-                  return (
-                    <>
-                      <div
-                        className="w-8 text-center flex flex-col px-2 py-1 mb-auto cursor-pointer rounded border bg-primary/10 hover:bg-primary/20 active:bg-primary/30"
-                        onClick={(e) => {
-                          setOpenAgentIndex(i === openAgentIndex ? -1 : i);
-                        }}
-                      >
-                        <IconDots />
-                      </div>
-                      {i === openAgentIndex && (
-                        <div className="absolute flex flex-col top-0 right-10 p-2 rounded border cursor-auto bg-primary/10">
-                          <Button
-                            variant="outline"
-                            className="text-xs mb-1"
-                            onClick={(e) => {
-                              setOpenAgentIndex(-1);
-
-                              (async () => {
-                                await agentJoin(id);
-                              })();
-                            }}
-                          >
-                            Chat
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="text-xs mb-1"
-                            onClick={(e) => {
-                              setOpenAgentIndex(-1);
-
-                              router.push(`/agents/${id}/logs`);
-                            }}
-                          >
-                            Logs
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            className="text-xs"
-                            onClick={(e) => {
-                              setOpenAgentIndex(-1);
-
-                              (async () => {
-                                const jwt = await getJWT();
-                                const res = await fetch(
-                                  `${deployEndpointUrl}/agent`,
-                                  {
-                                    method: 'DELETE',
-                                    body: JSON.stringify({
-                                      guid: id,
-                                    }),
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                      Authorization: `Bearer ${jwt}`,
-                                    },
-                                  }
-                                );
-                                if (res.ok) {
-                                  await res.blob();
-
-                                  setAgents((agents: object[]) => {
-                                    return agents.filter(
-                                      (agent: any) => agent.id !== id
-                                    );
-                                  });
-                                } else {
-                                  console.warn(
-                                    `invalid status code: ${res.status}`
-                                  );
-                                }
-                              })();
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      )}
-                    </>
-                  );
-                };
-
                 return (
                   <div
                     className="bg-[rgba(255,255,255,0.1)] rounded-lg p-4 relative"
@@ -350,7 +273,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           </div>
                           <div className="font-bold text-white line-clamp-2">{name}</div>
                           <div className="relative inline-block w-8 ml-2">
-                            {userIsCurrentUser && <RowActions />}
+                            {userIsCurrentUser && <RowActions agentId={id} index={i} />}
                           </div>
                         </div>
                         <div className="text-gray-400 line-clamp-1">{description}</div>
