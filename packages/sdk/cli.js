@@ -2366,14 +2366,15 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-const makeAgentJson = ({
-  name = null,
-  bio = null,
-  visualDescription = null,
-  previewUrl = null,
-}) => {
+const makeAgentJson = (agentJsonInit, id) => {
+  const {
+    name = null,
+    bio = null,
+    visualDescription = null,
+    previewUrl = null,
+  } = agentJsonInit;
   return {
-    id: crypto.randomUUID(),
+    id,
     name,
     bio,
     visualDescription,
@@ -2572,7 +2573,7 @@ export const create = async (args, opts) => {
           }))) {}
           interactor.write(answer);
         } else {
-          agentJson = makeAgentJson(object);
+          agentJson = makeAgentJson(object, guid);
           agentJson.previewUrl = await (async () => {
             const result = await visualDescriptionValueUpdater.waitForLoad();
 
@@ -2759,7 +2760,7 @@ export const create = async (args, opts) => {
     // root wrangler.toml
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
-      t = buildWranglerToml(t, { name: agentName, guid, agentJson, mnemonic, agentToken });
+      t = buildWranglerToml(t, { name: agentName, agentJson, mnemonic, agentToken });
       return toml.stringify(t);
     }),
     // sdk directory
