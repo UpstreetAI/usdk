@@ -486,24 +486,6 @@ const ensureAgentJsonDefaults = (spec) => {
     spec.version = packageJson.version;
   }
 };
-const compileAgentJson = (agentJson, { guid, name, description, stripeConnectAccountId, walletAddress }) => {
-  agentJson.id = guid;
-  agentJson.startUrl = getCloudAgentHost(guid);
-  if (name) {
-    agentJson.name = name;
-  }
-  if (description) {
-    agentJson.description = description;
-  }
-  if (stripeConnectAccountId) {
-    agentJson.stripeConnectAccountId = stripeConnectAccountId;
-  }
-  if (walletAddress) {
-    agentJson.address = walletAddress;
-  }
-  ensureAgentJsonDefaults(agentJson);
-  return agentJson;
-};
 const bindProcess = (cp) => {
   process.on('exit', () => {
     // console.log('got exit', cp.pid);
@@ -2316,6 +2298,32 @@ const generateTemplateFromPrompt = async (prompt) => {
     agentJson,
   };
 };
+const generateTemplateFromAgentJson = async (agentJson, {
+  template = 'empty',
+} = {}) => {
+  // create a temporary directory
+  const templateDirectory = await makeTempDir();
+
+  // copy over the basic template
+  const basicTemplateDirectory = path.join(templatesDirectory, template);
+  await recursiveCopy(basicTemplateDirectory, templateDirectory);
+
+  // generate the agent json
+  // const agentJson = await generateAgentJsonFromPrompt(prompt);
+
+  console.log(pc.italic('Generating code...'));
+  const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
+
+  // console.log(pc.italic('Generating avatar...'));
+
+  // write back the generated the agent json
+  await fs.promises.writeFile(
+    path.join(templateDirectory, agentJsonSrcFilename),
+    JSON.stringify(agentJson, null, 2),
+  );
+
+  return templateDirectory;
+};
 const buildWranglerToml = (
   t,
   { name, guid, agentJson, mnemonic, agentToken },
@@ -2365,20 +2373,23 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-const makeAgentJson = (seedObject) => {
+const makeAgentJson = (agentJsonInit) => {
   return {
     id: crypto.randomUUID(),
-    ...seedObject,
-    previewUrl: null,
+    name: undefined,
+    bio: undefined,
+    visualDescription: undefined,
+    previewUrl: undefined,
+    ...agentJsonInit,
   };
 };
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
-  const name = args.name;
-  const description = args.description;
+  const agentJsonString = args.json;
   const template = args.template ?? 'basic';
   const source = args.source;
+  const yes = args.yes;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
 
@@ -2466,14 +2477,9 @@ export const create = async (args, opts) => {
 
   // generate the agent if necessary
   let srcTemplateDir;
-  let agentJson = {};
+  let agentJson;
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
-    // const generateTemplateResponse =
-    //   await generateTemplateFromPrompt(prompt);
-
-    // agentJson = generateTemplateResponse.agentJson;
-    // srcTemplateDir = generateTemplateResponse.templateDirectory;
 
     const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
       signal,
@@ -2509,87 +2515,108 @@ export const create = async (args, opts) => {
     });
 
     // run the interview
-    const interview = async () => {
+    const interview = async (agentJsonInit = {}) => {
+      let agentJson = makeAgentJson(agentJsonInit);
+
+      if (agentJson.previewUrl) {
+        visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
+      }
+
       const interactor = new Interactor({
         prompt: dedent`\
           Generate and configure an AI agent with various capabilities.
         `,
+        object: agentJson,
         objectFormat: z.object({
           name: z.string().optional(),
-          description: z.string().optional(),
+          bio: z.string().optional(),
           visualDescription: z.string().optional(),
         }),
         jwt,
       });
-      const agentJsonPromise = (() => {
-        const agentJsonPromise = makePromise();
-        interactor.addEventListener('message', async (e) => {
-          const o = e.data;
-          const {
-            response,
-            update_object,
-            done,
-            object,
-          } = o;
+      const agentJsonPromise = makePromise();
+      interactor.addEventListener('message', async (e) => {
+        const o = e.data;
+        const {
+          response,
+          update_object,
+          done,
+          object,
+        } = o;
 
-          if (update_object?.visualDescription) {
-            visualDescriptionValueUpdater.set(update_object.visualDescription);
-          }
-
-          if (!done) {
-            let answer;
-            while (!(answer = await input({
-              message: response,
-            }))) {}
-            interactor.send(answer);
-          } else {
-            const agentJson = makeAgentJson(object);
-            agentJsonPromise.resolve(agentJson);
-          }
-        });
-        interactor.send(prompt);
-
-        return agentJsonPromise;
-      })();
-      const previewUrlPromise = (async () => {
-        const agentJson = await agentJsonPromise;
-        const blob = await visualDescriptionValueUpdater.waitForLoad();
-
-        // upload to r2
-        const keyPath = ['assets', agentJson.id].join('/');
-        const r2Url = `${r2EndpointUrl}/${keyPath}`;
-        let previewUrl = '';
-        try {
-          const res = await fetch(r2Url, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${jwt}`,
-            },
-            body: blob,
-          });
-          if (res.ok) {
-            previewUrl = await res.json();
-          } else {
-            const text = await res.text();
-            throw new Error(`could not upload preview url: ${blob.name}: ${text}`);
-          }
-        } catch (err) {
-          throw new Error('failed to put preview url: ' + u + ': ' + err.stack);
+        if (update_object?.visualDescription) {
+          visualDescriptionValueUpdater.set(update_object.visualDescription);
         }
-        return previewUrl;
-      })();
 
-      const [
-        agentJson,
+        if (!done) {
+          let answer;
+          while (!(answer = await input({
+            message: response,
+          }))) {}
+          interactor.send(answer);
+        } else {
+          agentJson = makeAgentJson(object);
+          agentJson.previewUrl = await (async () => {
+            const result = await visualDescriptionValueUpdater.waitForLoad();
+
+            if (typeof result === 'string') {
+              return result;
+            } else if (result instanceof Blob) {
+              // upload to r2
+              const blob = result;
+              const keyPath = ['assets', agentJson.id].join('/');
+              const r2Url = `${r2EndpointUrl}/${keyPath}`;
+              let previewUrl = '';
+              try {
+                const res = await fetch(r2Url, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${jwt}`,
+                  },
+                  body: blob,
+                });
+                if (res.ok) {
+                  previewUrl = await res.json();
+                } else {
+                  const text = await res.text();
+                  throw new Error(`could not upload preview url: ${blob.name}: ${text}`);
+                }
+              } catch (err) {
+                throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
+              }
+              return previewUrl;
+            } else {
+              console.warn('invalid result type', result);
+              throw new Error('invalid result type: ' + typeof result);
+            }
+          })();
+          agentJsonPromise.resolve(agentJson);
+        }
+      });
+      interactor.send(prompt);
+      agentJson = await agentJsonPromise;
+      return agentJson;
+    };
+    const getAgentJson = async () => {
+      const tempAgentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
+      const {
+        name,
+        bio,
+        visualDescription,
         previewUrl,
-      ] = await Promise.all([
-        agentJsonPromise,
-        previewUrlPromise,
-      ]);
-      return {
-        ...agentJson,
-        previewUrl,
-      };
+      } = tempAgentJson;
+      // if the agent json is complete
+      const isComplete = !!(name && bio && visualDescription && previewUrl);
+      if (isComplete || yes) {
+        return tempAgentJson;
+      } else {
+        return await interview({
+          name,
+          bio,
+          visualDescription,
+          previewUrl,
+        });
+      }
     };
 
     // listen for the user pressing the tab key
@@ -2608,23 +2635,18 @@ export const create = async (args, opts) => {
       });
     }
 
-    const agentJson = await interview();
-    console.log(pc.italic('Agent build complete.'));
+    agentJson = await getAgentJson();
+    console.log(pc.italic('Agent complete.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.description);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
 
-    // console.log('rendered');
-    // const cleanBlob = await removeBackground(blob, {
-    //   jwt,
-    // });
-    // const image = await blob2img(cleanBlob);
-
-    return;
-    srcTemplateDir = path.join(templatesDirectory, template);
-
-    console.log(pc.italic('Generated agent.'));
+    console.log(pc.italic('Compiling agent...'));
+    srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
+      template,
+    });
+    console.log(pc.italic('Agent compiled.'));
   } else {
     throw new Error('not logged in: cannot generate agent from prompt');
   }
@@ -2650,13 +2672,13 @@ export const create = async (args, opts) => {
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
 
   // compile the agent json
-  compileAgentJson(agentJson, {
-    guid,
-    name,
-    description,
-    stripeConnectAccountId,
-    walletAddress,
-  });
+  ensureAgentJsonDefaults(agentJson);
+  if (stripeConnectAccountId) {
+    agentJson.stripeConnectAccountId = stripeConnectAccountId;
+  }
+  if (walletAddress) {
+    agentJson.address = walletAddress;
+  }
 
   // copy over the template files
   console.log(pc.italic('Copying files...'));
@@ -3961,10 +3983,11 @@ const main = async () => {
     .command('create')
     .description('Create a new agent, from either a prompt or template')
     .argument(`[directory]`, `The directory to create the project in`)
-    .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
-    .option(`-n, --name <string>`, `Agent name`)
-    .option(`-d, --description <string>`, `Agent description`)
-    .option(`-p, --prompt <string>`, `Creation prompt`)
+    // .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
+    // .option(`-n, --name <string>`, `Agent name`)
+    // .option(`-d, --description <string>`, `Agent description`)
+    // .option(`-p, --prompt <string>`, `Creation prompt`)
+    .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
@@ -3982,7 +4005,6 @@ const main = async () => {
             ...opts,
           };
         } else {
-          directory = undefined;
           args = {
             _: [],
             ...opts,
