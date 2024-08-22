@@ -2611,10 +2611,10 @@ const dev = async (args) => {
 
     //   break;
     // }
-    // case '': {
-    //   // nothing
-    //   break;
-    // }
+    case '': {
+      // nothing
+      break;
+    }
     default: {
       console.warn(`unknown subcommand: ${subcommand}`);
       process.exit(1);
