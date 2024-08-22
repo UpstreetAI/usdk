@@ -800,8 +800,15 @@ const login = async (args) => {
   // }
 };
 const logout = async (args) => {
+  try {
+    fs.access(loginLocation); // Check if the file exists
+  } catch (err) {
+    console.log('No user logged in.');
+    return;
+  }
+
   await rimraf(loginLocation);
-  console.log('Successfully logged out.')
+  console.log('Successfully logged out.');
 };
 const authorize = async (args) => {
   const appDirectory = args._[0] ?? cwd;
