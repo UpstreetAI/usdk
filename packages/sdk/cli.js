@@ -2490,13 +2490,13 @@ export const create = async (args, opts) => {
     const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
       signal,
     }) => {
-      console.log('generate avatar 1', { visualDescription });
+      // console.log('generate avatar 1', { visualDescription });
       const {
         blob,
       } = await generateCharacterImage(visualDescription, undefined, {
         jwt,
       });
-      console.log('generate avatar 2');
+      // console.log('generate avatar 2');
       return blob;
     });
     visualDescriptionValueUpdater.addEventListener('change', async (e) => {
