@@ -48,7 +48,7 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
           </li>
         </ul>
       </div>
-      <div className='w-full md:w-[900px] max-w-4xl'>
+      <div className='w-full md:w-4xl max-w-4xl'>
         <div className={tab === 'profile' ? 'block w-full' : 'hidden'}>
           <Profile user={user} userIsCurrentUser={userIsCurrentUser} />
         </div>
