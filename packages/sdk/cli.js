@@ -2118,7 +2118,7 @@ const mergeJson = async (
   const s = JSON.stringify(j, null, 2);
   await fs.promises.writeFile(dstPath, s);
 };
-const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime style with strong lines and bold colors.') => {
+/* const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime style with strong lines and bold colors.') => {
   const jwt = await getLoginJwt();
   if (jwt) {
     const numRetries = 5;
@@ -2160,23 +2160,6 @@ const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime styl
         console.warn('chat completion error', err);
         continue;
       }
-      /* if (proxyRes.ok) {
-        const j = await proxyRes.json();
-        const content = j.choices[0].message.content;
-        try {
-          const codeBlock = parseCodeBlock(content);
-          const j = JSON.parse(codeBlock);
-          j.visualDescription = `${style} ${prompt}`;
-          return j;
-        } catch (err) {
-          // console.warn('could not parse generated agent json', content);
-          continue;
-        }
-      } else {
-        const text = await proxyRes.text();
-        console.warn('chat completion failed', proxyRes.status, text);
-        continue;
-      } */
     }
   } else {
     throw new Error('not logged in');
@@ -2250,7 +2233,7 @@ const getCodeGenContext = async () => {
   return {
     nodes,
   };
-};
+}; */
 /* const generateTemplateFromPrompt = async (prompt) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
