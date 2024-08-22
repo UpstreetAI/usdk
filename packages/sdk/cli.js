@@ -49,6 +49,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 import { generationModel } from './const.js';
 import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
 import { Interactor } from './lib/interactor.js';
+import { ValueUpdater } from './lib/value-updater.js';
 import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
@@ -2364,6 +2365,13 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
+const makeAgentJson = (seedObject) => {
+  return {
+    id: crypto.randomUUID(),
+    ...seedObject,
+    previewUrl: null,
+  };
+};
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
@@ -2467,6 +2475,40 @@ export const create = async (args, opts) => {
     // agentJson = generateTemplateResponse.agentJson;
     // srcTemplateDir = generateTemplateResponse.templateDirectory;
 
+    const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
+      signal,
+    }) => {
+      console.log('generate avatar 1', { visualDescription });
+      const {
+        blob,
+      } = await generateCharacterImage(visualDescription, undefined, {
+        jwt,
+      });
+      console.log('generate avatar 2');
+      return blob;
+    });
+    visualDescriptionValueUpdater.addEventListener('change', async (e) => {
+      const {
+        value: blob,
+        signal,
+      } = e.data;
+
+      const ab = await blob.arrayBuffer();
+      if (signal.aborted) return;
+
+      const b = Buffer.from(ab);
+      const jimp = await Jimp.read(b);
+      if (signal.aborted) return;
+
+      const imageRenderer = new ImageRenderer();
+      const {
+        text: imageText,
+      } = imageRenderer.render(jimp.bitmap, 120, undefined);
+      console.log('Avatar updated:');
+      console.log(imageText);
+    });
+
+    // run the interview
     const interview = async () => {
       const interactor = new Interactor({
         prompt: dedent`\
@@ -2479,28 +2521,75 @@ export const create = async (args, opts) => {
         }),
         jwt,
       });
-      const p = makePromise();
-      interactor.addEventListener('message', async (e) => {
-        const o = e.data;
-        const {
-          response,
-          update_object,
-          done,
-          object,
-        } = o;
-        if (!done) {
-          let answer;
-          while (!(answer = await input({
-            message: response,
-          }))) {}
-          interactor.send(answer);
-        } else {
-          p.resolve(object);
+      const agentJsonPromise = (() => {
+        const agentJsonPromise = makePromise();
+        interactor.addEventListener('message', async (e) => {
+          const o = e.data;
+          const {
+            response,
+            update_object,
+            done,
+            object,
+          } = o;
+
+          if (update_object?.visualDescription) {
+            visualDescriptionValueUpdater.set(update_object.visualDescription);
+          }
+
+          if (!done) {
+            let answer;
+            while (!(answer = await input({
+              message: response,
+            }))) {}
+            interactor.send(answer);
+          } else {
+            const agentJson = makeAgentJson(object);
+            agentJsonPromise.resolve(agentJson);
+          }
+        });
+        interactor.send(prompt);
+
+        return agentJsonPromise;
+      })();
+      const previewUrlPromise = (async () => {
+        const agentJson = await agentJsonPromise;
+        const blob = await visualDescriptionValueUpdater.waitForLoad();
+
+        // upload to r2
+        const keyPath = ['assets', agentJson.id].join('/');
+        const r2Url = `${r2EndpointUrl}/${keyPath}`;
+        let previewUrl = '';
+        try {
+          const res = await fetch(r2Url, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${jwt}`,
+            },
+            body: blob,
+          });
+          if (res.ok) {
+            previewUrl = await res.json();
+          } else {
+            const text = await res.text();
+            throw new Error(`could not upload preview url: ${blob.name}: ${text}`);
+          }
+        } catch (err) {
+          throw new Error('failed to put preview url: ' + u + ': ' + err.stack);
         }
-      });
-      interactor.send(prompt);
-      const object = await p;
-      return object;
+        return previewUrl;
+      })();
+
+      const [
+        agentJson,
+        previewUrl,
+      ] = await Promise.all([
+        agentJsonPromise,
+        previewUrlPromise,
+      ]);
+      return {
+        ...agentJson,
+        previewUrl,
+      };
     };
 
     // listen for the user pressing the tab key
@@ -2519,25 +2608,13 @@ export const create = async (args, opts) => {
       });
     }
 
-    const object = await interview();
+    const agentJson = await interview();
     console.log(pc.italic('Agent build complete.'));
-    console.log(pc.green('Name:'), object.name);
-    console.log(pc.green('Bio:'), object.description);
-    console.log(pc.green('Visual Description:'), object.visualDescription);
+    console.log(pc.green('Name:'), agentJson.name);
+    console.log(pc.green('Bio:'), agentJson.description);
+    console.log(pc.green('Visual Description:'), agentJson.visualDescription);
+    console.log(pc.green('Preview URL:'), agentJson.previewUrl);
 
-    const {
-      blob,
-    } = await generateCharacterImage(object.visualDescription, undefined, {
-      jwt,
-    });
-    const ab = await blob.arrayBuffer();
-    const b = Buffer.from(ab);
-    const jimp = await Jimp.read(b);
-    const imageRenderer = new ImageRenderer();
-    const {
-      text: imageText,
-    } = imageRenderer.render(jimp.bitmap, 120, undefined);
-    console.log(imageText);
     // console.log('rendered');
     // const cleanBlob = await removeBackground(blob, {
     //   jwt,
