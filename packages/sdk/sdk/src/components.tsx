@@ -24,7 +24,7 @@ import {
   type ConversationProps,
   type ConversationInstanceProps,
   // ExtendableMessageEvent,
-  type ConversationChangeEvent,
+  // type ConversationChangeEvent,
   type ConversationAddEvent,
   type ConversationRemoveEvent,
   type MessagesUpdateEvent,
