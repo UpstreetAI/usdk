@@ -10,6 +10,7 @@ import {
   DefaultPerceptions,
   DefaultSchedulers,
   DefaultServers,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -22,6 +23,7 @@ const TwinAgent = ({
     <Agent>
       <Name>{name}</Name>
       <Personality>{bio}</Personality>
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 };

@@ -22,6 +22,7 @@ import {
   DefaultParsers,
   DefaultPerceptions,
   DefaultSchedulers,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 import { IdGatewayABI } from './abi/IdGatewayABI';
 
@@ -202,6 +203,7 @@ export default function MyAgent() {
     <Agent>
       <WalletActions />
       <FarcasterActions />
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }

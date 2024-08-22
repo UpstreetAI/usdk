@@ -28,14 +28,16 @@ export class PingManager {
   live() {
     this.interval = setInterval(async () => {
       await this.queueManager.waitForTurn(async () => {
-        // console.log('ping 1');
+        const ping = {
+          user_id: this.userId,
+          timestamp: new Date(),
+        };
+        // console.log('ping 1', ping);
         const result = await this.supabase.from('pings')
-          .upsert({
-            user_id: this.userId,
-            timestamp: new Date(),
-          }, {
+          .upsert(ping, {
             onConflict: ['user_id'],
           });
+        // console.log('ping 2', result);
         const {
           error,
         } = result;
@@ -44,7 +46,7 @@ export class PingManager {
         } else {
           console.warn('ping error', error);
         }
-        // console.log('ping 2');
+        // console.log('ping 3');
       });
     }, pingRate);
   }

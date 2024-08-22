@@ -12,6 +12,7 @@ import {
   Task,
   TaskResult,
   // WebBrowser,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -30,6 +31,7 @@ export default function MyAgent(props) {
           });
         }}
       />
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }

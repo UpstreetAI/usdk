@@ -20,6 +20,7 @@ import {
 
   Action,
   PendingActionEvent,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -126,6 +127,7 @@ export default function MyAgent(props) {
       <Personality>A merchant selling various magical isekai anime items.</Personality>
       <PaymentRequestAction />
       <PaymentResponsePerception />
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }

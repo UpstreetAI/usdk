@@ -13,19 +13,27 @@
 import { getCleanJwt } from './jwt-util.mjs';
 import { aiProxyHost } from './endpoints.mjs';
 
-export const fetchImageGeneration = async (prompt, opts) => {
+export const fetchImageGeneration = async (prompt, opts, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    jwt = getCleanJwt();
+  }
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
   const {
     model = 'black-forest-labs:flux',
+    image_size = 'landscape_4_3', // "square_hd", "square", "portrait_4_3", "portrait_16_9", "landscape_4_3", "landscape_16_9"
   } = opts ?? {};
   if (model === 'black-forest-labs:flux') {
     const u = `https://${aiProxyHost}/api/fal-ai/flux/dev`;
     const j = {
       prompt,
-      image_size: 'landscape_4_3', // "square_hd", "square", "portrait_4_3", "portrait_16_9", "landscape_4_3", "landscape_16_9"
+      image_size,
     };
-    const jwt = getCleanJwt();
 
-    console.log('call u', u);
     const res = await fetch(u, {
       method: 'POST',
       headers: {
@@ -56,8 +64,6 @@ export const fetchImageGeneration = async (prompt, opts) => {
       quality,
       n: 1,
     };
-    const jwt = getCleanJwt();
-
     const res = await fetch(u, {
       method: 'POST',
       headers: {
@@ -78,4 +84,27 @@ export const fetchImageGeneration = async (prompt, opts) => {
   } else {
     throw new Error('unknown image generation model: ' + model);
   }
+};
+
+export const generateCharacterImage = async (prompt, {
+  stylePrompt = `full body, front view, standing straight, arms at side, neutral expression, white background, high resolution, digimon anime style`,
+} = {}, {
+  jwt,
+} = {}) => {
+  // const jwt = await getJWT();
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const fullPrompt = `${prompt}${stylePrompt ? `\n${stylePrompt}` : ''}`;
+  const blob = await fetchImageGeneration(fullPrompt, {
+    image_size: 'portrait_4_3',
+  }, {
+    jwt,
+  });
+
+  return {
+    fullPrompt,
+    blob,
+  };
 };

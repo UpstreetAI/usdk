@@ -9,6 +9,7 @@ import {
   generativeImageFetchHandler,
   generativeJsonFetchHandler,
   generativeFarcasterFrameFetchHandler,
+/* IMPORTS REGEX HOOK */
 } from 'react-agents';
 
 //
@@ -52,6 +53,7 @@ export default function MyAgent() {
           );
         }}
       </GenerativeServer>
+{/* JSX REGEX HOOK */}
     </Agent>
   );
 }
