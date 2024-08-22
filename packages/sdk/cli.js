@@ -2308,7 +2308,7 @@ const generateTemplateFromAgentJson = async (agentJson, {
     agentJSX = agentJSX.replace(importsHookRegex, impotsString);
 
     const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
-    const jsxString = includedCapabilitySpecs.map(capabilitySpec => `${capabilitySpec.tsx},`).join('\n');
+    const jsxString = includedCapabilitySpecs.map(capabilitySpec => capabilitySpec.tsx).join('\n');
     agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
 
     await fs.promises.writeFile(agentJSXPath, agentJSX);
