@@ -68,7 +68,7 @@ const SubscriptionPlans = ({
               <div
                 key={i}
                 className={cn(
-                  'w-[25%] flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
+                  'md:w-[25%] flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
                   'flex-1',
                   'basis-1/6',
                   'md:max-w-xs'
