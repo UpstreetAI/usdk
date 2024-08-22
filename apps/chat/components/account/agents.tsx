@@ -19,6 +19,11 @@ export interface AgentsProps {
   userIsCurrentUser: boolean;
 }
 
+export interface ActionsProps {
+  id: string;
+  i: number;
+}
+
 export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
   const router = useRouter();
   const [agents, setAgents] = useState(() => agentsInit);
@@ -27,11 +32,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
   const { agentJoin } = useMultiplayerActions();
 
   // Agent row actions
-  const RowActions = ({ agentId, index }) => {
-
-    const id = agentId;
-    const i = index;
-
+  const RowActions = ({ id, i }: ActionsProps) => {
     return (
       <>
         <div
@@ -211,7 +212,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                         </td>
                         <td className="relative px-2 md:px-6 py-4 text-md capitalize align-middle text-right">
                           <div className="relative inline-block w-8">
-                            {userIsCurrentUser && <RowActions agentId={id} index={i} />}
+                            {userIsCurrentUser && <RowActions id={id} i={i} />}
                           </div>
                         </td>
                       </tr>
@@ -273,7 +274,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           </div>
                           <div className="font-bold text-white line-clamp-2">{name}</div>
                           <div className="relative inline-block w-8 ml-2">
-                            {userIsCurrentUser && <RowActions agentId={id} index={i} />}
+                            {userIsCurrentUser && <RowActions id={id} i={i} />}
                           </div>
                         </div>
                         <div className="text-gray-400 line-clamp-1">{description}</div>
