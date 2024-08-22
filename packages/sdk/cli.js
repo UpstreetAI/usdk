@@ -2330,10 +2330,9 @@ const generateTemplateFromAgentJson = async (agentJson, {
 };
 const buildWranglerToml = (
   t,
-  { name, guid, agentJson, mnemonic, agentToken },
+  { name, agentJson, mnemonic, agentToken },
 ) => {
   t.name = name;
-  t.vars.GUID = guid;
   t.vars.AGENT_JSON = JSON.stringify(agentJson);
   t.vars.WALLET_MNEMONIC = mnemonic;
   t.vars.AGENT_TOKEN = agentToken;
