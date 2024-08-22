@@ -150,6 +150,8 @@ const getAgentUrlFromGuid = (guid) => `https://user-agent-${guid}.${workersHost}
 const agentJsonSrcFilename = 'agent.json';
 const agentJsonDstFilename = 'agent.npc';
 
+const consoleImageWidth = 80;
+
 const eraseLine = '\x1b[2K\r';
 
 //
@@ -2513,7 +2515,7 @@ export const create = async (args, opts) => {
       const imageRenderer = new ImageRenderer();
       const {
         text: imageText,
-      } = imageRenderer.render(jimp.bitmap, 120, undefined);
+      } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
       console.log('Avatar updated:');
       console.log(imageText);
     });
