@@ -2522,22 +2522,6 @@ export const create = async (args, opts) => {
 
     // run the interview
     const interview = async (agentJson) => {
-      // XXX debugging hack: listen for the user pressing the tab key
-      {
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding('utf8');
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-          if (key === '\u0009') { // tab
-            console.log('got tab');
-          }
-          if (key === '\u0003') { // ctrl-c
-            console.log('got ctrl-c');
-            process.exit();
-          }
-        });
-      }
-
       if (agentJson.previewUrl) {
         visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
       }
@@ -2629,8 +2613,27 @@ export const create = async (args, opts) => {
         }
       });
       if (!prompt) {
+        // no auto prompt provided; pump the interview loop
+
+        // XXX debugging hack: listen for the user pressing the tab key
+        {
+          process.stdin.setRawMode(true);
+          process.stdin.setEncoding('utf8');
+          process.stdin.resume();
+          process.stdin.on('data', (key) => {
+            if (key === '\u0009') { // tab
+              console.log('got tab');
+            }
+            if (key === '\u0003') { // ctrl-c
+              console.log('got ctrl-c');
+              process.exit();
+            }
+          });
+        }
+
         interactor.write();
       } else {
+        // auto prompt provided; do it in one pass
         interactor.end();
       }
       const interviewResult = await interviewPromise;
