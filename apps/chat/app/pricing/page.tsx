@@ -1,27 +1,15 @@
-'use client';
-
-import ReactMarkdown from 'react-markdown';
-// eslint-disable-next-line sort-imports
-import { useEffect, useState } from 'react';
 import { AccountSubscriptions } from '@/components/account/subscriptions';
+import { getJWT } from '@/lib/jwt';
+import { redirect } from 'next/navigation';
 
-export default function Pricing() {
-
-  const [md, setMd] = useState('');
-
-  async function getMD(dir: string) {
-    return await fetch(dir).then((res) => res.text());
+export default async function Pricing() {
+  const jwt = await getJWT();
+  if (jwt) {
+    return redirect('/account#subscriptions');
   }
-
-  useEffect(() => {
-    void getMD('/md/terms.md').then((res) => {
-      setMd(res);
-    });
-  }, []);
-
   return (
     <div className="w-full mx-auto max-w-6xl px-6 pt-8 pb-16 markdown">
       <AccountSubscriptions />
     </div>
   );
-}
+};
