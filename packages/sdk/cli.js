@@ -2495,7 +2495,7 @@ export const create = async (args, opts) => {
     });
     visualDescriptionValueUpdater.addEventListener('change', async (e) => {
       const {
-        value: blob,
+        result: blob,
         signal,
       } = e.data;
 
@@ -2515,8 +2515,22 @@ export const create = async (args, opts) => {
     });
 
     // run the interview
-    const interview = async (agentJsonInit = {}) => {
-      let agentJson = makeAgentJson(agentJsonInit);
+    const interview = async (agentJson) => {
+      // XXX debugging hack: listen for the user pressing the tab key
+      {
+        process.stdin.setRawMode(true);
+        process.stdin.setEncoding('utf8');
+        process.stdin.resume();
+        process.stdin.on('data', (key) => {
+          if (key === '\u0009') { // tab
+            console.log('got tab');
+          }
+          if (key === '\u0003') { // ctrl-c
+            console.log('got ctrl-c');
+            process.exit();
+          }
+        });
+      }
 
       if (agentJson.previewUrl) {
         visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
@@ -2598,17 +2612,17 @@ export const create = async (args, opts) => {
       return agentJson;
     };
     const getAgentJson = async () => {
-      const tempAgentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
+      const agentJson = makeAgentJson(agentJsonString ? JSON.parse(agentJsonString) : {});
       const {
         name,
         bio,
         visualDescription,
         previewUrl,
-      } = tempAgentJson;
+      } = agentJson;
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
-      if (isComplete || yes) {
-        return tempAgentJson;
+      if (isComplete || agentJsonString || source || yes) {
+        return agentJson;
       } else {
         return await interview({
           name,
@@ -2619,26 +2633,10 @@ export const create = async (args, opts) => {
       }
     };
 
-    // listen for the user pressing the tab key
-    {
-      process.stdin.setRawMode(true);
-      process.stdin.setEncoding('utf8');
-      process.stdin.resume();
-      process.stdin.on('data', (key) => {
-        if (key === '\u0009') { // tab
-          console.log('got tab');
-        }
-        if (key === '\u0003') { // ctrl-c
-          console.log('got ctrl-c');
-          process.exit();
-        }
-      });
-    }
-
     agentJson = await getAgentJson();
     console.log(pc.italic('Agent complete.'));
     console.log(pc.green('Name:'), agentJson.name);
-    console.log(pc.green('Bio:'), agentJson.description);
+    console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
 
@@ -3988,6 +3986,7 @@ const main = async () => {
     // .option(`-d, --description <string>`, `Agent description`)
     // .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
+    .option(`-y, --yes`, `Non-interactive mode`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
