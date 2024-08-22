@@ -27,7 +27,7 @@ const StripeConnect = ({
   } = userPrivate;
 
   return (
-    <div className="flex flex-col m-auto w-full max-w-4xl mt-4">
+    <div className="flex flex-col m-auto w-full max-w-4xl mt-0 md:mt-4">
       {!stripe_connect_account_id ? (
         <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
           <div className="px-5 py-4">
