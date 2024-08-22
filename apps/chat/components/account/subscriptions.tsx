@@ -64,7 +64,7 @@ const SubscriptionPlans = ({
 
   return (
     <div>
-      <div className="mt-8 space-y-4 sm:mt-8 sm:space-y-0 flex flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
+      <div className="mt-8 space-y-4 sm:mt-8 sm:space-y-0 md:flex md:flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
         {plans.map((plan, i) => {
           const {
             name,
@@ -82,20 +82,20 @@ const SubscriptionPlans = ({
                 },
                 'flex-1',
                 'basis-1/6',
-                'max-w-xs'
+                'md:max-w-xs'
               )}
             >
               <div className="p-6">
                 <h2 className="text-2xl font-semibold leading-6 text-white capitalize">
                   {name}
                 </h2>
-                <p className="mt-4 text-zinc-300">{value ? (value * creditUnit) + ' Credits' : '\xa0'}</p>
+                <p className="mt-4 text-zinc-300">{value ? (value * creditUnit) + ' Credits' : '5000 Credits'}</p>
                 <p className="mt-8">
                   <span className="text-5xl font-extrabold white">
-                    {value > 0 ? `${currency}${value}` : '\xa0'}
+                    {value > 0 ? `${currency}${value}` : '$0'}
                   </span>
                   <span className="text-base font-medium text-zinc-100">
-                    {value > 0 ? `/${interval}` : '\xa0'}
+                    {value > 0 ? `/${interval}` : '/m'}
                   </span>
                 </p>
                 {value > 0 ?
