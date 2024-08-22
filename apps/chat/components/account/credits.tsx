@@ -31,7 +31,7 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
             </thead>
 
             <tbody>
-              {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => {
+              {creditsUsageHistory?.slice().reverse().map((creditHistoryItem: any, i: number) => {
 
                 return (
                   <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
