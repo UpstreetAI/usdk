@@ -78,7 +78,7 @@ import {
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock, makePromise } from './sdk/src/util/util.mjs';
 // import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
-// import { fetchImageGeneration, generateCharacterImage } from './sdk/src/util/generate-image.mjs';
+import { /*fetchImageGeneration,*/ generateCharacterImage } from './sdk/src/util/generate-image.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
