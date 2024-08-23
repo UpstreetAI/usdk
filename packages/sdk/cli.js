@@ -3866,6 +3866,9 @@ const main = async () => {
       }
     });
 
+  program
+  .version(packageJson.version);
+
   // misc
   program
     .command('version')
