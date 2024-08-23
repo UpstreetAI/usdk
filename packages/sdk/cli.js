@@ -2322,12 +2322,15 @@ const generateTemplateFromAgentJson = async (agentJson, {
 
     const importsHookRegex = /\/\* IMPORTS REGEX HOOK \*\//g;
     const impotsString = includedCapabilitySpecs.flatMap(capabilitySpec => capabilitySpec.imports).map(importName => `${importName},`).join(',');
-    agentJSX = agentJSX.replace(importsHookRegex, impotsString);
+    if (!agentJSX.includes(impotsString)) {
+      agentJSX = agentJSX.replace(importsHookRegex, impotsString);
+    }
 
     const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
     const jsxString = includedCapabilitySpecs.map(capabilitySpec => capabilitySpec.tsx).join('\n');
-    agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
-
+    if (!agentJSX.includes(jsxString)) {
+      agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
+    }
     await fs.promises.writeFile(agentJSXPath, agentJSX);
   }
 
