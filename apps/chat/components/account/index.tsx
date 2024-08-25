@@ -36,7 +36,7 @@ export async function AccountForm({
 
   // Display user for given ID if provided, else get current user.
   if (id) {
-    user = await getUserAccount(id, 'name,id,playerSpec,preview_url')
+    user = await getUserAccount(id, 'name,id,playerSpec,preview_url,images')
 
     // Redirect if a user isn't found, otherwise check if it's the
     // logged-in user.

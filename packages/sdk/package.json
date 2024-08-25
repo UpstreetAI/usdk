@@ -62,7 +62,6 @@
     "recursive-readdir": "^2.2.3",
     "rimraf": "^5.0.5",
     "shell-escape-tag": "^2.0.2",
-    "speaker": "^0.5.5",
     "together-ai": "^0.6.0-alpha.4",
     "toml": "^3.0.0",
     "tsdoc-extractor": "^0.2.0",
@@ -74,6 +73,9 @@
     "ws": "^8.17.0",
     "yjs": "^13.6.18",
     "zod-to-ts": "^1.2.0"
+  },
+  "optionalDependencies": {
+    "speaker": "^0.5.5"
   },
   "overrides": {
     "@supabase/auth-js": "2.62.0",

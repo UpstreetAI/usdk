@@ -74,6 +74,7 @@ import {
   r2EndpointUrl,
   chatEndpointUrl,
   workersHost,
+  aiProxyHost,
 } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 import { makeId, shuffle, parseCodeBlock, makePromise } from './sdk/src/util/util.mjs';
@@ -100,9 +101,11 @@ import {
 import {
   ImageRenderer,
   TerminalVideoRenderer,
-  WebPEncoder,
   describe,
 } from './sdk/src/devices/video-input.mjs';
+import {
+  WebPEncoder,
+} from './sdk/src/devices/codecs.mjs';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2545,15 +2548,17 @@ export const create = async (args, opts) => {
 
       const interactor = new Interactor({
         prompt: dedent`\
-          Generate and configure an AI agent.
+          Generate and configure an AI agent character.
+          The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
+          e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
         ` + '\n' +
-          (prompt ? ('User prompt:\n' + prompt + '\n\n') : '') +
           dedent`\
-            Capabilities list:
+            The available capabilities are:
           ` + '\n' +
           capabilitySpecs.map(({ name, description }) => {
             return `'${name}': ${description}`;
-          }).join('\n'),
+          }).join('\n') + '\n' +
+          (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
         object: agentJson,
         objectFormat: z.object({
           name: z.string().optional(),

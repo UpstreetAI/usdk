@@ -1,11 +1,6 @@
-// import { z } from 'zod';
-// import { zodResponseFormat } from 'openai/helpers/zod';
-// import dedent from 'dedent';
-import {
-  aiProxyHost,
-} from './const/endpoints.js';
+import { aiProxyHost } from './endpoints.mjs';
 
-export const generateModel = async (image: Blob, {
+export const generateModel = async (image, {
   jwt = '',
 } = {}) => {
   if (!jwt) {

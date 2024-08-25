@@ -322,8 +322,8 @@ export const fetchChatCompletion = async ({
 export const fetchJsonCompletion = async ({
   model,
   messages,
-  stream,
-  signal,
+  stream = undefined,
+  signal = undefined,
 }, format, {
   jwt,
 } = {}) => {
@@ -339,39 +339,34 @@ export const fetchJsonCompletion = async ({
     // XXX support different model types; for now openai is assumed
     // const modelType = match[1];
     const modelName = model.slice(match[0].length);
-    // const fn = fetchChatCompletionFns[modelType];
-    // if (fn) {
-      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-        method: 'POST',
+    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+      method: 'POST',
 
-        headers: {
-          'Content-Type': 'application/json',
-          // 'OpenAI-Beta': 'assistants=v1',
-          Authorization: `Bearer ${jwt}`,
-        },
+      headers: {
+        'Content-Type': 'application/json',
+        // 'OpenAI-Beta': 'assistants=v1',
+        Authorization: `Bearer ${jwt}`,
+      },
 
-        body: JSON.stringify({
-          model: modelName,
-          messages,
+      body: JSON.stringify({
+        model: modelName,
+        messages,
 
-          response_format: zodResponseFormat(format, 'result'),
+        response_format: zodResponseFormat(format, 'result'),
 
-          stream,
-        }),
-        signal,
-      });
-      if (res.ok) {
-        const j = await res.json();
-        const s = j.choices[0].message.content;
-        const o = JSON.parse(s);
-        return o;
-      } else {
-        const text = await res.text();
-        throw new Error('invalid status code: ' + res.status + ': ' + text);
-      }
-    // } else {
-    //   throw new Error('invalid model type: ' + JSON.stringify(modelType));
-    // }
+        stream,
+      }),
+      signal,
+    });
+    if (res.ok) {
+      const j = await res.json();
+      const s = j.choices[0].message.content;
+      const o = JSON.parse(s);
+      return o;
+    } else {
+      const text = await res.text();
+      throw new Error('invalid status code: ' + res.status + ': ' + text);
+    }
   } else {
     throw new Error('invalid model: ' + JSON.stringify(model));
   }

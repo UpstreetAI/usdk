@@ -1,7 +1,7 @@
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl, resolveRelativeUrl } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
@@ -83,7 +83,7 @@ export function ChatMessage({
         <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
           {avatarURL && isValidUrl(avatarURL) ? (
-            <Image src={resolveRelativeUrl(avatarURL)} alt="" className="s-300" width={48} height={48} />
+            <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
           ) : (
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
           )}

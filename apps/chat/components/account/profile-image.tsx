@@ -6,25 +6,28 @@ import { r2EndpointUrl } from '@/utils/const/endpoints'
 import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { isValidUrl, resolveRelativeUrl } from '@/lib/utils'
+import { isValidUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 
 export interface ProfileImageProps {
-  user: any
-  userIsCurrentUser: boolean
+  user: any,
+  setUser: (user: any) => void,
+  userIsCurrentUser: boolean,
+  className?: string,
 }
 
-export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
+export function ProfileImage({user, setUser, userIsCurrentUser, className}: ProfileImageProps) {
   const { supabase } = useSupabase();
 
   return (
-    <div className="md:mr-8 relative inline-block">
+    <div className={cn("md:mr-8 relative inline-block", className)}>
       <Image
         alt=""
-        src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}
+        src={isValidUrl(user.preview_url) ? user.preview_url : '/images/user-small.png'}
         height={100}
         width={100}
-        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48"
+        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48 object-cover object-[50%_0%]"
       />
       {userIsCurrentUser ? (
         <Button
@@ -62,13 +65,22 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
                   }
                 }
 
-                // Set the user's preview url to the new URL.
-                await supabase
-                  .from('accounts')
-                  .update({preview_url: url})
-                  .eq('id', user.id)
+                setUser((user: any) => ({
+                  ...user,
+                  preview_url: url,
+                }));
 
-                location.reload()
+                // Set the user's preview url to the new URL.
+                const result = await supabase
+                  .from('accounts')
+                  .update({
+                    preview_url: url,
+                  })
+                  .eq('id', user.id);
+                const { error } = result;
+                if (error) {
+                  console.error('Error updating user', error);
+                }
               } else {
                 console.error( 'Missing file extension.' )
               }
