@@ -1560,7 +1560,8 @@ const LandCanvas3DScene = ({
           width,
           height,
         } = imageBitmaps[0];
-        // create a canvas
+
+        // draw the images onto a canvas
         const canvas = document.createElement('canvas');
         canvas.width = width * imageBitmaps.length / 2;
         canvas.height = height * 2;
@@ -1571,15 +1572,19 @@ const LandCanvas3DScene = ({
           const y = Math.floor(i / (imageBitmaps.length / 2));
           ctx.drawImage(imageBitmaps[i], x * width, y * height);
         }
-        canvas.style.cssText = `\
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 500px;
-          z-index: 9999;
-        `;
-        document.body.appendChild(canvas);
         setCharacter360ImageCanvas(canvas);
+
+        /* // XXX debug
+        {
+          canvas.style.cssText = `\
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 500px;
+            z-index: 9999;
+          `;
+          document.body.appendChild(canvas);
+        } */
       })();
 
       return () => {
