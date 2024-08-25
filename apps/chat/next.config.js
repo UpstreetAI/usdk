@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 module.exports = {
   images: {
     remotePatterns: [
@@ -27,5 +28,12 @@ module.exports = {
         pathname: '**'
       },
     ]
-  }
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'usdk': path.resolve(__dirname, '../../packages/sdk'),
+    };
+    return config;
+  },
 }
