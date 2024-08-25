@@ -194,7 +194,6 @@ const auxTypeSpecs = [
 
 export interface ProfileProps {
   user: any,
-  setUser: (user: any) => void,
   userIsCurrentUser: boolean,
 }
 
