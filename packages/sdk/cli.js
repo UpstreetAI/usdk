@@ -2550,7 +2550,7 @@ export const create = async (args, opts) => {
         prompt: dedent`\
           Generate and configure an AI agent character.
           The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
-          e.g. girl with blond hair and blue eyes, wearing a hat, ...
+          e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
         ` + '\n' +
           dedent`\
             The available capabilities are:
