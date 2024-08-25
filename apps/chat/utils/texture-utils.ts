@@ -77,3 +77,37 @@ export const useTextureLoaderBlob = (blob: Blob | null, { textureLoader }: { tex
   // console.log('returning texture', textureRef.current);
   return textureRef.current;
 };
+
+export const useTextureLoaderImage = (image: HTMLImageElement | HTMLCanvasElement | null, { textureLoader }: { textureLoader: TextureLoader }) => {
+  const textureRef = useRef<Texture | null>(null);
+  const imageRef = useRef<HTMLImageElement | HTMLCanvasElement | null>(null);
+  const [textureEpoch, setTextureEpoch] = useState(0);
+
+  const gc = () => {
+    if (textureRef.current) {
+      textureRef.current.dispose();
+      textureRef.current = null;
+    }
+  };
+  useEffect(() => {
+    return gc;
+  }, []);
+
+  useEffect(() => {
+    if (image !== imageRef.current) {
+      gc();
+      imageRef.current = image;
+      if (image) {
+        const texture = new Texture(image);
+        texture.needsUpdate = true;
+        textureRef.current = texture;
+        setTextureEpoch((prevEpoch) => prevEpoch + 1);
+      } else {
+        textureRef.current = null;
+        setTextureEpoch((prevEpoch) => prevEpoch + 1);
+      }
+    }
+  }, [image, textureLoader]);
+
+  return textureRef.current;
+};
