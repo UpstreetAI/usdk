@@ -1037,7 +1037,7 @@ const MapScene = ({
   focused,
 }: {
   id: string,
-  user: User,
+  user: any,
   edit: boolean,
   coord: Coord2D,
   onMove?: (position: Vector3) => any,
