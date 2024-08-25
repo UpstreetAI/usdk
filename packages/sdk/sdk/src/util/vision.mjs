@@ -62,12 +62,20 @@ export const describe = async (blob, query = dedent`\
     throw new Error('invalid status code: ' + res.status + ': ' + text);
   }
 };
-export const describeJson = async (blob, hint = '', format = z.string(), {
+export const describeJson = async (blob, hint, format, {
   jwt = '',
 } = {}) => {
   if (!jwt) {
     throw new Error('no jwt');
   }
+
+  if (!hint) {
+    hint = '';
+  }
+  if (!format) {
+    format = z.string();
+  }
+  
   const query = dedent`\
     Describe the image using the given JSON format.
     Do NOT start with "This is an image of..." or anything similar.
