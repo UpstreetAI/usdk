@@ -1235,6 +1235,7 @@ type LandSpec3D = {
 type LandSpec = LandSpec1D & LandSpec2D & LandSpec3D;
 
 type LandCanvasProps = {
+  user: any,
   landSpec: [LandSpec, (landSpec: LandSpec) => void],
   loadState: [string | null, (loadState: string | null) => void],
   eventTarget: EventTarget,
