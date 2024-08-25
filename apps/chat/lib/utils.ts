@@ -88,17 +88,12 @@ export const getMessageFromCode = (resultCode: string) => {
   }
 }
 
-export function resolveRelativeUrl(url: string) {
-  // console.warn('do not use resolveRelativeUrl');
-  return url;
-}
-
 export function getAgentUrl(agentObject: any) {
   return `/agents/${agentObject.name}`;
 }
 
 export function getAgentPreviewImageUrl(agentObject: any) {
-  return resolveRelativeUrl(agentObject.previewUrl);
+  return agentObject.previewUrl;
 }
 
 export function getAgentEndpointUrl(guid: string) {
