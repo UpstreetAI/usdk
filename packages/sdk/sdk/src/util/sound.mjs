@@ -1,8 +1,8 @@
 import { aiProxyHost } from './endpoints.mjs';
 
 export const generateSound = async (prompt, {
-  duration_seconds,
-  prompt_influence,
+  duration_seconds = undefined,
+  prompt_influence = undefined,
 } = {}, {
   jwt = '',
 } = {}) => {
