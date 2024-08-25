@@ -4026,9 +4026,6 @@ const main = async () => {
     .command('create')
     .description('Create a new agent, from either a prompt or template')
     .argument(`[directory]`, `The directory to create the project in`)
-    // .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
-    // .option(`-n, --name <string>`, `Agent name`)
-    // .option(`-d, --description <string>`, `Agent description`)
     .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
@@ -4057,14 +4054,14 @@ const main = async () => {
         await create(args);
       });
     });
-  const devSubcommands = [
+  /* const devSubcommands = [
     'chat',
     // 'simulate',
     // 'listen',
     // 'ls',
     // 'fund',
     // 'deposit',
-  ];
+  ]; */
   program
     .command('dev')
     .description(
