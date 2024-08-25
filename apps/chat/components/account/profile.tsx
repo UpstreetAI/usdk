@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { ProfileImage } from '/components/account/profile-image'
+import { ProfileImage } from '@/components/account/profile-image'
 import { Button } from '@/components/ui/button';
 import { getJWT } from '@/lib/jwt';
 import { blob2img } from '@/lib/blob';
