@@ -27,8 +27,8 @@ import {
   r2EndpointUrl,
 } from 'usdk/sdk/src/util/endpoints.mjs';
 
-const getUserImageSrc = (type: string) => (user: any) => {
-  return user.images?.find((imageSpec: any) => imageSpec.type === type) ?? null;
+const getUserImageSrc = (type: string) => (user: any) : (string | string[] | null) => {
+  return user.playerSpec.images?.find((imageSpec: any) => imageSpec.type === type)?.url ?? null;
 };
 const auxTypeSpecs = [
   {
@@ -43,28 +43,36 @@ const auxTypeSpecs = [
         jwt,
       });
 
-      const img = await blob2img(blob2);
-      img.style.cssText = `\
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 300px;
-        z-index: 9999;
-      `;
-      document.body.appendChild(img);
+      // XXX debug
+      {
+        const img = await blob2img(blob2);
+        img.style.cssText = `\
+          position: fixed;
+          top: 0;
+          right: 0;
+          width: 300px;
+          z-index: 9999;
+        `;
+        document.body.appendChild(img);
+      }
 
-      return user;
-      // // remove background
-      // return {
-      //   ...user,
-      //   images: [
-      //     ...user.images,
-      //     {
-      //       type: 'image/alpha',
-      //       url: 'https://example.com/image.png',
-      //     }
-      //   ],
-      // };
+      const guid = crypto.randomUUID();
+      const res2 = await fetch(`${r2EndpointUrl}/${guid}/avatar.webp`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: blob2,
+      });
+      const imgUrl = await res2.json();
+
+      return [
+        {
+          type: 'image/alpha',
+          url: imgUrl,
+        },
+      ];
     },
   },
   {
@@ -80,33 +88,44 @@ const auxTypeSpecs = [
       const imageBlobs = await generateEmotionImages(blob, visualDescription, undefined, {
         jwt,
       });
-      console.log('got images', imageBlobs);
 
-      for (let i = 0; i < imageBlobs.length; i++) {
-        const img = await blob2img(imageBlobs[i]);
-        img.style.cssText = `
-          position: fixed;
-          top: 0;
-          right: ${i * 200}px;
-          width: 200px;
-          z-index: 9999;
-        `;
-        document.body.appendChild(img);
+      // XXX debug
+      {
+        for (let i = 0; i < imageBlobs.length; i++) {
+          const img = await blob2img(imageBlobs[i]);
+          img.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: ${i * 200}px;
+            width: 200px;
+            z-index: 9999;
+          `;
+          document.body.appendChild(img);
+        }
       }
 
-      return user;
-      // // generate emotions
-      // // generate 360
-      // return {
-      //   ...user,
-      //   images: [
-      //     ...user.images,
-      //     {
-      //       type: 'image/emotions',
-      //       url: 'https://example.com/image.png',
-      //     },
-      //   ],
-      // };
+      // upload the images to r2
+      const guid = crypto.randomUUID();
+      const imageUrls = await Promise.all(imageBlobs.map(async (imageBlob, i) => {
+        const res = await fetch(`${r2EndpointUrl}/${guid}/avatar-emotion-${i}.webp`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${jwt}`,
+            'Content-Type': 'application/octet-stream',
+          },
+          body: imageBlob,
+        });
+        const imgUrl = await res.json();
+        // console.log('uploaded image', imgUrl);
+        return imgUrl;
+      }));
+
+      return [
+        {
+          type: 'image/emotions',
+          url: imageUrls,
+        },
+      ];
     },
   },
   {
@@ -117,34 +136,58 @@ const auxTypeSpecs = [
       const blob = await res.blob();
 
       const jwt = await getJWT();
-      const images = await generate360Images(blob, {
+      const frameBlobs = await generate360Images(blob, {
         jwt,
       });
-      console.log('got images', images);
-      for (let i = 0; i < images.length; i++) {
-        const img = await blob2img(images[i]);
-        img.style.cssText = `
-          position: fixed;
-          top: 0;
-          right: ${i * 200}px;
-          width: 200px;
-          z-index: 9999;
-        `;
-        document.body.appendChild(img);
+      const imageBlobs2 = [
+        frameBlobs[20], // Starting point
+        frameBlobs[17], // 20 - 3
+        frameBlobs[15], // 17 - 2
+        frameBlobs[12], // 15 - 3
+        frameBlobs[10], // 12 - 2
+        frameBlobs[7],  // 10 - 3
+        frameBlobs[5],  // 7 - 2
+        frameBlobs[2]   // 5 - 3 (Close to the loop point)
+      ];
+
+      // XXX debug
+      {
+        for (let i = 0; i < imageBlobs2.length; i++) {
+          const imageBlob = imageBlobs2[i];
+          const img = await blob2img(imageBlob);
+          img.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: ${i * 200}px;
+            width: 200px;
+            z-index: 9999;
+          `;
+          document.body.appendChild(img);
+        }
       }
 
-      return user;
-      // // generate 360
-      // return {
-      //   ...user,
-      //   images: [
-      //     ...user.images,
-      //     {
-      //       type: 'image/360',
-      //       url: 'https://example.com/image.png',
-      //     },
-      //   ],
-      // };
+      // upload the images to r2
+      const guid = crypto.randomUUID();
+      const imageUrls = await Promise.all(imageBlobs2.map(async (imageBlob, i) => {
+        const res = await fetch(`${r2EndpointUrl}/${guid}/avatar-360-${i}.webp`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${jwt}`,
+            'Content-Type': 'application/octet-stream',
+          },
+          body: imageBlob,
+        });
+        const imgUrl = await res.json();
+        console.log('uploaded image', imgUrl);
+        return imgUrl;
+      }));
+
+      return [
+        {
+          type: 'image/360',
+          url: imageUrls,
+        },
+      ];
     },
   },
   {
@@ -160,18 +203,12 @@ const auxTypeSpecs = [
       });
       console.log('got model blob', modelBlob);
 
-      return user;
-      // // generate 360
-      // return {
-      //   ...user,
-      //   images: [
-      //     ...user.images,
-      //     {
-      //       type: 'image/360',
-      //       url: 'https://example.com/image.png',
-      //     },
-      //   ],
-      // };
+      return [
+        {
+          type: 'image/3d',
+          url: 'https://example.com/3d-model',
+        },
+      ];
     },
   },
 ];
@@ -203,18 +240,6 @@ export function Profile({
     _setVisualDescription(visualDescription);
     // user.playerSpec.visualDescription = visualDescription;
   };
-  const avatarAlphaImageUrl = useMemo(() => {
-    const alphaImageSpec = user.images?.find((image: any) => image.type === 'image/alpha');
-    return alphaImageSpec?.url ?? null;
-  }, [user.images?.length ?? 0]);
-  const avatarEmotionsImageUrl = useMemo(() => {
-    const emotionsImageSpec = user.images?.find((image: any) => image.type === 'image/emotions');
-    return emotionsImageSpec?.url ?? null;
-  }, [user.images?.length ?? 0]);
-  const avatar360ImageUrl = useMemo(() => {
-    const image360Spec = user.images?.find((image: any) => image.type === 'image/360');
-    return image360Spec?.url ?? null;
-  }, [user.images?.length ?? 0]);
   
   const [auxGenerationType, setAuxGenerationType] = useState(auxTypeSpecs[0].name);
 
@@ -222,9 +247,35 @@ export function Profile({
     const typeSpec = auxTypeSpecs.find(typeSpec => typeSpec.name === auxGenerationType);
     if (typeSpec) {
       console.log('generate 1', structuredClone(user));
-      const newUser = await typeSpec.generate(user);
-      setUser(newUser);
+      const newImages = await typeSpec.generate(user);
+
+      let newPlayerSpec: any;
+      setUser((user: any) => {
+        newPlayerSpec = {
+          ...user.playerSpec,
+          images: [
+            ...(user.playerSpec.images ?? []),
+            ...newImages,
+          ],
+        };
+        return {
+          ...user,
+          playerSpec: newPlayerSpec,
+        };
+      });
+
+      // save the image to the account
+      const result = await supabase
+        .from('accounts')
+        .update({
+          playerSpec: newPlayerSpec,
+        })
+        .eq('id', user.id);
       console.log('generate 2', structuredClone(user));
+      const { error } = result;
+      if (error) {
+        console.error('Error updating user', error);
+      }
     } else {
       throw new Error('Invalid type');
     }
@@ -455,17 +506,28 @@ export function Profile({
             {/* <p className="pb-4 sm:pb-0">64 characters maximum</p> */}
             <div className="flex flex-col items-start justify-start">
               {auxTypeSpecs.map(typeSpec => {
-                const src = typeSpec.getImageSrc(user);
+                let src = typeSpec.getImageSrc(user);
+                if (typeof src === 'string') {
+                  src = [src];
+                }
+
                 return (
                   <p key={typeSpec.name} className="p-2 m-2 rounded bg-zinc-800">
                     {typeSpec.name}
                     {!!src ? ' ✓' : ' ✗'}
-                    {!!src && (
-                      <img
-                        className="w-20 h-20"
-                        src={src}
-                      />
-                    )}
+                    {(() => {
+                      if (src) {
+                        return src.map((u, i) => (
+                          <img
+                            key={i}
+                            className="w-20 h-20"
+                            src={u}
+                          />
+                        ));
+                      } else {
+                        return null;
+                      }
+                    })()}
                   </p>
                 );
               })}
