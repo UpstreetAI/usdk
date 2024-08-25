@@ -526,23 +526,30 @@ export function Profile({
                 }
 
                 return (
-                  <p key={typeSpec.name} className="p-2 m-2 rounded bg-zinc-800">
+                  <div key={typeSpec.name} className="p-2 m-2 rounded bg-zinc-800">
                     {typeSpec.name}
                     {!!src ? ' ✓' : ' ✗'}
-                    {(() => {
-                      if (src) {
-                        return src.map((u, i) => (
-                          <img
-                            key={i}
-                            className="w-20 h-20"
-                            src={u}
-                          />
-                        ));
-                      } else {
-                        return null;
-                      }
-                    })()}
-                  </p>
+                    <div className="flex items-center">
+                      {(() => {
+                        if (src) {
+                          return src.map((u, i) => (
+                            <a
+                              key={i}
+                              href={u}
+                              target="_blank"
+                            >
+                              <img
+                                className="w-20 h-20 m-2 object-cover object-[50%_0%]"
+                                src={u}
+                              />
+                            </a>
+                          ));
+                        } else {
+                          return null;
+                        }
+                      })()}
+                    </div>
+                  </div>
                 );
               })}
             </div>
