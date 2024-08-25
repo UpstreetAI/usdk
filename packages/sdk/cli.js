@@ -100,9 +100,11 @@ import {
 import {
   ImageRenderer,
   TerminalVideoRenderer,
-  WebPEncoder,
   describe,
 } from './sdk/src/devices/video-input.mjs';
+import {
+  WebPEncoder,
+} from './sdk/src/devices/codecs.mjs';
 
 const execFile = util.promisify(child_process.execFile);
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
