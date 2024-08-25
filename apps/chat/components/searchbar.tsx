@@ -4,7 +4,7 @@ import * as React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { cn, resolveRelativeUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { useActions } from '@/components/ui/actions'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { createClient } from '@/utils/supabase/client';
@@ -147,7 +147,7 @@ export function SearchBar({ disabled = false }) {
                     <AgentLink name={agent.name} id={agent.id}>
                       <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                         {agent.preview_url && isValidUrl(agent.preview_url) ? (
-                          <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="w-full" width={48} height={48} />
+                          <Image src={agent.preview_url} alt="" className="w-full" width={48} height={48} />
                         ) : (
                           <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
                         )}
