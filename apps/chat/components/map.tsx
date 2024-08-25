@@ -57,7 +57,7 @@ import { useTextureLoaderUrl } from '@/utils/texture-utils';
 
 //
 
-const mapDefaultPrompt = `isekai style anime adventure`;
+const mapDefaultPrompt = `epic anime adventure`;
 const mapStyle = `anime style map segment, top down overhead view`;
 
 //
