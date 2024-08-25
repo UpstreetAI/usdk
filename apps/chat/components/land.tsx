@@ -67,6 +67,7 @@ import {
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
+import { useTextureLoaderBlob } from '@/utils/texture-utils';
 import { fetchImageGeneration, generateCharacterImage, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
 
 const geometryResolution = 256;
@@ -1045,11 +1046,13 @@ const LandTopForm = ({
   loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
+  edit,
 }: {
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
+  edit: boolean,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   // const layerSpec = layerSpecs[layerSpecIndex];
@@ -1097,7 +1100,7 @@ const LandTopForm = ({
           disabled={!(layerSpecIndex > 0)}
         >Back</Button>
       </div>
-      <div className="absolute bottom-0 right-0 flex">
+      {edit && <div className="absolute bottom-0 right-0 flex">
         {!isValid ?
           <Button
             onClick={generate}
@@ -1120,7 +1123,7 @@ const LandTopForm = ({
           className="pointer-events-auto"
           disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1) || !!loadState}
         >Next</Button>
-      </div>
+      </div>}
     </form>
   )
 };
@@ -1299,52 +1302,13 @@ const LandCanvas2D = (props: LandCanvasProps) => {
     </Canvas>
   );
 };
-const useTextureLoader = (blob: Blob | null, { textureLoader }: { textureLoader: TextureLoader }) => {
-  const blobRef = useRef<Blob | null>(null);
-  const textureRef = useRef<Texture | null>(null);
-  const srcRef = useRef<string | null>(null);
-  const [textureEpoch, setTextureEpoch] = useState(0);
-
-  const gc = () => {
-    if (textureRef.current) {
-      textureRef.current.dispose();
-      textureRef.current = null;
-    }
-    if (srcRef.current) {
-      URL.revokeObjectURL(srcRef.current);
-      srcRef.current = null;
-    }
-  };
-  useEffect(() => {
-    return gc;
-  }, []);
-
-  if (blob !== blobRef.current) {
-    gc();
-    blobRef.current = blob;
-  }
-
-  if (!!blob && textureRef.current === null) {
-    const src = URL.createObjectURL(blob);
-    textureLoader.load(src, (texture) => {
-      if (blobRef.current === blob) {
-        // console.log('got source data', [texture, texture?.source, texture?.source?.data]);
-        textureRef.current = texture;
-        setTextureEpoch(textureEpoch => textureEpoch + 1);
-      }
-    });
-    srcRef.current = src;
-  }
-  // console.log('returning texture', textureRef.current);
-  return textureRef.current;
-};
 const LandCanvas2DScene = ({
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
   textureLoader,
 }: LandCanvasProps) => {
-  const texture = useTextureLoader(landSpec.image ?? null, {
+  const texture = useTextureLoaderBlob(landSpec.image ?? null, {
     textureLoader,
   });
 
@@ -1398,7 +1362,7 @@ const LandCanvas3DScene = ({
   eventTarget,
   textureLoader,
 }: LandCanvasProps) => {
-  const texture = useTextureLoader(landSpec.image ?? null, {
+  const texture = useTextureLoaderBlob(landSpec.image ?? null, {
     textureLoader,
   });
 
@@ -2441,12 +2405,14 @@ const LandLayer = ({
   landSpec: [landSpec, setLandSpec],
   eventTarget,
   textureLoader,
+  edit,
 }: {
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
   textureLoader: TextureLoader,
+  edit: boolean,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   const layerSpec = layerSpecs[layerSpecIndex];
@@ -2483,13 +2449,15 @@ const LandLayer = ({
   );
 }
 
-export function Land({
+const LandComponent = ({
   id,
-  edit = false,
+  user,
+  edit,
 }: {
   id: string,
-  edit?: boolean,
-}) {
+  user: any,
+  edit: boolean,
+}) => {
   const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
   const [loadState, setLoadState] = useState<string | null>(null);
   const [landSpec, setLandSpec] = useState<LandSpec>(makeEmptyLandSpec);
@@ -2697,6 +2665,7 @@ export function Land({
         loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
+        edit={edit}
       />
       <LandLayer
         layerName={[layerName, setLayerName]}
@@ -2704,7 +2673,28 @@ export function Land({
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
         textureLoader={textureLoader}
+        edit={edit}
       />
     </div>
+  );
+};
+
+export function Land({
+  id,
+  user,
+}: {
+  id: string,
+  user: any,
+}) {
+  const loadUrl = new URL(location.href);
+  const query = loadUrl.searchParams;
+  const edit = query.get('edit') !== null;
+
+  return (
+    <LandComponent
+      id={id}
+      user={user}
+      edit={edit}
+    />
   );
 }
