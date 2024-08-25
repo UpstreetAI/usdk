@@ -33,6 +33,7 @@ const getUserImageSrc = (type: string) => (user: any) : (string | string[] | nul
 const auxTypeSpecs = [
   {
     name: 'alpha',
+    type: 'image/alpha',
     getImageSrc: getUserImageSrc('image/alpha'),
     generate: async (user: any) => {
       const res = await fetch(user.preview_url);
@@ -77,6 +78,7 @@ const auxTypeSpecs = [
   },
   {
     name: 'emotions',
+    type: 'image/emotions',
     getImageSrc: getUserImageSrc('image/emotions'),
     generate: async (user: any) => {
       const res = await fetch(user.preview_url);
@@ -130,6 +132,7 @@ const auxTypeSpecs = [
   },
   {
     name: '360',
+    type: 'image/360',
     getImageSrc: getUserImageSrc('image/360'),
     generate: async (user: any) => {
       const res = await fetch(user.preview_url);
@@ -192,7 +195,8 @@ const auxTypeSpecs = [
   },
   {
     name: '3d',
-    getImageSrc: getUserImageSrc('image/3d'),
+    type: 'model/3d',
+    getImageSrc: getUserImageSrc('model/3d'),
     generate: async (user: any) => {
       const res = await fetch(user.preview_url);
       const blob = await res.blob();
@@ -203,10 +207,22 @@ const auxTypeSpecs = [
       });
       console.log('got model blob', modelBlob);
 
+      // upload the model to r2
+      const guid = crypto.randomUUID();
+      const res2 = await fetch(`${r2EndpointUrl}/${guid}/avatar-3d.glb`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/octet-stream',
+        },
+        body: modelBlob,
+      });
+      const modelUrl = await res2.json();
+
       return [
         {
-          type: 'image/3d',
-          url: 'https://example.com/3d-model',
+          type: 'model/3d',
+          url: modelUrl,
         },
       ];
     },
@@ -246,18 +262,17 @@ export function Profile({
   const generate = async () => {
     const typeSpec = auxTypeSpecs.find(typeSpec => typeSpec.name === auxGenerationType);
     if (typeSpec) {
-      console.log('generate 1', structuredClone(user));
       const newImages = await typeSpec.generate(user);
 
-      let newPlayerSpec: any;
+      let newPlayerSpec = {
+        ...user.playerSpec,
+        images: [
+          ...(user.playerSpec.images ?? []).filter((imageSpec: any) => imageSpec.type !== typeSpec.type),
+          ...newImages,
+        ],
+      };
       setUser((user: any) => {
-        newPlayerSpec = {
-          ...user.playerSpec,
-          images: [
-            ...(user.playerSpec.images ?? []),
-            ...newImages,
-          ],
-        };
+        console.log('setting user', user);
         return {
           ...user,
           playerSpec: newPlayerSpec,
@@ -271,7 +286,6 @@ export function Profile({
           playerSpec: newPlayerSpec,
         })
         .eq('id', user.id);
-      console.log('generate 2', structuredClone(user));
       const { error } = result;
       if (error) {
         console.error('Error updating user', error);
