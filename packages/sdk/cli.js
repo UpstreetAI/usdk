@@ -2509,45 +2509,38 @@ export const create = async (args, opts) => {
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
 
-    const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
-      signal,
+    const agentInterview = async ({
+      agentJson,
+      getInput,
+      onChange,
+      onPreview,
     }) => {
-      // console.log('generate avatar 1', { visualDescription });
-      const {
-        blob,
-      } = await generateCharacterImage(visualDescription, undefined, {
-        jwt,
-      });
-      // console.log('generate avatar 2');
-      return blob;
-    });
-    visualDescriptionValueUpdater.addEventListener('change', async (e) => {
-      const {
-        result: blob,
+      // agentJson: object,
+      // input: (question: string) => Promise<string>, // respond to the query
+      // onChange: (key: string, value: any, object: object) => Promise<void>, // update the object
+      // onPreview: (key: string, value: any) => Promise<string>, // preview result
+
+      // character image generator
+      const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
         signal,
-      } = e.data;
+      }) => {
+        const {
+          blob,
+        } = await generateCharacterImage(visualDescription, undefined, {
+          jwt,
+        });
+        return blob;
+      });
+      visualDescriptionValueUpdater.addEventListener('change', async (e) => {
+        onPreview(e.data);
+      });
 
-      const ab = await blob.arrayBuffer();
-      if (signal.aborted) return;
-
-      const b = Buffer.from(ab);
-      const jimp = await Jimp.read(b);
-      if (signal.aborted) return;
-
-      const imageRenderer = new ImageRenderer();
-      const {
-        text: imageText,
-      } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-      console.log('Avatar updated:');
-      console.log(imageText);
-    });
-
-    // run the interview
-    const interview = async (agentJson) => {
+      // initialize
       if (agentJson.previewUrl) {
         visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
       }
 
+      // interaction loop
       const interactor = new Interactor({
         prompt: dedent`\
           Generate and configure an AI agent character.
@@ -2555,9 +2548,9 @@ export const create = async (args, opts) => {
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
         ` + '\n' +
           dedent`\
-            The available capabilities are:
+            The available features are:
           ` + '\n' +
-          capabilitySpecs.map(({ name, description }) => {
+          featureSpecs.map(({ name, description }) => {
             return `'${name}': ${description}`;
           }).join('\n') + '\n' +
           (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
@@ -2566,7 +2559,7 @@ export const create = async (args, opts) => {
           name: z.string().optional(),
           bio: z.string().optional(),
           visualDescription: z.string().optional(),
-          capabilities: z.array(z.enum(capabilityNames)),
+          features: z.array(z.enum(featureNames)),
         }),
         jwt,
       });
@@ -2580,15 +2573,26 @@ export const create = async (args, opts) => {
           object,
         } = o;
 
+        // external handling
+        agentJson = makeAgentJson(object, guid);
+        if (updateObject) {
+          onChange({
+            updateObject,
+            agentJson,
+          });
+        }
+
+        // internal handling
         if (updateObject?.visualDescription) {
           visualDescriptionValueUpdater.set(updateObject.visualDescription);
         }
 
+        // pump i/o
         if (!done) {
           let answer;
-          while (!(answer = await input({
-            message: response,
-          }))) {}
+          while (!(answer = await getInput(response))) {
+            // continue
+          }
           interactor.write(answer);
         } else {
           agentJson = makeAgentJson(object, guid);
@@ -2626,14 +2630,7 @@ export const create = async (args, opts) => {
               throw new Error('invalid result type: ' + typeof result);
             }
           })();
-          const {
-            capabilities,
-          } = object;
-          const interviewResult = {
-            agentJson,
-            capabilities,
-          };
-          interviewPromise.resolve(interviewResult);
+          interviewPromise.resolve(agentJson);
         }
       });
       if (!prompt) {
@@ -2663,6 +2660,45 @@ export const create = async (args, opts) => {
       const interviewResult = await interviewPromise;
       return interviewResult;
     };
+
+    // run the interview
+    const interview = async (agentJson) => {
+      return await agentInterview({
+        agentJson,
+        getInput: async (question) => {
+          const answer = await input({
+            message: question,
+          });
+          return answer;
+        },
+        onChange: ({
+          updateObject,
+          agentJson,
+        }) => {
+          console.log('got update object', updateObject);
+        },
+        onPreview: async (data) => {
+          const {
+            result: blob,
+            signal,
+          } = data;
+  
+          const ab = await blob.arrayBuffer();
+          if (signal.aborted) return;
+  
+          const b = Buffer.from(ab);
+          const jimp = await Jimp.read(b);
+          if (signal.aborted) return;
+  
+          const imageRenderer = new ImageRenderer();
+          const {
+            text: imageText,
+          } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+          console.log('Avatar updated:');
+          console.log(imageText);
+        },
+      });
+    };
     const generateAgentMetadata = async () => {
       const agentJson = makeAgentJson(agentJsonString ? JSON.parse(agentJsonString) : {});
       const {
@@ -2674,23 +2710,19 @@ export const create = async (args, opts) => {
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
       if (isComplete || agentJsonString || source || yes) {
-        return {
-          agentJson,
-        };
+        return agentJson;
       } else {
-        const interviewResult = await interview({
+        return await interview({
           name,
           bio,
           visualDescription,
           previewUrl,
         });
-        return interviewResult;
       }
     };
 
-    const interviewResult = await generateAgentMetadata();
-    agentJson = interviewResult.agentJson;
-    capabilities = interviewResult.capabilities;
+    // note: this is an assignment
+    agentJson = await generateAgentMetadata();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
