@@ -1069,7 +1069,7 @@ const LandTopForm = ({
 
   //
 
-  return (
+  return edit && (
     <form className="absolute top-0 bottom-0 left-0 right-0 z-10 pointer-events-none" onSubmit={e => {
       e.preventDefault();
       e.stopPropagation();
@@ -1100,7 +1100,7 @@ const LandTopForm = ({
           disabled={!(layerSpecIndex > 0)}
         >Back</Button>
       </div>
-      {edit && <div className="absolute bottom-0 right-0 flex">
+      <div className="absolute bottom-0 right-0 flex">
         {!isValid ?
           <Button
             onClick={generate}
@@ -1123,7 +1123,7 @@ const LandTopForm = ({
           className="pointer-events-auto"
           disabled={!(isValid && layerSpecIndex < layerSpecs.length - 1) || !!loadState}
         >Next</Button>
-      </div>}
+      </div>
     </form>
   )
 };
