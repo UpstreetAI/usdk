@@ -2823,6 +2823,76 @@ const dev = async (args) => {
     .filter(Boolean);
   await Promise.all(devServerPromises);
 };
+const avatar = async (args) => {
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    const avatarUrl = `https://r2.upstreet.ai/assets/794d7d16-0de5-4681-9554-11139e060c56.jpg`;
+    const res = await fetch(avatarUrl);
+    if (res.ok) {
+      // const u = `https://mhx0gu6wtcq5nh-8888.proxy.runpod.net`;
+      const u = `https://${aiProxyHost}/api/ai-aux/sv3d`;
+      const blob = await res.blob();
+      console.log('read avatar', u);
+      
+      const fd = new FormData();
+      fd.append('image', blob, 'avatar.jpg');
+
+      const res2 = await fetch(u, {
+        method: 'POST',
+        // headers: {
+        //   'Content-Type': 'application/json',
+        // },
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        },
+        body: fd,
+      });
+      if (res2.ok) {
+        const imagesBase64 = await res2.json();
+        const images = await Promise.all(imagesBase64.map(async (imageBase64, index) => {
+          const res = await fetch(imageBase64);
+          if (res.ok) {
+            const blob = await res.blob();
+            console.log(`/tmp/avatar-${index}.png`);
+            const ab = await blob.arrayBuffer();
+            const b = Buffer.from(ab);
+            fs.writeFileSync(`/tmp/avatar-${index}.png`, b);
+            return blob;
+          } else {
+            console.warn('invalid status', res.status);
+            throw new Error('invalid status: ' + res.status);
+          }
+        }));
+        console.log('got images', images);
+
+        // XXX debugging
+        // fs.writeFileSync(`/tmp/avatar.json`, images);
+
+        // for (let i = 0; i < img.frames.length; i++) {
+        //   console.log(`got frame ${i}`, {
+        //     x: img.frames[i].x,
+        //     y: img.frames[i].y,
+        //     width: img.frames[i].width,
+        //     height: img.frames[i].height,
+        //     rawLength: img.frames[i].raw.length,
+        //     vp8Width: img.frames[i].vp8?.width ?? null,
+        //     vp8Height: img.frames[i].vp8?.height ?? null,
+        //     vp8Length: img.frames[i].vp8?.raw.length ?? null,
+        //     alphLength: img.frames[i].alph?.raw.length ?? null,
+        //   });
+        // }
+      } else {
+        const text = await res2.text();
+        console.warn('invalid status', res2.status, text);
+      }
+    } else {
+      const text = await res.text();
+      console.warn('invalid status', res.status, text);
+    }
+  } else {
+    console.warn('not logged in');
+  }
+};
 const search = async (args) => {
   const prompt = args._[0] ?? '';
 
@@ -4048,6 +4118,24 @@ const main = async () => {
         await dev(args);
       });
     });
+
+    program
+      .command('avatar')
+      .description(
+        `Update an agent's avatar`,
+      )
+      .argument(`[guids...]`, `Guids of the agents to connect to`)
+      // .option(`-g, --debug`, `Enable debug logging`)
+      .action(async (guids = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [guids],
+            ...opts,
+          };
+          await avatar(args);
+        });
+      });
 
     program
     .command('chat')
