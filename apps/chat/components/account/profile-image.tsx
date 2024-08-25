@@ -27,7 +27,7 @@ export function ProfileImage({user, setUser, userIsCurrentUser, className}: Prof
         src={isValidUrl(user.preview_url) ? user.preview_url : '/images/user-small.png'}
         height={100}
         width={100}
-        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48"
+        className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48 object-cover object-[50%_0%]"
       />
       {userIsCurrentUser ? (
         <Button
