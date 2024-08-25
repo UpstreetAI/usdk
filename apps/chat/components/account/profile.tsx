@@ -30,13 +30,17 @@ import {
 const getUserImageSrc = (type: string) => (user: any) : (string | string[] | null) => {
   return user.playerSpec.images?.find((imageSpec: any) => imageSpec.type === type)?.url ?? null;
 };
+type GenerationSpec = {
+  imageUrl: string,
+  visualDescription: string,
+};
 const auxTypeSpecs = [
   {
     name: 'alpha',
     type: 'image/alpha',
     getImageSrc: getUserImageSrc('image/alpha'),
-    generate: async (user: any) => {
-      const res = await fetch(user.preview_url);
+    generate: async (generationSpec: GenerationSpec) => {
+      const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
 
       const jwt = await getJWT();
@@ -44,7 +48,7 @@ const auxTypeSpecs = [
         jwt,
       });
 
-      // XXX debug
+      /* // XXX debug
       {
         const img = await blob2img(blob2);
         img.style.cssText = `\
@@ -55,7 +59,7 @@ const auxTypeSpecs = [
           z-index: 9999;
         `;
         document.body.appendChild(img);
-      }
+      } */
 
       const guid = crypto.randomUUID();
       const res2 = await fetch(`${r2EndpointUrl}/${guid}/avatar.webp`, {
@@ -80,18 +84,18 @@ const auxTypeSpecs = [
     name: 'emotions',
     type: 'image/emotions',
     getImageSrc: getUserImageSrc('image/emotions'),
-    generate: async (user: any) => {
-      const res = await fetch(user.preview_url);
+    generate: async (generationSpec: GenerationSpec) => {
+      const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
 
-      const visualDescription = user.playerSpec.visualDescription;
+      const visualDescription = generationSpec.visualDescription;
 
       const jwt = await getJWT();
       const imageBlobs = await generateEmotionImages(blob, visualDescription, undefined, {
         jwt,
       });
 
-      // XXX debug
+      /* // XXX debug
       {
         for (let i = 0; i < imageBlobs.length; i++) {
           const img = await blob2img(imageBlobs[i]);
@@ -104,7 +108,7 @@ const auxTypeSpecs = [
           `;
           document.body.appendChild(img);
         }
-      }
+      } */
 
       // upload the images to r2
       const guid = crypto.randomUUID();
@@ -134,8 +138,8 @@ const auxTypeSpecs = [
     name: '360',
     type: 'image/360',
     getImageSrc: getUserImageSrc('image/360'),
-    generate: async (user: any) => {
-      const res = await fetch(user.preview_url);
+    generate: async (generationSpec: GenerationSpec) => {
+      const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
 
       const jwt = await getJWT();
@@ -153,7 +157,7 @@ const auxTypeSpecs = [
         frameBlobs[2]   // 5 - 3 (Close to the loop point)
       ];
 
-      // XXX debug
+      /* // XXX debug
       {
         for (let i = 0; i < imageBlobs2.length; i++) {
           const imageBlob = imageBlobs2[i];
@@ -167,7 +171,7 @@ const auxTypeSpecs = [
           `;
           document.body.appendChild(img);
         }
-      }
+      } */
 
       // upload the images to r2
       const guid = crypto.randomUUID();
@@ -197,8 +201,8 @@ const auxTypeSpecs = [
     name: '3d',
     type: 'model/3d',
     getImageSrc: getUserImageSrc('model/3d'),
-    generate: async (user: any) => {
-      const res = await fetch(user.preview_url);
+    generate: async (generationSpec: GenerationSpec) => {
+      const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
 
       const jwt = await getJWT();
@@ -262,7 +266,11 @@ export function Profile({
   const generate = async () => {
     const typeSpec = auxTypeSpecs.find(typeSpec => typeSpec.name === auxGenerationType);
     if (typeSpec) {
-      const newImages = await typeSpec.generate(user);
+      const generationSpec = {
+        imageUrl: user.preview_url,
+        visualDescription,
+      };
+      const newImages = await typeSpec.generate(generationSpec);
 
       let newPlayerSpec = {
         ...user.playerSpec,
