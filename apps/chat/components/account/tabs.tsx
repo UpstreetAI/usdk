@@ -10,11 +10,11 @@ import useHash from '@/lib/hooks/use-hash';
 
 
 export interface TabsProps {
-  user: unknown;
+  user: any;
   agents: object[];
   creditsUsageHistory: object[] | null;
   userIsCurrentUser: boolean;
-  userPrivate: unknown;
+  userPrivate: any;
 }
 
 export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
