@@ -2335,7 +2335,7 @@ const LandCanvas3DScene = ({
         <directionalLight position={[1, 1, 1]} />
         {/* orbit controls */}
         {mouseControlsEnabled && <OrbitControls
-          target={[0, 0, -1]}
+          target={[0, 0, -2]}
         />}
         {/* drag mesh */}
         {dragGeometry && <mesh
