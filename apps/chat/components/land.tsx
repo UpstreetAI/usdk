@@ -67,8 +67,8 @@ import {
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
-import { useTextureLoaderBlob } from '@/utils/texture-utils';
-import { fetchImageGeneration, generateCharacterImage, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
+import { useTextureLoaderBlob, useTextureLoaderUrl } from '@/utils/texture-utils';
+import { fetchImageGeneration, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -1241,6 +1241,7 @@ type LandCanvasProps = {
   textureLoader: TextureLoader,
 };
 const LandCanvas1D = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
@@ -1303,6 +1304,7 @@ const LandCanvas2D = (props: LandCanvasProps) => {
   );
 };
 const LandCanvas2DScene = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
@@ -1357,6 +1359,7 @@ const LandCanvas3D = (props: LandCanvasProps) => {
   );
 };
 const LandCanvas3DScene = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
@@ -1386,7 +1389,14 @@ const LandCanvas3DScene = ({
   const [cameraPosition, setCameraPosition] = useState(new Vector3(0, 0, 1));
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
-  const [characterTexture, setCharacterTexture] = useState<Texture | null>(null);
+  const characterImageUrl = useMemo(() => {
+    return (user.playerSpec.images ?? [])
+      .find(image => image.type === 'image/alpha')?.url ?? null;
+  }, [user]);
+  console.log('got character image url', characterImageUrl);
+  const characterTexture = useTextureLoaderUrl(characterImageUrl, {
+    textureLoader,
+  });
   const [objectSpec, setObjectSpec] = useState<ObjectSpec | null>(null);
   const [modelBlobUrl, setModelBlobUrl] = useState<string | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
@@ -2002,7 +2012,7 @@ const LandCanvas3DScene = ({
       setSegmentTexture(st);
     };
     eventTarget.addEventListener('segment', onsegment);
-    const onGenerateCharacter = async (e: any) => {
+    /* const onGenerateCharacter = async (e: any) => {
       const {
         prompt,
       } = e.data;
@@ -2018,24 +2028,12 @@ const LandCanvas3DScene = ({
       });
       const image = await blob2img(cleanBlob);
 
-      // {
-      //   const img = await blob2img(blob);
-      //   img.style.cssText = `\
-      //     position: absolute;
-      //     right: 0;
-      //     bottom: 0;
-      //     width: 250px;
-      //     z-index: 100;
-      //   `;
-      //   document.body.appendChild(img);
-      // }
-
       const characterTexture = new Texture(image);
       characterTexture.needsUpdate = true;
       // characterTexture.flipY = true;
       setCharacterTexture(characterTexture);
     };
-    eventTarget.addEventListener('generateCharacter', onGenerateCharacter);
+    eventTarget.addEventListener('generateCharacter', onGenerateCharacter); */
     const onGenerateObject = async (e: any) => {
       const {
         prompt,
@@ -2124,7 +2122,7 @@ const LandCanvas3DScene = ({
       eventTarget.removeEventListener('inpaint', oninpaint);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
-      eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
+      // eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
       eventTarget.removeEventListener('generateObject', onGenerateObject);
       eventTarget.removeEventListener('generateSound', onGenerateSound);
     };
@@ -2400,19 +2398,21 @@ const keyboardMap = [
   { name: "run", keys: ["Shift"] },
 ];
 const LandLayer = ({
+  user,
+  edit,
   layerName: [layerName, setLayerName],
   loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
   textureLoader,
-  edit,
 }: {
+  user: any,
+  edit: boolean,
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
   textureLoader: TextureLoader,
-  edit: boolean,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   const layerSpec = layerSpecs[layerSpecIndex];
@@ -2441,6 +2441,7 @@ const LandLayer = ({
   }
   return (
     <LayerComponent
+      user={user}
       landSpec={[landSpec, setLandSpec]}
       loadState={[loadState, setLoadState]}
       eventTarget={eventTarget}
@@ -2668,12 +2669,13 @@ const LandComponent = ({
         edit={edit}
       />
       <LandLayer
+        user={user}
+        edit={edit}
         layerName={[layerName, setLayerName]}
         loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
         textureLoader={textureLoader}
-        edit={edit}
       />
     </div>
   );
