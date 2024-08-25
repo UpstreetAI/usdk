@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react'
+import { z } from 'zod';
+import dedent from 'dedent';
 import { useSupabase } from '@/lib/hooks/use-supabase'
 import { ProfileImage } from '@/components/account/profile-image'
 import { Button } from '@/components/ui/button';
@@ -17,36 +19,18 @@ import {
 import {
   removeBackground,
 } from 'usdk/sdk/src/util/vision.mjs';
+import {
+  fetchJsonCompletion,
+} from 'usdk/sdk/src/util/fetch.mjs';
+import { generationModel } from 'usdk/const.js';
+import {
+  r2EndpointUrl,
+} from 'usdk/sdk/src/util/endpoints.mjs';
 
 const getUserImageSrc = (type: string) => (user: any) => {
   return user.images?.find((imageSpec: any) => imageSpec.type === type) ?? null;
 };
 const auxTypeSpecs = [
-  {
-    name: 'pfp',
-    getImageSrc: (user: any) => user.preview_url,
-    generate: async (user: any) => {
-      const jwt = await getJWT();
-      const {
-        fullPrompt,
-        blob,
-      } = await generateCharacterImage(user.visualDescription, undefined, {
-        jwt,
-      });
-      
-      const img = await blob2img(blob);
-      img.style.cssText = `
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 300px;
-        z-index: 9999;
-      `;
-      document.body.appendChild(img);
-
-      return user;
-    },
-  },
   {
     name: 'alpha',
     getImageSrc: getUserImageSrc('image/alpha'),
@@ -264,6 +248,139 @@ export function Profile({
     }
   };
 
+  const ensureAutofill = async () => {
+    const oldObject = {} as any;
+    const typeObject = {} as any;
+    if (name) {
+      oldObject.name = name;
+    } else {
+      typeObject.name = z.string();
+    }
+    if (bio) {
+      oldObject.bio = bio;
+    } else {
+      typeObject.bio = z.string();
+    }
+    if (visualDescription) {
+      oldObject.visualDescription = visualDescription;
+    } else {
+      typeObject.visualDescription = z.string();
+    }
+
+    if (Object.keys(typeObject).length > 0) {
+      const messages = [
+        {
+          role: 'system',
+          content: dedent`\
+            Generate a JSON based character profile on behalf of the user by filling in the missing fields.
+            The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
+            e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
+          `,
+        },
+        {
+          role: 'user',
+          content: dedent`\
+            The current state of the user profile is:
+            \`\`\`
+          ` + '\n' +
+            JSON.stringify(oldObject, null, 2) + '\n' +
+            dedent`
+              \`\`\`
+            `,
+        }
+      ];
+      const format = z.object(typeObject);
+
+      const updateObject = await fetchJsonCompletion({
+        // model: 'profile',
+        model: generationModel,
+        messages,
+        // stream: false,
+        // signal: undefined,
+      }, format, {
+        jwt: await getJWT(),
+      });
+      if ('name' in updateObject) {
+        setUser((user: any) => ({
+          ...user,
+          name: updateObject.name,
+        }));
+        setName(updateObject.name);
+      }
+      if ('bio' in updateObject) {
+        setUser((user: any) => ({
+          ...user,
+          playerSpec: {
+            ...user.playerSpec,
+            bio: updateObject.bio,
+          },
+        }));
+        setBio(updateObject.bio);
+      }
+      if ('visualDescription' in updateObject) {
+        setUser((user: any) => ({
+          ...user,
+          playerSpec: {
+            ...user.playerSpec,
+            visualDescription: updateObject.visualDescription,
+          },
+        }));
+        setVisualDescription(updateObject.visualDescription);
+      }
+    }
+  };
+  const generatePfp = async () => {
+    await ensureAutofill();
+
+    const prompt = visualDescription;
+    const jwt = await getJWT();
+    const {
+      fullPrompt,
+      blob,
+    } = await generateCharacterImage(prompt, undefined, {
+      jwt,
+    });
+
+    const img = await blob2img(blob);
+    img.style.cssText = `
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 300px;
+      z-index: 9999;
+    `;
+    document.body.appendChild(img);
+
+    // upload the image to r2
+    const guid = crypto.randomUUID();
+    const res = await fetch(`${r2EndpointUrl}/${guid}/avatar.webp`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
+        'Content-Type': 'application/octet-stream',
+      },
+      body: blob,
+    });
+    const imgUrl = await res.json();
+    console.log('uploaded image', imgUrl);
+    // update the rendered user
+    setUser((user: any) => ({
+      ...user,
+      preview_url: imgUrl,
+    }));
+    // save the image to the account
+    const result = await supabase
+      .from('accounts')
+      .update({
+        preview_url: imgUrl,
+      })
+      .eq('id', user.id);
+    const { error } = result;
+    if (error) {
+      console.error('Error updating user', error);
+    }
+  };
+
   return (
     <div className="m-auto w-full max-w-4xl">
       <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
@@ -277,7 +394,21 @@ export function Profile({
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
           <div className="mt-5 mb-4 text-xl text-center font-semibold md:flex">
-            <ProfileImage user={user} setUser={setUser} userIsCurrentUser={userIsCurrentUser} />
+            <div
+              className="flex flex-col items-start"
+            >
+              <ProfileImage
+                className='mb-2'
+                user={user}
+                setUser={setUser}
+                userIsCurrentUser={userIsCurrentUser}
+              />
+              <Button
+                onClick={generatePfp}
+              >
+                Generate
+              </Button>
+            </div>
             <div className='flex flex-col w-full mt-4 md:mt-0 items-end'>
               <input
                 type="text"
@@ -302,11 +433,20 @@ export function Profile({
                 placeholder="Visual description"
                 onChange={e => setVisualDescription(e.target.value)}
               />
-              <Button
-                onClick={saveInfo}
-              >
-                Save Info
-              </Button>
+              <div className="flex flex-row items-center justify-end">
+                <Button
+                  onClick={ensureAutofill}
+                  className="mr-2"
+                >
+                  Autofill
+                </Button>
+                <Button
+                  onClick={saveInfo}
+                  // className="mr-2"
+                >
+                  Save Info
+                </Button>
+              </div>
             </div>
           </div>
         </div>
