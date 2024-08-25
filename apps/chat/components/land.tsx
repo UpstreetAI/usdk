@@ -63,7 +63,7 @@ import {
 } from '@/utils/sound';
 import {
   generateModel,
-} from '@/utils/generate-model';
+} from 'usdk/sdk/src/util/generate-model.mjs';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
