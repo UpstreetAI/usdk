@@ -6,22 +6,23 @@ import { r2EndpointUrl } from '@/utils/const/endpoints'
 import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { isValidUrl, resolveRelativeUrl } from '@/lib/utils'
+import { isValidUrl } from '@/lib/utils'
 
 
 export interface ProfileImageProps {
-  user: any
-  userIsCurrentUser: boolean
+  user: any,
+  setUser: (user: any) => void,
+  userIsCurrentUser: boolean,
 }
 
-export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
+export function ProfileImage({user, setUser, userIsCurrentUser}: ProfileImageProps) {
   const { supabase } = useSupabase();
 
   return (
     <div className="md:mr-8 relative inline-block">
       <Image
         alt=""
-        src={isValidUrl(user.preview_url) ? resolveRelativeUrl(user.preview_url) : '/images/user-small.png'}
+        src={isValidUrl(user.preview_url) ? user.preview_url : '/images/user-small.png'}
         height={100}
         width={100}
         className="border-2 rounded-xl drop-shadow-xl size-48 min-w-48"
@@ -68,7 +69,8 @@ export function ProfileImage({user, userIsCurrentUser}: ProfileImageProps) {
                   .update({preview_url: url})
                   .eq('id', user.id)
 
-                location.reload()
+                // location.reload()
+                setUser(user);
               } else {
                 console.error( 'Missing file extension.' )
               }
