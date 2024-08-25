@@ -72,6 +72,8 @@ import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
 import { useTextureLoaderBlob, useTextureLoaderImage, useTextureLoaderUrl } from '@/utils/texture-utils';
 import { fetchImageGeneration, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
 
+const mod = (a: number, b: number) => ((a % b) + b) % b;
+
 const geometryResolution = 256;
 const matplotlibColors = {
   "tab20": [
@@ -1093,13 +1095,10 @@ const Character360Mesh = forwardRef(({
       worldMatrix.compose(vector, quaternion3, vector2);
 
       // compute the rotation angle as the signed angle between the quaternion and quaternion2
-      const rotationAngleY = euler.y - euler2.y + Math.PI;
+      const rotationAngleY = mod(euler.y - euler2.y + Math.PI, Math.PI * 2);
       // compute the rotation angle index
-      let rotationAngleIndex = Math.floor((rotationAngleY / (Math.PI * 2)) * numRotationFrames + 0.5) % numRotationFrames;
-      // if (rotationAngleIndex < 0) {
-      //   rotationAngleIndex += numRotationFrames;
-      // }
-      // console.log('index', rotationAngleIndex);
+      const rotationAngleIndex = Math.floor((rotationAngleY / (Math.PI * 2)) * numRotationFrames + 0.5) % numRotationFrames;
+      // set the uniform
       rotationAngleIndexUniform.current.value = rotationAngleIndex;
     }
   });
