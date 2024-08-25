@@ -1,7 +1,6 @@
 import React from 'react';
-import {  waitForUser } from '@/utils/supabase/server'
+import { waitForUser } from '@/utils/supabase/server'
 import { Land } from '@/components/land';
-// import { useSearchParams } from 'next/navigation';
 
 export default async function LandPage(props: {
   params: {
