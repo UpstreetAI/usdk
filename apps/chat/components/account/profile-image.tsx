@@ -65,14 +65,22 @@ export function ProfileImage({user, setUser, userIsCurrentUser, className}: Prof
                   }
                 }
 
-                // Set the user's preview url to the new URL.
-                await supabase
-                  .from('accounts')
-                  .update({preview_url: url})
-                  .eq('id', user.id)
+                setUser((user: any) => ({
+                  ...user,
+                  preview_url: url,
+                }));
 
-                // location.reload()
-                setUser(user);
+                // Set the user's preview url to the new URL.
+                const result = await supabase
+                  .from('accounts')
+                  .update({
+                    preview_url: url,
+                  })
+                  .eq('id', user.id);
+                const { error } = result;
+                if (error) {
+                  console.error('Error updating user', error);
+                }
               } else {
                 console.error( 'Missing file extension.' )
               }
