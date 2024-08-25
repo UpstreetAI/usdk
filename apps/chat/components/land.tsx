@@ -1393,7 +1393,6 @@ const LandCanvas3DScene = ({
     return (user.playerSpec.images ?? [])
       .find(image => image.type === 'image/alpha')?.url ?? null;
   }, [user]);
-  console.log('got character image url', characterImageUrl);
   const characterTexture = useTextureLoaderUrl(characterImageUrl, {
     textureLoader,
   });
