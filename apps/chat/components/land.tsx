@@ -1039,15 +1039,12 @@ const Character360Mesh = forwardRef(({
 
   const vector = useMemo(() => new Vector3(), []);
   const vector2 = useMemo(() => new Vector3(), []);
-  // const vector3 = useMemo(() => new Vector3(), []);
   const quaternion = useMemo(() => new Quaternion(), []);
   const quaternion2 = useMemo(() => new Quaternion(), []);
-  const quaternion3 = useMemo(() => new Quaternion(), []);
   const euler = useMemo(() => new Euler(), []);
   const euler2 = useMemo(() => new Euler(), []);
   const euler3 = useMemo(() => new Euler(), []);
   const matrix = useMemo(() => new Matrix4(), []);
-  // const zeroVector = useMemo(() => new Vector3(), []);
   const upVector = useMemo(() => new Vector3(0, 1, 0), []);
   const worldMatrix = useMemo(() => new Matrix4(), []);
   const rotationAngleIndexUniform = useRef({
@@ -1082,17 +1079,17 @@ const Character360Mesh = forwardRef(({
       // camera euler
       euler2.setFromQuaternion(camera.quaternion, 'YXZ');
 
-      quaternion3.setFromRotationMatrix(
+      quaternion2.setFromRotationMatrix(
         matrix.lookAt(
           camera.position,
           vector,
           upVector,
         )
       );
-      euler3.setFromQuaternion(quaternion3, 'YXZ');
+      euler3.setFromQuaternion(quaternion2, 'YXZ');
       euler3.x = 0;
-      quaternion3.setFromEuler(euler3);
-      worldMatrix.compose(vector, quaternion3, vector2);
+      quaternion2.setFromEuler(euler3);
+      worldMatrix.compose(vector, quaternion2, vector2);
 
       // compute the rotation angle as the signed angle between the quaternion and quaternion2
       const rotationAngleY = mod(euler.y - euler2.y + Math.PI, Math.PI * 2);
