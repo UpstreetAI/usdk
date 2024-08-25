@@ -7,19 +7,21 @@ import React from 'react'
 import Image from 'next/image'
 import { useSupabase } from '@/lib/hooks/use-supabase'
 import { isValidUrl } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 
 
 export interface ProfileImageProps {
   user: any,
   setUser: (user: any) => void,
   userIsCurrentUser: boolean,
+  className?: string,
 }
 
-export function ProfileImage({user, setUser, userIsCurrentUser}: ProfileImageProps) {
+export function ProfileImage({user, setUser, userIsCurrentUser, className}: ProfileImageProps) {
   const { supabase } = useSupabase();
 
   return (
-    <div className="md:mr-8 relative inline-block">
+    <div className={cn("md:mr-8 relative inline-block", className)}>
       <Image
         alt=""
         src={isValidUrl(user.preview_url) ? user.preview_url : '/images/user-small.png'}
