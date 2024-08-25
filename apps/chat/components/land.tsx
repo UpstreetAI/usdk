@@ -1392,7 +1392,7 @@ const LandCanvas3DScene = ({
   const [depth, setDepth] = useState<DepthSpec | null>(null);
   const characterImageUrl = useMemo(() => {
     return (user.playerSpec.images ?? [])
-      .find(image => image.type === 'image/alpha')?.url ?? null;
+      .find((image: any) => image.type === 'image/alpha')?.url ?? null;
   }, [user]);
   const characterTexture = useTextureLoaderUrl(characterImageUrl, {
     textureLoader,
