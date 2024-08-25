@@ -2306,7 +2306,7 @@ const getCodeGenContext = async () => {
 const generateTemplateFromAgentJson = async (agentJson, {
   // template = 'empty',
   template = 'basic',
-  capabilities = [],
+  features = [],
 } = {}) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
@@ -2317,18 +2317,18 @@ const generateTemplateFromAgentJson = async (agentJson, {
 
   // update agent jsx as needed
   // console.log(pc.italic('Generating code...'));
-  if (capabilities.length > 0) {
+  if (features.length > 0) {
     const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
     let agentJSX = await fs.promises.readFile(agentJSXPath, 'utf8');
 
-    const includedCapabilitySpecs = capabilities.map(capabilityName => capabilitySpecs.find(capabilitySpec => capabilitySpec.name === capabilityName));
+    const includedFeatureSpecs = features.map(featureName => featureSpecs.find(featureSpec => featureSpec.name === featureName));
 
     const importsHookRegex = /\/\* IMPORTS REGEX HOOK \*\//g;
-    const impotsString = includedCapabilitySpecs.flatMap(capabilitySpec => capabilitySpec.imports).map(importName => `${importName},`).join(',');
+    const impotsString = includedFeatureSpecs.flatMap(featureSpec => featureSpec.imports).map(importName => `${importName},`).join(',');
     agentJSX = agentJSX.replace(importsHookRegex, impotsString);
 
     const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
-    const jsxString = includedCapabilitySpecs.map(capabilitySpec => capabilitySpec.tsx).join('\n');
+    const jsxString = includedFeatureSpecs.map(featureSpec => featureSpec.tsx).join('\n');
     agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
 
     await fs.promises.writeFile(agentJSXPath, agentJSX);
@@ -2386,6 +2386,7 @@ const makeAgentJson = (agentJsonInit, id) => {
     bio = null,
     visualDescription = null,
     previewUrl = null,
+    features = null,
   } = agentJsonInit;
   return {
     id,
@@ -2393,9 +2394,10 @@ const makeAgentJson = (agentJsonInit, id) => {
     bio,
     visualDescription,
     previewUrl,
+    features,
   };
 };
-const capabilitySpecs = [
+const featureSpecs = [
   {
     name: 'voice',
     description: 'The agent can speak.',
@@ -2407,7 +2409,7 @@ const capabilitySpecs = [
     `,
   },
 ];
-const capabilityNames = capabilitySpecs.map(capability => capability.name);
+const featureNames = featureSpecs.map(feature => feature.name);
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
@@ -2503,7 +2505,7 @@ export const create = async (args, opts) => {
   // generate the agent if necessary
   let srcTemplateDir;
   let agentJson;
-  let capabilities;
+  let features;
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
 
@@ -2694,15 +2696,15 @@ export const create = async (args, opts) => {
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Capabilities:'), capabilities.length > 0
-      ? capabilities.join(', ')
+    console.log(pc.green('Features:'), agentJson.features.length > 0
+      ? agentJson.features.join(', ')
       : '*none*'
     );
 
     console.log(pc.italic('Building agent...'));
     srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
       template,
-      capabilities,
+      features: agentJson.features,
     });
     console.log(pc.italic('Agent built.'));
   } else {
