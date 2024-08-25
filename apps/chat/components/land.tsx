@@ -41,11 +41,14 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Button } from '@/components/ui/button';
 import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
 import {
+  blob2img,
+} from '@/lib/blob';
+import {
   r2EndpointUrl,
 } from '@/utils/const/endpoints';
 import {
   defaultQuality,
-} from '@/utils/const/defaults';
+} from 'usdk/sdk/src/defaults.mjs';
 import {
   describe,
   describeJson,
@@ -54,7 +57,7 @@ import {
   segment,
   segmentAll,
   removeBackground,
-} from '@/utils/vision';
+} from 'usdk/sdk/src/util/vision.mjs';
 import {
   generateSound,
 } from '@/utils/sound';
@@ -64,7 +67,7 @@ import {
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
-import { fetchImageGeneration, generateCharacterImage, inpaintImage } from '@/utils/generate-image.mjs';
+import { fetchImageGeneration, generateCharacterImage, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -444,22 +447,6 @@ const describeImageSegment = async (image: HTMLImageElement, segmentationUint8Ar
     description,
   };
 };
-const blob2img = (blob: Blob) => new Promise<HTMLImageElement>((accept, reject) => {
-  const img = new Image();
-  img.onload = () => {
-    accept(img);
-    cleanup();
-  };
-  img.onerror = err => {
-    reject(err);
-    cleanup();
-  };
-  const src = URL.createObjectURL(blob);
-  img.src = src;
-  const cleanup = () => {
-    URL.revokeObjectURL(src);
-  };
-});
 // const sceneImageStyle = `studio ghibli magical fantasy anime screencap style background`;
 const sceneImageDefaultPrompt = `lush nature cavern, ancient technology, cyberpunk platform`;
 const characterImageDefaultPrompt = `girl wearing casual adventure clothes`;
@@ -1961,15 +1948,15 @@ const LandCanvas3DScene = ({
       const height = getHeight(image);
       const blob = await img2blob(image);
       const jwt = await getJWT();
-      const result = await detect(blob, {
+      const boxesResultJson = await detect(blob, {
         queries,
       }, {
         jwt,
       });
-      console.log('got detect', JSON.stringify(result, null, 2));
+      console.log('got detect', JSON.stringify(boxesResultJson, null, 2));
 
       // get the largest box
-      const boxes = result.map(([
+      const boxes = boxesResultJson.map(([
         x1,
         y1,
         x2,
