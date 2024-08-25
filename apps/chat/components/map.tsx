@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
-import { zodResponseFormat } from 'openai/helpers/zod';
+// import { zodResponseFormat } from 'openai/helpers/zod';
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
@@ -53,10 +53,11 @@ import { fetchJsonCompletion } from '@/utils/fetch';
 import { fetchImageGeneration } from 'usdk/sdk/src/util/generate-image.mjs';
 // import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 import { ChatMessage } from '@/utils/fetch';
+import { useTextureLoaderUrl } from '@/utils/texture-utils';
 
 //
 
-const mapDefaultPrompt = `isekai style anime adventure`;
+const mapDefaultPrompt = `epic anime adventure`;
 const mapStyle = `anime style map segment, top down overhead view`;
 
 //
@@ -938,6 +939,11 @@ const MiniPlayer = forwardRef(({
   const innerFactor = 0.9;
   const instanceCount = 5;
 
+  const textureLoader = useMemo(() => new TextureLoader(), []);
+  const pfpTexture = useTextureLoaderUrl(pfpUrl, {
+    textureLoader,
+  });
+
   const doubleSphereGeometry = useMemo(() => {
     // black color
     const sphereGeometry = new SphereGeometry(0.01, 32, 32);
@@ -1004,7 +1010,11 @@ const MiniPlayer = forwardRef(({
         </mesh>
         <mesh position={[0, 0, 0.001]}>
           <circleGeometry args={[circleSize * innerFactor * 0.5, 32]} />
-          <meshBasicMaterial color={0x111111} />
+          {pfpTexture ? [
+            <meshBasicMaterial color={0xD8D8D8} map={pfpTexture} key={0} />
+          ] : [
+            <meshBasicMaterial color={0x111111} key={1} />
+          ]}
         </mesh>
       </object3D>
       {/* instanced spheres mesh from the circles to the local origin */}
@@ -1017,6 +1027,7 @@ const MiniPlayer = forwardRef(({
 MiniPlayer.displayName = 'MiniPlayer';
 const MapScene = ({
   id,
+  user,
   edit,
   coord,
   onMove: onMoveRaw,
@@ -1026,6 +1037,7 @@ const MapScene = ({
   focused,
 }: {
   id: string,
+  user: any,
   edit: boolean,
   coord: Coord2D,
   onMove?: (position: Vector3) => any,
@@ -1493,7 +1505,7 @@ const MapScene = ({
       >
         {/* local mini player mesh */}
         <MiniPlayer
-          pfpUrl=""
+          pfpUrl={user?.preview_url ?? null}
         />
       </ControllableObject>
     </KeyboardControls>
@@ -1586,6 +1598,7 @@ const debounce = (fn: (...args: any[]) => any, delay: number) => {
 
 function MapComponent({
   id,
+  user,
   edit = false,
   coord = {
     x: 0,
@@ -1594,6 +1607,7 @@ function MapComponent({
   onMove,
 }: {
   id: string,
+  user: any,
   edit?: boolean,
   coord?: Coord2D,
   onMove?: (position: Vector3) => any,
@@ -1637,6 +1651,7 @@ function MapComponent({
           > */}
             <MapScene
               id={id}
+              user={user}
               edit={edit}
               coord={coord}
               onMove={onMove}
@@ -1651,6 +1666,35 @@ function MapComponent({
     </div>
   );
 }
+function Map_({
+  id,
+  user,
+}: {
+  id: string,
+  user: any,
+}) {
+  const loadUrl = new URL(location.href);
+  const query = loadUrl.searchParams;
+  const edit = query.get('edit') !== null;
+  const coord = getMapUrlCoord(loadUrl);
+  const onMove = (position: Vector3) => {
+    const coord = snapCoord({
+      x: position.x,
+      z: position.z,
+    });
+    setMapUrlCoord(coord);
+  };
+
+  return (
+    <MapComponent
+      id={id}
+      user={user}
+      edit={edit}
+      coord={coord}
+      onMove={onMove}
+    />
+  );
+}
 export {
-  MapComponent as Map,
+  Map_ as Map,
 };

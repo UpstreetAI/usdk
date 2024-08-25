@@ -13,6 +13,8 @@ import {
   Vector2,
   Vector3,
   Quaternion,
+  Euler,
+  Matrix4,
   Object3D,
   Scene,
   Camera,
@@ -67,7 +69,10 @@ import {
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
-import { fetchImageGeneration, generateCharacterImage, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
+import { useTextureLoaderBlob, useTextureLoaderImage, useTextureLoaderUrl } from '@/utils/texture-utils';
+import { fetchImageGeneration, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
+
+const mod = (a: number, b: number) => ((a % b) + b) % b;
 
 const geometryResolution = 256;
 const matplotlibColors = {
@@ -1023,6 +1028,139 @@ const Text3D = forwardRef(({
 });
 Text3D.displayName = 'Text3D';
 
+const Character360Mesh = forwardRef(({
+  // texture,
+  texture360,
+}: {
+  // texture: Texture,
+  texture360: Texture,
+}, ref: React.ForwardedRef<Mesh>) => {
+  const internalRef = useRef<Mesh>(null);
+
+  const vector = useMemo(() => new Vector3(), []);
+  const vector2 = useMemo(() => new Vector3(), []);
+  const quaternion = useMemo(() => new Quaternion(), []);
+  const quaternion2 = useMemo(() => new Quaternion(), []);
+  const euler = useMemo(() => new Euler(), []);
+  const euler2 = useMemo(() => new Euler(), []);
+  const euler3 = useMemo(() => new Euler(), []);
+  const matrix = useMemo(() => new Matrix4(), []);
+  const upVector = useMemo(() => new Vector3(0, 1, 0), []);
+  const worldMatrix = useMemo(() => new Matrix4(), []);
+  const rotationAngleIndexUniform = useRef({
+    value: 0,
+  });
+
+  // bind the ref
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref(internalRef.current);
+      } else {
+        ref.current = internalRef.current;
+      }
+    }
+  }, [ref, internalRef.current]);
+
+  const numRotationFrames = 8;
+  const numRotationWidth = 4;
+  const numRotationHeight = 2;
+  useFrame((state) => {
+    const {
+      camera,
+    } = state;
+    const mesh = internalRef.current;
+    if (mesh) {
+      // have the plane always face the camera in rotation y
+      mesh.matrixWorld.decompose(vector, quaternion, vector2);
+      
+      // mesh euler
+      euler.setFromQuaternion(quaternion, 'YXZ');
+      // camera euler
+      euler2.setFromQuaternion(camera.quaternion, 'YXZ');
+
+      quaternion2.setFromRotationMatrix(
+        matrix.lookAt(
+          camera.position,
+          vector,
+          upVector,
+        )
+      );
+      euler3.setFromQuaternion(quaternion2, 'YXZ');
+      euler3.x = 0;
+      quaternion2.setFromEuler(euler3);
+      worldMatrix.compose(vector, quaternion2, vector2);
+
+      // compute the rotation angle as the signed angle between the quaternion and quaternion2
+      const rotationAngleY = mod(euler.y - euler2.y + Math.PI, Math.PI * 2);
+      // compute the rotation angle index
+      const rotationAngleIndex = Math.floor((rotationAngleY / (Math.PI * 2)) * numRotationFrames + 0.5) % numRotationFrames;
+      // set the uniform
+      rotationAngleIndexUniform.current.value = rotationAngleIndex;
+    }
+  });
+
+  const uniforms = {
+    // tex: {value: texture},
+    tex360: {value: texture360},
+    rotationAngleIndex: rotationAngleIndexUniform.current,
+    numRotationWidth: {value: numRotationWidth},
+    numRotationHeight: {value: numRotationHeight},
+    worldMatrix: {value: worldMatrix},
+  };
+
+  return (
+    <mesh
+      ref={internalRef}
+    >
+      <planeGeometry args={[1, 1]} />
+      <shaderMaterial
+        uniforms={uniforms}
+        fragmentShader={`
+          // uniform sampler2D tex;
+          uniform sampler2D tex360;
+          varying vec2 vUv;
+          uniform float rotationAngleIndex;
+          uniform float numRotationWidth;
+          uniform float numRotationHeight;
+
+          void main() {
+            // vec4 color = texture2D(tex, vUv);
+            // gl_FragColor = color;
+
+            // map the uv to the indexed uv
+            vec2 uv = vUv;
+            float rotationWidth = numRotationWidth;
+            float rotationHeight = numRotationHeight;
+            float rotationX = mod(rotationAngleIndex, rotationWidth);
+            float rotationY = floor(rotationAngleIndex / rotationWidth);
+            float rotationU = (rotationX + uv.x) / rotationWidth;
+            float rotationV = (rotationY + uv.y) / rotationHeight;
+            uv = vec2(rotationU, rotationV);
+            // sample the color
+            vec4 color = texture2D(tex360, uv);
+            gl_FragColor = color;
+            if (gl_FragColor.r >= 0.8 && gl_FragColor.g >= 0.8 && gl_FragColor.b >= 0.8) {
+              discard;
+            }
+          }
+        `}
+        vertexShader={`
+          uniform mat4 worldMatrix;
+          varying vec2 vUv;
+
+          void main() {
+            gl_Position = projectionMatrix * viewMatrix * worldMatrix * vec4(position, 1.0);
+            vUv = uv;
+          }
+        `}
+        transparent
+      />
+    </mesh>
+  );
+});
+Character360Mesh.displayName = 'Character360Mesh';
+
 type DescriptionSpec = {
   boundingBox: Box2,
   safeBoundingBox: Box2,
@@ -1045,11 +1183,13 @@ const LandTopForm = ({
   loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
+  edit,
 }: {
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
   eventTarget: EventTarget,
+  edit: boolean,
 }) => {
   const layerSpecIndex = layerSpecs.findIndex(layerSpec => layerSpec.name === layerName);
   // const layerSpec = layerSpecs[layerSpecIndex];
@@ -1066,7 +1206,7 @@ const LandTopForm = ({
 
   //
 
-  return (
+  return edit && (
     <form className="absolute top-0 bottom-0 left-0 right-0 z-10 pointer-events-none" onSubmit={e => {
       e.preventDefault();
       e.stopPropagation();
@@ -1232,12 +1372,14 @@ type LandSpec3D = {
 type LandSpec = LandSpec1D & LandSpec2D & LandSpec3D;
 
 type LandCanvasProps = {
+  user: any,
   landSpec: [LandSpec, (landSpec: LandSpec) => void],
   loadState: [string | null, (loadState: string | null) => void],
   eventTarget: EventTarget,
   textureLoader: TextureLoader,
 };
 const LandCanvas1D = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
@@ -1299,52 +1441,14 @@ const LandCanvas2D = (props: LandCanvasProps) => {
     </Canvas>
   );
 };
-const useTextureLoader = (blob: Blob | null, { textureLoader }: { textureLoader: TextureLoader }) => {
-  const blobRef = useRef<Blob | null>(null);
-  const textureRef = useRef<Texture | null>(null);
-  const srcRef = useRef<string | null>(null);
-  const [textureEpoch, setTextureEpoch] = useState(0);
-
-  const gc = () => {
-    if (textureRef.current) {
-      textureRef.current.dispose();
-      textureRef.current = null;
-    }
-    if (srcRef.current) {
-      URL.revokeObjectURL(srcRef.current);
-      srcRef.current = null;
-    }
-  };
-  useEffect(() => {
-    return gc;
-  }, []);
-
-  if (blob !== blobRef.current) {
-    gc();
-    blobRef.current = blob;
-  }
-
-  if (!!blob && textureRef.current === null) {
-    const src = URL.createObjectURL(blob);
-    textureLoader.load(src, (texture) => {
-      if (blobRef.current === blob) {
-        // console.log('got source data', [texture, texture?.source, texture?.source?.data]);
-        textureRef.current = texture;
-        setTextureEpoch(textureEpoch => textureEpoch + 1);
-      }
-    });
-    srcRef.current = src;
-  }
-  // console.log('returning texture', textureRef.current);
-  return textureRef.current;
-};
 const LandCanvas2DScene = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
   textureLoader,
 }: LandCanvasProps) => {
-  const texture = useTextureLoader(landSpec.image ?? null, {
+  const texture = useTextureLoaderBlob(landSpec.image ?? null, {
     textureLoader,
   });
 
@@ -1393,12 +1497,13 @@ const LandCanvas3D = (props: LandCanvasProps) => {
   );
 };
 const LandCanvas3DScene = ({
+  user,
   landSpec: [landSpec, setLandSpec],
   loadState: [loadState, setLoadState],
   eventTarget,
   textureLoader,
 }: LandCanvasProps) => {
-  const texture = useTextureLoader(landSpec.image ?? null, {
+  const texture = useTextureLoaderBlob(landSpec.image ?? null, {
     textureLoader,
   });
 
@@ -1422,7 +1527,73 @@ const LandCanvas3DScene = ({
   const [cameraPosition, setCameraPosition] = useState(new Vector3(0, 0, 1));
   const [cameraTarget, setCameraTarget] = useState(new Vector3(0, 0, 0));
   const [depth, setDepth] = useState<DepthSpec | null>(null);
-  const [characterTexture, setCharacterTexture] = useState<Texture | null>(null);
+  const characterImageUrl = useMemo(() => {
+    return (user.playerSpec.images ?? [])
+      .find((image: any) => image.type === 'image/alpha')?.url ?? null;
+  }, [user]);
+  const characterTexture = useTextureLoaderUrl(characterImageUrl, {
+    textureLoader,
+  });
+  const character360ImageUrls: string[] = useMemo(() => {
+    return (user.playerSpec.images ?? [])
+      .find((image: any) => image.type === 'image/360')?.url ?? [];
+  }, [user]);
+  const [character360ImageCanvas, setCharacter360ImageCanvas] = useState<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    if (character360ImageUrls.length > 0) {
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      (async () => {
+        // load all of the urls into images
+        const imageBitmapPromises = character360ImageUrls.map(async (url) => {
+          const response = await fetch(url, {signal});
+          const blob = await response.blob();
+          const imageBitmap = await createImageBitmap(blob);
+          return imageBitmap;
+        });
+        const imageBitmaps = await Promise.all(imageBitmapPromises);
+        const {
+          width,
+          height,
+        } = imageBitmaps[0];
+
+        // draw the images onto a canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width * imageBitmaps.length / 2;
+        canvas.height = height * 2;
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+        // draw the images onto the canvas in two rows
+        for (let i = 0; i < imageBitmaps.length; i++) {
+          const x = i % (imageBitmaps.length / 2);
+          const y = Math.floor(i / (imageBitmaps.length / 2));
+          ctx.drawImage(imageBitmaps[i], x * width, y * height);
+        }
+        setCharacter360ImageCanvas(canvas);
+
+        /* // XXX debug
+        {
+          canvas.style.cssText = `\
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 500px;
+            z-index: 9999;
+          `;
+          document.body.appendChild(canvas);
+        } */
+      })();
+
+      return () => {
+        abortController.abort();
+      };
+    } else {
+      setCharacter360ImageCanvas(null);
+    }
+  }, [character360ImageUrls.length]);
+  const character360Texture = useTextureLoaderImage(character360ImageCanvas, {
+    textureLoader,
+  });
   const [objectSpec, setObjectSpec] = useState<ObjectSpec | null>(null);
   const [modelBlobUrl, setModelBlobUrl] = useState<string | null>(null);
   const [description, setDescription] = useState<DescriptionSpec | null>(null);
@@ -2038,7 +2209,7 @@ const LandCanvas3DScene = ({
       setSegmentTexture(st);
     };
     eventTarget.addEventListener('segment', onsegment);
-    const onGenerateCharacter = async (e: any) => {
+    /* const onGenerateCharacter = async (e: any) => {
       const {
         prompt,
       } = e.data;
@@ -2054,24 +2225,12 @@ const LandCanvas3DScene = ({
       });
       const image = await blob2img(cleanBlob);
 
-      // {
-      //   const img = await blob2img(blob);
-      //   img.style.cssText = `\
-      //     position: absolute;
-      //     right: 0;
-      //     bottom: 0;
-      //     width: 250px;
-      //     z-index: 100;
-      //   `;
-      //   document.body.appendChild(img);
-      // }
-
       const characterTexture = new Texture(image);
       characterTexture.needsUpdate = true;
       // characterTexture.flipY = true;
       setCharacterTexture(characterTexture);
     };
-    eventTarget.addEventListener('generateCharacter', onGenerateCharacter);
+    eventTarget.addEventListener('generateCharacter', onGenerateCharacter); */
     const onGenerateObject = async (e: any) => {
       const {
         prompt,
@@ -2160,7 +2319,7 @@ const LandCanvas3DScene = ({
       eventTarget.removeEventListener('inpaint', oninpaint);
       eventTarget.removeEventListener('detect', ondetect);
       eventTarget.removeEventListener('segment', onsegment);
-      eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
+      // eventTarget.removeEventListener('generateCharacter', onGenerateCharacter);
       eventTarget.removeEventListener('generateObject', onGenerateObject);
       eventTarget.removeEventListener('generateSound', onGenerateSound);
     };
@@ -2177,7 +2336,7 @@ const LandCanvas3DScene = ({
         <directionalLight position={[1, 1, 1]} />
         {/* orbit controls */}
         {mouseControlsEnabled && <OrbitControls
-          target={[0, 0, -1]}
+          target={[0, 0, -2]}
         />}
         {/* drag mesh */}
         {dragGeometry && <mesh
@@ -2202,18 +2361,22 @@ const LandCanvas3DScene = ({
             friction={0.1}
             ref={ecctrlRef}
           >
-            {!characterTexture && <mesh
+            {(!characterTexture && !character360Texture) && <mesh
               geometry={capsuleGeometry}
               ref={capsuleMeshRef}
             >
               <meshBasicMaterial color="blue" transparent opacity={0.5} />
             </mesh>}
-            {characterTexture && <mesh
+            {(characterTexture && !character360Texture) && <mesh
               scale={[getWidth(characterTexture.source.data) / getHeight(characterTexture.source.data), 1, 1]}
             >
               <planeGeometry args={[1, 1]} />
               <meshBasicMaterial map={characterTexture} side={DoubleSide} transparent />
             </mesh>}
+            {(character360Texture) && <Character360Mesh
+              // texture={characterTexture}
+              texture360={character360Texture}
+            />}
           </Ecctrl>
         </KeyboardControls>
         {objectSpec && <mesh
@@ -2436,12 +2599,16 @@ const keyboardMap = [
   { name: "run", keys: ["Shift"] },
 ];
 const LandLayer = ({
+  user,
+  edit,
   layerName: [layerName, setLayerName],
   loadState: [loadState, setLoadState],
   landSpec: [landSpec, setLandSpec],
   eventTarget,
   textureLoader,
 }: {
+  user: any,
+  edit: boolean,
   layerName: [string, (v: string) => void],
   loadState: [string | null, (v: string | null) => void],
   landSpec: [LandSpec, (v: LandSpec) => void],
@@ -2475,6 +2642,7 @@ const LandLayer = ({
   }
   return (
     <LayerComponent
+      user={user}
       landSpec={[landSpec, setLandSpec]}
       loadState={[loadState, setLoadState]}
       eventTarget={eventTarget}
@@ -2483,13 +2651,15 @@ const LandLayer = ({
   );
 }
 
-export function Land({
+const LandComponent = ({
   id,
-  edit = false,
+  user,
+  edit,
 }: {
   id: string,
-  edit?: boolean,
-}) {
+  user: any,
+  edit: boolean,
+}) => {
   const [layerName, setLayerName] = useState(() => layerSpecs[0].name);
   const [loadState, setLoadState] = useState<string | null>(null);
   const [landSpec, setLandSpec] = useState<LandSpec>(makeEmptyLandSpec);
@@ -2697,8 +2867,11 @@ export function Land({
         loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
         eventTarget={eventTarget}
+        edit={edit}
       />
       <LandLayer
+        user={user}
+        edit={edit}
         layerName={[layerName, setLayerName]}
         loadState={[loadState, setLoadState]}
         landSpec={[landSpec, setLandSpec]}
@@ -2706,5 +2879,25 @@ export function Land({
         textureLoader={textureLoader}
       />
     </div>
+  );
+};
+
+export function Land({
+  id,
+  user,
+}: {
+  id: string,
+  user: any,
+}) {
+  const loadUrl = new URL(location.href);
+  const query = loadUrl.searchParams;
+  const edit = query.get('edit') !== null;
+
+  return (
+    <LandComponent
+      id={id}
+      user={user}
+      edit={edit}
+    />
   );
 }

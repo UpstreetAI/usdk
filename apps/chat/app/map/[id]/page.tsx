@@ -1,34 +1,26 @@
-'use client';
-
+import React from 'react';
 // import { useRouter } from 'next/navigation'
 // import type { Coord2D } from '@/components/map';
 import { Map, getMapUrlCoord, setMapUrlCoord, snapCoord } from '@/components/map';
-import { Vector3 } from 'three';
+// import { Vector3 } from 'three';
+import { waitForUser } from '@/utils/supabase/server';
 
-export default function MapPage(props: {
+export default async function MapPage(props: {
   params: {
     id: string
   },
 }) {
+  const user = await waitForUser();
+  if (!user) {
+    return null;
+  }
+
   const { id } = props.params;
-  const loadUrl = new URL(location.href);
-  const query = loadUrl.searchParams;
-  const edit = query.get('edit') !== null;
-  const coord = getMapUrlCoord(loadUrl);
-  const onMove = (position: Vector3) => {
-    const coord = snapCoord({
-      x: position.x,
-      z: position.z,
-    });
-    setMapUrlCoord(coord);
-  };
 
   return (
     <Map
       id={id}
-      edit={edit}
-      coord={coord}
-      onMove={onMove}
+      user={user}
     />
   );
 };
