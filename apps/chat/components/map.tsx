@@ -43,15 +43,15 @@ import {
 // import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Button } from '@/components/ui/button';
 // import { CapsuleGeometry } from '@/utils/three/CapsuleGeometry.mjs';
-import {
-  // r2EndpointUrl,
-  aiProxyHost,
-} from '@/utils/const/endpoints';
+// import {
+//   // r2EndpointUrl,
+//   aiProxyHost,
+// } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchJsonCompletion } from '@/utils/fetch';
-import { fetchImageGeneration, inpaintImage } from '@/utils/generate-image.mjs';
-import { defaultOpenAIModel } from '@/utils/const/defaults.js';
+import { fetchImageGeneration } from 'usdk/sdk/src/util/generate-image.mjs';
+// import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 import { ChatMessage } from '@/utils/fetch';
 
 //
