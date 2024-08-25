@@ -6,7 +6,6 @@ import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
-import { resolveRelativeUrl } from '@/lib/utils';
 import Link from 'next/link';
 
 
@@ -91,7 +90,7 @@ export default function Home() {
       <div className="w-full bg-[#000000] py-20">
         <div className="md:flex p-4 mx-auto max-w-6xl h-full">
           <div className='h-full md:w-[50%] text-center'>
-            <Image src={resolveRelativeUrl('/images/nota-2.png')} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
+            <Image src={'/images/nota-2.png'} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
           </div>
           <div className='h-full md:w-[50%] my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
@@ -129,7 +128,7 @@ export default function Home() {
             </Link>
           </div>
           <div className='h-full md:w-[40%] text-center'>
-            <Image src={resolveRelativeUrl('/images/hero-react.png')} alt="Profile picture" width={400} height={400} className="s-300 h-[130%] inline-block" />
+            <Image src={'/images/hero-react.png'} alt="Profile picture" width={400} height={400} className="s-300 h-[130%] inline-block" />
           </div>
 
         </div>
