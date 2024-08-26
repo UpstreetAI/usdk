@@ -1,11 +1,8 @@
 import React from 'react';
 import { useState, useEffect, Component, Fragment, ReactNode } from 'react';
-// import dedent from 'dedent';
 import ReactReconciler from 'react-reconciler';
 import {
   ConcurrentRoot,
-  EventPriority,
-  NoEventPriority,
   DefaultEventPriority,
 } from 'react-reconciler/constants'
 import {
@@ -200,7 +197,7 @@ export class AgentRenderer {
     });
 
     // run the module to get the result
-    let currentUpdatePriority: EventPriority = NoEventPriority;
+    let currentUpdatePriority = DefaultEventPriority;
     const opts = {
       supportsMutation: true,
       isPrimaryRenderer: true,
@@ -215,7 +212,7 @@ export class AgentRenderer {
       },
       resolveUpdatePriority: () => currentUpdatePriority || DefaultEventPriority,
       getCurrentUpdatePriority: () => currentUpdatePriority,
-      setCurrentUpdatePriority: (newPriority: EventPriority) => {
+      setCurrentUpdatePriority: (newPriority: number) => {
         currentUpdatePriority = newPriority;
       },
       maySuspendCommit: (type: string, props: object) => {
