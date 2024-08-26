@@ -205,7 +205,6 @@ export const generateEmotionImages = async (blob, prompt, opts, {
       body: JSON.stringify({
         image_url,
         prompt: fullPrompt,
-        image_size,
         strength,
         image_size,
         num_inference_steps,
