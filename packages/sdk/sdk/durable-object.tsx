@@ -7,13 +7,7 @@ import {
   serverHandler,
  } from './src/routes/server.js';
  import {
-  // aiHost,
-  // metamaskHost,
-  // deployEndpointUrl,
   multiplayerEndpointUrl,
-  // r2EndpointUrl,
-  // chatEndpointUrl,
-  // workersHost,
 } from './src/util/endpoints.mjs';
 
 import userRender from '../agent'; // note: this will be copied in by the build process
