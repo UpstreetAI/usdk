@@ -1,7 +1,7 @@
-const HTMLImageElement = typeof window !== 'undefined' ? window.HTMLImageElement : function() {};
-const HTMLCanvasElement = typeof window !== 'undefined' ? window.HTMLCanvasElement : function() {};
-const ImageData = typeof window !== 'undefined' ? window.ImageData : function() {};
-const ImageBitmap = typeof window !== 'undefined' ? window.ImageBitmap : function() {};
+const HTMLImageElement = typeof globalThis.window !== 'undefined' ? globalThis.window.HTMLImageElement : function() {};
+const HTMLCanvasElement = typeof globalThis.window !== 'undefined' ? globalThis.window.HTMLCanvasElement : function() {};
+const ImageData = typeof globalThis.window !== 'undefined' ? globalThis.window.ImageData : function() {};
+const ImageBitmap = typeof globalThis.window !== 'undefined' ? globalThis.window.ImageBitmap : function() {};
 
 const align = (v, N) => {
   const r = v % N;
