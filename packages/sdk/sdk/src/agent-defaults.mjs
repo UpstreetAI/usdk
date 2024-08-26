@@ -1,3 +1,6 @@
+import packageJson from '../../package.json' with { type: 'json' };
+import { generationModel } from '../../const.js';
+
 export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.name !== 'string') {
     spec.name = makeName();
