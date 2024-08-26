@@ -2,8 +2,8 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 import path from 'path';
-import dedent from 'dedent';
-import { z } from 'zod';
+// import dedent from 'dedent';
+// import { z } from 'zod';
 import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
