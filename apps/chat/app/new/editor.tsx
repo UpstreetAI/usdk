@@ -34,8 +34,13 @@ export default function AgentEditor() {
   const [description, setDescription] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
   const [deploying, setDeploying] = useState(false);
-  // const [autofilling, setAutofilling] = useState(false);
+  const builderRef = useRef(false);
   const builder = useMemo(() => {
+    if (!builderRef.current) {
+      builderRef.current = true;
+    } else {
+      return;
+    }
     (async () => {
       await ensureEsbuild();
 
@@ -147,8 +152,17 @@ export default function AgentEditor() {
       }
     })();
   }, []);
+  const durableObjectRef = useRef(false);
   const durableObjectWorker = useMemo(() => {
-    const durableObjectWorker = new Worker(new URL('usdk/sdk/durable-object.tsx', import.meta.url));
+    if (!durableObjectRef.current) {
+      durableObjectRef.current = true;
+    } else {
+      return;
+    }
+    const durableObjectWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
+    durableObjectWorker.postMessage({
+      type: 'init',
+    });
     durableObjectWorker.addEventListener('message', e => {
       console.log('got message', e.data);
     });
