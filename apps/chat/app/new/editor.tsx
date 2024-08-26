@@ -29,129 +29,120 @@ const ensureEsbuild = (() => {
   };
 })();
 
+const buildAgentTsx = async () => {
+  await ensureEsbuild();
+
+  const sourceCode = `\
+    import React from 'react';
+    import * as ReactAgents from 'react-agents';
+    import { example } from './example.ts';
+
+    console.log({
+      React,
+      ReactAgents,
+      example,
+    });
+  `;
+  const files = [
+    {
+      path: '/example.ts',
+      content: `\
+        export const example = 'This is an example module';
+      `,
+    },
+  ];
+  const fileMap = new Map(files.map(file => [file.path, file.content]));
+  const filesNamespace = 'files';
+  const globalImportMap = new Map(Array.from(Object.entries({
+    'react': 'React',
+    'react-agents': 'ReactAgents',
+  })));
+  const globalNamespace = 'globals';
+
+  const result = await esbuild.build({
+    stdin: {
+      contents: sourceCode,
+      resolveDir: '/', // Optional: helps with resolving imports
+      sourcefile: 'app.tsx', // Optional: helps with error messages
+      loader: 'tsx', // Set the appropriate loader based on the source type
+    },
+    bundle: true,
+    outdir: 'dist',
+    plugins: [
+      {
+        name: 'globals-plugin',
+        setup(build) {
+          build.onResolve({ filter: /.*/ }, (args) => {
+            const p = args.path;
+            const globalName = globalImportMap.get(p);
+            // console.log('got resolve', {args, p, globalName});
+            if (globalName) {
+              return { path: p, namespace: globalNamespace };
+            }
+            return null; // Continue with the default resolution
+          });
+          build.onLoad({ filter: /.*/, namespace: globalNamespace }, (args) => {
+            const p = args.path;
+            const globalName = globalImportMap.get(p);
+            // console.log('got load', {args, p, globalName});
+            if (globalName) {
+              return {
+                contents: `module.exports = ${globalName};`,
+                loader: 'js',
+              };
+            }
+            return null; // Continue with the default loading
+          });
+        },
+      },
+      {
+        name: 'files-plugin',
+        setup(build) {
+          build.onResolve({ filter: /.*/ }, (args) => {
+            const p = path.resolve(args.resolveDir, args.path);
+            // console.log('got resolve', {args, p});
+            if (fileMap.has(p)) {
+              return { path: p, namespace: filesNamespace };
+            }
+            return null; // Continue with the default resolution
+          });
+          build.onLoad({ filter: /.*/, namespace: filesNamespace }, (args) => {
+            // console.log('got load', args);
+            const p = args.path;
+            const contents = fileMap.get(p);
+            if (contents) {
+              return { contents, loader: 'tsx' };
+            }
+            return null; // Continue with the default loading
+          });
+        },
+      },
+    ],
+  });
+  const {
+    errors = [],
+    outputFiles = [],
+  } = result;
+  if (errors.length === 0) {
+    const outputFile = outputFiles[0];
+    // console.log('got output file', outputFile);
+    const { contents } = outputFile;
+    const textDecoder = new TextDecoder();
+    const text = textDecoder.decode(contents);
+    // console.log('got contents');
+    // console.log(text);
+    return text;
+  } else {
+    console.warn('build errors: ', errors);
+    throw new Error('Failed to build: ' + JSON.stringify(errors));
+  }
+};
+
 export default function AgentEditor() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
   const [deploying, setDeploying] = useState(false);
-  const builderRef = useRef(false);
-  const builder = useMemo(() => {
-    if (!builderRef.current) {
-      builderRef.current = true;
-    } else {
-      return;
-    }
-    (async () => {
-      await ensureEsbuild();
-
-      // escape all characters that need to be escaped in a regular expression
-      // const regexpEscape = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-
-      const sourceCode = `\
-        import React from 'react';
-        import * as ReactAgents from 'react-agents';
-        import { example } from './example.ts';
-
-        console.log({
-          React,
-          ReactAgents,
-          example,
-        });
-      `;
-      const files = [
-        {
-          path: '/example.ts',
-          content: `\
-            export const example = 'This is an example module';
-          `,
-        },
-      ];
-      const fileMap = new Map(files.map(file => [file.path, file.content]));
-      const filesNamespace = 'files';
-      const globalImportMap = new Map(Array.from(Object.entries({
-        'react': 'React',
-        'react-agents': 'ReactAgents',
-      })));
-      const globalNamespace = 'globals';
-
-      const result = await esbuild.build({
-        stdin: {
-          contents: sourceCode,
-          resolveDir: '/', // Optional: helps with resolving imports
-          sourcefile: 'app.tsx', // Optional: helps with error messages
-          loader: 'tsx', // Set the appropriate loader based on the source type
-        },
-        bundle: true,
-        outdir: 'dist',
-        plugins: [
-          {
-            name: 'globals-plugin',
-            setup(build) {
-              build.onResolve({ filter: /.*/ }, (args) => {
-                const p = args.path;
-                const globalName = globalImportMap.get(p);
-                // console.log('got resolve', {args, p, globalName});
-                if (globalName) {
-                  return { path: p, namespace: globalNamespace };
-                }
-                return null; // Continue with the default resolution
-              });
-              build.onLoad({ filter: /.*/, namespace: globalNamespace }, (args) => {
-                const p = args.path;
-                const globalName = globalImportMap.get(p);
-                // console.log('got load', {args, p, globalName});
-                if (globalName) {
-                  return {
-                    contents: `module.exports = ${globalName};`,
-                    loader: 'js',
-                  };
-                }
-                return null; // Continue with the default loading
-              });
-            },
-          },
-          {
-            name: 'files-plugin',
-            setup(build) {
-              build.onResolve({ filter: /.*/ }, (args) => {
-                const p = path.resolve(args.resolveDir, args.path);
-                // console.log('got resolve', {args, p});
-                if (fileMap.has(p)) {
-                  return { path: p, namespace: filesNamespace };
-                }
-                return null; // Continue with the default resolution
-              });
-              build.onLoad({ filter: /.*/, namespace: filesNamespace }, (args) => {
-                // console.log('got load', args);
-                const p = args.path;
-                const contents = fileMap.get(p);
-                if (contents) {
-                  return { contents, loader: 'tsx' };
-                }
-                return null; // Continue with the default loading
-              });
-            },
-          },
-        ],
-      });
-      const {
-        errors = [],
-        outputFiles = [],
-      } = result;
-      if (errors.length === 0) {
-        const outputFile = outputFiles[0];
-        // console.log('got output file', outputFile);
-        const { contents } = outputFile;
-        const textDecoder = new TextDecoder();
-        const text = textDecoder.decode(contents);
-        console.log('got contents');
-        console.log(text);
-      } else {
-        console.warn('build errors: ', errors);
-        throw new Error('Failed to build: ' + JSON.stringify(errors));
-      }
-    })();
-  }, []);
   const durableObjectRef = useRef(false);
   const durableObjectWorker = useMemo(() => {
     if (!durableObjectRef.current) {
@@ -159,18 +150,28 @@ export default function AgentEditor() {
     } else {
       return;
     }
-    const durableObjectWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
-    durableObjectWorker.postMessage({
-      type: 'init',
-    });
-    durableObjectWorker.addEventListener('message', e => {
-      console.log('got message', e.data);
-    });
-    durableObjectWorker.addEventListener('error', e => {
-      console.warn('got error', e);
-    });
-    console.log('created durableObjectWorker', durableObjectWorker);
-    return durableObjectWorker;
+
+    (async () => {
+      const agentTsx = await buildAgentTsx();
+
+      const durableObjectWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
+      // console.log('created durableObjectWorker', durableObjectWorker);
+      durableObjectWorker.postMessage({
+        method: 'initDurableObject',
+        args: {
+          agentTsx,
+        },
+      });
+      durableObjectWorker.addEventListener('message', e => {
+        console.log('got message', e.data);
+      });
+      durableObjectWorker.addEventListener('error', e => {
+        console.warn('got error', e);
+      });
+      return durableObjectWorker;
+    })();
+
+    return null;
   }, []);
   const formEl = useRef<HTMLFormElement>(null);
 
