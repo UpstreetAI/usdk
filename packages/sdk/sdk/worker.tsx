@@ -1,3 +1,4 @@
+import './src/util/worker-globals.mjs';
 import { DurableObject } from './durable-object.tsx';
 
 globalThis.onmessage = (event: any) => {
@@ -5,18 +6,23 @@ globalThis.onmessage = (event: any) => {
   const method = event.data?.method;
   if (method === 'initDurableObject') {
     const { args } = event.data;
-    const { agentTsx } = args;
+    const { env } = args;
 
-    const state = {};
-    const env = {
-      AGENT_TSX_SOURCE: agentTsx,
+    const state = {
+      storage: {
+        setAlarm(timestamp: number) {
+          // nothing
+        },
+      },
     };
-    console.log('init 1', {
+    console.log('worker init 1', {
       state,
       env,
     });
     const durableObject = new DurableObject(state, env);
-    console.log('init 2');
+    console.log('worker init 2', {
+      durableObject,
+    });
 
     // globalThis.postMessage({
     //   method: 'pong',
