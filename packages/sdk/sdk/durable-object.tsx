@@ -1,11 +1,11 @@
 import 'localstorage-polyfill';
 import { headers } from './src/constants.js';
 import { makeAnonymousClient, getUserIdForJwt, getUserForJwt } from './src/util/supabase-client.mjs';
-import { AgentRenderer } from './src/classes/agent-renderer.js';
-import { ChatsSpecification } from './src/classes/chats-specification.js';
+import { AgentRenderer } from './src/classes/agent-renderer.tsx';
+import { ChatsSpecification } from './src/classes/chats-specification.ts';
 import {
   serverHandler,
- } from './src/routes/server.js';
+ } from './src/routes/server.ts';
  import {
   multiplayerEndpointUrl,
 } from './src/util/endpoints.mjs';
