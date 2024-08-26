@@ -15,6 +15,7 @@
     "localstorage-polyfill": "^1.0.1",
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
+    "openai": "^4.56.0",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "together-ai": "^0.6.0-alpha.4",

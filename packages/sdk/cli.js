@@ -8,7 +8,6 @@ import stream from 'stream';
 import repl from 'repl';
 import util from 'util';
 
-import { z } from 'zod';
 import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
 import { program } from 'commander';
@@ -48,11 +47,11 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 
 import { generationModel } from './const.js';
 // import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
-import { Interactor } from './lib/interactor.js';
-import { ValueUpdater } from './lib/value-updater.js';
 import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
+import { agentInterview, applyFeaturesToAgentJSX } from './sdk/src/util/agent-interview.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
+import { makeId } from './sdk/src/util/util.mjs';
 import {
   // makeClient,
   makeAnonymousClient,
@@ -77,9 +76,6 @@ import {
   aiProxyHost,
 } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
-import { makeId, shuffle, parseCodeBlock, makePromise } from './sdk/src/util/util.mjs';
-// import { fetchChatCompletion } from './sdk/src/util/fetch.mjs';
-import { /*fetchImageGeneration,*/ generateCharacterImage } from './sdk/src/util/generate-image.mjs';
 import { isYes } from './lib/isYes.js'
 import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
@@ -2306,7 +2302,7 @@ const getCodeGenContext = async () => {
 const generateTemplateFromAgentJson = async (agentJson, {
   // template = 'empty',
   template = 'basic',
-  capabilities = [],
+  features = [],
 } = {}) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
@@ -2317,20 +2313,10 @@ const generateTemplateFromAgentJson = async (agentJson, {
 
   // update agent jsx as needed
   // console.log(pc.italic('Generating code...'));
-  if (capabilities.length > 0) {
+  if (features.length > 0) {
     const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
     let agentJSX = await fs.promises.readFile(agentJSXPath, 'utf8');
-
-    const includedCapabilitySpecs = capabilities.map(capabilityName => capabilitySpecs.find(capabilitySpec => capabilitySpec.name === capabilityName));
-
-    const importsHookRegex = /\/\* IMPORTS REGEX HOOK \*\//g;
-    const impotsString = includedCapabilitySpecs.flatMap(capabilitySpec => capabilitySpec.imports).map(importName => `${importName},`).join(',');
-    agentJSX = agentJSX.replace(importsHookRegex, impotsString);
-
-    const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
-    const jsxString = includedCapabilitySpecs.map(capabilitySpec => capabilitySpec.tsx).join('\n');
-    agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
-
+    agentJSX = applyFeaturesToAgentJSX(agentJSX, features);
     await fs.promises.writeFile(agentJSXPath, agentJSX);
   }
 
@@ -2380,34 +2366,6 @@ const getAgentToken = async (jwt, guid) => {
     );
   }
 };
-const makeAgentJson = (agentJsonInit, id) => {
-  const {
-    name = null,
-    bio = null,
-    visualDescription = null,
-    previewUrl = null,
-  } = agentJsonInit;
-  return {
-    id,
-    name,
-    bio,
-    visualDescription,
-    previewUrl,
-  };
-};
-const capabilitySpecs = [
-  {
-    name: 'voice',
-    description: 'The agent can speak.',
-    imports: [
-      'TTS',
-    ],
-    tsx: dedent`
-      <TTS />
-    `,
-  },
-];
-const capabilityNames = capabilitySpecs.map(capability => capability.name);
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
@@ -2503,166 +2461,55 @@ export const create = async (args, opts) => {
   // generate the agent if necessary
   let srcTemplateDir;
   let agentJson;
-  let capabilities;
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
 
-    const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
-      signal,
-    }) => {
-      // console.log('generate avatar 1', { visualDescription });
-      const {
-        blob,
-      } = await generateCharacterImage(visualDescription, undefined, {
-        jwt,
-      });
-      // console.log('generate avatar 2');
-      return blob;
-    });
-    visualDescriptionValueUpdater.addEventListener('change', async (e) => {
-      const {
-        result: blob,
-        signal,
-      } = e.data;
-
-      const ab = await blob.arrayBuffer();
-      if (signal.aborted) return;
-
-      const b = Buffer.from(ab);
-      const jimp = await Jimp.read(b);
-      if (signal.aborted) return;
-
-      const imageRenderer = new ImageRenderer();
-      const {
-        text: imageText,
-      } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-      console.log('Avatar updated:');
-      console.log(imageText);
-    });
-
     // run the interview
     const interview = async (agentJson) => {
-      if (agentJson.previewUrl) {
-        visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
-      }
-
-      const interactor = new Interactor({
-        prompt: dedent`\
-          Generate and configure an AI agent character.
-          The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
-          e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
-        ` + '\n' +
-          dedent`\
-            The available capabilities are:
-          ` + '\n' +
-          capabilitySpecs.map(({ name, description }) => {
-            return `'${name}': ${description}`;
-          }).join('\n') + '\n' +
-          (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
-        object: agentJson,
-        objectFormat: z.object({
-          name: z.string().optional(),
-          bio: z.string().optional(),
-          visualDescription: z.string().optional(),
-          capabilities: z.array(z.enum(capabilityNames)),
-        }),
+      agentJson = await agentInterview({
+        agentJson,
+        prompt,
+        getInput: async (question) => {
+          const answer = await input({
+            message: question,
+          });
+          return answer;
+        },
+        onChange: ({
+          updateObject,
+          agentJson,
+        }) => {
+          // console.log('got update object', updateObject);
+        },
+        onPreview: async (data) => {
+          const {
+            result: blob,
+            signal,
+          } = data;
+  
+          const ab = await blob.arrayBuffer();
+          if (signal.aborted) return;
+  
+          const b = Buffer.from(ab);
+          const jimp = await Jimp.read(b);
+          if (signal.aborted) return;
+  
+          const imageRenderer = new ImageRenderer();
+          const {
+            text: imageText,
+          } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+          console.log('Avatar updated:');
+          console.log(imageText);
+        },
         jwt,
       });
-      const interviewPromise = makePromise();
-      interactor.addEventListener('message', async (e) => {
-        const o = e.data;
-        const {
-          response,
-          updateObject,
-          done,
-          object,
-        } = o;
-
-        if (updateObject?.visualDescription) {
-          visualDescriptionValueUpdater.set(updateObject.visualDescription);
-        }
-
-        if (!done) {
-          let answer;
-          while (!(answer = await input({
-            message: response,
-          }))) {}
-          interactor.write(answer);
-        } else {
-          agentJson = makeAgentJson(object, guid);
-          agentJson.previewUrl = await (async () => {
-            const result = await visualDescriptionValueUpdater.waitForLoad();
-
-            if (typeof result === 'string') {
-              return result;
-            } else if (result instanceof Blob) {
-              // upload to r2
-              const blob = result;
-              const keyPath = ['assets', `${agentJson.id}.jpg`].join('/');
-              const r2Url = `${r2EndpointUrl}/${keyPath}`;
-              let previewUrl = '';
-              try {
-                const res = await fetch(r2Url, {
-                  method: 'PUT',
-                  headers: {
-                    'Authorization': `Bearer ${jwt}`,
-                  },
-                  body: blob,
-                });
-                if (res.ok) {
-                  previewUrl = await res.json();
-                } else {
-                  const text = await res.text();
-                  throw new Error(`could not upload preview url: ${blob.name}: ${text}`);
-                }
-              } catch (err) {
-                throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
-              }
-              return previewUrl;
-            } else {
-              console.warn('invalid result type', result);
-              throw new Error('invalid result type: ' + typeof result);
-            }
-          })();
-          const {
-            capabilities,
-          } = object;
-          const interviewResult = {
-            agentJson,
-            capabilities,
-          };
-          interviewPromise.resolve(interviewResult);
-        }
-      });
-      if (!prompt) {
-        // no auto prompt provided; pump the interview loop
-
-        // XXX debugging hack: listen for the user pressing the tab key
-        {
-          process.stdin.setRawMode(true);
-          process.stdin.setEncoding('utf8');
-          process.stdin.resume();
-          process.stdin.on('data', (key) => {
-            if (key === '\u0009') { // tab
-              console.log('got tab');
-            }
-            if (key === '\u0003') { // ctrl-c
-              console.log('got ctrl-c');
-              process.exit();
-            }
-          });
-        }
-
-        interactor.write();
-      } else {
-        // auto prompt provided; do it in one pass
-        interactor.end();
-      }
-      const interviewResult = await interviewPromise;
-      return interviewResult;
+      return {
+        ...agentJson,
+        id: guid,
+      };
     };
     const generateAgentMetadata = async () => {
-      const agentJson = makeAgentJson(agentJsonString ? JSON.parse(agentJsonString) : {});
+      const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
       const {
         name,
         bio,
@@ -2672,37 +2519,33 @@ export const create = async (args, opts) => {
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
       if (isComplete || agentJsonString || source || yes) {
-        return {
-          agentJson,
-        };
+        return agentJson;
       } else {
-        const interviewResult = await interview({
+        return await interview({
           name,
           bio,
           visualDescription,
           previewUrl,
         });
-        return interviewResult;
       }
     };
 
-    const interviewResult = await generateAgentMetadata();
-    agentJson = interviewResult.agentJson;
-    capabilities = interviewResult.capabilities;
+    // note: this is an assignment
+    agentJson = await generateAgentMetadata();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Capabilities:'), capabilities.length > 0
-      ? capabilities.join(', ')
+    console.log(pc.green('Features:'), agentJson.features.length > 0
+      ? agentJson.features.join(', ')
       : '*none*'
     );
 
     console.log(pc.italic('Building agent...'));
     srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
       template,
-      capabilities,
+      features: agentJson.features,
     });
     console.log(pc.italic('Agent built.'));
   } else {
@@ -3992,9 +3835,6 @@ const main = async () => {
     .command('create')
     .description('Create a new agent, from either a prompt or template')
     .argument(`[directory]`, `The directory to create the project in`)
-    // .argument(`[prompt]`, `Optional prompt to use to generate the agent`)
-    // .option(`-n, --name <string>`, `Agent name`)
-    // .option(`-d, --description <string>`, `Agent description`)
     .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
@@ -4023,14 +3863,14 @@ const main = async () => {
         await create(args);
       });
     });
-  const devSubcommands = [
+  /* const devSubcommands = [
     'chat',
     // 'simulate',
     // 'listen',
     // 'ls',
     // 'fund',
     // 'deposit',
-  ];
+  ]; */
   program
     .command('dev')
     .description(
