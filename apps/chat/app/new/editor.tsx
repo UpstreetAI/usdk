@@ -19,7 +19,7 @@ import {
 } from 'usdk/sdk/src/util/jwt-utils.mjs';
 import {
   generateMnemonic,
-} from 'usdk/sdk/src/util/ethereum-utils.mjs';
+} from 'usdk/util/ethereum-utils.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {

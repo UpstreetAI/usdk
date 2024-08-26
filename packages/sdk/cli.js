@@ -58,6 +58,8 @@ import packageJson from './package.json' with { type: 'json' };
 
 import {
   generateMnemonic,
+} from './util/ethereum-utils.mjs';
+import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
