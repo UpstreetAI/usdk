@@ -52,6 +52,7 @@
     "js-ago": "^2.1.1",
     "jszip": "^3.10.1",
     "localstorage-polyfill": "^1.0.1",
+    "memoize-one": "^6.0.0",
     "mime": "^4.0.1",
     "mkdirp": "^3.0.1",
     "open": "^10.1.0",
