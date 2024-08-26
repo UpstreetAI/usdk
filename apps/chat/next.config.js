@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
+
+const path = require('path');
+const webpack = require('webpack');
+
 module.exports = {
   images: {
     remotePatterns: [
@@ -29,7 +33,24 @@ module.exports = {
     ]
   },
   webpack: (config, options) => {
+    // noParse
     config.module.noParse = /typescript\/lib\/typescript\.js$/;
+
+    // fix react resolution in sdk subpackage
+    const sdkPath = path.resolve(__dirname, '../../packages/sdk/sdk');
+    const replacePlugin = (scopePath, moduleRegexp) => {
+      return new webpack.NormalModuleReplacementPlugin(moduleRegexp, (resource) => {
+        if (resource.context.includes(scopePath)) {
+          resource.request = require.resolve(resource.request, {
+            paths: [scopePath],
+          });
+        }
+      });
+    };
+    config.plugins.push(
+      replacePlugin(sdkPath, /^react/),
+    );
+
     return config;
   },
 }
