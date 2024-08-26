@@ -221,6 +221,7 @@ export default function AgentEditor() {
             console.log('deploy', {
               name,
               description,
+              visualDescription,
               value,
             });
 
@@ -234,6 +235,7 @@ export default function AgentEditor() {
                   metadata: JSON.stringify({
                     name,
                     description,
+                    visualDescription,
                   }),
                 },
                 body: value,
@@ -245,6 +247,7 @@ export default function AgentEditor() {
                   guid,
                   name,
                   description,
+                  visualDescription,
                 } = j;
                 location.href = `/agents/${guid}`;
                 // await new Promise(resolve => setTimeout(resolve, 2000));
