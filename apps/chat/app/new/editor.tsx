@@ -11,6 +11,15 @@ import { getJWT } from '@/lib/jwt';
 // import { Interactor } from 'usdk/lib/interactor';
 // import { ValueUpdater } from 'usdk/lib/value-updater';
 // import { generateCharacterImage } from 'usdk/sdk/src/util/generate-image.mjs';
+import {
+  createAgentGuid,
+} from 'usdk/sdk/src/util/guid-util.mjs';
+import {
+  getAgentToken,
+} from 'usdk/sdk/src/util/jwt-utils.mjs';
+import {
+  generateMnemonic,
+} from 'usdk/sdk/src/util/ethereum-utils.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -87,7 +96,8 @@ const buildAgentTsx = async () => {
             // console.log('got load', {args, p, globalName});
             if (globalName) {
               return {
-                contents: `module.exports = ${globalName};`,
+                // globalImports is initialized by the worker wrapper
+                contents: `module.exports = globalImports[${JSON.stringify(globalName)}];`,
                 loader: 'js',
               };
             }
@@ -142,37 +152,64 @@ export default function AgentEditor() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
+
   const [deploying, setDeploying] = useState(false);
-  const durableObjectRef = useRef(false);
-  const durableObjectWorker = useMemo(() => {
-    if (!durableObjectRef.current) {
-      durableObjectRef.current = true;
-    } else {
-      return;
+
+  const workerRef = useRef<Worker | null>(null);
+  const runAgent = async () => {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
     }
 
-    (async () => {
-      const agentTsx = await buildAgentTsx();
+    console.log('building agent.tsx...');
+    const agentTsx = await buildAgentTsx();
+    console.log('built agent.tsx:', agentTsx);
 
-      const durableObjectWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
-      // console.log('created durableObjectWorker', durableObjectWorker);
-      durableObjectWorker.postMessage({
-        method: 'initDurableObject',
-        args: {
-          agentTsx,
-        },
-      });
-      durableObjectWorker.addEventListener('message', e => {
-        console.log('got message', e.data);
-      });
-      durableObjectWorker.addEventListener('error', e => {
-        console.warn('got error', e);
-      });
-      return durableObjectWorker;
-    })();
+    console.log('getting agent id...');
+    const jwt = await getJWT();
+    const id = await createAgentGuid({
+      jwt,
+    });
+    console.log('got agent id:', id);
 
-    return null;
-  }, []);
+    console.log('getting agent token...');
+    const agentToken = await getAgentToken(jwt, id);
+    console.log('got agent token:', agentToken);
+
+    const agentJson = {
+      id,
+      name,
+      bio: description,
+      visualDescription,
+    };
+    const mnemonic = generateMnemonic();
+    const env = {
+      AGENT_JSON: JSON.stringify(agentJson),
+      AGENT_TSX: agentTsx,
+      AGENT_TOKEN: agentToken,
+      WALLET_MNEMONIC: mnemonic,
+      SUPABASE_URL: "https://friddlbqibjnxjoxeocc.supabase.co",
+      SUPABASE_PUBLIC_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaWRkbGJxaWJqbnhqb3hlb2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2NjE3NDIsImV4cCI6MjAxOTIzNzc0Mn0.jnvk5X27yFTcJ6jsCkuXOog1ZN825md4clvWuGQ8DMI",
+      WORKER_ENV: "production",
+    };
+    console.log('starting worker with env:', env);
+
+    const worker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
+    worker.postMessage({
+      method: 'initDurableObject',
+      args: {
+        env,
+      },
+    });
+    worker.addEventListener('message', e => {
+      console.log('got message', e.data);
+    });
+    worker.addEventListener('error', e => {
+      console.warn('got error', e);
+    });
+    workerRef.current = worker;
+  };
   const formEl = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
@@ -283,6 +320,16 @@ export default function AgentEditor() {
             }}
             disabled={autofilling}
           >{!autofilling ? `Autofill` : 'Autofilling...'}</Button> */}
+          <Button
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              runAgent();
+
+              // formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            }}
+          >Run</Button>
           <Button
             onClick={e => {
               e.preventDefault();
