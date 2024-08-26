@@ -1,16 +1,33 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import path from 'path';
 import dedent from 'dedent';
 import { z } from 'zod';
 import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { Interactor } from 'usdk/lib/interactor';
-import { ValueUpdater } from 'usdk/lib/value-updater';
-import { fetchJsonCompletion  } from '@/utils/fetch';
-import { generateCharacterImage } from 'usdk/sdk/src/util/generate-image';
+// import { Interactor } from 'usdk/lib/interactor';
+// import { ValueUpdater } from 'usdk/lib/value-updater';
+// import { generateCharacterImage } from 'usdk/sdk/src/util/generate-image.mjs';
+
+import * as esbuild from 'esbuild-wasm';
+const ensureEsbuild = (() => {
+  let esBuildPromise: Promise<void> | null = null;
+  return () => {
+    if (!esBuildPromise) {
+      esBuildPromise = (async () => {
+        const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
+        await esbuild.initialize({
+          worker: true,
+          wasmURL: u.href,
+        });
+      })();
+    }
+    return esBuildPromise;
+  };
+})();
 
 export default function AgentEditor() {
   const [name, setName] = useState('');
@@ -18,6 +35,129 @@ export default function AgentEditor() {
   const [visualDescription, setVisualDescription] = useState('');
   const [deploying, setDeploying] = useState(false);
   // const [autofilling, setAutofilling] = useState(false);
+  const builder = useMemo(() => {
+    (async () => {
+      await ensureEsbuild();
+
+      // escape all characters that need to be escaped in a regular expression
+      // const regexpEscape = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+
+      const sourceCode = `\
+        import React from 'react';
+        import * as ReactAgents from 'react-agents';
+        import { example } from './example.ts';
+
+        console.log({
+          React,
+          ReactAgents,
+          example,
+        });
+      `;
+      const files = [
+        {
+          path: '/example.ts',
+          content: `\
+            export const example = 'This is an example module';
+          `,
+        },
+      ];
+      const fileMap = new Map(files.map(file => [file.path, file.content]));
+      const filesNamespace = 'files';
+      const globalImportMap = new Map(Array.from(Object.entries({
+        'react': 'React',
+        'react-agents': 'ReactAgents',
+      })));
+      const globalNamespace = 'globals';
+
+      const result = await esbuild.build({
+        stdin: {
+          contents: sourceCode,
+          resolveDir: '/', // Optional: helps with resolving imports
+          sourcefile: 'app.tsx', // Optional: helps with error messages
+          loader: 'tsx', // Set the appropriate loader based on the source type
+        },
+        bundle: true,
+        outdir: 'dist',
+        plugins: [
+          {
+            name: 'globals-plugin',
+            setup(build) {
+              build.onResolve({ filter: /.*/ }, (args) => {
+                const p = args.path;
+                const globalName = globalImportMap.get(p);
+                // console.log('got resolve', {args, p, globalName});
+                if (globalName) {
+                  return { path: p, namespace: globalNamespace };
+                }
+                return null; // Continue with the default resolution
+              });
+              build.onLoad({ filter: /.*/, namespace: globalNamespace }, (args) => {
+                const p = args.path;
+                const globalName = globalImportMap.get(p);
+                // console.log('got load', {args, p, globalName});
+                if (globalName) {
+                  return {
+                    contents: `module.exports = ${globalName};`,
+                    loader: 'js',
+                  };
+                }
+                return null; // Continue with the default loading
+              });
+            },
+          },
+          {
+            name: 'files-plugin',
+            setup(build) {
+              build.onResolve({ filter: /.*/ }, (args) => {
+                const p = path.resolve(args.resolveDir, args.path);
+                // console.log('got resolve', {args, p});
+                if (fileMap.has(p)) {
+                  return { path: p, namespace: filesNamespace };
+                }
+                return null; // Continue with the default resolution
+              });
+              build.onLoad({ filter: /.*/, namespace: filesNamespace }, (args) => {
+                // console.log('got load', args);
+                const p = args.path;
+                const contents = fileMap.get(p);
+                if (contents) {
+                  return { contents, loader: 'tsx' };
+                }
+                return null; // Continue with the default loading
+              });
+            },
+          },
+        ],
+      });
+      const {
+        errors = [],
+        outputFiles = [],
+      } = result;
+      if (errors.length === 0) {
+        const outputFile = outputFiles[0];
+        // console.log('got output file', outputFile);
+        const { contents } = outputFile;
+        const textDecoder = new TextDecoder();
+        const text = textDecoder.decode(contents);
+        console.log('got contents');
+        console.log(text);
+      } else {
+        console.warn('build errors: ', errors);
+        throw new Error('Failed to build: ' + JSON.stringify(errors));
+      }
+    })();
+  }, []);
+  const durableObjectWorker = useMemo(() => {
+    const durableObjectWorker = new Worker(new URL('usdk/sdk/durable-object.tsx', import.meta.url));
+    durableObjectWorker.addEventListener('message', e => {
+      console.log('got message', e.data);
+    });
+    durableObjectWorker.addEventListener('error', e => {
+      console.warn('got error', e);
+    });
+    console.log('created durableObjectWorker', durableObjectWorker);
+    return durableObjectWorker;
+  }, []);
   const formEl = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
@@ -33,41 +173,8 @@ export default function AgentEditor() {
         <form
           className="flex"
           onSubmit={async e => {
-            const jwt = await getJWT();
-
-            const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
-              signal,
-            }) => {
-              const {
-                blob,
-              } = await generateCharacterImage(visualDescription, undefined, {
-                jwt,
-              });
-              return blob;
-            });
-
-            const interactor = new Interactor({
-              prompt: dedent`\
-                Generate and configure an AI agent character.
-                The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
-                e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
-              ` + '\n' +
-                dedent`\
-                  The available capabilities are:
-                ` + '\n' +
-                // capabilitySpecs.map(({ name, description }) => {
-                //   return `'${name}': ${description}`;
-                // }).join('\n') + '\n' +
-                (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
-              // object: agentJson,
-              objectFormat: z.object({
-                name: z.string().optional(),
-                bio: z.string().optional(),
-                visualDescription: z.string().optional(),
-                // capabilities: z.array(z.enum(capabilityNames)),
-              }),
-              jwt,
-            });
+            // const jwt = await getJWT();
+            console.warn('nor implemented');
           }}
         >
           <input
