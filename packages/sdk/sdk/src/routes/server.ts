@@ -1,4 +1,3 @@
-import 'localstorage-polyfill';
 import { compileUserAgentServer } from '../runtime';
 import { headers } from '../constants.js';
 // import type { AgentObject, ActionMessages, UserHandler, ActiveAgentObject } from '../types';
