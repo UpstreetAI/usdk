@@ -28,4 +28,8 @@ module.exports = {
       },
     ]
   },
+  webpack: (config, options) => {
+    config.module.noParse = /typescript\/lib\/typescript\.js$/;
+    return config;
+  },
 }
