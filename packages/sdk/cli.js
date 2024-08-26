@@ -41,19 +41,15 @@ import {
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
 import * as ethers from 'ethers';
-import * as bip39 from '@scure/bip39';
-import { wordlist } from '@scure/bip39/wordlists/english';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { generationModel } from './const.js';
-// import { modifyAgentJSXWithGeneratedCode } from './lib/index.js';
-import { isGuid, makeZeroGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
+import { isGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
 import { agentInterview, applyFeaturesToAgentJSX } from './sdk/src/util/agent-interview.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import { makeId } from './sdk/src/util/util.mjs';
+import { ensureAgentJsonDefaults } from './sdk/src/agent-defaults.mjs';
 import {
-  // makeClient,
   makeAnonymousClient,
   getUserIdForJwt,
   getUserForJwt,
@@ -61,10 +57,14 @@ import {
 import packageJson from './package.json' with { type: 'json' };
 
 import {
+  generateMnemonic,
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './sdk/src/util/ethereum-utils.mjs';
+import {
+  getAgentToken,
+} from './sdk/src/util/jwt-utils.mjs';
 import {
   aiHost,
   metamaskHost,
@@ -405,8 +405,7 @@ const ensureLocalGuid = async () => {
     return guid;
   } */
 };
-const generateMnemonic = () => bip39.generateMnemonic(wordlist);
-const ensureLocalMnemonic = async () => {
+/* const ensureLocalMnemonic = async () => {
   const walletFile = await tryReadFileAsync(walletLocation);
   if (walletFile) {
     const o = jsonParse(walletFile);
@@ -427,7 +426,7 @@ const ensureLocalMnemonic = async () => {
     await fs.promises.writeFile(walletLocation, s);
     return mnemonic;
   }
-};
+}; */
 /* const getLocalMnemonic = async () => {
   const walletFile = await tryReadFileAsync(walletLocation);
   if (walletFile) {
@@ -456,39 +455,6 @@ const getAgentMnemonic = async (supabase, agentId) => {
     return mnemonic;
   } else {
     throw new Error(error);
-  }
-};
-const defaultDescription = 'Created by the AI Agent SDK';
-const ensureAgentJsonDefaults = (spec) => {
-  if (typeof spec.name !== 'string') {
-    spec.name = makeName();
-  }
-  if (typeof spec.description !== 'string') {
-    spec.description = defaultDescription;
-  }
-  if (typeof spec.bio !== 'string') {
-    spec.bio = 'A cool person';
-  }
-  if (typeof spec.model !== 'string') {
-    spec.model = generationModel;
-  }
-  if (typeof spec.previewUrl !== 'string') {
-    spec.previewUrl = '/images/characters/upstreet/small/scillia.png';
-  }
-  if (typeof spec.avatarUrl !== 'string') {
-    spec.avatarUrl = '/avatars/default_1934.vrm';
-  }
-  if (typeof spec.voiceEndpoint !== 'string') {
-    spec.voiceEndpoint = 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9';
-  }
-  if (typeof spec.voicePack !== 'string') {
-    spec.voicePack = 'ShiShi voice pack';
-  }
-  if (!Array.isArray(spec.capabilities)) {
-    spec.capabilities = [];
-  }
-  if (typeof spec.version !== 'string') {
-    spec.version = packageJson.version;
   }
 };
 const bindProcess = (cp) => {
@@ -2345,27 +2311,6 @@ const setWranglerTomlAgentToken = (
   t.vars.AGENT_TOKEN = agentToken;
   return t;
 };
-const getAgentToken = async (jwt, guid) => {
-  const jwtRes = await fetch(`${metamaskHost}/agent`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Authorization: `Bearer ${jwt}`,
-    },
-    body: JSON.stringify({
-      agentId: guid,
-      supabaseJwt: jwt,
-    }),
-  });
-  if (jwtRes.ok) {
-    return jwtRes.json();
-  } else {
-    const text = await jwtRes.text();
-    console.warn(
-      `Failed to get agent token: ${text}`,
-    );
-  }
-};
 export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
@@ -3151,7 +3096,7 @@ const deploy = async (args) => {
 const ls = async (args) => {
   const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
-  const dev = !!args.dev;
+  // const dev = !!args.dev;
 
   const queueManager = new QueueManager({
     parallelism: 8,
@@ -3257,7 +3202,7 @@ const ls = async (args) => {
   if (userId) {
     const supabase = makeSupabase(jwt);
 
-    if (!dev) {
+    // if (!dev) {
       // list agents in the account
       const assetsResult = await supabase
         .from('assets')
@@ -3272,7 +3217,7 @@ const ls = async (args) => {
       } else {
         throw new Error(`could not get assets for user ${userId}: ${error}`);
       }
-    } else {
+    /* } else {
       // use the local development guid
       const guid = await ensureLocalGuid();
       const user_id = makeZeroGuid();
@@ -3281,11 +3226,11 @@ const ls = async (args) => {
         start_url: devAgentJsonUrl,
         created_at,
         user_id,
-        name: defaultName,
+        name: '',
         id: guid,
         preview_url: '',
         type: 'npc',
-        description: defaultDescription,
+        description: '',
         rarity: null,
         slots: null,
         hero_urls: null,
@@ -3295,7 +3240,7 @@ const ls = async (args) => {
       };
       await listAssets(supabase, [agent]);
       process.exit(0);
-    }
+    } */
   } else {
     console.log('not logged in');
     process.exit(1);
