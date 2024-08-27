@@ -44,7 +44,7 @@ import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { isGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
-import { agentInterview, applyFeaturesToAgentJSX } from './sdk/src/util/agent-interview.mjs';
+import { AgentInterview, applyFeaturesToAgentJSX } from './sdk/src/util/agent-interview.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import { makeId } from './sdk/src/util/util.mjs';
@@ -2413,44 +2413,57 @@ export const create = async (args, opts) => {
 
     // run the interview
     const interview = async (agentJson) => {
-      agentJson = await agentInterview({
+      const agentInterview = new AgentInterview({
         agentJson,
         prompt,
         mode: prompt ? 'auto' : 'interactive',
-        getInput: async (question) => {
-          const answer = await input({
-            message: question,
-          });
-          return answer;
-        },
-        onChange: ({
-          updateObject,
-          agentJson,
-        }) => {
-          // console.log('got update object', updateObject);
-        },
-        onPreview: async (data) => {
-          const {
-            result: blob,
-            signal,
-          } = data;
-  
-          const ab = await blob.arrayBuffer();
-          if (signal.aborted) return;
-  
-          const b = Buffer.from(ab);
-          const jimp = await Jimp.read(b);
-          if (signal.aborted) return;
-  
-          const imageRenderer = new ImageRenderer();
-          const {
-            text: imageText,
-          } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-          console.log('Avatar updated:');
-          console.log(imageText);
-        },
         jwt,
       });
+      agentInterview.addEventListener('input', async e => {
+        const {
+          question,
+        } = e.data;
+        const answer = await input({
+          message: question,
+        });
+        agentInterview.write(answer);
+      });
+      agentInterview.addEventListener('output', async e => {
+        const {
+          text,
+        } = e.data;
+        console.log(text);
+      });
+      agentInterview.addEventListener('change', e => {
+        const {
+          updateObject,
+          agentJson,
+        } = e.data;
+        console.log('change', updateObject);
+      });
+      agentInterview.addEventListener('preview', async e => {
+        const {
+          result: blob,
+          signal,
+        } = e.data;
+
+        const ab = await blob.arrayBuffer();
+        if (signal.aborted) return;
+
+        const b = Buffer.from(ab);
+        const jimp = await Jimp.read(b);
+        if (signal.aborted) return;
+
+        const imageRenderer = new ImageRenderer();
+        const {
+          text: imageText,
+        } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+        console.log('Avatar updated:');
+        console.log(imageText);
+      });
+      console.log('wait for finish 1');
+      agentJson = await agentInterview.waitForFinish();
+      console.log('wait for finish 2');
       return {
         ...agentJson,
         id: guid,
