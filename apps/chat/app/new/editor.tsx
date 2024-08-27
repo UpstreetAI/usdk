@@ -95,6 +95,7 @@ const buildAgentSrc = async (sourceCode: string, {
   const filesNamespace = 'files';
   const globalImportMap = new Map(Array.from(Object.entries({
     'react': 'React',
+    'zod': 'zod',
     'react-agents': 'ReactAgents',
   })));
   const globalNamespace = 'globals';
