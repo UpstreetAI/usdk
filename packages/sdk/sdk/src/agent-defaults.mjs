@@ -1,5 +1,6 @@
 import packageJson from '../../package.json' with { type: 'json' };
 import { generationModel } from '../../const.js';
+import { workersHost } from './util/endpoints.mjs';
 
 export const callbackPort = 10617;
 export const devServerPort = 10618;
