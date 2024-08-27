@@ -86,7 +86,7 @@ export default async function AgentProfilePage({ params }: Params) {
     .eq('id', agentId)
     .single();
 
-  // if (!agentData?.start_url) return notFound();
+  if (!agentData?.id) return <div className="w-full max-w-2xl mx-auto p-8 text-center">Agent Not Found</div>;
 
   // const response = await fetch(agentData.start_url);
   // if (response.ok) {
