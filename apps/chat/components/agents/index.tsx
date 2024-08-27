@@ -76,13 +76,13 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
       </div>
       <div className='text-center'>
         {!agents.length || showLoadMore &&
-          <div
+          <Button
             disabled={loadingMore}
-            className='cursor-pointer mt-10 bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
+            className='cursor-pointer h-auto mt-10 bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
             onClick={loadAgents}
           >
             {loadingMore ? "Loading agents..." : "Load More"}
-          </div>
+          </Button>
         }
       </div>
     </>
