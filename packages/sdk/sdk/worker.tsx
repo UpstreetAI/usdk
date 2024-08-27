@@ -1,6 +1,5 @@
 import './src/util/worker-globals.mjs';
 import { DurableObject } from './durable-object.tsx';
-import { stringToDataUrl } from './src/util/base64.mjs';
 
 //
 
@@ -26,7 +25,7 @@ globalThis.onmessage = (event: any) => {
           const { args } = event.data;
           const { env, agentTsx } = args;
 
-          const userRender = await nativeImport(stringToDataUrl(agentTsx, 'application/javascript'));
+          const userRender = await nativeImport(`data:application/javascript,${encodeURIComponent(agentTsx)}`);
 
           const state = {
             userRender,
