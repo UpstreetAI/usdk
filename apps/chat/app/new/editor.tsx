@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 import path from 'path';
-import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
+import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
@@ -176,6 +176,8 @@ export default function AgentEditor() {
 
   const [deploying, setDeploying] = useState(false);
   const [room, setRoom] = useState('');
+  const [starting, setStarting] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
   const stopAgent = () => {
@@ -189,6 +191,8 @@ export default function AgentEditor() {
   };
   const startAgent = async () => {
     stopAgent();
+
+    setStarting(true);
 
     console.log('building agent src');
     const agentSrc = await buildAgentSrc();
@@ -306,6 +310,7 @@ export default function AgentEditor() {
 
     const newRoom = `rooms:${id}:browser`;
     setRoom(newRoom);
+    setConnecting(true);
 
     // call the join request on the agent
     const agentHost = `${location.protocol}//${location.host}`;
@@ -326,6 +331,8 @@ export default function AgentEditor() {
       const text = await joinReq.text();
       console.error('agent failed to join room', joinReq.status, text);
     }
+
+    setStarting(false);
   };
 
   const [builderPrompt, setBuilderPrompt] = useState('');
@@ -336,7 +343,6 @@ export default function AgentEditor() {
   const editorForm = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
-
 
   return (
     <div className="flex flex-1">
@@ -411,6 +417,14 @@ export default function AgentEditor() {
       </div> */}
       <Chat
         room={room}
+        onConnect={(connected) => {
+          // console.log('got connected', {
+          //   connected,
+          // });
+          if (connected) {
+            setConnecting(false);
+          }
+        }}
       />
       {/* editor */}
       <form className="relative flex flex-col flex-1" ref={editorForm} onSubmit={e => {
@@ -499,7 +513,17 @@ export default function AgentEditor() {
                 stopAgent();
               }
             }}
-          >{!worker ? `Start` : 'Stop'}</Button>
+          >{(() => {
+            if (starting) {
+              return 'Starting...';
+            } else if (connecting) {
+              return 'Connecting...';
+            } else if (worker) {
+              return 'Stop';
+            } else {
+              return 'Start';
+            }
+          })()}</Button>
           <Button
             onClick={e => {
               e.preventDefault();

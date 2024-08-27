@@ -53,9 +53,10 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   // user: User|null
   // missingKeys: string[]
   room: string
+  onConnect?: (connected: boolean) => void
 }
 
-export function Chat({ className, /* user, missingKeys, */ room }: ChatProps) {
+export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   // const router = useRouter()
   // const path = usePathname()
   const [input, setInput] = useState('')
@@ -66,12 +67,17 @@ export function Chat({ className, /* user, missingKeys, */ room }: ChatProps) {
   // const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   const {
+    connected,
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
     sendRawMessage,
     // sendChatMessage,
-  } = useMultiplayerActions()
+  } = useMultiplayerActions();
+
+  useEffect(() => {
+    onConnect && onConnect(connected);
+  }, [connected]);
 
   const messages = rawMessages.map((rawMessage: any, index: number) => {
     const message = {
