@@ -1,3 +1,4 @@
+import React from 'react';
 import { Agents } from '@/components/agents';
 
 export default function AgentsPage() {
