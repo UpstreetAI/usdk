@@ -102,7 +102,7 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     conversation.messageCache.loadPromise = (async () => {
       const messages = await loadMessagesFromDatabase({
         supabase,
-        conversationId: agent.id,
+        conversationId: conversation.getKey(),
         agentId: agent.id,
         limit: CACHED_MESSAGES_LIMIT,
       });
