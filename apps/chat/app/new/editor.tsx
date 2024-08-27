@@ -19,8 +19,8 @@ import {
   Chat,
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
-import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
-import { agentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
+// import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
+import { AgentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -39,6 +39,22 @@ const ensureEsbuild = (() => {
   };
 })();
 
+const defaultSourceCode = `\
+import React from 'react';
+import {
+  Agent,
+} from 'react-agents';
+
+//
+
+export default function MyAgent() {
+  return (
+    <Agent>
+      {/* ... */}
+    </Agent>
+  );
+}
+`;
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -181,8 +197,13 @@ type ChatMessage = {
 export default function AgentEditor() {
   // state
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [bio, setBio] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
+
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  // const lastPreviewBlobRef = useRef<Blob | null>(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  // const lastPreviewUrlRef = useRef<string>('');
 
   const [deploying, setDeploying] = useState(false);
   const [room, setRoom] = useState('');
@@ -194,7 +215,7 @@ export default function AgentEditor() {
   const [builderPrompt, setBuilderPrompt] = useState('');
   const [agentPrompt, setAgentPrompt] = useState('');
 
-  const agentInterviewRef = useRef(false);
+  const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
   const builderForm = useRef<HTMLFormElement>(null);
@@ -202,6 +223,27 @@ export default function AgentEditor() {
   const editorForm = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
+
+  // effects
+  // sync previewBlob -> previewUrl
+  useEffect(() => {
+    // if (lastPreviewUrlRef.current) {
+    //   URL.revokeObjectURL(lastPreviewUrlRef.current);
+    //   lastPreviewUrlRef.current = '';
+    // }
+
+    if (previewBlob) {
+      const url = URL.createObjectURL(previewBlob);
+      // lastPreviewUrlRef.current = url;
+      setPreviewUrl(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setPreviewUrl('');
+    }
+  }, [previewBlob]);
 
   // helpers
   const getEditorValue = (m = monaco) => m?.editor.getModels()[0].getValue() ?? '';
@@ -370,38 +412,66 @@ export default function AgentEditor() {
     }
   };
   const ensureAgentInterview = () => {
-    if (!agentInterviewRef.current) {
-      agentInterviewRef.current = true;
-
-      (async () => {
+    if (!agentInterviewPromiseRef.current) {
+      agentInterviewPromiseRef.current = (async () => {
         const jwt = await getJWT();
 
         const agentJson = {};
-        // XXX make this into a class
-        const result = await agentInterview({
+        const agentInterview = new AgentInterview({
           agentJson,
-          // prompt,
-          // getInput: async (question) => {
-          //   const answer = await input({
-          //     message: question,
-          //   });
-          //   return answer;
-          // },
-          onChange: (updateObject: any) => {
-            console.log('got update object', updateObject);
-          },
-          onPreview: async (data: any) => {
-            // const {
-            //   result: blob,
-            //   signal,
-            // } = data;
-            console.log('got preview data', data);
-          },
+          mode: 'manual',
           jwt,
         });
-        console.log('interview done', result);
+        agentInterview.addEventListener('input', (e: any) => {
+          const {
+            question,
+          } = e.data;
+          setBuilderMessages((builderMessages) => [
+            ...builderMessages,
+            {
+              role: 'assistant',
+              content: question,
+            },
+          ]);
+        });
+        agentInterview.addEventListener('output', (e: any) => {
+          const {
+            text,
+          } = e.data;
+          setBuilderMessages((builderMessages) => [
+            ...builderMessages,
+            {
+              role: 'assistant',
+              content: text,
+            },
+          ]);
+        });
+        agentInterview.addEventListener('change', (e: any) => {
+          console.log('got update object', e.data);
+          const {
+            updateObject,
+            agentJson,
+          } = e.data;
+          setName(agentJson.name);
+          setBio(agentJson.bio);
+          setVisualDescription(agentJson.visualDescription);
+        });
+        agentInterview.addEventListener('preview', (e: any) => {
+          const {
+            result,
+            signal,
+          } = e.data;
+          console.log('got preview data', e.data);
+          setPreviewBlob(result);
+        });
+        agentInterview.addEventListener('finish', (e: any) => {
+          // clean up
+          agentInterviewPromiseRef.current = null;
+        });
+        return agentInterview;
       })();
     }
+    return agentInterviewPromiseRef.current;
   };
 
   // render
@@ -423,7 +493,9 @@ export default function AgentEditor() {
             e.stopPropagation();
 
             if (builderPrompt) {
-              ensureAgentInterview();
+              const agentInterview = await ensureAgentInterview();
+
+              agentInterview.write(builderPrompt);
 
               setBuilderMessages((builderMessages) => [
                 ...builderMessages,
@@ -509,13 +581,11 @@ export default function AgentEditor() {
           (async () => {
             setDeploying(true);
 
-            // XXX debug this
-
             // get the value from monaco editor
             const value = getEditorValue();
             console.log('deploy', {
               name,
-              description,
+              bio,
               visualDescription,
               value,
             });
@@ -529,7 +599,7 @@ export default function AgentEditor() {
                   Authorization: `Bearer ${jwt}`,
                   metadata: JSON.stringify({
                     name,
-                    description,
+                    bio,
                     visualDescription,
                   }),
                 },
@@ -555,12 +625,18 @@ export default function AgentEditor() {
           })();
         }
       }}>
-        <div className="flex m-4">
+        <div className="flex my-4">
+          {previewUrl ? <img
+            src={previewUrl}
+            className='w-10 h-10 mr-2 bg-primary/10 rounded'
+          /> : <div
+            className='w-10 h-10 mr-2 bg-primary/10 rounded'
+          />}
           <input type="text" className="p-2 mr-2" value={name} placeholder="Name" onChange={e => {
             setName(e.target.value);
           }} />
-          <input type="text" className="p-2 mr-2 flex-1" value={description} placeholder="Description" onChange={e => {
-            setDescription(e.target.value);
+          <input type="text" className="p-2 mr-2 flex-1" value={bio} placeholder="Bio" onChange={e => {
+            setBio(e.target.value);
           }} />
           <input type="text" className="p-2 mr-2 flex-1" value={visualDescription} placeholder="Visual description" onChange={e => {
             setVisualDescription(e.target.value);
@@ -596,22 +672,7 @@ export default function AgentEditor() {
         <Editor
           theme="vs-dark"
           defaultLanguage="javascript"
-          defaultValue={`\
-import React from 'react';
-import {
-  Agent,
-} from 'react-agents';
-
-//
-
-export default function MyAgent() {
-  return (
-    <Agent>
-      {/* ... */}
-    </Agent>
-  );
-}
-`}
+          defaultValue={defaultSourceCode}
           options={{
             readOnly: deploying,
           }}

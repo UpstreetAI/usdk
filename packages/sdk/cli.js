@@ -2439,7 +2439,7 @@ export const create = async (args, opts) => {
           updateObject,
           agentJson,
         } = e.data;
-        console.log('change', updateObject);
+        // console.log('change', updateObject);
       });
       agentInterview.addEventListener('preview', async e => {
         const {
