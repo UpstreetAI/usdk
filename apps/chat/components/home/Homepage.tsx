@@ -52,16 +52,10 @@ export default function Home() {
             <div className='bg-[#000000] text-2xl font-bold inline-block'>
               Create your own AIs using the AI builder or React.‍
             </div>
-
             <div className='w-full pt-12'>
-              <a
-                onClick={() => {
-                  newChat();
-                }}
-                className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
-              >
+              <Link href="/agents" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
                 Find an AI
-              </a>
+              </Link>
               <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
@@ -103,10 +97,12 @@ export default function Home() {
               onClick={() => {
                 newChat();
               }}
-              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'
-            >
-              Chat
+              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
+              New Chat
             </a>
+            <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+              Browse Agents
+            </Link>
           </div>
         </div>
       </div>
