@@ -24,8 +24,8 @@ globalThis.onmessage = (event: any) => {
         durableObjectPromise = (async () => {
           const { args } = event.data;
           const { env, agentSrc } = args;
-          if (!agentSrc) {
-            throw new Error('agent worker: missing agentTsx');
+          if (typeof agentSrc !== 'string') {
+            throw new Error('agent worker: missing agentSrc');
           }
 
           const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
