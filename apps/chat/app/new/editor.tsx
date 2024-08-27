@@ -36,10 +36,20 @@ const ensureEsbuild = (() => {
   };
 })();
 
-const buildAgentSrc = async () => {
+const defaultFiles = [
+  {
+    path: '/example.ts',
+    content: `\
+      export const example = 'This is an example module';
+    `,
+  },
+];
+const buildAgentSrc = async (sourceCode: string, {
+  files = defaultFiles,
+} = {}) => {
   await ensureEsbuild();
 
-  const sourceCode = `\
+  /* const sourceCode = `\
     import React from 'react';
     import {
       Agent,
@@ -58,19 +68,10 @@ const buildAgentSrc = async () => {
     export default function MyAgent() {
       return (
         <Agent>
-          {/* ... */}
         </Agent>
       );
     };
-  `;
-  const files = [
-    {
-      path: '/example.ts',
-      content: `\
-        export const example = 'This is an example module';
-      `,
-    },
-  ];
+  `; */
   const fileMap = new Map(files.map(file => [file.path, file.content]));
   const filesNamespace = 'files';
   const globalImportMap = new Map(Array.from(Object.entries({
@@ -170,6 +171,7 @@ type FetchableWorker = Worker & {
 };
 
 export default function AgentEditor() {
+  // state
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
@@ -180,23 +182,26 @@ export default function AgentEditor() {
   const [connecting, setConnecting] = useState(false);
 
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
-  const stopAgent = () => {
-    if (worker) {
-      worker.terminate();
-      setWorker(null);
-    }
-    if (room) {
-      setRoom('');
-    }
-  };
-  const startAgent = async () => {
+
+  const [builderPrompt, setBuilderPrompt] = useState('');
+  const [agentPrompt, setAgentPrompt] = useState('');
+
+  const builderForm = useRef<HTMLFormElement>(null);
+  // const agentForm = useRef<HTMLFormElement>(null);
+  const editorForm = useRef<HTMLFormElement>(null);
+
+  const monaco = useMonaco();
+
+  // helpers
+  const getEditorValue = (m = monaco) => m?.editor.getModels()[0].getValue() ?? '';
+  const startAgent = async (sourceCode = getEditorValue()) => {
     stopAgent();
 
     setStarting(true);
 
-    console.log('building agent src');
-    const agentSrc = await buildAgentSrc();
-    console.log('built agent src:', agentSrc);
+    console.log('building agent src...', {monaco, sourceCode});
+    const agentSrc = await buildAgentSrc(sourceCode);
+    console.log('built agent src:', {agentSrc});
 
     console.log('getting agent id...');
     const jwt = await getJWT();
@@ -334,16 +339,24 @@ export default function AgentEditor() {
 
     setStarting(false);
   };
+  const stopAgent = () => {
+    if (worker) {
+      worker.terminate();
+      setWorker(null);
+    }
+    if (room) {
+      setRoom('');
+    }
+  };
+  const toggleAgent = async () => {
+    if (!worker) {
+      await startAgent();
+    } else {
+      stopAgent();
+    }
+  };
 
-  const [builderPrompt, setBuilderPrompt] = useState('');
-  const [agentPrompt, setAgentPrompt] = useState('');
-
-  const builderForm = useRef<HTMLFormElement>(null);
-  // const agentForm = useRef<HTMLFormElement>(null);
-  const editorForm = useRef<HTMLFormElement>(null);
-
-  const monaco = useMonaco();
-
+  // render
   return (
     <div className="flex flex-1">
       {/* builder */}
@@ -437,7 +450,7 @@ export default function AgentEditor() {
             setDeploying(true);
 
             // get the value from monaco editor
-            const value = monaco?.editor.getModels()[0].getValue();
+            const value = getEditorValue();
             console.log('deploy', {
               name,
               description,
@@ -487,31 +500,15 @@ export default function AgentEditor() {
           <input type="text" className="p-2 mr-2 flex-1" value={description} placeholder="Description" onChange={e => {
             setDescription(e.target.value);
           }} />
-          {/* <Button
-            className='mr-2'
-            onClick={async e => {
-              e.preventDefault();
-              e.stopPropagation();
-
-              setAutofilling(true);
-              try {
-                
-              } finally {
-                setAutofilling(false);
-              }
-            }}
-            disabled={autofilling}
-          >{!autofilling ? `Autofill` : 'Autofilling...'}</Button> */}
+          <input type="text" className="p-2 mr-2 flex-1" value={visualDescription} placeholder="Visual description" onChange={e => {
+            setVisualDescription(e.target.value);
+          }} />
           <Button
             onClick={e => {
               e.preventDefault();
               e.stopPropagation();
 
-              if (!worker) {
-                startAgent();
-              } else {
-                stopAgent();
-              }
+              toggleAgent();
             }}
           >{(() => {
             if (starting) {
@@ -556,8 +553,14 @@ export default function MyAgent() {
           options={{
             readOnly: deploying,
           }}
-          onMount={editor => {
+          onMount={(editor, monaco) => {
             (editor as any)._domElement.parentNode.style.flex = 1;
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+              // // Add your save logic here
+              // alert('Ctrl+S pressed');
+              startAgent(getEditorValue(monaco));
+            });
           }}
         />
       </form>
