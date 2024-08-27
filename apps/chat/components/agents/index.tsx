@@ -10,7 +10,7 @@ export interface AgentsProps {
   range: number
 }
 
-export function Agents({ loadmore, range = 5 }: AgentsProps) {
+export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   const { supabase } = useSupabase();
 
   const [agents, setAgents] = useState([]);
