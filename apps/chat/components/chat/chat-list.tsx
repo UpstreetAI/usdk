@@ -1,4 +1,4 @@
-import { type User } from '@supabase/supabase-js'
+// import { type User } from '@supabase/supabase-js'
 import { Separator } from '@/components/ui/separator'
 // import { UIState } from '@/lib/chat/actions'
 // import Link from 'next/link'

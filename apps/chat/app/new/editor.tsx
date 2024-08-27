@@ -2,6 +2,7 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 import path from 'path';
+import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
@@ -630,49 +631,62 @@ export default function AgentEditor() {
           })();
         }
       }}>
-        <div className="flex my-4">
-          {previewUrl ? <img
-            src={previewUrl}
-            className='w-10 h-10 mr-2 bg-primary/10 rounded'
-          /> : <div
-            className='w-10 h-10 mr-2 bg-primary/10 rounded'
-          />}
-          <input type="text" className="p-2 mr-2" value={name} placeholder="Name" onChange={e => {
-            setName(e.target.value);
-          }} />
-          <input type="text" className="p-2 mr-2 flex-1" value={bio} placeholder="Bio" onChange={e => {
-            setBio(e.target.value);
-          }} />
-          <input type="text" className="p-2 mr-2 flex-1" value={visualDescription} placeholder="Visual description" onChange={e => {
-            setVisualDescription(e.target.value);
-          }} />
-          <Button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+        <div className="flex w-100 my-4">
+          <Link
+            href={previewUrl}
+            target="_blank"
+          >
+            {previewUrl ? <img
+              src={previewUrl}
+              className='w-20 h-20 mr-2 bg-primary/10 rounded'
+            /> : <div
+              className='w-20 h-20 mr-2 bg-primary/10 rounded'
+            />}
+          </Link>
+          <div
+            className="flex flex-col flex-1 mr-2"
+          >
+            <input type="text" className="px-2" value={name} placeholder="Name" onChange={e => {
+              setName(e.target.value);
+            }} />
+            <input type="text" className="px-2" value={bio} placeholder="Bio" onChange={e => {
+              setBio(e.target.value);
+            }} />
+            <input type="text" className="px-2" value={visualDescription} placeholder="Visual description" onChange={e => {
+              setVisualDescription(e.target.value);
+            }} />
+          </div>
+          <div
+            className="flex flex-col w-20"
+          >
+            <Button
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-              toggleAgent();
-            }}
-          >{(() => {
-            if (starting) {
-              return 'Starting...';
-            } else if (connecting) {
-              return 'Connecting...';
-            } else if (worker) {
-              return 'Stop';
-            } else {
-              return 'Start';
-            }
-          })()}</Button>
-          <Button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+                toggleAgent();
+              }}
+            >{(() => {
+              if (starting) {
+                return 'Starting...';
+              } else if (connecting) {
+                return 'Connecting...';
+              } else if (worker) {
+                return 'Stop';
+              } else {
+                return 'Start';
+              }
+            })()}</Button>
+            <Button
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-              builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
-            disabled={deploying}
-          >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+                builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              }}
+              disabled={deploying}
+            >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+          </div>
         </div>
         <Editor
           theme="vs-dark"
