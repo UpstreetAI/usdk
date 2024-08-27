@@ -38,9 +38,9 @@ export function ChatPanel({
   // const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
 
-  function joinRoom() {
-    location.href = `/rooms/${crypto.randomUUID()}`;
-  }
+  // function joinRoom() {
+  //   location.href = `/rooms/${crypto.randomUUID()}`;
+  // }
 
   /*const exampleMessages = [
     {
