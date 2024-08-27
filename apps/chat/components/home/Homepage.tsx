@@ -90,7 +90,7 @@ export default function Home() {
           </div>
           <div className='h-full md:w-[50%] my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
-            <div className='text-xl mb-12'>
+            <div className='mb-12'>
               <Agents loadmore={false} range={5} />
             </div>
             <a

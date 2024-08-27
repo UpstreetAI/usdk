@@ -32,7 +32,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
       .from('assets')
       .select(`
         *,
-        author: accounts ( name )
+        author: accounts ( id, name )
       `)
       .eq('origin', 'sdk')
       .range(rangeFrom, rangeTo - 1)
@@ -54,7 +54,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
       }
 
       if (data.length < range) {
-        setShowLoadMore(false)
+        setShowLoadMore(false);
       }
 
       setLoading(false);

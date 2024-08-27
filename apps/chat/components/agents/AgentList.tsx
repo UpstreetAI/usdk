@@ -20,7 +20,7 @@ export function AgentList({ agents, loading }: AgentListProps) {
   if (!agents.length) return 'No agents found.';
 
   return agents.map((agent: any, index: number) =>
-    <div key={index} className="flex">
+    <div key={index} className="flex mb-2">
       <div className="mr-4 mb-4 size-[80px] min-w-[80px] bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center overflow-hidden">
         {agent.preview_url && isValidUrl(agent.preview_url) ? (
           <Image src={resolveRelativeUrl(agent.preview_url)} alt="" className="h-full" width={80} height={80} />
