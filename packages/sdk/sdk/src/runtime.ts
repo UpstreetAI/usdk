@@ -113,7 +113,7 @@ async function _generateAgentActionFromMessages(
 
   const numRetries = 5;
   return await retry(async () => {
-    const completionMessage = await generativeAgent.complete(promptMessages);
+    const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
     if (completionMessage !== null) {
       let newMessage: PendingActionMessage = null;
       newMessage = await parser.parseFn(completionMessage.content);
