@@ -14,7 +14,7 @@ import {
   type ActionProps,
   type PromptProps,
   type FormatterProps,
-  type ParserProps,
+  // type ParserProps,
   type PerceptionProps,
   type TaskProps,
   type NameProps,
@@ -271,6 +271,7 @@ export const Formatter = /*memo(*/(props: FormatterProps) => {
   const symbol = useMemo(makeSymbol, []);
 
   const deps = [
+    props.schemaFn.toString(),
     props.formatFn.toString(),
   ];
 
@@ -286,7 +287,7 @@ export const Formatter = /*memo(*/(props: FormatterProps) => {
   // return <formatter value={props} />;
   return null;
 }//);
-export const Parser = /*memo(*/(props: ParserProps) => {
+/* export const Parser = (props: ParserProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(makeSymbol, []);
@@ -306,7 +307,7 @@ export const Parser = /*memo(*/(props: ParserProps) => {
 
   // return <parser value={props} />;
   return null;
-}//);
+} */
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;

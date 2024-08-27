@@ -7,6 +7,7 @@ import dedent from 'dedent';
 import {
   ChatMessages,
   PendingActionMessage,
+  ActionMessage,
   ActionProps,
   ConversationObject,
   TaskEventData,
@@ -106,17 +107,30 @@ async function _generateAgentActionFromMessages(
 ) {
   const { agent } = generativeAgent;
   const {
-    parsers,
+    // parsers,
+    formatters,
     actions,
   } = agent.registry;
-  const parser = parsers[0];
+  // const parser = parsers[0];
+  const formatter = formatters[0];
+  const schema = formatter.schemaFn(actions);
 
+  // validation
+  // if (!parser) {
+  //   throw new Error('no parser found');
+  // }
+  if (!formatter) {
+    throw new Error('no formatter found');
+  }
+
+  // retries
   const numRetries = 5;
   return await retry(async () => {
     const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
     if (completionMessage !== null) {
       let newMessage: PendingActionMessage = null;
-      newMessage = await parser.parseFn(completionMessage.content);
+      // newMessage = await parser.parseFn(completionMessage.content);
+      newMessage = completionMessage.content as PendingActionMessage;
 
       const { method } = newMessage;
       const actionHandler = getActionHandlerByName(actions, method);
