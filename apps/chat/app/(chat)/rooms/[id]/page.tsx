@@ -80,7 +80,7 @@ export default async function RoomPage({ params }: Params) {
 
   return (
     // <AI initialAIState={{ chatId: id, messages: [] }}>
-    <div className="relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden">
+    <div className="w-full relative flex h-[calc(100vh_-_theme(spacing.16))] overflow-hidden">
       <LoginRedirect />
 
       <SidebarDesktopLeft />
