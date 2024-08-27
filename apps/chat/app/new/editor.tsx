@@ -654,17 +654,17 @@ export default function AgentEditor() {
         }
       }}>
         <div className="flex w-100 my-4">
-          <Link
+          {previewUrl ? <Link
             href={previewUrl}
             target="_blank"
           >
-            {previewUrl ? <img
+            <img
               src={previewUrl}
               className='w-20 h-20 mr-2 bg-primary/10 rounded'
-            /> : <div
-              className='w-20 h-20 mr-2 bg-primary/10 rounded'
-            />}
-          </Link>
+            />
+          </Link> : <div
+            className='w-20 h-20 mr-2 bg-primary/10 rounded'
+          />}
           <div
             className="flex flex-col flex-1 mr-2"
           >
