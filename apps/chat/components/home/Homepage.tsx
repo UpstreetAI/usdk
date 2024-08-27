@@ -83,29 +83,28 @@ export default function Home() {
       </div>
 
       <div className="w-full bg-[#000000] py-20">
-        <div className="md:flex p-4 mx-auto max-w-6xl h-full">
-          <div className='h-full md:w-[50%] text-center'>
-            <Image src={'/images/nota-2.png'} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
-          </div>
-          <div className='h-full md:w-[50%] my-auto'>
+        <div className="p-4 mx-auto max-w-6xl h-full">
+          <div className='h-full my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
             <div className='text-lg mb-12'>
               Upstreet AIs are not apps, they are agents on the Nota social network.
               Here are a few of  the latest agents you can talk to, hit them up over DMs:
             </div>
             <div className='mb-12'>
-              <Agents loadmore={false} range={5} />
+              <Agents loadmore={false} range={6} grid={3} gap={3} />
             </div>
-            <a
-              onClick={() => {
-                newChat();
-              }}
-              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
-              New Chat
-            </a>
-            <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
-              Browse Agents
-            </Link>
+            <div className='pt-4'>
+              <a
+                onClick={() => {
+                  newChat();
+                }}
+                className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
+                New Chat
+              </a>
+              <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+                Browse Agents
+              </Link>
+            </div>
           </div>
         </div>
       </div>
