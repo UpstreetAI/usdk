@@ -174,10 +174,10 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                         key={i}
                       >
                         <td className="px-2 md:px-6 w-[60px] pr-0 py-4 text-md capitalize align-top">
-                          <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                          <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center overflow-hidden">
                             {preview_url && isValidUrl(preview_url) ? (
                               <Image
-                                className="flex"
+                                className="flex h-full"
                                 width={60}
                                 height={60}
                                 src={preview_url}
@@ -191,10 +191,12 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                           </div>
                         </td>
                         <td className="px-2 md:px-6 min-w-40 py-4 text-md capitalize align-top">
-                          <div className="font-bold line-clamp-1">{name}</div>
-                          <div className="w-full line-clamp-1">
-                            {description}
-                          </div>
+                          <a href={`/agents/${id}`} className="block hover:underline">
+                            <div className="font-bold line-clamp-1">{name}</div>
+                            <div className="w-full line-clamp-1">
+                              {description}
+                            </div>
+                          </a>
                           <div className="mt-1 text-gray-400 font-bold">
                             Version: {version}
                           </div>
