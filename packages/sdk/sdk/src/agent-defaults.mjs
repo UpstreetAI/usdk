@@ -1,6 +1,14 @@
 import packageJson from '../../package.json' with { type: 'json' };
 import { generationModel } from '../../const.js';
 
+export const callbackPort = 10617;
+export const devServerPort = 10618;
+
+export const getAgentName = (guid) => `user-agent-${guid}`;
+export const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
+export const getLocalAgentHost = (portIndex = 0) => `http://localhost:${devServerPort + portIndex}`;
+export const getCloudAgentHost = (guid) => `https://${getAgentName(guid)}.${workersHost}`;
+
 export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.name !== 'string') {
     spec.name = 'AI Agent';
@@ -13,6 +21,9 @@ export const ensureAgentJsonDefaults = (spec) => {
   }
   if (typeof spec.model !== 'string') {
     spec.model = generationModel;
+  }
+  if (typeof spec.startUrl !== 'string') {
+    spec.startUrl = getCloudAgentHost(spec.id);
   }
   if (typeof spec.previewUrl !== 'string') {
     spec.previewUrl = '/images/characters/upstreet/small/scillia.png';

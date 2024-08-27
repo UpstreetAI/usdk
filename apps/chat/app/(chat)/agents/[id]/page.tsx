@@ -78,9 +78,7 @@ export default async function AgentProfilePage({ params }: Params) {
 
   // decode the uri for usernames that have spaces in them
   // const agentName = decodeURIComponent(params.id)
-  const agentId = decodeURIComponent(params.id)
-
-  // console.log(agentId)
+  const agentId = decodeURIComponent(params.id);
 
   const { data: agentData } = await supabase
     .from('assets')
@@ -88,7 +86,7 @@ export default async function AgentProfilePage({ params }: Params) {
     .eq('id', agentId)
     .single();
 
-  if (!agentData?.start_url) return notFound();
+  // if (!agentData?.start_url) return notFound();
 
   // const response = await fetch(agentData.start_url);
   // if (response.ok) {

@@ -7,6 +7,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
 import Link from 'next/link';
+import { Agents } from '../agents';
 
 
 const Hero1 = '/images/hero-1.jpg';
@@ -50,16 +51,10 @@ export default function Home() {
             <div className='bg-[#000000] text-2xl font-bold inline-block'>
               Create your own AIs using the AI builder or React.‍
             </div>
-
             <div className='w-full pt-12'>
-              <a
-                onClick={() => {
-                  newChat();
-                }}
-                className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
-              >
+              <Link href="/agents" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
                 Find an AI
-              </a>
+              </Link>
               <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
                 Create an AI
               </Link>
@@ -88,24 +83,28 @@ export default function Home() {
       </div>
 
       <div className="w-full bg-[#000000] py-20">
-        <div className="md:flex p-4 mx-auto max-w-6xl h-full">
-          <div className='h-full md:w-[50%] text-center'>
-            <Image src={'/images/nota-2.png'} alt="" width={400} height={400} className="s-300 mb-12 h-full inline-block" />
-          </div>
-          <div className='h-full md:w-[50%] my-auto'>
+        <div className="p-4 mx-auto max-w-6xl h-full">
+          <div className='h-full my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
-            <div className='text-xl mb-12'>
-              Upstreet AIs are not apps, they are agents on the Nota social network. Hit them up over DM or video.
-              They live their own lives and form their own relationships. Upstreet AIs are your friends.
+            <div className='text-lg mb-12'>
+              Upstreet AIs are not apps, they are agents on the Nota social network.
+              Here are a few of  the latest agents you can talk to, hit them up over DMs:
             </div>
-            <a
-              onClick={() => {
-                newChat();
-              }}
-              className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'
-            >
-              Chat
-            </a>
+            <div className='mb-12'>
+              <Agents loadmore={false} range={6} grid={3} gap={3} />
+            </div>
+            <div className='pt-4'>
+              <a
+                onClick={() => {
+                  newChat();
+                }}
+                className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
+                New Chat
+              </a>
+              <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
+                Browse Agents
+              </Link>
+            </div>
           </div>
         </div>
       </div>

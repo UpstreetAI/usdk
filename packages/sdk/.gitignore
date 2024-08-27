@@ -1,5 +1,6 @@
 .idea
 *.orig
 dist/
+agents/
 node_modules/
 .DS_Store

@@ -48,7 +48,15 @@ import { AgentInterview, applyFeaturesToAgentJSX } from './sdk/src/util/agent-in
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import { makeId } from './sdk/src/util/util.mjs';
-import { ensureAgentJsonDefaults } from './sdk/src/agent-defaults.mjs';
+import {
+  callbackPort,
+  devServerPort,
+  getAgentName,
+  getAgentPublicUrl,
+  getLocalAgentHost,
+  getCloudAgentHost,
+  ensureAgentJsonDefaults,
+} from './sdk/src/agent-defaults.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
@@ -207,10 +215,6 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await mkdirp(path.dirname(dst));
   await fs.promises.writeFile(dst, s);
 };
-const getAgentName = (guid) => `user-agent-${guid}`;
-const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
-const getLocalAgentHost = (portIndex = 0) => `http://localhost:${devServerPort + portIndex}`;
-const getCloudAgentHost = (guid) => `https://${getAgentName(guid)}.${workersHost}`;
 const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost() : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
@@ -331,14 +335,12 @@ const makeCorsHeaders = (req) => {
   return headers;
 };
 
-const callbackPort = 10617;
-const devServerPort = 10618;
 // const webcamPort = 10619;
 const cwd = process.cwd();
 const homedir = os.homedir();
 const usdkProfileLocation = path.join(homedir, '.usdk');
 const loginLocation = path.join(usdkProfileLocation, 'login.json');
-const walletLocation = path.join(usdkProfileLocation, 'wallet.json');
+// const walletLocation = path.join(usdkProfileLocation, 'wallet.json');
 
 const getServerOpts = () => {
   return {
@@ -2605,8 +2607,6 @@ export const create = async (args, opts) => {
   console.log(pc.green('Description:'), agentJson.description);
   console.log(pc.green('Bio:'), agentJson.bio, '\n');
 };
-const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
-// const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
