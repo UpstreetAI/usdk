@@ -28,11 +28,15 @@ const ensureEsbuild = (() => {
   return () => {
     if (!esBuildPromise) {
       esBuildPromise = (async () => {
-        const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
-        await esbuild.initialize({
-          worker: true,
-          wasmURL: u.href,
-        });
+        try {
+          const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
+          await esbuild.initialize({
+            worker: true,
+            wasmURL: u.href,
+          });
+        } catch (err) {
+          console.warn('failed to initialize esbuild', err);
+        }
       })();
     }
     return esBuildPromise;
