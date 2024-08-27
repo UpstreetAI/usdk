@@ -96,7 +96,7 @@ const SubscriptionPlans = ({
                     {value > 0 ? `${currency}${value}` : '$0'}
                   </span>
                   <span className="text-base font-medium text-zinc-100">
-                    {value > 0 ? `/${interval}` : '/m'}
+                    {value > 0 ? `/${interval}` : '/mo'}
                   </span>
                 </p>
                 {value > 0 ?
