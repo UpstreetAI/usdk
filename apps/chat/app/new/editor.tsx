@@ -43,14 +43,27 @@ const buildAgentTsx = async () => {
 
   const sourceCode = `\
     import React from 'react';
-    import * as ReactAgents from 'react-agents';
+    import {
+      Agent,
+    } from 'react-agents';
     import { example } from './example.ts';
 
     console.log({
       React,
-      ReactAgents,
+      Agent,
       example,
+      // error: new Error().stack,
     });
+
+    //
+
+    export default function MyAgent() {
+      return (
+        <Agent>
+          {/* ... */}
+        </Agent>
+      );
+    };
   `;
   const files = [
     {
@@ -77,6 +90,7 @@ const buildAgentTsx = async () => {
     },
     bundle: true,
     outdir: 'dist',
+    format: 'esm',
     plugins: [
       {
         name: 'globals-plugin',
@@ -148,6 +162,15 @@ const buildAgentTsx = async () => {
   }
 };
 
+type FetchOpts = {
+  method?: string;
+  headers?: object | Headers;
+  body?: string | ArrayBuffer;
+};
+type FetchableWorker = Worker & {
+  fetch: (url: string, opts: FetchOpts) => Promise<Response>;
+};
+
 export default function AgentEditor() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -155,7 +178,7 @@ export default function AgentEditor() {
 
   const [deploying, setDeploying] = useState(false);
 
-  const workerRef = useRef<Worker | null>(null);
+  const workerRef = useRef<FetchableWorker | null>(null);
   const runAgent = async () => {
     if (workerRef.current) {
       workerRef.current.terminate();
@@ -191,24 +214,110 @@ export default function AgentEditor() {
       WALLET_MNEMONIC: mnemonic,
       SUPABASE_URL: "https://friddlbqibjnxjoxeocc.supabase.co",
       SUPABASE_PUBLIC_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaWRkbGJxaWJqbnhqb3hlb2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2NjE3NDIsImV4cCI6MjAxOTIzNzc0Mn0.jnvk5X27yFTcJ6jsCkuXOog1ZN825md4clvWuGQ8DMI",
-      WORKER_ENV: "production",
+      WORKER_ENV: 'development', // 'production',
     };
     console.log('starting worker with env:', env);
 
-    const worker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url));
+    // initialize the agent worker
+    const worker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
     worker.postMessage({
       method: 'initDurableObject',
       args: {
         env,
       },
     });
-    worker.addEventListener('message', e => {
-      console.log('got message', e.data);
-    });
     worker.addEventListener('error', e => {
       console.warn('got error', e);
     });
+    // augment the agent worker
+    worker.fetch = async (url: string, opts: FetchOpts) => {
+      const requestId = crypto.randomUUID();
+      const {
+        method,
+        headers,
+        body,
+      } = opts;
+      worker.postMessage({
+        method: 'request',
+        args: {
+          id: requestId,
+          url,
+          method,
+          headers,
+          body,
+        },
+      }, []);
+      const res = await new Promise<Response>((accept, reject) => {
+        const onmessage = (e: MessageEvent) => {
+          console.log('got worker message data', e.data);
+          try {
+            const { method } = e.data;
+            switch (method) {
+              case 'response': {
+                const { args } = e.data;
+                const {
+                  id: responseId,
+                } = args;
+                if (responseId === requestId) {
+                  cleanup();
+
+                  const {
+                    error,
+                    status,
+                    headers,
+                    body,
+                  } = args;
+                  if (!error) {
+                    const res = new Response(body, {
+                      status,
+                      headers,
+                    });
+                    accept(res);
+                  } else {
+                    reject(new Error(error));
+                  }
+                }
+                break;
+              }
+              default: {
+                console.warn('unhandled worker message method', e.data);
+              }
+            }
+          } catch (err) {
+            console.error('failed to handle worker message', err);
+            reject(err);
+          }
+        };
+        worker.addEventListener('message', onmessage);
+
+        const cleanup = () => {
+          worker.removeEventListener('message', onmessage);
+        };
+      });
+      return res;
+    };
     workerRef.current = worker;
+
+    // call the join request on the agent
+    const agentHost = `${location.protocol}//${location.host}`;
+    const room = `rooms:${agentJson.id}:browser`
+    const joinReq = await worker.fetch(`${agentHost}/join`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        room,
+        only: true,
+      }),
+    });
+    if (joinReq.ok) {
+      const j = await joinReq.json();
+      console.log('agent join response json', j);
+    } else {
+      const text = await joinReq.text();
+      console.error('agent failed to join room', joinReq.status, text);
+    }
   };
   const formEl = useRef<HTMLFormElement>(null);
 
