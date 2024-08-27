@@ -131,7 +131,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
         <div className="px-5 py-4">
           <div className="w-full">
             {/* Desktop View */}
-            <div className="hidden md:block relative overflow-x-scroll md:overflow-x-auto shadow-md sm:rounded-lg">
+            <div className="hidden md:block relative shadow-md sm:rounded-lg">
               <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead className="text-xs text-gray-50 uppercase bg-border">
                   <tr>

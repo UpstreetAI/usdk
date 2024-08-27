@@ -28,7 +28,7 @@ export function AgentList({ agents, loading }: AgentListProps) {
         )}
       </div>
       <div className="px-2 md:px-6 min-w-40 text-md capitalize w-full">
-        <a href={`/agents/${agent.id}`} className="block">
+        <a href={`/agents/${agent.id}`} className="block hover:underline">
           <div className="font-bold line-clamp-1">{agent.name}</div>
           <div className="w-full line-clamp-1">{agent.description}</div>
         </a>
