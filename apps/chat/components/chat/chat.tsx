@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat/chat-list'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+// import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { defaultUserPreviewUrl } from 'usdk/sdk/src/defaults.mjs';
 // import { useAIState } from 'ai/rsc'
 // import { Message } from '@/lib/types'
@@ -55,7 +55,7 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
 }
 
-export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps) {
+export function Chat({ className, /* user, missingKeys, */ room }: ChatProps) {
   // const router = useRouter()
   // const path = usePathname()
   const [input, setInput] = useState('')
@@ -63,7 +63,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
   // const [aiState] = useAIState()
   const { user } = useSupabase()
 
-  const [_, setNewChatId] = useLocalStorage('newChatId', id)
+  // const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   const {
     playersCache,
@@ -103,9 +103,9 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
     }
   }, [aiState.messages, router])*/
 
-  useEffect(() => {
-    setNewChatId(id)
-  })
+  // useEffect(() => {
+  //   setNewChatId(id)
+  // }, [id]);
 
   // useEffect(() => {
   //   missingKeys.map(key => {
@@ -155,7 +155,7 @@ export function Chat({ id, className, /* user, missingKeys, */ room }: ChatProps
         <div className="w-full h-px" ref={visibilityRef} />
       </div>
       <ChatPanel
-        id={id}
+        // id={id}
         input={input}
         setInput={setInput}
         isAtBottom={isAtBottom}
