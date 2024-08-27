@@ -18,7 +18,9 @@ import {
 import {
   Chat,
 } from '@/components/chat/chat';
+import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
+import { agentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -171,6 +173,11 @@ type FetchableWorker = Worker & {
   fetch: (url: string, opts: FetchOpts) => Promise<Response>;
 };
 
+type ChatMessage = {
+  role: string;
+  content: string;
+};
+
 export default function AgentEditor() {
   // state
   const [name, setName] = useState('');
@@ -186,6 +193,9 @@ export default function AgentEditor() {
 
   const [builderPrompt, setBuilderPrompt] = useState('');
   const [agentPrompt, setAgentPrompt] = useState('');
+
+  const agentInterviewRef = useRef(false);
+  const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
   const builderForm = useRef<HTMLFormElement>(null);
   // const agentForm = useRef<HTMLFormElement>(null);
@@ -217,11 +227,13 @@ export default function AgentEditor() {
 
     const agentJson = {
       id,
-      name: name || undefined,
-      bio: description || undefined,
+      name: '',
+      bio: '',
+      // name: name || undefined,
+      // bio: description || undefined,
       // visualDescription,
     };
-    ensureAgentJsonDefaults(agentJson);
+    // ensureAgentJsonDefaults(agentJson);
     const mnemonic = generateMnemonic();
     const env = {
       AGENT_JSON: JSON.stringify(agentJson),
@@ -357,6 +369,40 @@ export default function AgentEditor() {
       stopAgent();
     }
   };
+  const ensureAgentInterview = () => {
+    if (!agentInterviewRef.current) {
+      agentInterviewRef.current = true;
+
+      (async () => {
+        const jwt = await getJWT();
+
+        const agentJson = {};
+        // XXX make this into a class
+        const result = await agentInterview({
+          agentJson,
+          // prompt,
+          // getInput: async (question) => {
+          //   const answer = await input({
+          //     message: question,
+          //   });
+          //   return answer;
+          // },
+          onChange: (updateObject: any) => {
+            console.log('got update object', updateObject);
+          },
+          onPreview: async (data: any) => {
+            // const {
+            //   result: blob,
+            //   signal,
+            // } = data;
+            console.log('got preview data', data);
+          },
+          jwt,
+        });
+        console.log('interview done', result);
+      })();
+    }
+  };
 
   // render
   return (
@@ -364,7 +410,11 @@ export default function AgentEditor() {
       {/* builder */}
       <div className="flex flex-col flex-1">
         <div className="flex flex-col flex-1 bg-primary/10">
-          Builder chat history
+          {builderMessages.map((message, index) => (
+            <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
+              {message.content}
+            </div>
+          ))}
         </div>
         <form
           className="flex"
@@ -373,7 +423,15 @@ export default function AgentEditor() {
             e.stopPropagation();
 
             if (builderPrompt) {
-              console.log('run builder prompt', builderPrompt);
+              ensureAgentInterview();
+
+              setBuilderMessages((builderMessages) => [
+                ...builderMessages,
+                {
+                  role: 'user',
+                  content: builderPrompt,
+                },
+              ]);
               setBuilderPrompt('');
             }
           }}
@@ -450,6 +508,8 @@ export default function AgentEditor() {
         if (valid) {
           (async () => {
             setDeploying(true);
+
+            // XXX debug this
 
             // get the value from monaco editor
             const value = getEditorValue();
