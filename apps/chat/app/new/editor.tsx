@@ -479,6 +479,9 @@ export default function AgentEditor() {
     }
     return agentInterviewPromiseRef.current;
   };
+  const builderSubmit = () => {
+    builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  };
 
   // render
   return (
@@ -518,6 +521,17 @@ export default function AgentEditor() {
             type="text"
             className="flex-1 px-4"
             value={builderPrompt}
+            onKeyDown={e => {
+              switch (e.key) {
+                case 'Enter': {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  builderSubmit();
+                  break;
+                }
+              }
+            }}
             onChange={e => setBuilderPrompt(e.target.value)}
           />
           <Button
@@ -534,7 +548,7 @@ export default function AgentEditor() {
               e.preventDefault();
               e.stopPropagation();
 
-              builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              builderSubmit();
             }}
           >Send</Button>
         </form>
