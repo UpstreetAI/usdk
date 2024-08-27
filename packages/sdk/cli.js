@@ -153,7 +153,7 @@ const getAgentUrlFromGuid = (guid) => `https://user-agent-${guid}.${workersHost}
 //
 
 const agentJsonSrcFilename = 'agent.json';
-const agentJsonDstFilename = 'agent.npc';
+// const agentJsonDstFilename = 'agent.npc';
 
 const consoleImageWidth = 80;
 
@@ -2416,6 +2416,7 @@ export const create = async (args, opts) => {
       agentJson = await agentInterview({
         agentJson,
         prompt,
+        mode: prompt ? 'auto' : 'interactive',
         getInput: async (question) => {
           const answer = await input({
             message: question,
@@ -2592,7 +2593,7 @@ export const create = async (args, opts) => {
   console.log(pc.green('Bio:'), agentJson.bio, '\n');
 };
 const devAgentUrl = `http://local.upstreet.ai:${devServerPort}`;
-const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
+// const devAgentJsonUrl = `${devAgentUrl}/${agentJsonDstFilename}`;
 const makeRoomName = () => `room:` + makeId(8);
 const dev = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
