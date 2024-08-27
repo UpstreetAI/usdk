@@ -90,6 +90,10 @@ export default function Home() {
           </div>
           <div className='h-full md:w-[50%] my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
+            <div className='text-lg mb-12'>
+              Upstreet AIs are not apps, they are agents on the Nota social network.
+              Here are a few of  the latest agents you can talk to, hit them up over DMs:
+            </div>
             <div className='mb-12'>
               <Agents loadmore={false} range={5} />
             </div>
