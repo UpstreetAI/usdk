@@ -50,10 +50,8 @@ export class DurableObject extends EventTarget {
       userId: this.#getGuid(),
       supabase: this.supabase,
     });
-    console.log('load 1', {agentTsx: env.AGENT_TSX});
-    const userRender = env.AGENT_TSX
-      ? (new Function('return ' + env.AGENT_TSX) as typeof agentTsx)
-      : agentTsx;
+    console.log('load 1', {state, agentTsx});
+    const userRender = state.state ?? agentTsx;
     console.log('load 2', {userRender});
     this.agentRenderer = new AgentRenderer({
       env,
