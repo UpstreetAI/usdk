@@ -18,6 +18,7 @@ import {
 import {
   Chat,
 } from '@/components/chat/chat';
+import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -216,10 +217,11 @@ export default function AgentEditor() {
 
     const agentJson = {
       id,
-      name,
-      bio: description,
-      visualDescription,
+      name: name || undefined,
+      bio: description || undefined,
+      // visualDescription,
     };
+    ensureAgentJsonDefaults(agentJson);
     const mnemonic = generateMnemonic();
     const env = {
       AGENT_JSON: JSON.stringify(agentJson),
