@@ -75,7 +75,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
         <AgentList agents={agents} loading={loading} />
       </div>
       <div className='text-center'>
-        {showLoadMore &&
+        {!agents.length || showLoadMore &&
           <div
             disabled={loadingMore}
             className='cursor-pointer mt-10 bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
