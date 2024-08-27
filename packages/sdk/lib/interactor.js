@@ -2,6 +2,7 @@ import { z } from 'zod';
 import dedent from 'dedent';
 import { generationModel } from '../const.js';
 import { fetchJsonCompletion } from '../sdk/src/util/fetch.mjs';
+import { QueueManager } from '../sdk/src/util/queue-manager.mjs';
 
 //
 
@@ -25,6 +26,7 @@ export class Interactor extends EventTarget {
   objectFormat;
   object;
   messages;
+  queueManager;
   constructor({
     prompt,
     object,
@@ -50,99 +52,104 @@ export class Interactor extends EventTarget {
           `,
       },
     ];
+    this.queueManager = new QueueManager();
   }
   async write(text = '') {
-    const { jwt, objectFormat, object, messages } = this;
+    return await this.queueManager.waitForTurn(async () => {
+      const { jwt, objectFormat, object, messages } = this;
 
-    if (text) {
-      messages.push({
-        role: 'user',
-        content: text,
-      });
-    }
-    const o = await fetchJsonCompletion({
-      model: generationModel,
-      messages,
-    }, z.object({
-      response: z.string(),
-      updateObject: z.union([
-        objectFormat,
-        z.null(),
-      ]),
-      done: z.boolean(),
-    }), {
-      jwt,
-    });
-    const {
-      updateObject,
-    } = o;
-    if (updateObject) {
-      for (const key in updateObject) {
-        object[key] = updateObject[key];
+      if (text) {
+        messages.push({
+          role: 'user',
+          content: text,
+        });
       }
-    }
+      const o = await fetchJsonCompletion({
+        model: generationModel,
+        messages,
+      }, z.object({
+        response: z.string(),
+        updateObject: z.union([
+          objectFormat,
+          z.null(),
+        ]),
+        done: z.boolean(),
+      }), {
+        jwt,
+      });
+      const {
+        updateObject,
+      } = o;
+      if (updateObject) {
+        for (const key in updateObject) {
+          object[key] = updateObject[key];
+        }
+      }
 
-    {
-      const content = JSON.stringify(o, null, 2);
-      const responseMessage = {
-        role: 'assistant',
-        content,
-      };
-      messages.push(responseMessage);
-    }
+      {
+        const content = JSON.stringify(o, null, 2);
+        const responseMessage = {
+          role: 'assistant',
+          content,
+        };
+        messages.push(responseMessage);
+      }
 
-    this.dispatchEvent(new MessageEvent('message', {
-      data: {
-        ...o,
-        object,
-      },
-    }));
+      this.dispatchEvent(new MessageEvent('message', {
+        data: {
+          ...o,
+          object,
+        },
+      }));
+    });
   }
   async end(text = '') {
-    const { jwt, objectFormat, object, messages } = this;
+    return await this.queueManager.waitForTurn(async () => {
+      const { jwt, objectFormat, object, messages } = this;
 
-    if (text) {
-      messages.push({
-        role: 'user',
-        content: text,
-      });
-    }
-    let o = await fetchJsonCompletion({
-      model: generationModel,
-      messages,
-    }, z.object({
-      output: objectFormat,
-    }), {
-      jwt,
-    });
-    o = {
-      response: '',
-      updateObject: o.output,
-      done: true,
-    };
-    const {
-      updateObject,
-    } = o;
-    if (updateObject) {
-      for (const key in updateObject) {
-        object[key] = updateObject[key];
+      if (text) {
+        messages.push({
+          role: 'user',
+          content: text,
+        });
       }
-    }
-
-    {
-      const content = JSON.stringify(o, null, 2);
-      const responseMessage = {
-        role: 'assistant',
-        content,
+      let o = await fetchJsonCompletion({
+        model: generationModel,
+        messages,
+      }, z.object({
+        output: objectFormat,
+      }), {
+        jwt,
+      });
+      o = {
+        response: '',
+        updateObject: o.output,
+        done: true,
       };
-      messages.push(responseMessage);
-    }
+      const {
+        updateObject,
+      } = o;
+      if (updateObject) {
+        for (const key in updateObject) {
+          object[key] = updateObject[key];
+        }
+      }
 
-    this.dispatchEvent(new MessageEvent('message', {
-      data: {
-        ...o,
-        object,
-      },
-    }));
+      {
+        const content = JSON.stringify(o, null, 2);
+        const responseMessage = {
+          role: 'assistant',
+          content,
+        };
+        messages.push(responseMessage);
+      }
+
+      this.dispatchEvent(new MessageEvent('message', {
+        data: {
+          ...o,
+          object,
+        },
+      }));
+    });
   }
 }

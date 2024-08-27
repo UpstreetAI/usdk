@@ -54,14 +54,17 @@ export const applyFeaturesToAgentJSX = (agentJSX, features) => {
   return agentJSX;
 };
 
-export const agentInterview = async ({
-  agentJson, // object
-  prompt, // string
-  getInput, // (question: string) => Promise<string>
-  onChange, // (updateObject: object) => void
-  onPreview, // (previewUrl: string) => void
-  jwt,
-}) => {
+export const agentInterview = async (opts) => {
+  let {
+    agentJson, // object
+    prompt, // string
+    mode, // 'auto' | 'interactive' | 'manual'
+    getInput, // (question: string) => Promise<string>
+    onChange, // (updateObject: object) => void
+    onPreview, // (previewUrl: string) => void
+    jwt,
+  } = opts;
+
   // character image generator
   const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
     signal,
@@ -74,7 +77,7 @@ export const agentInterview = async ({
     return blob;
   });
   visualDescriptionValueUpdater.addEventListener('change', async (e) => {
-    onPreview(e.data);
+    onPreview && onPreview(e.data);
   });
 
   // initialize
@@ -106,6 +109,15 @@ export const agentInterview = async ({
     jwt,
   });
   const interviewPromise = makePromise();
+  const pumpIo = async (response = '') => {
+    if (getInput) {
+      // read input
+      let answer;
+      while (!(answer = await getInput(response))) {}
+      // handle input
+      interactor.write(answer);
+    }
+  };
   interactor.addEventListener('message', async (e) => {
     const o = e.data;
     const {
@@ -117,9 +129,8 @@ export const agentInterview = async ({
 
     // external handling
     agentJson = object;
-    // agentJson = makeAgentJson(object);
     if (updateObject) {
-      onChange({
+      onChange && onChange({
         updateObject,
         agentJson,
       });
@@ -130,15 +141,11 @@ export const agentInterview = async ({
       visualDescriptionValueUpdater.set(updateObject.visualDescription);
     }
 
-    // pump i/o
     if (!done) {
-      let answer;
-      while (!(answer = await getInput(response))) {
-        // continue
-      }
-      interactor.write(answer);
+      // pump i/o
+      await pumpIo(response);
     } else {
-      // agentJson = makeAgentJson(object);
+      // return result
       agentJson.previewUrl = await (async () => {
         const result = await visualDescriptionValueUpdater.waitForLoad();
 
@@ -177,10 +184,11 @@ export const agentInterview = async ({
       interviewPromise.resolve(agentJson);
     }
   });
-  if (!prompt) {
-    // no auto prompt provided; pump the interview loop
-
-    // XXX debugging hack: listen for the user pressing the tab key
+  if (mode === 'auto') {
+    // automatically run the interview to completion
+    interactor.end();
+  } else if (mode === 'interactive') {
+    /* // XXX debugging hack: listen for the user pressing the tab key
     {
       process.stdin.setRawMode(true);
       process.stdin.setEncoding('utf8');
@@ -194,12 +202,14 @@ export const agentInterview = async ({
           process.exit();
         }
       });
-    }
-
+    } */
+    // initiate the interview
     interactor.write();
+  } else if (mode === 'manual') {
+    // pump the interview loop
+    pumpIo();
   } else {
-    // auto prompt provided; do it in one pass
-    interactor.end();
+    throw new Error(`invalid mode: ${mode}`)
   }
   const interviewResult = await interviewPromise;
   return interviewResult;

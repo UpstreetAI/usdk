@@ -14,14 +14,14 @@ import {
 import {
   PendingActionEvent,
 } from './classes/pending-action-event';
-import { AgentRenderer } from './classes/agent-renderer';
-import {
-  TaskObject,
-  TaskResult,
-} from './classes/task-object';
-import {
-  ExtendableMessageEvent,
-} from './util/extendable-message-event';
+// import { AgentRenderer } from './classes/agent-renderer';
+// import {
+//   TaskObject,
+//   TaskResult,
+// } from './classes/task-object';
+// import {
+//   ExtendableMessageEvent,
+// } from './util/extendable-message-event';
 import {
   retry,
 } from './util/util.mjs';
@@ -97,6 +97,7 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
+  // XXX fix this to use structured outputs
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
 async function _generateAgentActionFromMessages(
