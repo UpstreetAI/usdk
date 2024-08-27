@@ -8,6 +8,7 @@ import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
 import { resolveRelativeUrl } from '@/lib/utils';
 import Link from 'next/link';
+import { Agents } from '../agents';
 
 
 const Hero1 = '/images/hero-1.jpg';
@@ -96,8 +97,7 @@ export default function Home() {
           <div className='h-full md:w-[50%] my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
             <div className='text-xl mb-12'>
-              Upstreet AIs are not apps, they are agents on the Nota social network. Hit them up over DM or video.
-              They live their own lives and form their own relationships. Upstreet AIs are your friends.
+              <Agents loadmore={false} range={5} />
             </div>
             <a
               onClick={() => {
