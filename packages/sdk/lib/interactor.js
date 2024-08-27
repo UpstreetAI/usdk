@@ -5,30 +5,6 @@ import { fetchJsonCompletion } from '../sdk/src/util/fetch.mjs';
 
 //
 
-/* const generateObjectFromSchema = (schema) => {
-  if (schema instanceof z.ZodObject) {
-    const shape = schema.shape;
-    const result = {};
-    for (const key in shape) {
-      result[key] = generateObjectFromSchema(shape[key]);
-    }
-    return result;
-  } else if (schema instanceof z.ZodString) {
-    return '';
-  } else if (schema instanceof z.ZodNumber) {
-    return 0;
-  } else if (schema instanceof z.ZodBoolean) {
-    return false;
-  } else if (schema instanceof z.ZodArray) {
-    return [];
-  } else if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
-    return generateObjectFromSchema(schema._def.innerType);
-  } else if (schema instanceof z.ZodUnion) {
-    return generateObjectFromSchema(schema._def.options[0]);
-  }
-  // Add more cases as needed for other Zod types
-  return null;
-}; */
 const generateEmptyObjectFromSchema = (schema) => {
   if (schema instanceof z.ZodObject) {
     const shape = schema.shape;
