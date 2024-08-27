@@ -2,15 +2,10 @@
 
 import { useState, useRef, useMemo, useEffect } from 'react';
 import path from 'path';
-// import dedent from 'dedent';
-// import { z } from 'zod';
 import Editor, { DiffEditor, useMonaco, loader } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-// import { Interactor } from 'usdk/lib/interactor';
-// import { ValueUpdater } from 'usdk/lib/value-updater';
-// import { generateCharacterImage } from 'usdk/sdk/src/util/generate-image.mjs';
 import {
   createAgentGuid,
 } from 'usdk/sdk/src/util/guid-util.mjs';
