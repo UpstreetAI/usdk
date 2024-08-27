@@ -500,7 +500,6 @@ export default function AgentEditor() {
 
             if (builderPrompt) {
               const agentInterview = await ensureAgentInterview();
-
               agentInterview.write(builderPrompt);
 
               setBuilderMessages((builderMessages) => [
@@ -521,6 +520,15 @@ export default function AgentEditor() {
             value={builderPrompt}
             onChange={e => setBuilderPrompt(e.target.value)}
           />
+          <Button
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              agentInterviewPromiseRef.current = null;
+              setBuilderMessages([]);
+            }}
+          >Clear</Button>
           <Button
             onClick={e => {
               e.preventDefault();
