@@ -40,24 +40,6 @@ const featureNames = featureSpecs.map(feature => feature.name);
 
 //
 
-/* export const makeAgentJson = (agentJsonInit) => {
-  const {
-    id = null,
-    name = null,
-    bio = null,
-    visualDescription = null,
-    previewUrl = null,
-    features = null,
-  } = agentJsonInit;
-  return {
-    id,
-    name,
-    bio,
-    visualDescription,
-    previewUrl,
-    features,
-  };
-}; */
 export const applyFeaturesToAgentJSX = (agentJSX, features) => {
   const includedFeatureSpecs = features.map(featureName => featureSpecs.find(featureSpec => featureSpec.name === featureName));
 
