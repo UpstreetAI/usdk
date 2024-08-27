@@ -33,7 +33,7 @@ const ensureEsbuild = (() => {
   };
 })();
 
-const buildAgentTsx = async () => {
+const buildAgentSrc = async () => {
   await ensureEsbuild();
 
   const sourceCode = `\
@@ -173,16 +173,16 @@ export default function AgentEditor() {
 
   const [deploying, setDeploying] = useState(false);
 
-  const workerRef = useRef<FetchableWorker | null>(null);
+  const [worker, setWorker] = useState<FetchableWorker | null>(null);
   const runAgent = async () => {
-    if (workerRef.current) {
-      workerRef.current.terminate();
-      workerRef.current = null;
+    if (worker) {
+      worker.terminate();
+      setWorker(null);
     }
 
-    console.log('building agent.tsx...');
-    const agentTsx = await buildAgentTsx();
-    console.log('built agent.tsx:', agentTsx);
+    console.log('building agent src');
+    const agentSrc = await buildAgentSrc();
+    console.log('built agent src:', agentSrc);
 
     console.log('getting agent id...');
     const jwt = await getJWT();
@@ -204,7 +204,6 @@ export default function AgentEditor() {
     const mnemonic = generateMnemonic();
     const env = {
       AGENT_JSON: JSON.stringify(agentJson),
-      AGENT_TSX: agentTsx,
       AGENT_TOKEN: agentToken,
       WALLET_MNEMONIC: mnemonic,
       SUPABASE_URL: "https://friddlbqibjnxjoxeocc.supabase.co",
@@ -214,25 +213,26 @@ export default function AgentEditor() {
     console.log('starting worker with env:', env);
 
     // initialize the agent worker
-    const worker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
-    worker.postMessage({
+    const newWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
+    newWorker.postMessage({
       method: 'initDurableObject',
       args: {
         env,
+        agentSrc,
       },
     });
-    worker.addEventListener('error', e => {
+    newWorker.addEventListener('error', e => {
       console.warn('got error', e);
     });
     // augment the agent worker
-    worker.fetch = async (url: string, opts: FetchOpts) => {
+    newWorker.fetch = async (url: string, opts: FetchOpts) => {
       const requestId = crypto.randomUUID();
       const {
         method,
         headers,
         body,
       } = opts;
-      worker.postMessage({
+      newWorker.postMessage({
         method: 'request',
         args: {
           id: requestId,
@@ -244,7 +244,7 @@ export default function AgentEditor() {
       }, []);
       const res = await new Promise<Response>((accept, reject) => {
         const onmessage = (e: MessageEvent) => {
-          console.log('got worker message data', e.data);
+          // console.log('got worker message data', e.data);
           try {
             const { method } = e.data;
             switch (method) {
@@ -276,6 +276,7 @@ export default function AgentEditor() {
               }
               default: {
                 console.warn('unhandled worker message method', e.data);
+                break;
               }
             }
           } catch (err) {
@@ -283,20 +284,20 @@ export default function AgentEditor() {
             reject(err);
           }
         };
-        worker.addEventListener('message', onmessage);
+        newWorker.addEventListener('message', onmessage);
 
         const cleanup = () => {
-          worker.removeEventListener('message', onmessage);
+          newWorker.removeEventListener('message', onmessage);
         };
       });
       return res;
     };
-    workerRef.current = worker;
+    setWorker(newWorker);
 
     // call the join request on the agent
     const agentHost = `${location.protocol}//${location.host}`;
     const room = `rooms:${agentJson.id}:browser`
-    const joinReq = await worker.fetch(`${agentHost}/join`, {
+    const joinReq = await newWorker.fetch(`${agentHost}/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -314,46 +315,92 @@ export default function AgentEditor() {
       console.error('agent failed to join room', joinReq.status, text);
     }
   };
-  const formEl = useRef<HTMLFormElement>(null);
+  const builderForm = useRef<HTMLFormElement>(null);
+  const agentForm = useRef<HTMLFormElement>(null);
+  const editorForm = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
 
-  const [prompt, setPrompt] = useState('');
+  const [builderPrompt, setBuilderPrompt] = useState('');
+  const [agentPrompt, setAgentPrompt] = useState('');
 
   return (
     <div className="flex flex-1">
+      {/* builder */}
       <div className="flex flex-col flex-1">
         <div className="flex flex-col flex-1 bg-primary/10">
-          Chat history
+          Builder chat history
         </div>
         <form
           className="flex"
           onSubmit={async e => {
-            // const jwt = await getJWT();
-            console.warn('nor implemented');
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (builderPrompt) {
+              console.log('run builder prompt', builderPrompt);
+              setBuilderPrompt('');
+            }
           }}
+          ref={builderForm}
         >
           <input
             type="text"
             className="flex-1 px-4"
-            value={prompt}
-            onChange={e => setPrompt(e.target.value)}
+            value={builderPrompt}
+            onChange={e => setBuilderPrompt(e.target.value)}
           />
           <Button
             onClick={e => {
               e.preventDefault();
               e.stopPropagation();
 
-              formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
             }}
           >Send</Button>
         </form>
       </div>
-      <form className="relative flex flex-col flex-1" ref={formEl} onSubmit={e => {
+      {/* agent */}
+      <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 bg-primary/10">
+          Agent chat history
+        </div>
+        <form
+          className="flex"
+          onSubmit={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (agentPrompt) {
+              console.log('run agent prompt', agentPrompt);
+              setAgentPrompt('');
+            }
+          }}
+          ref={agentForm}
+        >
+          <input
+            type="text"
+            className="flex-1 px-4"
+            value={agentPrompt}
+            onChange={e => setAgentPrompt(e.target.value)}
+          />
+          <Button
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              agentForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+            }}
+            disabled={!worker}
+          >Send</Button>
+        </form>
+      </div>
+      {/* editor */}
+      <form className="relative flex flex-col flex-1" ref={editorForm} onSubmit={e => {
         e.preventDefault();
 
         // check if the form is validated
-        const valid = formEl.current?.checkValidity();
+        const valid = builderForm.current?.checkValidity();
         if (valid) {
           (async () => {
             setDeploying(true);
@@ -439,7 +486,7 @@ export default function AgentEditor() {
               e.preventDefault();
               e.stopPropagation();
 
-              formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
             }}
             disabled={deploying}
           >{!deploying ? `Deploy` : 'Deploying...'}</Button>

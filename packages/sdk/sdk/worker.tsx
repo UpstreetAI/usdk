@@ -16,16 +16,25 @@ const headersToObject = (headers: Headers) => {
 
 let durableObjectPromise: Promise<DurableObject> | null = null;
 globalThis.onmessage = (event: any) => {
-  console.log('got event', event.data);
+  // console.log('got event', event.data);
   const method = event.data?.method;
   switch (method) {
     case 'initDurableObject': {
       if (!durableObjectPromise) {
         durableObjectPromise = (async () => {
           const { args } = event.data;
-          const { env, agentTsx } = args;
+          const { env, agentSrc } = args;
+          if (!agentSrc) {
+            throw new Error('agent worker: missing agentTsx');
+          }
 
-          const userRender = await nativeImport(`data:application/javascript,${encodeURIComponent(agentTsx)}`);
+          const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
+          const userRender = agentModule.default;
+          // console.log('got user render', {
+          //   agentSrc,
+          //   agentModule,
+          //   userRender,
+          // });
 
           const state = {
             userRender,
@@ -35,14 +44,14 @@ globalThis.onmessage = (event: any) => {
               },
             },
           };
-          console.log('worker init 1', {
-            state,
-            env,
-          });
+          // console.log('worker init 1', {
+          //   state,
+          //   env,
+          // });
           const durableObject = new DurableObject(state, env);
-          console.log('worker init 2', {
-            durableObject,
-          });
+          // console.log('worker init 2', {
+          //   durableObject,
+          // });
           return durableObject;
         })();
       } else {
