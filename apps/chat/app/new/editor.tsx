@@ -178,11 +178,17 @@ export default function AgentEditor() {
   const [room, setRoom] = useState('');
 
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
-  const runAgent = async () => {
+  const stopAgent = () => {
     if (worker) {
       worker.terminate();
       setWorker(null);
     }
+    if (room) {
+      setRoom('');
+    }
+  };
+  const startAgent = async () => {
+    stopAgent();
 
     console.log('building agent src');
     const agentSrc = await buildAgentSrc();
@@ -487,11 +493,13 @@ export default function AgentEditor() {
               e.preventDefault();
               e.stopPropagation();
 
-              runAgent();
-
-              // formEl.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              if (!worker) {
+                startAgent();
+              } else {
+                stopAgent();
+              }
             }}
-          >Run</Button>
+          >{!worker ? `Start` : 'Stop'}</Button>
           <Button
             onClick={e => {
               e.preventDefault();
