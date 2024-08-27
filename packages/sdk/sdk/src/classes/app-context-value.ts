@@ -10,13 +10,16 @@ import type {
   ReadableAudioStream,
   ChatsSpecification,
 } from '../types';
+import type {
+  ZodTypeAny,
+} from 'zod';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
 // import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
 // import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
 import {
   lembed,
 } from '../util/embedding.mjs';
-import { fetchChatCompletion } from '../util/fetch.mjs';
+import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { fetchImageGeneration } from '../util/generate-image.mjs';
 
 //
@@ -114,13 +117,25 @@ export class AppContextValue {
   }
   async complete(messages: ChatMessages, opts: SubtleAiCompleteOpts) {
     const { model } = opts;
-    // const jwt = (env as any).AGENT_TOKEN as string;
     const jwt = this.authToken;
     localStorage.setItem('jwt', JSON.stringify(jwt));
     const content = await fetchChatCompletion({
       model,
       messages,
     });
+    return {
+      role: 'assistant',
+      content,
+    };
+  }
+  async completeJson(messages: ChatMessages, format: ZodTypeAny, opts: SubtleAiCompleteOpts) {
+    const { model } = opts;
+    const jwt = this.authToken;
+    localStorage.setItem('jwt', JSON.stringify(jwt));
+    const content = await fetchJsonCompletion({
+      model,
+      messages,
+    }, format);
     return {
       role: 'assistant',
       content,
