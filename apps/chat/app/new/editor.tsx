@@ -15,6 +15,9 @@ import {
 import {
   generateMnemonic,
 } from 'usdk/util/ethereum-utils.mjs';
+import {
+  Chat,
+} from '@/components/chat/chat';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -172,6 +175,7 @@ export default function AgentEditor() {
   const [visualDescription, setVisualDescription] = useState('');
 
   const [deploying, setDeploying] = useState(false);
+  const [room, setRoom] = useState('');
 
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
   const runAgent = async () => {
@@ -294,16 +298,18 @@ export default function AgentEditor() {
     };
     setWorker(newWorker);
 
+    const newRoom = `rooms:${id}:browser`;
+    setRoom(newRoom);
+
     // call the join request on the agent
     const agentHost = `${location.protocol}//${location.host}`;
-    const room = `rooms:${agentJson.id}:browser`
     const joinReq = await newWorker.fetch(`${agentHost}/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        room,
+        room: newRoom,
         only: true,
       }),
     });
@@ -315,14 +321,16 @@ export default function AgentEditor() {
       console.error('agent failed to join room', joinReq.status, text);
     }
   };
+
+  const [builderPrompt, setBuilderPrompt] = useState('');
+  const [agentPrompt, setAgentPrompt] = useState('');
+
   const builderForm = useRef<HTMLFormElement>(null);
-  const agentForm = useRef<HTMLFormElement>(null);
+  // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
   const monaco = useMonaco();
 
-  const [builderPrompt, setBuilderPrompt] = useState('');
-  const [agentPrompt, setAgentPrompt] = useState('');
 
   return (
     <div className="flex flex-1">
@@ -361,7 +369,7 @@ export default function AgentEditor() {
         </form>
       </div>
       {/* agent */}
-      <div className="flex flex-col flex-1">
+      {/* <div className="flex flex-col flex-1">
         <div className="flex flex-col flex-1 bg-primary/10">
           Agent chat history
         </div>
@@ -394,7 +402,10 @@ export default function AgentEditor() {
             disabled={!worker}
           >Send</Button>
         </form>
-      </div>
+      </div> */}
+      <Chat
+        room={room}
+      />
       {/* editor */}
       <form className="relative flex flex-col flex-1" ref={editorForm} onSubmit={e => {
         e.preventDefault();
