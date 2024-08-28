@@ -3,7 +3,7 @@
   "version": "0.0.48",
   "description": "",
   "type": "module",
-  "main": "cli.js",
+  "main": "module.mjs",
   "bin": {
     "usdk": "./usdk"
   },
