@@ -5,7 +5,7 @@ import path from 'path';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
-import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import {
   createAgentGuid,
@@ -20,7 +20,7 @@ import {
   Chat,
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
-// import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
+import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
 import { AgentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
 
 import * as esbuild from 'esbuild-wasm';
@@ -233,14 +233,8 @@ export default function AgentEditor() {
   // effects
   // sync previewBlob -> previewUrl
   useEffect(() => {
-    // if (lastPreviewUrlRef.current) {
-    //   URL.revokeObjectURL(lastPreviewUrlRef.current);
-    //   lastPreviewUrlRef.current = '';
-    // }
-
     if (previewBlob) {
       const url = URL.createObjectURL(previewBlob);
-      // lastPreviewUrlRef.current = url;
       setPreviewUrl(url);
 
       return () => {
@@ -264,7 +258,7 @@ export default function AgentEditor() {
 
     console.log('getting agent id...');
     const jwt = await getJWT();
-    const id = await createAgentGuid({
+    const id: string = await createAgentGuid({
       jwt,
     });
     console.log('got agent id:', id);
@@ -273,15 +267,39 @@ export default function AgentEditor() {
     const agentToken = await getAgentToken(jwt, id);
     console.log('got agent token:', agentToken);
 
+    console.log('uploading agent preview...', {previewBlob});
+    const previewUrl = await (async () => {
+      if (previewBlob) {
+        const keyPath = ['assets', id, 'avatar.jpg'].join('/');
+        const u = `${r2EndpointUrl}/${keyPath}`;
+        const res = await fetch(u, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${jwt}`,
+          },
+          body: previewBlob,
+        });
+        if (res.ok) {
+          const j = await res.json();
+          return j;
+        } else {
+          const text = await res.text();
+          throw new Error(`could not upload avatar file: ${text}`);
+        }
+      } else {
+        return null;
+      }
+    })();
+    console.log('got agent preview url:', {previewUrl});
+
     const agentJson = {
       id,
-      name: '',
-      bio: '',
-      // name: name || undefined,
-      // bio: description || undefined,
-      // visualDescription,
+      name: name || undefined,
+      bio: bio || undefined,
+      visualDescription,
+      previewUrl,
     };
-    // ensureAgentJsonDefaults(agentJson);
+    ensureAgentJsonDefaults(agentJson);
     const mnemonic = generateMnemonic();
     const env = {
       AGENT_JSON: JSON.stringify(agentJson),
