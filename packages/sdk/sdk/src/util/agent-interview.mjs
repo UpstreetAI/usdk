@@ -106,7 +106,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
-          The \`visualDescription\` should be an image prompt to use for an image generator. Visually describe the character without referring to their pose or emotion.
+          Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This field is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
         ` + '\n' +
         dedent`\
