@@ -207,9 +207,7 @@ export default function AgentEditor() {
   const [visualDescription, setVisualDescription] = useState('');
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
-  // const lastPreviewBlobRef = useRef<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
-  // const lastPreviewUrlRef = useRef<string>('');
 
   const [deploying, setDeploying] = useState(false);
   const [room, setRoom] = useState('');
@@ -219,7 +217,7 @@ export default function AgentEditor() {
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
 
   const [builderPrompt, setBuilderPrompt] = useState('');
-  const [agentPrompt, setAgentPrompt] = useState('');
+  // const [agentPrompt, setAgentPrompt] = useState('');
 
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
@@ -246,6 +244,30 @@ export default function AgentEditor() {
   }, [previewBlob]);
 
   // helpers
+  const getCloudPreviewUrl = async () => {
+    if (previewBlob) {
+      const jwt = await getJWT();
+      const guid = crypto.randomUUID();
+      const keyPath = ['assets', guid, 'avatar.jpg'].join('/');
+      const u = `${r2EndpointUrl}/${keyPath}`;
+      const res = await fetch(u, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        },
+        body: previewBlob,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        return j;
+      } else {
+        const text = await res.text();
+        throw new Error(`could not upload avatar file: ${text}`);
+      }
+    } else {
+      return null;
+    }
+  };
   const getEditorValue = (m = monaco) => m?.editor.getModels()[0].getValue() ?? '';
   const startAgent = async (sourceCode = getEditorValue()) => {
     stopAgent();
@@ -268,28 +290,7 @@ export default function AgentEditor() {
     console.log('got agent token:', agentToken);
 
     console.log('uploading agent preview...', {previewBlob});
-    const previewUrl = await (async () => {
-      if (previewBlob) {
-        const keyPath = ['assets', id, 'avatar.jpg'].join('/');
-        const u = `${r2EndpointUrl}/${keyPath}`;
-        const res = await fetch(u, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${jwt}`,
-          },
-          body: previewBlob,
-        });
-        if (res.ok) {
-          const j = await res.json();
-          return j;
-        } else {
-          const text = await res.text();
-          throw new Error(`could not upload avatar file: ${text}`);
-        }
-      } else {
-        return null;
-      }
-    })();
+    const previewUrl = await getCloudPreviewUrl();
     console.log('got agent preview url:', {previewUrl});
 
     const agentJson = {
@@ -629,11 +630,17 @@ export default function AgentEditor() {
 
             // get the value from monaco editor
             const value = getEditorValue();
-            console.log('deploy', {
+            console.log('deploy 1', {
               name,
               bio,
               visualDescription,
+              previewBlob,
               value,
+            });
+
+            const previewUrl = await getCloudPreviewUrl();
+            console.log('deploy 2', {
+              previewUrl,
             });
 
             try {
@@ -647,6 +654,7 @@ export default function AgentEditor() {
                     name,
                     bio,
                     visualDescription,
+                    previewUrl,
                   }),
                 },
                 body: value,
@@ -656,9 +664,9 @@ export default function AgentEditor() {
                 console.log('got deploy result', j);
                 const {
                   guid,
-                  name,
-                  description,
-                  visualDescription,
+                  // name,
+                  // description,
+                  // visualDescription,
                 } = j;
                 location.href = `/agents/${guid}`;
                 // await new Promise(resolve => setTimeout(resolve, 2000));

@@ -2481,8 +2481,7 @@ export const create = async (args, opts) => {
         features,
       } = agentJson;
       // if the agent json is complete
-      const isComplete = !!(name && bio && visualDescription && previewUrl);
-      if (isComplete || agentJsonString || source || yes) {
+      if (agentJsonString || source || yes) {
         return agentJson;
       } else {
         return await interview({
