@@ -2478,6 +2478,7 @@ export const create = async (args, opts) => {
         bio,
         visualDescription,
         previewUrl,
+        features,
       } = agentJson;
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
@@ -2489,6 +2490,7 @@ export const create = async (args, opts) => {
           bio,
           visualDescription,
           previewUrl,
+          features,
         });
       }
     };
@@ -2500,7 +2502,7 @@ export const create = async (args, opts) => {
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Features:'), agentJson.features.length > 0
+    console.log(pc.green('Features:'), agentJson.features?.length > 0
       ? agentJson.features.join(', ')
       : '*none*'
     );
