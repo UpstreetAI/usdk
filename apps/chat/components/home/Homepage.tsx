@@ -91,7 +91,7 @@ export default function Home() {
               Here are a few of  the latest agents you can talk to, hit them up over DMs:
             </div>
             <div className='mb-12'>
-              <Agents loadmore={false} range={6} grid={3} gap={4} />
+              <Agents loadmore={false} range={6} />
             </div>
             <div className='pt-4'>
               <a

@@ -8,11 +8,9 @@ import { Button } from '../ui/button';
 export interface AgentsProps {
   loadmore: boolean
   range: number
-  grid: number
-  gap: number
 }
 
-export function Agents({ loadmore = false, range = 5, grid = 2, gap = 2 }: AgentsProps) {
+export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   const { supabase } = useSupabase();
 
   const [agents, setAgents] = useState([]);
@@ -71,9 +69,9 @@ export function Agents({ loadmore = false, range = 5, grid = 2, gap = 2 }: Agent
     loadAgents();
   }, []);
 
-  return (
+  return agents.length ? (
     <>
-      <div className={`grid grid-cols-${grid} gap-${gap}`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
         <AgentList agents={agents} loading={loading} />
       </div>
       <div className='text-center'>
@@ -88,5 +86,5 @@ export function Agents({ loadmore = false, range = 5, grid = 2, gap = 2 }: Agent
         }
       </div>
     </>
-  );
+  ) : null;
 }
