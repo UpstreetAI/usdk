@@ -104,7 +104,8 @@ export async function getCreditsUsageHistory(id: string, select = '*', supabaseC
   const { data } = await supabaseClient
     .from('credits_usage')
     .select(select)
-    .eq('user_id', id);
+    .eq('user_id', id)
+    .order('created_at', { ascending: false });
     // .single()
   return data;
 }
