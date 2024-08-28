@@ -650,7 +650,7 @@ export default function AgentEditor() {
                 headers: {
                   'Content-Type': 'application/javascript',
                   Authorization: `Bearer ${jwt}`,
-                  metadata: JSON.stringify({
+                  'Agent-Json': JSON.stringify({
                     name,
                     bio,
                     visualDescription,
