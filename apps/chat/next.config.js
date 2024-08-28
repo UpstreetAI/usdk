@@ -37,13 +37,14 @@ module.exports = {
     config.module.noParse = /typescript\/lib\/typescript\.js$/;
 
     // fix react resolution in sdk subpackage
-    const sdkPath = path.resolve(__dirname, '../../packages/sdk/sdk');
+    const sdkPath = path.resolve(__dirname, '../../packages/sdk');
     const replacePlugin = (scopePath, moduleRegexp) => {
       return new webpack.NormalModuleReplacementPlugin(moduleRegexp, (resource) => {
         if (resource.context.includes(scopePath)) {
-          resource.request = require.resolve(resource.request, {
+          const p = require.resolve(resource.request, {
             paths: [scopePath],
           });
+          resource.request = p;
         }
       });
     };
