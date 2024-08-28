@@ -41,6 +41,7 @@ export type AgentObject = EventTarget & {
   name: string;
   description: string;
   bio: string;
+  previewUrl: string;
   model: string;
   address: string;
 }

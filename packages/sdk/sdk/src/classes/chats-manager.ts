@@ -157,6 +157,7 @@ export class ChatsManager extends EventTarget {
                   id,
                   description,
                   bio,
+                  previewUrl,
                   model,
                   address,
                 } = this.agent;
@@ -165,6 +166,7 @@ export class ChatsManager extends EventTarget {
                   id,
                   description,
                   bio,
+                  previewUrl,
                   model,
                   address,
                 };
