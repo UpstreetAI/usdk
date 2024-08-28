@@ -348,7 +348,7 @@ const getServerOpts = () => {
     cert: tryReadFile(path.join(certsLocalPath, 'fullchain.pem')) || '',
   };
 };
-const putFile = async (pathname, file) => {
+/* const putFile = async (pathname, file) => {
   const u = `https://r2.upstreet.ai/${pathname}`;
   const headers = {};
   if (file.type) {
@@ -365,7 +365,7 @@ const putFile = async (pathname, file) => {
   });
   const j = await res.json();
   return j;
-};
+}; */
 const getLoginJwt = async () => {
   const loginFile = await tryReadFileAsync(loginLocation);
   if (loginFile) {
