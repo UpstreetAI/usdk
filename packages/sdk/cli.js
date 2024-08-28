@@ -2463,9 +2463,9 @@ export const create = async (args, opts) => {
         console.log('Avatar updated:');
         console.log(imageText);
       });
-      console.log('wait for finish 1');
+      // console.log('wait for finish 1');
       agentJson = await agentInterview.waitForFinish();
-      console.log('wait for finish 2');
+      // console.log('wait for finish 2');
       return {
         ...agentJson,
         id: guid,
