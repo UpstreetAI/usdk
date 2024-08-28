@@ -89,7 +89,7 @@ globalThis.onmessage = (event: any) => {
           });
 
           const res = await durableObject.fetch(request);
-          console.log('got durable object response', res.ok, res.status, res.headers);
+          // console.log('got durable object response', res.ok, res.status, res.headers);
           if (res.ok) {
             resultArrayBuffer = await res.arrayBuffer();
             resultStatus = res.status;
