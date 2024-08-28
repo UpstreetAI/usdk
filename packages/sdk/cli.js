@@ -2622,7 +2622,9 @@ const deploy = async (args) => {
         });
         req.on('error', reject);
       });
-      const guid = wranglerTomlJson.vars.GUID;
+      const agentJsonString = wranglerTomlJson.vars.AGENT_JSON;
+      const agentJson = JSON.parse(agentJsonString);
+      const guid = agentJson.id;
       const url = getAgentUrlFromGuid(guid);
       
       console.log();
