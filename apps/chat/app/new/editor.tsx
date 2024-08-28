@@ -638,24 +638,34 @@ export default function AgentEditor() {
               value,
             });
 
-            const previewUrl = await getCloudPreviewUrl();
-            console.log('deploy 2', {
-              previewUrl,
-            });
-
             try {
               const jwt = await getJWT();
+              const [
+                id,
+                previewUrl,
+              ] = await Promise.all([
+                createAgentGuid({
+                  jwt,
+                }),
+                getCloudPreviewUrl(),
+              ]);
+              const agentJson = {
+                id,
+                name,
+                bio,
+                visualDescription,
+                previewUrl,
+              };
+              console.log('deploy 2', {
+                agentJson,
+              });
+
               const res = await fetch(`${deployEndpointUrl}/agent`, {
                 method: 'PUT',
                 headers: {
                   'Content-Type': 'application/javascript',
                   Authorization: `Bearer ${jwt}`,
-                  'Agent-Json': JSON.stringify({
-                    name,
-                    bio,
-                    visualDescription,
-                    previewUrl,
-                  }),
+                  'Agent-Json': JSON.stringify(agentJson),
                 },
                 body: value,
               });
@@ -730,7 +740,7 @@ export default function AgentEditor() {
                 e.preventDefault();
                 e.stopPropagation();
 
-                builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
               }}
               disabled={deploying}
             >{!deploying ? `Deploy` : 'Deploying...'}</Button>
