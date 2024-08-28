@@ -150,10 +150,10 @@ export class AgentInterview extends EventTarget {
         visualDescriptionValueUpdater.set(updateObject.visualDescription);
       }
 
-      console.log('agent interview done', {
-        done,
-        response,
-      });
+      // console.log('agent interview done', {
+      //   done,
+      //   response,
+      // });
       if (!done) {
         // pump i/o
         pumpIo(response);
