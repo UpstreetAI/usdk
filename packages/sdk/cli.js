@@ -2512,7 +2512,7 @@ export const create = async (args, opts) => {
       };
     };
     const generateAgentMetadata = async () => {
-      const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
+      let agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
       const {
         name,
         bio,
@@ -2521,6 +2521,11 @@ export const create = async (args, opts) => {
       } = agentJson;
       // if the agent json is complete
       const isComplete = !!(name && bio && visualDescription && previewUrl);
+
+      if (agentJsonString) { // enforce guid usage
+        agentJson.id = guid;
+      }
+
       if (isComplete || agentJsonString || source || yes) {
         return agentJson;
       } else {
@@ -2540,7 +2545,7 @@ export const create = async (args, opts) => {
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Features:'), agentJson.features.length > 0
+    console.log(pc.green('Features:'), agentJson.features?.length > 0
       ? agentJson.features.join(', ')
       : '*none*'
     );
