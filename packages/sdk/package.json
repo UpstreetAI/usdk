@@ -14,9 +14,9 @@
   "license": "ISC",
   "files": [
     "certs-local",
-    "dist",
     "sdk",
     "lib",
+    "util",
     "examples/**",
     "cli.js",
     "const.js",
