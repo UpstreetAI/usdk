@@ -312,16 +312,13 @@ export const create = async (args, opts) => {
         console.log(imageText);
       });
       // console.log('wait for finish 1');
-      agentJson = await agentInterview.waitForFinish();
+      return await agentInterview.waitForFinish();
       // console.log('wait for finish 2');
-      return {
-        ...agentJson,
-        id: guid,
-      };
     };
-    const generateAgentMetadata = async () => {
+    const processAgentJson = async () => {
       const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
       const {
+        id,
         name,
         bio,
         visualDescription,
@@ -333,6 +330,7 @@ export const create = async (args, opts) => {
         return agentJson;
       } else {
         return await interview({
+          id,
           name,
           bio,
           visualDescription,
