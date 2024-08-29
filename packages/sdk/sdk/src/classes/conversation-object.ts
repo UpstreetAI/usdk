@@ -12,6 +12,7 @@ import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
+import { getChatKey } from './chats-manager';
 
 //
 
@@ -125,6 +126,15 @@ export class ConversationObject extends EventTarget {
   }
   removeAgent(agentId: string) {
     this.agentsMap.delete(agentId);
+  }
+
+  getKey() {
+    return getChatKey(
+      {
+        room: this.room,
+        endpointUrl: this.endpointUrl,
+      }
+    );
   }
 
   getCachedMessages(filter?: MessageFilter) {
