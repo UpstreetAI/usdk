@@ -318,28 +318,15 @@ export const create = async (args, opts) => {
     };
     const processAgentJson = async () => {
       const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
-      const {
-        id,
-        name,
-        bio,
-        visualDescription,
-        previewUrl,
-        features,
-      } = agentJson;
+      const agentJsonBase = {
+        id: guid,
+        ...agentJson, // agent json id takes precedence
+      };
       // if the agent json is complete
       if (agentJsonString || source || yes) {
-        return agentJson;
+        return agentJsonBase;
       } else {
-        const result = await interview({
-          id,
-          name,
-          bio,
-          visualDescription,
-          previewUrl,
-          features,
-          id: guid,
-        });
-        return result;
+        return await interview(agentJsonBase);
       }
     };
 
