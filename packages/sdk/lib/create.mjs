@@ -330,14 +330,16 @@ export const create = async (args, opts) => {
       if (agentJsonString || source || yes) {
         return agentJson;
       } else {
-        return await interview({
+        const result = await interview({
           id,
           name,
           bio,
           visualDescription,
           previewUrl,
           features,
+          id: guid,
         });
+        return result;
       }
     };
 
