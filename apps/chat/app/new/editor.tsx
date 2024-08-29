@@ -671,15 +671,11 @@ export default function AgentEditor() {
               });
               if (res.ok) {
                 const j = await res.json();
-                console.log('got deploy result', j);
-                const {
-                  guid,
-                  // name,
-                  // description,
-                  // visualDescription,
-                } = j;
+                console.log('deploy 3', j);
+                const agentJsonOutputString = j.vars.AGENT_JSON;
+                const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                const guid = agentJsonOutput.id;
                 location.href = `/agents/${guid}`;
-                // await new Promise(resolve => setTimeout(resolve, 2000));
               } else {
                 console.error('failed to deploy agent', res);
               }
