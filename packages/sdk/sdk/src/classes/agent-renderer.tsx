@@ -103,7 +103,6 @@ const AppComponent = ({
   appContextValue,
   topLevelRenderPromise,
 }: AppComponentProps) => {
-
   useEffect(() => {
     topLevelRenderPromise.resolve(null);
   }, [topLevelRenderPromise]);

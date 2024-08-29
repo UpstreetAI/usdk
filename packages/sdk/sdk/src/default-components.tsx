@@ -33,7 +33,7 @@ import {
   Action,
   Prompt,
   Formatter,
-  Parser,
+  // Parser,
   Perception,
   Task,
   // Scheduler,
@@ -78,7 +78,7 @@ export const DefaultAgentComponents = () => {
   return (
     <>
       <DefaultFormatters />
-      <DefaultParsers />
+      {/* <DefaultParsers /> */}
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
@@ -337,7 +337,7 @@ export const ActionsPrompt = () => {
       Here are the allowed actions that your character can take:
     ` +
     '\n\n' +
-    actions.map((action) => formatter.formatFn(action)).join('\n\n');
+    formatter.formatFn(Array.from(actions.values()));
   }
   return (
     <Prompt>{s}</Prompt>
@@ -458,7 +458,7 @@ export const InstructionsPrompt = () => {
  * Renders the default parsers components.
  * @returns The JSX elements representing the default parsers components.
  */
-export const DefaultParsers = () => {
+/* export const DefaultParsers = () => {
   return <JsonParser />;
 };
 export const JsonParser = () => {
@@ -503,12 +503,9 @@ export const JsonParser = () => {
       }}
     />
   );
-};
+}; */
 
 // formatters
-export const DefaultFormatters = () => {
-  return <JsonFormatter />;
-};
 const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
   return z.object({
     // userId: z.string(),
@@ -517,69 +514,91 @@ const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
     args,
   });
 };
+export const DefaultFormatters = () => {
+  return <JsonFormatter />;
+};
 export const JsonFormatter = () => {
   return (
     <Formatter
-      formatFn={(action: ActionProps) => {
-        const {
-          name,
-          description,
-          schema: argsSchema,
-          examples,
-        } = action;
-
-        const schema = argsSchema && makeJsonSchema(argsSchema);
-
-        // const agents = useAgents();
-        const examplesJsonString = (examples ?? []).map((args) => {
-          // const randomAgent = shuffle(agents.slice())[0];
-          return JSON.stringify(
-            {
-              // userId: randomAgent.id,
-              // name: randomAgent.name, // helps with dialogue inference
-              method: name,
-              args,
-            }
+      /* map actions to zod schema to generate an action */
+      schemaFn={(actions: ActionProps[]) => {
+        const types = actions.map((action) => {
+          const {
+            schema: argsSchema,
+          } = action;
+          const zodSchema = makeJsonSchema(argsSchema);
+          return zodSchema;
+        });
+        if (types.length >= 2) {
+          return z.union(
+            types as any
           );
-        }).join('\n');
+        } else if (types.length === 1) {
+          return types[0];
+        } else {
+          return z.object({});
+        }
+      }}
+      /* format actions to instruction prompt */
+      formatFn={(actions: ActionProps[]) => {
+        return actions.map((action) => {
+          const {
+            name,
+            description,
+            examples,
+          } = action;
 
-        return (
-          name ? (
-            dedent`
-              * ${name}
-            ` +
-            '\n'
-          ) : ''
-        ) +
-        (description ? (description + '\n') : '') +
-        (schema ? (
-          dedent`
-            Schema:
-            \`\`\`
-          ` +
-          '\n' +
-          printZodSchema(schema) +
-          '\n' +
-          dedent`
-            \`\`\`
-          ` +
-          '\n'
-        ) : '') +
-        (examplesJsonString
-          ? (
-            dedent`
-              Examples:
-              \`\`\`
-            ` +
-            '\n' +
-            examplesJsonString +
-            '\n' +
-            dedent`
-              \`\`\`
-            `
-          )
-          : ''
-        );
+          // const agents = useAgents();
+          const examplesJsonString = (examples ?? []).map((args) => {
+            // const randomAgent = shuffle(agents.slice())[0];
+            return JSON.stringify(
+              {
+                // userId: randomAgent.id,
+                // name: randomAgent.name, // helps with dialogue inference
+                method: name,
+                args,
+              }
+            );
+          }).join('\n');
+
+          return (
+            name ? (
+              dedent`
+                * ${name}
+              ` +
+              '\n'
+            ) : ''
+          ) +
+          (description ? (description + '\n') : '') +
+          // (schema ? (
+          //   dedent`
+          //     Schema:
+          //     \`\`\`
+          //   ` +
+          //   '\n' +
+          //   printZodSchema(schema) +
+          //   '\n' +
+          //   dedent`
+          //     \`\`\`
+          //   ` +
+          //   '\n'
+          // ) : '') +
+          (examplesJsonString
+            ? (
+              dedent`
+                Examples:
+                \`\`\`
+              ` +
+              '\n' +
+              examplesJsonString +
+              '\n' +
+              dedent`
+                \`\`\`
+              `
+            )
+            : ''
+          );
+        }).join('\n\n');
       }}
     />
   );

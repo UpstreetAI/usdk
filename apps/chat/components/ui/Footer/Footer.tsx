@@ -9,7 +9,7 @@ export default function Footer() {
   const pathname = usePathname();
 
   // HIDE FOOTER WHEN USER IS ON CHAT PAGE
-  if(pathname.startsWith('/room')) return null;
+  if(pathname.startsWith('/room') || pathname.startsWith('/new')) return null;
 
   return (
     <footer className="mx-auto px-6 bg-[#000000]">

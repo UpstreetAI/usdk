@@ -19,9 +19,9 @@ import type {
 import {
   ConversationObject,
 } from './conversation-object';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+// import {
+//   QueueManager,
+// } from '../util/queue-manager.mjs';
 import {
   makePromise,
   parseCodeBlock,
@@ -40,9 +40,9 @@ import {
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
-import {
-  SceneObject,
-} from './scene-object';
+// import {
+//   SceneObject,
+// } from './scene-object';
 import {
   ChatsManager,
 } from './chats-manager';

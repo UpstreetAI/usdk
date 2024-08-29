@@ -4,7 +4,7 @@ import type {
   ActionProps,
   PromptProps,
   FormatterProps,
-  ParserProps,
+  // ParserProps,
   PerceptionProps,
   TaskProps,
   NameProps,
@@ -54,7 +54,7 @@ export class AgentRegistry {
   // set to null to maintain registration order
   actionsMap: Map<symbol, ActionProps | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
-  parsersMap: Map<symbol, ParserProps | null> = new Map();
+  // parsersMap: Map<symbol, ParserProps | null> = new Map();
   perceptionsMap: Map<symbol, PerceptionProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
   
@@ -69,9 +69,9 @@ export class AgentRegistry {
   get formatters() {
     return Array.from(this.formattersMap.values()).filter(Boolean);
   }
-  get parsers() {
-    return Array.from(this.parsersMap.values()).filter(Boolean);
-  }
+  // get parsers() {
+  //   return Array.from(this.parsersMap.values()).filter(Boolean);
+  // }
   get perceptions() {
     return Array.from(this.perceptionsMap.values()).filter(Boolean);
   }
@@ -100,12 +100,12 @@ export class AgentRegistry {
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
   }
-  registerParser(key: symbol, parser: ParserProps) {
-    this.parsersMap.set(key, parser);
-  }
-  unregisterParser(key: symbol) {
-    this.parsersMap.set(key, null);
-  }
+  // registerParser(key: symbol, parser: ParserProps) {
+  //   this.parsersMap.set(key, parser);
+  // }
+  // unregisterParser(key: symbol) {
+  //   this.parsersMap.set(key, null);
+  // }
   registerPerception(key: symbol, perception: PerceptionProps) {
     this.perceptionsMap.set(key, perception);
   }

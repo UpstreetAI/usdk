@@ -1,20 +1,20 @@
 import 'localstorage-polyfill';
 import { headers } from './src/constants.js';
-import { makeAnonymousClient, getUserIdForJwt, getUserForJwt } from './src/util/supabase-client.mjs';
-import { AgentRenderer } from './src/classes/agent-renderer.js';
-import { ChatsSpecification } from './src/classes/chats-specification.js';
+import { makeAnonymousClient, getUserIdForJwt } from './src/util/supabase-client.mjs';
+import { AgentRenderer } from './src/classes/agent-renderer.tsx';
+import { ChatsSpecification } from './src/classes/chats-specification.ts';
 import {
   serverHandler,
- } from './src/routes/server.js';
- import {
+} from './src/routes/server.ts';
+import {
   multiplayerEndpointUrl,
 } from './src/util/endpoints.mjs';
 
-import userRender from '../agent'; // note: this will be copied in by the build process
+import agentTsxUserRender from '../agent.tsx'; // note: this will be overwritten by the build process
 
 Error.stackTraceLimit = 300;
 
-const textEncoder = new TextEncoder();
+// const textEncoder = new TextEncoder();
 
 //
 
@@ -50,6 +50,9 @@ export class DurableObject extends EventTarget {
       userId: this.#getGuid(),
       supabase: this.supabase,
     });
+    // console.log('load 1', {state, stateUserRender: state.userRender, agentTsxUserRender});
+    const userRender = state.userRender ?? agentTsxUserRender;
+    // console.log('load 2', {userRender});
     this.agentRenderer = new AgentRenderer({
       env,
       userRender,

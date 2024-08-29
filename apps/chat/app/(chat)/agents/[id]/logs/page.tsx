@@ -1,15 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-// import { type Metadata } from 'next';
-// import { notFound } from 'next/navigation'
 import EventSource from 'eventsource';
-// import { AgentProfile } from '@/components/agent-profile';
-// import { createClient } from '@/utils/supabase/server';
 import { deployEndpointUrl } from '@/utils/const/endpoints';
-// import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { getJWT } from '@/lib/jwt';
-// import { env } from '@/lib/env'
 
 type Params = {
   params: {

@@ -1,9 +1,9 @@
 {
   "name": "usdk",
-  "version": "0.0.46",
+  "version": "0.0.50",
   "description": "",
   "type": "module",
-  "main": "cli.js",
+  "main": "module.mjs",
   "bin": {
     "usdk": "./usdk"
   },
@@ -14,9 +14,9 @@
   "license": "ISC",
   "files": [
     "certs-local",
-    "dist",
     "sdk",
     "lib",
+    "util",
     "examples/**",
     "cli.js",
     "const.js",
@@ -52,6 +52,7 @@
     "js-ago": "^2.1.1",
     "jszip": "^3.10.1",
     "localstorage-polyfill": "^1.0.1",
+    "memoize-one": "^6.0.0",
     "mime": "^4.0.1",
     "mkdirp": "^3.0.1",
     "open": "^10.1.0",
@@ -65,6 +66,7 @@
     "toml": "^3.0.0",
     "tsdoc-extractor": "^0.2.0",
     "unique-names-generator": "^4.7.1",
+    "upstreet-sdk-agent": "file:./sdk",
     "vercel": "^34.2.6",
     "web-worker": "1.2.0",
     "webp-wasm": "^1.0.6",

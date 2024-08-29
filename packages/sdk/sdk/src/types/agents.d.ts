@@ -41,6 +41,7 @@ export type AgentObject = EventTarget & {
   name: string;
   description: string;
   bio: string;
+  previewUrl: string;
   model: string;
   address: string;
 }
@@ -71,7 +72,7 @@ export type GenerativeAgentObject =  {
 
 export type ChatMessage = {
   role: string;
-  content: string;
+  content: string | object;
 };
 export type ChatMessages = Array<ChatMessage>;
 
@@ -137,6 +138,11 @@ export type SubtleAi = {
   context: AppContextValue;
   complete: (
     messages: ChatMessages,
+    opts?: SubtleAiCompleteOpts,
+  ) => Promise<ChatMessage>;
+  completeJson: (
+    messages: ChatMessages,
+    format: ZodTypeAny,
     opts?: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
   generateImage: (
@@ -412,11 +418,12 @@ export type PromptProps = {
   children: ReactNode;
 };
 export type FormatterProps = {
-  formatFn: (m: ActionProps) => string;
+  schemaFn: (actions: ActionProps[]) => ZodTypeAny;
+  formatFn: (actions: ActionProps[]) => string;
 };
-export type ParserProps = {
-  parseFn: (s: string) => PendingActionMessage | Promise<PendingActionMessage>;
-};
+// export type ParserProps = {
+//   parseFn: (s: string) => PendingActionMessage | Promise<PendingActionMessage>;
+// };
 export type PerceptionProps = {
   type: string;
   handler: (e: PerceptionEvent) => any | Promise<any>;
@@ -478,7 +485,7 @@ export type AgentRegistry = {
 
   actionsMap: Map<symbol, ActionProps | null>;
   formattersMap: Map<symbol, FormatterProps | null>;
-  parsersMap: Map<symbol, ParserProps | null>;
+  // parsersMap: Map<symbol, ParserProps | null>;
   perceptionsMap: Map<symbol, PerceptionProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
   
@@ -489,7 +496,7 @@ export type AgentRegistry = {
 
   get actions(): ActionProps[];
   get formatters(): FormatterProps[];
-  get parsers(): ParserProps[];
+  // get parsers(): ParserProps[];
   get perceptions(): PerceptionProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
@@ -500,8 +507,8 @@ export type AgentRegistry = {
   unregisterAction(key: symbol): void;
   registerFormatter(key: symbol, formatter: FormatterProps): void;
   unregisterFormatter(key: symbol): void;
-  registerParser(key: symbol, parser: ParserProps): void;
-  unregisterParser(key: symbol): void;
+  // registerParser(key: symbol, parser: ParserProps): void;
+  // unregisterParser(key: symbol): void;
   registerPerception(key: symbol, perception: PerceptionProps): void;
   unregisterPerception(key: symbol): void;
   registerTask(key: symbol, task: TaskProps): void;
@@ -534,6 +541,11 @@ export type AppContextValue = {
   embed: (text: string) => Promise<Array<number>>;
   complete: (
     messages: ChatMessages,
+    opts: SubtleAiCompleteOpts,
+  ) => Promise<ChatMessage>;
+  completeJson: (
+    messages: ChatMessages,
+    format: ZodTypeAny,
     opts: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
   generateImage: (

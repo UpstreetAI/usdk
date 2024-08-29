@@ -3,6 +3,7 @@ import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
 import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
+import { defaultModel } from '../defaults.mjs';
 
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }, {
@@ -283,7 +284,7 @@ ${message.prompt}
   },
 };
 export const fetchChatCompletion = async ({
-  model,
+  model = defaultModel,
   messages,
   stream = undefined,
   signal = undefined,
@@ -320,7 +321,7 @@ export const fetchChatCompletion = async ({
   }
 };
 export const fetchJsonCompletion = async ({
-  model,
+  model = defaultModel,
   messages,
   stream = undefined,
   signal = undefined,

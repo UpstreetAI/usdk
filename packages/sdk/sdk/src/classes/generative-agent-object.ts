@@ -17,8 +17,8 @@ import {
   generateAgentActionFromInstructions,
   generateAgentAction,
   handleAgentAction,
-  generateJsonMatchingSchema,
-  generateString,
+  // generateJsonMatchingSchema,
+  // generateString,
 } from '../runtime';
 import {
   ActiveAgentObject,
@@ -26,6 +26,7 @@ import {
 import {
   QueueManager,
 } from '../util/queue-manager.mjs';
+import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 
 //
 
@@ -64,6 +65,14 @@ export class GenerativeAgentObject {
       model: this.agent.model,
     });
   }
+  async completeJson(
+    messages: ChatMessages,
+    format: ZodTypeAny,
+  ) {
+    return await this.agent.appContextValue.completeJson(messages, format, {
+      model: this.agent.model,
+    });
+  }
   async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
     return await this.agent.appContextValue.generateImage(prompt, opts);
   }
@@ -91,15 +100,31 @@ export class GenerativeAgentObject {
     });
   }
   async generate(hint: string, schema?: ZodTypeAny) {
-    // console.log('agent renderer think 1');
+    // console.log('agent renderer generate 1');
     await this.conversation.typing(async () => {
-      // console.log('agent renderer think 2');
+      // console.log('agent renderer generate 2');
       try {
-        const pendingMessage = await (schema
-          ? generateJsonMatchingSchema(hint, schema)
-          : generateString(hint)
-        );
-        // console.log('agent renderer think 3');
+        const messages = [
+          {
+            role: 'user',
+            content: hint,
+          },
+        ];
+        const jwt = this.agent.appContextValue.useAuthToken();
+
+        let pendingMessagePromise = schema
+          ? fetchJsonCompletion({
+              messages,
+            }, schema, {
+              jwt,
+            })
+          : fetchChatCompletion({
+            messages,
+          }, {
+            jwt,
+          });
+        const pendingMessage = await pendingMessagePromise;
+        // console.log('agent renderer generate 3');
         return pendingMessage;
       } catch (err) {
         console.warn('generate error', err);

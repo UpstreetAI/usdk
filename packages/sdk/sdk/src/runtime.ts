@@ -7,6 +7,7 @@ import dedent from 'dedent';
 import {
   ChatMessages,
   PendingActionMessage,
+  ActionMessage,
   ActionProps,
   ConversationObject,
   TaskEventData,
@@ -14,14 +15,14 @@ import {
 import {
   PendingActionEvent,
 } from './classes/pending-action-event';
-import { AgentRenderer } from './classes/agent-renderer';
-import {
-  TaskObject,
-  TaskResult,
-} from './classes/task-object';
-import {
-  ExtendableMessageEvent,
-} from './util/extendable-message-event';
+// import { AgentRenderer } from './classes/agent-renderer';
+// import {
+//   TaskObject,
+//   TaskResult,
+// } from './classes/task-object';
+// import {
+//   ExtendableMessageEvent,
+// } from './util/extendable-message-event';
 import {
   retry,
 } from './util/util.mjs';
@@ -97,6 +98,7 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
+  // XXX fix this to use structured outputs
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
 async function _generateAgentActionFromMessages(
@@ -105,17 +107,30 @@ async function _generateAgentActionFromMessages(
 ) {
   const { agent } = generativeAgent;
   const {
-    parsers,
+    // parsers,
+    formatters,
     actions,
   } = agent.registry;
-  const parser = parsers[0];
+  // const parser = parsers[0];
+  const formatter = formatters[0];
+  const schema = formatter.schemaFn(actions);
 
+  // validation
+  // if (!parser) {
+  //   throw new Error('no parser found');
+  // }
+  if (!formatter) {
+    throw new Error('no formatter found');
+  }
+
+  // retries
   const numRetries = 5;
   return await retry(async () => {
-    const completionMessage = await generativeAgent.complete(promptMessages);
+    const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
     if (completionMessage !== null) {
       let newMessage: PendingActionMessage = null;
-      newMessage = await parser.parseFn(completionMessage.content);
+      // newMessage = await parser.parseFn(completionMessage.content);
+      newMessage = completionMessage.content as PendingActionMessage;
 
       const { method } = newMessage;
       const actionHandler = getActionHandlerByName(actions, method);

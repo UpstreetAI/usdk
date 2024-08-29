@@ -1,5 +1,4 @@
 import React from 'react';
-import { nanoid } from '@/lib/utils';
 import { Chat } from '@/components/chat/chat';
 import { LoginRedirect } from '@/components/login-redirect';
 import { SidebarDesktopLeft, SidebarDesktopRight } from '@/components/sidebar-desktop';
@@ -75,7 +74,6 @@ type Params = {
 } */
 
 export default async function RoomPage({ params }: Params) {
-  const id = nanoid()
   const roomName = decodeURIComponent(params.id)
 
   return (
@@ -84,8 +82,10 @@ export default async function RoomPage({ params }: Params) {
       <LoginRedirect />
 
       <SidebarDesktopLeft />
-
-      <Chat id={id} /* user={user} */ room={roomName} />
+      
+      <Chat
+        room={roomName}
+      />
 
       <SidebarDesktopRight />
     </div>

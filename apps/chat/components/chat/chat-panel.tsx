@@ -11,7 +11,7 @@ import { IconShare } from '@/components/ui/icons';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 
 export interface ChatPanelProps {
-  id?: string
+  // id?: string
   title?: string
   input: string
   setInput: (value: string) => void
@@ -23,7 +23,7 @@ export interface ChatPanelProps {
 }
 
 export function ChatPanel({
-  id,
+  // id,
   title,
   input,
   setInput,
@@ -38,9 +38,9 @@ export function ChatPanel({
   // const { submitUserMessage } = useActions()
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
 
-  function joinRoom() {
-    location.href = `/rooms/${crypto.randomUUID()}`;
-  }
+  // function joinRoom() {
+  //   location.href = `/rooms/${crypto.randomUUID()}`;
+  // }
 
   /*const exampleMessages = [
     {
@@ -106,7 +106,7 @@ export function ChatPanel({
           {messages?.length >= 2 ? (
             <div className="flex h-12 items-center justify-center">
               <div className="flex space-x-2">
-                {id && title ? (
+                {title ? (
                   <>
                     <Button
                       variant="outline"

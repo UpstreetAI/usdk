@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+// import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { type Chat } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -27,9 +27,10 @@ interface SidebarItemProps {
 export function SidebarItem({ index, chat, children }: SidebarItemProps) {
   const pathname = usePathname()
 
-  const isActive = pathname === chat.path
-  const [newChatId, setNewChatId] = useLocalStorage('newChatId', null)
-  const shouldAnimate = index === 0 && isActive && newChatId
+  const isActive = pathname === chat.path;
+  // const [newChatId, setNewChatId] = useLocalStorage('newChatId', null);
+  // const shouldAnimate = index === 0 && isActive && newChatId;
+  const shouldAnimate = false;
 
   if (!chat?.id) return null
 
@@ -103,11 +104,11 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
                     delay: index * 0.05,
                     staggerChildren: 0.05
                   }}
-                  onAnimationComplete={() => {
-                    if (index === chat.title.length - 1) {
-                      setNewChatId(null)
-                    }
-                  }}
+                  // onAnimationComplete={() => {
+                  //   if (index === chat.title.length - 1) {
+                  //     setNewChatId(null)
+                  //   }
+                  // }}
                 >
                   {character}
                 </motion.span>
