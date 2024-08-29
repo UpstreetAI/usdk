@@ -319,8 +319,8 @@ export const create = async (args, opts) => {
     const processAgentJson = async () => {
       const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
       const agentJsonBase = {
-        id: guid,
-        ...agentJson, // agent json id takes precedence
+        ...agentJson,
+        id: guid, // created guid takes precedence
       };
       // if the agent json is complete
       if (agentJsonString || source || yes) {
