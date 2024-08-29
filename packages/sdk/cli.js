@@ -103,6 +103,7 @@ import {
 } from './lib/commands.mjs';
 import {
   makeTempDir,
+  tryReadFile,
 } from './lib/file.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
