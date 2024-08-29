@@ -677,10 +677,11 @@ const login = async (args) => {
   // }
 };
 const logout = async (args) => {
-  try {
-    fs.access(loginLocation); // Check if the file exists
-  } catch (err) {
-    console.log('No user logged in.');
+
+  const jwt = await getLoginJwt();
+
+  if (!jwt){
+    console.log("No user logged in");
     return;
   }
 
