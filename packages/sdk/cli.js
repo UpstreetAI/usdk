@@ -3030,36 +3030,6 @@ const voice = async (args) => {
         }
         break;
       }
-      /* case 'sample': {
-        // XXX move to assets
-        const voiceName = subcommandArgs[0] ?? '';
-        const voiceSample = subcommandArgs[1] ?? '';
-        const filePath = subcommandArgs[2] ?? '';
-        if (voiceName && voiceSample && filePath) {
-          const supabase = makeSupabase(jwt);
-          const result = await supabase.from('assets')
-            .select('*')
-            .eq('name', voiceName)
-            .eq('user_id', userId)
-            .eq('type', 'voice')
-            .maybeSingle();
-          const { error, data } = result;
-          if (!error) {
-            // XXX read the real data
-            // const ab = await voiceTrainer.getVoiceSample(voiceName, voiceSample, {
-            //   jwt,
-            // });
-            await fs.promises.writeFile(filePath, Buffer.from(ab));
-          } else {
-            console.warn('error getting voice sample:', error);
-            process.exit(1);
-          }
-        } else {
-          console.warn('invalid arguments');
-          process.exit(1);
-        }
-        break;
-      } */
       case 'add': {
         const voiceName = subcommandArgs[0] ?? '';
         const voiceFilePaths = subcommandArgs.slice(1);
