@@ -2900,7 +2900,6 @@ const voice = async (args) => {
     const voiceTrainer = new VoiceTrainer();
     switch (subcommand) {
       case 'ls': {
-        // XXX move to assets
         const supabase = makeSupabase(jwt);
         const result = await supabase.from('assets')
           .select('*')
@@ -2908,9 +2907,6 @@ const voice = async (args) => {
           .eq('type', 'voice');
         const { error, data } = result;
         if (!error) {
-          // const voices =  await voiceTrainer.getVoices({
-          //   jwt,
-          // });
           console.log(JSON.stringify(data, null, 2));
         } else {
           console.warn('error getting voices:', error);
@@ -2919,7 +2915,6 @@ const voice = async (args) => {
         break;
       }
       case 'get': {
-        // XXX move to assets
         const voiceName = subcommandArgs[0] ?? '';
         if (voiceName) {
           const supabase = makeSupabase(jwt);
