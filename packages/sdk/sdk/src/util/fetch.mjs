@@ -320,6 +320,7 @@ export const fetchChatCompletion = async ({
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
 };
+
 export const fetchJsonCompletion = async ({
   model = defaultModel,
   messages,
@@ -336,10 +337,45 @@ export const fetchJsonCompletion = async ({
   }
 
   const match = model.match(/^(.+?):/);
+  const respF = zodResponseFormat(format, 'result');
+
+  // Modify the json_schema to comply with the OpenAI API requirements
+  if (respF && respF.json_schema && respF.json_schema.schema) {
+    const schema = respF.json_schema.schema;
+
+    // Ensure the schema is of type "object" and flatten it
+    if (schema.anyOf) {
+      const combinedProperties = schema.anyOf.reduce((acc, obj) => {
+        return { ...acc, ...obj.properties };
+      }, {});
+
+      // Ensure all properties are included in the required array
+      const requiredProperties = Object.keys(combinedProperties);
+
+      respF.json_schema.schema = {
+        type: 'object',
+        properties: combinedProperties,
+        required: requiredProperties, // Ensure all keys in properties are required
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        additionalProperties: false, // Adjust according to your needs
+      };
+    } else if (schema.type !== 'object') {
+      throw new Error('Invalid schema type, expected "object".');
+    }
+  }
+
   if (match) {
     // XXX support different model types; for now openai is assumed
     // const modelType = match[1];
     const modelName = model.slice(match[0].length);
+
+    const o = {
+      model: modelName,
+      messages,
+      response_format: respF,
+      stream,
+    };
+    
     const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
       method: 'POST',
 
@@ -349,19 +385,15 @@ export const fetchJsonCompletion = async ({
         Authorization: `Bearer ${jwt}`,
       },
 
-      body: JSON.stringify({
-        model: modelName,
-        messages,
-
-        response_format: zodResponseFormat(format, 'result'),
-
-        stream,
-      }),
+      
+      body: JSON.stringify(o),
       signal,
     });
     if (res.ok) {
       const j = await res.json();
+      console.log("j: ", j);
       const s = j.choices[0].message.content;
+      console.log("j.choices[0].message: ", j.choices[0].message);
       const o = JSON.parse(s);
       return o;
     } else {

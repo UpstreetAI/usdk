@@ -18,7 +18,7 @@ const AddMemoryAction = () => {
       name="add_memory"
       description={`Add the given memory string to the embedded database. Always use this whenever the user requests it.`}
       // args={{
-      //   content: 'Some string to remember, which could be a sentence or a few. It should be concise, but still include all of the relevant details.',
+      //   text: 'Some string to remember, which could be a sentence or a few. It should be concise, but still include all of the relevant details.',
       // }}
       examples={[
         {
@@ -34,15 +34,16 @@ const AddMemoryAction = () => {
         const { agent, message } = e.data;
         const args = message.args as any;
 
-        if (typeof args === 'object' && typeof args?.content === 'string') {
-          console.log('remember handler 1', new Error().stack);
-          await agent.agent.addMemory(args.content, message);
+        if (typeof args === 'object' && typeof args?.text === 'string') {
+          // console.log('remember handler 1', new Error().stack);
+          console.log('remember handler 1');
+          await agent.agent.addMemory(args.text, message);
           console.log('remember handler 2');
           // await agent.agent.addAction(message, {
           //   conversation,
           // });
           console.log('remember handler 3');
-          await agent.monologue(`Remembered: ${JSON.stringify(args.content)}`);
+          await agent.monologue(`Remembered: ${JSON.stringify(args.text)}`);
           console.log('remember handler 4');
         } else {
           throw new Error('Invalid args');
