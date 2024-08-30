@@ -3019,6 +3019,9 @@ const voice = async (args) => {
                 console.warn('could not get voice json:', res.status);
                 process.exit(1);
               }
+            } else {
+              console.warn('no such voice: ' + voiceName);
+              process.exit(1);
             }
           } else {
             console.warn('error getting voice:', error);
