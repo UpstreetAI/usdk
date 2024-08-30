@@ -6,7 +6,7 @@ const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
 
 export class VoiceTrainer {
   // constructor() {}
-  async getVoices({
+  /* async getVoices({
     jwt,
   }) {
     const res = await fetch(`${voiceEndpointBaseUrl}`, {
@@ -41,7 +41,7 @@ export class VoiceTrainer {
     const ab = await res.arrayBuffer();
     // console.log('got get response', j);
     return ab;
-  }
+  } */
   async addVoice(name, files, {
     jwt,
   }) {
