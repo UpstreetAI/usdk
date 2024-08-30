@@ -1,7 +1,8 @@
 import { aiProxyHost } from '../../util/endpoints.mjs';
 // import { getCleanJwt } from '../../utils/jwt-util.js';
 
-const voiceEndpointBaseUrl = `https://${aiProxyHost}/api/ai/voices`;
+const voicesEndpointProxyUrl = `https://${aiProxyHost}/api/ai/voices`;
+const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
 
 export class VoiceTrainer {
   // constructor() {}
@@ -20,7 +21,7 @@ export class VoiceTrainer {
   async getVoice(voiceId, {
     jwt,
   }) {
-    const res = await fetch(`${voiceEndpointBaseUrl}/${voiceId}`, {
+    const res = await fetch(`${voicesEndpointProxyUrl}/${voiceId}`, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -47,35 +48,47 @@ export class VoiceTrainer {
     const fd = new FormData();
     fd.append('name', name);
     for (const file of files) {
-      fd.append('files', file);
+      fd.append('files', file, file.name);
     }
-    // const jwt = getCleanJwt();
-    const res = await fetch(`${voiceEndpointBaseUrl}/add`, {
+
+    const res = await fetch(`${voicesEndpointApiUrl}/add`, {
       method: 'POST',
       body: fd,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
     });
-    const j = await res.json();
-    // console.log('got add response', j);
-    return j;
+    if (res.ok) {
+      const j = await res.json();
+      // console.log('got add response', j);
+      return j;
+    } else {
+      const text = await res.text();
+      throw new Error(`failed to get voice response: ${res.status}: ${text}`);
+    }
   }
-  async removeVoice(voiceId, {
+  async removeVoice(id, {
     jwt,
   }) {
-    // const fd = new FormData();
-    // fd.append('voice_id', voiceId);
-    const res = await fetch(`${voiceEndpointBaseUrl}/${voiceId}`, {
+    const u = `${voicesEndpointApiUrl}/${id}`;
+    const res = await fetch(u, {
       method: 'DELETE',
-      // body: fd,
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
     });
-    const j = await res.json();
-    // console.log('got remove response', j);
-    return j;
+    if (res.ok) {
+      const j = await res.json();
+      // console.log('got remove response', j);
+      return j;
+    } else {
+      if (res.status === 404) {
+        console.log(`voice not found: ${id}`);
+      } else {
+        const text = await res.text();
+        throw new Error(`failed to get voice response: ${u}: ${res.status}: ${text}`);
+      }
+    }
   }
 }
 const voiceTrainer = new VoiceTrainer();
