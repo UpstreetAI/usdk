@@ -3042,80 +3042,14 @@ const voice = async (args) => {
           }));
 
           // XXX move this to the voices api
-          const id = crypto.randomUUID();
-          const [
-            { voice_id },
-            voiceUrls,
-          ] = await Promise.all([
-            voiceTrainer.addVoice(voiceName, voiceFiles, {
-              jwt,
-            }),
-            Promise.all(voiceFiles.map(async (blob) => {
-              const keyPath = ['assets', id, blob.name].join('/');
-              const u = `${r2EndpointUrl}/${keyPath}`;
-              try {
-                const res = await fetch(u, {
-                  method: 'PUT',
-                  headers: {
-                    'Authorization': `Bearer ${jwt}`,
-                  },
-                  body: blob,
-                });
-                if (res.ok) {
-                  const j = await res.json();
-                  return j;
-                } else {
-                  const text = await res.text();
-                  throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
-                }
-              } catch (err) {
-                throw new Error('failed to put voice: ' + u + ': ' + err.stack);
-              }
-            })),
-          ]);
-          const newVoiceEndpoint = `elevenlabs:${voiceName}:${voice_id}`;
-          const voice = {
-            name: voiceName,
-            voiceEndpoint: newVoiceEndpoint,
-            voiceUrls,
-          };
-
-          //
-
-          const keyPath = ['assets', id, `${id}.voice`].join('/');
-          const s = JSON.stringify(voice, null, 2);
-          const u = `${r2EndpointUrl}/${keyPath}`;
-          const res = await fetch(u, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${jwt}`,
-            },
-            body: s,
+          const result = await voiceTrainer.addVoice(voiceName, voiceFiles, {
+            jwt,
           });
-          if (res.ok) {
-            const start_url = await res.json();
-            const asset = {
-              id,
-              user_id: userId,
-              type: 'voice',
-              name: voiceName,
-              description: 'Created with agents sdk',
-              start_url,
-              preview_url: '/images/voice-inv.svg',
-            };
-            const supabase = makeSupabase(jwt);
-            const { error } = await supabase.from('assets').upsert(asset);
-            if (!error) {
-               console.log(JSON.stringify(asset, null, 2));
-            } else {
-              console.warn('could not upsert asset:', error);
-              process.exit(1);
-            }
-          } else {
-            const text = await res.text();
-            console.warn('could not upload voice: ' + u + ': ' + text);
-            process.exit(1);
-          }
+          console.log('got result', result);
+          // const {
+          //   voiceId,
+          //   voiceUrls,
+          // } = result;
         } else {
           console.warn('invalid arguments');
           process.exit(1);
@@ -3123,26 +3057,13 @@ const voice = async (args) => {
         break;
       }
       case 'remove': {
-        // XXX move this to the voice api
-        const supabase = makeSupabase(jwt);
-        const result = await supabase.from('assets')
-          .delete()
-          .eq('name', voiceName)
-          .eq('user_id', userId)
-          .eq('type', 'voice');
-        const { error } = result;
-        if (!error) {
-          const voiceName = subcommandArgs[0] ?? '';
-          if (voiceName) {
-            await voiceTrainer.removeVoice(voiceName, {
-              jwt,
-            });
-          } else {
-            console.warn('invalid arguments');
-            process.exit(1);
-          }
+        const id = subcommandArgs[0] ?? '';
+        if (id) {
+          await voiceTrainer.removeVoice(id, {
+            jwt,
+          });
         } else {
-          console.warn('error deleting voice: ' + error);
+          console.warn('invalid arguments');
           process.exit(1);
         }
         break;
@@ -3580,29 +3501,29 @@ const main = async () => {
     'add',
     'remove',
   ];
-  // program
-  //   .command('voice')
-  //   .description(
-  //     'Manage agent voices',
-  //   )
-  //   .argument(
-  //     `[subcommand]`,
-  //     `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
-  //   )
-  //   .argument(
-  //     `[args...]`,
-  //     `Arguments to pass to the subcommand`,
-  //   )
-  //   .action(async (subcommand = '', args = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       args = {
-  //         _: [subcommand, args],
-  //         ...opts,
-  //       };
-  //       await voice(args);
-  //     });
-  //   });
+  program
+    .command('voice')
+    .description(
+      'Manage agent voices',
+    )
+    .argument(
+      `[subcommand]`,
+      `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
+    )
+    .argument(
+      `[args...]`,
+      `Arguments to pass to the subcommand`,
+    )
+    .action(async (subcommand = '', args = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        args = {
+          _: [subcommand, args],
+          ...opts,
+        };
+        await voice(args);
+      });
+    });
   // program
   //   .command('connect')
   //   .description(`Connect to a multiplayer room`)
