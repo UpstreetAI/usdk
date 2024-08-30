@@ -391,9 +391,7 @@ export const fetchJsonCompletion = async ({
     });
     if (res.ok) {
       const j = await res.json();
-      console.log("j: ", j);
       const s = j.choices[0].message.content;
-      console.log("j.choices[0].message: ", j.choices[0].message);
       const o = JSON.parse(s);
       return o;
     } else {
