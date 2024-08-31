@@ -69,6 +69,19 @@ export async function getAgents(userId: string, select = '*', supabaseClient = m
   }
 }
 
+export async function getVoices(userId: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
+  const { error, data } = await supabaseClient
+    .from('assets')
+    .select(select)
+    .eq( 'user_id', userId )
+    .eq( 'type', 'voice' )
+  if (!error) {
+    return data as object[];
+  } else {
+    throw error;
+  }
+}
+
 export async function getUserAccount(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
   const { data } = await supabaseClient
     .from('accounts')
