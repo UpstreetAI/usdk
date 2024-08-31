@@ -114,19 +114,19 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                             .pipeTo(outputStream);
                         } else {
                           console.warn('invalid voice endpoint:', voiceEndpointString);
-                          process.exit(1);
+                          throw new Error('invalid voice endpoint');
                         }
                       } else {
                         console.warn('could not get voice json:', res.status);
-                        process.exit(1);
+                        throw new Error('could not get voice json');
                       }
                     } else {
                       console.warn('no such voice: ' + voiceName);
-                      process.exit(1);
+                      throw new Error('no such voice');
                     }
                   } else {
                     console.warn('error getting voice:', error);
-                    process.exit(1);
+                    throw error;
                   }
                 })();
                 console.log('voice test', id);
