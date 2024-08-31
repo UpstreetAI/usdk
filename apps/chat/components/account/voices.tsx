@@ -156,7 +156,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                     // console.log('got remove response', j);
                     // return j;
 
-                    setVoices((voices) => voices.filter((voice) => voice.id !== id));
+                    setVoices((voices) => voices.filter((voice) => (voice as any).id !== id));
                   } else {
                     if (res.status === 404) {
                       console.log(`voice not found: ${id}`);
