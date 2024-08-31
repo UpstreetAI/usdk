@@ -11,6 +11,10 @@ import { env } from '@/lib/env'
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from 'usdk/sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
+import { aiProxyHost } from '../../utils/const/endpoints';
+
+// const voicesEndpointProxyUrl = `https://${aiProxyHost}/api/ai/voices`;
+const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
 
 export interface AgentsProps {
   voices: object[];
@@ -125,6 +129,39 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
               }}
             >
               Test
+            </Button>
+            <Button
+              variant="outline"
+              className="text-xs mb-1"
+              onClick={(e) => {
+                // setOpenVoiceIndex(-1);
+
+                (async () => {
+                  const jwt = await getJWT();
+
+                  const u = `${voicesEndpointApiUrl}/${id}`;
+                  const res = await fetch(u, {
+                    method: 'DELETE',
+                    headers: {
+                      Authorization: `Bearer ${jwt}`,
+                    },
+                  });
+                  if (res.ok) {
+                    const j = await res.json();
+                    // console.log('got remove response', j);
+                    return j;
+                  } else {
+                    if (res.status === 404) {
+                      console.log(`voice not found: ${id}`);
+                    } else {
+                      const text = await res.text();
+                      throw new Error(`failed to get voice response: ${u}: ${res.status}: ${text}`);
+                    }
+                  }
+                })();
+              }}
+            >
+              Remove
             </Button>
           </div>
         )}
