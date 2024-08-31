@@ -30,6 +30,10 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
   const router = useRouter();
   const [voices, setVoices] = useState(() => voicesInit);
   const [openVoiceIndex, setOpenVoiceIndex] = useState(-1);
+  const [voiceName, setVoiceName] = useState('');
+  const [voiceDescription, setVoiceDescription] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [adding, setAdding] = useState(false);
 
   // Agent row actions
   const RowActions = ({ id, i }: ActionsProps) => {
@@ -126,6 +130,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                   }
                 })();
                 console.log('voice test', id);
+              
               }}
             >
               Test
@@ -149,7 +154,9 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                   if (res.ok) {
                     const j = await res.json();
                     // console.log('got remove response', j);
-                    return j;
+                    // return j;
+
+                    setVoices((voices) => voices.filter((voice) => voice.id !== id));
                   } else {
                     if (res.status === 404) {
                       console.log(`voice not found: ${id}`);
@@ -182,81 +189,150 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
           <div className="w-full">
-            {/* Desktop View */}
-            <div className="hidden md:block relative shadow-md sm:rounded-lg">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                <thead className="text-xs text-gray-50 uppercase bg-border">
-                  <tr>
-                    {/* <th scope="col" className="px-6 w-[60px] py-3 text-[rgba(255,255,255,0.6)]">PFP</th> */}
-                    <th scope="col" className="px-2 md:px-6 min-w-40 py-3 text-[rgba(255,255,255,0.6)]">Agent Info</th>
-                    {/* <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-center">Credits Used</th> */}
-                    {/* <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Chart</th> */}
-                    <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+            {voices.length > 0 ? (
+              <>
+                {/* Desktop View */}
+                <div className="hidden md:block relative shadow-md sm:rounded-lg">
+                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                    <thead className="text-xs text-gray-50 uppercase bg-border">
+                      <tr>
+                        {/* <th scope="col" className="px-6 w-[60px] py-3 text-[rgba(255,255,255,0.6)]">PFP</th> */}
+                        <th scope="col" className="px-2 md:px-6 min-w-40 py-3 text-[rgba(255,255,255,0.6)]">Name</th>
+                        {/* <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-center">Credits Used</th> */}
+                        {/* <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Chart</th> */}
+                        <th scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)] text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {voices.map((voice: object, i: number) => {
+                        const {
+                          id,
+                          name,
+                          description,
+                        } = voice as any;
+
+                        return (
+                          <tr
+                            className="w-full hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1"
+                            key={i}
+                          >
+                            <td className="px-2 md:px-6 min-w-40 py-4 text-md capitalize align-top">
+                              <a href={`/agents/${id}`} className="block hover:underline">
+                                <div className="font-bold line-clamp-1">{name}</div>
+                                <div className="w-full line-clamp-1">
+                                  {description}
+                                </div>
+                              </a>
+                            </td>
+                            <td className="relative px-2 md:px-6 py-4 text-md capitalize align-middle text-right">
+                              <div className="relative inline-block w-8">
+                                {userIsCurrentUser && <RowActions id={id} i={i} />}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden block space-y-4">
                   {voices.map((voice: object, i: number) => {
                     const {
                       id,
                       name,
                       description,
+                      // start_url,
+                      // preview_url,
+                      // version,
+                      // credits_usage,
                     } = voice as any;
 
                     return (
-                      <tr
-                        className="w-full hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1"
+                      <div
+                        className="bg-[rgba(255,255,255,0.1)] rounded-lg p-4 relative"
                         key={i}
                       >
-                        <td className="px-2 md:px-6 min-w-40 py-4 text-md capitalize align-top">
-                          <a href={`/agents/${id}`} className="block hover:underline">
-                            <div className="font-bold line-clamp-1">{name}</div>
-                            <div className="w-full line-clamp-1">
-                              {description}
+                        <div className="flex items-center">
+                          <div className="flex-1">
+                            <div className='flex'>
+                              <div className="font-bold text-white line-clamp-2">{name}</div>
                             </div>
-                          </a>
-                        </td>
-                        <td className="relative px-2 md:px-6 py-4 text-md capitalize align-middle text-right">
-                          <div className="relative inline-block w-8">
-                            {userIsCurrentUser && <RowActions id={id} i={i} />}
+                            <div className="text-gray-400 line-clamp-1">{description}</div>
                           </div>
-                        </td>
-                      </tr>
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
-            </div>
+                </div>
+              </>)
+            : (
+              <div className="">
+                No voices
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
+        <div className="px-5 py-4">
+          {/* voice add upload */}
+          <div className="flex flex-col w-full">
+            <input type="text" value={voiceName} placeholder="Voice name" onChange={e => {
+              setVoiceName(e.target.value);
+            }} disabled={adding} />
+            <input type="text" value={voiceDescription} placeholder="Voice description" onChange={e => {
+              setVoiceDescription(e.target.value);
+            }} disabled={adding} />
+            <input type="file" multiple onChange={e => {
+              setFiles(Array.from(e.target.files ?? []));
+            }} disabled={adding} />
+            <Button
+              variant="outline"
+              className="text-xs mb-1"
+              onClick={(e) => {
+                if (voiceName && files.length > 0 && !adding) {
+                  (async () => {
+                    try {
+                      setAdding(true);
 
-            {/* Mobile View */}
-            <div className="md:hidden block space-y-4">
-              {voices.map((voice: object, i: number) => {
-                const {
-                  id,
-                  name,
-                  description,
-                  // start_url,
-                  // preview_url,
-                  // version,
-                  // credits_usage,
-                } = voice as any;
+                      const jwt = await getJWT();
+                      
+                      const fd = new FormData();
+                      fd.append('name', voiceName);
+                      fd.append('description', voiceDescription);
+                      for (const file of files) {
+                        fd.append('files', file, file.name);
+                      }
 
-                return (
-                  <div
-                    className="bg-[rgba(255,255,255,0.1)] rounded-lg p-4 relative"
-                    key={i}
-                  >
-                    <div className="flex items-center">
-                      <div className="flex-1">
-                        <div className='flex'>
-                          <div className="font-bold text-white line-clamp-2">{name}</div>
-                        </div>
-                        <div className="text-gray-400 line-clamp-1">{description}</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                      const res = await fetch(`${voicesEndpointApiUrl}/add`, {
+                        method: 'POST',
+                        body: fd,
+                        headers: {
+                          Authorization: `Bearer ${jwt}`,
+                        },
+                      });
+                      if (res.ok) {
+                        const j = await res.json();
+                        // console.log('got add response', j);
+                        // return j;
+
+                        setVoices((voices) => [...voices, j]);
+                      } else {
+                        const text = await res.text();
+                        throw new Error(`failed to get voice response: ${res.status}: ${text}`);
+                      }
+                    } finally {
+                      setAdding(false);
+                    }
+                  })();
+                }
+              }}
+              disabled={!(voiceName && voiceDescription && files.length > 0) || adding}
+            >
+              {!adding ? `Upload voice` : `Uploading...`}
+            </Button>
           </div>
         </div>
       </div>
