@@ -45,3 +45,36 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.version = packageJson.version;
   }
 };
+
+export const defaultVoices = [
+  {
+    voiceEndpoint: 'elevenlabs:kadio:YkP683vAWY3rTjcuq2hX',
+    name: 'Kaido',
+    description: 'Anime boy',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',
+    name: 'Drake',
+    description: 'Anime boy',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:terrorblade:lblRnHLq4YZ8wRRUe8ld',
+    name: 'Terrorblade',
+    description: 'Anime boy',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9',
+    name: 'Scillia',
+    description: 'Anime girl',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:uni:PSAakCTPE63lB4tP9iNQ',
+    name: 'Uni',
+    description: 'Anime girl',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:lilo:Z1bfwpHqpXffzokqU4WK',
+    name: 'Lilo',
+    description: 'Anime girl',
+  },
+];

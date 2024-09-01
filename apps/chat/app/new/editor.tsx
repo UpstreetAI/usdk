@@ -22,6 +22,9 @@ import {
 import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
 import { AgentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
+import { 
+  defaultVoices,
+} from 'usdk/sdk/src/agent-defaults.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 
@@ -256,38 +259,6 @@ export default function AgentEditor({
   const [builderPrompt, setBuilderPrompt] = useState('');
   // const [agentPrompt, setAgentPrompt] = useState('');
 
-  const defaultVoices = useMemo(() => [
-    {
-      voiceEndpoint: 'elevenlabs:kadio:YkP683vAWY3rTjcuq2hX',
-      name: 'Kaido',
-      description: 'Anime boy',
-    },
-    {
-      voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',
-      name: 'Drake',
-      description: 'Anime boy',
-    },
-    {
-      voiceEndpoint: 'elevenlabs:terrorblade:lblRnHLq4YZ8wRRUe8ld',
-      name: 'Terrorblade',
-      description: 'Anime boy',
-    },
-    {
-      voiceEndpoint: 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9',
-      name: 'Scillia',
-      description: 'Anime girl',
-    },
-    {
-      voiceEndpoint: 'elevenlabs:uni:PSAakCTPE63lB4tP9iNQ',
-      name: 'Uni',
-      description: 'Anime girl',
-    },
-    {
-      voiceEndpoint: 'elevenlabs:lilo:Z1bfwpHqpXffzokqU4WK',
-      name: 'Lilo',
-      description: 'Anime girl',
-    },
-  ], []);
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [voiceEndpoint, setVoiceEndpoint] = useState<string>(voices[0].voiceEndpoint);
 
