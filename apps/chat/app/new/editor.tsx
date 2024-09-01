@@ -77,7 +77,7 @@ const makeSourceCode = (features: FeaturesObject, {
     features.tts ? `TTS` : null,
   ].filter(Boolean).map(l => `${importIndentString}${l},`).join('\n');
   const featureComponents = [
-    features.tts ? `<TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)}>` : null,
+    features.tts ? `<TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />` : null,
   ].filter(Boolean).map(l => `${featureIndentString}${l}`).join('\n');
   if (featureImports || featureComponents) {
     return defaultSourceCode
