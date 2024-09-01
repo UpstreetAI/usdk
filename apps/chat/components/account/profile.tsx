@@ -20,7 +20,7 @@ import {
 } from 'usdk/sdk/src/util/endpoints.mjs';
 import {
   AuxImages,
-} from '@/components/account/aux-images';
+} from '@/components/aux-images';
 
 export interface ProfileProps {
   user: any,
