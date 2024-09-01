@@ -46,10 +46,13 @@ const ensureEsbuild = (() => {
   };
 })();
 
+const importPlaceholder = `  // ...`;
+const featurePlaceholder = `      {/* ... */}`;
 const defaultSourceCode = `\
 import React from 'react';
 import {
   Agent,
+${importPlaceholder}
 } from 'react-agents';
 
 //
@@ -57,11 +60,33 @@ import {
 export default function MyAgent() {
   return (
     <Agent>
-      {/* ... */}
+${featurePlaceholder}
     </Agent>
   );
 }
 `;
+const makeSourceCode = (features: FeaturesObject, {
+  voiceEndpoint,
+}: {
+  voiceEndpoint: string;
+}) => {
+  const importIndentString = Array(2 + 1).join(' ');
+  const featureIndentString = Array(3 * 2 + 1).join(' ');
+
+  const featureImports = [
+    features.tts ? `TTS` : null,
+  ].filter(Boolean).map(l => `${importIndentString}${l},`).join('\n');
+  const featureComponents = [
+    features.tts ? `<TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)}>` : null,
+  ].filter(Boolean).map(l => `${featureIndentString}${l}`).join('\n');
+  if (featureImports || featureComponents) {
+    return defaultSourceCode
+      .replace(importPlaceholder, featureImports)
+      .replace(featurePlaceholder, featureComponents);
+  } else {
+    return defaultSourceCode;
+  }
+};
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -202,9 +227,12 @@ type ChatMessage = {
   content: string;
 };
 
-interface ObjectStringBoolean {
-  [key: string]: boolean;
-}
+// interface ObjectStringBoolean {
+//   [key: string]: boolean;
+// }
+type FeaturesObject = {
+  tts: boolean;
+};
 type AgentEditorProps = {
   user: any;
 };
@@ -263,7 +291,7 @@ export default function AgentEditor({
     },
   ], []);
   const [voices, setVoices] = useState(() => defaultVoices.slice());
-  const [voice, setVoice] = useState<string>(voices[0].voiceEndpoint);
+  const [voiceEndpoint, setVoiceEndpoint] = useState<string>(voices[0].voiceEndpoint);
 
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
@@ -272,9 +300,13 @@ export default function AgentEditor({
   // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
-  const [features, setFeatures] = useState<ObjectStringBoolean>({
+  const [features, setFeatures] = useState<FeaturesObject>({
     tts: false,
   });
+  const getSourceCodeOpts = () => ({
+    voiceEndpoint,
+  });
+  const [sourceCode, setSourceCode] = useState(() => makeSourceCode(features, getSourceCodeOpts()));
 
   const monaco = useMonaco();
 
@@ -309,7 +341,7 @@ export default function AgentEditor({
 
       const { error, data } = result;
       if (!error) {
-        console.log('got voices data 1', data);
+        // console.log('got voices data 1', data);
         const userVoices = await Promise.all(data.map(async voice => {
           const res = await fetch(voice.start_url);
           const j = await res.json();
@@ -317,7 +349,7 @@ export default function AgentEditor({
         }));
         if (signal.aborted) return;
 
-        console.log('got voices data 2', userVoices);
+        // console.log('got voices data 2', userVoices);
         setVoices(voices => {
           return [
             ...userVoices,
@@ -329,6 +361,22 @@ export default function AgentEditor({
       }
     })();
   }, []);
+  // sync source code to editor
+  useEffect(() => {
+    if (monaco) {
+      const model = getEditorModel(monaco);
+      if (model) {
+        const editorValue = getEditorValue(monaco);
+        if (editorValue !== sourceCode) {
+          model.setValue(sourceCode);
+        }
+      }
+    }
+  }, [monaco, sourceCode]);
+  // sync features to source code
+  useEffect(() => {
+    setSourceCode(makeSourceCode(features, getSourceCodeOpts()));
+  }, [features, voiceEndpoint]);
 
   // helpers
   const getCloudPreviewUrl = async () => {
@@ -355,15 +403,20 @@ export default function AgentEditor({
       return null;
     }
   };
-  const getEditorValue = (m = monaco) => m?.editor.getModels()[0].getValue() ?? '';
-  const startAgent = async (sourceCode = getEditorValue()) => {
+  const getEditorModel = (m = monaco) => m?.editor.getModels()[0] ?? null;
+  const getEditorValue = (m = monaco) => getEditorModel(m)?.getValue() ?? '';
+  async function startAgent({
+    sourceCode = getEditorValue(),
+  }: {
+    sourceCode?: string;
+  } = {}) {
     stopAgent();
 
     setStarting(true);
 
-    console.log('building agent src...', {monaco, sourceCode});
+    console.log('building agent src...', { monaco, sourceCode });
     const agentSrc = await buildAgentSrc(sourceCode);
-    console.log('built agent src:', {agentSrc});
+    console.log('built agent src:', { agentSrc });
 
     console.log('getting agent id...');
     const jwt = await getJWT();
@@ -376,9 +429,9 @@ export default function AgentEditor({
     const agentToken = await getAgentToken(jwt, id);
     console.log('got agent token:', agentToken);
 
-    console.log('uploading agent preview...', {previewBlob});
+    console.log('uploading agent preview...', { previewBlob });
     const previewUrl = await getCloudPreviewUrl();
-    console.log('got agent preview url:', {previewUrl});
+    console.log('got agent preview url:', { previewUrl });
 
     const agentJson = {
       id,
@@ -415,9 +468,7 @@ export default function AgentEditor({
     newWorker.fetch = async (url: string, opts: FetchOpts) => {
       const requestId = crypto.randomUUID();
       const {
-        method,
-        headers,
-        body,
+        method, headers, body,
       } = opts;
       newWorker.postMessage({
         method: 'request',
@@ -444,10 +495,7 @@ export default function AgentEditor({
                   cleanup();
 
                   const {
-                    error,
-                    status,
-                    headers,
-                    body,
+                    error, status, headers, body,
                   } = args;
                   if (!error) {
                     const res = new Response(body, {
@@ -506,7 +554,7 @@ export default function AgentEditor({
     }
 
     setStarting(false);
-  };
+  }
   const stopAgent = () => {
     if (worker) {
       worker.terminate();
@@ -803,8 +851,8 @@ export default function AgentEditor({
               }} />
               <div className="px-2">TTS</div>
             </label>
-            <select value={voice} onChange={e => {
-              setVoice(e.target.value);
+            <select value={voiceEndpoint} onChange={e => {
+              setVoiceEndpoint(e.target.value);
             }} disabled={!features.tts}>
               {voices.map(voice => {
                 return (
@@ -817,17 +865,29 @@ export default function AgentEditor({
         <Editor
           theme="vs-dark"
           defaultLanguage="javascript"
-          defaultValue={defaultSourceCode}
+          defaultValue={sourceCode}
           options={{
             readOnly: deploying,
           }}
           onMount={(editor, monaco) => {
             (editor as any)._domElement.parentNode.style.flex = 1;
 
+            const model = editor.getModel();
+            if (model) {
+              model.onDidChangeContent(e => {
+                const s = getEditorValue(monaco);
+                setSourceCode(s);
+              });
+            } else {
+              console.warn('no model', editor);
+            }
+
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
               // // Add your save logic here
               // alert('Ctrl+S pressed');
-              startAgent(getEditorValue(monaco));
+              startAgent({
+                sourceCode: getEditorValue(monaco),
+              });
             });
           }}
         />
