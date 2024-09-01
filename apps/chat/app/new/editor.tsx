@@ -65,19 +65,15 @@ ${featurePlaceholder}
   );
 }
 `;
-const makeSourceCode = (features: FeaturesObject, {
-  voiceEndpoint,
-}: {
-  voiceEndpoint: string;
-}) => {
+const makeSourceCode = (featuresObject: FeaturesObject) => {
   const importIndentString = Array(2 + 1).join(' ');
   const featureIndentString = Array(3 * 2 + 1).join(' ');
 
   const featureImports = [
-    features.tts ? `TTS` : null,
+    featuresObject.tts ? `TTS` : null,
   ].filter(Boolean).map(l => `${importIndentString}${l},`).join('\n');
   const featureComponents = [
-    features.tts ? `<TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />` : null,
+    featuresObject.tts ? `<TTS voiceEndpoint=${JSON.stringify(featuresObject.tts.voiceEndpoint)} />` : null,
   ].filter(Boolean).map(l => `${featureIndentString}${l}`).join('\n');
   if (featureImports || featureComponents) {
     return defaultSourceCode
@@ -227,11 +223,13 @@ type ChatMessage = {
   content: string;
 };
 
-// interface ObjectStringBoolean {
-//   [key: string]: boolean;
-// }
-type FeaturesObject = {
+type FeaturesFlags = {
   tts: boolean;
+};
+type FeaturesObject = {
+  tts: {
+    voiceEndpoint: string;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -300,13 +298,15 @@ export default function AgentEditor({
   // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
-  const [features, setFeatures] = useState<FeaturesObject>({
+  const [features, setFeatures] = useState<FeaturesFlags>({
     tts: false,
   });
-  const getSourceCodeOpts = () => ({
-    voiceEndpoint,
+  const getSourceCodeOpts = (): FeaturesObject => ({
+    tts: features.tts ? {
+      voiceEndpoint,
+    } : null,
   });
-  const [sourceCode, setSourceCode] = useState(() => makeSourceCode(features, getSourceCodeOpts()));
+  const [sourceCode, setSourceCode] = useState(() => makeSourceCode(getSourceCodeOpts()));
 
   const monaco = useMonaco();
 
@@ -375,7 +375,7 @@ export default function AgentEditor({
   }, [monaco, sourceCode]);
   // sync features to source code
   useEffect(() => {
-    setSourceCode(makeSourceCode(features, getSourceCodeOpts()));
+    setSourceCode(makeSourceCode(getSourceCodeOpts()));
   }, [features, voiceEndpoint]);
 
   // helpers
