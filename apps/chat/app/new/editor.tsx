@@ -22,6 +22,8 @@ import {
 import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
 import { AgentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { env } from '@/lib/env'
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -200,7 +202,16 @@ type ChatMessage = {
   content: string;
 };
 
-export default function AgentEditor() {
+interface ObjectStringBoolean {
+  [key: string]: boolean;
+}
+type AgentEditorProps = {
+  user: any;
+};
+
+export default function AgentEditor({
+  user,
+}: AgentEditorProps) {
   // state
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
@@ -219,12 +230,51 @@ export default function AgentEditor() {
   const [builderPrompt, setBuilderPrompt] = useState('');
   // const [agentPrompt, setAgentPrompt] = useState('');
 
+  const defaultVoices = useMemo(() => [
+    {
+      voiceEndpoint: 'elevenlabs:kadio:YkP683vAWY3rTjcuq2hX',
+      name: 'Kaido',
+      description: 'Anime boy',
+    },
+    {
+      voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',
+      name: 'Drake',
+      description: 'Anime boy',
+    },
+    {
+      voiceEndpoint: 'elevenlabs:terrorblade:lblRnHLq4YZ8wRRUe8ld',
+      name: 'Terrorblade',
+      description: 'Anime boy',
+    },
+    {
+      voiceEndpoint: 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9',
+      name: 'Scillia',
+      description: 'Anime girl',
+    },
+    {
+      voiceEndpoint: 'elevenlabs:uni:PSAakCTPE63lB4tP9iNQ',
+      name: 'Uni',
+      description: 'Anime girl',
+    },
+    {
+      voiceEndpoint: 'elevenlabs:lilo:Z1bfwpHqpXffzokqU4WK',
+      name: 'Lilo',
+      description: 'Anime girl',
+    },
+  ], []);
+  const [voices, setVoices] = useState(() => defaultVoices.slice());
+  const [voice, setVoice] = useState<string>(voices[0].voiceEndpoint);
+
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
   const builderForm = useRef<HTMLFormElement>(null);
   // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
+
+  const [features, setFeatures] = useState<ObjectStringBoolean>({
+    tts: false,
+  });
 
   const monaco = useMonaco();
 
@@ -242,6 +292,43 @@ export default function AgentEditor() {
       setPreviewUrl('');
     }
   }, [previewBlob]);
+  // load voices
+  useEffect(() => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    (async () => {
+      const jwt = await getJWT();
+      const supabase = makeAnonymousClient(env, jwt);
+      const result = await supabase
+        .from('assets')
+        .select('*')
+        .eq( 'user_id', user.id )
+        .eq( 'type', 'voice' );
+      if (signal.aborted) return;
+
+      const { error, data } = result;
+      if (!error) {
+        console.log('got voices data 1', data);
+        const userVoices = await Promise.all(data.map(async voice => {
+          const res = await fetch(voice.start_url);
+          const j = await res.json();
+          return j;
+        }));
+        if (signal.aborted) return;
+
+        console.log('got voices data 2', userVoices);
+        setVoices(voices => {
+          return [
+            ...userVoices,
+            ...voices,
+          ];
+        });
+      } else {
+        console.warn('error loading voices', error);
+      }
+    })();
+  }, []);
 
   // helpers
   const getCloudPreviewUrl = async () => {
@@ -572,47 +659,9 @@ export default function AgentEditor() {
           >Send</Button>
         </form>
       </div>
-      {/* agent */}
-      {/* <div className="flex flex-col flex-1">
-        <div className="flex flex-col flex-1 bg-primary/10">
-          Agent chat history
-        </div>
-        <form
-          className="flex"
-          onSubmit={async e => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (agentPrompt) {
-              console.log('run agent prompt', agentPrompt);
-              setAgentPrompt('');
-            }
-          }}
-          ref={agentForm}
-        >
-          <input
-            type="text"
-            className="flex-1 px-4"
-            value={agentPrompt}
-            onChange={e => setAgentPrompt(e.target.value)}
-          />
-          <Button
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
-
-              agentForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
-            disabled={!worker}
-          >Send</Button>
-        </form>
-      </div> */}
       <Chat
         room={room}
         onConnect={(connected) => {
-          // console.log('got connected', {
-          //   connected,
-          // });
           if (connected) {
             setConnecting(false);
           }
@@ -740,6 +789,29 @@ export default function AgentEditor() {
               }}
               disabled={deploying}
             >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+          </div>
+        </div>
+        <div className="flex flex-col w-100">
+          <div>Features</div>
+          <div className="flex">
+            <label className="flex">
+              <input type="checkbox" checked={features.tts} onChange={e => {
+                setFeatures({
+                  ...features,
+                  tts: e.target.checked,
+                });
+              }} />
+              <div className="px-2">TTS</div>
+            </label>
+            <select value={voice} onChange={e => {
+              setVoice(e.target.value);
+            }} disabled={!features.tts}>
+              {voices.map(voice => {
+                return (
+                  <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                );
+              })}
+            </select>
           </div>
         </div>
         <Editor
