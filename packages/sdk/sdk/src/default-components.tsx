@@ -1471,6 +1471,49 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
     />
   )
 };
+
+export type PublicProps = {
+  maxUserMessages: number;
+  maxUserMessagesTime: number;
+};
+export const Public: React.FC<PublicProps> = (props: PublicProps) => {
+  const maxUserMessages = props?.maxUserMessages;
+  const maxUserMessagesTime = props?.maxUserMessagesTime;
+
+  /* useEffect(() => {
+    const actionHandlerModifier = (() => {
+      return {
+        handle: async (e: PendingActionEvent) => {
+          const { message, agent } = e.data;
+          const args = message.args as any;
+          const text = (args as any).text as string;
+          const readableAudioStream = tts.getVoiceStream(text);
+          const { type } = readableAudioStream;
+          const playableAudioStream = readableAudioStream as PlayableAudioStream;
+          playableAudioStream.id = crypto.randomUUID();
+          agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
+          if (!args.linkedMedia) {
+            args.linkedMedia = [];
+          }
+          args.linkedMedia.push({
+            id: playableAudioStream.id,
+            type,
+          });
+        },
+      };
+    })();
+    addActionModifier(configuration, 'say', actionHandlerModifier);
+
+    return () => {
+      removeActionModifier(configuration, 'say', actionHandlerModifier);
+    };
+  }, [
+    tts,
+  ]); */
+
+  return null;
+};
+
 export type TTSProps = {
   voiceEndpoint?: string; // voice to use
 };

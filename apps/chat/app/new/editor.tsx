@@ -58,6 +58,8 @@ const defaultFiles = [
     `,
   },
 ];
+const maxUserMessagesDefault = 5;
+const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
 const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
 } = {}) => {
@@ -171,6 +173,10 @@ type FeaturesObject = {
   tts: {
     voiceEndpoint: string;
   } | null;
+  public: {
+    maxUserMessages: number;
+    maxUserMessagesTime: number;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -207,6 +213,7 @@ export default function AgentEditor({
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
     tts: null,
+    public: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -772,6 +779,43 @@ export default function AgentEditor({
                 );
               })}
             </select>
+          </div>
+          {/* public */}
+          <div className="flex">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.public} onChange={e => {
+                setFeatures({
+                  ...features,
+                  public: e.target.checked ? {
+                    maxUserMessages: maxUserMessagesDefault,
+                    maxUserMessagesTime: maxUserMessagesTimeDefault,
+                  } : null,
+                });
+              }} />
+              <div className="px-2">Public</div>
+            </label>
+            <input type="number" value={features.public?.maxUserMessages ?? ''} onChange={e => {
+              setFeatures(features => (
+                {
+                  ...features,
+                  public: {
+                    maxUserMessages: parseInt(e.target.value, 10) || maxUserMessagesDefault,
+                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? maxUserMessagesTimeDefault,
+                  },
+                }
+              ));
+            }} disabled={!features.public} />
+            <input type="number" value={features.public?.maxUserMessagesTime ?? ''} onChange={e => {
+              setFeatures(features => (
+                {
+                  ...features,
+                  public: {
+                    maxUserMessages: features.public?.maxUserMessages ?? maxUserMessagesDefault,
+                    maxUserMessagesTime: parseInt(e.target.value, 10) || maxUserMessagesTimeDefault,
+                  },
+                }
+              ));
+            }} disabled={!features.public} />
           </div>
         </div>
         <Editor
