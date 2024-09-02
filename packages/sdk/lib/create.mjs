@@ -55,11 +55,12 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from '../sdk/src/util/ethereum-utils.mjs';
-import { AgentInterview, applyFeaturesToAgentJSX } from '../sdk/src/util/agent-interview.mjs';
+import { AgentInterview } from '../sdk/src/util/agent-interview.mjs';
 import {
   getAgentName,
   ensureAgentJsonDefaults,
 } from '../sdk/src/agent-defaults.mjs';
+import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
 
 //
 
@@ -121,28 +122,21 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await mkdirp(path.dirname(dst));
   await fs.promises.writeFile(dst, s);
 };
-const generateTemplateFromAgentJson = async (agentJson, {
-  // template = 'empty',
-  template = 'basic',
-  features = [],
-} = {}) => {
+const generateTemplateFromAgentJson = async (agentJson) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
 
   // copy over the basic template
+  const template = 'basic';
   const basicTemplateDirectory = path.join(templatesDirectory, template);
   await recursiveCopy(basicTemplateDirectory, templateDirectory);
 
-  // update agent jsx as needed
-  // console.log(pc.italic('Generating code...'));
-  if (features.length > 0) {
-    const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
-    let agentJSX = await fs.promises.readFile(agentJSXPath, 'utf8');
-    agentJSX = applyFeaturesToAgentJSX(agentJSX, features);
-    await fs.promises.writeFile(agentJSXPath, agentJSX);
-  }
+  // write the agent jsx
+  const agentJSXPath = path.join(templateDirectory, 'agent.tsx');
+  const agentJSX = makeAgentSourceCode(agentJson.features);
+  await fs.promises.writeFile(agentJSXPath, agentJSX);
 
-  // write back the generated the agent json
+  // write the agent json
   await fs.promises.writeFile(
     path.join(templateDirectory, agentJsonSrcFilename),
     JSON.stringify(agentJson, null, 2),
@@ -337,16 +331,14 @@ export const create = async (args, opts) => {
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Features:'), agentJson.features?.length > 0
-      ? agentJson.features.join(', ')
+    const featuresKeys = Object.keys(agentJson.features ?? {});
+    console.log(pc.green('Features:'), featuresKeys.length > 0
+      ? featuresKeys.join(', ')
       : '*none*'
     );
 
     console.log(pc.italic('Building agent...'));
-    srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
-      template,
-      features: agentJson.features,
-    });
+    srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
     console.log(pc.italic('Agent built.'));
   } else {
     throw new Error('not logged in: cannot generate agent from prompt');
