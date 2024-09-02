@@ -278,6 +278,9 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
           {/* voice add upload */}
+          <h2 className="mb-4 text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
+            Add voice
+          </h2>
           <div className="flex flex-col w-full">
             <input type="text" value={voiceName} placeholder="Voice name" onChange={e => {
               setVoiceName(e.target.value);
