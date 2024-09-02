@@ -98,7 +98,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                             // sampleRate,
                             jwt,
                           });
-                          const readableStream = voiceEndpointVoicer.getStream(sampleText);
+                          const readableStream = voiceEndpointVoicer.getVoiceStream(sampleText);
 
                           // output
                           const outputStream = new AudioContextOutputStream();
