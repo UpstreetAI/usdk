@@ -6,9 +6,13 @@ import {aiProxyHost} from '../../util/endpoints.mjs'
 // import { abortableRead, makePromise } from '../../util.js';
 import { makePromise } from '../multiplayer/public/util.mjs';
 import {getCleanJwt} from '../../util/jwt-util.mjs';
+
 //
 
-export const getVoiceRequest = {
+const elevenlabsTtsModelId = 'eleven_turbo_v2_5'; // eleven_multilingual_v2
+const elevenlabsStsModelId = 'eleven_english_sts_v2'; // eleven_multilingual_sts_v2
+
+const getVoiceRequest = {
   elevenlabs: async ({ text = '', voiceId = null }, { jwt = null, signal = null }) => {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
@@ -20,7 +24,7 @@ export const getVoiceRequest = {
     const baseUrl = `https://${aiProxyHost}/api/ai/text-to-speech`;
     const j = {
       text,
-      model_id: 'eleven_turbo_v2',
+      model_id: elevenlabsTtsModelId,
       voice_settings: {
         stability: 0.15,
         similarity_boost: 1,
@@ -70,7 +74,7 @@ export const getVoiceRequest = {
     return res;
   },
 };
-export const getVoiceStream = {
+const getVoiceStream = {
   elevenlabs: (spec, opts) => {
     // create a through stream that will be used to pipe the audio stream
     const throughStream = new TransformStream();
@@ -224,7 +228,78 @@ export const getVoiceStream = {
     return stream;
   },
 };
-export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
+const getVoiceConversionRequest = {
+  elevenlabs: async ({ blob, voiceId = null }, { jwt = null, signal = null }) => {
+    if (!blob) {
+      throw new Error('blob was not passed');
+    }
+    if (!voiceId) {
+      throw new Error('voiceId was not passed');
+    }
+
+    if (!jwt) {
+      jwt = getCleanJwt();
+    }
+    const baseUrl = `https://${aiProxyHost}/api/ai/speech-to-speech`;
+    const fd = new FormData();
+    fd.append('audio', blob);
+    fd.append('model_id', elevenlabsStsModelId);
+    fd.append('voice_settings', JSON.stringify({
+      stability: 0.15,
+      similarity_boost: 1,
+    }));
+    // read fetch stream
+    const res = await fetch(`${baseUrl}/${voiceId}/stream`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+      body: fd,
+      signal,
+    });
+    return res;
+  },
+};
+export const getVoiceConversionStream = {
+  elevenlabs: (spec, opts) => {
+    // create a through stream that will be used to pipe the audio stream
+    const throughStream = new TransformStream();
+
+    const close = () => {
+      throughStream.writable.getWriter().close();
+    };
+
+    // request the audio stream
+    const loadPromise = makePromise();
+    (async () => {
+      try {
+        const res = await getVoiceConversionRequest.elevenlabs(spec, opts);
+
+        if (res.ok) {
+          loadPromise.resolve();
+
+          await res.body.pipeTo(throughStream.writable);
+        } else {
+          console.warn(
+            'preloadElevenLabsVoiceStream error',
+            res.status,
+            res.statusText
+          );
+          close();
+        }
+      } catch (err) {
+        console.warn(err);
+        // close();
+      }
+    })();
+
+    const stream = throughStream.readable;
+    stream.type = 'audio/mpeg';
+    stream.waitForLoad = () => loadPromise;
+    return stream;
+  },
+};
+/* export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
   if (!jwt) {
     jwt = getCleanJwt();
   }
@@ -242,7 +317,7 @@ export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
     body: fd,
   });
   return res;
-};
+}; */
 /* const preloadElevenLabsVoiceMessage = (text, voiceEndpointVoicer) => {
   const loadPromise = (async () => {
     const baseUrl = 'https://api.elevenlabs.io/v1/text-to-speech';
@@ -299,16 +374,31 @@ export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
 //
 
 export class VoiceEndpoint {
-  constructor(getVoiceStreamFn, voiceId) {
+  #getVoiceStreamFn;
+  #getVoiceConversionStreamFn;
+  #voiceId;
+  constructor({
+    getVoiceStreamFn,
+    getVoiceConversionStreamFn,
+    voiceId,
+  }) {
     this.#getVoiceStreamFn = getVoiceStreamFn;
+    this.#getVoiceConversionStreamFn = getVoiceConversionStreamFn;
     this.#voiceId = voiceId;
   }
-  #getVoiceStreamFn;
-  #voiceId;
-  getStream(text, opts) {
+  getVoiceStream(text, opts) {
     return this.#getVoiceStreamFn(
       {
         text,
+        voiceId: this.#voiceId,
+      },
+      opts
+    );
+  }
+  getVoiceConversionStream(blob, opts) {
+    return this.#getVoiceConversionStreamFn(
+      {
+        blob,
         voiceId: this.#voiceId,
       },
       opts
@@ -318,19 +408,24 @@ export class VoiceEndpoint {
 export class AutoVoiceEndpoint extends VoiceEndpoint {
   constructor({ model, voiceId }) {
     const getVoiceStreamFn = getVoiceStream[model];
-    super(getVoiceStreamFn, voiceId);
+    const getVoiceConversionStreamFn = getVoiceConversionStream[model];
+    super({
+      getVoiceStreamFn,
+      getVoiceConversionStreamFn,
+      voiceId,
+    });
   }
 }
-export class ElevenLabsVoiceEndpoint extends VoiceEndpoint {
+/* export class ElevenLabsVoiceEndpoint extends VoiceEndpoint {
   constructor({ voiceId }) {
     super(getVoiceStream.elevenlabs, voiceId);
   }
-}
-export class TiktalknetVoiceEndpoint extends VoiceEndpoint {
+} */
+/* export class TiktalknetVoiceEndpoint extends VoiceEndpoint {
   constructor({ voiceId }) {
     super(getVoiceStream.tiktalknet, voiceId);
   }
-}
+} */
 
 //
 
@@ -483,15 +578,23 @@ export class VoiceEndpointVoicer {
   // setVolume(value) {
   //   this.audioManager.setVolume(value);
   // }
-  getStream(text, opts) {
-    return this.voiceEndpoint.getStream(text, {
+  getVoiceStream(text, opts) {
+    return this.voiceEndpoint.getVoiceStream(text, {
       // sampleRate: this.sampleRate,
       jwt: this.jwt,
       ...opts, // signal
       // sampleRate: this.audioManager.audioContext.sampleRate,
     });
   }
-  async start(stream, opts) {
+  getVoiceConversionStream(blob, opts) {
+    return this.voiceEndpoint.getVoiceConversionStream(blob, {
+      // sampleRate: this.sampleRate,
+      jwt: this.jwt,
+      ...opts, // signal
+      // sampleRate: this.audioManager.audioContext.sampleRate,
+    });
+  }
+  /* async start(stream, opts) {
     throw new Error('needs to be reimplemented in a different class with an audioManager and sampleRate');
 
     // let stream;
@@ -501,7 +604,7 @@ export class VoiceEndpointVoicer {
     //   stream = this.getStream(text, opts);
     // }
     await startStream(stream, opts);
-  }
+  } */
   // static streamMp3 = streamMp3;
   static startStream = startStream;
 }

@@ -466,7 +466,8 @@ type Compartment = {
 };
 
 type Tts = {
-  getAudioStream: (text: string, opts?: any) => ReadableAudioStream;
+  getVoiceStream: (text: string, opts?: any) => ReadableAudioStream;
+  getVoiceConversionStream: (blob: Blob, opts?: any) => ReadableAudioStream;
 };
 
 export type Instance = {
