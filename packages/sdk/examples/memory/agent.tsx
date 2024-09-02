@@ -26,6 +26,7 @@ const AddMemoryAction = () => {
       ]}
       schema={
         z.object({
+          addMemId: z.string(),
           text: z.string(),
         })
       }
@@ -66,6 +67,7 @@ const GetMemoryAction = () => {
       ]}
       schema={
         z.object({
+          getMemId: z.string(),
           text: z.string(),
         })
       }

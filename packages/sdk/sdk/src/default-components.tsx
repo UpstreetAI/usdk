@@ -141,6 +141,7 @@ export const DefaultActions = () => {
       description={`A character says something.`}
       schema={
         z.object({
+          sayId: z.string(),
           text: z.string(),
         })
       }
@@ -510,8 +511,8 @@ const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
   return z.object({
     // userId: z.string(),
     // name: z.string(),
-    method: z.string(),
     args,
+    method: z.string(),
   });
 };
 export const DefaultFormatters = () => {

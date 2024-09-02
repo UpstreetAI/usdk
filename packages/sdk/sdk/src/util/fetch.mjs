@@ -5,6 +5,8 @@ import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 
+import {z} from 'zod';
+
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }, {
     jwt,
@@ -337,32 +339,36 @@ export const fetchJsonCompletion = async ({
   }
 
   const match = model.match(/^(.+?):/);
-  const respF = zodResponseFormat(format, 'result');
+  // const respF = zodResponseFormat(format, 'result');
+  const actionWrapperResponseFormat = zodResponseFormat(z.object({
+    actions: format,
+  }), 'result');
 
-  // Modify the json_schema to comply with the OpenAI API requirements
-  if (respF && respF.json_schema && respF.json_schema.schema) {
-    const schema = respF.json_schema.schema;
 
-    // Ensure the schema is of type "object" and flatten it
-    if (schema.anyOf) {
-      const combinedProperties = schema.anyOf.reduce((acc, obj) => {
-        return { ...acc, ...obj.properties };
-      }, {});
+  // // Modify the json_schema to comply with the OpenAI API requirements
+  // if (respF && respF.json_schema && respF.json_schema.schema) {
+  //   const schema = respF.json_schema.schema;
 
-      // Ensure all properties are included in the required array
-      const requiredProperties = Object.keys(combinedProperties);
+  //   // Ensure the schema is of type "object" and flatten it
+  //   if (schema.anyOf) {
+  //     const combinedProperties = schema.anyOf.reduce((acc, obj) => {
+  //       return { ...acc, ...obj.properties };
+  //     }, {});
 
-      respF.json_schema.schema = {
-        type: 'object',
-        properties: combinedProperties,
-        required: requiredProperties, // Ensure all keys in properties are required
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        additionalProperties: false, // Adjust according to your needs
-      };
-    } else if (schema.type !== 'object') {
-      throw new Error('Invalid schema type, expected "object".');
-    }
-  }
+  //     // Ensure all properties are included in the required array
+  //     const requiredProperties = Object.keys(combinedProperties);
+
+  //     respF.json_schema.schema = {
+  //       type: 'object',
+  //       properties: combinedProperties,
+  //       required: requiredProperties, // Ensure all keys in properties are required
+  //       "$schema": "http://json-schema.org/draft-07/schema#",
+  //       additionalProperties: false, // Adjust according to your needs
+  //     };
+  //   } else if (schema.type !== 'object') {
+  //     throw new Error('Invalid schema type, expected "object".');
+  //   }
+  // }
 
   if (match) {
     // XXX support different model types; for now openai is assumed
@@ -372,7 +378,7 @@ export const fetchJsonCompletion = async ({
     const o = {
       model: modelName,
       messages,
-      response_format: respF,
+      response_format: actionWrapperResponseFormat,
       stream,
     };
     
@@ -392,7 +398,8 @@ export const fetchJsonCompletion = async ({
     if (res.ok) {
       const j = await res.json();
       const s = j.choices[0].message.content;
-      const o = JSON.parse(s);
+      const a = JSON.parse(s);
+      const o = a.actions;
       return o;
     } else {
       const text = await res.text();
