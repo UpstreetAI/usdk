@@ -21,10 +21,12 @@ export const featureSpecs = [
     imports: () => [
       'TTS',
     ],
-    tsx: ({
+    components: ({
       voiceEndpoint,
-    }) => dedent`
-      <TTS voiceEndpoint=${voiceEndpoint} />
-    `,
+    }) => [
+      dedent`
+        <TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />
+      `,
+    ],
   },
 ];
