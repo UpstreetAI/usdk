@@ -743,6 +743,7 @@ export default function AgentEditor({
         </div>
         <div className="flex flex-col w-100">
           <div>Features</div>
+          {/* voices */}
           <div className="flex">
             <label className="flex">
               <input type="checkbox" checked={!!features.tts} onChange={e => {
