@@ -1489,7 +1489,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
           const { message, agent } = e.data;
           const args = message.args as any;
           const text = (args as any).text as string;
-          const readableAudioStream = tts.getAudioStream(text);
+          const readableAudioStream = tts.getVoiceStream(text);
           const { type } = readableAudioStream;
           const playableAudioStream = readableAudioStream as PlayableAudioStream;
           playableAudioStream.id = crypto.randomUUID();

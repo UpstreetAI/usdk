@@ -98,8 +98,12 @@ export class AppContextValue {
           // sampleRate,
         });
         return {
-          getAudioStream: (text: string, opts: any) => {
-            const readableStream = voiceEndpointVoicer.getStream(text, opts) as ReadableAudioStream;
+          getVoiceStream: (text: string, opts: any) => {
+            const readableStream = voiceEndpointVoicer.getVoiceStream(text, opts) as ReadableAudioStream;
+            return readableStream;
+          },
+          getVoiceConversionStream: (blob: Blob, opts: any) => {
+            const readableStream = voiceEndpointVoicer.getVoiceConversionStream(blob, opts) as ReadableAudioStream;
             return readableStream;
           },
         };
