@@ -1,7 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { Vector3, Quaternion } from 'three';
+import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { Button } from '@/components/ui/button';
 import { getJWT } from '@/lib/jwt';
@@ -19,6 +22,7 @@ import {
 import {
   r2EndpointUrl,
 } from 'usdk/sdk/src/util/endpoints.mjs';
+import { OrbitControls } from '@react-three/drei';
 
 const getUserImageSrc = (type: string) => (user: any) : (string | string[] | null) => {
   return user.playerSpec.images?.find((imageSpec: any) => imageSpec.type === type)?.url ?? null;
@@ -27,11 +31,57 @@ type GenerationSpec = {
   imageUrl: string,
   visualDescription: string,
 };
+const ImageComponent = ({
+  src,
+}: {
+  src: string;
+}) => {
+  return (
+    <a
+      href={src}
+      target="_blank"
+    >
+      <img
+        src={src}
+        className="w-20 h-20 m-2"
+      />
+    </a>
+  );
+};
+const ModelComponent = ({
+  src,
+}: {
+  src: string;
+}) => {
+  const model = useLoader(GLTFLoader, src);
+  const y180Quaternion = useMemo(() => new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI), []);
+  const size = 300;
+
+  return (
+    // <div className={`w-[${size}px] h-[${size}px]`}>
+      <Canvas
+        camera={{
+          position: [0, 0, 1],
+        }}
+        style={{
+          width: `${size}px`,
+          height: `${size}px`,
+        }}
+      >
+        <ambientLight />
+        <directionalLight position={[1, 2, 3]} />
+        <primitive object={model.scene} quaternion={y180Quaternion} />
+        <OrbitControls />
+      </Canvas>
+    // </div>
+  );
+};
 const auxTypeSpecs = [
   {
     name: 'alpha',
     type: 'image/alpha',
     getImageSrc: getUserImageSrc('image/alpha'),
+    Component: ImageComponent,
     generate: async (generationSpec: GenerationSpec) => {
       const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
@@ -77,6 +127,7 @@ const auxTypeSpecs = [
     name: 'emotions',
     type: 'image/emotions',
     getImageSrc: getUserImageSrc('image/emotions'),
+    Component: ImageComponent,
     generate: async (generationSpec: GenerationSpec) => {
       const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
@@ -131,6 +182,7 @@ const auxTypeSpecs = [
     name: '360',
     type: 'image/360',
     getImageSrc: getUserImageSrc('image/360'),
+    Component: ImageComponent,
     generate: async (generationSpec: GenerationSpec) => {
       const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
@@ -194,6 +246,7 @@ const auxTypeSpecs = [
     name: '3d',
     type: 'model/3d',
     getImageSrc: getUserImageSrc('model/3d'),
+    Component: ModelComponent,
     generate: async (generationSpec: GenerationSpec) => {
       const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
@@ -289,6 +342,7 @@ export const AuxImages = ({
           if (typeof src === 'string') {
             src = [src];
           }
+          const {Component} = typeSpec;
 
           return (
             <div key={typeSpec.name} className="p-2 m-2 rounded bg-zinc-800">
@@ -298,16 +352,7 @@ export const AuxImages = ({
                 {(() => {
                   if (src) {
                     return src.map((u, i) => (
-                      <a
-                        key={i}
-                        href={u}
-                        target="_blank"
-                      >
-                        <img
-                          className="w-20 h-20 m-2 object-cover object-[50%_0%]"
-                          src={u}
-                        />
-                      </a>
+                      <Component src={u} key={i} />
                     ));
                   } else {
                     return null;
