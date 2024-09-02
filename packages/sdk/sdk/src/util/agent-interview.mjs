@@ -191,6 +191,8 @@ export class AgentInterview extends EventTarget {
               throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
             }
             return previewUrl;
+          } else if (result === null) {
+            return null;
           } else {
             console.warn('invalid result type', result);
             throw new Error('invalid result type: ' + typeof result);
