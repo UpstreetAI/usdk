@@ -21,12 +21,13 @@ import {
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
-import { AgentInterview, applyFeaturesToAgentJSX } from 'usdk/sdk/src/util/agent-interview.mjs';
+import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
 import { 
   defaultVoices,
 } from 'usdk/sdk/src/agent-defaults.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
+import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 const ensureEsbuild = (() => {
@@ -49,43 +50,6 @@ const ensureEsbuild = (() => {
   };
 })();
 
-const importPlaceholder = `  // ...`;
-const featurePlaceholder = `      {/* ... */}`;
-const defaultSourceCode = `\
-import React from 'react';
-import {
-  Agent,
-${importPlaceholder}
-} from 'react-agents';
-
-//
-
-export default function MyAgent() {
-  return (
-    <Agent>
-${featurePlaceholder}
-    </Agent>
-  );
-}
-`;
-const makeSourceCode = (featuresObject: FeaturesObject) => {
-  const importIndentString = Array(2 + 1).join(' ');
-  const featureIndentString = Array(3 * 2 + 1).join(' ');
-
-  const featureImports = [
-    featuresObject.tts ? `TTS` : null,
-  ].filter(Boolean).map(l => `${importIndentString}${l},`).join('\n');
-  const featureComponents = [
-    featuresObject.tts ? `<TTS voiceEndpoint=${JSON.stringify(featuresObject.tts.voiceEndpoint)} />` : null,
-  ].filter(Boolean).map(l => `${featureIndentString}${l}`).join('\n');
-  if (featureImports || featureComponents) {
-    return defaultSourceCode
-      .replace(importPlaceholder, featureImports)
-      .replace(featurePlaceholder, featureComponents);
-  } else {
-    return defaultSourceCode;
-  }
-};
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -99,29 +63,6 @@ const buildAgentSrc = async (sourceCode: string, {
 } = {}) => {
   await ensureEsbuild();
 
-  /* const sourceCode = `\
-    import React from 'react';
-    import {
-      Agent,
-    } from 'react-agents';
-    import { example } from './example.ts';
-
-    console.log({
-      React,
-      Agent,
-      example,
-      // error: new Error().stack,
-    });
-
-    //
-
-    export default function MyAgent() {
-      return (
-        <Agent>
-        </Agent>
-      );
-    };
-  `; */
   const fileMap = new Map(files.map(file => [file.path, file.content]));
   const filesNamespace = 'files';
   const globalImportMap = new Map(Array.from(Object.entries({
@@ -226,9 +167,6 @@ type ChatMessage = {
   content: string;
 };
 
-type FeaturesFlags = {
-  tts: boolean;
-};
 type FeaturesObject = {
   tts: {
     voiceEndpoint: string;
@@ -259,9 +197,6 @@ export default function AgentEditor({
   const [builderPrompt, setBuilderPrompt] = useState('');
   // const [agentPrompt, setAgentPrompt] = useState('');
 
-  const [voices, setVoices] = useState(() => defaultVoices.slice());
-  const [voiceEndpoint, setVoiceEndpoint] = useState<string>(voices[0].voiceEndpoint);
-
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
@@ -269,15 +204,11 @@ export default function AgentEditor({
   // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
-  const [features, setFeatures] = useState<FeaturesFlags>({
-    tts: false,
+  const [voices, setVoices] = useState(() => defaultVoices.slice());
+  const [features, setFeatures] = useState<FeaturesObject>({
+    tts: null,
   });
-  const getSourceCodeOpts = (): FeaturesObject => ({
-    tts: features.tts ? {
-      voiceEndpoint,
-    } : null,
-  });
-  const [sourceCode, setSourceCode] = useState(() => makeSourceCode(getSourceCodeOpts()));
+  const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
   const monaco = useMonaco();
 
@@ -346,8 +277,8 @@ export default function AgentEditor({
   }, [monaco, sourceCode]);
   // sync features to source code
   useEffect(() => {
-    setSourceCode(makeSourceCode(getSourceCodeOpts()));
-  }, [features, voiceEndpoint]);
+    setSourceCode(makeAgentSourceCode(features));
+  }, [features]);
 
   // helpers
   const getCloudPreviewUrl = async () => {
@@ -578,14 +509,14 @@ export default function AgentEditor({
           ]);
         });
         agentInterview.addEventListener('change', (e: any) => {
-          console.log('got update object', e.data);
           const {
-            updateObject,
+            // updateObject,
             agentJson,
           } = e.data;
           setName(agentJson.name);
           setBio(agentJson.bio);
           setVisualDescription(agentJson.visualDescription);
+          setFeatures(agentJson.features);
         });
         agentInterview.addEventListener('preview', (e: any) => {
           const {
@@ -814,16 +745,25 @@ export default function AgentEditor({
           <div>Features</div>
           <div className="flex">
             <label className="flex">
-              <input type="checkbox" checked={features.tts} onChange={e => {
+              <input type="checkbox" checked={!!features.tts} onChange={e => {
                 setFeatures({
                   ...features,
-                  tts: e.target.checked,
+                  tts: e.target.checked ? {
+                    voiceEndpoint: voices[0].voiceEndpoint,
+                  } : null,
                 });
               }} />
               <div className="px-2">TTS</div>
             </label>
-            <select value={voiceEndpoint} onChange={e => {
-              setVoiceEndpoint(e.target.value);
+            <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
+              setFeatures(features => (
+                {
+                  ...features,
+                  tts: {
+                    voiceEndpoint: e.target.value,
+                  },
+                }
+              ));
             }} disabled={!features.tts}>
               {voices.map(voice => {
                 return (
