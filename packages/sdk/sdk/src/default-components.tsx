@@ -141,7 +141,6 @@ export const DefaultActions = () => {
       description={`A character says something.`}
       schema={
         z.object({
-          sayId: z.string(),
           text: z.string(),
         })
       }

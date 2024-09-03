@@ -5,7 +5,7 @@ import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 
-import {z} from 'zod';
+import {z} from 'zod'
 
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }, {
@@ -322,7 +322,6 @@ export const fetchChatCompletion = async ({
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
 };
-
 export const fetchJsonCompletion = async ({
   model = defaultModel,
   messages,
@@ -339,50 +338,11 @@ export const fetchJsonCompletion = async ({
   }
 
   const match = model.match(/^(.+?):/);
-  // const respF = zodResponseFormat(format, 'result');
-  const actionWrapperResponseFormat = zodResponseFormat(z.object({
-    actions: format,
-  }), 'result');
-
-
-  // // Modify the json_schema to comply with the OpenAI API requirements
-  // if (respF && respF.json_schema && respF.json_schema.schema) {
-  //   const schema = respF.json_schema.schema;
-
-  //   // Ensure the schema is of type "object" and flatten it
-  //   if (schema.anyOf) {
-  //     const combinedProperties = schema.anyOf.reduce((acc, obj) => {
-  //       return { ...acc, ...obj.properties };
-  //     }, {});
-
-  //     // Ensure all properties are included in the required array
-  //     const requiredProperties = Object.keys(combinedProperties);
-
-  //     respF.json_schema.schema = {
-  //       type: 'object',
-  //       properties: combinedProperties,
-  //       required: requiredProperties, // Ensure all keys in properties are required
-  //       "$schema": "http://json-schema.org/draft-07/schema#",
-  //       additionalProperties: false, // Adjust according to your needs
-  //     };
-  //   } else if (schema.type !== 'object') {
-  //     throw new Error('Invalid schema type, expected "object".');
-  //   }
-  // }
-
   if (match) {
     // XXX support different model types; for now openai is assumed
     // const modelType = match[1];
     const modelName = model.slice(match[0].length);
-
-    const o = {
-      model: modelName,
-      messages,
-      response_format: actionWrapperResponseFormat,
-      stream,
-    };
-    
-    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+    const res = await fetch(`http://${aiProxyHost}/api/ai/chat/completions`, {
       method: 'POST',
 
       headers: {
@@ -391,16 +351,22 @@ export const fetchJsonCompletion = async ({
         Authorization: `Bearer ${jwt}`,
       },
 
-      
-      body: JSON.stringify(o),
+      body: JSON.stringify({
+        model: modelName,
+        messages,
+
+        response_format: zodResponseFormat(z.object({format: format}), 'result'),
+
+        stream,
+      }),
       signal,
     });
     if (res.ok) {
       const j = await res.json();
       const s = j.choices[0].message.content;
-      const a = JSON.parse(s);
-      const o = a.actions;
-      return o;
+      const o = JSON.parse(s);
+      const r = o.format; // parse the format block created inside zodResponseFormat above ^
+      return r;
     } else {
       const text = await res.text();
       throw new Error('invalid status code: ' + res.status + ': ' + text);
