@@ -1,3 +1,7 @@
+import { useState, useEffect, useMemo, useRef } from 'react';
+import type {
+  ZodTypeAny,
+} from 'zod';
 import type {
   ActiveAgentObject,
   SubtleAi,
@@ -10,9 +14,6 @@ import type {
   ReadableAudioStream,
   ChatsSpecification,
 } from '../types';
-import type {
-  ZodTypeAny,
-} from 'zod';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
 // import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
 // import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
@@ -21,6 +22,13 @@ import {
 } from '../util/embedding.mjs';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { fetchImageGeneration } from '../util/generate-image.mjs';
+import { useAgent } from '../hooks';
+import {
+  uint8ArrayToBase64,
+  makePromise,
+  base64ToUint8Array,
+} from '../util/util.mjs';
+import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
 
 //
 
@@ -75,6 +83,101 @@ export class AppContextValue {
     return this.chatsSpecification;
   }
 
+  useKv() {
+    const agent = useAgent();
+    const supabase = agent.useSupabase();
+
+    const getFullKey = (key: string) => `${agent.id}:${key}`;
+
+    const [kvCache, setKvCache] = useState(() => new Map<string, any>());
+    const kvLoadPromises = useMemo(() => new Map<string, Promise<any>>(), []);
+    const makeLoadPromise = async (key: string) => {
+      const fullKey = getFullKey(key);
+      const result = await supabase
+        .from('keys_values')
+        .select('*')
+        .eq('key', fullKey)
+        .maybeSingle();
+      const { error, data } = result;
+      if (!error) {
+        if (data) {
+          const base64Data = data.data as string;
+          const encodedData = base64ToUint8Array(base64Data);
+          const value = zbdecode(encodedData);
+          return value;
+        } else {
+          return undefined;
+        }
+      } else {
+        throw error;
+      }
+    };
+    const ensureLoadPromise = (key: string) => {
+      let loadPromise = kvLoadPromises.get(key);
+      if (!loadPromise) {
+        loadPromise = makeLoadPromise(key);
+        loadPromise.then((value: any) => {
+          setKvCache((kvCache) => {
+            kvCache.set(key, value);
+            return kvCache;
+          });
+        });
+        kvLoadPromises.set(key, loadPromise);
+      }
+      return loadPromise;
+    };
+
+    const kv = useMemo(() => ({
+      async get(key: string) {
+        const loadPromise = ensureLoadPromise(key);
+        return await loadPromise;
+      },
+      async set(key: string, value: string) {
+        const fullKey = getFullKey(key);
+
+        const newLoadPromise = Promise.resolve(value);
+        const encodedData = zbencode(value);
+        const base64Data = uint8ArrayToBase64(encodedData);
+
+        const oldLoadPromise = ensureLoadPromise(key);
+        await oldLoadPromise;
+        kvLoadPromises.set(key, newLoadPromise);
+        setKvCache((kvCache) => {
+          kvCache.set(key, value);
+          return kvCache;
+        });
+
+        const result = await supabase
+          .from('keys_values')
+          .upsert({
+            agent_id: agent.id,
+            key: fullKey,
+            value: base64Data,
+          });
+        const { error } = result;
+        if (!error) {
+          // nothing
+        } else {
+          console.error('error setting key value', error);
+          throw new Error('error setting key value: ' + JSON.stringify(error));
+        }
+      },
+      use: (key: string, defaultValue: any = null) => {
+        const value = kvCache.get(key) ?? defaultValue;
+        const setValue = async (value: any) => {
+          return await kv.set(key, value);
+        };
+
+        useEffect(() => {
+          ensureLoadPromise(key);
+        }, [key]);
+
+        return [value, setValue];
+      },
+    }), []);
+
+    return kv;
+  }
   useTts(opts?: TtsArgs) {
     const voiceEndpointString = (() => {
       if (opts?.voiceEndpoint) {
