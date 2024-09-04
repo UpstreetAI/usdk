@@ -6,36 +6,6 @@ import {
 
 export const featureSpecs = [
   {
-    name: 'public',
-    description: dedent`\
-      Agent is publicly available.
-      The rate limit is \`maxUserMessages\` messages per \`maxUserMessagesTime\` milliseconds.
-      When the rate limit is exceeded, the agent will respond with the static \`rateLimitMessage\`.
-      If either \`maxUserMessages\` or \`maxUserMessagesTime\` is not provided or zero, the rate limit is disabled.
-    ` + '\n'
-    + defaultVoices.map(v => `* ${JSON.stringify(v.name)}: ${v.voiceEndpoint}`).join('\n'),
-    schema: z.union([
-      z.object({
-        maxUserMessages: z.number().optional(),
-        maxUserMessagesTime: z.number().optional(),
-        rateLimitMessage: z.string().optional(),
-      }),
-      z.null(),
-    ]),
-    imports: () => [
-      'Public',
-    ],
-    components: ({
-      maxUserMessages,
-      maxUserMessagesTime,
-      rateLimitMessage,
-    }) => [
-      dedent`
-        <Public ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${rateLimitMessage ? `rateLimitMessage={${JSON.stringify(rateLimitMessage)}} ` : ''} />
-      `,
-    ],
-  },
-  {
     name: 'tts',
     description: dedent`\
       Text to speech.
@@ -56,6 +26,39 @@ export const featureSpecs = [
     }) => [
       dedent`
         <TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />
+      `,
+    ],
+  },
+  {
+    name: 'rateLimit',
+    description: dedent`\
+      Agent is publicly available.
+      The rate limit is \`maxUserMessages\` messages per \`maxUserMessagesTime\` milliseconds.
+      When the rate limit is exceeded, the agent will respond with the static \`message\`.
+      If either \`maxUserMessages\` or \`maxUserMessagesTime\` is not provided or zero, the rate limit is disabled.
+    ` + '\n'
+    + defaultVoices.map(v => `* ${JSON.stringify(v.name)}: ${v.voiceEndpoint}`).join('\n'),
+    schema: z.union([
+      z.object({
+        maxUserMessages: z.number().optional(),
+        maxUserMessagesTime: z.number().optional(),
+        message: z.string().optional(),
+      }),
+      z.null(),
+    ]),
+    imports: () => [
+      'RateLimit',
+    ],
+    // agentProps: (props) => [
+    //   `rateLimit={${JSON.stringify(props)}}`,
+    // ],
+    components: ({
+      maxUserMessages,
+      maxUserMessagesTime,
+      message,
+    }) => [
+      dedent`
+        <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
       `,
     ],
   },
