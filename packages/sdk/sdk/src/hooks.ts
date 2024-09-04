@@ -12,6 +12,7 @@ import {
   ActionMessage,
   ActionHistoryQuery,
   ChatArgs,
+  KvArgs,
   TtsArgs,
   Tts,
 } from './types';
@@ -22,6 +23,7 @@ import {
   ConversationsContext,
   ConversationContext,
 } from './context';
+import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
 import {
   // ConversationObject,
   CACHED_MESSAGES_LIMIT,
@@ -32,6 +34,8 @@ import {
 import {
   abortError,
   makePromise,
+  uint8ArrayToBase64,
+  base64ToUint8Array,
 } from './util/util.mjs';
 import {
   aiHost,
@@ -177,6 +181,11 @@ export const useStripe: () => any = () => {
       }
     },
   };
+};
+
+export const useKv = (opts?: KvArgs) => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useKv(opts);
 };
 
 export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
