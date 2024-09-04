@@ -60,6 +60,7 @@ const defaultFiles = [
 ];
 const maxUserMessagesDefault = 5;
 const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
+const rateLimitMessageDefault = '';
 const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
 } = {}) => {
@@ -176,6 +177,7 @@ type FeaturesObject = {
   public: {
     maxUserMessages: number;
     maxUserMessagesTime: number;
+    rateLimitMessage: string;
   } | null;
 };
 type AgentEditorProps = {
@@ -789,33 +791,52 @@ export default function AgentEditor({
                   public: e.target.checked ? {
                     maxUserMessages: maxUserMessagesDefault,
                     maxUserMessagesTime: maxUserMessagesTimeDefault,
+                    rateLimitMessage: rateLimitMessageDefault,
                   } : null,
                 });
               }} />
               <div className="px-2">Public</div>
             </label>
             <input type="number" value={features.public?.maxUserMessages ?? ''} onChange={e => {
-              setFeatures(features => (
-                {
+              setFeatures(features => {
+                features = {
                   ...features,
                   public: {
-                    maxUserMessages: parseInt(e.target.value, 10) || maxUserMessagesDefault,
-                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? maxUserMessagesTimeDefault,
+                    maxUserMessages: parseInt(e.target.value, 10) || 0,
+                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
+                    rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
                   },
-                }
-              ));
-            }} disabled={!features.public} />
+                };
+                e.target.value = (features.public as any).maxUserMessages + '';
+                return features;
+              });
+            }} min={0} step={1} placeholder="Max user messages" disabled={!features.public} />
             <input type="number" value={features.public?.maxUserMessagesTime ?? ''} onChange={e => {
+              setFeatures(features => {
+                features = {
+                  ...features,
+                  public: {
+                    maxUserMessages: features.public?.maxUserMessages ?? 0,
+                    maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                    rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
+                  },
+                };
+                e.target.value = (features.public as any).maxUserMessagesTime + '';
+                return features;
+              });
+            }} min={0} step={1} placeholder="Max user messages time" disabled={!features.public} />
+            <input type="text" value={features.public?.rateLimitMessage ?? ''} onChange={e => {
               setFeatures(features => (
                 {
                   ...features,
                   public: {
-                    maxUserMessages: features.public?.maxUserMessages ?? maxUserMessagesDefault,
-                    maxUserMessagesTime: parseInt(e.target.value, 10) || maxUserMessagesTimeDefault,
+                    maxUserMessages: features.public?.maxUserMessages ?? 0,
+                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
+                    rateLimitMessage: e.target.value,
                   },
                 }
               ));
-            }} disabled={!features.public} />
+            }} placeholder="Rate limit message" disabled={!features.public} />
           </div>
         </div>
         <Editor
