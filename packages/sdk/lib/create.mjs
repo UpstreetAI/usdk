@@ -23,7 +23,6 @@ import {
   // number,
   // rawlist,
 } from '@inquirer/prompts';
-
 import { createAgentGuid } from '../sdk/src/util/guid-util.mjs';
 import {
   getAgentToken,
@@ -175,7 +174,7 @@ export const create = async (args, opts) => {
     guid = await createAgentGuid({
       jwt,
     });
-    console.log('created guid', guid);
+    // console.log('created guid', guid);
     [agentToken, userPrivate] = await Promise.all([
       getAgentToken(jwt, guid),
       getUserForJwt(jwt, {
@@ -184,6 +183,9 @@ export const create = async (args, opts) => {
     ]);
     if (!agentToken) {
       throw new Error('Authorization error. Please try logging in again.')
+    }
+    if (!userPrivate) {
+      throw new Error('User not found. Please try logging in again.')
     }
   } else {
     throw new Error('You must be logged in to create an agent.');
@@ -196,7 +198,7 @@ export const create = async (args, opts) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
-  const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
+  const stripeConnectAccountId = userPrivate.stripe_connect_account_id;
 
   // load source file
   let sourceFile = null;
@@ -310,22 +312,31 @@ export const create = async (args, opts) => {
       return await agentInterview.waitForFinish();
       // console.log('wait for finish 2');
     };
-    const processAgentJson = async () => {
-      const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
-      const agentJsonBase = {
-        ...agentJson,
-        id: guid, // created guid takes precedence
-      };
-      // if the agent json is complete
-      if (agentJsonString || source || yes) {
-        return agentJsonBase;
-      } else {
-        return await interview(agentJsonBase);
-      }
+    const createAgentJson = async () => {
+      // initialize
+      const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+      // run the interview, if applicable
+      let agentJson = await (async () => {
+        // if the agent json is complete
+        if (agentJsonString || source || yes) {
+          return agentJsonInit;
+        } else {
+          return await interview(agentJsonInit);
+        }
+      })();
+      // additional properties
+      agentJson.id = guid;
+      agentJson.ownerId = userPrivate.id;
+      agentJson.stripeConnectAccountId = stripeConnectAccountId;
+      agentJson.address = walletAddress;
+      // ensure defaults
+      ensureAgentJsonDefaults(agentJson);
+      // return result
+      return agentJson;
     };
 
     // note: this is an assignment
-    agentJson = await processAgentJson();
+    agentJson = await createAgentJson();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
@@ -363,15 +374,6 @@ export const create = async (args, opts) => {
 
   const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
-
-  // compile the agent json
-  ensureAgentJsonDefaults(agentJson);
-  if (stripeConnectAccountId) {
-    agentJson.stripeConnectAccountId = stripeConnectAccountId;
-  }
-  if (walletAddress) {
-    agentJson.address = walletAddress;
-  }
 
   // copy over the template files
   console.log(pc.italic('Copying files...'));
@@ -429,9 +431,9 @@ export const create = async (args, opts) => {
     console.warn(err.stack);
   }
 
-  console.log('\nCreated agent directory at', ansi.link(path.resolve(dstDir)), '\n');
-  console.log(pc.green('Name:'), agentJson.name);
-  // console.log(pc.green('ID:'), agentJson.id, '\n');
-  console.log(pc.green('Description:'), agentJson.description);
-  console.log(pc.green('Bio:'), agentJson.bio, '\n');
+  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+  // console.log(pc.green('Name:'), agentJson.name);
+  // // console.log(pc.green('ID:'), agentJson.id, '\n');
+  // console.log(pc.green('Description:'), agentJson.description);
+  // console.log(pc.green('Bio:'), agentJson.bio, '\n');
 };

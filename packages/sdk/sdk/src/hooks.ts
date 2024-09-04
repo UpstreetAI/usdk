@@ -12,6 +12,7 @@ import {
   ActionMessage,
   ActionHistoryQuery,
   ChatArgs,
+  KvArgs,
   TtsArgs,
   Tts,
 } from './types';
@@ -22,6 +23,7 @@ import {
   ConversationsContext,
   ConversationContext,
 } from './context';
+import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
 import {
   // ConversationObject,
   CACHED_MESSAGES_LIMIT,
@@ -32,6 +34,8 @@ import {
 import {
   abortError,
   makePromise,
+  uint8ArrayToBase64,
+  base64ToUint8Array,
 } from './util/util.mjs';
 import {
   aiHost,
@@ -89,10 +93,6 @@ export const usePersonality: () => string = () => {
   return personalities.length > 0 ? personalities[0].children : agent.bio;
 };
 
-/* export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useActionHistory(opts);
-}; */
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
   const supabase = agent.useSupabase();
@@ -177,6 +177,11 @@ export const useStripe: () => any = () => {
       }
     },
   };
+};
+
+export const useKv = (opts?: KvArgs) => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useKv(opts);
 };
 
 export const useTts: (opts?: TtsArgs) => Tts = (opts) => {

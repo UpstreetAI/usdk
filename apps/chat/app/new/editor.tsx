@@ -7,6 +7,7 @@ import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
+import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client'
 import {
   createAgentGuid,
 } from 'usdk/sdk/src/util/guid-util.mjs';
@@ -58,6 +59,9 @@ const defaultFiles = [
     `,
   },
 ];
+const maxUserMessagesDefault = 5;
+const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
+const rateLimitMessageDefault = '';
 const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
 } = {}) => {
@@ -171,6 +175,11 @@ type FeaturesObject = {
   tts: {
     voiceEndpoint: string;
   } | null;
+  rateLimit: {
+    maxUserMessages: number;
+    maxUserMessagesTime: number;
+    message: string;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -207,6 +216,7 @@ export default function AgentEditor({
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
     tts: null,
+    rateLimit: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -281,7 +291,7 @@ export default function AgentEditor({
   }, [features]);
 
   // helpers
-  const getCloudPreviewUrl = async () => {
+  const getCloudPreviewUrl = async (previewBlob: Blob | null) => {
     if (previewBlob) {
       const jwt = await getJWT();
       const guid = crypto.randomUUID();
@@ -316,146 +326,168 @@ export default function AgentEditor({
 
     setStarting(true);
 
-    console.log('building agent src...', { monaco, sourceCode });
-    const agentSrc = await buildAgentSrc(sourceCode);
-    console.log('built agent src:', { agentSrc });
-
-    console.log('getting agent id...');
     const jwt = await getJWT();
-    const id: string = await createAgentGuid({
-      jwt,
-    });
-    console.log('got agent id:', id);
+    try {
+      if (jwt) {
+        console.log('building agent src...', { monaco, sourceCode });
+        const agentSrc = await buildAgentSrc(sourceCode);
+        console.log('built agent src:', { agentSrc });
 
-    console.log('getting agent token...');
-    const agentToken = await getAgentToken(jwt, id);
-    console.log('got agent token:', agentToken);
+        const [
+          ownerId,
+          {
+            id,
+            agentToken,
+          },
+          previewUrl,
+        ] = await Promise.all([
+          getUserIdForJwt(jwt),
+          (async () => {
+            console.log('getting agent id...');
+            const id = await createAgentGuid({ jwt });
+            console.log('got agent id:', id);
+            console.log('getting agent token...');
+            const agentToken = await getAgentToken(jwt, id);
+            console.log('got agent token:', agentToken);
+            return {
+              id,
+              agentToken,
+            };
+          })(),
+          (async () => {
+            console.log('uploading agent preview...', { previewBlob });
+            const previewUrl = await getCloudPreviewUrl(previewBlob);
+            console.log('got agent preview url:', { previewUrl });
+            return previewUrl;
+          })(),
+        ]);
 
-    console.log('uploading agent preview...', { previewBlob });
-    const previewUrl = await getCloudPreviewUrl();
-    console.log('got agent preview url:', { previewUrl });
+        const agentJson = {
+          id,
+          ownerId,
+          name: name || undefined,
+          bio: bio || undefined,
+          visualDescription: visualDescription || undefined,
+          previewUrl,
+        };
+        ensureAgentJsonDefaults(agentJson);
+        const mnemonic = generateMnemonic();
+        const env = {
+          AGENT_JSON: JSON.stringify(agentJson),
+          AGENT_TOKEN: agentToken,
+          WALLET_MNEMONIC: mnemonic,
+          SUPABASE_URL: "https://friddlbqibjnxjoxeocc.supabase.co",
+          SUPABASE_PUBLIC_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaWRkbGJxaWJqbnhqb3hlb2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2NjE3NDIsImV4cCI6MjAxOTIzNzc0Mn0.jnvk5X27yFTcJ6jsCkuXOog1ZN825md4clvWuGQ8DMI",
+          WORKER_ENV: 'development', // 'production',
+        };
+        console.log('starting worker with env:', env);
 
-    const agentJson = {
-      id,
-      name: name || undefined,
-      bio: bio || undefined,
-      visualDescription,
-      previewUrl,
-    };
-    ensureAgentJsonDefaults(agentJson);
-    const mnemonic = generateMnemonic();
-    const env = {
-      AGENT_JSON: JSON.stringify(agentJson),
-      AGENT_TOKEN: agentToken,
-      WALLET_MNEMONIC: mnemonic,
-      SUPABASE_URL: "https://friddlbqibjnxjoxeocc.supabase.co",
-      SUPABASE_PUBLIC_API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZyaWRkbGJxaWJqbnhqb3hlb2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2NjE3NDIsImV4cCI6MjAxOTIzNzc0Mn0.jnvk5X27yFTcJ6jsCkuXOog1ZN825md4clvWuGQ8DMI",
-      WORKER_ENV: 'development', // 'production',
-    };
-    console.log('starting worker with env:', env);
+        // initialize the agent worker
+        const newWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
+        newWorker.postMessage({
+          method: 'initDurableObject',
+          args: {
+            env,
+            agentSrc,
+          },
+        });
+        newWorker.addEventListener('error', e => {
+          console.warn('got error', e);
+        });
+        // augment the agent worker
+        newWorker.fetch = async (url: string, opts: FetchOpts) => {
+          const requestId = crypto.randomUUID();
+          const {
+            method, headers, body,
+          } = opts;
+          newWorker.postMessage({
+            method: 'request',
+            args: {
+              id: requestId,
+              url,
+              method,
+              headers,
+              body,
+            },
+          }, []);
+          const res = await new Promise<Response>((accept, reject) => {
+            const onmessage = (e: MessageEvent) => {
+              // console.log('got worker message data', e.data);
+              try {
+                const { method } = e.data;
+                switch (method) {
+                  case 'response': {
+                    const { args } = e.data;
+                    const {
+                      id: responseId,
+                    } = args;
+                    if (responseId === requestId) {
+                      cleanup();
 
-    // initialize the agent worker
-    const newWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
-    newWorker.postMessage({
-      method: 'initDurableObject',
-      args: {
-        env,
-        agentSrc,
-      },
-    });
-    newWorker.addEventListener('error', e => {
-      console.warn('got error', e);
-    });
-    // augment the agent worker
-    newWorker.fetch = async (url: string, opts: FetchOpts) => {
-      const requestId = crypto.randomUUID();
-      const {
-        method, headers, body,
-      } = opts;
-      newWorker.postMessage({
-        method: 'request',
-        args: {
-          id: requestId,
-          url,
-          method,
-          headers,
-          body,
-        },
-      }, []);
-      const res = await new Promise<Response>((accept, reject) => {
-        const onmessage = (e: MessageEvent) => {
-          // console.log('got worker message data', e.data);
-          try {
-            const { method } = e.data;
-            switch (method) {
-              case 'response': {
-                const { args } = e.data;
-                const {
-                  id: responseId,
-                } = args;
-                if (responseId === requestId) {
-                  cleanup();
-
-                  const {
-                    error, status, headers, body,
-                  } = args;
-                  if (!error) {
-                    const res = new Response(body, {
-                      status,
-                      headers,
-                    });
-                    accept(res);
-                  } else {
-                    reject(new Error(error));
+                      const {
+                        error, status, headers, body,
+                      } = args;
+                      if (!error) {
+                        const res = new Response(body, {
+                          status,
+                          headers,
+                        });
+                        accept(res);
+                      } else {
+                        reject(new Error(error));
+                      }
+                    }
+                    break;
+                  }
+                  default: {
+                    console.warn('unhandled worker message method', e.data);
+                    break;
                   }
                 }
-                break;
+              } catch (err) {
+                console.error('failed to handle worker message', err);
+                reject(err);
               }
-              default: {
-                console.warn('unhandled worker message method', e.data);
-                break;
-              }
-            }
-          } catch (err) {
-            console.error('failed to handle worker message', err);
-            reject(err);
-          }
+            };
+            newWorker.addEventListener('message', onmessage);
+
+            const cleanup = () => {
+              newWorker.removeEventListener('message', onmessage);
+            };
+          });
+          return res;
         };
-        newWorker.addEventListener('message', onmessage);
+        setWorker(newWorker);
 
-        const cleanup = () => {
-          newWorker.removeEventListener('message', onmessage);
-        };
-      });
-      return res;
-    };
-    setWorker(newWorker);
+        const newRoom = `rooms:${id}:browser`;
+        setRoom(newRoom);
+        setConnecting(true);
 
-    const newRoom = `rooms:${id}:browser`;
-    setRoom(newRoom);
-    setConnecting(true);
-
-    // call the join request on the agent
-    const agentHost = `${location.protocol}//${location.host}`;
-    const joinReq = await newWorker.fetch(`${agentHost}/join`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        room: newRoom,
-        only: true,
-      }),
-    });
-    if (joinReq.ok) {
-      const j = await joinReq.json();
-      console.log('agent join response json', j);
-    } else {
-      const text = await joinReq.text();
-      console.error('agent failed to join room', joinReq.status, text);
+        // call the join request on the agent
+        const agentHost = `${location.protocol}//${location.host}`;
+        const joinReq = await newWorker.fetch(`${agentHost}/join`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            room: newRoom,
+            only: true,
+          }),
+        });
+        if (joinReq.ok) {
+          const j = await joinReq.json();
+          console.log('agent join response json', j);
+        } else {
+          const text = await joinReq.text();
+          console.error('agent failed to join room', joinReq.status, text);
+        }
+      } else {
+        throw new Error('not logged in');
+      } 
+    } finally {
+      setStarting(false);
     }
-
-    setStarting(false);
   }
   const stopAgent = () => {
     if (worker) {
@@ -625,58 +657,63 @@ export default function AgentEditor({
         const valid = builderForm.current?.checkValidity();
         if (valid) {
           (async () => {
-            setDeploying(true);
-
-            // get the value from monaco editor
-            const value = getEditorValue();
-            console.log('deploy 1', {
-              name,
-              bio,
-              visualDescription,
-              previewBlob,
-              value,
-            });
-
             try {
-              const jwt = await getJWT();
-              const [
-                id,
-                previewUrl,
-              ] = await Promise.all([
-                createAgentGuid({
-                  jwt,
-                }),
-                getCloudPreviewUrl(),
-              ]);
-              const agentJson = {
-                id,
+              setDeploying(true);
+
+              // get the value from monaco editor
+              const value = getEditorValue();
+              console.log('deploy 1', {
                 name,
                 bio,
                 visualDescription,
-                previewUrl,
-              };
-              console.log('deploy 2', {
-                agentJson,
+                previewBlob,
+                value,
               });
 
-              const res = await fetch(`${deployEndpointUrl}/agent`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/javascript',
-                  Authorization: `Bearer ${jwt}`,
-                  'Agent-Json': JSON.stringify(agentJson),
-                },
-                body: value,
-              });
-              if (res.ok) {
-                const j = await res.json();
-                console.log('deploy 3', j);
-                const agentJsonOutputString = j.vars.AGENT_JSON;
-                const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                const guid = agentJsonOutput.id;
-                location.href = `/agents/${guid}`;
+              const jwt = await getJWT();
+              if (jwt) {
+                const [
+                  ownerId,
+                  id,
+                  previewUrl,
+                ] = await Promise.all([
+                  getUserIdForJwt(jwt),
+                  createAgentGuid({ jwt }),
+                  getCloudPreviewUrl(previewBlob),
+                ]);
+                const agentJson = {
+                  id,
+                  ownerId,
+                  name,
+                  bio,
+                  visualDescription,
+                  previewUrl,
+                };
+                console.log('deploy 2', {
+                  agentJson,
+                });
+
+                const res = await fetch(`${deployEndpointUrl}/agent`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/javascript',
+                    Authorization: `Bearer ${jwt}`,
+                    'Agent-Json': JSON.stringify(agentJson),
+                  },
+                  body: value,
+                });
+                if (res.ok) {
+                  const j = await res.json();
+                  console.log('deploy 3', j);
+                  const agentJsonOutputString = j.vars.AGENT_JSON;
+                  const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                  const guid = agentJsonOutput.id;
+                  location.href = `/agents/${guid}`;
+                } else {
+                  console.error('failed to deploy agent', res);
+                }
               } else {
-                console.error('failed to deploy agent', res);
+                throw new Error('not logged in');
               }
             } finally {
               setDeploying(false);
@@ -744,7 +781,7 @@ export default function AgentEditor({
         <div className="flex flex-col w-100">
           <div>Features</div>
           {/* voices */}
-          <div className="flex">
+          <div className="flex flex-col">
             <label className="flex">
               <input type="checkbox" checked={!!features.tts} onChange={e => {
                 setFeatures({
@@ -756,22 +793,92 @@ export default function AgentEditor({
               }} />
               <div className="px-2">TTS</div>
             </label>
-            <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
-              setFeatures(features => (
-                {
+            {features.tts && <label className="flex">
+              <div className="mr-2">Voice</div>
+              <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
+                setFeatures(features => (
+                  {
+                    ...features,
+                    tts: {
+                      voiceEndpoint: e.target.value,
+                    },
+                  }
+                ));
+              }}>
+                {voices.map(voice => {
+                  return (
+                    <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                  );
+                })}
+              </select>
+            </label>}
+          </div>
+          {/* rate limit */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.rateLimit} onChange={e => {
+                setFeatures({
                   ...features,
-                  tts: {
-                    voiceEndpoint: e.target.value,
-                  },
-                }
-              ));
-            }} disabled={!features.tts}>
-              {voices.map(voice => {
-                return (
-                  <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                );
-              })}
-            </select>
+                  rateLimit: e.target.checked ? {
+                    maxUserMessages: maxUserMessagesDefault,
+                    maxUserMessagesTime: maxUserMessagesTimeDefault,
+                    message: rateLimitMessageDefault,
+                  } : null,
+                });
+              }} />
+              <div className="px-2">Rate limit</div>
+            </label>
+            {features.rateLimit && <div className="flex flex-col">
+              <label className="flex">
+                <div className="mr-2 min-w-32"># messages</div>
+                <input type="number" value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                  setFeatures(features => {
+                    features = {
+                      ...features,
+                      rateLimit: {
+                        maxUserMessages: parseInt(e.target.value, 10) || 0,
+                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                      },
+                    };
+                    e.target.value = (features.rateLimit as any).maxUserMessages + '';
+                    return features;
+                  });
+                }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+              </label>
+              <label className="flex">
+                <div className="mr-2 min-w-32">time (ms)</div>
+                <input type="number" value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                  setFeatures(features => {
+                    features = {
+                      ...features,
+                      rateLimit: {
+                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                        maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                      },
+                    };
+                    e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
+                    return features;
+                  });
+                }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+              </label>
+              <label className="flex">
+                <div className="mr-2 min-w-32">message</div>
+                <input type="text" value={features.rateLimit?.message ?? ''} onChange={e => {
+                  setFeatures(features => (
+                    {
+                      ...features,
+                      rateLimit: {
+                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                        message: e.target.value,
+                      },
+                    }
+                  ));
+                }} placeholder="Rate limit message" />
+              </label>
+            </div>}
           </div>
         </div>
         <Editor
@@ -795,8 +902,6 @@ export default function AgentEditor({
             }
 
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-              // // Add your save logic here
-              // alert('Ctrl+S pressed');
               startAgent({
                 sourceCode: getEditorValue(monaco),
               });

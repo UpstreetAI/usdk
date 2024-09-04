@@ -1,5 +1,6 @@
 export class AgentObject extends EventTarget {
   id: string;
+  ownerId: string;
   name: string;
   description: string;
   bio: string;
@@ -8,8 +9,9 @@ export class AgentObject extends EventTarget {
   address: string;
 
   constructor({
-    name,
     id,
+    ownerId,
+    name,
     description,
     bio,
     previewUrl,
@@ -17,6 +19,7 @@ export class AgentObject extends EventTarget {
     address,
   }: {
     id: string;
+    ownerId: string;
     name: string;
     description: string;
     bio: string;
@@ -27,6 +30,7 @@ export class AgentObject extends EventTarget {
     super();
 
     this.id = id;
+    this.ownerId = ownerId;
     this.name = name;
     this.description = description;
     this.bio = bio;

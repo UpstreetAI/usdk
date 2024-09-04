@@ -12,10 +12,12 @@ import {
   type AgentProps,
   type RawAgentProps,
   type ActionProps,
+  type ActionModifierProps,
   type PromptProps,
   type FormatterProps,
   // type ParserProps,
   type PerceptionProps,
+  type PerceptionModifierProps,
   type TaskProps,
   type NameProps,
   type PersonalityProps,
@@ -53,13 +55,11 @@ import {
 } from './classes/active-agent-object';
 import {
   makePromise,
+  printZodSchema,
 } from './util/util.mjs';
 // import {
 //   GenerativeAgentObject,
 // } from './classes/generative-agent-object';
-import {
-  printZodSchema,
-} from './util/util.mjs';
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
@@ -251,6 +251,30 @@ export const Action = /*memo(*/(props: ActionProps) => {
   // return <action value={props} />;
   return null;
 }//);
+export const ActionModifier = /*memo(*/(props: ActionModifierProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
+    props.name,
+    props.handler.toString(),
+    props.priority ?? null,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerActionModifier(symbol, props);
+    return () => {
+      agentRegistry.unregisterActionModifier(symbol);
+    };
+  }, deps);
+
+  // console.log('action use epoch', props, new Error().stack);
+  agent.useEpoch(deps);
+
+  // return <action value={props} />;
+  return null;
+}//);
 export const Prompt = /*memo(*/(props: PromptProps) => {
   // const agent = useContext(AgentContext);
   const conversation = useContext(ConversationContext).conversation;
@@ -287,27 +311,6 @@ export const Formatter = /*memo(*/(props: FormatterProps) => {
   // return <formatter value={props} />;
   return null;
 }//);
-/* export const Parser = (props: ParserProps) => {
-  const agent = useContext(AgentContext);
-  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
-
-  const deps = [
-    props.parseFn.toString(),
-  ];
-
-  useEffect(() => {
-    agentRegistry.registerParser(symbol, props);
-    return () => {
-      agentRegistry.unregisterParser(symbol);
-    };
-  }, deps);
-
-  agent.useEpoch(deps);
-
-  // return <parser value={props} />;
-  return null;
-} */
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
@@ -328,6 +331,30 @@ export const Perception = /*memo(*/(props: PerceptionProps) => {
   agent.useEpoch(deps);
 
   // return <perception value={props} />;
+  return null;
+}//);
+export const PerceptionModifier = /*memo(*/(props: PerceptionModifierProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
+    props.type,
+    props.handler.toString(),
+    props.priority ?? null,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerPerceptionModifier(symbol, props);
+    return () => {
+      agentRegistry.unregisterPerceptionModifier(symbol);
+    };
+  }, deps);
+
+  // console.log('action use epoch', props, new Error().stack);
+  agent.useEpoch(deps);
+
+  // return <action value={props} />;
   return null;
 }//);
 export const Task = /*memo(*/(props: TaskProps) => {

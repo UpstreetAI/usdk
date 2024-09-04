@@ -2,10 +2,12 @@ import type {
   ActiveAgentObject,
   // AgentProps,
   ActionProps,
+  ActionModifierProps,
   PromptProps,
   FormatterProps,
   // ParserProps,
   PerceptionProps,
+  PerceptionModifierProps,
   TaskProps,
   NameProps,
   PersonalityProps,
@@ -53,9 +55,10 @@ export class AgentRegistry {
 
   // set to null to maintain registration order
   actionsMap: Map<symbol, ActionProps | null> = new Map();
+  actionModifiersMap: Map<symbol, ActionModifierProps | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
-  // parsersMap: Map<symbol, ParserProps | null> = new Map();
   perceptionsMap: Map<symbol, PerceptionProps | null> = new Map();
+  perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
   
   namesMap: Map<symbol, NameProps | null> = new Map();
@@ -66,14 +69,17 @@ export class AgentRegistry {
   get actions() {
     return Array.from(this.actionsMap.values()).filter(Boolean);
   }
+  get actionModifiers() {
+    return Array.from(this.actionModifiersMap.values()).filter(Boolean);
+  }
   get formatters() {
     return Array.from(this.formattersMap.values()).filter(Boolean);
   }
-  // get parsers() {
-  //   return Array.from(this.parsersMap.values()).filter(Boolean);
-  // }
   get perceptions() {
     return Array.from(this.perceptionsMap.values()).filter(Boolean);
+  }
+  get perceptionModifiers() {
+    return Array.from(this.perceptionModifiersMap.values()).filter(Boolean);
   }
   get tasks() {
     return Array.from(this.tasksMap.values()).filter(Boolean);
@@ -89,28 +95,46 @@ export class AgentRegistry {
   }
 
   registerAction(key: symbol, action: ActionProps) {
-    this.actionsMap.set(key, action);
+    const actionExists = Array.from(this.actionsMap.values())
+      .some((a) => a?.name === action.name);
+    if (!actionExists) {
+      this.actionsMap.set(key, action);
+    } else {
+      throw new Error(`Duplicate action with name ${JSON.stringify(action.name)}`);
+    }
   }
   unregisterAction(key: symbol) {
     this.actionsMap.set(key, null);
   }
+  registerActionModifier(key: symbol, action: ActionModifierProps) {
+    this.actionModifiersMap.set(key, action);
+  }
+  unregisterActionModifier(key: symbol) {
+    this.actionModifiersMap.set(key, null);
+  }
   registerFormatter(key: symbol, formatter: FormatterProps) {
-    this.formattersMap.set(key, formatter);
+    const formatterExists = Array.from(this.formattersMap.values())
+      .some(Boolean);
+    if (!formatterExists) {
+      this.formattersMap.set(key, formatter);
+    } else {
+      throw new Error(`Multiple formatters`); 
+    }
   }
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
   }
-  // registerParser(key: symbol, parser: ParserProps) {
-  //   this.parsersMap.set(key, parser);
-  // }
-  // unregisterParser(key: symbol) {
-  //   this.parsersMap.set(key, null);
-  // }
   registerPerception(key: symbol, perception: PerceptionProps) {
     this.perceptionsMap.set(key, perception);
   }
   unregisterPerception(key: symbol) {
     this.perceptionsMap.set(key, null);
+  }
+  registerPerceptionModifier(key: symbol, perception: PerceptionModifierProps) {
+    this.perceptionModifiersMap.set(key, perception);
+  }
+  unregisterPerceptionModifier(key: symbol) {
+    this.perceptionModifiersMap.set(key, null);
   }
   registerTask(key: symbol, task: TaskProps) {
     this.tasksMap.set(key, task);
@@ -122,10 +146,22 @@ export class AgentRegistry {
     this.namesMap.set(key, name);
   }
   unregisterName(key: symbol) {
-    this.namesMap.set(key, null);
+    const nameExists = Array.from(this.namesMap.values())
+      .some(Boolean);
+    if (!nameExists) {
+      this.namesMap.set(key, null);
+    } else {
+      throw new Error(`Multiple names`);
+    }
   }
   registerPersonality(key: symbol, personality: PersonalityProps) {
-    this.personalitiesMap.set(key, personality);
+    const personalityExists = Array.from(this.personalitiesMap.values())
+      .some(Boolean);
+    if (!personalityExists) {
+      this.personalitiesMap.set(key, personality);
+    } else {
+      throw new Error(`Multiple personalities`);
+    }
   }
   unregisterPersonality(key: symbol) {
     this.personalitiesMap.set(key, null);
