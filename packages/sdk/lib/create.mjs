@@ -175,7 +175,7 @@ export const create = async (args, opts) => {
     guid = await createAgentGuid({
       jwt,
     });
-    console.log('created guid', guid);
+    // console.log('created guid', guid);
     [agentToken, userPrivate] = await Promise.all([
       getAgentToken(jwt, guid),
       getUserForJwt(jwt, {
