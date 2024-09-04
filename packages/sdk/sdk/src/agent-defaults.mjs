@@ -20,6 +20,9 @@ export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.bio !== 'string') {
     spec.bio = 'A cool person';
   }
+  if (typeof spec.ownerId !== 'string') {
+    spec.ownerId = '';
+  }
   if (typeof spec.model !== 'string') {
     spec.model = generationModel;
   }
@@ -37,6 +40,12 @@ export const ensureAgentJsonDefaults = (spec) => {
   }
   if (typeof spec.voicePack !== 'string') {
     spec.voicePack = 'ShiShi voice pack';
+  }
+  if (typeof spec.stripeConnectAccountId !== 'string') {
+    spec.stripeConnectAccountId = '';
+  }
+  if (typeof spec.address !== 'string') {
+    spec.address = '';
   }
   if (!Array.isArray(spec.capabilities)) {
     spec.capabilities = [];
