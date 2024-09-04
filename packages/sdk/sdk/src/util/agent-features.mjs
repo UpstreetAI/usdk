@@ -9,12 +9,16 @@ export const featureSpecs = [
     name: 'public',
     description: dedent`\
       Agent is publicly available.
+      The rate limit is \`maxUserMessages\` messages per \`maxUserMessagesTime\` milliseconds.
+      When the rate limit is exceeded, the agent will respond with the static \`rateLimitMessage\`.
+      If either \`maxUserMessages\` or \`maxUserMessagesTime\` is not provided or zero, the rate limit is disabled.
     ` + '\n'
     + defaultVoices.map(v => `* ${JSON.stringify(v.name)}: ${v.voiceEndpoint}`).join('\n'),
     schema: z.union([
       z.object({
-        maxUserMessages: z.number(),
-        maxUserMessagesTime: z.number(),
+        maxUserMessages: z.number().optional(),
+        maxUserMessagesTime: z.number().optional(),
+        rateLimitMessage: z.string().optional(),
       }),
       z.null(),
     ]),
@@ -24,9 +28,10 @@ export const featureSpecs = [
     components: ({
       maxUserMessages,
       maxUserMessagesTime,
+      rateLimitMessage,
     }) => [
       dedent`
-        <Public maxUserMessages={${maxUserMessages}} maxUserMessagesTime={${maxUserMessagesTime}} />
+        <Public ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${rateLimitMessage ? `rateLimitMessage={${JSON.stringify(rateLimitMessage)}} ` : ''} />
       `,
     ],
   },
