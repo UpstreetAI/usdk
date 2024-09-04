@@ -432,9 +432,9 @@ export const create = async (args, opts) => {
     console.warn(err.stack);
   }
 
-  console.log('\nCreated agent directory at', ansi.link(path.resolve(dstDir)), '\n');
-  console.log(pc.green('Name:'), agentJson.name);
-  // console.log(pc.green('ID:'), agentJson.id, '\n');
-  console.log(pc.green('Description:'), agentJson.description);
-  console.log(pc.green('Bio:'), agentJson.bio, '\n');
+  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+  // console.log(pc.green('Name:'), agentJson.name);
+  // // console.log(pc.green('ID:'), agentJson.id, '\n');
+  // console.log(pc.green('Description:'), agentJson.description);
+  // console.log(pc.green('Bio:'), agentJson.bio, '\n');
 };
