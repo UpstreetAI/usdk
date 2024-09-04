@@ -134,9 +134,9 @@ export class GenerativeAgentObject {
   }
   async say(text: string) {
     await this.conversation.typing(async () => {
-      console.log('say text', {
-        text,
-      });
+      // console.log('say text', {
+      //   text,
+      // });
       const timestamp = Date.now();
       const pendingMessage = {
         method: 'say',

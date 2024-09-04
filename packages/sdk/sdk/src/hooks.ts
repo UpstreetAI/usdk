@@ -93,10 +93,6 @@ export const usePersonality: () => string = () => {
   return personalities.length > 0 ? personalities[0].children : agent.bio;
 };
 
-/* export const useActionHistory: (opts?: ActionHistoryQuery) => ActionMessages = (opts) => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useActionHistory(opts);
-}; */
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
   const supabase = agent.useSupabase();
