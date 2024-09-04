@@ -8,17 +8,6 @@ declare global {
     interface IntrinsicElements {
       agent: any;
       prompt: any;
-
-      // action: any;
-      // formatter: any;
-      // parser: any;
-      // perception: any;
-      // task: any;
-
-      // name: any;
-      // personality: any;
-      
-      // server: any;
     }
   }
 }
@@ -79,6 +68,11 @@ export type ChatMessages = Array<ChatMessage>;
 export type ChatArgs = {
   endpointUrl: string;
   playerId: string;
+};
+
+// kv
+
+export type KvArgs = {
 };
 
 // tts
@@ -301,23 +295,32 @@ export type ActiveAgentObject = AgentObject & {
   destroy: () => void;
 }
 
+// abstract events
+
+export type PendingMessageEvent<T> = MessageEvent<T> & {
+  commit: () => Promise<void>;
+};
+export type AbortableMessageEvent<T> = MessageEvent<T> & {
+  abortController: AbortController;
+  abort: () => void;
+};
+
 // action events
 
-export type ActionEventData = {
-  agent: AgentObject;
-  message: ActionMessage;
-};
-export interface ActionEvent extends MessageEvent {
-  data: ActionEventData;
-}
+// export type ActionEventData = {
+//   agent: AgentObject;
+//   message: ActionMessage;
+// };
+// export interface ActionEvent extends MessageEvent {
+//   data: ActionEventData;
+// }
 
 export type PendingActionEventData = {
   agent: GenerativeAgentObject;
   message: PendingActionMessage;
 };
-export interface PendingActionEvent extends MessageEvent<PendingActionEventData> {
-  commit: () => Promise<void>;
-}
+export type PendingActionEvent = PendingMessageEvent<PendingActionEventData>;
+export type AbortableActionEvent = AbortableMessageEvent<PendingActionEventData>;
 
 export type AgentEventData = {
   agent: AgentObject;
@@ -327,12 +330,15 @@ export interface AgentEvent extends MessageEvent {
 }
 
 export type PerceptionEventData = {
-  agent: GenerativeAgentObject;
+  targetAgent: GenerativeAgentObject;
+  sourceAgent: AgentObject;
   message: PerceptionMessage;
 };
 export type PerceptionEvent = MessageEvent<PerceptionEventData>;
+export type AbortablePerceptionEvent = AbortableMessageEvent<PerceptionEventData>;
 
 export type ActionMessageEventData = {
+  agent: AgentObject;
   message: ActionMessage;
 };
 export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
@@ -374,14 +380,6 @@ export interface SceneObject extends EventTarget {
   description: string;
 }
 
-// inits
-
-export type ActionInit = {
-  description: string;
-  args: object;
-  handler: (action: ActionEvent) => Promise<any>;
-};
-
 // props
 
 export type AgentAppProps = {
@@ -413,7 +411,12 @@ export type ActionProps = {
   description: string;
   schema: ZodTypeAny;
   examples: Array<object>,
-  handler: (e: PendingActionEvent) => void | Promise<void>;
+  handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
+};
+export type ActionModifierProps = {
+  name: string;
+  handler: ((e: AbortableActionEvent) => void) | ((e: AbortableActionEvent) => Promise<void>);
+  priority?: number;
 };
 export type PromptProps = {
   children: ReactNode;
@@ -422,12 +425,14 @@ export type FormatterProps = {
   schemaFn: (actions: ActionProps[]) => ZodTypeAny;
   formatFn: (actions: ActionProps[]) => string;
 };
-// export type ParserProps = {
-//   parseFn: (s: string) => PendingActionMessage | Promise<PendingActionMessage>;
-// };
 export type PerceptionProps = {
   type: string;
-  handler: (e: PerceptionEvent) => any | Promise<any>;
+  handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
+};
+export type PerceptionModifierProps = {
+  type: string;
+  handler: ((e: AbortablePerceptionEvent) => void) | ((e: AbortablePerceptionEvent) => Promise<void>);
+  priority?: number;
 };
 export enum TaskResultEnum {
   Schedule = 'schedule',
@@ -440,7 +445,7 @@ export type TaskResult = {
 };
 export type TaskProps = {
   // id: any;
-  handler: (e: TaskEvent) => TaskResult | Promise<TaskResult>;
+  handler: ((e: TaskEvent) => TaskResult) | ((e: TaskEvent) => Promise<TaskResult>);
   onDone?: (e: TaskEvent) => void | Promise<void>;
 };
 
@@ -465,6 +470,11 @@ type Compartment = {
   evaluate: (s: string) => any;
 };
 
+type Kv = {
+  get: (key: string) => any;
+  set: (key: string, value: any) => void;
+  use: (key: string, defaultValue?: any) => [any, (value: any) => Promise<void>];
+}
 type Tts = {
   getVoiceStream: (text: string, opts?: any) => ReadableAudioStream;
   getVoiceConversionStream: (blob: Blob, opts?: any) => ReadableAudioStream;
@@ -486,9 +496,10 @@ export type AgentRegistry = {
   prompts: PromptProps[];
 
   actionsMap: Map<symbol, ActionProps | null>;
+  actionModifiersMap: Map<symbol, ActionModifierProps | null>;
   formattersMap: Map<symbol, FormatterProps | null>;
-  // parsersMap: Map<symbol, ParserProps | null>;
   perceptionsMap: Map<symbol, PerceptionProps | null>;
+  perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
   
   namesMap: Map<symbol, NameProps | null>;
@@ -497,9 +508,10 @@ export type AgentRegistry = {
   serversMap: Map<symbol, ServerProps | null>;
 
   get actions(): ActionProps[];
+  get actionModifiers(): ActionModifierProps[];
   get formatters(): FormatterProps[];
-  // get parsers(): ParserProps[];
   get perceptions(): PerceptionProps[];
+  get perceptionModifiers(): PerceptionModifierProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];
@@ -507,12 +519,14 @@ export type AgentRegistry = {
 
   registerAction(key: symbol, action: ActionProps): void;
   unregisterAction(key: symbol): void;
+  registerActionModifier(key: symbol, action: ActionModifierProps): void;
+  unregisterActionModifier(key: symbol): void;
   registerFormatter(key: symbol, formatter: FormatterProps): void;
   unregisterFormatter(key: symbol): void;
-  // registerParser(key: symbol, parser: ParserProps): void;
-  // unregisterParser(key: symbol): void;
   registerPerception(key: symbol, perception: PerceptionProps): void;
   unregisterPerception(key: symbol): void;
+  registerPerceptionModifier(key: symbol, perception: PerceptionModifierProps): void;
+  unregisterPerceptionModifier(key: symbol): void;
   registerTask(key: symbol, task: TaskProps): void;
   unregisterTask(key: symbol): void;
   registerName(key: symbol, name: NameProps): void;
@@ -536,8 +550,8 @@ export type AppContextValue = {
 
   useSupabase: () => any;
   useChatsSpecification: () => ChatsSpecification;
-  useStripe: () => any;
 
+  useKv: (opts?: KvArgs) => Kv;
   useTts: (ttsArgs: TtsArgs) => Tts;
 
   embed: (text: string) => Promise<Array<number>>;
