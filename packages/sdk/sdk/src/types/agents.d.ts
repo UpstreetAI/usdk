@@ -471,7 +471,7 @@ type Compartment = {
 };
 
 type Kv = {
-  get: (key: string) => any;
+  get: <T>(key: string) => Promise<T>;
   set: (key: string, value: any) => void;
   use: (key: string, defaultValue?: any) => [any, (value: any) => Promise<void>];
 }
