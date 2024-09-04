@@ -199,7 +199,7 @@ export const create = async (args, opts) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
-  const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
+  const stripeConnectAccountId = userPrivate.stripe_connect_account_id;
 
   // load source file
   let sourceFile = null;
