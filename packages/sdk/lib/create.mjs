@@ -185,6 +185,9 @@ export const create = async (args, opts) => {
     if (!agentToken) {
       throw new Error('Authorization error. Please try logging in again.')
     }
+    if (!userPrivate) {
+      throw new Error('User not found. Please try logging in again.')
+    }
   } else {
     throw new Error('You must be logged in to create an agent.');
   }
