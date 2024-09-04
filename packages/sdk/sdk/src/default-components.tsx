@@ -1504,7 +1504,8 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
         //   maxUserMessages,
         //   maxUserMessagesTime,
         // });
-        if (rateLimitingEnabled) {
+        const isOwner = e.data.sourceAgent.id === e.data.targetAgent.agent.ownerId;
+        if (rateLimitingEnabled && !isOwner) {
           // if rate limiting is enabled
           const { /*message, */sourceAgent, targetAgent } = e.data;
           // fetch old timestamps
