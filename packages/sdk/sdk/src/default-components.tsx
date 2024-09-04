@@ -1474,18 +1474,18 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   )
 };
 
-export type PublicProps = {
+export type RateLimitProps = {
   maxUserMessages: number;
   maxUserMessagesTime: number;
-  rateLimitMessage: string;
+  message: string;
 };
 type UserMessageTimestamp = {
   timestamp: number;
 };
-export const Public: React.FC<PublicProps> = (props: PublicProps) => {
+export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
   const maxUserMessages = props?.maxUserMessages ?? 5;
   const maxUserMessagesTime = props?.maxUserMessagesTime ?? 60 * 60 * 24 * 1000; // 1 day
-  const rateLimitMessage = props?.rateLimitMessage || 'You are sending messages too quickly. Please wait a moment before sending another message.';
+  const rateLimitMessage = props?.message || 'You are sending messages too quickly. Please wait a moment before sending another message.';
 
   const rateLimitMessageSent = useRef(false);
   const kv = useKv();
@@ -1499,32 +1499,32 @@ export const Public: React.FC<PublicProps> = (props: PublicProps) => {
           isFinite(maxUserMessages) &&
           maxUserMessagesTime !== 0 &&
           isFinite(maxUserMessagesTime);
-        console.log('rate limiting enabled', {
-          rateLimitingEnabled,
-          maxUserMessages,
-          maxUserMessagesTime,
-        });
+        // console.log('rate limiting enabled', {
+        //   rateLimitingEnabled,
+        //   maxUserMessages,
+        //   maxUserMessagesTime,
+        // });
         if (rateLimitingEnabled) {
           // if rate limiting is enabled
-          const { message, sourceAgent, targetAgent } = e.data;
+          const { /*message, */sourceAgent, targetAgent } = e.data;
           // fetch old timestamps
           const key = `userMessageTimestamps.${sourceAgent.id}`;
           let userMessageTimestamps = await kv.get<UserMessageTimestamp[]>(key) ?? [];
-          console.log('got timestamps 1', {
-            sourceAgent,
-            targetAgent,
-            key,
-            userMessageTimestamps,
-          });
+          // console.log('got timestamps 1', {
+          //   sourceAgent,
+          //   targetAgent,
+          //   key,
+          //   userMessageTimestamps,
+          // });
           // filter out old timestamps
           const now = Date.now();
           userMessageTimestamps = userMessageTimestamps.filter((t) => now - t.timestamp < maxUserMessagesTime);
-          console.log('got timestamps 2', {
-            sourceAgent,
-            targetAgent,
-            key,
-            userMessageTimestamps,
-          });
+          // console.log('got timestamps 2', {
+          //   sourceAgent,
+          //   targetAgent,
+          //   key,
+          //   userMessageTimestamps,
+          // });
           if (userMessageTimestamps.length < maxUserMessages) {
             // if we have room for more timestamps
             // add new timestamp
