@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import {
+  PendingActionMessage,
+} from './types';
+import {
   createAgentGuid,
 } from 'usdk/sdk/src/util/guid-util.mjs';
 import {
@@ -174,10 +177,10 @@ type FeaturesObject = {
   tts: {
     voiceEndpoint: string;
   } | null;
-  public: {
+  rateLimit: {
     maxUserMessages: number;
     maxUserMessagesTime: number;
-    rateLimitMessage: string;
+    message: string;
   } | null;
 };
 type AgentEditorProps = {
@@ -215,7 +218,7 @@ export default function AgentEditor({
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
     tts: null,
-    public: null,
+    rateLimit: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -785,70 +788,70 @@ export default function AgentEditor({
               </select>
             </label>}
           </div>
-          {/* public */}
+          {/* rate limit */}
           <div className="flex flex-col">
             <label className="flex">
-              <input type="checkbox" checked={!!features.public} onChange={e => {
+              <input type="checkbox" checked={!!features.rateLimit} onChange={e => {
                 setFeatures({
                   ...features,
-                  public: e.target.checked ? {
+                  rateLimit: e.target.checked ? {
                     maxUserMessages: maxUserMessagesDefault,
                     maxUserMessagesTime: maxUserMessagesTimeDefault,
-                    rateLimitMessage: rateLimitMessageDefault,
+                    message: rateLimitMessageDefault,
                   } : null,
                 });
               }} />
-              <div className="px-2">Public</div>
+              <div className="px-2">Rate limit</div>
             </label>
-            {features.public && <div className="flex flex-col">
+            {features.rateLimit && <div className="flex flex-col">
               <label className="flex">
                 <div className="mr-2 min-w-32"># messages</div>
-                <input type="number" value={features.public?.maxUserMessages ?? ''} onChange={e => {
+                <input type="number" value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
                   setFeatures(features => {
                     features = {
                       ...features,
-                      public: {
+                      rateLimit: {
                         maxUserMessages: parseInt(e.target.value, 10) || 0,
-                        maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
-                        rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
+                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
                       },
                     };
-                    e.target.value = (features.public as any).maxUserMessages + '';
+                    e.target.value = (features.rateLimit as any).maxUserMessages + '';
                     return features;
                   });
                 }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
               </label>
               <label className="flex">
                 <div className="mr-2 min-w-32">time (ms)</div>
-                <input type="number" value={features.public?.maxUserMessagesTime ?? ''} onChange={e => {
+                <input type="number" value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
                   setFeatures(features => {
                     features = {
                       ...features,
-                      public: {
-                        maxUserMessages: features.public?.maxUserMessages ?? 0,
+                      rateLimit: {
+                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
                         maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
-                        rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
+                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
                       },
                     };
-                    e.target.value = (features.public as any).maxUserMessagesTime + '';
+                    e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
                     return features;
                   });
                 }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
               </label>
               <label className="flex">
                 <div className="mr-2 min-w-32">message</div>
-                <input type="text" value={features.public?.rateLimitMessage ?? ''} onChange={e => {
+                <input type="text" value={features.rateLimit?.message ?? ''} onChange={e => {
                   setFeatures(features => (
                     {
                       ...features,
-                      public: {
-                        maxUserMessages: features.public?.maxUserMessages ?? 0,
-                        maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
-                        rateLimitMessage: e.target.value,
+                      rateLimit: {
+                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                        message: e.target.value,
                       },
                     }
                   ));
-                }} placeholder="What to say" />
+                }} placeholder="Rate limit message" />
               </label>
             </div>}
           </div>
@@ -874,8 +877,6 @@ export default function AgentEditor({
             }
 
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-              // // Add your save logic here
-              // alert('Ctrl+S pressed');
               startAgent({
                 sourceCode: getEditorValue(monaco),
               });
