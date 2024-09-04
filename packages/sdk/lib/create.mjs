@@ -313,22 +313,31 @@ export const create = async (args, opts) => {
       return await agentInterview.waitForFinish();
       // console.log('wait for finish 2');
     };
-    const processAgentJson = async () => {
-      const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
-      const agentJsonBase = {
-        ...agentJson,
-        id: guid, // created guid takes precedence
-      };
-      // if the agent json is complete
-      if (agentJsonString || source || yes) {
-        return agentJsonBase;
-      } else {
-        return await interview(agentJsonBase);
-      }
+    const createAgentJson = async () => {
+      // initialize
+      const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+      // run the interview, if applicable
+      let agentJson = await (async () => {
+        // if the agent json is complete
+        if (agentJsonString || source || yes) {
+          return agentJsonInit;
+        } else {
+          return await interview(agentJsonInit);
+        }
+      })();
+      // additional properties
+      agentJson.id = guid;
+      agentJson.ownerId = userPrivate.id;
+      agentJson.stripeConnectAccountId = stripeConnectAccountId;
+      agentJson.address = walletAddress;
+      // ensure defaults
+      ensureAgentJsonDefaults(agentJson);
+      // return result
+      return agentJson;
     };
 
     // note: this is an assignment
-    agentJson = await processAgentJson();
+    agentJson = await createAgentJson();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
@@ -366,15 +375,6 @@ export const create = async (args, opts) => {
 
   const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
-
-  // compile the agent json
-  ensureAgentJsonDefaults(agentJson);
-  if (stripeConnectAccountId) {
-    agentJson.stripeConnectAccountId = stripeConnectAccountId;
-  }
-  if (walletAddress) {
-    agentJson.address = walletAddress;
-  }
 
   // copy over the template files
   console.log(pc.italic('Copying files...'));
