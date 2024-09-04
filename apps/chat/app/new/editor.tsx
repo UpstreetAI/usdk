@@ -753,7 +753,7 @@ export default function AgentEditor({
         <div className="flex flex-col w-100">
           <div>Features</div>
           {/* voices */}
-          <div className="flex">
+          <div className="flex flex-col">
             <label className="flex">
               <input type="checkbox" checked={!!features.tts} onChange={e => {
                 setFeatures({
@@ -765,25 +765,28 @@ export default function AgentEditor({
               }} />
               <div className="px-2">TTS</div>
             </label>
-            <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
-              setFeatures(features => (
-                {
-                  ...features,
-                  tts: {
-                    voiceEndpoint: e.target.value,
-                  },
-                }
-              ));
-            }} disabled={!features.tts}>
-              {voices.map(voice => {
-                return (
-                  <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                );
-              })}
-            </select>
+            {features.tts && <label className="flex">
+              <div className="mr-2">Voice</div>
+              <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
+                setFeatures(features => (
+                  {
+                    ...features,
+                    tts: {
+                      voiceEndpoint: e.target.value,
+                    },
+                  }
+                ));
+              }}>
+                {voices.map(voice => {
+                  return (
+                    <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                  );
+                })}
+              </select>
+            </label>}
           </div>
           {/* public */}
-          <div className="flex">
+          <div className="flex flex-col">
             <label className="flex">
               <input type="checkbox" checked={!!features.public} onChange={e => {
                 setFeatures({
@@ -797,46 +800,57 @@ export default function AgentEditor({
               }} />
               <div className="px-2">Public</div>
             </label>
-            <input type="number" value={features.public?.maxUserMessages ?? ''} onChange={e => {
-              setFeatures(features => {
-                features = {
-                  ...features,
-                  public: {
-                    maxUserMessages: parseInt(e.target.value, 10) || 0,
-                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
-                    rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
-                  },
-                };
-                e.target.value = (features.public as any).maxUserMessages + '';
-                return features;
-              });
-            }} min={0} step={1} placeholder="Max user messages" disabled={!features.public} />
-            <input type="number" value={features.public?.maxUserMessagesTime ?? ''} onChange={e => {
-              setFeatures(features => {
-                features = {
-                  ...features,
-                  public: {
-                    maxUserMessages: features.public?.maxUserMessages ?? 0,
-                    maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
-                    rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
-                  },
-                };
-                e.target.value = (features.public as any).maxUserMessagesTime + '';
-                return features;
-              });
-            }} min={0} step={1} placeholder="Max user messages time" disabled={!features.public} />
-            <input type="text" value={features.public?.rateLimitMessage ?? ''} onChange={e => {
-              setFeatures(features => (
-                {
-                  ...features,
-                  public: {
-                    maxUserMessages: features.public?.maxUserMessages ?? 0,
-                    maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
-                    rateLimitMessage: e.target.value,
-                  },
-                }
-              ));
-            }} placeholder="Rate limit message" disabled={!features.public} />
+            {features.public && <div className="flex flex-col">
+              <label className="flex">
+                <div className="mr-2 min-w-32"># messages</div>
+                <input type="number" value={features.public?.maxUserMessages ?? ''} onChange={e => {
+                  setFeatures(features => {
+                    features = {
+                      ...features,
+                      public: {
+                        maxUserMessages: parseInt(e.target.value, 10) || 0,
+                        maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
+                        rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
+                      },
+                    };
+                    e.target.value = (features.public as any).maxUserMessages + '';
+                    return features;
+                  });
+                }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+              </label>
+              <label className="flex">
+                <div className="mr-2 min-w-32">time (ms)</div>
+                <input type="number" value={features.public?.maxUserMessagesTime ?? ''} onChange={e => {
+                  setFeatures(features => {
+                    features = {
+                      ...features,
+                      public: {
+                        maxUserMessages: features.public?.maxUserMessages ?? 0,
+                        maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                        rateLimitMessage: features.public?.rateLimitMessage ?? rateLimitMessageDefault,
+                      },
+                    };
+                    e.target.value = (features.public as any).maxUserMessagesTime + '';
+                    return features;
+                  });
+                }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+              </label>
+              <label className="flex">
+                <div className="mr-2 min-w-32">message</div>
+                <input type="text" value={features.public?.rateLimitMessage ?? ''} onChange={e => {
+                  setFeatures(features => (
+                    {
+                      ...features,
+                      public: {
+                        maxUserMessages: features.public?.maxUserMessages ?? 0,
+                        maxUserMessagesTime: features.public?.maxUserMessagesTime ?? 0,
+                        rateLimitMessage: e.target.value,
+                      },
+                    }
+                  ));
+                }} placeholder="What to say" />
+              </label>
+            </div>}
           </div>
         </div>
         <Editor
