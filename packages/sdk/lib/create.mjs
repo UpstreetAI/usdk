@@ -23,7 +23,6 @@ import {
   // number,
   // rawlist,
 } from '@inquirer/prompts';
-
 import { createAgentGuid } from '../sdk/src/util/guid-util.mjs';
 import {
   getAgentToken,
