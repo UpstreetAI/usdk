@@ -1545,7 +1545,7 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
             // abort the perception event
             e.abort();
 
-            // once per blockage, send a rate limit message to the user
+            // once per limit, send a message to the user
             if (!rateLimitMessageSent.current) {
               rateLimitMessageSent.current = true;
 
