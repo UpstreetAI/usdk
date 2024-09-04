@@ -80,3 +80,10 @@ const printZodNode = (z) => {
   return s;
 };
 export const printZodSchema = (schema) => printZodNode(zodToTs(schema).node);
+
+export const uint8ArrayToBase64 = (uint8Array) => {
+  return btoa(String.fromCharCode(...uint8Array));
+};
+export const base64ToUint8Array = (base64) => {
+  return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+};
