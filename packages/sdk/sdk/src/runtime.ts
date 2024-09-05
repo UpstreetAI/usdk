@@ -133,17 +133,14 @@ async function _generateAgentActionFromMessages(
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  let schema = formatter.schemaFn(actions);
-
-  if (enforcedAction) {
-    schema = formatter.schemaFn([enforcedAction]);
-  }
-
+  
   // validation
   if (!formatter) {
     throw new Error('no formatter found');
   }
-
+  
+  const schema = enforcedAction ? formatter.schemaFn([enforcedAction]) : formatter.schemaFn(actions);
+  
   // retries
   const numRetries = 5;
   return await retry(async () => {
