@@ -63,6 +63,13 @@ import {
 } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock, printZodSchema } from './util/util.mjs';
+import {
+  storeItemType,
+} from './util/agent-features.mjs';
+import {
+  currencies,
+  intervals,
+} from './constants.js';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -99,25 +106,62 @@ export const DefaultAgentComponents = () => {
  * @returns The JSX elements representing the default actions components.
  */
 export const DefaultActions = () => {
-  // const configuration = useContext(ConfigurationContext);
+  const storeItems = useStoreItems();
+
   return (
-    <Action
-      name="say"
-      description={`A character says something.`}
-      schema={
-        z.object({
-          text: z.string(),
-        })
-      }
-      examples={[
-        {
-          text: 'Hello, there! How are you doing?',
-        },
-      ]}
-      handler={async (e: PendingActionEvent) => {
-        await e.commit();
-      }}
-    />
+    <>
+      <Action
+        name="say"
+        description={`A character says something.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+      {storeItems.length > 0 && (
+        <Action
+          name="paymentRequest"
+          description={dedent`\
+            Request payment or a subscription for an item available in the store.
+          `}
+          schema={storeItemType}
+          examples={[
+            {
+              type: 'payment',
+              props: {
+                name: 'potion',
+                description: 'Heals 50 HP',
+                amount: 1,
+                currency: currencies[0],
+              },
+            },
+            {
+              type: 'subscription',
+              props: {
+                name: 'Blessing',
+                description: 'Daily blessings delivered in your DMs',
+                amount: 1,
+                currency: currencies[0],
+                interval: intervals[0],
+                intervalCount: 1,
+              },
+            },
+          ]}
+          // handler={async (e: PendingActionEvent) => {
+          //   await e.commit();
+          // }}
+        />
+      )}
+    </>
   );
 };
 
