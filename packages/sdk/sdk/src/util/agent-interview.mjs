@@ -173,7 +173,7 @@ export class AgentInterview extends EventTarget {
           } else if (result instanceof Blob) {
             const guid = crypto.randomUUID();
             const p = ['avatars', guid, `image.jpg`].join('/');
-            return await uploadBlob(p, result);
+            return await uploadBlob(p, result, jwt);
           } else if (result === null) {
             return null;
           } else {
