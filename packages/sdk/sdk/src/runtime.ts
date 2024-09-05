@@ -78,7 +78,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
       );
     })
     .map((prompt) => {
-      return Array.isArray(prompt.children) ? prompt.children.join('') : (prompt.children as string);
+      return Array.isArray(prompt.children) ? prompt.children.join('\n') : (prompt.children as string);
     });
 };
 
