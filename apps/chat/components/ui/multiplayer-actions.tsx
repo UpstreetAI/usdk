@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import dedent from 'dedent'
 import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
 import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
-import { getAgentEndpointUrl } from '@/lib/utils'
+import { getAgentEndpointUrl, getAgentHost } from '@/lib/utils'
 import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
@@ -13,8 +13,6 @@ import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 
 //
 
-const getAgentName = (guid: string) => `user-agent-${guid}`;
-const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
 const connectAgentWs = (guid: string) =>
   new Promise((accept, reject) => {
     const agentHost = getAgentHost(guid);
