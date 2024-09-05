@@ -991,7 +991,7 @@ export default function AgentEditor({
               </label>
             </div>}
           </div>
-          {/* store item */}
+          {/* store */}
           <div className="flex flex-col">
             <label className="flex">
               <input type="checkbox" checked={!!features.storeItems} onChange={e => {
@@ -1000,7 +1000,7 @@ export default function AgentEditor({
                   storeItems: e.target.checked ? [makeEmptyStoreItem()] : null,
                 });
               }} />
-              <div className="px-2">Store items</div>
+              <div className="px-2">Store</div>
             </label>
             {features.storeItems && <div className="flex flex-col">
               {features.storeItems.map((item, index) => {
