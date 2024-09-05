@@ -355,6 +355,10 @@ export const fetchJsonCompletion = async ({
         model: modelName,
         messages,
 
+        /*
+          Wraps anyOf to avoid root-level violation in OpenAI's format (ref: https://platform.openai.com/docs/guides/structured-outputs/root-objects-must-not-be-anyof), resolving the API requirement.
+          Unwrapped before sending response.
+        */
         response_format: zodResponseFormat(z.object({format: format}), 'result'),
 
         stream,
