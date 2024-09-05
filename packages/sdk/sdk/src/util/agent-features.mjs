@@ -3,6 +3,33 @@ import dedent from 'dedent';
 import { defaultVoices } from '../agent-defaults.mjs';
 import { currencies, intervals } from '../constants.js';
 
+export const paymentPropsType = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  amount: z.number().int(),
+  currency: z.enum(currencies),
+});
+export const paymentItemType = z.object({
+  type: z.literal('payment'),
+  props: paymentPropsType,
+});
+export const subscriptionPropsType = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+  amount: z.number().int(),
+  currency: z.enum(currencies),
+  interval: z.enum(intervals),
+  intervalCount: z.number(),
+});
+export const subscriptionItemType = z.object({
+  type: z.literal('subscription'),
+  props: subscriptionPropsType,
+});
+export const storeItemType = z.union([
+  paymentItemType,
+  subscriptionItemType,
+]);
+
 export const featureSpecs = [
   {
     name: 'tts',
@@ -68,28 +95,7 @@ export const featureSpecs = [
       \`amount\` in cents (e.g. 100 = $1).
     `,
     schema: z.union([
-      z.array(z.union([
-        z.object({
-          type: z.literal('payment'),
-          props: z.object({
-            name: z.string(),
-            description: z.string().optional(),
-            amount: z.number().int(),
-            currency: z.enum(currencies),
-          }),
-        }),
-        z.object({
-          type: z.literal('subscription'),
-          props: z.object({
-            name: z.string(),
-            description: z.string().optional(),
-            amount: z.number().int(),
-            currency: z.enum(currencies),
-            interval: z.enum(intervals),
-            intervalCount: z.number(),
-          }),
-        }),
-      ])),
+      z.array(storeItemType),
       z.null(),
     ]),
     imports: (storeItems) => {
