@@ -57,6 +57,7 @@ import {
   useFormatters,
   useName,
   usePersonality,
+  useStoreItems,
   useKv,
   useTts,
   useConversation,
@@ -230,6 +231,7 @@ export const DefaultPrompts = () => {
       <ConversationEnvironmentPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsPrompt />
+      <StorePrompt />
       <ConversationMessagesPrompt />
       <InstructionsPrompt />
     </>
@@ -239,7 +241,6 @@ export const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
-        # System
         Role-play as a character in a chat. I will give you the context, characters, and the possible actions you can take.
         Respond with a JSON object specifying the action method and arguments in the given format.
       `}
@@ -344,6 +345,27 @@ export const ActionsPrompt = () => {
   }
   return (
     <Prompt>{s}</Prompt>
+  );
+};
+export const StorePrompt = () => {
+  console.log('get store items 1');
+  const storeItems = useStoreItems();
+  console.log('got store items 2', storeItems);
+  return (
+    <Prompt>
+      # Store
+      Here are the store items available for purchase.
+      Amount in cents (e.g. 100 = $1).
+      {storeItems.length > 0 ? (
+        dedent`\
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(storeItems, null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `
+      ) : '*none*'}
+    </Prompt>
   );
 };
 export const ConversationMessagesPrompt = () => {
