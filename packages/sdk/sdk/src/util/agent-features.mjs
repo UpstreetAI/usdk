@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import dedent from 'dedent';
-import {
-  defaultVoices,
-} from '../agent-defaults.mjs';
+import { defaultVoices } from '../agent-defaults.mjs';
+import { currencies, intervals } from '../constants.js';
 
 export const featureSpecs = [
   {
@@ -61,5 +60,91 @@ export const featureSpecs = [
         <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
       `,
     ],
+  },
+  {
+    name: 'storeItems',
+    description: dedent`\
+      List of items that can be purchased from the agent, with associated prices.
+      \`amount\` is in cents (e.g. 100 = 1 dollar).
+    `,
+    schema: z.union([
+      z.array(z.union([
+        z.object({
+          type: z.literal('payment'),
+          props: z.object({
+            name: z.string(),
+            description: z.string().optional(),
+            amount: z.number().int(),
+            currency: z.enum(currencies),
+          }),
+        }),
+        z.object({
+          type: z.literal('subscription'),
+          props: z.object({
+            name: z.string(),
+            description: z.string().optional(),
+            amount: z.number().int(),
+            currency: z.enum(currencies),
+            interval: z.enum(intervals),
+            intervalCount: z.number(),
+          }),
+        }),
+      ])),
+      z.null(),
+    ]),
+    imports: (storeItems) => {
+      const result = [];
+      if (storeItems.some((storeItem) => storeItem.type === 'payment')) {
+        result.push('Payment');
+      }
+      if (storeItems.some((storeItem) => storeItem.type === 'subscription')) {
+        result.push('Subscription');
+      }
+      return result;
+    },
+    // components: ({
+    //   maxUserMessages,
+    //   maxUserMessagesTime,
+    //   message,
+    // }) => [
+    //   dedent`
+    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
+    //   `,
+    // ],
+    components: (storeItems) => {
+      return storeItems.map((storeItem) => {
+        if (storeItem.type === 'payment') {
+          if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
+            return dedent`
+              <Payment
+                name={${JSON.stringify(storeItem.props.name)}}
+                ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
+                amount={${JSON.stringify(storeItem.props.amount)}}
+                currency={${JSON.stringify(storeItem.props.currency)}}
+              />
+            `;
+          } else {
+            return '';
+          }
+        } else if (storeItem.type === 'subscription') {
+          if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
+            return dedent`
+              <Subscription
+                name={${JSON.stringify(storeItem.props.name)}}
+                ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
+                amount={${JSON.stringify(storeItem.props.amount)}}
+                currency={${JSON.stringify(storeItem.props.currency)}}
+                interval={${JSON.stringify(storeItem.props.interval)}}
+                intervalCount={${JSON.stringify(storeItem.props.intervalCount)}}
+              />
+            `;
+          } else {
+            return '';
+          }
+        } else {
+          throw new Error(`unexpected store item type: ${storeItem.type}`);
+        }
+      });
+    },
   },
 ];
