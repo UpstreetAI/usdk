@@ -10,13 +10,10 @@ import {
   generateCharacterImage,
   generateBackgroundImage,
 } from './generate-image.mjs';
-import { makePromise } from './util.mjs';
+import { makePromise, uploadBlob } from './util.mjs';
 import {
   featureSpecs,
 } from './agent-features.mjs';
-import {
-  r2EndpointUrl,
-} from './endpoints.mjs';
 
 //
 
@@ -174,30 +171,9 @@ export class AgentInterview extends EventTarget {
           if (typeof result === 'string') {
             return result;
           } else if (result instanceof Blob) {
-            // upload to r2
-            const blob = result;
             const guid = crypto.randomUUID();
-            const keyPath = ['avatars', guid, `image.jpg`].join('/');
-            const r2Url = `${r2EndpointUrl}/${keyPath}`;
-            let previewUrl = '';
-            try {
-              const res = await fetch(r2Url, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${jwt}`,
-                },
-                body: blob,
-              });
-              if (res.ok) {
-                previewUrl = await res.json();
-              } else {
-                const text = await res.text();
-                throw new Error(`could not upload preview url: ${r2Url}: ${res.status} ${blob.name}: ${text}`);
-              }
-            } catch (err) {
-              throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
-            }
-            return previewUrl;
+            const p = ['avatars', guid, `image.jpg`].join('/');
+            return await uploadBlob(p, result);
           } else if (result === null) {
             return null;
           } else {
