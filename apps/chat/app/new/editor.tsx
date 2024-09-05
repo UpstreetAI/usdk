@@ -831,14 +831,6 @@ export default function AgentEditor({
                 e.preventDefault();
                 e.stopPropagation();
 
-                console.log('autofill');
-              }}
-            >Autofill</Button>
-            <Button
-              onClick={e => {
-                e.preventDefault();
-                e.stopPropagation();
-
                 editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
               }}
               disabled={deploying}
