@@ -184,21 +184,8 @@ export class ChatsManager extends EventTarget {
                   address,
                 };
               };
-              const getMetadata = () => {
-                // get the store items from the agent registry
-                const {
-                  storeItems,
-                } = this.agent.registry;
-                return {
-                  storeItems,
-                };
-              };
               const agentJson = getJson();
-              const metadata = getMetadata();
-              const localPlayer = new Player(guid, {
-                ...agentJson,
-                metadata,
-              });
+              const localPlayer = new Player(guid, agentJson);
 
               const _pushInitialPlayer = () => {
                 realms.localPlayer.initializePlayer(
@@ -213,17 +200,6 @@ export class ChatsManager extends EventTarget {
                 );
               };
               _pushInitialPlayer();
-
-              const _bindItemsChange = () => {
-                const storeitemchange = (e) => {
-                  // XXX support event based updates of the player spec                
-                };
-                this.agent.registry.addEventListener('storeitemchange', storeitemchange);
-                realms.addEventListener('disconnect', () => {
-                  this.agent.registry.removeEventListener('storeitemchange', storeitemchange);
-                });
-              };
-              _bindItemsChange();
 
               const _bindRoomState = () => {
                 const _bindAgent = () => {
