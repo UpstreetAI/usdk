@@ -357,9 +357,9 @@ export const StorePrompt = () => {
     <Prompt>
       # Store
       Here are the store items available for purchase.
-      Amount in cents (e.g. 100 = $1).
       {storeItems.length > 0 ? (
         dedent`\
+          Amount in cents (e.g. 100 = $1).
           \`\`\`
         ` + '\n' +
         JSON.stringify(storeItems, null, 2) + '\n' +
