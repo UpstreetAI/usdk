@@ -192,6 +192,7 @@ export default function AgentEditor({
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
+  const [homespaceDescription, setHomespaceDescription] = useState('');
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -744,6 +745,9 @@ export default function AgentEditor({
             }} />
             <input type="text" className="px-2" value={visualDescription} placeholder="Visual description" onChange={e => {
               setVisualDescription(e.target.value);
+            }} />
+            <input type="text" className="px-2" value={visualDescription} placeholder="Homespace description" onChange={e => {
+              setHomespaceDescription(e.target.value);
             }} />
           </div>
           <div

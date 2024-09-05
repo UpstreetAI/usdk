@@ -288,7 +288,7 @@ export const create = async (args, opts) => {
         } = e.data;
         // console.log('change', updateObject);
       });
-      agentInterview.addEventListener('preview', async e => {
+      const imageLogger = (label) => async (e) => {
         const {
           result: blob,
           signal,
@@ -305,12 +305,12 @@ export const create = async (args, opts) => {
         const {
           text: imageText,
         } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-        console.log('Avatar updated:');
+        console.log(label);
         console.log(imageText);
-      });
-      // console.log('wait for finish 1');
+      };
+      agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
+      agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
       return await agentInterview.waitForFinish();
-      // console.log('wait for finish 2');
     };
     const createAgentJson = async () => {
       // initialize
@@ -342,6 +342,8 @@ export const create = async (args, opts) => {
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
+    console.log(pc.green('Homespace Description:'), agentJson.homespaceDescription);
+    console.log(pc.green('Homespace URL:'), agentJson.homespaceUrl);
     const featuresKeys = Object.keys(agentJson.features ?? {});
     console.log(pc.green('Features:'), featuresKeys.length > 0
       ? featuresKeys.join(', ')
