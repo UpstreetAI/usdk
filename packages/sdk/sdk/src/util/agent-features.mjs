@@ -65,7 +65,7 @@ export const featureSpecs = [
     name: 'storeItems',
     description: dedent`\
       List of items that can be purchased from the agent, with associated prices.
-      \`amount\` is in cents (e.g. 100 = 1 dollar).
+      \`amount\` in cents (e.g. 100 = $1).
     `,
     schema: z.union([
       z.array(z.union([
