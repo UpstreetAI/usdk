@@ -17,6 +17,9 @@ export class SubtleAi {
   async complete(messages: ChatMessages, opts?: SubtleAiCompleteOpts) {
     return await this.context.complete(messages, opts);
   }
+  async completeJson(messages: ChatMessages, format: any, opts?: SubtleAiCompleteOpts) {
+    return await this.context.completeJson(messages, format, opts);
+  }
   async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
     return await this.context.generateImage(prompt, opts);
   }
