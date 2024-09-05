@@ -22,6 +22,10 @@ import {
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
+import {
+  generateCharacterImage,
+  generateBackgroundImage,
+} from 'usdk/sdk/src/util/generate-image.mjs';
 import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
 import { 
   defaultVoices,
@@ -192,9 +196,13 @@ export default function AgentEditor({
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
+  const [homespaceDescription, setHomespaceDescription] = useState('');
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
+
+  const [homespaceBlob, setHomespaceBlob] = useState<Blob | null>(null);
+  const [homespaceUrl, setHomespaceUrl] = useState('');
 
   const [deploying, setDeploying] = useState(false);
   const [room, setRoom] = useState('');
@@ -236,6 +244,19 @@ export default function AgentEditor({
       setPreviewUrl('');
     }
   }, [previewBlob]);
+  // sync homespaceBlob -> homespaceUrl
+  useEffect(() => {
+    if (homespaceBlob) {
+      const url = URL.createObjectURL(homespaceBlob);
+      setHomespaceUrl(url);
+
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    } else {
+      setHomespaceUrl('');
+    }
+  }, [homespaceBlob]);
   // load voices
   useEffect(() => {
     const abortController = new AbortController();
@@ -340,6 +361,7 @@ export default function AgentEditor({
             agentToken,
           },
           previewUrl,
+          homespaceUrl,
         ] = await Promise.all([
           getUserIdForJwt(jwt),
           (async () => {
@@ -360,6 +382,12 @@ export default function AgentEditor({
             console.log('got agent preview url:', { previewUrl });
             return previewUrl;
           })(),
+          (async () => {
+            console.log('uploading agent homespace...', { homespaceBlob });
+            const homespaceUrl = await getCloudPreviewUrl(homespaceBlob);
+            console.log('got agent homespace url:', { homespaceUrl });
+            return homespaceUrl;
+          })(),
         ]);
 
         const agentJson = {
@@ -369,6 +397,7 @@ export default function AgentEditor({
           bio: bio || undefined,
           visualDescription: visualDescription || undefined,
           previewUrl,
+          homespaceUrl,
         };
         ensureAgentJsonDefaults(agentJson);
         const mnemonic = generateMnemonic();
@@ -548,6 +577,7 @@ export default function AgentEditor({
           setName(agentJson.name);
           setBio(agentJson.bio);
           setVisualDescription(agentJson.visualDescription);
+          setHomespaceDescription(agentJson.homespaceDescription);
           setFeatures(agentJson.features);
         });
         agentInterview.addEventListener('preview', (e: any) => {
@@ -676,10 +706,12 @@ export default function AgentEditor({
                   ownerId,
                   id,
                   previewUrl,
+                  homespaceUrl,
                 ] = await Promise.all([
                   getUserIdForJwt(jwt),
                   createAgentGuid({ jwt }),
                   getCloudPreviewUrl(previewBlob),
+                  getCloudPreviewUrl(homespaceBlob),
                 ]);
                 const agentJson = {
                   id,
@@ -688,6 +720,7 @@ export default function AgentEditor({
                   bio,
                   visualDescription,
                   previewUrl,
+                  homespaceUrl,
                 };
                 console.log('deploy 2', {
                   agentJson,
@@ -721,18 +754,40 @@ export default function AgentEditor({
           })();
         }
       }}>
-        <div className="flex w-100 my-4">
-          {previewUrl ? <Link
-            href={previewUrl}
-            target="_blank"
-          >
-            <img
-              src={previewUrl}
+        <div className="flex my-4">
+          <div className="flex flex-col">
+            {previewUrl ? <Link
+              href={previewUrl}
+              target="_blank"
+            >
+              <img
+                src={previewUrl}
+                className='w-20 h-20 mr-2 bg-primary/10 rounded'
+              />
+            </Link> : <div
               className='w-20 h-20 mr-2 bg-primary/10 rounded'
-            />
-          </Link> : <div
-            className='w-20 h-20 mr-2 bg-primary/10 rounded'
-          />}
+            />}
+            <Button
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('generate character click', { visualDescription });
+                if (visualDescription) {
+                  (async () => {
+                    const jwt = await getJWT();
+                    const result = await generateCharacterImage(visualDescription, undefined, {
+                      jwt,
+                    });
+                    const {
+                      blob,
+                    } = result;
+                    setPreviewBlob(blob);
+                  })();
+                }
+              }}
+            >Generate</Button>
+          </div>
           <div
             className="flex flex-col flex-1 mr-2"
           >
@@ -744,6 +799,9 @@ export default function AgentEditor({
             }} />
             <input type="text" className="px-2" value={visualDescription} placeholder="Visual description" onChange={e => {
               setVisualDescription(e.target.value);
+            }} />
+            <input type="text" className="px-2" value={homespaceDescription} placeholder="Homespace description" onChange={e => {
+              setHomespaceDescription(e.target.value);
             }} />
           </div>
           <div
@@ -778,7 +836,40 @@ export default function AgentEditor({
             >{!deploying ? `Deploy` : 'Deploying...'}</Button>
           </div>
         </div>
-        <div className="flex flex-col w-100">
+        <div className="flex flex-col">
+          {homespaceUrl ? <Link
+            href={homespaceUrl}
+            target="_blank"
+          >
+            <img
+              src={homespaceUrl}
+              className='w-full h-32 bg-primary/10 object-cover rounded'
+            />
+          </Link> : <div
+            className='w-full h-32 bg-primary/10 rounded'
+          />}
+          <Button
+            onClick={e => {
+              e.preventDefault();
+              e.stopPropagation();
+
+              console.log('generate homespace click', { homespaceDescription });
+              if (homespaceDescription) {
+                (async () => {
+                  const jwt = await getJWT();
+                  const result = await generateBackgroundImage(homespaceDescription, undefined, {
+                    jwt,
+                  });
+                  const {
+                    blob,
+                  } = result;
+                  setHomespaceBlob(blob);
+                })();
+              }
+            }}
+          >Generate</Button>
+        </div>
+        <div className="flex flex-col">
           <div>Features</div>
           {/* voices */}
           <div className="flex flex-col">

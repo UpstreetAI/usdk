@@ -1,4 +1,5 @@
 import { zodToTs, printNode } from 'zod-to-ts';
+import { r2EndpointUrl } from './endpoints.mjs';
 
 const codeBlockRegexA = /^[^\n]*?(\{[\s\S]*})[^\n]*?$/
 const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
@@ -86,4 +87,30 @@ export const uint8ArrayToBase64 = (uint8Array) => {
 };
 export const base64ToUint8Array = (base64) => {
   return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+};
+
+export const uploadBlob = async (p, blob, {
+  jwt,
+}) => {
+  // upload to r2
+  const r2Url = `${r2EndpointUrl}/${p}`;
+  let previewUrl = '';
+  try {
+    const res = await fetch(r2Url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
+      },
+      body: blob,
+    });
+    if (res.ok) {
+      previewUrl = await res.json();
+    } else {
+      const text = await res.text();
+      throw new Error(`could not upload preview url: ${r2Url}: ${res.status} ${blob.name}: ${text}`);
+    }
+  } catch (err) {
+    throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
+  }
+  return previewUrl;
 };

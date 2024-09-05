@@ -30,10 +30,13 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.startUrl = getCloudAgentHost(spec.id);
   }
   if (typeof spec.previewUrl !== 'string') {
-    spec.previewUrl = '/images/characters/upstreet/small/scillia.png';
+    spec.previewUrl = '';
+  }
+  if (typeof spec.homespaceUrl !== 'string') {
+    spec.homespaceUrl = '';
   }
   if (typeof spec.avatarUrl !== 'string') {
-    spec.avatarUrl = '/avatars/default_1934.vrm';
+    spec.avatarUrl = '';
   }
   if (typeof spec.voiceEndpoint !== 'string') {
     spec.voiceEndpoint = 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9';

@@ -124,11 +124,10 @@ full body shot, front view, facing viewer, standing straight, arms at side, neut
 anime girl with green hair, wearing a tanktop, vibrant and youthful appearance, medium length hair, bright eyes
 */
 
-const characterIamgeSizeFlux = 'portrait_4_3';
+const characterImageSizeFlux = 'portrait_4_3';
 export const generateCharacterImage = async (prompt, opts, {
   jwt,
 } = {}) => {
-  // const jwt = await getJWT();
   if (!jwt) {
     throw new Error('no jwt');
   }
@@ -144,7 +143,39 @@ export const generateCharacterImage = async (prompt, opts, {
     prompt,
   ].filter(Boolean).join('\n');
   const blob = await fetchImageGeneration(fullPrompt, {
-    image_size: characterIamgeSizeFlux,
+    image_size: characterImageSizeFlux,
+    seed,
+    guidance_scale,
+  }, {
+    jwt,
+  });
+
+  return {
+    fullPrompt,
+    blob,
+  };
+};
+
+const backgroundImageSizeFlux = 'square_hd';
+export const generateBackgroundImage = async (prompt, opts, {
+  jwt,
+} = {}) => {
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const {
+    stylePrompt = `background scene, high resolution, flcl anime style`,
+    seed,
+    guidance_scale,
+  } = opts ?? {};
+
+  const fullPrompt = [
+    stylePrompt,
+    prompt,
+  ].filter(Boolean).join('\n');
+  const blob = await fetchImageGeneration(fullPrompt, {
+    image_size: backgroundImageSizeFlux,
     seed,
     guidance_scale,
   }, {
@@ -181,7 +212,7 @@ export const generateEmotionImages = async (blob, prompt, opts, {
       // 'confused',
     ],
     strength = 0.8,
-    image_size = characterIamgeSizeFlux,
+    image_size = characterImageSizeFlux,
     num_inference_steps,
     seed,
     guidance_scale,

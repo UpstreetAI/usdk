@@ -8,14 +8,12 @@ import {
 } from '../../../lib/value-updater.js';
 import {
   generateCharacterImage,
+  generateBackgroundImage,
 } from './generate-image.mjs';
-import { makePromise } from './util.mjs';
+import { makePromise, uploadBlob } from './util.mjs';
 import {
   featureSpecs,
 } from './agent-features.mjs';
-import {
-  r2EndpointUrl,
-} from './endpoints.mjs';
 
 //
 
@@ -46,6 +44,24 @@ export class AgentInterview extends EventTarget {
         data: e.data,
       }));
     });
+
+    // homespace image generator
+    const homespaceDescriptionValueUpdater = new ValueUpdater(async (homespaceDescription, {
+      signal,
+    }) => {
+      const {
+        blob,
+      } = await generateBackgroundImage(undefined, homespaceDescription, {
+        jwt,
+      });
+      return blob;
+    });
+    homespaceDescriptionValueUpdater.addEventListener('change', async (e) => {
+      this.dispatchEvent(new MessageEvent('homespace', {
+        data: e.data,
+      }));
+    });
+
     const pumpIo = (response = '') => {
       this.dispatchEvent(new MessageEvent('input', {
         data: {
@@ -66,6 +82,9 @@ export class AgentInterview extends EventTarget {
     if (agentJson.previewUrl) {
       visualDescriptionValueUpdater.setResult(agentJson.previewUrl);
     }
+    if (agentJson.homespaceUrl) {
+      homespaceDescriptionValueUpdater.setResult(agentJson.homespaceUrl);
+    }
 
     // interaction loop
     this.interactor = new Interactor({
@@ -75,8 +94,11 @@ export class AgentInterview extends EventTarget {
           Do not use placeholder values for fields. Instead, make up something appropriate.
           Try to fill out all fields before finishing.
 
-          Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This field is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
+          Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
+
+          Use \`homespaceDescription\` to visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
+          e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
         ` + '\n\n' +
         dedent`\
           The available features are:
@@ -90,6 +112,7 @@ export class AgentInterview extends EventTarget {
         name: z.string().optional(),
         bio: z.string().optional(),
         visualDescription: z.string().optional(),
+        homespaceDescription: z.string().optional(),
         features: z.object((() => {
           const result = {};
           for (const featureSpec of featureSpecs) {
@@ -128,6 +151,9 @@ export class AgentInterview extends EventTarget {
       if (updateObject?.visualDescription) {
         visualDescriptionValueUpdater.set(updateObject.visualDescription);
       }
+      if (updateObject?.homespaceDescription) {
+        homespaceDescriptionValueUpdater.set(updateObject.homespaceDescription);
+      }
 
       // console.log('agent interview done', {
       //   done,
@@ -139,44 +165,33 @@ export class AgentInterview extends EventTarget {
       } else {
         sendOutput(response);
 
-        // return result
-        agentJson.previewUrl = await (async () => {
-          const result = await visualDescriptionValueUpdater.waitForLoad();
+        const getPreviewUrl = async (valueUpdater) => {
+          const result = await valueUpdater.waitForLoad();
 
           if (typeof result === 'string') {
             return result;
           } else if (result instanceof Blob) {
-            // upload to r2
-            const blob = result;
             const guid = crypto.randomUUID();
-            const keyPath = ['avatars', guid, `avatar.jpg`].join('/');
-            const r2Url = `${r2EndpointUrl}/${keyPath}`;
-            let previewUrl = '';
-            try {
-              const res = await fetch(r2Url, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${jwt}`,
-                },
-                body: blob,
-              });
-              if (res.ok) {
-                previewUrl = await res.json();
-              } else {
-                const text = await res.text();
-                throw new Error(`could not upload preview url: ${r2Url}: ${res.status} ${blob.name}: ${text}`);
-              }
-            } catch (err) {
-              throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
-            }
-            return previewUrl;
+            const p = ['avatars', guid, `image.jpg`].join('/');
+            return await uploadBlob(p, result, {
+              jwt,
+            });
           } else if (result === null) {
             return null;
           } else {
             console.warn('invalid result type', result);
             throw new Error('invalid result type: ' + typeof result);
           }
-        })();
+        };
+
+        // return result
+        [
+          agentJson.previewUrl,
+          agentJson.homespaceUrl,
+        ] = await Promise.all([
+          getPreviewUrl(visualDescriptionValueUpdater),
+          getPreviewUrl(homespaceDescriptionValueUpdater),
+        ]);
         this.loadPromise.resolve(agentJson);
       }
     });
