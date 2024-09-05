@@ -8,7 +8,7 @@ import {
 import {
   SubtleAi,
 } from './subtle-ai';
-import { AppContext, ConfigurationContext } from '../context';
+import { AppContext } from '../context';
 import type {
   UserHandler,
   InstanceChild,

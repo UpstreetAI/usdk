@@ -598,10 +598,10 @@ export type AppContextValue = {
     opts: SubtleAiImageOpts,
   ) => Promise<Blob>;
 };
-export type ConfigurationContextValue = {
+/* export type ConfigurationContextValue = {
   get: (key: string) => any;
   set: (key: string, value: any) => void;
-};
+}; */
 
 // messages
 

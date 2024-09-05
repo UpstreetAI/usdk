@@ -8,7 +8,6 @@ import jsAgo from 'js-ago';
 // import type { ZodTypeAny } from 'zod';
 import type {
   AppContextValue,
-  ConfigurationContextValue,
   // AgentProps,
   ActionProps,
   // PromptProps,
@@ -27,7 +26,6 @@ import type {
 } from './types';
 import {
   AppContext,
-  ConfigurationContext,
 } from './context';
 import {
   Agent,
@@ -85,7 +83,6 @@ export const DefaultAgentComponents = () => {
   return (
     <>
       <DefaultFormatters />
-      {/* <DefaultParsers /> */}
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
@@ -94,45 +91,6 @@ export const DefaultAgentComponents = () => {
     </>
   );
 };
-
-// action modifiers
-
-/* type ActionHandlerModifier = {
-  handle: (e: MessageEvent) => Promise<any>;
-};
-const actionHandlerModifiersKey = 'actionHandlerModifiers'; */
-/* const getActionModifiers = (configuration: ConfigurationContextValue, method: string) => {
-  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
-  if (actionHandlerModifiers) {
-    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-    if (methodActionHandlerModifiers) {
-      return Array.from(methodActionHandlerModifiers.values());
-    }
-  }
-  return [];
-}; */
-/* const addActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
-  let actionHandlerModifiers = configuration.get(actionHandlerModifiersKey) ?? new Map();
-  let methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-  if (!methodActionHandlerModifiers) {
-    methodActionHandlerModifiers = new Set();
-    actionHandlerModifiers.set(method, methodActionHandlerModifiers);
-  }
-
-  methodActionHandlerModifiers.add(modifier);
-
-  configuration.set(actionHandlerModifiersKey, actionHandlerModifiers);
-};
-const removeActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
-  const key = 'actionHandlerModifiers';
-  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
-  if (actionHandlerModifiers) {
-    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-    if (methodActionHandlerModifiers) {
-      methodActionHandlerModifiers.delete(modifier);
-    }
-  }
-}; */
 
 // actions
 
@@ -474,59 +432,6 @@ export const InstructionsPrompt = () => {
         ${currentAgent.name} has the following personality:
       ` + children}
     </Prompt>
-  );
-}; */
-
-// parsers
-
-/**
- * Renders the default parsers components.
- * @returns The JSX elements representing the default parsers components.
- */
-/* export const DefaultParsers = () => {
-  return <JsonParser />;
-};
-export const JsonParser = () => {
-  return (
-    <Parser
-      parseFn={(content: string) => {
-        let resultJson = null;
-        let error = null;
-        try {
-          const codeString = parseCodeBlock(content);
-          resultJson = JSON.parse(codeString);
-        } catch (e) {
-          error = e;
-        }
-        if (!error) {
-          const schema = makeJsonSchema();
-          try {
-            const parsedResultJson = schema.parse(resultJson);
-          } catch (err) {
-            throw new Error('zod schema parse error: ' + JSON.stringify(resultJson) + '\n' + JSON.stringify(err.issues));
-          }
-          // if (
-          //   typeof resultJson.method === 'string' &&
-          //   typeof resultJson.args === 'object' &&
-          //   resultJson.args !== null
-          // ) {
-          return resultJson as ActionMessage;
-          // } else {
-          //   throw new Error(
-          //     'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
-          //   );
-          // }
-        } else {
-          throw new Error(
-            'failed to parse LLM output: ' +
-              JSON.stringify({
-                content,
-                error,
-              }),
-          );
-        }
-      }}
-    />
   );
 }; */
 
@@ -1592,7 +1497,7 @@ export type TTSProps = {
 };
 export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   const voiceEndpoint = props?.voiceEndpoint;
-  const configuration = useContext(ConfigurationContext);
+  // const configuration = useContext(ConfigurationContext);
 
   const tts = useTts({
     voiceEndpoint,
