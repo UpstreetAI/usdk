@@ -26,7 +26,6 @@ import {
   generateCharacterImage,
   generateBackgroundImage,
 } from 'usdk/sdk/src/util/generate-image.mjs';
-import { uploadBlob } from 'usdk/sdk/src/util/util.mjs';
 import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
 import { 
   defaultVoices,
