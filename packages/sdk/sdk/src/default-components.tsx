@@ -350,9 +350,9 @@ export const ActionsPrompt = () => {
   );
 };
 export const StorePrompt = () => {
-  console.log('get store items 1');
+  // console.log('get store items 1');
   const storeItems = useStoreItems();
-  console.log('got store items 2', storeItems);
+  // console.log('got store items 2', storeItems);
   return (
     <Prompt>
       # Store
