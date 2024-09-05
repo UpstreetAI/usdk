@@ -89,7 +89,9 @@ export const base64ToUint8Array = (base64) => {
   return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
 };
 
-export const uploadBlob = async (p, blob, jwt) => {
+export const uploadBlob = async (p, blob, {
+  jwt,
+}) => {
   // upload to r2
   const r2Url = `${r2EndpointUrl}/${p}`;
   let previewUrl = '';
