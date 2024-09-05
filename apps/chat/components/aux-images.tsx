@@ -311,7 +311,7 @@ export const AuxImages = ({
         ],
       };
       setUser((user: any) => {
-        console.log('setting user', user);
+        // console.log('setting user', user);
         return {
           ...user,
           playerSpec: newPlayerSpec,
