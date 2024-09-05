@@ -518,7 +518,7 @@ export type TextInstance = {
   visible: boolean;
 };
 export type InstanceChild = Instance | TextInstance;
-export type AgentRegistry = EventTarget & {
+export type AgentRegistry = {
   prompts: PromptProps[];
 
   actionsMap: Map<symbol, ActionProps | null>;

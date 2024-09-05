@@ -54,11 +54,7 @@ export class TextInstance {
 }
 type InstanceChild = Instance | TextInstance;
 
-export class AgentRegistry extends EventTarget {
-  constructor() {
-    super();
-  }
-
+export class AgentRegistry {
   prompts: PromptProps[] = [];
 
   // set to null to maintain registration order
