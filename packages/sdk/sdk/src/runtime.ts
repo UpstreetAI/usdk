@@ -70,11 +70,16 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
         children?: ReactNode,
       };
       return (
-        (typeof children === 'string' && children.length > 0) &&
+        (
+          (typeof children === 'string' && children.length > 0) ||
+          (Array.isArray(children) && children.every((child) => typeof child === 'string'))
+        ) &&
         (!promptConversation || promptConversation === agentConversation)
       );
     })
-    .map((prompt) => prompt.children as string);
+    .map((prompt) => {
+      return Array.isArray(prompt.children) ? prompt.children.join('') : (prompt.children as string);
+    });
 };
 
 export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
