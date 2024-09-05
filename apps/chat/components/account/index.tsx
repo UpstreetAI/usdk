@@ -1,7 +1,7 @@
 import React from 'react';
 import { redirect } from 'next/navigation';
 import { routes } from '@/routes';
-import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
+import { getUserAccount, getUserAccountPrivate, getCredits, getAgents, getVoices, waitForUser, getCreditsUsageHistory } from '@/utils/supabase/server';
 import { Tabs } from './tabs';
 import { LoginRedirect } from '@/components/login-redirect';
 
@@ -33,6 +33,7 @@ export async function AccountForm({
     *,
     credits_usage ( * )  
   `);
+  const voicesPromise = getVoices(id || currentUser.id);
 
   // Display user for given ID if provided, else get current user.
   if (id) {
@@ -56,6 +57,7 @@ export async function AccountForm({
   }
 
   const agents = await agentsPromise;
+  const voices = await voicesPromise;
 
   return (
     <div className="flex w-full flex-col flex-nowrap p-4 mx-auto max-w-4xl">
@@ -70,7 +72,14 @@ export async function AccountForm({
         </div>
       </div>
 
-      <Tabs user={user} creditsUsageHistory={creditsUsageHistory} userPrivate={userPrivate} agents={agents} userIsCurrentUser={userIsCurrentUser} />
+      <Tabs
+        user={user}
+        creditsUsageHistory={creditsUsageHistory}
+        userPrivate={userPrivate}
+        agents={agents}
+        voices={voices}
+        userIsCurrentUser={userIsCurrentUser}
+      />
 
     </div>
   );

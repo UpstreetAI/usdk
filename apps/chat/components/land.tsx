@@ -1,10 +1,10 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
+import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react';
 import { z } from 'zod';
-import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber'
+import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber';
 import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
-import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei'
+import { OrbitControls, KeyboardControls, Text, GradientTexture } from '@react-three/drei';
 import Ecctrl from 'ecctrl';
 import dedent from 'dedent';
 import { zbencode, zbdecode } from 'zjs/encoding.mjs';

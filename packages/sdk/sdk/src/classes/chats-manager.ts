@@ -20,6 +20,7 @@ import type {
   ActiveAgentObject,
   ChatsSpecification,
   RoomSpecification,
+  PerceptionModifierProps,
 } from '../types';
 import {
   ConversationObject,
@@ -28,6 +29,18 @@ import {
   QueueManager,
   MultiQueueManager,
 } from '../util/queue-manager.mjs';
+import {
+  AbortableMessageEvent,
+} from './abortable-message-event';
+import {
+  PerceptionEvent,
+} from './perception-event';
+import {
+  AbortablePerceptionEvent,
+} from './abortable-perception-event';
+import {
+  collectPriorityModifiers,
+} from '../runtime';
 import {
   makePromise,
 } from '../util/util.mjs';
@@ -300,7 +313,7 @@ export class ChatsManager extends EventTarget {
 
         const _bindConversation = () => {
           conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
-            const { message } = e.data;
+            const { agent: sourceAgent, message } = e.data;
             e.waitUntil((async () => {
               await this.incomingMessageQueueManager.waitForTurn(async () => {
                 try {
@@ -310,39 +323,71 @@ export class ChatsManager extends EventTarget {
                     this.agent.dispatchEvent(e);
                     await e.waitForFinish();
                   }
-                  
-                  const allPerceptions = this.agent.registry.perceptions;
-                  const perceptionPromises = [];
-                  for (const perception of allPerceptions) {
-                    if (perception.type === message.method) {
-                      const generativeAgent = this.agent.generative({
-                        conversation,
-                      });
-                      const e = new MessageEvent<PerceptionEventData>('perception', {
-                        data: {
-                          agent: generativeAgent,
+
+                  const {
+                    perceptions,
+                    perceptionModifiers,
+                  } = this.agent.registry;
+
+                  // collect perception modifiers
+                  const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
+                  // for each priority, run the perception modifiers, checking for abort at each step
+                  let aborted = false;
+                  for (const perceptionModifiers of perceptionModifiersPerPriority) {
+                    const abortableEventPromises = perceptionModifiers.map(async (perceptionModifier) => {
+                      if (perceptionModifier.type === message.method) {
+                        const targetAgent = this.agent.generative({
+                          conversation,
+                        });
+                        const e = new AbortablePerceptionEvent({
+                          targetAgent,
+                          sourceAgent,
                           message,
-                        },
-                      });
-                      const p = perception.handler(e);
-                      perceptionPromises.push(p);
+                        });
+                        await perceptionModifier.handler(e);
+                        return e;
+                      }
+                    });
+                    const messageEvents = await Promise.all(abortableEventPromises);
+                    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+                    if (aborted) {
+                      break;
                     }
                   }
-                  await Promise.all(perceptionPromises);
-        
-                  (async () => {
-                    const supabase = this.agent.useSupabase();
-                    const jwt = this.agent.useAuthToken();
-                    await saveMessageToDatabase({
-                      supabase,
-                      jwt,
-                      userId: guid,
-                      conversationId: key,
-                      message,
-                    });
-                  })();
+
+                  // if no aborts, run the perceptions
+                  if (!aborted) {
+                    const perceptionPromises = [];
+                    for (const perception of perceptions) {
+                      if (perception.type === message.method) {
+                        const targetAgent = this.agent.generative({
+                          conversation,
+                        });
+                        const e = new PerceptionEvent({
+                          targetAgent,
+                          sourceAgent,
+                          message,
+                        });
+                        const p = perception.handler(e);
+                        perceptionPromises.push(p);
+                      }
+                    }
+                    await Promise.all(perceptionPromises);
+          
+                    (async () => {
+                      const supabase = this.agent.useSupabase();
+                      const jwt = this.agent.useAuthToken();
+                      await saveMessageToDatabase({
+                        supabase,
+                        jwt,
+                        userId: guid,
+                        conversationId: key,
+                        message,
+                      });
+                    })();
+                  }
                 } catch (err) {
-                  console.warn(err.stack);
+                  console.warn('caught new message error', err);
                 }
               });
             })());

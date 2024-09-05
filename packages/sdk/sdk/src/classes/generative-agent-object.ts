@@ -16,7 +16,7 @@ import {
 import {
   generateAgentActionFromInstructions,
   generateAgentAction,
-  handleAgentAction,
+  executeAgentAction,
   // generateJsonMatchingSchema,
   // generateString,
   getActionHandlerByName,
@@ -92,7 +92,7 @@ export class GenerativeAgentObject {
             : generateAgentAction(this)
           );
           // console.log('agent renderer think 3');
-          await handleAgentAction(this, pendingMessage);
+          await executeAgentAction(this, pendingMessage);
           // console.log('agent renderer think 4');
         } catch (err) {
           console.warn('think error', err);
@@ -136,9 +136,9 @@ export class GenerativeAgentObject {
   }
   async say(text: string) {
     await this.conversation.typing(async () => {
-      console.log('say text', {
-        text,
-      });
+      // console.log('say text', {
+      //   text,
+      // });
       const timestamp = Date.now();
       const pendingMessage = {
         method: 'say',
@@ -147,7 +147,7 @@ export class GenerativeAgentObject {
         },
         timestamp,
       };
-      await handleAgentAction(this, pendingMessage);
+      await executeAgentAction(this, pendingMessage);
     });
   }
   async monologue(text: string) {
@@ -166,7 +166,7 @@ export class GenerativeAgentObject {
           text,
           enforceSayAction,
       );
-      await handleAgentAction(this, pendingMessage);
+      await executeAgentAction(this, pendingMessage);
     });
   }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, z } from 'zod';
@@ -21,6 +21,7 @@ import type {
   AgentObject,
   ActiveAgentObject,
   PendingActionEvent,
+  PerceptionEvent,
   ActionMessage,
   PlayableAudioStream,
 } from './types';
@@ -31,18 +32,22 @@ import {
 import {
   Agent,
   Action,
+  ActionModifier,
   Prompt,
   Formatter,
-  // Parser,
   Perception,
+  PerceptionModifier,
   Task,
   // Scheduler,
   Server,
   Conversation,
 } from './components';
-// import {
-//   TaskResult,
-// } from './classes/task-object';
+import {
+  AbortableActionEvent,
+} from './classes/abortable-action-event';
+import {
+  AbortablePerceptionEvent,
+} from './classes/abortable-perception-event';
 import {
   useAgent,
   useAuthToken,
@@ -52,6 +57,7 @@ import {
   useFormatters,
   useName,
   usePersonality,
+  useKv,
   useTts,
   useConversation,
   useCachedMessages,
@@ -90,11 +96,11 @@ export const DefaultAgentComponents = () => {
 
 // action modifiers
 
-type ActionHandlerModifier = {
+/* type ActionHandlerModifier = {
   handle: (e: MessageEvent) => Promise<any>;
 };
-const actionHandlerModifiersKey = 'actionHandlerModifiers';
-const getActionModifiers = (configuration: ConfigurationContextValue, method: string) => {
+const actionHandlerModifiersKey = 'actionHandlerModifiers'; */
+/* const getActionModifiers = (configuration: ConfigurationContextValue, method: string) => {
   const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
   if (actionHandlerModifiers) {
     const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
@@ -103,8 +109,8 @@ const getActionModifiers = (configuration: ConfigurationContextValue, method: st
     }
   }
   return [];
-};
-const addActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
+}; */
+/* const addActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
   let actionHandlerModifiers = configuration.get(actionHandlerModifiersKey) ?? new Map();
   let methodActionHandlerModifiers = actionHandlerModifiers.get(method);
   if (!methodActionHandlerModifiers) {
@@ -125,7 +131,7 @@ const removeActionModifier = (configuration: ConfigurationContextValue, method: 
       methodActionHandlerModifiers.delete(modifier);
     }
   }
-};
+}; */
 
 // actions
 
@@ -134,7 +140,7 @@ const removeActionModifier = (configuration: ConfigurationContextValue, method: 
  * @returns The JSX elements representing the default actions components.
  */
 export const DefaultActions = () => {
-  const configuration = useContext(ConfigurationContext);
+  // const configuration = useContext(ConfigurationContext);
   return (
     <Action
       name="say"
@@ -150,9 +156,6 @@ export const DefaultActions = () => {
         },
       ]}
       handler={async (e: PendingActionEvent) => {
-        const modifiers = getActionModifiers(configuration, 'say') as Array<ActionHandlerModifier>;
-        await Promise.all(modifiers.map((modifier) => modifier.handle(e)));
-
         await e.commit();
       }}
     />
@@ -615,20 +618,19 @@ export const DefaultPerceptions = () => {
 
   return (
     <>
-      <Perception
+      {/* <Perception
         type="nudge"
         handler={async (e) => {
           const targetPlayerId = (e.data.message.args as any).targetPlayerId as string;
           if (targetPlayerId === agent.id) {
-            await e.data.agent.think();
+            await e.data.targetAgent.think();
           }
         }}
-      />
+      /> */}
       <Perception
         type="say"
         handler={async (e) => {
-          const { agent } = e.data;
-          await agent.think();
+          await e.data.targetAgent.think();
         }}
       />
     </>
@@ -1471,6 +1473,98 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
     />
   )
 };
+
+export type RateLimitProps = {
+  maxUserMessages: number;
+  maxUserMessagesTime: number;
+  message: string;
+};
+type UserMessageTimestamp = {
+  timestamp: number;
+};
+export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
+  const maxUserMessages = props?.maxUserMessages ?? 5;
+  const maxUserMessagesTime = props?.maxUserMessagesTime ?? 60 * 60 * 24 * 1000; // 1 day
+  const rateLimitMessage = props?.message || 'You are sending messages too quickly. Please wait a moment before sending another message.';
+
+  const rateLimitMessageSent = useRef(false);
+  const kv = useKv();
+
+  return (
+    <PerceptionModifier
+      type="say"
+      handler={async (e: AbortablePerceptionEvent) => {
+        const rateLimitingEnabled =
+          maxUserMessages !== 0 &&
+          isFinite(maxUserMessages) &&
+          maxUserMessagesTime !== 0 &&
+          isFinite(maxUserMessagesTime);
+        // console.log('rate limiting enabled', {
+        //   rateLimitingEnabled,
+        //   maxUserMessages,
+        //   maxUserMessagesTime,
+        // });
+        const isOwner = e.data.sourceAgent.id === e.data.targetAgent.agent.ownerId;
+        if (rateLimitingEnabled && !isOwner) {
+          // if rate limiting is enabled
+          const { /*message, */sourceAgent, targetAgent } = e.data;
+          // fetch old timestamps
+          const key = `userMessageTimestamps.${sourceAgent.id}`;
+          let userMessageTimestamps = await kv.get<UserMessageTimestamp[]>(key) ?? [];
+          // console.log('got timestamps 1', {
+          //   sourceAgent,
+          //   targetAgent,
+          //   key,
+          //   userMessageTimestamps,
+          // });
+          // filter out old timestamps
+          const now = Date.now();
+          userMessageTimestamps = userMessageTimestamps.filter((t) => now - t.timestamp < maxUserMessagesTime);
+          // console.log('got timestamps 2', {
+          //   sourceAgent,
+          //   targetAgent,
+          //   key,
+          //   userMessageTimestamps,
+          // });
+          if (userMessageTimestamps.length < maxUserMessages) {
+            // if we have room for more timestamps
+            // add new timestamp
+            userMessageTimestamps.push({
+              timestamp: now,
+            });
+            // save state
+            (async () => {
+              await kv.set(key, userMessageTimestamps);
+            })().catch((err) => {
+              console.warn('failed to set user message timestamps', err);
+            });
+            // flag the success
+            rateLimitMessageSent.current = false;
+            // continue normal handling
+          } else {
+            // else if we have hit the rate limit
+            // abort the perception event
+            e.abort();
+
+            // once per limit, send a message to the user
+            if (!rateLimitMessageSent.current) {
+              rateLimitMessageSent.current = true;
+
+              // send rate limit message witohut using inference
+              (async () => {
+                await targetAgent.say(rateLimitMessage);
+              })().catch((err) => {
+                console.warn('failed to send rate limit message', err);
+              });
+            }
+          }
+        }
+      }}
+      priority={-100}
+    />
+  );
+};
+
 export type TTSProps = {
   voiceEndpoint?: string; // voice to use
 };
@@ -1482,14 +1576,14 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     voiceEndpoint,
   });
 
-  useEffect(() => {
+  /* useEffect(() => {
     const actionHandlerModifier = (() => {
       return {
         handle: async (e: PendingActionEvent) => {
           const { message, agent } = e.data;
           const args = message.args as any;
           const text = (args as any).text as string;
-          const readableAudioStream = tts.getAudioStream(text);
+          const readableAudioStream = tts.getVoiceStream(text);
           const { type } = readableAudioStream;
           const playableAudioStream = readableAudioStream as PlayableAudioStream;
           playableAudioStream.id = crypto.randomUUID();
@@ -1511,7 +1605,28 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     };
   }, [
     tts,
-  ]);
+  ]); */
 
-  return null;
+  return (
+    <ActionModifier
+      name="say"
+      handler={async (e: AbortableActionEvent) => {
+        const { message, agent } = e.data;
+        const args = message.args as any;
+        const text = (args as any).text as string;
+        const readableAudioStream = tts.getVoiceStream(text);
+        const { type } = readableAudioStream;
+        const playableAudioStream = readableAudioStream as PlayableAudioStream;
+        playableAudioStream.id = crypto.randomUUID();
+        agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
+        if (!args.linkedMedia) {
+          args.linkedMedia = [];
+        }
+        args.linkedMedia.push({
+          id: playableAudioStream.id,
+          type,
+        });
+      }}
+    />
+  );
 };

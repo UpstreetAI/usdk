@@ -20,6 +20,9 @@ export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.bio !== 'string') {
     spec.bio = 'A cool person';
   }
+  if (typeof spec.ownerId !== 'string') {
+    spec.ownerId = '';
+  }
   if (typeof spec.model !== 'string') {
     spec.model = generationModel;
   }
@@ -38,6 +41,12 @@ export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.voicePack !== 'string') {
     spec.voicePack = 'ShiShi voice pack';
   }
+  if (typeof spec.stripeConnectAccountId !== 'string') {
+    spec.stripeConnectAccountId = '';
+  }
+  if (typeof spec.address !== 'string') {
+    spec.address = '';
+  }
   if (!Array.isArray(spec.capabilities)) {
     spec.capabilities = [];
   }
@@ -45,3 +54,36 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.version = packageJson.version;
   }
 };
+
+export const defaultVoices = [
+  {
+    voiceEndpoint: 'elevenlabs:kadio:YkP683vAWY3rTjcuq2hX',
+    name: 'Kaido',
+    description: 'Teenage anime boy',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',
+    name: 'Drake',
+    description: 'Anime male',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:terrorblade:lblRnHLq4YZ8wRRUe8ld',
+    name: 'Terrorblade',
+    description: 'Monstrous male',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9',
+    name: 'Scillia',
+    description: 'Teenage anime girl',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:mommy:jSd2IJ6Fdd2bD4TaIeUj',
+    name: 'Mommy',
+    description: 'Anime female',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:uni:PSAakCTPE63lB4tP9iNQ',
+    name: 'Uni',
+    description: 'Waifu girl',
+  },
+];

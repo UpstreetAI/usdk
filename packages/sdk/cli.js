@@ -2905,7 +2905,6 @@ const voice = async (args) => {
     const voiceTrainer = new VoiceTrainer();
     switch (subcommand) {
       case 'ls': {
-        // XXX move to assets
         const supabase = makeSupabase(jwt);
         const result = await supabase.from('assets')
           .select('*')
@@ -2913,9 +2912,6 @@ const voice = async (args) => {
           .eq('type', 'voice');
         const { error, data } = result;
         if (!error) {
-          // const voices =  await voiceTrainer.getVoices({
-          //   jwt,
-          // });
           console.log(JSON.stringify(data, null, 2));
         } else {
           console.warn('error getting voices:', error);
@@ -2924,7 +2920,6 @@ const voice = async (args) => {
         break;
       }
       case 'get': {
-        // XXX move to assets
         const voiceName = subcommandArgs[0] ?? '';
         if (voiceName) {
           const supabase = makeSupabase(jwt);
@@ -3024,6 +3019,9 @@ const voice = async (args) => {
                 console.warn('could not get voice json:', res.status);
                 process.exit(1);
               }
+            } else {
+              console.warn('no such voice: ' + voiceName);
+              process.exit(1);
             }
           } else {
             console.warn('error getting voice:', error);
@@ -3035,36 +3033,6 @@ const voice = async (args) => {
         }
         break;
       }
-      /* case 'sample': {
-        // XXX move to assets
-        const voiceName = subcommandArgs[0] ?? '';
-        const voiceSample = subcommandArgs[1] ?? '';
-        const filePath = subcommandArgs[2] ?? '';
-        if (voiceName && voiceSample && filePath) {
-          const supabase = makeSupabase(jwt);
-          const result = await supabase.from('assets')
-            .select('*')
-            .eq('name', voiceName)
-            .eq('user_id', userId)
-            .eq('type', 'voice')
-            .maybeSingle();
-          const { error, data } = result;
-          if (!error) {
-            // XXX read the real data
-            // const ab = await voiceTrainer.getVoiceSample(voiceName, voiceSample, {
-            //   jwt,
-            // });
-            await fs.promises.writeFile(filePath, Buffer.from(ab));
-          } else {
-            console.warn('error getting voice sample:', error);
-            process.exit(1);
-          }
-        } else {
-          console.warn('invalid arguments');
-          process.exit(1);
-        }
-        break;
-      } */
       case 'add': {
         const voiceName = subcommandArgs[0] ?? '';
         const voiceFilePaths = subcommandArgs.slice(1);
@@ -3077,80 +3045,14 @@ const voice = async (args) => {
           }));
 
           // XXX move this to the voices api
-          const id = crypto.randomUUID();
-          const [
-            { voice_id },
-            voiceUrls,
-          ] = await Promise.all([
-            voiceTrainer.addVoice(voiceName, voiceFiles, {
-              jwt,
-            }),
-            Promise.all(voiceFiles.map(async (blob) => {
-              const keyPath = ['assets', id, blob.name].join('/');
-              const u = `${r2EndpointUrl}/${keyPath}`;
-              try {
-                const res = await fetch(u, {
-                  method: 'PUT',
-                  headers: {
-                    'Authorization': `Bearer ${jwt}`,
-                  },
-                  body: blob,
-                });
-                if (res.ok) {
-                  const j = await res.json();
-                  return j;
-                } else {
-                  const text = await res.text();
-                  throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
-                }
-              } catch (err) {
-                throw new Error('failed to put voice: ' + u + ': ' + err.stack);
-              }
-            })),
-          ]);
-          const newVoiceEndpoint = `elevenlabs:${voiceName}:${voice_id}`;
-          const voice = {
-            name: voiceName,
-            voiceEndpoint: newVoiceEndpoint,
-            voiceUrls,
-          };
-
-          //
-
-          const keyPath = ['assets', id, `${id}.voice`].join('/');
-          const s = JSON.stringify(voice, null, 2);
-          const u = `${r2EndpointUrl}/${keyPath}`;
-          const res = await fetch(u, {
-            method: 'PUT',
-            headers: {
-              'Authorization': `Bearer ${jwt}`,
-            },
-            body: s,
+          const result = await voiceTrainer.addVoice(voiceName, voiceFiles, {
+            jwt,
           });
-          if (res.ok) {
-            const start_url = await res.json();
-            const asset = {
-              id,
-              user_id: userId,
-              type: 'voice',
-              name: voiceName,
-              description: 'Created with agents sdk',
-              start_url,
-              preview_url: '/images/voice-inv.svg',
-            };
-            const supabase = makeSupabase(jwt);
-            const { error } = await supabase.from('assets').upsert(asset);
-            if (!error) {
-               console.log(JSON.stringify(asset, null, 2));
-            } else {
-              console.warn('could not upsert asset:', error);
-              process.exit(1);
-            }
-          } else {
-            const text = await res.text();
-            console.warn('could not upload voice: ' + u + ': ' + text);
-            process.exit(1);
-          }
+          console.log('got result', result);
+          // const {
+          //   voiceId,
+          //   voiceUrls,
+          // } = result;
         } else {
           console.warn('invalid arguments');
           process.exit(1);
@@ -3158,26 +3060,13 @@ const voice = async (args) => {
         break;
       }
       case 'remove': {
-        // XXX move this to the voice api
-        const supabase = makeSupabase(jwt);
-        const result = await supabase.from('assets')
-          .delete()
-          .eq('name', voiceName)
-          .eq('user_id', userId)
-          .eq('type', 'voice');
-        const { error } = result;
-        if (!error) {
-          const voiceName = subcommandArgs[0] ?? '';
-          if (voiceName) {
-            await voiceTrainer.removeVoice(voiceName, {
-              jwt,
-            });
-          } else {
-            console.warn('invalid arguments');
-            process.exit(1);
-          }
+        const id = subcommandArgs[0] ?? '';
+        if (id) {
+          await voiceTrainer.removeVoice(id, {
+            jwt,
+          });
         } else {
-          console.warn('error deleting voice: ' + error);
+          console.warn('invalid arguments');
           process.exit(1);
         }
         break;
@@ -3209,6 +3098,9 @@ const main = async () => {
         process.exit(0);
       }
     });
+
+  program
+  .version(packageJson.version);
 
   // misc
   program
@@ -3615,29 +3507,29 @@ const main = async () => {
     'add',
     'remove',
   ];
-  // program
-  //   .command('voice')
-  //   .description(
-  //     'Manage agent voices',
-  //   )
-  //   .argument(
-  //     `[subcommand]`,
-  //     `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
-  //   )
-  //   .argument(
-  //     `[args...]`,
-  //     `Arguments to pass to the subcommand`,
-  //   )
-  //   .action(async (subcommand = '', args = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       args = {
-  //         _: [subcommand, args],
-  //         ...opts,
-  //       };
-  //       await voice(args);
-  //     });
-  //   });
+  program
+    .command('voice')
+    .description(
+      'Manage agent voices',
+    )
+    .argument(
+      `[subcommand]`,
+      `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
+    )
+    .argument(
+      `[args...]`,
+      `Arguments to pass to the subcommand`,
+    )
+    .action(async (subcommand = '', args = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        args = {
+          _: [subcommand, args],
+          ...opts,
+        };
+        await voice(args);
+      });
+    });
   // program
   //   .command('connect')
   //   .description(`Connect to a multiplayer room`)

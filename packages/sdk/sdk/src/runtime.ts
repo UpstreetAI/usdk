@@ -15,6 +15,9 @@ import {
 import {
   PendingActionEvent,
 } from './classes/pending-action-event';
+import {
+  AbortableActionEvent,
+} from './classes/abortable-action-event';
 // import { AgentRenderer } from './classes/agent-renderer';
 // import {
 //   TaskObject,
@@ -98,7 +101,6 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
-  // XXX fix this to use structured outputs
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
 
@@ -127,11 +129,9 @@ async function _generateAgentActionFromMessages(
 ) {
   const { agent } = generativeAgent;
   const {
-    // parsers,
     formatters,
     actions,
   } = agent.registry;
-  // const parser = parsers[0];
   const formatter = formatters[0];
   let schema = formatter.schemaFn(actions);
 
@@ -140,9 +140,6 @@ async function _generateAgentActionFromMessages(
   }
 
   // validation
-  // if (!parser) {
-  //   throw new Error('no parser found');
-  // }
   if (!formatter) {
     throw new Error('no formatter found');
   }
@@ -153,12 +150,12 @@ async function _generateAgentActionFromMessages(
     const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
     if (completionMessage !== null) {
       let newMessage: PendingActionMessage = null;
-      // newMessage = await parser.parseFn(completionMessage.content);
       newMessage = completionMessage.content as PendingActionMessage;
 
       const { method } = newMessage;
-      const actionHandler = getActionHandlerByName(actions, method);
-      if (actionHandler) {
+      const actionHandlers = actions.filter((action) => action.name === method);
+      if (actionHandlers.length > 0) {
+        const actionHandler = actionHandlers[0];
         if (actionHandler.schema) {
           try {
             const schema = z.object({
@@ -239,36 +236,80 @@ export async function generateString(hint: string) {
   }, numRetries);
 }
 
-export async function handleAgentAction(
+interface PriorityModifier {
+  priority?: number;
+  handler: ((e: any) => Promise<void>) | ((e: any) => void);
+}
+export const collectPriorityModifiers = <T extends PriorityModifier>(modifiers: T[]) => {
+  const result = new Map<number, T[]>();
+  for (const modifier of modifiers) {
+    const priority = modifier.priority ?? 0;
+    let modifiers = result.get(priority);
+    if (!modifiers) {
+      modifiers = [];
+      result.set(priority, modifiers);
+    }
+    modifiers.push(modifier);
+  }
+  return Array.from(result.entries())
+    .sort((a, b) => a[0] - b[0])
+    .map((entry) => entry[1]);
+};
+
+export async function executeAgentAction(
   generativeAgent: GenerativeAgentObject,
   message: PendingActionMessage,
 ) {
-  // console.log('handle agent action 1');
+  // console.log('execute agent action 1', {
+  //   message,
+  // });
   const {
     agent,
   } = generativeAgent;
   const {
     actions,
+    actionModifiers,
   } = agent.registry;
 
-  const { method } = message;
-  const actionHandler = getActionHandlerByName(actions, method);
-  // console.log('handle agent action 2', actionHandler);
-  if (actionHandler) {
-    // handle the pending action
-    const e = new PendingActionEvent({
-      agent: generativeAgent,
-      message,
+  // collect action modifiers
+  const actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
+  // for each priority, run the action modifiers, checking for abort at each step
+  let aborted = false;
+  for (const actionModifiers of actionModifiersPerPriority) {
+    const abortableEventPromises = actionModifiers.map(async (perceptionModifier) => {
+      if (perceptionModifier.name === message.method) {
+        const e = new AbortableActionEvent({
+          agent: generativeAgent,
+          message,
+        });
+        await perceptionModifier.handler(e);
+        return e;
+      }
     });
-    // console.log('handle agent action 3', actionHandler);
-    if (actionHandler.handler) {
-      await actionHandler.handler(e);
-    } else {
-      await e.commit();
+    const messageEvents = await Promise.all(abortableEventPromises);
+    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+    if (aborted) {
+      break;
     }
-    // console.log('handle agent action 4', actionHandler);
-  } else {
-    throw new Error('no action handler found for method: ' + method);
+  }
+
+  if (!aborted) {
+    const actionPromises: Promise<void>[] = [];
+    for (const action of actions) {
+      if (action.name === message.method) {
+        const e = new PendingActionEvent({
+          agent: generativeAgent,
+          message,
+        });
+        const handler =
+          (action.handler as (e: PendingActionEvent) => Promise<void>) ??
+          (async (e: PendingActionEvent) => {
+            await e.commit();
+          });
+        const p = handler(e);
+        actionPromises.push(p);
+      }
+    }
   }
 }
 

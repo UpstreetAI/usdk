@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Agents } from './agents';
+import { Voices } from './voices';
 import { Profile } from './profile';
 import { Credits } from './credits';
 import { AccountSubscriptions } from './subscriptions';
@@ -12,15 +13,17 @@ import useHash from '@/lib/hooks/use-hash';
 export interface TabsProps {
   user: any;
   agents: object[];
+  voices: object[];
   creditsUsageHistory: object[] | null;
   userIsCurrentUser: boolean;
   userPrivate: any;
 }
 
-export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
+export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
 
   const [ tab, setTab ] = useHash('profile'); // Default to 'profile'
   const [agents, setAgents] = useState(() => agentsInit);
+  const [voices, setVoices] = useState(() => voicesInit);
 
   creditsUsageHistory = creditsUsageHistory ?? [];
 
@@ -36,6 +39,9 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
           </li>
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('agents'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'agents' ? activeClass : inactiveClass}`}>Agents</button>
+          </li>
+          <li>
+            <button onClick={() => { setTab('voices'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'voices' ? activeClass : inactiveClass}`}>Voices</button>
           </li>
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('credits'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'credits' ? activeClass : inactiveClass}`}>Credits</button>
@@ -54,6 +60,9 @@ export function Tabs({ user, agents: agentsInit, creditsUsageHistory, userIsCurr
         </div>
         <div className={tab === 'agents' ? 'block w-full' : 'hidden'}>
           <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
+        </div>
+        <div className={tab === 'voices' ? 'block w-full' : 'hidden'}>
+          <Voices voices={voices} userIsCurrentUser={userIsCurrentUser} />
         </div>
         <div className={tab === 'credits' ? 'block w-full' : 'hidden'}>
           <Credits creditsUsageHistory={creditsUsageHistory} />

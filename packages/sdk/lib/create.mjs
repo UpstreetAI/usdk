@@ -23,7 +23,6 @@ import {
   // number,
   // rawlist,
 } from '@inquirer/prompts';
-
 import { createAgentGuid } from '../sdk/src/util/guid-util.mjs';
 import {
   getAgentToken,
@@ -55,12 +54,13 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from '../sdk/src/util/ethereum-utils.mjs';
-import { AgentInterview, applyFeaturesToAgentJSX } from '../sdk/src/util/agent-interview.mjs';
+import { AgentInterview } from '../sdk/src/util/agent-interview.mjs';
 import {
   getAgentName,
   ensureAgentJsonDefaults,
 } from '../sdk/src/agent-defaults.mjs';
 import { cwd } from 'process';
+import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
 
 //
 
@@ -122,28 +122,21 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await mkdirp(path.dirname(dst));
   await fs.promises.writeFile(dst, s);
 };
-const generateTemplateFromAgentJson = async (agentJson, {
-  // template = 'empty',
-  template = 'basic',
-  features = [],
-} = {}) => {
+const generateTemplateFromAgentJson = async (agentJson) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
 
   // copy over the basic template
+  const template = 'basic';
   const basicTemplateDirectory = path.join(templatesDirectory, template);
   await recursiveCopy(basicTemplateDirectory, templateDirectory);
 
-  // update agent jsx as needed
-  // console.log(pc.italic('Generating code...'));
-  if (features.length > 0) {
-    const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
-    let agentJSX = await fs.promises.readFile(agentJSXPath, 'utf8');
-    agentJSX = applyFeaturesToAgentJSX(agentJSX, features);
-    await fs.promises.writeFile(agentJSXPath, agentJSX);
-  }
+  // write the agent jsx
+  const agentJSXPath = path.join(templateDirectory, 'agent.tsx');
+  const agentJSX = makeAgentSourceCode(agentJson.features);
+  await fs.promises.writeFile(agentJSXPath, agentJSX);
 
-  // write back the generated the agent json
+  // write the agent json
   await fs.promises.writeFile(
     path.join(templateDirectory, agentJsonSrcFilename),
     JSON.stringify(agentJson, null, 2),
@@ -182,7 +175,7 @@ export const create = async (args, opts) => {
     guid = await createAgentGuid({
       jwt,
     });
-    console.log('created guid', guid);
+    // console.log('created guid', guid);
     [agentToken, userPrivate] = await Promise.all([
       getAgentToken(jwt, guid),
       getUserForJwt(jwt, {
@@ -191,6 +184,9 @@ export const create = async (args, opts) => {
     ]);
     if (!agentToken) {
       throw new Error('Authorization error. Please try logging in again.')
+    }
+    if (!userPrivate) {
+      throw new Error('User not found. Please try logging in again.')
     }
   } else {
     throw new Error('You must be logged in to create an agent.');
@@ -203,7 +199,7 @@ export const create = async (args, opts) => {
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
-  const stripeConnectAccountId = userPrivate?.stripe_connect_account_id;
+  const stripeConnectAccountId = userPrivate.stripe_connect_account_id;
 
   // load source file
   let sourceFile = null;
@@ -317,37 +313,44 @@ export const create = async (args, opts) => {
       return await agentInterview.waitForFinish();
       // console.log('wait for finish 2');
     };
-    const processAgentJson = async () => {
-      const agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
-      const agentJsonBase = {
-        ...agentJson,
-        id: guid, // created guid takes precedence
-      };
-      // if the agent json is complete
-      if (agentJsonString || source || yes) {
-        return agentJsonBase;
-      } else {
-        return await interview(agentJsonBase);
-      }
+    const createAgentJson = async () => {
+      // initialize
+      const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+      // run the interview, if applicable
+      let agentJson = await (async () => {
+        // if the agent json is complete
+        if (agentJsonString || source || yes) {
+          return agentJsonInit;
+        } else {
+          return await interview(agentJsonInit);
+        }
+      })();
+      // additional properties
+      agentJson.id = guid;
+      agentJson.ownerId = userPrivate.id;
+      agentJson.stripeConnectAccountId = stripeConnectAccountId;
+      agentJson.address = walletAddress;
+      // ensure defaults
+      ensureAgentJsonDefaults(agentJson);
+      // return result
+      return agentJson;
     };
 
     // note: this is an assignment
-    agentJson = await processAgentJson();
+    agentJson = await createAgentJson();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Features:'), agentJson.features?.length > 0
-      ? agentJson.features.join(', ')
+    const featuresKeys = Object.keys(agentJson.features ?? {});
+    console.log(pc.green('Features:'), featuresKeys.length > 0
+      ? featuresKeys.join(', ')
       : '*none*'
     );
 
     console.log(pc.italic('Building agent...'));
-    srcTemplateDir = await generateTemplateFromAgentJson(agentJson, {
-      template,
-      features: agentJson.features,
-    });
+    srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
     console.log(pc.italic('Agent built.'));
   } else {
     throw new Error('not logged in: cannot generate agent from prompt');
@@ -372,15 +375,6 @@ export const create = async (args, opts) => {
 
   const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
   const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
-
-  // compile the agent json
-  ensureAgentJsonDefaults(agentJson);
-  if (stripeConnectAccountId) {
-    agentJson.stripeConnectAccountId = stripeConnectAccountId;
-  }
-  if (walletAddress) {
-    agentJson.address = walletAddress;
-  }
 
   // copy over the template files
   console.log(pc.italic('Copying files...'));
@@ -438,9 +432,9 @@ export const create = async (args, opts) => {
     console.warn(err.stack);
   }
 
-  console.log('\nCreated agent directory at', ansi.link(path.resolve(dstDir)), '\n');
-  console.log(pc.green('Name:'), agentJson.name);
-  // console.log(pc.green('ID:'), agentJson.id, '\n');
-  console.log(pc.green('Description:'), agentJson.description);
-  console.log(pc.green('Bio:'), agentJson.bio, '\n');
+  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+  // console.log(pc.green('Name:'), agentJson.name);
+  // // console.log(pc.green('ID:'), agentJson.id, '\n');
+  // console.log(pc.green('Description:'), agentJson.description);
+  // console.log(pc.green('Bio:'), agentJson.bio, '\n');
 };

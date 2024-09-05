@@ -9,50 +9,15 @@ import {
 import {
   generateCharacterImage,
 } from './generate-image.mjs';
-import { makeId, makePromise } from './util.mjs';
-
+import { makePromise } from './util.mjs';
 import {
-  // aiHost,
-  // metamaskHost,
-  // deployEndpointUrl,
-  // multiplayerEndpointUrl,
+  featureSpecs,
+} from './agent-features.mjs';
+import {
   r2EndpointUrl,
-  // chatEndpointUrl,
-  // workersHost,
-  // aiProxyHost,
 } from './endpoints.mjs';
 
 //
-
-export const featureSpecs = [
-  {
-    name: 'voice',
-    description: 'The agent can speak.',
-    imports: [
-      'TTS',
-    ],
-    tsx: dedent`
-      <TTS />
-    `,
-  },
-];
-const featureNames = featureSpecs.map(feature => feature.name);
-
-//
-
-export const applyFeaturesToAgentJSX = (agentJSX, features) => {
-  const includedFeatureSpecs = features.map(featureName => featureSpecs.find(featureSpec => featureSpec.name === featureName));
-
-  const importsHookRegex = /\/\* IMPORTS REGEX HOOK \*\//g;
-  const impotsString = includedFeatureSpecs.flatMap(featureSpec => featureSpec.imports).map(importName => `${importName},`).join(',');
-  agentJSX = agentJSX.replace(importsHookRegex, impotsString);
-
-  const jsxHookRegex = /\{\/\* JSX REGEX HOOK \*\/}/g;
-  const jsxString = includedFeatureSpecs.map(featureSpec => featureSpec.tsx).join('\n');
-  agentJSX = agentJSX.replace(jsxHookRegex, jsxString);
-
-  return agentJSX;
-};
 
 export class AgentInterview extends EventTarget {
   constructor(opts) {
@@ -106,22 +71,36 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
+
+          Do not use placeholder values for fields. Instead, make up something appropriate.
+          Try to fill out all fields before finishing.
+
           Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This field is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
-        ` + '\n' +
+        ` + '\n\n' +
         dedent`\
-            The available features are:
-          ` + '\n' +
+          The available features are:
+        ` + '\n' +
         featureSpecs.map(({ name, description }) => {
-          return `'${name}': ${description}`;
-        }).join('\n') + '\n' +
+          return `# ${name}\n${description}`;
+        }).join('\n') + '\n\n' +
         (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
       object: agentJson,
       objectFormat: z.object({
         name: z.string().optional(),
         bio: z.string().optional(),
         visualDescription: z.string().optional(),
-        features: z.array(z.enum(featureNames)),
+        features: z.object((() => {
+          const result = {};
+          for (const featureSpec of featureSpecs) {
+            const {
+              name,
+              schema,
+            } = featureSpec;
+            result[name] = schema.optional();
+          }
+          return result;
+        })()).optional(),
       }),
       jwt,
     });
@@ -191,6 +170,8 @@ export class AgentInterview extends EventTarget {
               throw new Error('failed to put preview url: ' + previewUrl + ': ' + err.stack);
             }
             return previewUrl;
+          } else if (result === null) {
+            return null;
           } else {
             console.warn('invalid result type', result);
             throw new Error('invalid result type: ' + typeof result);
