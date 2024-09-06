@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import dedent from 'dedent';
 import { defaultVoices } from '../agent-defaults.mjs';
-import { currencies, intervals } from '../constants.js';
+import { currencies, intervals } from '../constants.mjs';
 
 export const paymentPropsType = z.object({
   name: z.string(),
