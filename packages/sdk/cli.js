@@ -2934,7 +2934,7 @@ const voice = async (args) => {
               const res = await fetch(start_url);
               if (res.ok) {
                 const assetJson = await res.json();
-                console.log(JSON.stringify(voiceJson, null, 2));
+                console.log(JSON.stringify(assetJson, null, 2));
               } else {
                 console.warn('could not get voice json:', res.status);
               }
@@ -3497,13 +3497,34 @@ const main = async () => {
         await disable(args);
       });
     }); */
-  const voiceSubCommands = [
-    'ls',
-    'get',
-    // 'sample',
-    'add',
-    'remove',
-  ];
+    const voiceSubCommands = [
+      {
+        name: 'ls',
+        description: 'Lists all available voices for the current user.',
+        usage: 'usdk voice ls'
+      },
+      {
+        name: 'get',
+        description: 'Retrieves details about a specific voice.',
+        usage: 'usdk voice get <voice_name>'
+      },
+      {
+        name: 'play',
+        description: 'Plays the given text using the specified voice.',
+        usage: 'usdk voice play <voice_name> <text>'
+      },
+      {
+        name: 'add',
+        description: 'Adds new audio files to create or update a voice.',
+        usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
+      },
+      {
+        name: 'remove',
+        description: 'Removes a voice from the user\'s account.',
+        usage: 'usdk voice remove <voice_id>'
+      }
+    ];
+
   program
     .command('voice')
     .description(
@@ -3511,7 +3532,7 @@ const main = async () => {
     )
     .argument(
       `[subcommand]`,
-      `What voice action to perform; one of [${JSON.stringify(voiceSubCommands)}]`,
+      `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
     )
     .argument(
       `[args...]`,
@@ -3526,7 +3547,10 @@ const main = async () => {
         };
         await voice(args);
       });
-    });
+    })
+    .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
+
+    
   // program
   //   .command('connect')
   //   .description(`Connect to a multiplayer room`)
