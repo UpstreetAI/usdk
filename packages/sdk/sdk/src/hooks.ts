@@ -155,7 +155,7 @@ export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   return messagesPromise;
 };
 
-export const useStripe: () => any = () => {
+/* export const useStripe: () => any = () => {
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson();
   const stripeConnectAccountId = (agentJson as any).stripeConnectAccountId as string;
@@ -185,7 +185,7 @@ export const useStripe: () => any = () => {
       }
     },
   };
-};
+}; */
 
 export const useKv = (opts?: KvArgs) => {
   const appContextValue = useContext(AppContext);
