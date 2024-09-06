@@ -27,13 +27,15 @@ export type ExtendableMessageEvent<T> = MessageEvent<T> & {
 
 export type AgentObject = EventTarget & {
   id: string;
+  ownerId: string;
   name: string;
   description: string;
   bio: string;
   previewUrl: string;
   model: string;
   address: string;
-}
+  stripeConnectAccountId: string;
+};
 
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
@@ -460,6 +462,35 @@ export type PersonalityProps = {
 
 //
 
+export type Currency = 'usd';
+export type Interval = 'day' | 'week' | 'month' | 'year';
+export type PaymentProps = {
+  amount: number;
+  currency: Currency;
+  name: string;
+  description?: string;
+  previewUrl?: string;
+};
+export type SubscriptionProps = {
+  amount: number;
+  currency: Currency;
+  name: string;
+  description?: string;
+  previewUrl?: string;
+  interval: Interval;
+  intervalCount: number;
+};
+export type StoreItemProps = PaymentProps | SubscriptionProps;
+export type StoreItem = {
+  type: string;
+  props: StoreItemProps;
+};
+export type PaymentItem = StoreItem & {
+  stripeConnectAccountId: string;
+};
+
+//
+
 export type ServerProps = {
   children: () => void;
 };
@@ -501,6 +532,8 @@ export type AgentRegistry = {
   perceptionsMap: Map<symbol, PerceptionProps | null>;
   perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
+
+  storeItemsMap: Map<symbol, StoreItem | null>;
   
   namesMap: Map<symbol, NameProps | null>;
   personalitiesMap: Map<symbol, PersonalityProps | null>;
@@ -515,6 +548,7 @@ export type AgentRegistry = {
   get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];
+  get storeItems(): StoreItem[];
   get servers(): ServerProps[];
 
   registerAction(key: symbol, action: ActionProps): void;
@@ -569,10 +603,10 @@ export type AppContextValue = {
     opts: SubtleAiImageOpts,
   ) => Promise<Blob>;
 };
-export type ConfigurationContextValue = {
+/* export type ConfigurationContextValue = {
   get: (key: string) => any;
   set: (key: string, value: any) => void;
-};
+}; */
 
 // messages
 

@@ -100,6 +100,9 @@ export function getAgentEndpointUrl(guid: string) {
   return `https://user-agent-${guid}.isekaichat.workers.dev/`;
 }
 
+export const getAgentName = (guid: string) => `user-agent-${guid}`;
+export const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
+
 export function isValidUrl(urlString: string) {
   const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // validate protocol
   '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // validate domain name

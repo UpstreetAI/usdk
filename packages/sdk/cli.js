@@ -1093,8 +1093,28 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           break;
         }
         case 'paymentRequest': {
-          const { amount, currency, url, productName, productDescription, productQuantity } = args;
-          log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
+          const {
+            type,
+            props,
+          } = args;
+          const {
+            amount,
+            currency,
+            interval,
+            intervalCount,
+          } = props;
+          const price = (() => {
+            const v = amount / 100;
+            if (currency === 'usd') {
+              return `$${v}`;
+            } else {
+              return `${v} ${currency.toUpperCase()}`;
+            }
+          })();
+          const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
+          log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
+          // const { amount, currency, url, productName, productDescription, productQuantity } = args;
+          // log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
           break;
         }
         case 'nudge':

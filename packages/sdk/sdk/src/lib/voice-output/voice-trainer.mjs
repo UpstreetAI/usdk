@@ -1,7 +1,6 @@
 import { aiProxyHost } from '../../util/endpoints.mjs';
-// import { getCleanJwt } from '../../utils/jwt-util.js';
 
-const voicesEndpointProxyUrl = `https://${aiProxyHost}/api/ai/voices`;
+// const voicesEndpointProxyUrl = `https://${aiProxyHost}/api/ai/voices`;
 const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
 
 export class VoiceTrainer {

@@ -29,9 +29,9 @@ import {
   QueueManager,
   MultiQueueManager,
 } from '../util/queue-manager.mjs';
-import {
-  AbortableMessageEvent,
-} from './abortable-message-event';
+// import {
+//   AbortableMessageEvent,
+// } from './abortable-message-event';
 import {
   PerceptionEvent,
 } from './perception-event';
@@ -334,19 +334,19 @@ export class ChatsManager extends EventTarget {
                   // for each priority, run the perception modifiers, checking for abort at each step
                   let aborted = false;
                   for (const perceptionModifiers of perceptionModifiersPerPriority) {
-                    const abortableEventPromises = perceptionModifiers.map(async (perceptionModifier) => {
-                      if (perceptionModifier.type === message.method) {
-                        const targetAgent = this.agent.generative({
-                          conversation,
-                        });
-                        const e = new AbortablePerceptionEvent({
-                          targetAgent,
-                          sourceAgent,
-                          message,
-                        });
-                        await perceptionModifier.handler(e);
-                        return e;
-                      }
+                    const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
+                      return perceptionModifier.type === message.method;
+                    }).map(async (perceptionModifier) => {
+                      const targetAgent = this.agent.generative({
+                        conversation,
+                      });
+                      const e = new AbortablePerceptionEvent({
+                        targetAgent,
+                        sourceAgent,
+                        message,
+                      });
+                      await perceptionModifier.handler(e);
+                      return e;
                     });
                     const messageEvents = await Promise.all(abortableEventPromises);
                     aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);

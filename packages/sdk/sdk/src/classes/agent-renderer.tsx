@@ -8,7 +8,7 @@ import {
 import {
   SubtleAi,
 } from './subtle-ai';
-import { AppContext, ConfigurationContext } from '../context';
+import { AppContext } from '../context';
 import type {
   UserHandler,
   InstanceChild,
@@ -70,7 +70,7 @@ class ErrorBoundary extends Component<
     return this.localProps.children;
   }
 }
-const ConfigurationComponent = ({
+/* const ConfigurationComponent = ({
   children,
 }: ChildrenProps) => {
   const [configurationValue, setConfigurationValue] = useState(() => {
@@ -92,7 +92,7 @@ const ConfigurationComponent = ({
       {children}
     </ConfigurationContext.Provider>
   );
-};
+}; */
 type AppComponentProps = {
   userRender: UserHandler,
   appContextValue: AppContextValue,
@@ -112,9 +112,9 @@ const AppComponent = ({
   return (
     <ErrorBoundary>
       <AppContext.Provider value={appContextValue}>
-        <ConfigurationComponent>
+        {/* <ConfigurationComponent> */}
           <UserRenderComponent />
-        </ConfigurationComponent>
+        {/* </ConfigurationComponent> */}
       </AppContext.Provider>
     </ErrorBoundary>
   )

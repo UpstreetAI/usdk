@@ -30,6 +30,8 @@ import {
   type ConversationAddEvent,
   type ConversationRemoveEvent,
   type MessagesUpdateEvent,
+  type PaymentProps,
+  type SubscriptionProps
 } from './types';
 import {
   AppContext,
@@ -235,7 +237,7 @@ export const Action = /*memo(*/(props: ActionProps) => {
     props.description,
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
-    props.handler.toString(),
+    props.handler?.toString() ?? '',
   ];
 
   useEffect(() => {
@@ -424,6 +426,57 @@ export const Personality = /*memo(*/(props: PersonalityProps) => {
   // return <personality value={props} />;
   return null;
 }//);
+
+//
+
+export const Payment = (props: PaymentProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
+    props.amount,
+    props.currency,
+    props.name,
+    props.description,
+    props.previewUrl,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerPayment(symbol, props);
+    return () => {
+      agentRegistry.unregisterPayment(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
+};
+export const Subscription = (props: SubscriptionProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+
+  const deps = [
+    props.amount,
+    props.currency,
+    props.name,
+    props.description,
+    props.previewUrl,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerSubscription(symbol, props);
+    return () => {
+      agentRegistry.unregisterSubscription(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
+};
 
 //
 

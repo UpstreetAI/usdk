@@ -1,5 +1,5 @@
 import 'localstorage-polyfill';
-import { headers } from './src/constants.js';
+import { headers } from './src/constants.mjs';
 import { makeAnonymousClient, getUserIdForJwt } from './src/util/supabase-client.mjs';
 import { AgentRenderer } from './src/classes/agent-renderer.tsx';
 import { ChatsSpecification } from './src/classes/chats-specification.ts';

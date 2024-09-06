@@ -90,6 +90,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
+          \`name\`, \`bio\`, and \`visualDescription\` describe the character.
 
           Do not use placeholder values for fields. Instead, make up something appropriate.
           Try to fill out all fields before finishing.

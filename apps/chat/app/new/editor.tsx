@@ -29,12 +29,19 @@ import {
 import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
 import { 
   defaultVoices,
-} from 'usdk/sdk/src/agent-defaults.mjs';
+} from 'usdk/sdk/src/util/agent-features.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
+import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
 
 import * as esbuild from 'esbuild-wasm';
+import {
+  StoreItem,
+  SubscriptionProps,
+  Currency,
+  Interval,
+} from 'usdk/sdk/src/types';
 const ensureEsbuild = (() => {
   let esBuildPromise: Promise<void> | null = null;
   return () => {
@@ -184,6 +191,7 @@ type FeaturesObject = {
     maxUserMessagesTime: number;
     message: string;
   } | null;
+  storeItems: StoreItem[] | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -225,6 +233,7 @@ export default function AgentEditor({
   const [features, setFeatures] = useState<FeaturesObject>({
     tts: null,
     rateLimit: null,
+    storeItems: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -600,6 +609,17 @@ export default function AgentEditor({
   const builderSubmit = () => {
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
+  const makeEmptyStoreItem = () => ({
+    type: 'payment',
+    props: {
+      name: '',
+      description: '',
+      amount: 100,
+      currency: currencies[0] as Currency,
+      interval: intervals[0] as Interval,
+      intervalCount: 1,
+    },
+  });
 
   // render
   return (
@@ -969,6 +989,108 @@ export default function AgentEditor({
                   ));
                 }} placeholder="Rate limit message" />
               </label>
+            </div>}
+          </div>
+          {/* store */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.storeItems} onChange={e => {
+                setFeatures({
+                  ...features,
+                  storeItems: e.target.checked ? [makeEmptyStoreItem()] : null,
+                });
+              }} />
+              <div className="px-2">Store</div>
+            </label>
+            {features.storeItems && <div className="flex flex-col">
+              {features.storeItems.map((item, index) => {
+                const {
+                  type,
+                  props,
+                } = item;
+                const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
+                  setFeatures(features => {
+                    const storeItems = features.storeItems ?? [];
+                    const newStoreItems = [...storeItems];
+                    const newStoreItem = { ...item };
+                    fn(newStoreItem);
+                    newStoreItems[index] = newStoreItem;
+                    return {
+                      ...features,
+                      storeItems: newStoreItems,
+                    };
+                  });
+                };
+                return (
+                  <div className="flex" key={index}>
+                    {props.previewUrl ?
+                      <img
+                        src={props.previewUrl}
+                        className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                      />
+                    :
+                      <div
+                        className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                      />
+                    }
+                    <div className="flex flex-col">
+                      <select value={type} onChange={e => {
+                        setStoreItem((storeItem) => {
+                          storeItem.type = e.target.value;
+                        });
+                      }}>
+                        <option value="payment">payment</option>
+                        <option value="subscription">subscription</option>
+                      </select>
+                      <input type="text" className="flex" value={props.name} onChange={e => {
+                        setStoreItem((storeItem) => {
+                          storeItem.props.name = e.target.value;
+                        });
+                      }} placeholder="Name" />
+                      <input type="text" className="flex" value={props.description} onChange={e => {
+                        setStoreItem((storeItem) => {
+                          storeItem.props.description = e.target.value;
+                        });
+                      }} placeholder="Description" />
+                      <input type="number" value={props.amount} onChange={e => {
+                        setStoreItem((storeItem) => {
+                          storeItem.props.amount = parseFloat(e.target.value);
+                        });
+                      }} placeholder="Amount" />
+                      <select value={props.currency} onChange={e => {
+                        setStoreItem((storeItem) => {
+                          storeItem.props.currency = e.target.value as Currency;
+                        });
+                      }}>
+                        {currencies.map(currency => {
+                          return (
+                            <option value={currency} key={currency}>{currency}</option>
+                          );
+                        })}
+                      </select>
+                      {type === 'subscription' && <>
+                        {/* interval */}
+                        <select value={(props as SubscriptionProps).interval} onChange={e => {
+                          setStoreItem((storeItem) => {
+                            (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
+                          });
+                        }}>
+                          <option value="day">day</option>
+                          <option value="week">week</option>
+                          <option value="month">month</option>
+                          <option value="year">year</option>
+                        </select>
+                        {/* intervalCount */}
+                        <input type="number" value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                          setStoreItem((storeItem) => {
+                            (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
+                          });
+                        }} placeholder="Interval count" />
+                      </>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>}
           </div>
         </div>

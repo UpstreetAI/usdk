@@ -15,6 +15,7 @@ import {
   KvArgs,
   TtsArgs,
   Tts,
+  StoreItem,
 } from './types';
 import {
   AppContext,
@@ -93,6 +94,13 @@ export const usePersonality: () => string = () => {
   return personalities.length > 0 ? personalities[0].children : agent.bio;
 };
 
+export const useStoreItems: () => StoreItem[] = () => {
+  // const agent = useContext(AgentContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
+  const storeItems = agentRegistryValue.storeItems;
+  return storeItems;
+};
+
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
   const supabase = agent.useSupabase();
@@ -147,7 +155,7 @@ export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   return messagesPromise;
 };
 
-export const useStripe: () => any = () => {
+/* export const useStripe: () => any = () => {
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson();
   const stripeConnectAccountId = (agentJson as any).stripeConnectAccountId as string;
@@ -177,7 +185,7 @@ export const useStripe: () => any = () => {
       }
     },
   };
-};
+}; */
 
 export const useKv = (opts?: KvArgs) => {
   const appContextValue = useContext(AppContext);

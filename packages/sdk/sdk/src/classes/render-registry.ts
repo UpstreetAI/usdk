@@ -12,6 +12,10 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
+  // StoreItemProps,
+  StoreItem,
+  PaymentProps,
+  SubscriptionProps,
 } from '../types';
 
 //
@@ -60,9 +64,11 @@ export class AgentRegistry {
   perceptionsMap: Map<symbol, PerceptionProps | null> = new Map();
   perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
-  
+
   namesMap: Map<symbol, NameProps | null> = new Map();
   personalitiesMap: Map<symbol, PersonalityProps | null> = new Map();
+
+  storeItemsMap: Map<symbol, StoreItem | null> = new Map();
   
   serversMap: Map<symbol, ServerProps | null> = new Map();
 
@@ -89,6 +95,9 @@ export class AgentRegistry {
   }
   get personalities() {
     return Array.from(this.personalitiesMap.values()).filter(Boolean);
+  }
+  get storeItems() {
+    return Array.from(this.storeItemsMap.values()).filter(Boolean);
   }
   get servers() {
     return Array.from(this.serversMap.values()).filter(Boolean);
@@ -165,6 +174,24 @@ export class AgentRegistry {
   }
   unregisterPersonality(key: symbol) {
     this.personalitiesMap.set(key, null);
+  }
+  registerPayment(key: symbol, payment: PaymentProps) {
+    this.storeItemsMap.set(key, {
+      type: 'payment',
+      props: payment,
+    });
+  }
+  unregisterPayment(key: symbol) {
+    this.storeItemsMap.set(key, null);
+  }
+  registerSubscription(key: symbol, subscription: SubscriptionProps) {
+    this.storeItemsMap.set(key, {
+      type: 'subscription',
+      props: subscription,
+    });
+  }
+  unregisterSubscription(key: symbol) {
+    this.storeItemsMap.set(key, null);
   }
   registerServer(key: symbol, server: ServerProps) {
     this.serversMap.set(key, server);

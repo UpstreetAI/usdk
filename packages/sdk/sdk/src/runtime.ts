@@ -47,14 +47,6 @@ type ServerHandler = {
 
 //
 
-const getActionHandlerByName = (actions: ActionProps[], name: string) => {
-  for (const action of actions) {
-    if (action.name === name) {
-      return action;
-    }
-  }
-  return null;
-};
 const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
   const {
     agent,
@@ -70,11 +62,16 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
         children?: ReactNode,
       };
       return (
-        (typeof children === 'string' && children.length > 0) &&
+        (
+          (typeof children === 'string' && children.length > 0) ||
+          (Array.isArray(children) && children.every((child) => typeof child === 'string'))
+        ) &&
         (!promptConversation || promptConversation === agentConversation)
       );
     })
-    .map((prompt) => prompt.children as string);
+    .map((prompt) => {
+      return Array.isArray(prompt.children) ? prompt.children.join('\n') : (prompt.children as string);
+    });
 };
 
 export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
@@ -113,44 +110,43 @@ async function _generateAgentActionFromMessages(
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  const schema = formatter.schemaFn(actions);
+  const actionsSchema = formatter.schemaFn(actions);
+  const actionsSchemaResult = z.object({
+    result: actionsSchema,
+  });
 
   // validation
   if (!formatter) {
     throw new Error('no formatter found');
   }
 
-  // retries
-  const numRetries = 5;
-  return await retry(async () => {
-    const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
-    if (completionMessage !== null) {
-      let newMessage: PendingActionMessage = null;
-      newMessage = completionMessage.content as PendingActionMessage;
+  const completionMessage = await generativeAgent.completeJson(promptMessages, actionsSchemaResult);
+  if (completionMessage !== null) {
+    let newMessage: PendingActionMessage = null;
+    newMessage = (completionMessage.content as any).result as PendingActionMessage;
 
-      const { method } = newMessage;
-      const actionHandlers = actions.filter((action) => action.name === method);
-      if (actionHandlers.length > 0) {
-        const actionHandler = actionHandlers[0];
-        if (actionHandler.schema) {
-          try {
-            const schema = z.object({
-              method: z.string(),
-              args: actionHandler.schema,
-            });
-            const parsedMessage = schema.parse(newMessage);
-          } catch (err) {
-            console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
-          }
+    const { method } = newMessage;
+    const actionHandlers = actions.filter((action) => action.name === method);
+    if (actionHandlers.length > 0) {
+      const actionHandler = actionHandlers[0];
+      if (actionHandler.schema) {
+        try {
+          const actionSchema = z.object({
+            method: z.string(),
+            args: actionHandler.schema,
+          });
+          const parsedMessage = actionSchema.parse(newMessage);
+        } catch (err) {
+          console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
         }
-        return newMessage;
-      } else {
-        throw new Error('no action handler found for method: ' + method);
       }
+      return newMessage;
     } else {
-      return null;
+      throw new Error('no action handler found for method: ' + method);
     }
-  }, numRetries);
+  } else {
+    return null;
+  }
 }
 
 export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
@@ -252,15 +248,15 @@ export async function executeAgentAction(
   // for each priority, run the action modifiers, checking for abort at each step
   let aborted = false;
   for (const actionModifiers of actionModifiersPerPriority) {
-    const abortableEventPromises = actionModifiers.map(async (perceptionModifier) => {
-      if (perceptionModifier.name === message.method) {
-        const e = new AbortableActionEvent({
-          agent: generativeAgent,
-          message,
-        });
-        await perceptionModifier.handler(e);
-        return e;
-      }
+    const abortableEventPromises = actionModifiers.filter(actionModifier => {
+      return actionModifier.name === message.method;
+    }).map(async (actionModifier) => {
+      const e = new AbortableActionEvent({
+        agent: generativeAgent,
+        message,
+      });
+      await actionModifier.handler(e);
+      return e;
     });
     const messageEvents = await Promise.all(abortableEventPromises);
     aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);

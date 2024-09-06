@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
-import { useEffect, useState } from 'react'
-import Link from 'next/link';
-import { ChatMessage } from '@/components/chat/chat-message'
+import React from 'react';
+import { useEffect, useState } from 'react';
+// import Link from 'next/link';
+import { ChatMessage } from '@/components/chat/chat-message';
 // import { ChatMessageOld } from '@/components/chat/chat-message-old'
 // import { type User } from '@supabase/supabase-js';
 // import { toast } from 'sonner'
@@ -16,16 +16,17 @@ import { defaultUserPreviewUrl } from 'usdk/sdk/src/defaults.mjs';
 // import { useAIState } from 'ai/rsc'
 // import { Message } from '@/lib/types'
 // import { usePathname, useRouter } from 'next/navigation'
-import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
+import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
 // import { UIState } from '@/lib/chat/actions'
 // import { resolveRelativeUrl } from '@/lib/utils'
+// import { aiHost } from '@/utils/const/endpoints';
+import { getJWT } from '@/lib/jwt';
 import { useSupabase } from '@/lib/hooks/use-supabase';
-
-
-import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions'
-
-import { Button } from '@/components/ui/button'
-import { useSidebar } from '@/lib/client/hooks/use-sidebar'
+import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
+import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/lib/client/hooks/use-sidebar';
+import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
+import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
 type MessageMedia = {
   type: string
@@ -230,7 +231,6 @@ function getMessageComponent(room: string, message: Message, id: string, players
     }
 
     case 'paymentRequest': {
-
       const player = playersCache.get(message.userId);
 
       let media = null;
@@ -239,42 +239,82 @@ function getMessageComponent(room: string, message: Message, id: string, players
         args,
       } = message;
       const {
+        type,
+        props,
+        stripeConnectAccountId,
+      } = args as PaymentItem;
+      const {
+        name,
+        description,
         amount,
         currency,
-        url,
-        productName,
-        productDescription,
-        productQuantity,
-      } = args as any;
+        interval,
+        intervalCount,
+      } = props as SubscriptionProps;
+
+      const checkout = async (e: any) => {
+        const jwt = await getJWT();
+        const success_url = location.href;
+        const stripe_connect_account_id = stripeConnectAccountId;
+        const j = await createSession({
+          args: {
+            mode: type,
+            line_items: [
+              {
+                quantity: 1,
+                price_data: {
+                  product_data: {
+                    name,
+                    description,
+                  },
+                  unit_amount: amount,
+                  currency,
+                  recurring: type === 'subscription' ? {
+                    interval,
+                    interval_count: intervalCount,
+                  } : undefined,
+                },
+              },
+            ],
+            success_url,
+          },
+          stripe_connect_account_id,
+        }, {
+          jwt,
+        });
+        const {
+          // id,
+          url,
+        } = j;
+        location.href = url;
+      };
+
+      const price = (() => {
+        const v = amount / 100;
+        if (currency === 'usd') {
+          return `$${v}`;
+        } else {
+          return `${v} ${(currency + '').toUpperCase()}`;
+        }
+      })();
+      const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
 
       return (
         <ChatMessage
           id={id}
           content={
-            <>
-              <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
-                <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
-                <div className="mb-4">{productQuantity} x {productName}: {productDescription}</div>
-                <div className="mb-4">{amount / 100} {currency}</div>
-                {/* <Button onClick={e => {
-                  sendRawMessage('paymentResponse', {
-                    description: 'Payment accepted',
-                    amount,
-                    currency,
-                  });
-                }}>Pay {amount / 100} {currency}</Button> */}
-                <Link href={url}>
-                  <Button>Checkout</Button>
-                </Link>
-              </div>
-            </>
+            <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
+              <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
+              <div className="mb-4">{name}: {description}</div>
+              <div className="mb-4">{price}{subscriptionText}</div>
+              <Button onClick={checkout}>Checkout</Button>
+            </div>
           }
           name={ message.name }
           media={ media }
           player={player}
           room={room}
           timestamp={message.timestamp}
-          // user={user}
         />
       )
     }

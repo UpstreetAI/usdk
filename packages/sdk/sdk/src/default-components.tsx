@@ -8,7 +8,6 @@ import jsAgo from 'js-ago';
 // import type { ZodTypeAny } from 'zod';
 import type {
   AppContextValue,
-  ConfigurationContextValue,
   // AgentProps,
   ActionProps,
   // PromptProps,
@@ -27,7 +26,6 @@ import type {
 } from './types';
 import {
   AppContext,
-  ConfigurationContext,
 } from './context';
 import {
   Agent,
@@ -57,6 +55,7 @@ import {
   useFormatters,
   useName,
   usePersonality,
+  useStoreItems,
   useKv,
   useTts,
   useConversation,
@@ -64,6 +63,13 @@ import {
 } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock, printZodSchema } from './util/util.mjs';
+import {
+  storeItemType,
+} from './util/agent-features.mjs';
+import {
+  currencies,
+  intervals,
+} from './constants.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -84,7 +90,6 @@ export const DefaultAgentComponents = () => {
   return (
     <>
       <DefaultFormatters />
-      {/* <DefaultParsers /> */}
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
@@ -94,71 +99,99 @@ export const DefaultAgentComponents = () => {
   );
 };
 
-// action modifiers
-
-/* type ActionHandlerModifier = {
-  handle: (e: MessageEvent) => Promise<any>;
-};
-const actionHandlerModifiersKey = 'actionHandlerModifiers'; */
-/* const getActionModifiers = (configuration: ConfigurationContextValue, method: string) => {
-  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
-  if (actionHandlerModifiers) {
-    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-    if (methodActionHandlerModifiers) {
-      return Array.from(methodActionHandlerModifiers.values());
-    }
-  }
-  return [];
-}; */
-/* const addActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
-  let actionHandlerModifiers = configuration.get(actionHandlerModifiersKey) ?? new Map();
-  let methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-  if (!methodActionHandlerModifiers) {
-    methodActionHandlerModifiers = new Set();
-    actionHandlerModifiers.set(method, methodActionHandlerModifiers);
-  }
-
-  methodActionHandlerModifiers.add(modifier);
-
-  configuration.set(actionHandlerModifiersKey, actionHandlerModifiers);
-};
-const removeActionModifier = (configuration: ConfigurationContextValue, method: string, modifier: ActionHandlerModifier) => {
-  const key = 'actionHandlerModifiers';
-  const actionHandlerModifiers = configuration.get(actionHandlerModifiersKey);
-  if (actionHandlerModifiers) {
-    const methodActionHandlerModifiers = actionHandlerModifiers.get(method);
-    if (methodActionHandlerModifiers) {
-      methodActionHandlerModifiers.delete(modifier);
-    }
-  }
-}; */
-
 // actions
+
+const StoreActions = () => {
+  const agent = useAgent();
+  const storeItems = useStoreItems();
+  return (
+    <>
+      {!!agent.stripeConnectAccountId && storeItems.length > 0 && (
+        <Action
+          name="paymentRequest"
+          description={dedent`\
+            Request payment or a subscription for an item available in the store.
+          `}
+          schema={storeItemType}
+          examples={[
+            {
+              type: 'payment',
+              props: {
+                name: 'potion',
+                description: 'Heals 50 HP',
+                amount: 1,
+                currency: currencies[0],
+              },
+            },
+            {
+              type: 'subscription',
+              props: {
+                name: 'Blessing',
+                description: 'Get daily blessings delivered in your DMs',
+                amount: 1,
+                currency: currencies[0],
+                interval: intervals[0],
+                intervalCount: 1,
+              },
+            },
+          ]}
+          handler={async (e: PendingActionEvent) => {
+            const {
+              stripeConnectAccountId,
+            } = e.data.agent.agent;
+            (e.data.message.args as any).stripeConnectAccountId = stripeConnectAccountId;
+
+            await e.commit();
+          }}
+        />
+      )}
+    </>
+  );
+};
 
 /**
  * Renders the default actions components.
  * @returns The JSX elements representing the default actions components.
  */
 export const DefaultActions = () => {
-  // const configuration = useContext(ConfigurationContext);
   return (
-    <Action
-      name="say"
-      description={`A character says something.`}
-      schema={
-        z.object({
-          text: z.string(),
-        })
-      }
-      examples={[
-        {
-          text: 'Hello, there! How are you doing?',
-        },
-      ]}
-      handler={async (e: PendingActionEvent) => {
-        await e.commit();
-      }}
-    />
+    <>
+      <Action
+        name="say"
+        description={`A character says something.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+      <Action
+        name="sayExtra"
+        description={`A character says something extra.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello!!',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+      <StoreActions />
+    </>
   );
 };
 
@@ -230,6 +263,7 @@ export const DefaultPrompts = () => {
       <ConversationEnvironmentPrompt />
       {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsPrompt />
+      <StorePrompt />
       <ConversationMessagesPrompt />
       <InstructionsPrompt />
     </>
@@ -239,7 +273,6 @@ export const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
-        # System
         Role-play as a character in a chat. I will give you the context, characters, and the possible actions you can take.
         Respond with a JSON object specifying the action method and arguments in the given format.
       `}
@@ -346,6 +379,26 @@ export const ActionsPrompt = () => {
     <Prompt>{s}</Prompt>
   );
 };
+export const StorePrompt = () => {
+  const agent = useAgent();
+  const storeItems = useStoreItems();
+  return (
+    <Prompt>
+      # Store
+      Here are the store items available for purchase.
+      {!!agent.stripeConnectAccountId && storeItems.length > 0 ? (
+        dedent`\
+          Amount in cents (e.g. 100 = $1).
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(storeItems, null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `
+      ) : '*none*'}
+    </Prompt>
+  );
+};
 export const ConversationMessagesPrompt = () => {
   return (
     <Conversation>
@@ -439,81 +492,10 @@ export const InstructionsPrompt = () => {
   );
 };
 
-/* export const Personality = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const currentAgent = useAgent();
-  return (
-    <Prompt>
-      {dedent`
-        # Additional note
-        ${currentAgent.name} has the following personality:
-      ` + children}
-    </Prompt>
-  );
-}; */
-
-// parsers
-
-/**
- * Renders the default parsers components.
- * @returns The JSX elements representing the default parsers components.
- */
-/* export const DefaultParsers = () => {
-  return <JsonParser />;
-};
-export const JsonParser = () => {
-  return (
-    <Parser
-      parseFn={(content: string) => {
-        let resultJson = null;
-        let error = null;
-        try {
-          const codeString = parseCodeBlock(content);
-          resultJson = JSON.parse(codeString);
-        } catch (e) {
-          error = e;
-        }
-        if (!error) {
-          const schema = makeJsonSchema();
-          try {
-            const parsedResultJson = schema.parse(resultJson);
-          } catch (err) {
-            throw new Error('zod schema parse error: ' + JSON.stringify(resultJson) + '\n' + JSON.stringify(err.issues));
-          }
-          // if (
-          //   typeof resultJson.method === 'string' &&
-          //   typeof resultJson.args === 'object' &&
-          //   resultJson.args !== null
-          // ) {
-          return resultJson as ActionMessage;
-          // } else {
-          //   throw new Error(
-          //     'LLM output invalid JSON: ' + JSON.stringify(resultJson, null, 2),
-          //   );
-          // }
-        } else {
-          throw new Error(
-            'failed to parse LLM output: ' +
-              JSON.stringify({
-                content,
-                error,
-              }),
-          );
-        }
-      }}
-    />
-  );
-}; */
-
 // formatters
-const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
+const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
   return z.object({
-    // userId: z.string(),
-    // name: z.string(),
-    method: z.string(),
+    method: z.literal(method),
     args,
   });
 };
@@ -527,9 +509,10 @@ export const JsonFormatter = () => {
       schemaFn={(actions: ActionProps[]) => {
         const types = actions.map((action) => {
           const {
+            name,
             schema: argsSchema,
           } = action;
-          const zodSchema = makeJsonSchema(argsSchema);
+          const zodSchema = makeJsonSchema(name, argsSchema);
           return zodSchema;
         });
         if (types.length >= 2) {
@@ -551,13 +534,9 @@ export const JsonFormatter = () => {
             examples,
           } = action;
 
-          // const agents = useAgents();
           const examplesJsonString = (examples ?? []).map((args) => {
-            // const randomAgent = shuffle(agents.slice())[0];
             return JSON.stringify(
               {
-                // userId: randomAgent.id,
-                // name: randomAgent.name, // helps with dialogue inference
                 method: name,
                 args,
               }
@@ -573,19 +552,6 @@ export const JsonFormatter = () => {
             ) : ''
           ) +
           (description ? (description + '\n') : '') +
-          // (schema ? (
-          //   dedent`
-          //     Schema:
-          //     \`\`\`
-          //   ` +
-          //   '\n' +
-          //   printZodSchema(schema) +
-          //   '\n' +
-          //   dedent`
-          //     \`\`\`
-          //   ` +
-          //   '\n'
-          // ) : '') +
           (examplesJsonString
             ? (
               dedent`
@@ -1570,7 +1536,7 @@ export type TTSProps = {
 };
 export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   const voiceEndpoint = props?.voiceEndpoint;
-  const configuration = useContext(ConfigurationContext);
+  // const configuration = useContext(ConfigurationContext);
 
   const tts = useTts({
     voiceEndpoint,

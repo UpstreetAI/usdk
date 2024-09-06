@@ -5,7 +5,7 @@
 import {aiProxyHost} from '../../util/endpoints.mjs'
 // import { abortableRead, makePromise } from '../../util.js';
 import { makePromise } from '../multiplayer/public/util.mjs';
-import {getCleanJwt} from '../../util/jwt-util.mjs';
+import {getCleanJwt} from '../../util/jwt-utils.mjs';
 
 //
 
