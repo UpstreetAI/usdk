@@ -110,44 +110,43 @@ async function _generateAgentActionFromMessages(
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  const schema = formatter.schemaFn(actions);
+  const actionsSchema = formatter.schemaFn(actions);
+  const actionsSchemaResult = z.object({
+    result: actionsSchema,
+  });
 
   // validation
   if (!formatter) {
     throw new Error('no formatter found');
   }
 
-  // retries
-  const numRetries = 5;
-  return await retry(async () => {
-    const completionMessage = await generativeAgent.completeJson(promptMessages, schema);
-    if (completionMessage !== null) {
-      let newMessage: PendingActionMessage = null;
-      newMessage = completionMessage.content as PendingActionMessage;
+  const completionMessage = await generativeAgent.completeJson(promptMessages, actionsSchemaResult);
+  if (completionMessage !== null) {
+    let newMessage: PendingActionMessage = null;
+    newMessage = (completionMessage.content as any).result as PendingActionMessage;
 
-      const { method } = newMessage;
-      const actionHandlers = actions.filter((action) => action.name === method);
-      if (actionHandlers.length > 0) {
-        const actionHandler = actionHandlers[0];
-        if (actionHandler.schema) {
-          try {
-            const schema = z.object({
-              method: z.string(),
-              args: actionHandler.schema,
-            });
-            const parsedMessage = schema.parse(newMessage);
-          } catch (err) {
-            console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
-          }
+    const { method } = newMessage;
+    const actionHandlers = actions.filter((action) => action.name === method);
+    if (actionHandlers.length > 0) {
+      const actionHandler = actionHandlers[0];
+      if (actionHandler.schema) {
+        try {
+          const actionSchema = z.object({
+            method: z.string(),
+            args: actionHandler.schema,
+          });
+          const parsedMessage = actionSchema.parse(newMessage);
+        } catch (err) {
+          console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
         }
-        return newMessage;
-      } else {
-        throw new Error('no action handler found for method: ' + method);
       }
+      return newMessage;
     } else {
-      return null;
+      throw new Error('no action handler found for method: ' + method);
     }
-  }, numRetries);
+  } else {
+    return null;
+  }
 }
 
 export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
