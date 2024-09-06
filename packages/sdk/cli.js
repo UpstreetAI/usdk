@@ -2628,7 +2628,7 @@ const deploy = async (args) => {
       const agentJsonString = wranglerTomlJson.vars.AGENT_JSON;
       const agentJson = JSON.parse(agentJsonString);
       const guid = agentJson.id;
-      const url = getAgentUrlFromGuid(guid);
+      const url = getAgentHost(guid);
       
       console.log();
       console.group(pc.green('Agent Deployed Successfully:'), '\n');
