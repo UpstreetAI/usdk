@@ -165,7 +165,7 @@ export const generateBackgroundImage = async (prompt, opts, {
   }
 
   const {
-    stylePrompt = `background scene, high resolution, flcl anime style`,
+    stylePrompt = `flcl anime style background art`,
     seed,
     guidance_scale,
   } = opts ?? {};
