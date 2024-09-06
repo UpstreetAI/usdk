@@ -29,7 +29,7 @@ import {
 import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
 import { 
   defaultVoices,
-} from 'usdk/sdk/src/agent-defaults.mjs';
+} from 'usdk/sdk/src/util/agent-features.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
