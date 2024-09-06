@@ -31,6 +31,7 @@ import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import { makeId } from './sdk/src/util/util.mjs';
 import {
+  localPort,
   callbackPort,
   devServerPort,
   getAgentName,
@@ -643,7 +644,7 @@ const login = async (args) => {
         if (err) {
           console.warn(err);
         } else {
-          const host = local ? `https://local.upstreet.ai:4443` : `https://login.upstreet.ai`;
+          const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
           const u = new URL(`${host}/logintool`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
