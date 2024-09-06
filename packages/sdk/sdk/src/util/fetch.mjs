@@ -5,6 +5,8 @@ import { getCleanJwt } from './jwt-util.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 
+import {z} from 'zod'
+
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }, {
     jwt,
@@ -353,7 +355,11 @@ export const fetchJsonCompletion = async ({
         model: modelName,
         messages,
 
-        response_format: zodResponseFormat(format, 'result'),
+        /*
+          Wraps anyOf to avoid root-level violation in OpenAI's format (ref: https://platform.openai.com/docs/guides/structured-outputs/root-objects-must-not-be-anyof), resolving the API requirement.
+          Unwrapped before sending response.
+        */
+        response_format: zodResponseFormat(z.object({format: format}), 'result'),
 
         stream,
       }),
@@ -363,7 +369,8 @@ export const fetchJsonCompletion = async ({
       const j = await res.json();
       const s = j.choices[0].message.content;
       const o = JSON.parse(s);
-      return o;
+      const r = o.format; // parse the format block created inside zodResponseFormat above ^
+      return r;
     } else {
       const text = await res.text();
       throw new Error('invalid status code: ' + res.status + ': ' + text);

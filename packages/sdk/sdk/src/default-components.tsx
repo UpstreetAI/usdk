@@ -513,8 +513,8 @@ const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
   return z.object({
     // userId: z.string(),
     // name: z.string(),
-    method: z.string(),
     args,
+    method: z.string(),
   });
 };
 export const DefaultFormatters = () => {

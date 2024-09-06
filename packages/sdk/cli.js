@@ -1535,47 +1535,52 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
 };
 const chat = async (args) => {
   // console.log('got chat args', JSON.stringify(args));
+  const jwt = await getLoginJwt();
+
+  if (!jwt) {
+    console.log('not logged in');
+    process.exit(1);
+  }
+
   const agentSpecs = await parseAgentSpecs(args._[0]);
   // const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    // start dev servers for the agents
-    const devServerPromises = agentSpecs
-      .map(async (agentSpec, index) => {
-        if (agentSpec.directory) {
-          const cp = await startDevServer(agentSpec, index, {
-            debug,
-          });
-          return cp;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    await Promise.all(devServerPromises);
-
-    // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-          // dev,
-          // debug,
+  // start dev servers for the agents
+  const devServerPromises = agentSpecs
+    .map(async (agentSpec, index) => {
+      if (agentSpec.directory) {
+        const cp = await startDevServer(agentSpec, index, {
+          debug,
         });
-      }),
-    );
+        return cp;
+      } else {
+        return null;
+      }
+    })
+    .filter(Boolean);
+  await Promise.all(devServerPromises);
 
-    // connect to the chat
-    await connect({
-      _: [room],
-      browser: args.browser,
-      media: !args.browser,
-      debug: args.debug,
-      local: args.local,
-    });
+  // wait for agents to join the multiplayer room
+  await Promise.all(
+    agentSpecs.map(async (agentSpec) => {
+      await join({
+        _: [agentSpec.ref, room],
+        // dev,
+        // debug,
+      });
+    }),
+  );
+
+  // connect to the chat
+  await connect({
+    _: [room],
+    browser: args.browser,
+    media: !args.browser,
+    debug: args.debug,
+    local: args.local,
+  });
 
     // return {
     //   // ws: webSockets[0],
@@ -1585,10 +1590,6 @@ const chat = async (args) => {
     //     }
     //   },
     // };
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
 };
 /* const simulate = async (args) => {
   let guidsOrDevPathIndexes = args._[0] ?? [];
@@ -2543,101 +2544,103 @@ const capture = async (args) => {
   }
 };
 const deploy = async (args) => {
+
+  const jwt = await getLoginJwt();
+
+  if (!jwt) {
+    console.log('not logged in');
+    process.exit(1);
+  }
+
   const agentSpecs = await parseAgentSpecs(args._[0]);
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
     throw new Error('all agent specs must have directories');
   }
 
-  // log in
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    for (const agentSpec of agentSpecs) {
-      const { directory } = agentSpec;
 
-      const uint8Array = await getDirectoryZip(directory, {
-        exclude: [/\/node_modules\//],
-      });
-      // upload the agent
-      const u = `${deployEndpointUrl}/agent`;
-      const req = https.request(u, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          'Content-Length': uint8Array.byteLength,
-        },
-      });
-      // create a stream to pass to the request
-      const dataStream = new stream.PassThrough();
-      dataStream.pipe(req);
-      // dataStream.on('data', (b) => {
-      // });
-      // dataStream.on('end', (b) => {
-      // });
-      // pump the loop
-      (async () => {
-        const chunkSize = 4 * 1024;
-        const logSize = (i) => {
-          process.stdout.write(
-            `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
-          );
-        };
-        for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
-          logSize(i);
-          const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
-          const ok = dataStream.write(slice);
-          if (!ok) {
-            await new Promise((accept) => {
-              dataStream.once('drain', accept);
-            });
-          }
-        }
-        dataStream.end();
+  for (const agentSpec of agentSpecs) {
+    const { directory } = agentSpec;
 
-        logSize(uint8Array.length);
-        console.log();
-      })();
-      const wranglerTomlJson = await new Promise((accept, reject) => {
-        req.on('response', async (res) => {
-          // console.log('got response', res.statusCode);
-
-          const b = await new Promise((accept, reject) => {
-            const bs = [];
-            res.on('data', (b) => {
-              bs.push(b);
-            });
-            res.on('end', async () => {
-              const b = Buffer.concat(bs);
-              accept(b);
-            });
-            res.on('error', reject);
+    const uint8Array = await getDirectoryZip(directory, {
+      exclude: [/\/node_modules\//],
+    });
+    // upload the agent
+    const u = `${deployEndpointUrl}/agent`;
+    const req = https.request(u, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/zip',
+        'Content-Length': uint8Array.byteLength,
+      },
+    });
+    // create a stream to pass to the request
+    const dataStream = new stream.PassThrough();
+    dataStream.pipe(req);
+    // dataStream.on('data', (b) => {
+    // });
+    // dataStream.on('end', (b) => {
+    // });
+    // pump the loop
+    (async () => {
+      const chunkSize = 4 * 1024;
+      const logSize = (i) => {
+        process.stdout.write(
+          `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
+        );
+      };
+      for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
+        logSize(i);
+        const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
+        const ok = dataStream.write(slice);
+        if (!ok) {
+          await new Promise((accept) => {
+            dataStream.once('drain', accept);
           });
-          const s = b.toString('utf8');
-          // console.log('got response output', s);
+        }
+      }
+      dataStream.end();
 
-          if (res.statusCode === 200) {
-            const j = JSON.parse(s);
-            accept(j);
-          } else {
-            reject(new Error('deploy failed: ' + s));
-          }
-        });
-        req.on('error', reject);
-      });
-      const agentJsonString = wranglerTomlJson.vars.AGENT_JSON;
-      const agentJson = JSON.parse(agentJsonString);
-      const guid = agentJson.id;
-      const url = getAgentUrlFromGuid(guid);
-      
+      logSize(uint8Array.length);
       console.log();
-      console.group(pc.green('Agent Deployed Successfully:'), '\n');
-      console.log(pc.cyan('✓ Host:'), url, '\n');
-      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
-      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
+    })();
+    const wranglerTomlJson = await new Promise((accept, reject) => {
+      req.on('response', async (res) => {
+        // console.log('got response', res.statusCode);
+
+        const b = await new Promise((accept, reject) => {
+          const bs = [];
+          res.on('data', (b) => {
+            bs.push(b);
+          });
+          res.on('end', async () => {
+            const b = Buffer.concat(bs);
+            accept(b);
+          });
+          res.on('error', reject);
+        });
+        const s = b.toString('utf8');
+        // console.log('got response output', s);
+
+        if (res.statusCode === 200) {
+          const j = JSON.parse(s);
+          accept(j);
+        } else {
+          reject(new Error('deploy failed: ' + s));
+        }
+      });
+      req.on('error', reject);
+    });
+    const agentJsonString = wranglerTomlJson.vars.AGENT_JSON;
+    const agentJson = JSON.parse(agentJsonString);
+    const guid = agentJson.id;
+    const url = getAgentUrlFromGuid(guid);
+    
+    console.log();
+    console.group(pc.green('Agent Deployed Successfully:'), '\n');
+    console.log(pc.cyan('✓ Host:'), url, '\n');
+    console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+    console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
   }
 };
 const ls = async (args) => {
@@ -2794,35 +2797,36 @@ const ls = async (args) => {
   }
 };
 const rm = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-
   const jwt = await getLoginJwt();
-  if (jwt) {
-    for (const agentSpec of agentSpecs) {
-      const { guid } = agentSpec;
-      const u = `${deployEndpointUrl}/agent`;
-      const req = await fetch(u, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          // 'Content-Length': uint8Array.byteLength,
-        },
-        body: JSON.stringify({
-          guid,
-        }),
-      });
-      if (req.ok) {
-        await req.json();
-        console.log(`deleted agent ${guid}`);
-      } else {
-        const text = await req.text();
-        console.warn(`could not delete agent ${guid}: ${text}`);
-      }
-    }
-  } else {
+
+  if (!jwt) {
     console.log('not logged in');
     process.exit(1);
+  }
+
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+
+  for (const agentSpec of agentSpecs) {
+    const { guid } = agentSpec;
+    const u = `${deployEndpointUrl}/agent`;
+    const req = await fetch(u, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/zip',
+        // 'Content-Length': uint8Array.byteLength,
+      },
+      body: JSON.stringify({
+        guid,
+      }),
+    });
+    if (req.ok) {
+      await req.json();
+      console.log(`deleted agent ${guid}`);
+    } else {
+      const text = await req.text();
+      console.warn(`could not delete agent ${guid}: ${text}`);
+    }
   }
 };
 const join = async (args) => {

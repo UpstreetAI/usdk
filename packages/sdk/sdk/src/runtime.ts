@@ -47,7 +47,7 @@ type ServerHandler = {
 
 //
 
-const getActionHandlerByName = (actions: ActionProps[], name: string) => {
+export const getActionHandlerByName = (actions: ActionProps[], name: string) => {
   for (const action of actions) {
     if (action.name === name) {
       return action;
@@ -103,9 +103,29 @@ export async function generateAgentActionFromInstructions(
   ];
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
 }
+
+export async function generateResponseWithInstructionAndEnforcedAction(
+  generativeAgent: GenerativeAgentObject,
+  instructions: string,
+  enforcedAction: ActionProps,
+) {
+  const prompts = getGenerativePrompts(generativeAgent)
+    .concat([instructions]);
+  const promptString = prompts.join('\n\n');
+  const promptMessages = [
+    {
+      role: 'user',
+      content: promptString,
+    },
+  ];
+  // XXX fix this to use structured outputs
+  return await _generateAgentActionFromMessages(generativeAgent, promptMessages, enforcedAction);
+}
+
 async function _generateAgentActionFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
+  enforcedAction?: ActionProps,
 ) {
   const { agent } = generativeAgent;
   const {
@@ -113,13 +133,14 @@ async function _generateAgentActionFromMessages(
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  const schema = formatter.schemaFn(actions);
-
+  
   // validation
   if (!formatter) {
     throw new Error('no formatter found');
   }
-
+  
+  const schema = enforcedAction ? formatter.schemaFn([enforcedAction]) : formatter.schemaFn(actions);
+  
   // retries
   const numRetries = 5;
   return await retry(async () => {

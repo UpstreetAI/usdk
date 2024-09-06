@@ -19,6 +19,8 @@ import {
   executeAgentAction,
   // generateJsonMatchingSchema,
   // generateString,
+  getActionHandlerByName,
+  generateResponseWithInstructionAndEnforcedAction,
 } from '../runtime';
 import {
   ActiveAgentObject,
@@ -153,11 +155,16 @@ export class GenerativeAgentObject {
       console.log('monologue text', {
         text,
       });
-      const pendingMessage = await generateAgentActionFromInstructions(
+
+      const {actions} = this.agent.registry;
+      const enforceSayAction = getActionHandlerByName(actions, 'say');
+
+      const pendingMessage = await generateResponseWithInstructionAndEnforcedAction(
         this,
         'The next action should be the character commenting on the following:' +
           '\n' +
           text,
+          enforceSayAction,
       );
       await executeAgentAction(this, pendingMessage);
     });

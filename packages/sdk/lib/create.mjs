@@ -59,6 +59,7 @@ import {
   getAgentName,
   ensureAgentJsonDefaults,
 } from '../sdk/src/agent-defaults.mjs';
+import { cwd } from 'process';
 import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
 
 //
@@ -157,7 +158,7 @@ const buildWranglerToml = (
 //
 
 export const create = async (args, opts) => {
-  const dstDir = args._[0] ?? cwd;
+  const dstDir = args._[0] ?? cwd();
   const prompt = args.prompt ?? '';
   const agentJsonString = args.json;
   const template = args.template ?? 'basic';
