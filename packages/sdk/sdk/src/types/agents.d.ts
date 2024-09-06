@@ -33,7 +33,8 @@ export type AgentObject = EventTarget & {
   previewUrl: string;
   model: string;
   address: string;
-}
+  stripeConnectAccountId: string;
+};
 
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
@@ -480,8 +481,9 @@ export type SubscriptionProps = {
 };
 export type StoreItemProps = PaymentProps | SubscriptionProps;
 export type StoreItem = {
-  type: string,
-  props: StoreItemProps,
+  type: string;
+  props: StoreItemProps;
+  stripeConnectAccountId: string;
 };
 
 //
