@@ -7,6 +7,7 @@ export class AgentObject extends EventTarget {
   previewUrl: string;
   model: string;
   address: string;
+  stripeConnectAccountId: string;
 
   constructor({
     id,
@@ -17,6 +18,7 @@ export class AgentObject extends EventTarget {
     previewUrl,
     model,
     address,
+    stripeConnectAccountId,
   }: {
     id: string;
     ownerId: string;
@@ -26,6 +28,7 @@ export class AgentObject extends EventTarget {
     previewUrl: string;
     model: string;
     address: string;
+    stripeConnectAccountId: string;
   }) {
     super();
 
@@ -37,5 +40,6 @@ export class AgentObject extends EventTarget {
     this.previewUrl = previewUrl;
     this.model = model;
     this.address = address;
+    this.stripeConnectAccountId = stripeConnectAccountId;
   }
 }
