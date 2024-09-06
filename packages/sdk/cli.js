@@ -26,7 +26,7 @@ import Table from 'cli-table3';
 import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { isGuid, createAgentGuid } from './sdk/src/util/guid-util.mjs';
+import { isGuid } from './sdk/src/util/guid-util.mjs';
 import { QueueManager } from './sdk/src/util/queue-manager.mjs';
 import { lembed } from './sdk/src/util/embedding.mjs';
 import { makeId } from './sdk/src/util/util.mjs';
@@ -122,7 +122,7 @@ const shortName = () => uniqueNamesGenerator({
   separator: ' ',
 });
 const makeName = () => capitalize(shortName());
-const getAgentUrlFromGuid = (guid) => `https://user-agent-${guid}.${workersHost}`;
+const getAgentHost = (guid) => `https://user-agent-${guid}.${workersHost}`;
 
 //
 
@@ -458,26 +458,6 @@ const startDevServer = async ({ directory = cwd } = {}, portIndex = 0, {
   }
   return cp;
 };
-/* const startWebcamServer = async () => {
-  const app = express();
-  // app.use(express.static(cwd));
-  const server = https.createServer(getServerOpts(), app);
-  server.on('error', (err) => {
-    console.warn('dev server error', err);
-  });
-  // server.on('close', () => {
-  //   console.log('dev server closed');
-  // });
-  await new Promise((accept, reject) => {
-    server.listen(devServerPort, '0.0.0.0', (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        accept();
-      }
-    });
-  });
-}; */
 /* const startMultiplayerServer = async () => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
