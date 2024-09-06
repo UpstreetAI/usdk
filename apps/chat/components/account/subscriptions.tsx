@@ -1,11 +1,11 @@
 'use client';
 
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { aiHost } from '@/utils/const/endpoints';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
 import { LoginButton } from '../login-button';
+import { createSession, cancelPlan } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
 //
 
@@ -16,7 +16,6 @@ export interface AccountPrivateUiProps {
 
 //
 
-const devSuffix = `_test`;
 const plans = [
   {
     name: 'free',
@@ -104,39 +103,21 @@ const SubscriptionPlans = ({
                     className='w-full mt-8'
                     disabled={currentPlan === name}
                     onClick={async (e) => {
-                      // create the checkout session
                       const jwt = await getJWT();
-
-                      // const success_url_object = new URL(`${aiHost}/plans/redirect`);
-                      // success_url_object.searchParams.set('stripe_session_id', 'CHECKOUT_SESSION_ID');
-                      // success_url_object.searchParams.set('redirect_url', location.href);
-                      // const success_url = (success_url_object + '').replace('CHECKOUT_SESSION_ID', '{CHECKOUT_SESSION_ID}');
                       const success_url = location.href;
-
-                      const res = await fetch(`${aiHost}/stripe${devSuffix}/checkout/session`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${jwt}`,
+                      const j = await createSession({
+                        plan: name,
+                        args: {
+                          success_url,
                         },
-                        body: JSON.stringify({
-                          plan: name,
-                          args: {
-                            success_url,
-                          },
-                        }),
+                      }, {
+                        jwt,
                       });
-                      if (res.ok) {
-                        const j = await res.json();
-                        const {
-                          id,
-                          url,
-                        } = j;
-                        // console.log('got checkout session:', j);
-                        location.href = url;
-                      } else {
-                        console.warn('failed to create checkout session:', res.status);
-                      }
+                      const {
+                        // id,
+                        url,
+                      } = j;
+                      location.href = url;
                     }}
                   >
                     {currentPlan !== name ? 'Subscribe' : 'Current'}
@@ -145,35 +126,17 @@ const SubscriptionPlans = ({
                   (currentPlan && <Button
                     className='w-full mt-8'
                     onClick={async (e) => {
-                      // cancel the plan
                       const jwt = await getJWT();
-                      const res = await fetch(`${aiHost}/plans${devSuffix}`, {
-                        method: 'DELETE',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${jwt}`,
-                        },
+                      await cancelPlan({
+                        jwt,
                       });
-                      if (res.ok) {
-                        const j = await res.json();
-                        console.log('got cancel result', j);
-
-                        setUserPrivate((userPrivate: object) => {
-                          return {
-                            ...userPrivate,
-                            stripe_subscription_id: null,
-                            plan: null,
-                          };
-                        });
-                        // const {
-                        //   id,
-                        //   url,
-                        // } = j;
-                        // location.href = url;
-                      } else {
-                        const text = await res.text();
-                        console.warn('failed to create checkout session:', res.status, text);
-                      }
+                      setUserPrivate((userPrivate: object) => {
+                        return {
+                          ...userPrivate,
+                          stripe_subscription_id: null,
+                          plan: null,
+                        };
+                      });
                     }}
                   >
                     Cancel
