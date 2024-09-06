@@ -101,32 +101,10 @@ export const DefaultAgentComponents = () => {
 
 // actions
 
-/**
- * Renders the default actions components.
- * @returns The JSX elements representing the default actions components.
- */
-export const DefaultActions = () => {
+const StoreActions = () => {
   const storeItems = useStoreItems();
-
   return (
     <>
-      <Action
-        name="say"
-        description={`A character says something.`}
-        schema={
-          z.object({
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            text: 'Hello, there! How are you doing?',
-          },
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
       {storeItems.length > 0 && (
         <Action
           name="paymentRequest"
@@ -148,7 +126,7 @@ export const DefaultActions = () => {
               type: 'subscription',
               props: {
                 name: 'Blessing',
-                description: 'Daily blessings delivered in your DMs',
+                description: 'Get daily blessings delivered in your DMs',
                 amount: 1,
                 currency: currencies[0],
                 interval: intervals[0],
@@ -156,11 +134,45 @@ export const DefaultActions = () => {
               },
             },
           ]}
-          // handler={async (e: PendingActionEvent) => {
-          //   await e.commit();
-          // }}
+          handler={async (e: PendingActionEvent) => {
+            const {
+              stripeConnectAccountId,
+            } = e.data.agent.agent;
+            (e.data.message.args as any).stripeConnectAccountId = stripeConnectAccountId;
+
+            await e.commit();
+          }}
         />
       )}
+    </>
+  );
+};
+
+/**
+ * Renders the default actions components.
+ * @returns The JSX elements representing the default actions components.
+ */
+export const DefaultActions = () => {
+  return (
+    <>
+      <Action
+        name="say"
+        description={`A character says something.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+      <StoreActions />
     </>
   );
 };
@@ -463,28 +475,10 @@ export const InstructionsPrompt = () => {
   );
 };
 
-/* export const Personality = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const currentAgent = useAgent();
-  return (
-    <Prompt>
-      {dedent`
-        # Additional note
-        ${currentAgent.name} has the following personality:
-      ` + children}
-    </Prompt>
-  );
-}; */
-
 // formatters
-const makeJsonSchema = (args: z.ZodType<object> = z.object({})) => {
+const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
   return z.object({
-    // userId: z.string(),
-    // name: z.string(),
-    method: z.string(),
+    method: z.literal(method),
     args,
   });
 };
@@ -498,9 +492,10 @@ export const JsonFormatter = () => {
       schemaFn={(actions: ActionProps[]) => {
         const types = actions.map((action) => {
           const {
+            name,
             schema: argsSchema,
           } = action;
-          const zodSchema = makeJsonSchema(argsSchema);
+          const zodSchema = makeJsonSchema(name, argsSchema);
           return zodSchema;
         });
         if (types.length >= 2) {
@@ -522,13 +517,9 @@ export const JsonFormatter = () => {
             examples,
           } = action;
 
-          // const agents = useAgents();
           const examplesJsonString = (examples ?? []).map((args) => {
-            // const randomAgent = shuffle(agents.slice())[0];
             return JSON.stringify(
               {
-                // userId: randomAgent.id,
-                // name: randomAgent.name, // helps with dialogue inference
                 method: name,
                 args,
               }
@@ -544,19 +535,6 @@ export const JsonFormatter = () => {
             ) : ''
           ) +
           (description ? (description + '\n') : '') +
-          // (schema ? (
-          //   dedent`
-          //     Schema:
-          //     \`\`\`
-          //   ` +
-          //   '\n' +
-          //   printZodSchema(schema) +
-          //   '\n' +
-          //   dedent`
-          //     \`\`\`
-          //   ` +
-          //   '\n'
-          // ) : '') +
           (examplesJsonString
             ? (
               dedent`
