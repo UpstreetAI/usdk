@@ -27,6 +27,7 @@ export type ExtendableMessageEvent<T> = MessageEvent<T> & {
 
 export type AgentObject = EventTarget & {
   id: string;
+  ownerId: string;
   name: string;
   description: string;
   bio: string;
@@ -483,6 +484,8 @@ export type StoreItemProps = PaymentProps | SubscriptionProps;
 export type StoreItem = {
   type: string;
   props: StoreItemProps;
+};
+export type PaymentItem = StoreItem & {
   stripeConnectAccountId: string;
 };
 
