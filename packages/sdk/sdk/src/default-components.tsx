@@ -102,10 +102,11 @@ export const DefaultAgentComponents = () => {
 // actions
 
 const StoreActions = () => {
+  const agent = useAgent();
   const storeItems = useStoreItems();
   return (
     <>
-      {storeItems.length > 0 && (
+      {!!agent.stripeConnectAccountId && storeItems.length > 0 && (
         <Action
           name="paymentRequest"
           description={dedent`\
@@ -166,6 +167,23 @@ export const DefaultActions = () => {
         examples={[
           {
             text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+      <Action
+        name="sayExtra"
+        description={`A character says something extra.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello!!',
           },
         ]}
         // handler={async (e: PendingActionEvent) => {
@@ -362,14 +380,13 @@ export const ActionsPrompt = () => {
   );
 };
 export const StorePrompt = () => {
-  // console.log('get store items 1');
+  const agent = useAgent();
   const storeItems = useStoreItems();
-  // console.log('got store items 2', storeItems);
   return (
     <Prompt>
       # Store
       Here are the store items available for purchase.
-      {storeItems.length > 0 ? (
+      {!!agent.stripeConnectAccountId && storeItems.length > 0 ? (
         dedent`\
           Amount in cents (e.g. 100 = $1).
           \`\`\`
