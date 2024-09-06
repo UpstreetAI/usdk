@@ -237,7 +237,7 @@ export const Action = /*memo(*/(props: ActionProps) => {
     props.description,
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
-    props.handler.toString(),
+    props.handler?.toString() ?? '',
   ];
 
   useEffect(() => {
