@@ -93,27 +93,6 @@ export const getClientFromToken = async (env: any, token?: string) => {
   ) {
     userId = token.slice(serviceKeyPrefix.length);
     supabase = makeClient(env);
-  /* } else if (
-    (match = token.match(/^signature_([^_]+?)_([^_]+?)_([^_]+?)_([^_]+?)$/))
-  ) {
-    // signature format
-    const guid = match[1];
-    const dateString = match[2];
-    const nonce = match[3];
-    const signatureString = match[4];
-    const s = `${guid}_${dateString}_${nonce}`;
-
-    const valid = await isStringSignatureValid(
-      s,
-      env.SUPABASE_SERVICE_API_KEY,
-      signatureString,
-    );
-    if (valid) {
-      userId = guid;
-      supabase = makeClient(env);
-    } else {
-      throw new Error('signature is not valid: ' + token);
-    } */
   } else { // jwt format
     const out = jwt.decode(token) as any;
     userId = out?.payload?.id ?? out?.payload?.sub ?? null;
@@ -154,9 +133,15 @@ export const getUserIdForJwt = async (jwt: string) => {
     return null;
   }
 };
-export const getUserForJwt = async (jwt: string) => {
+export const getUserForJwt = async (jwt: string, {
+  private: _private = false,
+}: {
+  private?: boolean,
+} = {}) => {
   try {
-    const res = await fetch(`${aiHost}/${aiProxyAPI.getUser}`, {
+    const u = new URL(`${aiHost}/${aiProxyAPI.getUser}`);
+    _private && u.searchParams.set('private', true + '');
+    const res = await fetch(u, {
       headers: {
         Authorization: `Bearer ${jwt}`,
       },
@@ -166,7 +151,7 @@ export const getUserForJwt = async (jwt: string) => {
       return j.data;
     } else {
       const text = await res.text();
-      console.warn(text);
+      console.warn('error getting user for jwt:', text);
       return null;
     }
   } catch (err) {
