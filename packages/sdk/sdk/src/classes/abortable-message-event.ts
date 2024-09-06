@@ -1,10 +1,7 @@
 export class AbortableMessageEvent<T> extends MessageEvent<T> {
-  abortController: AbortController;
+  abortController = new AbortController();
   constructor(type: string, init: {data: T}) {
-    super(type, {
-      data: init.data,
-    });
-    this.abortController = new AbortController();
+    super(type, init);
   }
   abort() {
     this.abortController.abort();
