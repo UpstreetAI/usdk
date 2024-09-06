@@ -1059,7 +1059,7 @@ export default function AgentEditor({
                       }} placeholder="Amount" />
                       <select value={props.currency} onChange={e => {
                         setStoreItem((storeItem) => {
-                          storeItem.props.currency = e.target.value;
+                          storeItem.props.currency = e.target.value as Currency;
                         });
                       }}>
                         {currencies.map(currency => {
