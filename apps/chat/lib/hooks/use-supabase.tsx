@@ -98,10 +98,10 @@ export function SupabaseProvider({ children }: SidebarProviderProps) {
     (async () => {
       const jwt = await getJWT();
       if (!live) return;
+      const supabase = makeAnonymousClient(env, jwt);
       if (jwt) {
         const user = await getUserForJwt(jwt);
         if (!live) return;
-        const supabase = makeAnonymousClient(env, jwt);
         const o = {
           isFetchingUser: false,
           user,
@@ -114,7 +114,7 @@ export function SupabaseProvider({ children }: SidebarProviderProps) {
         const o = {
           isFetchingUser: false,
           user: null,
-          supabase: null,
+          supabase: supabase,
         };
         setValue(o);
         setGlobalValue(o);
