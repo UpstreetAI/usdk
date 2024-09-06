@@ -364,7 +364,7 @@ export default function AgentEditor({
         console.log('built agent src:', { agentSrc });
 
         const [
-          ownerId,
+          userPrivate,
           {
             id,
             agentToken,
@@ -372,7 +372,7 @@ export default function AgentEditor({
           previewUrl,
           homespaceUrl,
         ] = await Promise.all([
-          getUserIdForJwt(jwt),
+          getUserForJwt(jwt, { private: true }),
           (async () => {
             console.log('getting agent id...');
             const id = await createAgentGuid({ jwt });
@@ -398,7 +398,10 @@ export default function AgentEditor({
             return homespaceUrl;
           })(),
         ]);
-
+        const {
+          id: ownerId,
+          stripe_connect_account_id: stripeConnectAccountId,
+        } = userPrivate;
         const agentJson = {
           id,
           ownerId,
@@ -407,6 +410,7 @@ export default function AgentEditor({
           visualDescription: visualDescription || undefined,
           previewUrl,
           homespaceUrl,
+          stripeConnectAccountId,
         };
         ensureAgentJsonDefaults(agentJson);
         const mnemonic = generateMnemonic();
@@ -723,16 +727,20 @@ export default function AgentEditor({
               const jwt = await getJWT();
               if (jwt) {
                 const [
-                  ownerId,
+                  userPrivate,
                   id,
                   previewUrl,
                   homespaceUrl,
                 ] = await Promise.all([
-                  getUserIdForJwt(jwt),
+                  getUserForJwt(jwt, { private: true }),
                   createAgentGuid({ jwt }),
                   getCloudPreviewUrl(previewBlob),
                   getCloudPreviewUrl(homespaceBlob),
                 ]);
+                const {
+                  id: ownerId,
+                  stripe_connect_account_id: stripeConnectAccountId,
+                } = userPrivate;
                 const agentJson = {
                   id,
                   ownerId,
@@ -741,6 +749,7 @@ export default function AgentEditor({
                   visualDescription,
                   previewUrl,
                   homespaceUrl,
+                  stripeConnectAccountId,
                 };
                 console.log('deploy 2', {
                   agentJson,
