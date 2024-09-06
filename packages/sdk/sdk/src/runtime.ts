@@ -47,14 +47,6 @@ type ServerHandler = {
 
 //
 
-const getActionHandlerByName = (actions: ActionProps[], name: string) => {
-  for (const action of actions) {
-    if (action.name === name) {
-      return action;
-    }
-  }
-  return null;
-};
 const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
   const {
     agent,
