@@ -25,7 +25,7 @@ import { useSupabase } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
-import { StoreItem } from 'usdk/sdk/src/types';
+import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
 type MessageMedia = {
@@ -242,7 +242,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         type,
         props,
         stripeConnectAccountId,
-      } = args as StoreItem;
+      } = args as PaymentItem;
       const {
         name,
         description,
@@ -250,7 +250,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         currency,
         interval,
         intervalCount,
-      } = props as any;
+      } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
         const jwt = await getJWT();
@@ -294,9 +294,10 @@ function getMessageComponent(room: string, message: Message, id: string, players
         if (currency === 'usd') {
           return `$${v}`;
         } else {
-          return `${v} ${currency.toUpperCase()}`;
+          return `${v} ${(currency + '').toUpperCase()}`;
         }
       })();
+      const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
 
       return (
         <ChatMessage
@@ -305,7 +306,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
             <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
               <div className="text-zinc-700 text-sm mb-2 font-bold">[payment request]</div>
               <div className="mb-4">{name}: {description}</div>
-              <div className="mb-4">{price}{type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : ''}</div>
+              <div className="mb-4">{price}{subscriptionText}</div>
               <Button onClick={checkout}>Checkout</Button>
             </div>
           }
