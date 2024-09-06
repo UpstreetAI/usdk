@@ -1,7 +1,7 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
 import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
-import { getCleanJwt } from './jwt-util.mjs';
+import { getCleanJwt } from './jwt-utils.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 

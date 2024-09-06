@@ -1,4 +1,4 @@
-import { getCleanJwt } from './jwt-util.mjs';
+import { getCleanJwt } from './jwt-utils.mjs';
 import { aiProxyHost } from './endpoints.mjs';
 
 const numRetries = 5;
