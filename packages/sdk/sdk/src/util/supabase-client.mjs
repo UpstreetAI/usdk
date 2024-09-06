@@ -139,7 +139,7 @@ export const getUserIdForJwt = async (jwt) => {
     return j.userId;
   } else {
     const text = await res.text();
-    console.warn('getUserIdForJwt: ' + text);
+    // console.warn('getUserIdForJwt: ' + text);
     return null;
   }
 };
@@ -147,7 +147,7 @@ export const getUserForJwt = async (jwt, {
   private: _private = false,
 } = {}) => {
   const u = new URL(aiProxyAPI.getUser);
-  _private && u.searchParams.set('private', true);
+  _private && u.searchParams.set('private', true + '');
   const res = await fetch(u, {
     headers: {
       Authorization: `Bearer ${jwt}`,
