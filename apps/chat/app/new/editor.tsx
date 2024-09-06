@@ -1070,7 +1070,7 @@ export default function AgentEditor({
                       </select>
                       {type === 'subscription' && <>
                         {/* interval */}
-                        <select value={props.interval} onChange={e => {
+                        <select value={(props as SubscriptionProps).interval} onChange={e => {
                           setStoreItem((storeItem) => {
                             (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
                           });
@@ -1081,9 +1081,9 @@ export default function AgentEditor({
                           <option value="year">year</option>
                         </select>
                         {/* intervalCount */}
-                        <input type="number" value={props.intervalCount} onChange={e => {
+                        <input type="number" value={(props as SubscriptionProps).intervalCount} onChange={e => {
                           setStoreItem((storeItem) => {
-                            storeItem.props.intervalCount = parseFloat(e.target.value);
+                            (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
                           });
                         }} placeholder="Interval count" />
                       </>}
