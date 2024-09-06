@@ -248,15 +248,15 @@ export async function executeAgentAction(
   // for each priority, run the action modifiers, checking for abort at each step
   let aborted = false;
   for (const actionModifiers of actionModifiersPerPriority) {
-    const abortableEventPromises = actionModifiers.map(async (perceptionModifier) => {
-      if (perceptionModifier.name === message.method) {
-        const e = new AbortableActionEvent({
-          agent: generativeAgent,
-          message,
-        });
-        await perceptionModifier.handler(e);
-        return e;
-      }
+    const abortableEventPromises = actionModifiers.filter(actionModifier => {
+      return actionModifier.name === message.method;
+    }).map(async (actionModifier) => {
+      const e = new AbortableActionEvent({
+        agent: generativeAgent,
+        message,
+      });
+      await actionModifier.handler(e);
+      return e;
     });
     const messageEvents = await Promise.all(abortableEventPromises);
     aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
