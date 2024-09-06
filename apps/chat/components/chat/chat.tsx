@@ -256,7 +256,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         const jwt = await getJWT();
         const success_url = location.href;
         const stripe_connect_account_id = stripeConnectAccountId;
-        const j = await createSession({
+        const opts = {
           args: {
             mode: type,
             line_items: [
@@ -279,7 +279,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
             success_url,
           },
           stripe_connect_account_id,
-        }, {
+        };
+        const j = await createSession(opts, {
           jwt,
         });
         const {
