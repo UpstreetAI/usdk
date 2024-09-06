@@ -69,7 +69,7 @@ import {
 import {
   currencies,
   intervals,
-} from './constants.js';
+} from './constants.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS

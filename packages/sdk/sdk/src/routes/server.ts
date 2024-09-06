@@ -1,5 +1,5 @@
 import { compileUserAgentServer } from '../runtime';
-import { headers } from '../constants.js';
+import { headers } from '../constants.mjs';
 // import type { AgentObject, ActionMessages, UserHandler, ActiveAgentObject } from '../types';
 import {
   AgentRenderer,
