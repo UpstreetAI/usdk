@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import dedent from 'dedent';
-import { defaultVoices } from '../agent-defaults.mjs';
 import { currencies, intervals } from '../constants.mjs';
 
 export const paymentPropsType = z.object({
@@ -29,6 +28,43 @@ export const storeItemType = z.union([
   paymentItemType,
   subscriptionItemType,
 ]);
+
+//
+
+export const defaultVoices = [
+  {
+    voiceEndpoint: 'elevenlabs:kadio:YkP683vAWY3rTjcuq2hX',
+    name: 'Kaido',
+    description: 'Teenage anime boy',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',
+    name: 'Drake',
+    description: 'Anime male',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:terrorblade:lblRnHLq4YZ8wRRUe8ld',
+    name: 'Terrorblade',
+    description: 'Monstrous male',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9',
+    name: 'Scillia',
+    description: 'Teenage anime girl',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:mommy:jSd2IJ6Fdd2bD4TaIeUj',
+    name: 'Mommy',
+    description: 'Anime female',
+  },
+  {
+    voiceEndpoint: 'elevenlabs:uni:PSAakCTPE63lB4tP9iNQ',
+    name: 'Uni',
+    description: 'Waifu girl',
+  },
+];
+
+//
 
 export const featureSpecs = [
   {
