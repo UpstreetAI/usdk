@@ -21,12 +21,24 @@ import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
 // import { resolveRelativeUrl } from '@/lib/utils'
 // import { aiHost } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { useSupabase } from '@/lib/hooks/use-supabase';
+import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
+
+//
+
+const openInNewPage = (url: string) => {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  // a.rel = 'noopener noreferrer';
+  a.click();
+};
+
+//
 
 type MessageMedia = {
   type: string
@@ -47,6 +59,22 @@ type Message = {
   userId: string
 }
 
+//
+
+const realtimeConnect = async (supabase: any) => {
+  // Create a function to handle inserts
+  const handleWebhookInserts = (payload: any) => {
+    console.log('Change received!', payload)
+  }
+
+  // Listen to inserts
+  const subscription = supabase
+    .channel('webhooks')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'webhooks' }, handleWebhookInserts)
+    .subscribe();
+  // console.log('got subscription', subscription);
+  return subscription;
+};
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -56,7 +84,6 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
   onConnect?: (connected: boolean) => void
 }
-
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   // const router = useRouter()
   // const path = usePathname()
@@ -72,7 +99,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
-    sendRawMessage,
+    // sendRawMessage,
     // sendChatMessage,
   } = useMultiplayerActions();
 
@@ -88,37 +115,12 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, message, index + '', playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index + '', playersCache, user),
       };
     // } else {
     //   return null;
     // }
   })/*.filter((message) => message !== null) as unknown */as any[];
-
-  /*useEffect(() => {
-    if (user) {
-      if (!path.includes('chat') && messages.length === 1) {
-        window.history.replaceState({}, '', `/chat/${id}`)
-      }
-    }
-  }, [id, path, user, messages])*/
-
-  /*useEffect(() => {
-    const messagesLength = aiState.messages?.length
-    if (messagesLength === 2) {
-      router.refresh()
-    }
-  }, [aiState.messages, router])*/
-
-  // useEffect(() => {
-  //   setNewChatId(id)
-  // }, [id]);
-
-  // useEffect(() => {
-  //   missingKeys.map(key => {
-  //     toast.error(`Missing ${key} environment variable!`)
-  //   })
-  // }, [missingKeys])
 
   useEffect(() => {
     if (room && user) {
@@ -175,8 +177,12 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   )
 }
 
-function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
- 
+function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
+  // XXX debugging
+  const { supabase } = useSupabase();
+  globalThis.supabase = supabase;
+  globalThis.connect = () => realtimeConnect(supabase);
+
   switch (message.method) {
 
     // TODO Move the typing logic to form component, over send message?
@@ -231,7 +237,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
     }
 
     case 'paymentRequest': {
-      const player = playersCache.get(message.userId);
+      const agentId = message.userId;
+      const player = playersCache.get(agentId);
 
       let media = null;
 
@@ -253,41 +260,57 @@ function getMessageComponent(room: string, message: Message, id: string, players
       } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
-        const jwt = await getJWT();
-        const success_url = location.href;
-        const stripe_connect_account_id = stripeConnectAccountId;
-        const opts = {
-          args: {
-            mode: type,
-            line_items: [
-              {
-                quantity: 1,
-                price_data: {
-                  product_data: {
-                    name,
-                    description,
+        if (user) {
+          const targetUserId = user.id;
+
+          const jwt = await getJWT();
+          if (!jwt) {
+            throw new Error('No jwt:' + jwt);
+          }
+
+          const success_url = location.href;
+          const stripe_connect_account_id = stripeConnectAccountId;
+          const opts = {
+            args: {
+              mode: type,
+              line_items: [
+                {
+                  quantity: 1,
+                  price_data: {
+                    product_data: {
+                      name,
+                      description,
+                    },
+                    unit_amount: amount,
+                    currency,
+                    recurring: type === 'subscription' ? {
+                      interval,
+                      interval_count: intervalCount,
+                    } : undefined,
                   },
-                  unit_amount: amount,
-                  currency,
-                  recurring: type === 'subscription' ? {
-                    interval,
-                    interval_count: intervalCount,
-                  } : undefined,
                 },
+              ],
+              success_url,
+              metadata: {
+                targetUserId,
+                agentId,
               },
-            ],
-            success_url,
-          },
-          stripe_connect_account_id,
-        };
-        const j = await createSession(opts, {
-          jwt,
-        });
-        const {
-          // id,
-          url,
-        } = j;
-        location.href = url;
+            },
+            stripe_connect_account_id,
+          };
+          const j = await createSession(opts, {
+            jwt,
+          });
+          const {
+            // id,
+            url,
+          } = j;
+          // XXX debugging
+          realtimeConnect(supabase);
+          openInNewPage(url);
+        } else {
+          throw new Error('No user:' + user);
+        }
       };
 
       const price = (() => {
@@ -320,7 +343,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
       )
     }
 
-    case 'paymentResponse': {
+    /* case 'paymentResponse': {
 
       const player = playersCache.get(message.userId);
 
@@ -345,7 +368,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
           // user={user}
         />
       )
-    }
+    } */
 
     default: return null
   }
