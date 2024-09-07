@@ -6,12 +6,13 @@ import { env } from '@/lib/env'
 import { makeAnonymousClient, getUserForJwt } from '@/utils/supabase/supabase-client'
 
 
-interface User {
+export interface User {
   id: string;
   name: string;
   ftu: boolean;
   gender: number;
   preview_url: string;
+  playerSpec: object;
 }
 
 interface SupabaseContext {

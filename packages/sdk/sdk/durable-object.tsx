@@ -47,7 +47,7 @@ export class DurableObject extends EventTarget {
     this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
 
     this.chatsSpecification = new ChatsSpecification({
-      userId: this.#getGuid(),
+      userId: this.#getId(),
       supabase: this.supabase,
     });
     // console.log('load 1', {state, stateUserRender: state.userRender, agentTsxUserRender});
@@ -74,8 +74,11 @@ export class DurableObject extends EventTarget {
 
   //
 
-  #getGuid = cachedGet(function() {
+  #getId = cachedGet(function() {
     return this.#getAgentJson().id;
+  })
+  #getOwnerId = cachedGet(function() {
+    return this.#getAgentJson().ownerId;
   })
   #getAgentJson = cachedGet(function() {
     const agentJsonString = this.env.AGENT_JSON;
@@ -97,7 +100,7 @@ export class DurableObject extends EventTarget {
       let match;
       if ((match = u.pathname.match(/^\/([^/]*)/))) {
         const subpath = match[1];
-        const guid = this.#getGuid();
+        const guid = this.#getId();
 
         const handleAgentJson = async () => {
           const agentJson = this.#getAgentJson();
@@ -284,20 +287,32 @@ export class DurableObject extends EventTarget {
             const bearerMatch = authorizationHeader?.match(/^Bearer ([\s\S]+)$/i);
             const jwt = bearerMatch?.[1];
             const userId = jwt && await getUserIdForJwt(jwt);
+            const ownerId = this.#getOwnerId();
 
-            const json = await jsonPromise;
+            if (userId === ownerId) {
+              const json = await jsonPromise;
 
-            console.log('got webhook payload', {
-              userId,
-              json,
-            });
+              console.log('got webhook payload', json);
 
-            return new Response(JSON.stringify({
-              userId,
-              json,
-            }), {
-              headers,
-            });
+              return new Response(JSON.stringify({
+                userId,
+                json,
+              }), {
+                headers,
+              });
+            } else {
+              console.log('unauthorized webhook', {
+                userId,
+                ownerId,
+              });
+
+              return new Response(JSON.stringify({
+                error: 'unauthorized',
+              }), {
+                status: 401,
+                headers,
+              });
+            }
           } else {
             return new Response(JSON.stringify({
               error: 'method not allowed',
