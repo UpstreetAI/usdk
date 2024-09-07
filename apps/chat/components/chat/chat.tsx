@@ -343,33 +343,6 @@ function getMessageComponent(room: string, message: Message, id: string, players
       )
     }
 
-    /* case 'paymentResponse': {
-
-      const player = playersCache.get(message.userId);
-
-      let media = null;
-
-      return (
-        <ChatMessage
-          id={id}
-          content={
-            <>
-              <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
-                <div className="text-zinc-700 text-sm mb-2 font-bold">[payment response]</div>
-                <div>{(message.args as any).description}</div>
-              </div>
-            </>
-          }
-          name={ message.name }
-          media={ media }
-          player={player}
-          room={room}
-          timestamp={message.timestamp}
-          // user={user}
-        />
-      )
-    } */
-
     default: return null
   }
 }
