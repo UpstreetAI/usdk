@@ -28,6 +28,9 @@ import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
+import { env } from '@/lib/env'
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
+
 //
 
 const openInNewPage = (url: string) => {
@@ -61,17 +64,27 @@ type Message = {
 
 //
 
-const realtimeConnect = async (supabase: any) => {
+const realtimeConnect = (supabase: any, userId: string) => {
   // Create a function to handle inserts
   const handleWebhookInserts = (payload: any) => {
     console.log('Change received!', payload)
-  }
+  };
 
   // Listen to inserts
   const subscription = supabase
-    .channel('webhooks')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'webhooks' }, handleWebhookInserts)
-    .subscribe();
+    .channel('webhook_changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'webhooks',
+      filter: `user_id=eq.${userId}`,
+    }, handleWebhookInserts)
+    .subscribe((status: any) => {
+      console.log('subscribed status', {
+        status,
+      });
+    });
+    
   // console.log('got subscription', subscription);
   return subscription;
 };
@@ -178,11 +191,6 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 }
 
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
-  // XXX debugging
-  const { supabase } = useSupabase();
-  globalThis.supabase = supabase;
-  globalThis.connect = () => realtimeConnect(supabase);
-
   switch (message.method) {
 
     // TODO Move the typing logic to form component, over send message?
@@ -268,6 +276,14 @@ function getMessageComponent(room: string, message: Message, id: string, players
             throw new Error('No jwt:' + jwt);
           }
 
+          // XXX debugging
+          {
+            const supabase = makeAnonymousClient(env, jwt);
+            const subscription = realtimeConnect(supabase, user.id);
+            console.log('listening to changes', subscription);
+          }
+
+          // create the checkout session
           const success_url = location.href;
           const stripe_connect_account_id = stripeConnectAccountId;
           const opts = {
@@ -305,8 +321,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
             // id,
             url,
           } = j;
-          // XXX debugging
-          realtimeConnect(supabase);
+
+          // redirect to the checkout page
           openInNewPage(url);
         } else {
           throw new Error('No user:' + user);
