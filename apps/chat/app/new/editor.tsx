@@ -843,6 +843,7 @@ export default function AgentEditor({
 
                 toggleAgent();
               }}
+              disabled={starting || connecting}
             >{(() => {
               if (starting) {
                 return 'Starting...';
