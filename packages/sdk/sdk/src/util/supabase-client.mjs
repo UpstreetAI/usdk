@@ -161,3 +161,25 @@ export const getUserForJwt = async (jwt, {
     throw new Error('getUserForJwt error: ' + res.status + ' : ' + text);
   }
 };
+
+export const supabaseSubscribe = ({
+  supabase,
+  table,
+  userId,
+}, fn) => {
+  const guid = crypto.randomUUID();
+  const subscription = supabase
+    .channel(`${table}_changes_${guid}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table,
+      filter: userId ? `user_id=eq.${userId}` : undefined,
+    }, fn)
+    .subscribe((status) => {
+      console.log('subscribed status', {
+        status,
+      });
+    });
+  return subscription;
+};
