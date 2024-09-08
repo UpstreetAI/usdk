@@ -64,31 +64,6 @@ type Message = {
 
 //
 
-const realtimeConnect = (supabase: any, userId: string) => {
-  // Create a function to handle inserts
-  const handleWebhookInserts = (payload: any) => {
-    console.log('Change received!', payload)
-  };
-
-  // Listen to inserts
-  const subscription = supabase
-    .channel('webhook_changes')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'webhooks',
-      filter: `user_id=eq.${userId}`,
-    }, handleWebhookInserts)
-    .subscribe((status: any) => {
-      console.log('subscribed status', {
-        status,
-      });
-    });
-    
-  // console.log('got subscription', subscription);
-  return subscription;
-};
-
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
@@ -276,12 +251,37 @@ function getMessageComponent(room: string, message: Message, id: string, players
             throw new Error('No jwt:' + jwt);
           }
 
-          // XXX debugging
-          {
-            const supabase = makeAnonymousClient(env, jwt);
-            const subscription = realtimeConnect(supabase, user.id);
-            console.log('listening to changes', subscription);
-          }
+          // // XXX debugging
+          // {
+          //   const supabase = makeAnonymousClient(env, jwt);
+          //   const subscription = realtimeConnect(supabase, user.id);
+          //   console.log('listening to changes', subscription);
+          // }
+
+          // const realtimeConnect = (supabase: any, userId: string) => {
+          //   // Create a function to handle inserts
+          //   const handleWebhookInserts = (payload: any) => {
+          //     console.log('Change received!', payload)
+          //   };
+          
+          //   // Listen to inserts
+          //   const subscription = supabase
+          //     .channel('webhook_changes')
+          //     .on('postgres_changes', {
+          //       event: '*',
+          //       schema: 'public',
+          //       table: 'webhooks',
+          //       filter: `user_id=eq.${userId}`,
+          //     }, handleWebhookInserts)
+          //     .subscribe((status: any) => {
+          //       console.log('subscribed status', {
+          //         status,
+          //       });
+          //     });
+              
+          //   // console.log('got subscription', subscription);
+          //   return subscription;
+          // };
 
           // create the checkout session
           const success_url = location.href;
