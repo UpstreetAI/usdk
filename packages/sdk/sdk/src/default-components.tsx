@@ -56,6 +56,7 @@ import {
   useName,
   usePersonality,
   useStoreItems,
+  usePurchases,
   useKv,
   useTts,
   useConversation,
@@ -379,7 +380,7 @@ export const ActionsPrompt = () => {
     <Prompt>{s}</Prompt>
   );
 };
-export const StorePrompt = () => {
+const StoreItemsPrompt = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
   return (
@@ -397,6 +398,20 @@ export const StorePrompt = () => {
         `
       ) : '*none*'}
     </Prompt>
+  );
+};
+const PurchasesPrompt = () => {
+  const conversation = useConversation();
+  const purchases = usePurchases();
+};
+export const StorePrompt = () => {
+  return (
+    <>
+      <StoreItemsPrompt />
+      <Conversation>
+        <PurchasesPrompt />
+      </Conversation>
+    </>
   );
 };
 export const ConversationMessagesPrompt = () => {
