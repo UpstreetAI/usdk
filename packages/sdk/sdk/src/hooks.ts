@@ -173,7 +173,7 @@ export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
   })(opts?.voiceEndpoint, opts?.sampleRate);
 };
 
-const useStripe = () => {
+export const useStripe = () => {
   const { stripeConnectAccountId } = useAgent();
   const authToken = useAuthToken();
 
@@ -205,59 +205,106 @@ export const useStoreItems: () => StoreItem[] = () => {
   const storeItems = agentRegistryValue.storeItems;
   return storeItems;
 };
+type AgentWebhook = {
+  id: string,
+  buyerUserId: string,
+  type: 'payment' | 'subscription',
+  event: any,
+};
+type AgentWebhooksState = {
+  webhooks: AgentWebhook[],
+  lastUpdateTimestamp: number,
+};
+const makeAgentWebhooksState = (): AgentWebhooksState => ({
+  webhooks: [],
+  lastUpdateTimestamp: 0,
+});
+const agentWebhooksStateKey = 'agentWebhooksState';
 export const usePurchases = () => {
   const agent = useAgent();
-  const userId = agent.ownerId;
+  const agentId = agent.id;
+  const ownerId = agent.ownerId;
   const supabase = agent.useSupabase();
   const kv = useKv();
   const stripe = useStripe();
-
-  const lastPurchaseTimestampKey = 'lastPurchaseTimestamp';
-  const [initialized, setInitialized] = useState(false);
   const queueManager = useMemo(() => new QueueManager(), []);
-  const [purchases, setPurchases] = useState<StoreItem[]>(() => []);
+  const [agentWebhooksState, setAgentWebhooksState] = kv.use<AgentWebhooksState>(agentWebhooksStateKey, makeAgentWebhooksState);
 
   const handleWebhook = async (webhook: any) => {
     const { data: event, created_at } = webhook;
     const createdAt = +new Date(created_at);
-    // console.log('handle webhook 1', webhook);
-    const lastPurchaseTimestamp = await kv.get(lastPurchaseTimestampKey, 0);
-    // console.log('handle webhook 2', webhook, { lastPurchaseTimestamp });
+    const agentWebhooksState = await kv.get<AgentWebhooksState>(agentWebhooksStateKey, makeAgentWebhooksState);
 
-    if (createdAt >= lastPurchaseTimestamp) {
-      kv.set(lastPurchaseTimestampKey, createdAt);
-
+    if (createdAt >= agentWebhooksState.lastUpdateTimestamp && !agentWebhooksState.webhooks.some((w) => w.id === webhook.id)) {
       const object = event.data?.object;
       console.log('handle webhook', event.type, webhook);
       switch (event.type) {
         case 'checkout.session.completed': {
+          const webhookOwnerId = webhook.user_id;
           const {
-            agentId,
-            targetUserId,
+            agentId: webhookAgentId,
+            targetUserId: webhookBuyerUserId,
           } = object.metadata;
-          if (typeof agentId === 'string' && typeof targetUserId === 'string') {
-            const {
-              mode, // payment, subscription
-              payment_intent,
-              subscription,
-            } = object;
-            console.log('parse object', object);
-            if (mode === 'payment') {
-              const paymentIntentObject = await stripe.paymentIntents.retrieve(payment_intent);
-              console.log('got payment intent', paymentIntentObject);
+          if (typeof webhookAgentId === 'string' && typeof webhookBuyerUserId === 'string') {
+            console.log('checking handling', {
+              equal: webhookOwnerId === ownerId && webhookAgentId === agentId,
+              webhookOwnerId,
+              ownerId,
+              webhookAgentId,
+              agentId,
+            });
+            if (webhookOwnerId === ownerId && webhookAgentId === agentId) {
+              // if it's the correct owner and agent, handle the webhook
               const {
-                amount,
-                currency,
-              } = paymentIntentObject;
-            } else if (mode === 'subscription') {
-              const subscriptionObject = await stripe.subscriptions.retrieve(subscription);
-              console.log('got subscription', subscriptionObject);
-              const {
-                items,
-                status,
-              } = subscriptionObject;
+                mode, // 'payment' | 'subscription'
+                payment_intent,
+                subscription,
+              } = object;
+              // console.log('parse object', object);
+              if (mode === 'payment') {
+                const paymentIntentObject = await stripe.paymentIntents.retrieve(payment_intent);
+                console.log('got payment intent', paymentIntentObject);
+                // const {
+                //   amount,
+                //   currency,
+                // } = paymentIntentObject;
+                await kv.set<AgentWebhooksState>(agentWebhooksStateKey, {
+                  webhooks: [
+                    ...agentWebhooksState.webhooks,
+                    {
+                      id: webhook.id,
+                      buyerUserId: webhookBuyerUserId,
+                      type: 'payment',
+                      event: paymentIntentObject,
+                    },
+                  ],
+                  lastUpdateTimestamp: createdAt,
+                });
+              } else if (mode === 'subscription') {
+                const subscriptionObject = await stripe.subscriptions.retrieve(subscription);
+                console.log('got subscription', subscriptionObject);
+                // const {
+                //   items,
+                //   status,
+                // } = subscriptionObject;
+                await kv.set<AgentWebhooksState>(agentWebhooksStateKey, {
+                  webhooks: [
+                    ...agentWebhooksState.webhooks,
+                    {
+                      id: webhook.id,
+                      buyerUserId: webhookBuyerUserId,
+                      type: 'subscription',
+                      event: subscriptionObject,
+                    },
+                  ],
+                  lastUpdateTimestamp: createdAt,
+                });
+              } else {
+                // unknown mode; ignore
+              }
             } else {
-              // unknown mode; ignore
+              // else if it's the wrong owner or agent, ignore the webhook
+              // nothing
             }
           } else {
             console.warn('checkout.session.completed event missing metadata', event);
@@ -273,22 +320,29 @@ export const usePurchases = () => {
     let live = true;
 
     (async () => {
-      const result = await supabase
-        .from('webhooks')
-        .select('*')
-        .eq('user_id', userId);
-      if (!live) return;
-      const { error, data } = result;
-      if (!error) {
-        queueManager.waitForTurn(async () => {
+      await queueManager.waitForTurn(async () => {
+        const agentWebhooksState = await kv.get<AgentWebhooksState>(agentWebhooksStateKey, makeAgentWebhooksState);
+        if (!live) return;
+
+        console.log('initial', agentWebhooksState);
+
+        const result = await supabase
+          .from('webhooks')
+          .select('*')
+          .eq('user_id', ownerId)
+          .gte('created_at', new Date(agentWebhooksState.lastUpdateTimestamp).toISOString())
+          .order('created_at', { ascending: true });
+        if (!live) return;
+
+        const { error, data } = result;
+        if (!error) {
           for (const webhook of data) {
             await handleWebhook(webhook);
-          }
-        });
-        setInitialized(true);
-      } else {
-        console.error(error);
-      }
+           }
+        } else {
+          console.error(error);
+        }
+      });
     })();
 
     return () => {
@@ -297,23 +351,24 @@ export const usePurchases = () => {
   }, []);
   // subscribe to webhooks
   useEffect(() => {
-    if (initialized) {
-      const subscription = supabaseSubscribe({
-        supabase,
-        table: 'webhooks',
-        userId: userId,
-      }, (payload: any) => {
-        // console.log('subscription payload', payload);
-        const webhook = payload.new;
-        queueManager.waitForTurn(async () => {
-          await handleWebhook(webhook);
-        });
+    const channel = supabaseSubscribe({
+      supabase,
+      table: 'webhooks',
+      userId: ownerId,
+    }, (payload: any) => {
+      // console.log('subscription payload', payload);
+      const webhook = payload.new;
+      queueManager.waitForTurn(async () => {
+        await handleWebhook(webhook);
       });
-      return () => {
-        supabase.removeSubscription(subscription);
-      };
-    }
-  }, [initialized]);
+    });
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
+  console.log('render webhooks state', agentWebhooksState);
+
+  const purchases = [];
   return purchases;
 };
