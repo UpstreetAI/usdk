@@ -1,6 +1,6 @@
 import { aiHost } from './endpoints.mjs';
 
-const devSuffix = `_test`;
+export const devSuffix = `_test`;
 
 export const createSession = async (opts, {
   jwt,
