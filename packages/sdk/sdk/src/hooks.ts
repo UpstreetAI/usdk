@@ -161,38 +161,6 @@ export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   return messagesPromise;
 };
 
-/* export const useStripe: () => any = () => {
-  const appContextValue = useContext(AppContext);
-  const agentJson = appContextValue.useAgentJson();
-  const stripeConnectAccountId = (agentJson as any).stripeConnectAccountId as string;
-
-  return {
-    checkout: {
-      sessions: {
-        create: async (args: object) => {
-          if (stripeConnectAccountId) {
-            const jwt = appContextValue.useAuthToken();
-            const res = await fetch(`${aiHost}/stripe/checkout/session`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${jwt}`,
-              },
-              body: JSON.stringify({
-                args,
-                stripe_connect_account_id: stripeConnectAccountId,
-              }),
-            });
-            const j = await res.json();
-            return j;
-          } else {
-            throw new Error('agent is not connected to stripe');
-          }
-        },
-      }
-    },
-  };
-}; */
-
 export const useKv = (opts?: KvArgs) => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useKv(opts);
