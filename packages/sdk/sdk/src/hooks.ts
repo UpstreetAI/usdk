@@ -238,7 +238,7 @@ export const usePurchases = () => {
 
     if (createdAt >= agentWebhooksState.lastUpdateTimestamp && !agentWebhooksState.webhooks.some((w) => w.id === webhook.id)) {
       const object = event.data?.object;
-      console.log('handle webhook', event.type, webhook);
+      // console.log('handle webhook', event.type, webhook);
       switch (event.type) {
         case 'checkout.session.completed': {
           const webhookOwnerId = webhook.user_id;
@@ -264,7 +264,7 @@ export const usePurchases = () => {
               // console.log('parse object', object);
               if (mode === 'payment') {
                 const paymentIntentObject = await stripe.paymentIntents.retrieve(payment_intent);
-                console.log('got payment intent', paymentIntentObject);
+                // console.log('got payment intent', paymentIntentObject);
                 await kv.set<AgentWebhooksState>(agentWebhooksStateKey, {
                   webhooks: [
                     ...agentWebhooksState.webhooks,
@@ -283,7 +283,7 @@ export const usePurchases = () => {
               } else if (mode === 'subscription') {
                 // load the subscription
                 const subscriptionObject = await stripe.subscriptions.retrieve(subscription);
-                console.log('got subscription', subscriptionObject);
+                // console.log('got subscription', subscriptionObject);
 
                 // // load the products
                 // const products = await Promise.all(subscriptionObject.items.data.map(async (item) => {
