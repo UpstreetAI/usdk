@@ -135,11 +135,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     imports: (storeItems) => {
+      const isValidStoreItem = (storeItem) =>
+        !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;
+
       const result = [];
-      if (storeItems.some((storeItem) => storeItem.type === 'payment')) {
+      if (storeItems.some((storeItem) => storeItem.type === 'payment' && isValidStoreItem(storeItem))) {
         result.push('Payment');
       }
-      if (storeItems.some((storeItem) => storeItem.type === 'subscription')) {
+      if (storeItems.some((storeItem) => storeItem.type === 'subscription' && isValidStoreItem(storeItem))) {
         result.push('Subscription');
       }
       return result;
