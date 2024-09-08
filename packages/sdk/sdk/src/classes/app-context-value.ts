@@ -91,7 +91,7 @@ export class AppContextValue {
 
     const [kvCache, setKvCache] = useState(() => new Map<string, any>());
     const kvLoadPromises = useMemo(() => new Map<string, Promise<any>>(), []);
-    const makeLoadPromise = async (key: string, defaultValue: any = undefined) => {
+    const makeLoadPromise = async (key: string, defaultValue?: any) => {
       const fullKey = getFullKey(key);
       const result = await supabase
         .from('keys_values')
@@ -112,7 +112,7 @@ export class AppContextValue {
         throw error;
       }
     };
-    const ensureLoadPromise = (key: string, defaultValue: any = undefined) => {
+    const ensureLoadPromise = (key: string, defaultValue?: any) => {
       let loadPromise = kvLoadPromises.get(key);
       if (!loadPromise) {
         loadPromise = makeLoadPromise(key, defaultValue);
@@ -130,17 +130,20 @@ export class AppContextValue {
     const kv = useMemo(() => ({
       async get<T>(key: string, defaultValue?: T | (() => T)) {
         const loadPromise = ensureLoadPromise(key, defaultValue);
-        return await loadPromise as T;
+        return await loadPromise as T | undefined;
       },
-      async set<T>(key: string, value: T) {
+      async set<T>(key: string, value: T | ((oldValue: T | undefined) => T)) {
         const fullKey = getFullKey(key);
 
         const newLoadPromise = Promise.resolve(value);
         const encodedData = zbencode(value);
         const base64Data = uint8ArrayToBase64(encodedData);
 
-        // // let other promises go first
-        // await ensureLoadPromise(key, value);
+        if (typeof value === 'function') {
+          const oldValue = await kv.get<T>(key);
+          const newValue = (value as (oldValue: T | undefined) => T)(oldValue);
+          value = newValue;
+        }
 
         kvLoadPromises.set(key, newLoadPromise);
         setKvCache((kvCache) => {
@@ -164,13 +167,20 @@ export class AppContextValue {
         }
       },
       use: <T>(key: string, defaultValue?: T | (() => T)) => {
-        const value: T = kvCache.get(key) ?? (typeof defaultValue === 'function' ? (defaultValue as () => T)() : defaultValue);
-        const setValue = async (value: T) => {
-          return await kv.set(key, value);
-        };
+        const ensureDefaultValue = (() => {
+          let cachedDefaultValue: T | undefined;
+          return () => {
+            if (cachedDefaultValue === undefined) {
+              cachedDefaultValue = typeof defaultValue === 'function' ? (defaultValue as () => T)() : defaultValue;
+            }
+            return cachedDefaultValue;
+          };
+        })();
+        const value: T = kvCache.get(key) ?? ensureDefaultValue();
+        const setValue = async (value: T | ((oldValue: T | undefined) => T)) => kv.set<T>(key, value);
 
         useEffect(() => {
-          ensureLoadPromise(key);
+          ensureLoadPromise(key, ensureDefaultValue);
         }, [key]);
 
         return [value, setValue];
