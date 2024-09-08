@@ -177,9 +177,9 @@ export const supabaseSubscribe = ({
       filter: userId ? `user_id=eq.${userId}` : undefined,
     }, fn)
     .subscribe((status) => {
-      console.log('subscribed status', {
-        status,
-      });
+      // console.log('subscribed status', {
+      //   status,
+      // });
     });
   return channel;
 };
