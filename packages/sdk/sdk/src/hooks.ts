@@ -1,4 +1,5 @@
 import { useState, useMemo, useContext, useEffect, use } from 'react';
+import Stripe from 'stripe';
 import memoizeOne from 'memoize-one';
 import {
   SceneObject,
@@ -24,7 +25,7 @@ import {
   ConversationsContext,
   ConversationContext,
 } from './context';
-import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
+// import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
 import {
   // ConversationObject,
   CACHED_MESSAGES_LIMIT,
@@ -39,8 +40,20 @@ import {
   base64ToUint8Array,
 } from './util/util.mjs';
 import {
-  aiHost,
+  supabaseSubscribe,
+} from './util/supabase-client.mjs';
+import {
+  QueueManager,
+} from './util/queue-manager.mjs';
+import {
+  aiProxyHost,
 } from './util/endpoints.mjs';
+import {
+  devSuffix,
+} from './util/stripe-utils.mjs';
+import {
+  FetchHttpClient,
+} from './util/stripe/net/FetchHttpClient';
 
 //
 
@@ -92,13 +105,6 @@ export const usePersonality: () => string = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   const personalities = agentRegistryValue.personalities;
   return personalities.length > 0 ? personalities[0].children : agent.bio;
-};
-
-export const useStoreItems: () => StoreItem[] = () => {
-  // const agent = useContext(AgentContext);
-  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
-  const storeItems = agentRegistryValue.storeItems;
-  return storeItems;
 };
 
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
@@ -197,4 +203,149 @@ export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
     const appContextValue = useContext(AppContext);
     return appContextValue.useTts(opts);
   })(opts?.voiceEndpoint, opts?.sampleRate);
+};
+
+const useStripe = () => {
+  const { stripeConnectAccountId } = useAgent();
+  const authToken = useAuthToken();
+
+  const customFetchFn = async (url: string, options: any) => {
+    const u = new URL(url);
+    // redirect to the ai proxy host
+    u.host = aiProxyHost;
+    // prefix the path with /api/stripe
+    u.pathname = `/api/stripe${devSuffix}${u.pathname}`;
+    return fetch(u.toString(), {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+  };
+  const httpClient = new FetchHttpClient(customFetchFn);
+  const stripe = new Stripe(stripeConnectAccountId, {
+    httpClient: httpClient as any,
+    stripeAccount: stripeConnectAccountId,
+  });
+  return stripe;
+};
+
+export const useStoreItems: () => StoreItem[] = () => {
+  // const agent = useContext(AgentContext);
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
+  const storeItems = agentRegistryValue.storeItems;
+  return storeItems;
+};
+export const usePurchases = () => {
+  const agent = useAgent();
+  const userId = agent.ownerId;
+  const supabase = agent.useSupabase();
+  const kv = useKv();
+  const stripe = useStripe();
+
+  const lastPurchaseTimestampKey = 'lastPurchaseTimestamp';
+  const [initialized, setInitialized] = useState(false);
+  const queueManager = useMemo(() => new QueueManager(), []);
+  const [purchases, setPurchases] = useState<StoreItem[]>(() => []);
+
+  const handleWebhook = async (webhook: any) => {
+    const { data: event, created_at } = webhook;
+    const createdAt = +new Date(created_at);
+    // console.log('handle webhook 1', webhook);
+    const lastPurchaseTimestamp = await kv.get(lastPurchaseTimestampKey, 0);
+    // console.log('handle webhook 2', webhook, { lastPurchaseTimestamp });
+
+    if (createdAt >= lastPurchaseTimestamp) {
+      kv.set(lastPurchaseTimestampKey, createdAt);
+
+      const object = event.data?.object;
+      console.log('handle webhook', event.type, webhook);
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const {
+            agentId,
+            targetUserId,
+          } = object.metadata;
+          if (typeof agentId === 'string' && typeof targetUserId === 'string') {
+            const {
+              mode, // payment, subscription
+              payment_intent,
+              subscription,
+            } = object;
+            console.log('parse object', object);
+            if (mode === 'payment') {
+              const paymentIntentObject = await stripe.paymentIntents.retrieve(payment_intent);
+              console.log('got payment intent', paymentIntentObject);
+              const {
+                amount,
+                currency,
+              } = paymentIntentObject;
+            } else if (mode === 'subscription') {
+              const subscriptionObject = await stripe.subscriptions.retrieve(subscription);
+              console.log('got subscription', subscriptionObject);
+              const {
+                items,
+                status,
+              } = subscriptionObject;
+            } else {
+              // unknown mode; ignore
+            }
+          } else {
+            console.warn('checkout.session.completed event missing metadata', event);
+          }
+          break;
+        }
+      }
+    }
+  };
+
+  // get initial webhooks
+  useEffect(() => {
+    let live = true;
+
+    (async () => {
+      const result = await supabase
+        .from('webhooks')
+        .select('*')
+        .eq('user_id', userId);
+      if (!live) return;
+      const { error, data } = result;
+      if (!error) {
+        queueManager.waitForTurn(async () => {
+          for (const webhook of data) {
+            await handleWebhook(webhook);
+          }
+        });
+        setInitialized(true);
+      } else {
+        console.error(error);
+      }
+    })();
+
+    return () => {
+      live = false;
+    };
+  }, []);
+  // subscribe to webhooks
+  useEffect(() => {
+    if (initialized) {
+      const subscription = supabaseSubscribe({
+        supabase,
+        table: 'webhooks',
+        userId: userId,
+      }, (payload: any) => {
+        // console.log('subscription payload', payload);
+        const webhook = payload.new;
+        queueManager.waitForTurn(async () => {
+          await handleWebhook(webhook);
+        });
+      });
+      return () => {
+        supabase.removeSubscription(subscription);
+      };
+    }
+  }, [initialized]);
+
+  return purchases;
 };
