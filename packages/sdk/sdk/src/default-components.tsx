@@ -291,9 +291,11 @@ export const ScenePrompt = () => {
   );
 };
 const formatAgent = (agent: any) => {
-  return `Name: ${agent.name}\n` +
-    // `UserId: ${agent.id}\n` +
-    `Bio: ${agent.bio}`;
+  return [
+    `Name: ${agent.name}`,
+    `UserId: ${agent.id}`,
+    `Bio: ${agent.bio}`,
+  ].join('\n');
 };
 export const CharactersPrompt = () => {
   const conversation = useConversation();
@@ -393,6 +395,25 @@ const StoreItemsPrompt = () => {
 const PurchasesPrompt = () => {
   const conversation = useConversation();
   const purchases = usePurchases();
+
+  const conversationUserIds = Array.from(conversation.agentsMap.keys());
+  const userPurchases = purchases.filter(purchase => {
+    return conversationUserIds.includes(purchase.buyerUserId);
+  });
+
+  return (
+    <Prompt>
+      {purchases.length > 0 && dedent`\
+        # Purchases
+        Here are the purchases made so far:
+        \`\`\`
+      ` + '\n' +
+      JSON.stringify(userPurchases, null, 2) + '\n' +
+      dedent`\
+        \`\`\`
+      `}
+    </Prompt>
+  )
 };
 export const StorePrompt = () => {
   return (
