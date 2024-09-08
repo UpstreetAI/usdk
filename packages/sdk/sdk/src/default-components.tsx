@@ -56,6 +56,7 @@ import {
   useName,
   usePersonality,
   useStoreItems,
+  usePurchases,
   useKv,
   useTts,
   useConversation,
@@ -101,6 +102,29 @@ export const DefaultAgentComponents = () => {
 
 // actions
 
+const ChatActions = () => {
+  return (
+    <>
+      <Action
+        name="say"
+        description={`A character says something.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+    </>
+  );
+};
 const StoreActions = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
@@ -156,40 +180,7 @@ const StoreActions = () => {
 export const DefaultActions = () => {
   return (
     <>
-      <Action
-        name="say"
-        description={`A character says something.`}
-        schema={
-          z.object({
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            text: 'Hello, there! How are you doing?',
-          },
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
-      <Action
-        name="sayExtra"
-        description={`A character says something extra.`}
-        schema={
-          z.object({
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            text: 'Hello!!',
-          },
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
+      <ChatActions />
       <StoreActions />
     </>
   );
@@ -300,9 +291,11 @@ export const ScenePrompt = () => {
   );
 };
 const formatAgent = (agent: any) => {
-  return `Name: ${agent.name}\n` +
-    // `UserId: ${agent.id}\n` +
-    `Bio: ${agent.bio}`;
+  return [
+    `Name: ${agent.name}`,
+    `UserId: ${agent.id}`,
+    `Bio: ${agent.bio}`,
+  ].join('\n');
 };
 export const CharactersPrompt = () => {
   const conversation = useConversation();
@@ -379,7 +372,7 @@ export const ActionsPrompt = () => {
     <Prompt>{s}</Prompt>
   );
 };
-export const StorePrompt = () => {
+const StoreItemsPrompt = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
   return (
@@ -397,6 +390,39 @@ export const StorePrompt = () => {
         `
       ) : '*none*'}
     </Prompt>
+  );
+};
+const PurchasesPrompt = () => {
+  const conversation = useConversation();
+  const purchases = usePurchases();
+
+  const conversationUserIds = Array.from(conversation.agentsMap.keys());
+  const userPurchases = purchases.filter(purchase => {
+    return conversationUserIds.includes(purchase.buyerUserId);
+  });
+
+  return (
+    <Prompt>
+      {purchases.length > 0 && dedent`\
+        # Purchases
+        Here are the purchases made so far:
+        \`\`\`
+      ` + '\n' +
+      JSON.stringify(userPurchases, null, 2) + '\n' +
+      dedent`\
+        \`\`\`
+      `}
+    </Prompt>
+  )
+};
+export const StorePrompt = () => {
+  return (
+    <>
+      <StoreItemsPrompt />
+      <Conversation>
+        <PurchasesPrompt />
+      </Conversation>
+    </>
   );
 };
 export const ConversationMessagesPrompt = () => {

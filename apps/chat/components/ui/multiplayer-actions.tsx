@@ -483,10 +483,13 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           typingMap.set(messageUserId, { userId: messageUserId, name, typing });
           break;
         }
-        case 'nudge':
+        // case 'nudge':
         case 'join':
         case 'leave': {
           // nothing
+          break;
+        }
+        case 'paymentRequest': {
           break;
         }
         default: {

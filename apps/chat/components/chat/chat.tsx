@@ -21,12 +21,28 @@ import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
 // import { resolveRelativeUrl } from '@/lib/utils'
 // import { aiHost } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { useSupabase } from '@/lib/hooks/use-supabase';
+import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
+
+import { env } from '@/lib/env'
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
+import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
+
+//
+
+const openInNewPage = (url: string) => {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  // a.rel = 'noopener noreferrer';
+  a.click();
+};
+
+//
 
 type MessageMedia = {
   type: string
@@ -47,6 +63,7 @@ type Message = {
   userId: string
 }
 
+//
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
@@ -56,7 +73,6 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
   onConnect?: (connected: boolean) => void
 }
-
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   // const router = useRouter()
   // const path = usePathname()
@@ -72,7 +88,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
-    sendRawMessage,
+    // sendRawMessage,
     // sendChatMessage,
   } = useMultiplayerActions();
 
@@ -88,37 +104,12 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     // if (rawMessage.method === 'say') {
       return {
         id: index,
-        display: getMessageComponent(room, message, index + '', playersCache, sendRawMessage),
+        display: getMessageComponent(room, message, index + '', playersCache, user),
       };
     // } else {
     //   return null;
     // }
   })/*.filter((message) => message !== null) as unknown */as any[];
-
-  /*useEffect(() => {
-    if (user) {
-      if (!path.includes('chat') && messages.length === 1) {
-        window.history.replaceState({}, '', `/chat/${id}`)
-      }
-    }
-  }, [id, path, user, messages])*/
-
-  /*useEffect(() => {
-    const messagesLength = aiState.messages?.length
-    if (messagesLength === 2) {
-      router.refresh()
-    }
-  }, [aiState.messages, router])*/
-
-  // useEffect(() => {
-  //   setNewChatId(id)
-  // }, [id]);
-
-  // useEffect(() => {
-  //   missingKeys.map(key => {
-  //     toast.error(`Missing ${key} environment variable!`)
-  //   })
-  // }, [missingKeys])
 
   useEffect(() => {
     if (room && user) {
@@ -175,8 +166,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   )
 }
 
-function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, sendRawMessage: (method: string, opts: object) => void) {
- 
+function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
 
     // TODO Move the typing logic to form component, over send message?
@@ -231,7 +221,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
     }
 
     case 'paymentRequest': {
-      const player = playersCache.get(message.userId);
+      const agentId = message.userId;
+      const player = playersCache.get(agentId);
 
       let media = null;
 
@@ -244,50 +235,69 @@ function getMessageComponent(room: string, message: Message, id: string, players
         stripeConnectAccountId,
       } = args as PaymentItem;
       const {
-        name,
-        description,
-        amount,
-        currency,
-        interval,
-        intervalCount,
+        name = '',
+        description = '',
+        amount = 0,
+        currency = currencies[0],
+        interval = intervals[0],
+        intervalCount = 1,
       } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
-        const jwt = await getJWT();
-        const success_url = location.href;
-        const stripe_connect_account_id = stripeConnectAccountId;
-        const opts = {
-          args: {
-            mode: type,
-            line_items: [
-              {
-                quantity: 1,
-                price_data: {
-                  product_data: {
-                    name,
-                    description,
+        if (user) {
+          const targetUserId = user.id;
+
+          const jwt = await getJWT();
+          if (!jwt) {
+            throw new Error('No jwt:' + jwt);
+          }
+
+          // create the checkout session
+          const success_url = location.href;
+          const stripe_connect_account_id = stripeConnectAccountId;
+          const opts = {
+            args: {
+              mode: type,
+              line_items: [
+                {
+                  quantity: 1,
+                  price_data: {
+                    product_data: {
+                      name,
+                      description,
+                    },
+                    unit_amount: amount,
+                    currency,
+                    recurring: type === 'subscription' ? {
+                      interval,
+                      interval_count: intervalCount,
+                    } : undefined,
                   },
-                  unit_amount: amount,
-                  currency,
-                  recurring: type === 'subscription' ? {
-                    interval,
-                    interval_count: intervalCount,
-                  } : undefined,
                 },
+              ],
+              success_url,
+              metadata: {
+                name,
+                description,
+                targetUserId,
+                agentId,
               },
-            ],
-            success_url,
-          },
-          stripe_connect_account_id,
-        };
-        const j = await createSession(opts, {
-          jwt,
-        });
-        const {
-          // id,
-          url,
-        } = j;
-        location.href = url;
+            },
+            stripe_connect_account_id,
+          };
+          const j = await createSession(opts, {
+            jwt,
+          });
+          const {
+            // id,
+            url,
+          } = j;
+
+          // redirect to the checkout page
+          openInNewPage(url);
+        } else {
+          throw new Error('No user:' + user);
+        }
       };
 
       const price = (() => {
@@ -316,33 +326,6 @@ function getMessageComponent(room: string, message: Message, id: string, players
           player={player}
           room={room}
           timestamp={message.timestamp}
-        />
-      )
-    }
-
-    case 'paymentResponse': {
-
-      const player = playersCache.get(message.userId);
-
-      let media = null;
-
-      return (
-        <ChatMessage
-          id={id}
-          content={
-            <>
-              <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
-                <div className="text-zinc-700 text-sm mb-2 font-bold">[payment response]</div>
-                <div>{(message.args as any).description}</div>
-              </div>
-            </>
-          }
-          name={ message.name }
-          media={ media }
-          player={player}
-          room={room}
-          timestamp={message.timestamp}
-          // user={user}
         />
       )
     }

@@ -502,9 +502,9 @@ type Compartment = {
 };
 
 type Kv = {
-  get: <T>(key: string) => Promise<T>;
-  set: (key: string, value: any) => void;
-  use: (key: string, defaultValue?: any) => [any, (value: any) => Promise<void>];
+  get: <T = any>(key: string, defaultValue?: T | (() => T)) => Promise<T | undefined>;
+  set: <T = any>(key: string, value: T | ((oldValue: T | undefined) => T)) => Promise<void>;
+  use: <T = any>(key: string, defaultValue?: T | (() => T)) => [T, (value: T | ((oldValue: T | undefined) => T)) => void];
 }
 type Tts = {
   getVoiceStream: (text: string, opts?: any) => ReadableAudioStream;
