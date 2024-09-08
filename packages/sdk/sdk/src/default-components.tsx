@@ -102,6 +102,29 @@ export const DefaultAgentComponents = () => {
 
 // actions
 
+const ChatActions = () => {
+  return (
+    <>
+      <Action
+        name="say"
+        description={`A character says something.`}
+        schema={
+          z.object({
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            text: 'Hello, there! How are you doing?',
+          },
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
+    </>
+  );
+};
 const StoreActions = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
@@ -157,40 +180,7 @@ const StoreActions = () => {
 export const DefaultActions = () => {
   return (
     <>
-      <Action
-        name="say"
-        description={`A character says something.`}
-        schema={
-          z.object({
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            text: 'Hello, there! How are you doing?',
-          },
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
-      <Action
-        name="sayExtra"
-        description={`A character says something extra.`}
-        schema={
-          z.object({
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            text: 'Hello!!',
-          },
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
+      <ChatActions />
       <StoreActions />
     </>
   );
