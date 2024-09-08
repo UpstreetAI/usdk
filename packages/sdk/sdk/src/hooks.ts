@@ -367,6 +367,7 @@ export const usePurchases = () => {
     };
   }, []);
 
+  // XXX finish this
   console.log('render webhooks state', agentWebhooksState);
 
   const purchases = [];
