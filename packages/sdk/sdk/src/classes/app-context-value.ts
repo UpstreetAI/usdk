@@ -139,8 +139,8 @@ export class AppContextValue {
         const encodedData = zbencode(value);
         const base64Data = uint8ArrayToBase64(encodedData);
 
-        // let other promises go first
-        await ensureLoadPromise(key, value);
+        // // let other promises go first
+        // await ensureLoadPromise(key, value);
 
         kvLoadPromises.set(key, newLoadPromise);
         setKvCache((kvCache) => {
