@@ -219,6 +219,7 @@ const makeAgentWebhooksState = (): AgentWebhooksState => ({
   webhooks: [],
   lastUpdateTimestamp: 0,
 });
+
 const agentWebhooksStateKey = 'agentWebhooksState';
 export const usePurchases = () => {
   const agent = useAgent();
@@ -242,17 +243,17 @@ export const usePurchases = () => {
         case 'checkout.session.completed': {
           const webhookOwnerId = webhook.user_id;
           const {
+            // name: webhookName,
+            // description: webhookDescription,
             agentId: webhookAgentId,
             targetUserId: webhookBuyerUserId,
           } = object.metadata;
-          if (typeof webhookAgentId === 'string' && typeof webhookBuyerUserId === 'string') {
-            console.log('checking handling', {
-              equal: webhookOwnerId === ownerId && webhookAgentId === agentId,
-              webhookOwnerId,
-              ownerId,
-              webhookAgentId,
-              agentId,
-            });
+          if (
+            // typeof webhookName === 'string' &&
+            // typeof webhookDescription === 'string' &&
+            typeof webhookAgentId === 'string' &&
+            typeof webhookBuyerUserId === 'string'
+          ) {
             if (webhookOwnerId === ownerId && webhookAgentId === agentId) {
               // if it's the correct owner and agent, handle the webhook
               const {
@@ -264,10 +265,6 @@ export const usePurchases = () => {
               if (mode === 'payment') {
                 const paymentIntentObject = await stripe.paymentIntents.retrieve(payment_intent);
                 console.log('got payment intent', paymentIntentObject);
-                // const {
-                //   amount,
-                //   currency,
-                // } = paymentIntentObject;
                 await kv.set<AgentWebhooksState>(agentWebhooksStateKey, {
                   webhooks: [
                     ...agentWebhooksState.webhooks,
@@ -275,27 +272,45 @@ export const usePurchases = () => {
                       id: webhook.id,
                       buyerUserId: webhookBuyerUserId,
                       type: 'payment',
-                      event: paymentIntentObject,
+                      event: {
+                        ...object,
+                        payment_intent: paymentIntentObject,
+                      },
                     },
                   ],
                   lastUpdateTimestamp: createdAt,
                 });
               } else if (mode === 'subscription') {
+                // load the subscription
                 const subscriptionObject = await stripe.subscriptions.retrieve(subscription);
                 console.log('got subscription', subscriptionObject);
-                // const {
-                //   items,
-                //   status,
-                // } = subscriptionObject;
+
+                // // load the products
+                // const products = await Promise.all(subscriptionObject.items.data.map(async (item) => {
+                //   const productId = item.plan.product as string;
+                //   const product = await stripe.products.retrieve(productId);
+                //   return product;
+                // }));
+                // console.log('got products', products);
+
+                const agentWebhook: AgentWebhook = {
+                  id: webhook.id,
+                  buyerUserId: webhookBuyerUserId,
+                  type: 'subscription',
+                  event: {
+                    ...object,
+                    subscription: subscriptionObject,
+                    // subscription: {
+                    //   ...subscriptionObject,
+                    //   products,
+                    // },
+                  },
+                };
+
                 await kv.set<AgentWebhooksState>(agentWebhooksStateKey, {
                   webhooks: [
                     ...agentWebhooksState.webhooks,
-                    {
-                      id: webhook.id,
-                      buyerUserId: webhookBuyerUserId,
-                      type: 'subscription',
-                      event: subscriptionObject,
-                    },
+                    agentWebhook,
                   ],
                   lastUpdateTimestamp: createdAt,
                 });
@@ -367,9 +382,74 @@ export const usePurchases = () => {
     };
   }, []);
 
-  // XXX finish this
-  console.log('render webhooks state', agentWebhooksState);
+  const purchases = agentWebhooksState.webhooks.map((webhook) => {
+    const {
+      buyerUserId,
+      type,
+      event,
+    } = webhook;
+    switch (type) {
+      case 'payment': {
+        const {
+          payment_intent,
+          metadata,
+        } = event;
+        const {
+          amount,
+          currency,
+        } = payment_intent;
+        const {
+          name,
+          description,
+        } = metadata;
+        return {
+          type: 'payment',
+          buyerUserId,
+          amount,
+          currency,
+          name,
+          description,
+        };
+      }
+      case 'subscription': {
+        const {
+          subscription,
+          metadata,
+        } = event;
 
-  const purchases = [];
+        let amount = 0;
+        let currency = '';
+        for (let i = 0; i < subscription.items.length; i++) {
+          const item = subscription.items.data[i];
+          const {
+            plan,
+          } = item;
+          amount += plan.amount;
+          if (!currency) {
+            currency = plan.currency;
+          }
+        }
+        const {
+          name,
+          description,
+        } = metadata;
+
+        return {
+          type: 'subscription',
+          buyerUserId,
+          amount,
+          currency,
+          name,
+          description,
+        };
+      }
+      default: {
+        console.warn('unknown agent webhook type', {
+          webhook,
+        });
+        return null;
+      }
+    }
+  }).filter((purchase) => purchase !== null);
   return purchases;
 };
