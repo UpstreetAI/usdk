@@ -168,7 +168,7 @@ export const supabaseSubscribe = ({
   userId,
 }, fn) => {
   const guid = crypto.randomUUID();
-  const subscription = supabase
+  const channel = supabase
     .channel(`${table}_changes_${guid}`)
     .on('postgres_changes', {
       event: '*',
@@ -181,5 +181,5 @@ export const supabaseSubscribe = ({
         status,
       });
     });
-  return subscription;
+  return channel;
 };
