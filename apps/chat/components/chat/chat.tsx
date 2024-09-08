@@ -30,6 +30,7 @@ import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
 import { env } from '@/lib/env'
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
+import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
 
 //
 
@@ -234,12 +235,12 @@ function getMessageComponent(room: string, message: Message, id: string, players
         stripeConnectAccountId,
       } = args as PaymentItem;
       const {
-        name,
-        description,
-        amount,
-        currency,
-        interval,
-        intervalCount,
+        name = '',
+        description = '',
+        amount = 0,
+        currency = currencies[0],
+        interval = intervals[0],
+        intervalCount = 1,
       } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
@@ -276,6 +277,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
               ],
               success_url,
               metadata: {
+                name,
+                description,
                 targetUserId,
                 agentId,
               },
