@@ -47,7 +47,7 @@ type ServerHandler = {
 
 //
 
-const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
+const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   const {
     agent,
     conversation: agentConversation,
@@ -64,7 +64,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
       return (
         (
           (typeof children === 'string' && children.length > 0) ||
-          (Array.isArray(children) && children.every((child) => typeof child === 'string'))
+          (Array.isArray(children) && children.filter((child) => typeof child === 'string' && child.length > 0).length > 0)
         ) &&
         (!promptConversation || promptConversation === agentConversation)
       );
@@ -75,7 +75,7 @@ const getGenerativePrompts = (generativeAgent: GenerativeAgentObject) => {
 };
 
 export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
-  const prompts = getGenerativePrompts(generativeAgent);
+  const prompts = getPrompts(generativeAgent);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
     {
@@ -89,7 +89,7 @@ export async function generateAgentActionFromInstructions(
   generativeAgent: GenerativeAgentObject,
   instructions: string,
 ) {
-  const prompts = getGenerativePrompts(generativeAgent)
+  const prompts = getPrompts(generativeAgent)
     .concat([instructions]);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
