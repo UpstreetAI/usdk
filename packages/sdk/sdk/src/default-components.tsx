@@ -81,7 +81,9 @@ import {
   imageSizes,
   fetchImageGeneration,
 } from 'usdk/sdk/src/util/generate-image.mjs';
-// import { blob2img } from 'usdk/util/blob-utils.mjs';
+import {
+  generateSound,
+} from 'usdk/sdk/src/util/generate-sound.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
@@ -573,11 +575,12 @@ export const DefaultPerceptions = () => {
 
 const mediaGeneratorSpecs = [
   {
-    types: ['image/webp'],
+    types: ['image/jpeg+image'],
+    ext: 'jpg',
     optionsSchema: z.object({
       image_size: z.enum(imageSizes as any).optional(),
     }).optional(),
-    generate: async ({
+    async generate({
       prompt,
       options,
     }: {
@@ -587,11 +590,40 @@ const mediaGeneratorSpecs = [
       },
     }, {
       jwt,
-    }) => {
+    }) {
       const blob = await fetchImageGeneration(prompt, options, {
         jwt,
       });
-      return blob;
+      const blob2 = new Blob([blob], {
+        type: this.types[0],
+      });
+      return blob2;
+    },
+  },
+  {
+    types: ['audio/mpeg+sound-effect'],
+    ext: 'mp3',
+    // optionsSchema: z.object({
+    //   image_size: z.enum(imageSizes as any).optional(),
+    // }).optional(),
+    async generate({
+      prompt,
+      // options,
+    }: {
+      prompt: string,
+      // options?: {
+      //   image_size?: string,
+      // },
+    }, {
+      jwt,
+    }) {
+      const blob = await generateSound(prompt, undefined, {
+        jwt,
+      });
+      const blob2 = new Blob([blob], {
+        type: this.types[0],
+      });
+      return blob2;
     },
   },
 ];
@@ -602,128 +634,125 @@ const MediaGenerator = () => {
     const o = {
       type: z.enum(spec.types as any),
       prompt: z.string(),
-      options: spec.optionsSchema,
       chatText: z.string().optional(),
     };
+    if (spec.optionsSchema) {
+      (o as any).options = spec.optionsSchema;
+    }
     return z.object(o);
   });
   const generationSchemasUnion = generationSchemas.length >= 2 ? z.union(generationSchemas as any) : generationSchemas[0];
 
   return (
-    <Action
-      name="media"
-      description={dedent`\
-        Generate simulated multimedia content and send it as an attachment.
+    <>
+      <Action
+        name="sendMedia"
+        description={dedent`\
+          Send simulated multimedia content as a media attachment.
 
-        The given prompt will be used for generating the media.
-        The optional chat text will be said sent along with the media.
+          Prompt will be used for generating the media.
+          Optional chat text message will be sent with the media.
 
-        The available content types are:
-        \`\`\`
-      ` + '\n' +
-      JSON.stringify(types, null, 2) + '\n' +
-      dedent`\
-        \`\`\`
-      `}
-      schema={generationSchemasUnion}
-      examples={[
-        {
-          type: 'image/jpeg',
-          prompt: `girl wearing a dress and a hat selling flowers in a Zelda-inspired market`,
-          options: {
-            image_size: imageSizes[0],
+          The available content types are:
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(types, null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `}
+        schema={generationSchemasUnion}
+        examples={[
+          {
+            type: 'image/jpeg',
+            prompt: `girl wearing a dress and a hat selling flowers in a Zelda-inspired market`,
+            options: {
+              image_size: imageSizes[0],
+            },
+            chatText: "Guess where I am? ;)",
           },
-          chatText: "Guess where I am? ;)",
-        }
-      ]}
-      handler={async (e: PendingActionEvent) => {
-        const {
-          agent,
-          message: {
-            args: {
-              type,
+          {
+            type: 'audio/mp3',
+            prompt: `a mechanical button beep, 16 bit`,
+            // options: {
+            //   image_size: imageSizes[0],
+            // },
+            chatText: "Beep!",
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args: {
+                type,
+                prompt,
+                options,
+                chatText,
+              },
+            },
+          } = e.data;
+          console.log('send media args', e.data.message.args);
+
+          const retry = () => {
+            agent.think();
+          };
+
+          const mediaGeneratorSpec = mediaGeneratorSpecs.find(spec => spec.types.includes(type));
+          if (mediaGeneratorSpec) {
+            const blob = await mediaGeneratorSpec.generate({
               prompt,
               options,
-              chatText,
-            },
-          },
-        } = e.data;
-
-        console.log('got args', e.data.message.args);
-
-        const retry = () => {
-          agent.think();
-        };
-
-        const mediaGeneratorSpec = mediaGeneratorSpecs.find(spec => spec.types.includes(type));
-        if (mediaGeneratorSpec) {
-          const blob = await mediaGeneratorSpec.generate({
-            prompt,
-            options,
-          }, {
-            jwt: authToken,
-          });
-          console.log('got blob', blob);
-
-          // upload to r2
-          const guid = crypto.randomUUID();
-          const keyPath = ['assets', guid, `image.jpg`].join('/');
-          const u = `${r2EndpointUrl}/${keyPath}`;
-          try {
-            const res = await fetch(u, {
-              method: 'PUT',
-              headers: {
-                'Authorization': `Bearer ${authToken}`,
-              },
-              body: blob,
+            }, {
+              jwt: authToken,
             });
-            if (res.ok) {
-              const imageUrl = await res.json();
-              // return j;
-              // console.log('got image url', [imageUrl]);
-              const m = {
-                method: 'say',
-                args: {
-                  text: chatText ?? '',
-                },
-                attachments: [
-                  {
-                    id: guid,
-                    type: 'image/webp',
-                    url: imageUrl,
-                    // alt: chatText,
-                  },
-                ],
-              };
-              console.log('add message', m);
-              await agent.addMessage(m);
-            } else {
-              const text = await res.text();
-              throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
-            }
-          } catch (err) {
-            throw new Error('failed to put voice: ' + u + ': ' + err.stack);
-          }
+            // console.log('got blob', blob);
 
-          // const img = await blob2img(blob);
-          // img.style.cssText = `\
-          //   position: fixed;
-          //   bottom: 0;
-          //   right: 0;
-          //   width: 300px;
-          //   height: auto;
-          //   z-index: 100;
-          // `;
-          // console.log('got img', img);
-        } else {
-          console.warn('warning: no media generator spec found for type', {
-            type,
-            mediaGeneratorSpecs,
-          });
-          retry();
-        }
-      }}
-    />
+            // upload to r2
+            const guid = crypto.randomUUID();
+            const keyPath = ['assets', guid, `media.${mediaGeneratorSpec.ext}`].join('/');
+            const u = `${r2EndpointUrl}/${keyPath}`;
+            try {
+              const res = await fetch(u, {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${authToken}`,
+                },
+                body: blob,
+              });
+              if (res.ok) {
+                const imageUrl = await res.json();
+                const m = {
+                  method: 'say',
+                  args: {
+                    text: chatText ?? '',
+                  },
+                  attachments: [
+                    {
+                      id: guid,
+                      type: blob.type,
+                      url: imageUrl,
+                    },
+                  ],
+                };
+                // console.log('add message', m);
+                await agent.addMessage(m);
+              } else {
+                const text = await res.text();
+                throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+              }
+            } catch (err) {
+              throw new Error('failed to put voice: ' + u + ': ' + err.stack);
+            }
+          } else {
+            console.warn('warning: no media generator spec found for type', {
+              type,
+              mediaGeneratorSpecs,
+            });
+            retry();
+          }
+        }}
+      />
+    </>
   );
 };
 export const DefaultGenerators = () => {
