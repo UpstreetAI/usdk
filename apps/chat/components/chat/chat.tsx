@@ -28,8 +28,6 @@ import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
-import { env } from '@/lib/env'
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
 import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
 
 //
