@@ -821,7 +821,7 @@ export const MultimediaSense = () => {
   };
   const attachments = collectSupportedAttachments(conversation.messageCache.messages);
 
-  return (
+  return attachments.length > 0 && (
     <Action
       name="mediaPerception"
       description={
