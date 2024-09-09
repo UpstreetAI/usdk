@@ -1,7 +1,5 @@
-import TimeAgo from 'javascript-time-ago'
-import en from 'javascript-time-ago/locale/en'
 import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl, timeAgo } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
@@ -10,11 +8,6 @@ import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType } from '@/utils/helpers/media-types'
 
 // import type { User } from '@supabase/supabase-js'
-
-
-TimeAgo.addDefaultLocale(en)
-const timeAgo = new TimeAgo('en-US')
-
 
 export interface ChatMessageProps {
   id: string
@@ -33,9 +26,7 @@ export function ChatMessage({
   media,
   name,
   player,
-  // room,
   timestamp,
-  // user,
 }: ChatMessageProps) {
   if (!player) {
     throw new Error('Player is required')
@@ -104,7 +95,7 @@ export function ChatMessage({
             {name}
           </span>
           <span className="opacity-75 text-xs font-medium">
-            {timestamp ? timeAgo.format(timestamp) : null}
+            {timestamp ? timeAgo(timestamp) : null}
           </span>
           <br />
 
