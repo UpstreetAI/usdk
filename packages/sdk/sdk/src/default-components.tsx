@@ -943,10 +943,10 @@ export const MultimediaSense = () => {
                 // alt,
               });
               (e.data.message.args as any).questions = questions;
-              console.log('commit 1', e.data.message);
+              // console.log('commit 1', e.data.message);
               await e.commit();
               const alt = makeQa(questions, answers);
-              console.log('commit 2', e.data.message, alt);
+              // console.log('commit 2', e.data.message, alt);
               await agent.think(dedent`\
                 Character looked at attachment and discovered the following:
               ` + '\n' +
