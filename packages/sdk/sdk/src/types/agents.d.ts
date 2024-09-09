@@ -56,7 +56,6 @@ export type GenerativeAgentObject =  {
   monologue: (text: string) => Promise<any>;
 
   addMessage: (m: PendingActionMessage) => void;
-  updateMessage(messageId: string, value: ActionMessage | ((oldValue: ActionMessage) => ActionMessage)): Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
 
@@ -87,14 +86,9 @@ export type TtsArgs = {
 
 // actions
 
-export type Alt = {
-  q: string;
-  a: string;
-};
 export type FormattedAttachment = {
   type: string;
   id: string;
-  alt?: Alt[];
 };
 export type Attachment = FormattedAttachment & {
   url?: string;

@@ -232,14 +232,6 @@ export class ConversationObject extends EventTarget {
     );
   }
 
-  async updateMessage(messageId: string, value: ActionMessage | ((oldValue: ActionMessage) => ActionMessage)) {
-    // XXX implement this to update the messageCache and remote database
-    console.log('update message', {
-      messageId,
-      value,
-    });
-  }
-
   addAudioStream(audioStream: PlayableAudioStream) {
     this.dispatchEvent(
       new MessageEvent('audiostream', {

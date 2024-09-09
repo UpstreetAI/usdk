@@ -681,7 +681,7 @@ export const MultimediaSense = () => {
         const retry = () => {
           agent.think();
         };
-        const makeAlt = (questions: string[], answers: string[]) => {
+        const makeQa = (questions: string[], answers: string[]) => {
           return questions.map((q, index) => {
             const a = answers[index];
             return {
@@ -734,31 +734,17 @@ export const MultimediaSense = () => {
               }, {
                 jwt: authToken,
               });
-              const alt = makeAlt(questions, answers);
+              // const alt = makeQa(questions, answers);
               console.log('got answers', {
                 questions,
                 answers,
-                alt,
+                // alt,
               });
-              const message = attachmentsToMessagesMap.get(attachment);
-              conversation.updateMessage(message.id, (oldMessage) => {
-                return {
-                  ...oldMessage,
-                  attachments: oldMessage.attachments.map((oldAttachment) => {
-                    if (oldAttachment.id === attachmentId) {
-                      return {
-                        ...oldAttachment,
-                        alt: [
-                          ...(oldAttachment.alt ?? []),
-                          ...alt,
-                        ],
-                      };
-                    } else {
-                      return oldAttachment;
-                    }
-                  })
-                };
-              });
+              (e.data.message.args as any).questions = questions;
+              console.log('commit 1', e.data.message);
+              await e.commit();
+              const alt = makeQa(questions, answers);
+              console.log('commit 2', e.data.message, alt);
               await agent.think(dedent`\
                 Character looked at attachment and discovered the following:
               ` + '\n' +
