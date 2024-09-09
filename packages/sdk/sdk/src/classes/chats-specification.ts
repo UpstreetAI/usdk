@@ -69,7 +69,6 @@ import {
 // import {
 //   SceneObject,
 // } from './scene-object';
-// import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 // import { multiplayerEndpointUrl } from '../util/endpoints.mjs';
 
 //
