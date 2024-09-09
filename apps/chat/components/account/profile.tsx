@@ -22,6 +22,8 @@ import {
   AuxImages,
 } from '@/components/aux-images';
 
+import DevMode from '@/components/development';
+
 export interface ProfileProps {
   user: any,
   userIsCurrentUser: boolean,
@@ -49,7 +51,7 @@ export function Profile({
     _setVisualDescription(visualDescription);
     // user.playerSpec.visualDescription = visualDescription;
   };
-  
+
   const saveInfo = async () => {
     const o = {
       name,
@@ -263,7 +265,7 @@ export function Profile({
                 </Button>
                 <Button
                   onClick={saveInfo}
-                  // className="mr-2"
+                // className="mr-2"
                 >
                   Save Info
                 </Button>
@@ -271,16 +273,20 @@ export function Profile({
             </div>
           </div>
         </div>
-        <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
-          <div className="flex flex-col items-start justify-start">
-            <AuxImages
-              user={user}
-              setUser={setUser}
-              visualDescription={visualDescription}
-              generate
-            />
+
+        <DevMode>
+          <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
+            <div className="flex flex-col items-start justify-start">
+              <AuxImages
+                user={user}
+                setUser={setUser}
+                visualDescription={visualDescription}
+                generate
+              />
+            </div>
           </div>
-        </div>
+        </DevMode>
+        
       </div>
     </div>
   )
