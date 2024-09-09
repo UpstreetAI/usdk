@@ -625,6 +625,7 @@ export const MultimediaSense = () => {
         dedent`
           Query multimedia content using natural language questions + answers.
           The questions should be short and specific.
+          Use this whenever you need to know more information about a piece of media, like an image attachment.
 
           The available content is:
           \`\`\`
@@ -632,8 +633,6 @@ export const MultimediaSense = () => {
         JSON.stringify(attachments, null, 2) + '\n' +
         dedent`
           \`\`\`
-
-          Use this only when you do not already know the answer.
         `
       }
       schema={
