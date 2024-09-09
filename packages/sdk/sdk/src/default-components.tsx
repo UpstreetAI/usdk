@@ -23,6 +23,8 @@ import type {
   PerceptionEvent,
   ActionMessage,
   PlayableAudioStream,
+  Attachment,
+  FormattedAttachment,
 } from './types';
 import {
   AppContext,
@@ -71,15 +73,18 @@ import {
   currencies,
   intervals,
 } from './constants.mjs';
+import {
+  describe,
+  describeJson,
+} from 'usdk/sdk/src/util/vision.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
 
 // utils
 
-const timeAgo = (timestamp: Date) =>
-  jsAgo(+timestamp / 1000, { format: 'short' });
-// const shuffle = (array: Array<any>) => array.sort(() => Math.random() - 0.5);
+const timeAgo = (timestamp: Date) => jsAgo(+timestamp / 1000, { format: 'short' });
+const defaultPriorityOffset = 100;
 
 // defaults
 
@@ -94,6 +99,7 @@ export const DefaultAgentComponents = () => {
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
+      <DefaultSenses />
       <DefaultTasks />
       <DefaultServers />
     </>
@@ -185,61 +191,6 @@ export const DefaultActions = () => {
     </>
   );
 };
-
-/**
- * Renders a JSON action component for sending ETH to a specified user ID.
- * @returns The JSX element representing the JSON action component.
- */
-/* export const JsonAction = ({
-  name,
-  description,
-  schema,
-  examples,
-  handler,
-}: {
-  name: string;
-  description?: string;
-  schema?: z.ZodType<object>,
-  examples?: Array<object>;
-  handler: (e: PendingActionEvent) => void | Promise<void>;
-}) => {
-  const agents = useAgents();
-  const randomAgent = shuffle(agents.slice())[0];
-  const examplesJsonString = examples.map((args) => JSON.stringify(
-    {
-      userId: randomAgent.id,
-      name: randomAgent.name, // helps with dialogue inference
-      method: name,
-      args,
-    }
-  )).join('\n');
-  return (
-    <Action
-      name={name}
-      description={
-        dedent`
-          * ${name}
-        ` +
-        '\n' +
-        description +
-        '\n' +
-        printZodNode(zodToTs(schema).node) +
-        '\n' +
-        dedent`
-          e.g.
-          \`\`\`
-        ` +
-        '\n' +
-        examplesJsonString +
-        '\n' +
-        dedent`
-          \`\`\`
-        `
-      }
-      handler={handler}
-    />
-  );
-}; */
 
 // prompts
 
@@ -433,40 +384,21 @@ export const ConversationMessagesPrompt = () => {
   );
 }
 export const CachedMessagesPrompt = () => {
-  // const appContextValue = useContext(AppContext);
-
-  // const [historyActions, setHistoryActions] = useState([]);
-  // const perAgentHistoryActions = await Promise.all(
-  //   agents.map((agent) => agent.getActionHistory()),
-  // );
-  // const historyActions = useActionHistory()
-  //   // .flat()
-  //   .sort((a, b) => +a.timestamp - +b.timestamp);
   const cachedMessages = useCachedMessages();
 
-  // // console.log('render prompt', historyActions);
-  // useEffect(() => {
-  //   appContextValue.useLoad(
-  //     (async () => {
-  //       // console.log('start action history');
-  //       const perAgentHistoryActions = await Promise.all(
-  //         agents.map((agent) => agent.getActionHistory()),
-  //       );
-  //       /* console.log(
-  //         'get action history',
-  //         {
-  //           perAgentHistoryActions: JSON.stringify(perAgentHistoryActions, null, 2),
-  //           now: Date.now(),
-  //         },
-  //       ); */
-  //       const newHistoryActions = perAgentHistoryActions
-  //         .flat()
-  //         .sort((a, b) => a.timestamp - b.timestamp);
-  //       // console.log('new action history', newHistoryActions);
-  //       setHistoryActions(newHistoryActions);
-  //     })(),
-  //   );
-  // }, [agents, appContextValue]);
+  const formatAttachments = (attachments: Attachment[]) => attachments.map((attachment) => formatAttachment(attachment));
+  const formatAttachment = (attachment: Attachment): FormattedAttachment => {
+    const {
+      id,
+      type,
+      alt,
+    } = attachment;
+    return {
+      id,
+      type,
+      alt,
+    };
+  };
 
   return (
     <Prompt>
@@ -482,14 +414,15 @@ export const CachedMessagesPrompt = () => {
               '\n' +
               cachedMessages
                 .map((action) => {
-                  const { userId, name, method, args, timestamp } = action;
+                  const { /*userId,*/ name, method, args, attachments = [], timestamp } = action;
                   const j = {
                     // userId,
                     name,
                     method,
                     args,
+                    attachments: formatAttachments(attachments),
                   };
-                  return JSON.stringify(j) + ' ' + timeAgo(timestamp);
+                  return JSON.stringify(j) + ' ' + timeAgo(new Date(timestamp));
                 })
                 .join('\n') +
               '\n' +
@@ -606,7 +539,7 @@ export const JsonFormatter = () => {
  * @returns The JSX elements representing the default perceptions components.
  */
 export const DefaultPerceptions = () => {
-  const agent = useAgent();
+  // const agent = useAgent();
 
   return (
     <>
@@ -625,6 +558,247 @@ export const DefaultPerceptions = () => {
           await e.data.targetAgent.think();
         }}
       />
+    </>
+  );
+};
+
+const mediaPerceptionSpecs = [
+  {
+    types: ['image/jpeg', 'image/png', 'image/webp'],
+    describe: async ({
+      // blob,
+      url,
+      questions,
+      agent,
+    }: {
+      // blob: Blob,
+      url: string,
+      questions: string[],
+      agent: AgentObject,
+    }, {
+      jwt,
+    }) => {
+      const answersFormat = z.object({
+        answers: z.array(z.string()),
+      });
+      // XXX we can do this by passing the r2 asset url string instead of downloading + passing the blob
+      const answersObject = await describeJson(url, dedent`\
+        Respond as if you are role playing the following character:
+        Name: ${agent.name}
+        Bio: ${agent.bio}
+
+        Answer the following questions about the image, as JSON array.
+        Each question string in the input array should be answered with a string in the output array.
+      ` + JSON.stringify({
+        questions,
+      }, null, 2), answersFormat, {
+        jwt,
+      });
+      const { answers } = answersObject;
+      return answers;
+    },
+  },
+];
+export const MultimediaSense = () => {
+  const conversation = useConversation();
+  const authToken = useAuthToken();
+  const randomId = useMemo(() => crypto.randomUUID(), []);
+
+  // const types = mediaPerceptionSpecs.flatMap(spec => spec.types) as [string, ...string[]];
+  const makeAttachments = (messages: ActionMessage[]) => {
+    const result = [];
+    for (const message of messages) {
+      if (message.attachments) {
+        for (const attachment of message.attachments) {
+          result.push(attachment);
+        }
+      }
+    }
+    return result;
+  };
+  const attachments = makeAttachments(conversation.messageCache.messages);
+
+  return (
+    <Action
+      name="mediaPerception"
+      description={
+        dedent`
+          Query multimedia content using natural language questions + answers.
+          The questions should be short and specific.
+
+          The available content is:
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(attachments, null, 2) + '\n' +
+        dedent`
+          \`\`\`
+
+          Use this only when you do not already know the answer, as it is a relatively expensive operation.
+        `
+      }
+      schema={
+        z.object({
+          // type: z.enum(types),
+          id: z.string(),
+          questions: z.array(z.string()),
+        })
+      }
+      examples={[
+        {
+          // type: 'image/jpeg',
+          id: randomId,
+          questions: [
+            'Describe the image.',
+          ],
+        },
+        {
+          // type: 'image/jpeg',
+          id: randomId,
+          questions: [
+            `What are the dimensions of the subject, in meters?`,
+          ],
+        },
+        {
+          // type: 'image/jpeg',
+          id: randomId,
+          questions: [
+            `Describe the people in the image.`,
+            `What's the mood/aesthetic?`,
+          ],
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        console.log('mediaPerception handler 1', e.data);
+        const {
+          agent,
+          message: {
+            args: {
+              id: attachmentId,
+              questions,
+            },
+          },
+        } = e.data;
+        const retry = () => {
+          agent.think();
+        };
+        const makeAlt = (questions: string[], answers: string[]) => {
+          return questions.map((q, index) => {
+            const a = answers[index];
+            return {
+              q,
+              a,
+            };
+          });
+        };
+
+        const attachments = [];
+        const attachmentsToMessagesMap = new WeakMap();
+        for (const message of conversation.messageCache.messages) {
+          if (message.attachments) {
+            for (const attachment of message.attachments) {
+              attachments.push(attachment);
+              attachmentsToMessagesMap.set(attachment, message);
+            }
+          }
+        }
+
+        const attachment = attachments.find(attachment => attachment.id === attachmentId);
+        console.log('mediaPerception handler 2', {
+          attachmentId,
+          attachments,
+          attachment,
+          questions,
+          agent,
+          conversation,
+        });
+        if (attachment) {
+          const {
+            type,
+            url,
+          } = attachment;
+          if (url) {
+            // const res = await fetch(url);
+            // const blob = await res.blob();
+            // console.log('querying!', {
+            //   blob,
+            //   questions,
+            //   agent,
+            // });
+            const mediaPerceptionSpec = mediaPerceptionSpecs.find(spec => spec.types.includes(type));
+            if (mediaPerceptionSpec) {
+              const answers = await mediaPerceptionSpec.describe({
+                // blob,
+                url,
+                questions,
+                agent: agent.agent,
+              }, {
+                jwt: authToken,
+              });
+              const alt = makeAlt(questions, answers);
+              console.log('got answers', {
+                questions,
+                answers,
+                alt,
+              });
+              const message = attachmentsToMessagesMap.get(attachment);
+              conversation.updateMessage(message.id, (oldMessage) => {
+                return {
+                  ...oldMessage,
+                  attachments: oldMessage.attachments.map((oldAttachment) => {
+                    if (oldAttachment.id === attachmentId) {
+                      return {
+                        ...oldAttachment,
+                        alt: [
+                          ...(oldAttachment.alt ?? []),
+                          ...alt,
+                        ],
+                      };
+                    } else {
+                      return oldAttachment;
+                    }
+                  })
+                };
+              });
+              await agent.think(dedent`\
+                Character looked at attachment and discovered the following:
+              ` + '\n' +
+                JSON.stringify(alt, null, 2)
+              );
+            } else {
+              console.warn('warning: no media perception spec found for type', {
+                type,
+                mediaPerceptionSpecs,
+              });
+              retry();
+            }
+          } else {
+            console.warn('warning: attachment has no url', {
+              attachmentId,
+              attachments,
+              attachment,
+            });
+            retry();
+          }
+        } else {
+          console.warn('warning: model generated invalid id, retrying', {
+            attachmentId,
+            attachments,
+            attachment,
+          });
+          retry();
+        }
+      }}
+    />
+  )
+};
+export const DefaultSenses = () => {
+  // const agent = useAgent();
+
+  return (
+    <>
+      <Conversation>
+        <MultimediaSense />
+      </Conversation>
     </>
   );
 };
@@ -1491,11 +1665,6 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
           isFinite(maxUserMessages) &&
           maxUserMessagesTime !== 0 &&
           isFinite(maxUserMessagesTime);
-        // console.log('rate limiting enabled', {
-        //   rateLimitingEnabled,
-        //   maxUserMessages,
-        //   maxUserMessagesTime,
-        // });
         const isOwner = e.data.sourceAgent.id === e.data.targetAgent.agent.ownerId;
         if (rateLimitingEnabled && !isOwner) {
           // if rate limiting is enabled
@@ -1503,21 +1672,9 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
           // fetch old timestamps
           const key = `userMessageTimestamps.${sourceAgent.id}`;
           let userMessageTimestamps = await kv.get<UserMessageTimestamp[]>(key) ?? [];
-          // console.log('got timestamps 1', {
-          //   sourceAgent,
-          //   targetAgent,
-          //   key,
-          //   userMessageTimestamps,
-          // });
           // filter out old timestamps
           const now = Date.now();
           userMessageTimestamps = userMessageTimestamps.filter((t) => now - t.timestamp < maxUserMessagesTime);
-          // console.log('got timestamps 2', {
-          //   sourceAgent,
-          //   targetAgent,
-          //   key,
-          //   userMessageTimestamps,
-          // });
           if (userMessageTimestamps.length < maxUserMessages) {
             // if we have room for more timestamps
             // add new timestamp
@@ -1542,7 +1699,7 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
             if (!rateLimitMessageSent.current) {
               rateLimitMessageSent.current = true;
 
-              // send rate limit message witohut using inference
+              // send rate limit blocker message
               (async () => {
                 await targetAgent.say(rateLimitMessage);
               })().catch((err) => {
@@ -1552,7 +1709,7 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
           }
         }
       }}
-      priority={-100}
+      priority={-defaultPriorityOffset}
     />
   );
 };
@@ -1562,42 +1719,10 @@ export type TTSProps = {
 };
 export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   const voiceEndpoint = props?.voiceEndpoint;
-  // const configuration = useContext(ConfigurationContext);
 
   const tts = useTts({
     voiceEndpoint,
   });
-
-  /* useEffect(() => {
-    const actionHandlerModifier = (() => {
-      return {
-        handle: async (e: PendingActionEvent) => {
-          const { message, agent } = e.data;
-          const args = message.args as any;
-          const text = (args as any).text as string;
-          const readableAudioStream = tts.getVoiceStream(text);
-          const { type } = readableAudioStream;
-          const playableAudioStream = readableAudioStream as PlayableAudioStream;
-          playableAudioStream.id = crypto.randomUUID();
-          agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
-          if (!args.linkedMedia) {
-            args.linkedMedia = [];
-          }
-          args.linkedMedia.push({
-            id: playableAudioStream.id,
-            type,
-          });
-        },
-      };
-    })();
-    addActionModifier(configuration, 'say', actionHandlerModifier);
-
-    return () => {
-      removeActionModifier(configuration, 'say', actionHandlerModifier);
-    };
-  }, [
-    tts,
-  ]); */
 
   return (
     <ActionModifier
@@ -1606,15 +1731,17 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
         const { message, agent } = e.data;
         const args = message.args as any;
         const text = (args as any).text as string;
+
         const readableAudioStream = tts.getVoiceStream(text);
         const { type } = readableAudioStream;
         const playableAudioStream = readableAudioStream as PlayableAudioStream;
         playableAudioStream.id = crypto.randomUUID();
-        agent.addAudioStream(playableAudioStream); // XXX send this after the main chat message
-        if (!args.linkedMedia) {
-          args.linkedMedia = [];
+        agent.addAudioStream(playableAudioStream);
+
+        if (!message.attachments) {
+          message.attachments = [];
         }
-        args.linkedMedia.push({
+        message.attachments.push({
           id: playableAudioStream.id,
           type,
         });
