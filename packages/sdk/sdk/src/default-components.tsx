@@ -646,7 +646,7 @@ const MediaGenerator = () => {
   return (
     <>
       <Action
-        name="media"
+        name="sendMedia"
         description={dedent`\
           Send simulated multimedia content as a media attachment.
 
