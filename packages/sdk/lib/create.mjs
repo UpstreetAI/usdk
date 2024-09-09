@@ -132,7 +132,7 @@ const generateTemplateFromAgentJson = async (agentJson) => {
 
   // write the agent jsx
   const agentJSXPath = path.join(templateDirectory, 'agent.tsx');
-  const agentJSX = makeAgentSourceCode(agentJson.features);
+  const agentJSX = makeAgentSourceCode(agentJson.features ?? []);
   await fs.promises.writeFile(agentJSXPath, agentJSX);
 
   // write the agent json
