@@ -21,6 +21,7 @@ import {
 import {
   AuxImages,
 } from '@/components/aux-images';
+import { useGlobalState } from '@/contexts/GlobalContext';
 
 export interface ProfileProps {
   user: any,
@@ -31,6 +32,9 @@ export function Profile({
   user: userInit,
   userIsCurrentUser,
 }: ProfileProps) {
+
+  const [globalState] = useGlobalState();
+
   const { supabase } = useSupabase();
 
   const [user, setUser] = useState(() => userInit);
@@ -49,7 +53,7 @@ export function Profile({
     _setVisualDescription(visualDescription);
     // user.playerSpec.visualDescription = visualDescription;
   };
-  
+
   const saveInfo = async () => {
     const o = {
       name,
@@ -263,7 +267,7 @@ export function Profile({
                 </Button>
                 <Button
                   onClick={saveInfo}
-                  // className="mr-2"
+                // className="mr-2"
                 >
                   Save Info
                 </Button>
@@ -271,16 +275,18 @@ export function Profile({
             </div>
           </div>
         </div>
-        <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
-          <div className="flex flex-col items-start justify-start">
-            <AuxImages
-              user={user}
-              setUser={setUser}
-              visualDescription={visualDescription}
-              generate
-            />
+        {globalState?.isDevMode && (
+          <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
+            <div className="flex flex-col items-start justify-start">
+              <AuxImages
+                user={user}
+                setUser={setUser}
+                visualDescription={visualDescription}
+                generate
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
