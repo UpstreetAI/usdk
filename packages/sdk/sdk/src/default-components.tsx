@@ -738,7 +738,7 @@ const MediaGenerator = () => {
                 await agent.addMessage(m);
               } else {
                 const text = await res.text();
-                throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+                throw new Error(`could not upload media file: ${blob.type}: ${text}`);
               }
             } catch (err) {
               throw new Error('failed to put voice: ' + u + ': ' + err.stack);
