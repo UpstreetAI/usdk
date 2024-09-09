@@ -109,8 +109,8 @@ export function ChatMessage({
             if (isVideoType(media?.type)) {
               return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
             }
-            return (<div>{content}</div>);
           })()}
+          {content && (<div>{content}</div>)}
         </div>
       </div>
     </div>
