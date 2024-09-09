@@ -460,6 +460,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           // nothing
           break;
         }
+        case 'mediaPerception':
         case 'paymentRequest': {
           break;
         }
