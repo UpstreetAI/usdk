@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { useState, useMemo } from 'react';
-import { Vector3, Quaternion } from 'three';
-import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { Vector3, Quaternion } from 'three';
+// import { Canvas, useThree, useLoader, useFrame } from '@react-three/fiber';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { Button } from '@/components/ui/button';
+import { Model } from '@/components/model';
 import { getJWT } from '@/lib/jwt';
 import {
   generateCharacterImage,
@@ -22,7 +23,7 @@ import {
 import {
   r2EndpointUrl,
 } from 'usdk/sdk/src/util/endpoints.mjs';
-import { OrbitControls } from '@react-three/drei';
+// import { OrbitControls } from '@react-three/drei';
 
 const getUserImageSrc = (type: string) => (user: any) : (string | string[] | null) => {
   return user.playerSpec.images?.find((imageSpec: any) => imageSpec.type === type)?.url ?? null;
@@ -46,34 +47,6 @@ const ImageComponent = ({
         className="w-20 h-20 m-2"
       />
     </a>
-  );
-};
-const ModelComponent = ({
-  src,
-}: {
-  src: string;
-}) => {
-  const model = useLoader(GLTFLoader, src);
-  const y180Quaternion = useMemo(() => new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), Math.PI), []);
-  const size = 300;
-
-  return (
-    // <div className={`w-[${size}px] h-[${size}px]`}>
-      <Canvas
-        camera={{
-          position: [0, 0, 1],
-        }}
-        style={{
-          width: `${size}px`,
-          height: `${size}px`,
-        }}
-      >
-        <ambientLight />
-        <directionalLight position={[1, 2, 3]} />
-        <primitive object={model.scene} quaternion={y180Quaternion} />
-        <OrbitControls />
-      </Canvas>
-    // </div>
   );
 };
 const auxTypeSpecs = [
@@ -246,7 +219,7 @@ const auxTypeSpecs = [
     name: '3d',
     type: 'model/3d',
     getImageSrc: getUserImageSrc('model/3d'),
-    Component: ModelComponent,
+    Component: Model,
     generate: async (generationSpec: GenerationSpec) => {
       const res = await fetch(generationSpec.imageUrl);
       const blob = await res.blob();
