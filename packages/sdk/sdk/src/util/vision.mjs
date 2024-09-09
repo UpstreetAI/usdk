@@ -9,6 +9,7 @@ import {
 } from '../defaults.mjs';
 import { blobToDataUrl } from './base64.mjs';
 
+const makeDataUrl = async blob => typeof blob === 'string' ? blob : await blobToDataUrl(blob);
 export const describe = async (blob, query = dedent`\
   Describe the image.
   Do NOT start with "This is an image of..." or anything similar.
@@ -18,7 +19,7 @@ export const describe = async (blob, query = dedent`\
   if (!jwt) {
     throw new Error('no jwt');
   }
-  const dataUrl = await blobToDataUrl(blob);
+  const dataUrl = await makeDataUrl(blob);
   const messages = [
     {
       role: 'user',
@@ -80,7 +81,7 @@ export const describeJson = async (blob, hint, format, {
     Describe the image using the given JSON format.
     Do NOT start with "This is an image of..." or anything similar.
   ` + (hint ? `\n${hint}` : '');
-  const dataUrl = await blobToDataUrl(blob);
+  const dataUrl = await makeDataUrl(blob);
   const messages = [
     {
       role: 'user',

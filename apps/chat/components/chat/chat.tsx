@@ -28,8 +28,6 @@ import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
 
-import { env } from '@/lib/env'
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
 import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
 
 //
@@ -44,20 +42,24 @@ const openInNewPage = (url: string) => {
 
 //
 
-type MessageMedia = {
+type Alt = {
+  q: string
+  a: string
+}
+type FormattedAttachment = {
+  id: string
   type: string
-  url: string
+  alt?: Alt[]
+}
+type Attachment = FormattedAttachment &{
+  url?: string
 }
 type Message = {
+  method: string
   args: {
     text?: string
-    // audio?: string
-    // image?: string
-    // video?: string
-    media?: MessageMedia
   }
-
-  method: string
+  attachments: Attachment[]
   name: string
   timestamp: Date
   userId: string
@@ -66,30 +68,19 @@ type Message = {
 //
 
 export interface ChatProps extends React.ComponentProps<'div'> {
-  initialMessages?: Message[]
   id?: string
-  // user: User|null
-  // missingKeys: string[]
   room: string
   onConnect?: (connected: boolean) => void
 }
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
-  // const router = useRouter()
-  // const path = usePathname()
   const [input, setInput] = useState('')
-  // const [messages] = useUIState()
-  // const [aiState] = useAIState()
   const { user } = useSupabase()
-
-  // const [_, setNewChatId] = useLocalStorage('newChatId', id)
 
   const {
     connected,
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
-    // sendRawMessage,
-    // sendChatMessage,
   } = useMultiplayerActions();
 
   useEffect(() => {
@@ -101,15 +92,11 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       ...rawMessage,
       timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
     };
-    // if (rawMessage.method === 'say') {
-      return {
-        id: index,
-        display: getMessageComponent(room, message, index + '', playersCache, user),
-      };
-    // } else {
-    //   return null;
-    // }
-  })/*.filter((message) => message !== null) as unknown */as any[];
+    return {
+      id: index,
+      display: getMessageComponent(room, message, index + '', playersCache, user),
+    };
+  })as any[];
 
   useEffect(() => {
     if (room && user) {
@@ -144,7 +131,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       >
         {room ? (
           messages.length ? (
-            <ChatList messages={messages} /*isShared={false} user={user}*/ />
+            <ChatList messages={messages} />
           ) : (
             null
           )
@@ -153,19 +140,33 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
         <div className="w-full h-px" ref={visibilityRef} />
       </div>
       <ChatPanel
-        // id={id}
         input={input}
         setInput={setInput}
         isAtBottom={isAtBottom}
         scrollToBottom={scrollToBottom}
         room={room}
         messages={messages}
-        // sendChatMessage={sendChatMessage}
       />
     </div>
   )
 }
 
+/* const formatAttachment = (attachment?: Attachment): (FormattedAttachment | undefined) => {
+  if (attachment) {
+    const {
+      id,
+      type,
+      alt,
+    } = attachment;
+    return {
+      id,
+      type,
+      alt,
+    };
+  } else {
+    return attachment;
+  }
+}; */
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
 
@@ -185,37 +186,18 @@ function getMessageComponent(room: string, message: Message, id: string, players
     )
     
     case 'say': {
-
       const player = playersCache.get(message.userId);
-
-      // let media = null;
-
-      // if(message.args.audio) media = { type: 'audio', url: message.args.audio };
-      // if(message.args.video) media = { type: 'video', url: message.args.video };
-      // if(message.args.image) media = { type: 'image', url: message.args.image };
-
-      // TEST MESSAGE COMPONENTS START, REMOVE WHEN MEDIA ARGS ARE IMPLEMENTED, THE ABOVE WILL WORK
-      // Usage:
-      // test audio [AUDIO_URL]
-      // test video [VIDEO_URL]
-      // test image [IMAGE_URL]
-      // const match = message.args.text.match(/\[([^\]]+)\]/);
-      // const url = match && match[1]
-      // if(message.args.text.startsWith('test audio')) media = { type: 'audio', url: url };
-      // if(message.args.text.startsWith('test video')) media = { type: 'video', url: url };
-      // if(message.args.text.startsWith('test image')) media = { type: 'image', url: url };
-      // TEST MESSAGE COMPONENTS END
+      const media = (message.attachments ?? [])[0] ?? null;
 
       return (
         <ChatMessage
           id={id}
           name={ message.name }
           content={message.args.text}
-          media={message.args.media}
+          media={media}
           player={player}
           room={room}
           timestamp={message.timestamp}
-          // user={user}
         />
       )
     }

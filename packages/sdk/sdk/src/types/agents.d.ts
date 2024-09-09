@@ -86,22 +86,32 @@ export type TtsArgs = {
 
 // actions
 
+export type FormattedAttachment = {
+  type: string;
+  id: string;
+};
+export type Attachment = FormattedAttachment & {
+  url?: string;
+};
 export type ActionMessage = {
   userId: string;
   name: string;
   method: string;
   args: object;
-  human: boolean;
+  attachments?: Attachment[];
+  human: boolean; // XXX can be converted to flags
   hidden: boolean;
   timestamp: Date;
 };
 export type PendingActionMessage = {
   method: string;
   args: object;
+  attachments?: Attachment[];
 };
 export type PerceptionMessage = {
   method: string;
   args: object;
+  attachments?: Attachment[];
   timestamp: Date;
 };
 export type ActionMessages = Array<ActionMessage>;
@@ -159,6 +169,10 @@ export type QueueManager = EventTarget & {
 };
 export type MultiQueueManager = {
   waitForTurn: (key: string, fn: () => Promise<any>) => Promise<void>;
+};
+export type Debouncer = EventTarget & {
+  isIdle: () => boolean;
+  waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
 
 export type MessageCache = {
@@ -234,7 +248,7 @@ export type ChatsManager = EventTarget & {
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
-  incomingMessageQueueManager: QueueManager;
+  incomingMessageDebouncer: Debouncer;
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
@@ -285,7 +299,6 @@ export type ActiveAgentObject = AgentObject & {
     conversation: ConversationObject,
   }) => GenerativeAgentObject;
 
-  // addAction: (pendingActionMessage: PendingActionMessage, opts?: ActionOpts) => Promise<any>;
   getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
   addMemory: (
     text: string,
@@ -308,14 +321,6 @@ export type AbortableMessageEvent<T> = MessageEvent<T> & {
 };
 
 // action events
-
-// export type ActionEventData = {
-//   agent: AgentObject;
-//   message: ActionMessage;
-// };
-// export interface ActionEvent extends MessageEvent {
-//   data: ActionEventData;
-// }
 
 export type PendingActionEventData = {
   agent: GenerativeAgentObject;
