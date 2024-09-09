@@ -633,7 +633,7 @@ export const MultimediaSense = () => {
         dedent`
           \`\`\`
 
-          Use this only when you do not already know the answer, as it is a relatively expensive operation.
+          Use this only when you do not already know the answer.
         `
       }
       schema={
