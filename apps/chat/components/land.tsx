@@ -62,7 +62,7 @@ import {
 } from 'usdk/sdk/src/util/vision.mjs';
 import {
   generateSound,
-} from 'usdk/sdk/src/util/sound.mjs';
+} from 'usdk/sdk/src/util/generate-sound.mjs';
 import {
   generateModel,
 } from 'usdk/sdk/src/util/generate-model.mjs';
