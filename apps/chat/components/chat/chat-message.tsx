@@ -104,7 +104,7 @@ export function ChatMessage({
               return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
             }
             if (isAudioType(media?.type)) {
-              (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
+              return (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
             }
             if (isVideoType(media?.type)) {
               return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
