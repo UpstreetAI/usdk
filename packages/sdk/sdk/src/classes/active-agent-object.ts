@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 // import type { Context } from 'react';
 import { z } from 'zod';
 // import * as Y from 'yjs';
@@ -14,7 +14,7 @@ import type {
   AppContextValue,
   MemoryOpts,
   Memory,
-  ChatsSpecification,
+  // ChatsSpecification,
 } from '../types';
 import {
   ConversationObject,
@@ -50,7 +50,7 @@ import {
   TaskManager,
 } from './task-manager';
 import { PingManager } from './ping-manager';
-import { AgentRegistry, emptyAgentRegistry } from './render-registry';
+import { AgentRegistry } from './render-registry';
 
 //
 
