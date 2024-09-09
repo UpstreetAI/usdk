@@ -177,14 +177,9 @@ export function ChatMessageModel({
 }: ChatMessageModelProps) {
   return (
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
-      {/* <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
-        <source src={url} type="video/mp4" />
-          Your browser does not support the video tag.
-      </video> */}
       <Model src={url} />
       <Button
         variant="secondary"
-        // className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
         onClick={e => {
           const a = document.createElement('a');
           a.href = url;
