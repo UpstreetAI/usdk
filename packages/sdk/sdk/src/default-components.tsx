@@ -669,7 +669,15 @@ const MediaGenerator = () => {
               image_size: imageSizes[0],
             },
             chatText: "Guess where I am? ;)",
-          }
+          },
+          {
+            type: 'audio/mp3',
+            prompt: `a mechanical button beep, 16 bit`,
+            // options: {
+            //   image_size: imageSizes[0],
+            // },
+            chatText: "Beep!",
+          },
         ]}
         handler={async (e: PendingActionEvent) => {
           const {
