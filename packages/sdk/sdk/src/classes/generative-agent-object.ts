@@ -152,8 +152,7 @@ export class GenerativeAgentObject {
       // });
       const pendingMessage = await generateAgentAction(
         this,
-        'The next action should be the character commenting on the following:' +
-          '\n' +
+        'Comment on the following:' + '\n' +
           text,
         {
           forceAction: 'say',
