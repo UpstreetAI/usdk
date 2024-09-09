@@ -21,8 +21,8 @@ import {
 import {
   AuxImages,
 } from '@/components/aux-images';
-import { useGlobalState } from '@/contexts/GlobalContext';
-import DevMode from '../development';
+
+import DevMode from '@/components/development';
 
 export interface ProfileProps {
   user: any,
@@ -33,9 +33,6 @@ export function Profile({
   user: userInit,
   userIsCurrentUser,
 }: ProfileProps) {
-
-  const [globalState] = useGlobalState();
-
   const { supabase } = useSupabase();
 
   const [user, setUser] = useState(() => userInit);
