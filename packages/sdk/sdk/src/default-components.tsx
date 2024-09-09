@@ -683,7 +683,7 @@ const MediaGenerator = () => {
               },
             },
           } = e.data;
-          // console.log('got args', e.data.message.args);
+          console.log('send media args', e.data.message.args);
 
           const retry = () => {
             agent.think();
