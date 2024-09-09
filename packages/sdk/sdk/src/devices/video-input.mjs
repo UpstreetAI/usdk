@@ -4,7 +4,6 @@ import Jimp from 'jimp';
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from '../util/queue-manager.mjs';
-export { describe } from '../util/vision.mjs';
 
 //
 
