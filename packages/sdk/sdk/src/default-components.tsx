@@ -77,14 +77,14 @@ import {
 import {
   describe,
   describeJson,
-} from 'usdk/sdk/src/util/vision.mjs';
+} from './util/vision.mjs';
 import {
   imageSizes,
   fetchImageGeneration,
-} from 'usdk/sdk/src/util/generate-image.mjs';
+} from './util/generate-image.mjs';
 import {
   generateSound,
-} from 'usdk/sdk/src/util/generate-sound.mjs';
+} from './util/generate-sound.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
