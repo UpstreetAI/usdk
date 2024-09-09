@@ -10,32 +10,13 @@ import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
+import type {
+  ActionMessage,
+  Attachment,
+} from 'usdk/sdk/src/types';
 
 //
 
-const connectAgentWs = (guid: string) =>
-  new Promise((accept, reject) => {
-    const agentHost = getAgentHost(guid);
-    // console.log('got agent host', guidOrDevPathIndex, agentHost);
-    const u = `${agentHost.replace(/^http/, 'ws')}/ws`;
-    // console.log('handle websocket', u);
-    // await pause();
-    const ws = new WebSocket(u);
-    ws.addEventListener('open', () => {
-      accept(ws);
-    });
-    ws.addEventListener('message', (e) => {
-      // const message = e.data;
-      // console.log('got ws message', guid, message);
-    });
-    ws.addEventListener('error', (err) => {
-      console.warn('unhandled ws rejection', err);
-      reject(err);
-    });
-    // ws.addEventListener('message', (e) => {
-    //   console.log('got ws message', e);
-    // });
-  });
 const join = async ({
   room,
   guid,
@@ -45,18 +26,11 @@ const join = async ({
 }) => {
   // cause the agent to join the room
   const agentHost = getAgentHost(guid);
-  // console.log('get agent host', {
-  //   guidOrDevPathIndex,
-  //   agentHost,
-  // });
   const u = `${agentHost}/join`;
   // console.log('join 1', u);
   const headers = {};
-  // if (!dev) {
-  // const jwt = await getLoginJwt();
   const jwt = localStorage.getItem('jwt');
   (headers as any).Authorization = `Bearer ${jwt}`;
-  // }
   const joinReq = await fetch(u, {
     method: 'POST',
     headers,
@@ -67,9 +41,6 @@ const join = async ({
   if (joinReq.ok) {
     const joinJson = await joinReq.json();
     // console.log('join 2', joinJson);
-
-    const ws = await connectAgentWs(guid);
-    return ws;
   } else {
     const text = await joinReq.text();
     console.warn(
@@ -110,7 +81,7 @@ interface MultiplayerActionsContextType {
   playersCache: Map<string, Player>
   messages: object[]
   setMultiplayerConnectionParameters: (params: object | null) => void
-  sendRawMessage: (method: string, args: object) => void
+  // sendRawMessage: (method: string, args: object) => void
   sendChatMessage: (text: string) => void
   sendMediaMessage: (file: File) => Promise<void>
   agentJoin: (guid: string) => Promise<void>
@@ -554,16 +525,20 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       setEpoch((prev) => prev + 1);
     };
 
-    const sendRawMessage = (method: string, args: object) => {
+    const sendRawMessage = (method: string, args: object = {}, attachments?: Attachment[]) => {
       if (realms) {
         const { id: userId, name } = localPlayerSpec;
 
-        const message = {
+        const timestamp = new Date();
+        const message: ActionMessage = {
           method,
           userId,
           name,
           args,
-          timestamp: Date.now(),
+          attachments,
+          human: true,
+          hidden: false,
+          timestamp,
         };
         // console.log('send chat message', message);
         realms.sendChatMessage(message);
@@ -648,19 +623,21 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           refresh();
         }
       },
-      sendRawMessage,
+      // sendRawMessage,
       sendChatMessage: (text: string) =>
         sendRawMessage('say', {
           text,
         }),
       sendMediaMessage: async (file: File) => {
         const url = await uploadFile(file);
-        return sendRawMessage('say', {
-          media: {
+        const id = crypto.randomUUID();
+        return sendRawMessage('say', undefined, [
+          {
+            id,
             type: file.type,
             url,
           },
-        });
+        ]);
       },
       agentJoin: async (guid: string) => {
         const oldRoom = multiplayerState.getRoom();
@@ -710,7 +687,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const playersCache = multiplayerState.getPlayersCache();
   const messages = multiplayerState.getMessages();
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
-  const sendRawMessage = multiplayerState.sendRawMessage;
+  // const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
   const sendMediaMessage = multiplayerState.sendMediaMessage;
   const agentJoin = multiplayerState.agentJoin;
@@ -727,7 +704,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         playersCache,
         messages,
         setMultiplayerConnectionParameters,
-        sendRawMessage,
+        // sendRawMessage,
         sendChatMessage,
         sendMediaMessage,
         agentJoin,
