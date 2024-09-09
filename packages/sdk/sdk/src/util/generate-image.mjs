@@ -8,6 +8,15 @@ import {
   blobToDataUrl,
 } from './base64.mjs';
 
+export const imageSizes = [
+  "square_hd",
+  "square",
+  "portrait_4_3",
+  "portrait_16_9",
+  "landscape_4_3",
+  "landscape_16_9",
+];
+
 export const fetchImageGeneration = async (prompt, opts, {
   jwt,
 } = {}) => {

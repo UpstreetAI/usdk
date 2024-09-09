@@ -77,6 +77,12 @@ import {
   describe,
   describeJson,
 } from 'usdk/sdk/src/util/vision.mjs';
+import {
+  imageSizes,
+  fetchImageGeneration,
+} from 'usdk/sdk/src/util/generate-image.mjs';
+// import { blob2img } from 'usdk/util/blob-utils.mjs';
+import { r2EndpointUrl } from './util/endpoints.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -99,6 +105,7 @@ export const DefaultAgentComponents = () => {
       <DefaultActions />
       <DefaultPrompts />
       <DefaultPerceptions />
+      <DefaultGenerators />
       <DefaultSenses />
       <DefaultTasks />
       <DefaultServers />
@@ -562,6 +569,171 @@ export const DefaultPerceptions = () => {
   );
 };
 
+// generators
+
+const mediaGeneratorSpecs = [
+  {
+    types: ['image/webp'],
+    optionsSchema: z.object({
+      image_size: z.enum(imageSizes as any).optional(),
+    }).optional(),
+    generate: async ({
+      prompt,
+      options,
+    }: {
+      prompt: string,
+      options?: {
+        image_size?: string,
+      },
+    }, {
+      jwt,
+    }) => {
+      const blob = await fetchImageGeneration(prompt, options, {
+        jwt,
+      });
+      return blob;
+    },
+  },
+];
+const MediaGenerator = () => {
+  const authToken = useAuthToken();
+  const types = mediaGeneratorSpecs.flatMap(spec => spec.types) as [string, ...string[]];
+  const generationSchemas = mediaGeneratorSpecs.map(spec => {
+    const o = {
+      type: z.enum(spec.types as any),
+      prompt: z.string(),
+      options: spec.optionsSchema,
+      chatText: z.string().optional(),
+    };
+    return z.object(o);
+  });
+  const generationSchemasUnion = generationSchemas.length >= 2 ? z.union(generationSchemas as any) : generationSchemas[0];
+
+  return (
+    <Action
+      name="media"
+      description={dedent`\
+        Generate simulated multimedia content and send it as an attachment.
+
+        The given prompt will be used for generating the media.
+        The optional chat text will be said sent along with the media.
+
+        The available content types are:
+        \`\`\`
+      ` + '\n' +
+      JSON.stringify(types, null, 2) + '\n' +
+      dedent`\
+        \`\`\`
+      `}
+      schema={generationSchemasUnion}
+      examples={[
+        {
+          type: 'image/jpeg',
+          prompt: `girl wearing a dress and a hat selling flowers in a Zelda-inspired market`,
+          options: {
+            image_size: imageSizes[0],
+          },
+          chatText: "Guess where I am? ;)",
+        }
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const {
+          agent,
+          message: {
+            args: {
+              type,
+              prompt,
+              options,
+              chatText,
+            },
+          },
+        } = e.data;
+
+        console.log('got args', e.data.message.args);
+
+        const retry = () => {
+          agent.think();
+        };
+
+        const mediaGeneratorSpec = mediaGeneratorSpecs.find(spec => spec.types.includes(type));
+        if (mediaGeneratorSpec) {
+          const blob = await mediaGeneratorSpec.generate({
+            prompt,
+            options,
+          }, {
+            jwt: authToken,
+          });
+          console.log('got blob', blob);
+
+          // upload to r2
+          const guid = crypto.randomUUID();
+          const keyPath = ['assets', guid, `image.jpg`].join('/');
+          const u = `${r2EndpointUrl}/${keyPath}`;
+          try {
+            const res = await fetch(u, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${authToken}`,
+              },
+              body: blob,
+            });
+            if (res.ok) {
+              const imageUrl = await res.json();
+              // return j;
+              // console.log('got image url', [imageUrl]);
+              const m = {
+                method: 'say',
+                args: {
+                  text: chatText ?? '',
+                },
+                attachments: [
+                  {
+                    id: guid,
+                    type: 'image/webp',
+                    url: imageUrl,
+                    // alt: chatText,
+                  },
+                ],
+              };
+              console.log('add message', m);
+              await agent.addMessage(m);
+            } else {
+              const text = await res.text();
+              throw new Error(`could not upload voice file: ${blob.name}: ${text}`);
+            }
+          } catch (err) {
+            throw new Error('failed to put voice: ' + u + ': ' + err.stack);
+          }
+
+          // const img = await blob2img(blob);
+          // img.style.cssText = `\
+          //   position: fixed;
+          //   bottom: 0;
+          //   right: 0;
+          //   width: 300px;
+          //   height: auto;
+          //   z-index: 100;
+          // `;
+          // console.log('got img', img);
+        } else {
+          console.warn('warning: no media generator spec found for type', {
+            type,
+            mediaGeneratorSpecs,
+          });
+          retry();
+        }
+      }}
+    />
+  );
+};
+export const DefaultGenerators = () => {
+  return (
+    <MediaGenerator />
+  );
+};
+
+// senses
+
 const mediaPerceptionSpecs = [
   {
     types: ['image/jpeg', 'image/png', 'image/webp'],
@@ -603,7 +775,6 @@ export const MultimediaSense = () => {
   const authToken = useAuthToken();
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
-  // const types = mediaPerceptionSpecs.flatMap(spec => spec.types) as [string, ...string[]];
   const makeAttachments = (messages: ActionMessage[]) => {
     const result = [];
     for (const message of messages) {
