@@ -11,6 +11,7 @@ import {
   ActionProps,
   ConversationObject,
   TaskEventData,
+  AgentThinkOptions,
 } from './types';
 import {
   PendingActionEvent,
@@ -76,23 +77,15 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   return prompts;
 };
 
-export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
-  const prompts = getPrompts(generativeAgent);
-  const promptString = prompts.join('\n\n');
-  const promptMessages = [
-    {
-      role: 'user',
-      content: promptString,
-    },
-  ];
-  return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
-}
-export async function generateAgentActionFromInstructions(
+export async function generateAgentAction(
   generativeAgent: GenerativeAgentObject,
-  instructions: string,
+  hint?: string,
+  thinkOpts?: AgentThinkOptions,
 ) {
   const prompts = getPrompts(generativeAgent)
-    .concat([instructions]);
+  if (hint) {
+    prompts.concat([hint]);
+  }
   const promptString = prompts.join('\n\n');
   const promptMessages = [
     {
@@ -100,11 +93,12 @@ export async function generateAgentActionFromInstructions(
       content: promptString,
     },
   ];
-  return await _generateAgentActionFromMessages(generativeAgent, promptMessages);
+  return await _generateAgentActionFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
 async function _generateAgentActionFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
+  thinkOpts?: AgentThinkOptions,
 ) {
   const { agent } = generativeAgent;
   const {
@@ -112,7 +106,7 @@ async function _generateAgentActionFromMessages(
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  const actionsSchema = formatter.schemaFn(actions);
+  const actionsSchema = formatter.schemaFn(actions, thinkOpts);
   const actionsSchemaResult = z.object({
     result: actionsSchema,
   });

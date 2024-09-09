@@ -37,6 +37,10 @@ export type AgentObject = EventTarget & {
   stripeConnectAccountId: string;
 };
 
+export type AgentThinkOptions = {
+  forceAction?: string;
+  excludeActions?: string[];
+};
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
@@ -429,7 +433,7 @@ export type PromptProps = {
   children: ReactNode;
 };
 export type FormatterProps = {
-  schemaFn: (actions: ActionProps[]) => ZodTypeAny;
+  schemaFn: (actions: ActionProps[], thinkOpts?: AgentThinkOptions) => ZodTypeAny;
   formatFn: (actions: ActionProps[]) => string;
 };
 export type PerceptionProps = {

@@ -9,12 +9,12 @@ import type {
   PendingActionMessage,
   ReadableAudioStream,
   PlayableAudioStream,
+  AgentThinkOptions,
 } from '../types';
 import {
   ConversationObject,
 } from './conversation-object';
 import {
-  generateAgentActionFromInstructions,
   generateAgentAction,
   executeAgentAction,
   // generateJsonMatchingSchema,
@@ -79,16 +79,13 @@ export class GenerativeAgentObject {
 
   // methods
 
-  async think(hint?: string) {
+  async think(hint?: string, thinkOpts?: AgentThinkOptions) {
     await this.generativeQueueManager.waitForTurn(async () => {
       // console.log('agent renderer think 1');
       await this.conversation.typing(async () => {
         // console.log('agent renderer think 2');
         try {
-          const pendingMessage = await (hint
-            ? generateAgentActionFromInstructions(this, hint)
-            : generateAgentAction(this)
-          );
+          const pendingMessage = await generateAgentAction(this, hint, thinkOpts);
           // console.log('agent renderer think 3');
           await executeAgentAction(this, pendingMessage);
           // console.log('agent renderer think 4');
@@ -150,14 +147,16 @@ export class GenerativeAgentObject {
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      console.log('monologue text', {
-        text,
-      });
-      const pendingMessage = await generateAgentActionFromInstructions(
+      // console.log('monologue text', {
+      //   text,
+      // });
+      const pendingMessage = await generateAgentAction(
         this,
-        'The next action should be the character commenting on the following:' +
-          '\n' +
+        'Comment on the following:' + '\n' +
           text,
+        {
+          forceAction: 'say',
+        },
       );
       await executeAgentAction(this, pendingMessage);
     });
