@@ -9,6 +9,7 @@ export async function loadMessagesFromDatabase({
     .select([
       'method',
       'args',
+      'attachments',
       'src_user_id',
       'src_name',
       'created_at',
@@ -28,6 +29,7 @@ function decodeMessages(messages) {
   return messages.map( message => ({
     method: message.method,
     args: message.args,
+    attachments: message.attachments,
     userId: message.src_user_id,
     name: message.src_name,
     timestamp: message.created_at,
