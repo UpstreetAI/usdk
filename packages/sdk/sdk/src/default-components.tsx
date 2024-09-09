@@ -581,7 +581,6 @@ const mediaPerceptionSpecs = [
       const answersFormat = z.object({
         answers: z.array(z.string()),
       });
-      // XXX we can do this by passing the r2 asset url string instead of downloading + passing the blob
       const answersObject = await describeJson(url, dedent`\
         Respond as if you are role playing the following character:
         Name: ${agent.name}
