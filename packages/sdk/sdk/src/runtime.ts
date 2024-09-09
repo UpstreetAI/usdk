@@ -52,7 +52,7 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
     agent,
     conversation: agentConversation,
   } = generativeAgent;
-  return agent.registry.prompts
+  const prompts = agent.registry.prompts
     .filter((prompt) => {
       const {
         conversation: promptConversation,
@@ -72,6 +72,8 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
     .map((prompt) => {
       return Array.isArray(prompt.children) ? prompt.children.join('\n') : (prompt.children as string);
     });
+  // console.log('got prompts', prompts);
+  return prompts;
 };
 
 export async function generateAgentAction(generativeAgent: GenerativeAgentObject) {
