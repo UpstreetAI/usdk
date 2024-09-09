@@ -3,9 +3,10 @@ import { getAgentUrl, getAgentPreviewImageUrl, timeAgo } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
-import { IconChat, IconShare } from '@/components/ui/icons'
+import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
-import { isImageType, isAudioType, isVideoType } from '@/utils/helpers/media-types'
+import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
+import { Model } from '../model'
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -109,6 +110,9 @@ export function ChatMessage({
             if (isVideoType(media?.type)) {
               return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
             }
+            if (isModelType(media?.type)) {
+              return (<ChatMessageModel url={media.url} timestamp={timestamp} />);
+            }
             return null;
           })()}
           {content && (<div>{content}</div>)}
@@ -156,6 +160,41 @@ export function ChatMessageVideo({
         <source src={url} type="video/mp4" />
           Your browser does not support the video tag.
       </video>
+    </div>
+  )
+}
+
+// MEDIA: MODEL
+
+export interface ChatMessageModelProps {
+  url: string
+  timestamp: Date
+}
+
+export function ChatMessageModel({
+  url,
+  timestamp
+}: ChatMessageModelProps) {
+  return (
+    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+      {/* <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
+        <source src={url} type="video/mp4" />
+          Your browser does not support the video tag.
+      </video> */}
+      <Model src={url} />
+      <Button
+        variant="secondary"
+        // className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
+        onClick={e => {
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = url;
+          a.click();
+        }}
+      >
+        <IconDownload className="mr-2" />
+        <div>Download</div>
+      </Button>
     </div>
   )
 }

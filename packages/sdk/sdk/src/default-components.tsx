@@ -85,6 +85,9 @@ import {
 import {
   generateSound,
 } from './util/generate-sound.mjs';
+import {
+  generateModel,
+} from './util/generate-model.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
@@ -636,6 +639,30 @@ const mediaGeneratorSpecs = [
       });
       return blob2;
     },
+  },
+  {
+    types: ['model/gltf-binary+3d-model'],
+    ext: 'glb',
+    async generate({
+      prompt,
+    }: {
+      prompt: string,
+    }, {
+      jwt,
+    }) {
+      const imageBlob = await fetchImageGeneration(prompt, {
+        image_size: imageSizes[0],
+      }, {
+        jwt,
+      });
+      const blob = await generateModel(imageBlob, {
+        jwt,
+      });
+      const blob2 = new Blob([blob], {
+        type: this.types[0],
+      });
+      return blob2;
+    }
   },
 ];
 const MediaGenerator = () => {

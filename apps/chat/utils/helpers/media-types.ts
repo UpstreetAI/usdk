@@ -7,3 +7,6 @@ export const isAudioType = (type: string) => {
 export const isVideoType = (type: string) => {
   return !!type && type.startsWith('video/');
 }
+export const isModelType = (type: string) => {
+  return !!type && type.startsWith('model/');
+}
