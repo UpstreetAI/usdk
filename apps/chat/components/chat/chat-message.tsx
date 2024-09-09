@@ -128,7 +128,6 @@ export function ChatMessageAudio({
   url,
   timestamp
 }: ChatMessageAudioProps) {
-
   return (
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <audio id={`audioPlayer-${timestamp}`} controls className="w-full h-10 outline-none">
@@ -150,7 +149,6 @@ export function ChatMessageVideo({
   url,
   timestamp
 }: ChatMessageVideoProps) {
-
   return (
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
@@ -172,7 +170,6 @@ export function ChatMessageImage({
   url,
   timestamp
 }: ChatMessageImageProps) {
-
   return (
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <img id={`image-${timestamp}`} className='rounded-[8px] w-full' src={url} alt='' />
