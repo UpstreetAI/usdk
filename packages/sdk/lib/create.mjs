@@ -60,12 +60,12 @@ import {
   ensureAgentJsonDefaults,
 } from '../sdk/src/agent-defaults.mjs';
 import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
+import { consoleImageWidth } from '../sdk/src/constants.mjs';
 
 //
 
 const agentJsonSrcFilename = 'agent.json';
 // const agentJsonDstFilename = 'agent.npc';
-const consoleImageWidth = 80;
 
 const execFile = util.promisify(child_process.execFile);
 

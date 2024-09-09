@@ -13,6 +13,7 @@ import open from 'open';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
+import Jimp from 'jimp';
 import recursiveReaddir from 'recursive-readdir';
 // import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
@@ -84,6 +85,7 @@ import {
   transcribe,
 } from './sdk/src/devices/audio-input.mjs';
 import {
+  ImageRenderer,
   TerminalVideoRenderer,
 } from './sdk/src/devices/video-input.mjs';
 import {
@@ -108,6 +110,9 @@ import {
   makeTempDir,
   tryReadFile,
 } from './lib/file.mjs';
+import {
+  consoleImageWidth,
+} from './sdk/src/constants.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1047,14 +1052,48 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
       const { message } = e.data;
-      const { userId: messageUserId, name, method, args } = message;
+      const { userId: messageUserId, name, method, args, attachments } = message;
+      // console.log('got message', message);
 
       switch (method) {
         case 'say': {
           const { text } = args;
           if (messageUserId !== userId) {
-            log(`${name}: ${text}`);
-          }
+            let s = `${name}: ${text}`;
+            if (attachments) {
+              s += '\n[Attachments:';
+              for (const attachment of attachments) {
+                const { type, url } = attachment;
+                s += `\n  [${type}]: ${url}`;
+              }
+              s += '\n]';
+            }
+            log(s);
+
+            // read attachments and print them to the console if we can
+            if (attachments) {
+              for (const attachment of attachments) {
+                if (attachment.type.startsWith('image/')) {
+                  (async () => {
+                    const { url } = attachment;
+
+                    const res = await fetch(url);
+                    const ab = await res.arrayBuffer();
+
+                    const b = Buffer.from(ab);
+                    const jimp = await Jimp.read(b);
+
+                    const imageRenderer = new ImageRenderer();
+                    const {
+                      text: imageText,
+                    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+                    console.log(`${url}:`);
+                    console.log(imageText);
+                  })();
+                }
+              }
+            }
+           }
           break;
         }
         case 'log': {

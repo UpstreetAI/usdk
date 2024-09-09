@@ -3,5 +3,8 @@ export const headers = {
   'Access-Control-Allow-Methods': '*',
   'Access-Control-Allow-Headers': '*',
 };
+
 export const currencies = ['usd'];
 export const intervals = ['month', 'year', 'week', 'day'];
+
+export const consoleImageWidth = 80;
