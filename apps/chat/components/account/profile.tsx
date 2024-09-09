@@ -22,6 +22,7 @@ import {
   AuxImages,
 } from '@/components/aux-images';
 import { useGlobalState } from '@/contexts/GlobalContext';
+import DevMode from '../development';
 
 export interface ProfileProps {
   user: any,
@@ -275,7 +276,8 @@ export function Profile({
             </div>
           </div>
         </div>
-        {globalState?.isDevMode && (
+
+        <DevMode>
           <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
             <div className="flex flex-col items-start justify-start">
               <AuxImages
@@ -286,7 +288,8 @@ export function Profile({
               />
             </div>
           </div>
-        )}
+        </DevMode>
+        
       </div>
     </div>
   )
