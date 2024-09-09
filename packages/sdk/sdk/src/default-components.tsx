@@ -25,6 +25,7 @@ import type {
   PlayableAudioStream,
   Attachment,
   FormattedAttachment,
+  AgentThinkOptions,
 } from './types';
 import {
   AppContext,
@@ -122,7 +123,11 @@ const ChatActions = () => {
     <>
       <Action
         name="say"
-        description={`A character says something.`}
+        description={dedent`\
+          A character says something.
+          The given text message is sent literally and should be fully in character.
+          It should not include any placeholders.
+        `}
         schema={
           z.object({
             text: z.string(),
@@ -400,12 +405,12 @@ export const CachedMessagesPrompt = () => {
     const {
       id,
       type,
-      alt,
+      // alt,
     } = attachment;
     return {
       id,
       type,
-      alt,
+      // alt,
     };
   };
 
@@ -474,15 +479,21 @@ export const JsonFormatter = () => {
   return (
     <Formatter
       /* map actions to zod schema to generate an action */
-      schemaFn={(actions: ActionProps[]) => {
-        const types = actions.map((action) => {
+      schemaFn={(actions: ActionProps[], thinkOpts?: AgentThinkOptions) => {
+        let types: ZodTypeAny[] = [];
+        const forceAction = thinkOpts?.forceAction ?? null;
+        const excludeActions = thinkOpts?.excludeActions ?? [];
+        for (const action of actions) {
           const {
             name,
             schema: argsSchema,
           } = action;
-          const zodSchema = makeJsonSchema(name, argsSchema);
-          return zodSchema;
-        });
+          const isAllowedAction = (forceAction === null || name === forceAction) && !excludeActions.includes(name);
+          if (isAllowedAction) {
+            const zodSchema = makeJsonSchema(name, argsSchema);
+            types.push(zodSchema);
+          }
+        }
         if (types.length >= 2) {
           return z.union(
             types as any
@@ -947,10 +958,14 @@ export const MultimediaSense = () => {
               await e.commit();
               const alt = makeQa(questions, answers);
               // console.log('commit 2', e.data.message, alt);
-              await agent.think(dedent`\
-                Character looked at attachment and discovered the following:
-              ` + '\n' +
-                JSON.stringify(alt, null, 2)
+              await agent.think(
+                dedent`\
+                  Character looked at attachment and discovered the following:
+                ` + '\n' +
+                  JSON.stringify(alt, null, 2),
+                {
+                  excludeActions: ['mediaPerception'],
+                },
               );
             } else {
               console.warn('warning: no media perception spec found for type', {
