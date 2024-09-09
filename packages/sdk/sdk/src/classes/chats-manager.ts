@@ -29,6 +29,9 @@ import {
   QueueManager,
   MultiQueueManager,
 } from '../util/queue-manager.mjs';
+import {
+  Debouncer,
+} from '../util/debouncer.mjs';
 // import {
 //   AbortableMessageEvent,
 // } from './abortable-message-event';
@@ -64,7 +67,6 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
-// import { AgentRegistry, emptyAgentRegistry } from './render-registry';
 
 //
 
@@ -88,7 +90,7 @@ export class ChatsManager extends EventTarget {
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
-  incomingMessageQueueManager = new QueueManager();
+  incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
 
@@ -315,7 +317,7 @@ export class ChatsManager extends EventTarget {
           conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
             const { agent: sourceAgent, message } = e.data;
             e.waitUntil((async () => {
-              await this.incomingMessageQueueManager.waitForTurn(async () => {
+              await this.incomingMessageDebouncer.waitForTurn(async () => {
                 try {
                   // wait for re-render
                   {
