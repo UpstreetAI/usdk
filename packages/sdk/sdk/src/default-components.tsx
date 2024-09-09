@@ -799,23 +799,27 @@ const mediaPerceptionSpecs = [
     },
   },
 ];
+const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPerceptionSpec => mediaPerceptionSpec.types);
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
-  const makeAttachments = (messages: ActionMessage[]) => {
+  const collectSupportedAttachments = (messages: ActionMessage[]) => {
     const result = [];
     for (const message of messages) {
       if (message.attachments) {
         for (const attachment of message.attachments) {
-          result.push(attachment);
+          const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
+          if (supportedMediaPerceptionTypes.includes(typeClean)) {
+            result.push(attachment);
+          }
         }
       }
     }
     return result;
   };
-  const attachments = makeAttachments(conversation.messageCache.messages);
+  const attachments = collectSupportedAttachments(conversation.messageCache.messages);
 
   return (
     <Action
