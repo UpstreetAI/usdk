@@ -278,6 +278,7 @@ export async function executeAgentAction(
         actionPromises.push(p);
       }
     }
+    await Promise.all(actionPromises);
   }
 }
 
