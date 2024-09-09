@@ -166,13 +166,14 @@ export class GenerativeAgentObject {
   addMessage(message: PendingActionMessage) {
     const { agent } = this;
     const { id: userId, name } = agent;
-    const { method, args } = message;
+    const { method, args, attachments } = message;
     const timestamp = new Date();
     const newMessage = {
       userId,
       name,
       method,
       args,
+      attachments,
       timestamp,
       human: false,
       hidden: false,
