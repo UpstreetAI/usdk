@@ -233,15 +233,11 @@ export class ConversationObject extends EventTarget {
   }
 
   async updateMessage(messageId: string, value: ActionMessage | ((oldValue: ActionMessage) => ActionMessage)) {
+    // XXX implement this to update the messageCache and remote database
     console.log('update message', {
       messageId,
       value,
     });
-    // const message = this.messageCache.messages.find(m => m.id === messageId);
-    // if (!message) {
-    //   throw new Error('message not found');
-    // }
-    // message.value = value;
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {
