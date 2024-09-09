@@ -109,6 +109,7 @@ export function ChatMessage({
             if (isVideoType(media?.type)) {
               return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
             }
+            return null;
           })()}
           {content && (<div>{content}</div>)}
         </div>
