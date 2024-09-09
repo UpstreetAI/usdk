@@ -118,12 +118,6 @@ export const inpaintImage = async (blob, maskBlob, {
   }
 };
 
-/*
-https://r2.upstreet.ai/assets/3267f556-4c47-4561-b67a-0d7554c82591.jpg
-full body shot, front view, facing viewer, standing straight, arms at side, neutral expression, high resolution, flcl anime style
-anime girl with green hair, wearing a tanktop, vibrant and youthful appearance, medium length hair, bright eyes
-*/
-
 const characterImageSizeFlux = 'portrait_4_3';
 export const generateCharacterImage = async (prompt, opts, {
   jwt,
