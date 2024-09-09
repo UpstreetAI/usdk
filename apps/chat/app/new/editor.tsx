@@ -1116,7 +1116,7 @@ export default function AgentEditor({
 
             const model = editor.getModel();
             if (model) {
-              model.onDidChangeContent(e => {
+              model.onDidChangeContent(() => {
                 const s = getEditorValue(monaco);
                 setSourceCode(s);
               });
