@@ -96,7 +96,6 @@
     "tailwindcss-animate": "1.0.7",
     "three": "^0.167.1",
     "usdk": "file:../../packages/sdk",
-    "playwright-core": "file:../../packages/sdk/src/lib/playwright-core",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
     "zjs": "file:../../packages/zjs",
