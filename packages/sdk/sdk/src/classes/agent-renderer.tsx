@@ -230,6 +230,7 @@ export class AgentRenderer {
       resetAfterCommit: () => {
         // console.log('reset after commit');
         this.registry.load(this.container);
+        // console.log('registry updated:', Array.from(this.registry.agents.values()));
         // console.log('registry updated:', inspect(Array.from(this.registry.agents.values()), {
         //   depth: 3,
         // }));
