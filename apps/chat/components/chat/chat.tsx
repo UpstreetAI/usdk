@@ -250,17 +250,6 @@ function getMessageComponent(room: string, message: Message, id: string, players
         return (
           <div className="opacity-60 text-xs">{text}</div>
         );
-        // return (
-        //   <ChatMessage
-        //     id={id}
-        //     name={message.name}
-        //     content={text}
-        //     media={null}
-        //     player={player}
-        //     room={room}
-        //     timestamp={message.timestamp}
-        //   />
-        // );
       } else {
         return null;
       }
