@@ -73,6 +73,8 @@ import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-outp
 import { AudioDecodeStream } from './sdk/src/lib/multiplayer/public/audio/audio-decode.mjs';
 import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
 
+import { webbrowserActionsToText } from './sdk/src/util/browser-action-utils.mjs';
+
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
 
@@ -1111,6 +1113,42 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         case 'typing': {
           const { typing } = args;
           typingMap.set(messageUserId, { userId: messageUserId, name, typing });
+          break;
+        }
+        case 'mediaPerception': {
+          log(`[${name} checked an attachment`);
+          break;
+        }
+        case 'browserAction': {
+          const {
+            method: method2,
+            args: args2,
+            result,
+            error,
+          } = args;
+          const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
+          if (webbrowserAction) {
+            // get the agent from the player spec
+            const player = playersMap.get(messageUserId);
+            // console.log('got player', player);
+            let agent = player?.playerSpec;
+            // console.log('got agent', agent);
+            if (!agent) {
+              console.warn('no agent for browserAction message user id', messageUserId);
+              // debugger;
+              agent = {};
+            }
+            const o = {
+              // get the agent from the local player spec
+              agent,
+              method: method2,
+              args: args2,
+              result,
+              error,
+            };
+            log(`[${webbrowserAction.toText(o)}]`);
+          }
+          // log(`[${name} checked an attachment`);
           break;
         }
         case 'paymentRequest': {
