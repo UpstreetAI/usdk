@@ -461,7 +461,9 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           break;
         }
         case 'mediaPerception':
-        case 'paymentRequest': {
+        case 'browserAction':
+        case 'paymentRequest':
+        {
           break;
         }
         default: {
