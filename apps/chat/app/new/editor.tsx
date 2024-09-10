@@ -34,7 +34,7 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
-import { createBrowser, testBrowser } from 'usdk/sdk/src/util/create-browser.mjs';
+// import { createBrowser, testBrowser } from 'usdk/sdk/src/util/create-browser.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 import {
@@ -240,17 +240,17 @@ export default function AgentEditor({
 
   const monaco = useMonaco();
 
-  useEffect(() => {
-    (async () => {
-      const jwt = await getJWT();
-      (globalThis as any).testBrowser = async () => {
-        return await testBrowser({
-          jwt,
-        });
-      };
-      console.log('test initialized');
-    })();
-  }, []);
+  // useEffect(() => {
+  //   (async () => {
+  //     const jwt = await getJWT();
+  //     (globalThis as any).testBrowser = async () => {
+  //       return await testBrowser({
+  //         jwt,
+  //       });
+  //     };
+  //     console.log('test initialized');
+  //   })();
+  // }, []);
 
   // effects
   // sync previewBlob -> previewUrl
