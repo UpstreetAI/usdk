@@ -20,18 +20,25 @@ export const CACHED_MESSAGES_LIMIT = 50;
 
 //
 
-class MessageCache {
+class MessageCache extends EventTarget {
   messages: ActionMessage[] = [];
   loaded: boolean = false;
   loadPromise: Promise<void> | null = null;
 
+  tickUpdate() {
+    this.dispatchEvent(new MessageEvent('update', {
+      data: null,
+    }));
+  }
   pushMessage(message: ActionMessage) {
     this.messages.push(message);
     this.trim();
+    this.tickUpdate();
   }
   prependMessages(messages: ActionMessage[]) {
     this.messages.unshift(...messages);
     this.trim();
+    this.tickUpdate();
   }
   trim() {
     if (this.messages.length > CACHED_MESSAGES_LIMIT) {
