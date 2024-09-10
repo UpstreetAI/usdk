@@ -762,8 +762,8 @@ export class Page extends ChannelOwner<channels.PageChannel> implements api.Page
   }
 
   async pause() {
-    if (require('inspector').url())
-      return;
+    // if (require('inspector').url())
+    //   return;
     const defaultNavigationTimeout = this._browserContext._timeoutSettings.defaultNavigationTimeout();
     const defaultTimeout = this._browserContext._timeoutSettings.defaultTimeout();
     this._browserContext.setDefaultNavigationTimeout(0);
