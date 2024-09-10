@@ -162,7 +162,7 @@ export class GenerativeAgentObject {
     });
   }
 
-  addMessage(message: PendingActionMessage) {
+  async addMessage(message: PendingActionMessage) {
     const { agent } = this;
     const { id: userId, name } = agent;
     const { method, args, attachments } = message;
@@ -177,7 +177,7 @@ export class GenerativeAgentObject {
       human: false,
       hidden: false,
     };
-    return this.conversation.addLocalAndRemoteMessage(newMessage);
+    return await this.conversation.addLocalAndRemoteMessage(newMessage);
   }
 
   addAudioStream(playableAudioStream: PlayableAudioStream) {
