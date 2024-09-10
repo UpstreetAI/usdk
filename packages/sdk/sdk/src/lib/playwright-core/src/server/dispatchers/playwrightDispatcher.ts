@@ -30,8 +30,8 @@ import { APIRequestContextDispatcher } from './networkDispatchers';
 import { SelectorsDispatcher } from './selectorsDispatcher';
 import { ConnectedBrowserDispatcher } from './browserDispatcher';
 import { createGuid } from '../../utils';
-import type { AndroidDevice } from '../android/android';
-import { AndroidDeviceDispatcher } from './androidDispatcher';
+// import type { AndroidDevice } from '../android/android';
+// import { AndroidDeviceDispatcher } from './androidDispatcher';
 import { eventsHelper, type RegisteredListener } from '../../utils/eventsHelper';
 
 export class PlaywrightDispatcher extends Dispatcher<Playwright, channels.PlaywrightChannel, RootDispatcher> implements channels.PlaywrightChannel {
@@ -40,20 +40,20 @@ export class PlaywrightDispatcher extends Dispatcher<Playwright, channels.Playwr
 
   constructor(scope: RootDispatcher, playwright: Playwright, socksProxy?: SocksProxy, preLaunchedBrowser?: Browser, prelaunchedAndroidDevice?: AndroidDevice) {
     const browserDispatcher = preLaunchedBrowser ? new ConnectedBrowserDispatcher(scope, preLaunchedBrowser) : undefined;
-    const android = new AndroidDispatcher(scope, playwright.android);
-    const prelaunchedAndroidDeviceDispatcher = prelaunchedAndroidDevice ? new AndroidDeviceDispatcher(android, prelaunchedAndroidDevice) : undefined;
+    // const android = new AndroidDispatcher(scope, playwright.android);
+    // const prelaunchedAndroidDeviceDispatcher = prelaunchedAndroidDevice ? new AndroidDeviceDispatcher(android, prelaunchedAndroidDevice) : undefined;
     super(scope, playwright, 'Playwright', {
       chromium: new BrowserTypeDispatcher(scope, playwright.chromium),
-      firefox: new BrowserTypeDispatcher(scope, playwright.firefox),
-      webkit: new BrowserTypeDispatcher(scope, playwright.webkit),
-      bidiChromium: new BrowserTypeDispatcher(scope, playwright.bidiChromium),
-      bidiFirefox: new BrowserTypeDispatcher(scope, playwright.bidiFirefox),
-      android,
-      electron: new ElectronDispatcher(scope, playwright.electron),
+      // firefox: new BrowserTypeDispatcher(scope, playwright.firefox),
+      // webkit: new BrowserTypeDispatcher(scope, playwright.webkit),
+      // bidiChromium: new BrowserTypeDispatcher(scope, playwright.bidiChromium),
+      // bidiFirefox: new BrowserTypeDispatcher(scope, playwright.bidiFirefox),
+      // android,
+      // electron: new ElectronDispatcher(scope, playwright.electron),
       utils: playwright.options.isServer ? undefined : new LocalUtilsDispatcher(scope, playwright),
       selectors: new SelectorsDispatcher(scope, browserDispatcher?.selectors || playwright.selectors),
       preLaunchedBrowser: browserDispatcher,
-      preConnectedAndroidDevice: prelaunchedAndroidDeviceDispatcher,
+      // preConnectedAndroidDevice: prelaunchedAndroidDeviceDispatcher,
       socksSupport: socksProxy ? new SocksSupportDispatcher(scope, socksProxy) : undefined,
     });
     this._type_Playwright = true;
