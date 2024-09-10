@@ -893,7 +893,7 @@ export const MultimediaSense = () => {
           The questions should be short and specific.
           Use this whenever you need to know more information about a piece of media, like an image attachment.
 
-          The available content is:
+          The available media are:
           \`\`\`
         ` + '\n' +
         JSON.stringify(attachments, null, 2) + '\n' +
