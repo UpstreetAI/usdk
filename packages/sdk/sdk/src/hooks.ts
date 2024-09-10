@@ -111,6 +111,18 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
   const supabase = agent.useSupabase();
   const conversation = useConversation();
+  const [cachedMessagesEpoch, setCachedMessagesEpoch] = useState(0);
+
+  // listen for messasge cache updates
+  const update = () => {
+    setCachedMessagesEpoch(cachedMessagesEpoch => cachedMessagesEpoch + 1);
+  };
+  useEffect(() => {
+    conversation.messageCache.addEventListener('update', update);
+    return () => {
+      conversation.messageCache.removeEventListener('update', update);
+    };
+  }, []);
 
   if (!conversation.messageCache.loadPromise) {
     conversation.messageCache.loadPromise = (async () => {
