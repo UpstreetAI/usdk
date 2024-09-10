@@ -16,7 +16,7 @@
 
 import type * as channels from '@protocol/channels';
 import { TimeoutError } from './errors';
-import { Android } from './android';
+// import { Android } from './android';
 import { BrowserType } from './browserType';
 import { ChannelOwner } from './channelOwner';
 import { Electron } from './electron';
@@ -24,13 +24,13 @@ import { APIRequest } from './fetch';
 import { Selectors, SelectorsOwner } from './selectors';
 
 export class Playwright extends ChannelOwner<channels.PlaywrightChannel> {
-  readonly _android: Android;
-  readonly _electron: Electron;
-  readonly _bidiChromium: BrowserType;
-  readonly _bidiFirefox: BrowserType;
+  // readonly _android: Android;
+  // readonly _electron: Electron;
+  // readonly _bidiChromium: BrowserType;
+  // readonly _bidiFirefox: BrowserType;
   readonly chromium: BrowserType;
-  readonly firefox: BrowserType;
-  readonly webkit: BrowserType;
+  // readonly firefox: BrowserType;
+  // readonly webkit: BrowserType;
   readonly devices: any;
   selectors: Selectors;
   readonly request: APIRequest;
@@ -41,16 +41,16 @@ export class Playwright extends ChannelOwner<channels.PlaywrightChannel> {
     this.request = new APIRequest(this);
     this.chromium = BrowserType.from(initializer.chromium);
     this.chromium._playwright = this;
-    this.firefox = BrowserType.from(initializer.firefox);
-    this.firefox._playwright = this;
-    this.webkit = BrowserType.from(initializer.webkit);
-    this.webkit._playwright = this;
-    this._android = Android.from(initializer.android);
-    this._electron = Electron.from(initializer.electron);
-    this._bidiChromium = BrowserType.from(initializer.bidiChromium);
-    this._bidiChromium._playwright = this;
-    this._bidiFirefox = BrowserType.from(initializer.bidiFirefox);
-    this._bidiFirefox._playwright = this;
+    // this.firefox = BrowserType.from(initializer.firefox);
+    // this.firefox._playwright = this;
+    // this.webkit = BrowserType.from(initializer.webkit);
+    // this.webkit._playwright = this;
+    // this._android = Android.from(initializer.android);
+    // this._electron = Electron.from(initializer.electron);
+    // this._bidiChromium = BrowserType.from(initializer.bidiChromium);
+    // this._bidiChromium._playwright = this;
+    // this._bidiFirefox = BrowserType.from(initializer.bidiFirefox);
+    // this._bidiFirefox._playwright = this;
     this.devices = this._connection.localUtils()?.devices ?? {};
     this.selectors = new Selectors();
     this.errors = { TimeoutError };
