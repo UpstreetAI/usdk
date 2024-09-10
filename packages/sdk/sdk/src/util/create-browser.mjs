@@ -1,8 +1,6 @@
 import { chromium } from "playwright-core";
 import { aiProxyHost } from './endpoints.mjs';
 
-// XXX
-
 // type CreateSessionOptions = {
 //   browserSettings?: {
 //     viewport?: {
