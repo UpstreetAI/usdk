@@ -855,7 +855,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
     playerId: !anonymous ? userId : null,
     audioManager: null,
   });
-  const playersMap = new Map();
+  const playersMap = new Map(); // Map<string, Player>
   const typingMap = new TypingMap();
   const speakerMap = new SpeakerMap();
 
