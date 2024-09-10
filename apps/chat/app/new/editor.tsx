@@ -243,7 +243,7 @@ export default function AgentEditor({
   useEffect(() => {
     (async () => {
       const jwt = await getJWT();
-      globalThis.testBrowser = async () => {
+      (globalThis as any).testBrowser = async () => {
         return await testBrowser({
           jwt,
         });
