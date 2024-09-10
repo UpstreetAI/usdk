@@ -32,9 +32,6 @@ import {
 import {
   Debouncer,
 } from '../util/debouncer.mjs';
-// import {
-//   AbortableMessageEvent,
-// } from './abortable-message-event';
 import {
   PerceptionEvent,
 } from './perception-event';
@@ -55,12 +52,6 @@ import {
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
-// import {
-//   retry,
-// } from '../util/util.mjs';
-// import {
-//   GenerativeAgentObject,
-// } from './generative-agent-object';
 import {
   SceneObject,
 } from './scene-object';
