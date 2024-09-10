@@ -108,4 +108,7 @@ export function isValidUrl(urlString: string) {
   return !!urlPattern.test(urlString);
 }
 
-export const timeAgo = (timestamp: Date) => jsAgo(+timestamp / 1000, { format: 'short' });
+export const timeAgo = (timestamp: Date) => {
+  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
+  return jsAgo(timestampInSeconds, { format: 'short' });
+}
