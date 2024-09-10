@@ -40,6 +40,7 @@ export class AppContextValue {
   authToken: string;
   supabase: any;
   chatsSpecification: ChatsSpecification;
+  registry: RenderRegistry;
 
   constructor({
     subtleAi,
@@ -48,6 +49,7 @@ export class AppContextValue {
     authToken,
     supabase,
     chatsSpecification,
+    registry,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
@@ -55,6 +57,7 @@ export class AppContextValue {
     authToken: string;
     supabase: any;
     chatsSpecification: ChatsSpecification;
+    registry: RenderRegistry;
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
@@ -62,6 +65,7 @@ export class AppContextValue {
     this.authToken = authToken;
     this.supabase = supabase;
     this.chatsSpecification = chatsSpecification;
+    this.registry = registry;
   }
 
   // hooks
@@ -75,12 +79,14 @@ export class AppContextValue {
   useAuthToken() {
     return this.authToken;
   }
-
   useSupabase() {
     return this.supabase;
   }
   useChatsSpecification() {
     return this.chatsSpecification;
+  }
+  useRegistry() {
+    return this.registry;
   }
 
   useKv() {

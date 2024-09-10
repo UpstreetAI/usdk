@@ -186,6 +186,9 @@ export class AgentRenderer {
     const useChatsSpecification = () => {
       return this.chatsSpecification;
     };
+    const useRegistry = () => {
+      return this.registry;
+    };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
@@ -193,6 +196,7 @@ export class AgentRenderer {
       authToken: useAuthToken(),
       supabase: useSupabase(),
       chatsSpecification: useChatsSpecification(),
+      registry: useRegistry(),
     });
 
     // run the module to get the result
