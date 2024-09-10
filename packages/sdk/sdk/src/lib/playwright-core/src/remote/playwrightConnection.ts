@@ -23,7 +23,7 @@ import { serverSideCallMetadata } from '../server/instrumentation';
 import { SocksProxy } from '../common/socksProxy';
 import { assert, isUnderTest } from '../utils';
 import type { LaunchOptions } from '../server/types';
-import { AndroidDevice } from '../server/android/android';
+// import { AndroidDevice } from '../server/android/android';
 import { DebugControllerDispatcher } from '../server/dispatchers/debugControllerDispatcher';
 import { startProfiling, stopProfiling } from '../utils';
 import { monotonicTime } from '../utils';
@@ -40,7 +40,7 @@ type Options = {
 type PreLaunched = {
   playwright?: Playwright | undefined;
   browser?: Browser | undefined;
-  androidDevice?: AndroidDevice | undefined;
+  androidDevice?: any | undefined;
   socksProxy?: SocksProxy | undefined;
 };
 
