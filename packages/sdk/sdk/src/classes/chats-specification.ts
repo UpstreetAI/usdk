@@ -134,7 +134,7 @@ export class ChatsSpecification extends EventTarget {
             endpointUrl,
           };
         }) as RoomSpecification[];
-        // console.log('initial chat specifications', initialChatSpecifications);
+        console.log('initial chat specifications', initialChatSpecifications);
         await Promise.all(initialChatSpecifications.map(async (chatSpecification) => {
           const result = await this.#joinInternal(chatSpecification);
           return result;
@@ -165,19 +165,20 @@ export class ChatsSpecification extends EventTarget {
 
     // console.log('join room 1', roomSpecification);
     // console.log('join room 1.1',  roomSpecification);
-    const _emitJoinEvent = async () => {
-      // console.log('emit join event', roomSpecification);
-      const e = new ExtendableMessageEvent<RoomSpecification>('join', {
-        data: roomSpecification,
-      });
-      this.dispatchEvent(e);
-      await e.waitForFinish();
-    };
 
     const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
     if (index === -1) {
       this.roomSpecifications.push(roomSpecification);
       
+      const _emitJoinEvent = async () => {
+        // console.log('emit join event', roomSpecification);
+        const e = new ExtendableMessageEvent<RoomSpecification>('join', {
+          data: roomSpecification,
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      };
+
       const _insertRow = async () => {
         await this.roomsQueueManager.waitForTurn(async () => {
           const key = getRoomsSpecificationKey(roomSpecification);
@@ -208,7 +209,6 @@ export class ChatsSpecification extends EventTarget {
     } else {
       // throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
       console.log("chat already joined previously");
-      _emitJoinEvent();
     }
   }
   async leave(roomSpecification: RoomSpecification) {
@@ -296,6 +296,9 @@ export class ChatsSpecification extends EventTarget {
       _emitLeaveEvents(),
       _deleteAllRows(),
     ]);
+
+    // clear all the roomSpecifications list
+    this.roomSpecifications = []
   }
 
   // return the next alarm time
