@@ -403,7 +403,12 @@ export const ConversationMessagesPrompt = () => {
 export const CachedMessagesPrompt = () => {
   const cachedMessages = useCachedMessages();
 
-  const formatAttachments = (attachments: Attachment[]) => attachments.map((attachment) => formatAttachment(attachment));
+  const formatAttachments = (attachments: Attachment[] | null | undefined) => {
+    if (!attachments) {
+      return [];
+    }
+    return attachments.map((attachment) => formatAttachment(attachment));
+  };
   const formatAttachment = (attachment: Attachment): FormattedAttachment => {
     const {
       id,

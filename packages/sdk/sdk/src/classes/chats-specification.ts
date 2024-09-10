@@ -165,18 +165,19 @@ export class ChatsSpecification extends EventTarget {
 
     // console.log('join room 1', roomSpecification);
     // console.log('join room 1.1',  roomSpecification);
+    const _emitJoinEvent = async () => {
+      // console.log('emit join event', roomSpecification);
+      const e = new ExtendableMessageEvent<RoomSpecification>('join', {
+        data: roomSpecification,
+      });
+      this.dispatchEvent(e);
+      await e.waitForFinish();
+    };
+
     const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
     if (index === -1) {
       this.roomSpecifications.push(roomSpecification);
-
-      const _emitJoinEvent = async () => {
-        // console.log('emit join event', roomSpecification);
-        const e = new ExtendableMessageEvent<RoomSpecification>('join', {
-          data: roomSpecification,
-        });
-        this.dispatchEvent(e);
-        await e.waitForFinish();
-      };
+      
       const _insertRow = async () => {
         await this.roomsQueueManager.waitForTurn(async () => {
           const key = getRoomsSpecificationKey(roomSpecification);
@@ -205,7 +206,9 @@ export class ChatsSpecification extends EventTarget {
       ]);
       // console.log('join room 2');
     } else {
-      throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
+      // throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
+      console.log("chat already joined previously");
+      _emitJoinEvent();
     }
   }
   async leave(roomSpecification: RoomSpecification) {
