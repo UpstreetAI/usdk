@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { debug } from '../utilsBundle';
-import fs from 'fs';
+// import { debug } from '../utilsBundle';
+// import fs from 'fs';
 
 const debugLoggerColorMap = {
   'api': 45, // cyan
@@ -51,17 +51,19 @@ class DebugLogger {
   }
 
   log(name: LogName, message: string | Error | object) {
-    let cachedDebugger = this._debuggers.get(name);
-    if (!cachedDebugger) {
-      cachedDebugger = debug(`pw:${name}`);
-      this._debuggers.set(name, cachedDebugger);
-      (cachedDebugger as any).color = debugLoggerColorMap[name] || 0;
-    }
-    cachedDebugger(message);
+    console.log(`[${name}] ${message}`);
+    // let cachedDebugger = this._debuggers.get(name);
+    // if (!cachedDebugger) {
+    //   cachedDebugger = debug(`pw:${name}`);
+    //   this._debuggers.set(name, cachedDebugger);
+    //   (cachedDebugger as any).color = debugLoggerColorMap[name] || 0;
+    // }
+    // cachedDebugger(message);
   }
 
   isEnabled(name: LogName) {
-    return debug.enabled(`pw:${name}`);
+    // return debug.enabled(`pw:${name}`);
+    return false; // XXX fake
   }
 }
 
