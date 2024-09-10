@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { ws } from '../utilsBundle';
-import type { WebSocket } from '../utilsBundle';
+// import { ws } from '../utilsBundle';
+// import type { WebSocket } from '../utilsBundle';
 import type { ClientRequest, IncomingMessage } from 'http';
 import type { Progress } from './progress';
 import { makeWaitForNextTask } from '../utils';
-import { httpHappyEyeballsAgent, httpsHappyEyeballsAgent } from '../utils/happy-eyeballs';
+// import { httpHappyEyeballsAgent, httpsHappyEyeballsAgent } from '../utils/happy-eyeballs';
 import type { HeadersArray } from './types';
 
 export const perMessageDeflate = {
@@ -58,8 +58,13 @@ export interface ConnectionTransport {
   onclose?: (reason?: string) => void,
 }
 
+type WebSocket2 = WebSocket & {
+  on: (event: string, listener: (data: any) => void) => void;
+  once: (event: string, listener: (data: any) => void) => void;
+  removeListener: (event: string, listener: (data: any) => void) => void;
+};
 export class WebSocketTransport implements ConnectionTransport {
-  private _ws: WebSocket;
+  private _ws: WebSocket2;
   private _progress?: Progress;
   private _logUrl: string;
 
@@ -128,15 +133,21 @@ export class WebSocketTransport implements ConnectionTransport {
   constructor(progress: Progress|undefined, url: string, logUrl: string, headers?: { [key: string]: string; }, followRedirects?: boolean, debugLogHeader?: string) {
     this.wsEndpoint = url;
     this._logUrl = logUrl;
-    this._ws = new ws(url, [], {
-      maxPayload: 256 * 1024 * 1024, // 256Mb,
-      // Prevent internal http client error when passing negative timeout.
-      handshakeTimeout: Math.max(progress?.timeUntilDeadline() ?? 30_000, 1),
-      headers,
-      followRedirects,
-      agent: (/^(https|wss):\/\//.test(url)) ? httpsHappyEyeballsAgent : httpHappyEyeballsAgent,
-      perMessageDeflate,
-    });
+    // this._ws = new ws(url, [], {
+    //   maxPayload: 256 * 1024 * 1024, // 256Mb,
+    //   // Prevent internal http client error when passing negative timeout.
+    //   handshakeTimeout: Math.max(progress?.timeUntilDeadline() ?? 30_000, 1),
+    //   headers,
+    //   followRedirects,
+    //   agent: (/^(https|wss):\/\//.test(url)) ? httpsHappyEyeballsAgent : httpHappyEyeballsAgent,
+    //   perMessageDeflate,
+    // });
+    this._ws = new WebSocket(url) as WebSocket2;
+    this._ws.on = this._ws.addEventListener.bind(this._ws);
+    this._ws.once = (event, listener) => {
+      this._ws.addEventListener(event, listener, { once: true });
+    };
+    this._ws.removeListener = this._ws.removeEventListener.bind(this._ws);
     this._ws.on('upgrade', response => {
       for (let i = 0; i < response.rawHeaders.length; i += 2) {
         this.headers.push({ name: response.rawHeaders[i], value: response.rawHeaders[i + 1] });
@@ -191,7 +202,7 @@ export class WebSocketTransport implements ConnectionTransport {
   }
 
   async closeAndWait() {
-    if (this._ws.readyState === ws.CLOSED)
+    if (this._ws.readyState === WebSocket.CLOSED)
       return;
     const promise = new Promise(f => this._ws.once('close', f));
     this.close();
