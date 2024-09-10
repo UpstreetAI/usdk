@@ -431,10 +431,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
       switch (method) {
         case 'say': {
-          const { text } = args;
-          if (messageUserId !== userId) {
-            console.log(`${name}: ${text}`);
-          }
+          // const { text } = args;
+          // if (messageUserId !== userId) {
+          //   console.log(`${name}: ${text}`);
+          // }
           break;
         }
         case 'log': {
