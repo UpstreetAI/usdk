@@ -285,8 +285,10 @@ export const registryDirectory = (() => {
       cacheDirectory = path.join(os.homedir(), 'Library', 'Caches');
     else if (process.platform === 'win32')
       cacheDirectory = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
-    else
-      throw new Error('Unsupported platform: ' + process.platform);
+    else {
+      cacheDirectory = '/tmp';
+      // throw new Error('Unsupported platform: ' + process.platform);
+    }
     result = path.join(cacheDirectory, 'ms-playwright');
   }
 
