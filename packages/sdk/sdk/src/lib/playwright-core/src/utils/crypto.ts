@@ -18,7 +18,13 @@ import crypto from 'crypto';
 import { assert } from './debug';
 
 export function createGuid(): string {
-  return crypto.randomBytes(16).toString('hex');
+  const hexChars = '0123456789abcdef';
+  let s = '';
+  for (let i = 0; i < 16; i++) {
+    const b = Math.floor(Math.random() * 256);
+    s += hexChars[b >> 4] + hexChars[b & 0xF];
+  }
+  return s;
 }
 
 export function calculateSha1(buffer: Buffer | string): string {
