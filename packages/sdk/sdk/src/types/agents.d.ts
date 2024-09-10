@@ -53,7 +53,7 @@ export type GenerativeAgentObject =  {
     messages: ChatMessages,
   ) => Promise<ChatMessage>;
 
-  think: (hint?: string) => Promise<any>;
+  think: (hint?: string, thinkOpts?: AgentThinkOptions) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
   generateImage: (prompt: string, opts?: SubtleAiImageOpts) => Promise<Blob>;
   say: (text: string) => Promise<any>;
