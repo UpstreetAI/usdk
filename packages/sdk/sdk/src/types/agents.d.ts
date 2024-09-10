@@ -179,7 +179,7 @@ export type Debouncer = EventTarget & {
   waitForTurn: (fn: () => Promise<any>) => Promise<void>;
 };
 
-export type MessageCache = {
+export type MessageCache = EventTarget & {
   messages: ActionMessage[];
   loaded: boolean;
   loadPromise: Promise<void>;
@@ -214,7 +214,7 @@ export type ConversationObject = EventTarget & {
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
-  addLocalAndRemoteMessage: (message: ActionMessage) => void;
+  addLocalAndRemoteMessage: (message: ActionMessage) => Promise<void>;
 
   addAudioStream: (audioStream: PlayableAudioStream) => void;
 
@@ -579,7 +579,7 @@ export type AgentRegistry = {
   registerServer(key: symbol, server: ServerProps): void;
   unregisterServer(key: symbol): void;
 }
-export type RenderRegistry = {
+export type RenderRegistry = EventTarget & {
   agents: ActiveAgentObject[];
   load(container: Instance): void;
 };
@@ -590,9 +590,9 @@ export type AppContextValue = {
   useAgentJson: () => object;
   useWallets: () => object[];
   useAuthToken: () => string;
-
   useSupabase: () => any;
   useChatsSpecification: () => ChatsSpecification;
+  useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;
   useTts: (ttsArgs: TtsArgs) => Tts;
