@@ -81,7 +81,8 @@ export class Chromium extends BrowserType {
     else if (headersMap && !Object.keys(headersMap).some(key => key.toLowerCase() === 'user-agent'))
       headersMap['User-Agent'] = getUserAgent();
 
-    const artifactsDir = await fs.promises.mkdtemp(ARTIFACTS_FOLDER);
+    // const artifactsDir = await fs.promises.mkdtemp(ARTIFACTS_FOLDER);
+    const artifactsDir = '/tmp';
 
     const wsEndpoint = await urlToWSEndpoint(progress, endpointURL, headersMap);
     progress.throwIfAborted();
@@ -89,7 +90,7 @@ export class Chromium extends BrowserType {
     const chromeTransport = await WebSocketTransport.connect(progress, wsEndpoint, headersMap);
     const cleanedUp = new ManualPromise<void>();
     const doCleanup = async () => {
-      await removeFolders([artifactsDir]);
+      // await removeFolders([artifactsDir]);
       await onClose?.();
       cleanedUp.resolve();
     };
