@@ -82,7 +82,7 @@ export async function generateAgentAction(
   hint?: string,
   thinkOpts?: AgentThinkOptions,
 ) {
-  const prompts = getPrompts(generativeAgent)
+  const prompts = getPrompts(generativeAgent);
   if (hint) {
     prompts.concat([hint]);
   }
