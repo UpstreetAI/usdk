@@ -227,16 +227,23 @@ export class ConversationObject extends EventTarget {
     await e.waitForFinish();
   }
   // push a message to the network
-  addLocalAndRemoteMessage(message: ActionMessage) {
+  async addLocalAndRemoteMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
-    this.dispatchEvent(
-      new MessageEvent('remotemessage', {
-        data: {
-          message,
-        },
-      }),
-    );
+    // this.dispatchEvent(
+    //   new MessageEvent('remotemessage', {
+    //     data: {
+    //       message,
+    //     },
+    //   }),
+    // );
+    const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
+      data: {
+        message,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {
