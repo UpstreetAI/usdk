@@ -441,244 +441,244 @@ export class Registry {
       _isHermeticInstallation: true,
     });
 
-    const chromiumTipOfTree = descriptors.find(d => d.name === 'chromium-tip-of-tree')!;
-    const chromiumTipOfTreeExecutable = findExecutablePath(chromiumTipOfTree.dir, 'chromium');
-    this._executables.push({
-      type: 'tool',
-      name: 'chromium-tip-of-tree',
-      browserName: 'chromium',
-      directory: chromiumTipOfTree.dir,
-      executablePath: () => chromiumTipOfTreeExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('chromium-tip-of-tree', chromiumTipOfTreeExecutable, chromiumTipOfTree.installByDefault, sdkLanguage),
-      installType: chromiumTipOfTree.installByDefault ? 'download-by-default' : 'download-on-demand',
-      _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'chromium', chromiumTipOfTree.dir, ['chrome-linux'], [], ['chrome-win']),
-      downloadURLs: this._downloadURLs(chromiumTipOfTree),
-      browserVersion: chromiumTipOfTree.browserVersion,
-      _install: () => this._downloadExecutable(chromiumTipOfTree, chromiumTipOfTreeExecutable),
-      _dependencyGroup: 'chromium',
-      _isHermeticInstallation: true,
-    });
+    // const chromiumTipOfTree = descriptors.find(d => d.name === 'chromium-tip-of-tree')!;
+    // const chromiumTipOfTreeExecutable = findExecutablePath(chromiumTipOfTree.dir, 'chromium');
+    // this._executables.push({
+    //   type: 'tool',
+    //   name: 'chromium-tip-of-tree',
+    //   browserName: 'chromium',
+    //   directory: chromiumTipOfTree.dir,
+    //   executablePath: () => chromiumTipOfTreeExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('chromium-tip-of-tree', chromiumTipOfTreeExecutable, chromiumTipOfTree.installByDefault, sdkLanguage),
+    //   installType: chromiumTipOfTree.installByDefault ? 'download-by-default' : 'download-on-demand',
+    //   _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'chromium', chromiumTipOfTree.dir, ['chrome-linux'], [], ['chrome-win']),
+    //   downloadURLs: this._downloadURLs(chromiumTipOfTree),
+    //   browserVersion: chromiumTipOfTree.browserVersion,
+    //   _install: () => this._downloadExecutable(chromiumTipOfTree, chromiumTipOfTreeExecutable),
+    //   _dependencyGroup: 'chromium',
+    //   _isHermeticInstallation: true,
+    // });
 
-    this._executables.push(this._createChromiumChannel('chrome', {
-      'linux': '/opt/google/chrome/chrome',
-      'darwin': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      'win32': `\\Google\\Chrome\\Application\\chrome.exe`,
-    }, () => this._installChromiumChannel('chrome', {
-      'linux': 'reinstall_chrome_stable_linux.sh',
-      'darwin': 'reinstall_chrome_stable_mac.sh',
-      'win32': 'reinstall_chrome_stable_win.ps1',
-    })));
+    // this._executables.push(this._createChromiumChannel('chrome', {
+    //   'linux': '/opt/google/chrome/chrome',
+    //   'darwin': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    //   'win32': `\\Google\\Chrome\\Application\\chrome.exe`,
+    // }, () => this._installChromiumChannel('chrome', {
+    //   'linux': 'reinstall_chrome_stable_linux.sh',
+    //   'darwin': 'reinstall_chrome_stable_mac.sh',
+    //   'win32': 'reinstall_chrome_stable_win.ps1',
+    // })));
 
-    this._executables.push(this._createChromiumChannel('chrome-beta', {
-      'linux': '/opt/google/chrome-beta/chrome',
-      'darwin': '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta',
-      'win32': `\\Google\\Chrome Beta\\Application\\chrome.exe`,
-    }, () => this._installChromiumChannel('chrome-beta', {
-      'linux': 'reinstall_chrome_beta_linux.sh',
-      'darwin': 'reinstall_chrome_beta_mac.sh',
-      'win32': 'reinstall_chrome_beta_win.ps1',
-    })));
+    // this._executables.push(this._createChromiumChannel('chrome-beta', {
+    //   'linux': '/opt/google/chrome-beta/chrome',
+    //   'darwin': '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta',
+    //   'win32': `\\Google\\Chrome Beta\\Application\\chrome.exe`,
+    // }, () => this._installChromiumChannel('chrome-beta', {
+    //   'linux': 'reinstall_chrome_beta_linux.sh',
+    //   'darwin': 'reinstall_chrome_beta_mac.sh',
+    //   'win32': 'reinstall_chrome_beta_win.ps1',
+    // })));
 
-    this._executables.push(this._createChromiumChannel('chrome-dev', {
-      'linux': '/opt/google/chrome-unstable/chrome',
-      'darwin': '/Applications/Google Chrome Dev.app/Contents/MacOS/Google Chrome Dev',
-      'win32': `\\Google\\Chrome Dev\\Application\\chrome.exe`,
-    }));
+    // this._executables.push(this._createChromiumChannel('chrome-dev', {
+    //   'linux': '/opt/google/chrome-unstable/chrome',
+    //   'darwin': '/Applications/Google Chrome Dev.app/Contents/MacOS/Google Chrome Dev',
+    //   'win32': `\\Google\\Chrome Dev\\Application\\chrome.exe`,
+    // }));
 
-    this._executables.push(this._createChromiumChannel('chrome-canary', {
-      'linux': '',
-      'darwin': '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-      'win32': `\\Google\\Chrome SxS\\Application\\chrome.exe`,
-    }));
+    // this._executables.push(this._createChromiumChannel('chrome-canary', {
+    //   'linux': '',
+    //   'darwin': '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+    //   'win32': `\\Google\\Chrome SxS\\Application\\chrome.exe`,
+    // }));
 
-    this._executables.push(this._createChromiumChannel('msedge', {
-      'linux': '/opt/microsoft/msedge/msedge',
-      'darwin': '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-      'win32': `\\Microsoft\\Edge\\Application\\msedge.exe`,
-    }, () => this._installMSEdgeChannel('msedge', {
-      'linux': 'reinstall_msedge_stable_linux.sh',
-      'darwin': 'reinstall_msedge_stable_mac.sh',
-      'win32': 'reinstall_msedge_stable_win.ps1',
-    })));
+    // this._executables.push(this._createChromiumChannel('msedge', {
+    //   'linux': '/opt/microsoft/msedge/msedge',
+    //   'darwin': '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    //   'win32': `\\Microsoft\\Edge\\Application\\msedge.exe`,
+    // }, () => this._installMSEdgeChannel('msedge', {
+    //   'linux': 'reinstall_msedge_stable_linux.sh',
+    //   'darwin': 'reinstall_msedge_stable_mac.sh',
+    //   'win32': 'reinstall_msedge_stable_win.ps1',
+    // })));
 
-    this._executables.push(this._createChromiumChannel('msedge-beta', {
-      'linux': '/opt/microsoft/msedge-beta/msedge',
-      'darwin': '/Applications/Microsoft Edge Beta.app/Contents/MacOS/Microsoft Edge Beta',
-      'win32': `\\Microsoft\\Edge Beta\\Application\\msedge.exe`,
-    }, () => this._installMSEdgeChannel('msedge-beta', {
-      'darwin': 'reinstall_msedge_beta_mac.sh',
-      'linux': 'reinstall_msedge_beta_linux.sh',
-      'win32': 'reinstall_msedge_beta_win.ps1',
-    })));
+    // this._executables.push(this._createChromiumChannel('msedge-beta', {
+    //   'linux': '/opt/microsoft/msedge-beta/msedge',
+    //   'darwin': '/Applications/Microsoft Edge Beta.app/Contents/MacOS/Microsoft Edge Beta',
+    //   'win32': `\\Microsoft\\Edge Beta\\Application\\msedge.exe`,
+    // }, () => this._installMSEdgeChannel('msedge-beta', {
+    //   'darwin': 'reinstall_msedge_beta_mac.sh',
+    //   'linux': 'reinstall_msedge_beta_linux.sh',
+    //   'win32': 'reinstall_msedge_beta_win.ps1',
+    // })));
 
-    this._executables.push(this._createChromiumChannel('msedge-dev', {
-      'linux': '/opt/microsoft/msedge-dev/msedge',
-      'darwin': '/Applications/Microsoft Edge Dev.app/Contents/MacOS/Microsoft Edge Dev',
-      'win32': `\\Microsoft\\Edge Dev\\Application\\msedge.exe`,
-    }, () => this._installMSEdgeChannel('msedge-dev', {
-      'darwin': 'reinstall_msedge_dev_mac.sh',
-      'linux': 'reinstall_msedge_dev_linux.sh',
-      'win32': 'reinstall_msedge_dev_win.ps1',
-    })));
+    // this._executables.push(this._createChromiumChannel('msedge-dev', {
+    //   'linux': '/opt/microsoft/msedge-dev/msedge',
+    //   'darwin': '/Applications/Microsoft Edge Dev.app/Contents/MacOS/Microsoft Edge Dev',
+    //   'win32': `\\Microsoft\\Edge Dev\\Application\\msedge.exe`,
+    // }, () => this._installMSEdgeChannel('msedge-dev', {
+    //   'darwin': 'reinstall_msedge_dev_mac.sh',
+    //   'linux': 'reinstall_msedge_dev_linux.sh',
+    //   'win32': 'reinstall_msedge_dev_win.ps1',
+    // })));
 
-    this._executables.push(this._createChromiumChannel('msedge-canary', {
-      'linux': '',
-      'darwin': '/Applications/Microsoft Edge Canary.app/Contents/MacOS/Microsoft Edge Canary',
-      'win32': `\\Microsoft\\Edge SxS\\Application\\msedge.exe`,
-    }));
+    // this._executables.push(this._createChromiumChannel('msedge-canary', {
+    //   'linux': '',
+    //   'darwin': '/Applications/Microsoft Edge Canary.app/Contents/MacOS/Microsoft Edge Canary',
+    //   'win32': `\\Microsoft\\Edge SxS\\Application\\msedge.exe`,
+    // }));
 
-    this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-stable', {
-      'linux': '/firefox/firefox',
-      'darwin': '/Firefox.app/Contents/MacOS/firefox',
-      'win32': '\\core\\firefox.exe',
-    }));
-    this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-beta', {
-      'linux': '/firefox/firefox',
-      'darwin': '/Firefox.app/Contents/MacOS/firefox',
-      'win32': '\\core\\firefox.exe',
-    }));
-    this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-nightly', {
-      'linux': '/firefox/firefox',
-      'darwin': '/Firefox Nightly.app/Contents/MacOS/firefox',
-      'win32': '\\firefox\\firefox.exe',
-    }));
+    // this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-stable', {
+    //   'linux': '/firefox/firefox',
+    //   'darwin': '/Firefox.app/Contents/MacOS/firefox',
+    //   'win32': '\\core\\firefox.exe',
+    // }));
+    // this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-beta', {
+    //   'linux': '/firefox/firefox',
+    //   'darwin': '/Firefox.app/Contents/MacOS/firefox',
+    //   'win32': '\\core\\firefox.exe',
+    // }));
+    // this._executables.push(this._createBidiFirefoxChannel('bidi-firefox-nightly', {
+    //   'linux': '/firefox/firefox',
+    //   'darwin': '/Firefox Nightly.app/Contents/MacOS/firefox',
+    //   'win32': '\\firefox\\firefox.exe',
+    // }));
 
-    this._executables.push(this._createBidiChannel('bidi-chrome-stable', {
-      'linux': '/opt/google/chrome/chrome',
-      'darwin': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      'win32': `\\Google\\Chrome\\Application\\chrome.exe`,
-    }));
-    this._executables.push(this._createBidiChannel('bidi-chrome-canary', {
-      'linux': '',
-      'darwin': '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
-      'win32': `\\Google\\Chrome SxS\\Application\\chrome.exe`,
-    }));
-    this._executables.push({
-      type: 'browser',
-      name: 'bidi-chromium',
-      browserName: 'bidi',
-      directory: chromium.dir,
-      executablePath: () => chromiumExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('chromium', chromiumExecutable, chromium.installByDefault, sdkLanguage),
-      installType: 'download-on-demand',
-      _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'chromium', chromium.dir, ['chrome-linux'], [], ['chrome-win']),
-      downloadURLs: this._downloadURLs(chromium),
-      browserVersion: chromium.browserVersion,
-      _install: () => this._downloadExecutable(chromium, chromiumExecutable),
-      _dependencyGroup: 'chromium',
-      _isHermeticInstallation: true,
-    });
+    // this._executables.push(this._createBidiChannel('bidi-chrome-stable', {
+    //   'linux': '/opt/google/chrome/chrome',
+    //   'darwin': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    //   'win32': `\\Google\\Chrome\\Application\\chrome.exe`,
+    // }));
+    // this._executables.push(this._createBidiChannel('bidi-chrome-canary', {
+    //   'linux': '',
+    //   'darwin': '/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary',
+    //   'win32': `\\Google\\Chrome SxS\\Application\\chrome.exe`,
+    // }));
+    // this._executables.push({
+    //   type: 'browser',
+    //   name: 'bidi-chromium',
+    //   browserName: 'bidi',
+    //   directory: chromium.dir,
+    //   executablePath: () => chromiumExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('chromium', chromiumExecutable, chromium.installByDefault, sdkLanguage),
+    //   installType: 'download-on-demand',
+    //   _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'chromium', chromium.dir, ['chrome-linux'], [], ['chrome-win']),
+    //   downloadURLs: this._downloadURLs(chromium),
+    //   browserVersion: chromium.browserVersion,
+    //   _install: () => this._downloadExecutable(chromium, chromiumExecutable),
+    //   _dependencyGroup: 'chromium',
+    //   _isHermeticInstallation: true,
+    // });
 
-    const firefox = descriptors.find(d => d.name === 'firefox')!;
-    const firefoxExecutable = findExecutablePath(firefox.dir, 'firefox');
-    this._executables.push({
-      type: 'browser',
-      name: 'firefox',
-      browserName: 'firefox',
-      directory: firefox.dir,
-      executablePath: () => firefoxExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('firefox', firefoxExecutable, firefox.installByDefault, sdkLanguage),
-      installType: firefox.installByDefault ? 'download-by-default' : 'download-on-demand',
-      _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'firefox', firefox.dir, ['firefox'], [], ['firefox']),
-      downloadURLs: this._downloadURLs(firefox),
-      browserVersion: firefox.browserVersion,
-      _install: () => this._downloadExecutable(firefox, firefoxExecutable),
-      _dependencyGroup: 'firefox',
-      _isHermeticInstallation: true,
-    });
+    // const firefox = descriptors.find(d => d.name === 'firefox')!;
+    // const firefoxExecutable = findExecutablePath(firefox.dir, 'firefox');
+    // this._executables.push({
+    //   type: 'browser',
+    //   name: 'firefox',
+    //   browserName: 'firefox',
+    //   directory: firefox.dir,
+    //   executablePath: () => firefoxExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('firefox', firefoxExecutable, firefox.installByDefault, sdkLanguage),
+    //   installType: firefox.installByDefault ? 'download-by-default' : 'download-on-demand',
+    //   _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'firefox', firefox.dir, ['firefox'], [], ['firefox']),
+    //   downloadURLs: this._downloadURLs(firefox),
+    //   browserVersion: firefox.browserVersion,
+    //   _install: () => this._downloadExecutable(firefox, firefoxExecutable),
+    //   _dependencyGroup: 'firefox',
+    //   _isHermeticInstallation: true,
+    // });
 
-    const firefoxBeta = descriptors.find(d => d.name === 'firefox-beta')!;
-    const firefoxBetaExecutable = findExecutablePath(firefoxBeta.dir, 'firefox');
-    this._executables.push({
-      type: 'tool',
-      name: 'firefox-beta',
-      browserName: 'firefox',
-      directory: firefoxBeta.dir,
-      executablePath: () => firefoxBetaExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('firefox-beta', firefoxBetaExecutable, firefoxBeta.installByDefault, sdkLanguage),
-      installType: firefoxBeta.installByDefault ? 'download-by-default' : 'download-on-demand',
-      _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'firefox', firefoxBeta.dir, ['firefox'], [], ['firefox']),
-      downloadURLs: this._downloadURLs(firefoxBeta),
-      browserVersion: firefoxBeta.browserVersion,
-      _install: () => this._downloadExecutable(firefoxBeta, firefoxBetaExecutable),
-      _dependencyGroup: 'firefox',
-      _isHermeticInstallation: true,
-    });
+    // const firefoxBeta = descriptors.find(d => d.name === 'firefox-beta')!;
+    // const firefoxBetaExecutable = findExecutablePath(firefoxBeta.dir, 'firefox');
+    // this._executables.push({
+    //   type: 'tool',
+    //   name: 'firefox-beta',
+    //   browserName: 'firefox',
+    //   directory: firefoxBeta.dir,
+    //   executablePath: () => firefoxBetaExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('firefox-beta', firefoxBetaExecutable, firefoxBeta.installByDefault, sdkLanguage),
+    //   installType: firefoxBeta.installByDefault ? 'download-by-default' : 'download-on-demand',
+    //   _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'firefox', firefoxBeta.dir, ['firefox'], [], ['firefox']),
+    //   downloadURLs: this._downloadURLs(firefoxBeta),
+    //   browserVersion: firefoxBeta.browserVersion,
+    //   _install: () => this._downloadExecutable(firefoxBeta, firefoxBetaExecutable),
+    //   _dependencyGroup: 'firefox',
+    //   _isHermeticInstallation: true,
+    // });
 
-    const webkit = descriptors.find(d => d.name === 'webkit')!;
-    const webkitExecutable = findExecutablePath(webkit.dir, 'webkit');
-    const webkitLinuxLddDirectories = [
-      path.join('minibrowser-gtk'),
-      path.join('minibrowser-gtk', 'bin'),
-      path.join('minibrowser-gtk', 'lib'),
-      path.join('minibrowser-gtk', 'sys', 'lib'),
-      path.join('minibrowser-wpe'),
-      path.join('minibrowser-wpe', 'bin'),
-      path.join('minibrowser-wpe', 'lib'),
-      path.join('minibrowser-wpe', 'sys', 'lib'),
-    ];
-    this._executables.push({
-      type: 'browser',
-      name: 'webkit',
-      browserName: 'webkit',
-      directory: webkit.dir,
-      executablePath: () => webkitExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('webkit', webkitExecutable, webkit.installByDefault, sdkLanguage),
-      installType: webkit.installByDefault ? 'download-by-default' : 'download-on-demand',
-      _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'webkit', webkit.dir, webkitLinuxLddDirectories, ['libGLESv2.so.2', 'libx264.so'], ['']),
-      downloadURLs: this._downloadURLs(webkit),
-      browserVersion: webkit.browserVersion,
-      _install: () => this._downloadExecutable(webkit, webkitExecutable),
-      _dependencyGroup: 'webkit',
-      _isHermeticInstallation: true,
-    });
+    // const webkit = descriptors.find(d => d.name === 'webkit')!;
+    // const webkitExecutable = findExecutablePath(webkit.dir, 'webkit');
+    // const webkitLinuxLddDirectories = [
+    //   path.join('minibrowser-gtk'),
+    //   path.join('minibrowser-gtk', 'bin'),
+    //   path.join('minibrowser-gtk', 'lib'),
+    //   path.join('minibrowser-gtk', 'sys', 'lib'),
+    //   path.join('minibrowser-wpe'),
+    //   path.join('minibrowser-wpe', 'bin'),
+    //   path.join('minibrowser-wpe', 'lib'),
+    //   path.join('minibrowser-wpe', 'sys', 'lib'),
+    // ];
+    // this._executables.push({
+    //   type: 'browser',
+    //   name: 'webkit',
+    //   browserName: 'webkit',
+    //   directory: webkit.dir,
+    //   executablePath: () => webkitExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('webkit', webkitExecutable, webkit.installByDefault, sdkLanguage),
+    //   installType: webkit.installByDefault ? 'download-by-default' : 'download-on-demand',
+    //   _validateHostRequirements: (sdkLanguage: string) => this._validateHostRequirements(sdkLanguage, 'webkit', webkit.dir, webkitLinuxLddDirectories, ['libGLESv2.so.2', 'libx264.so'], ['']),
+    //   downloadURLs: this._downloadURLs(webkit),
+    //   browserVersion: webkit.browserVersion,
+    //   _install: () => this._downloadExecutable(webkit, webkitExecutable),
+    //   _dependencyGroup: 'webkit',
+    //   _isHermeticInstallation: true,
+    // });
 
-    const ffmpeg = descriptors.find(d => d.name === 'ffmpeg')!;
-    const ffmpegExecutable = findExecutablePath(ffmpeg.dir, 'ffmpeg');
-    this._executables.push({
-      type: 'tool',
-      name: 'ffmpeg',
-      browserName: undefined,
-      directory: ffmpeg.dir,
-      executablePath: () => ffmpegExecutable,
-      executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('ffmpeg', ffmpegExecutable, ffmpeg.installByDefault, sdkLanguage),
-      installType: ffmpeg.installByDefault ? 'download-by-default' : 'download-on-demand',
-      _validateHostRequirements: () => Promise.resolve(),
-      downloadURLs: this._downloadURLs(ffmpeg),
-      _install: () => this._downloadExecutable(ffmpeg, ffmpegExecutable),
-      _dependencyGroup: 'tools',
-      _isHermeticInstallation: true,
-    });
-    const android = descriptors.find(d => d.name === 'android')!;
-    this._executables.push({
-      type: 'tool',
-      name: 'android',
-      browserName: undefined,
-      directory: android.dir,
-      executablePath: () => undefined,
-      executablePathOrDie: () => '',
-      installType: 'download-on-demand',
-      _validateHostRequirements: () => Promise.resolve(),
-      downloadURLs: this._downloadURLs(android),
-      _install: () => this._downloadExecutable(android),
-      _dependencyGroup: 'tools',
-      _isHermeticInstallation: true,
-    });
+    // const ffmpeg = descriptors.find(d => d.name === 'ffmpeg')!;
+    // const ffmpegExecutable = findExecutablePath(ffmpeg.dir, 'ffmpeg');
+    // this._executables.push({
+    //   type: 'tool',
+    //   name: 'ffmpeg',
+    //   browserName: undefined,
+    //   directory: ffmpeg.dir,
+    //   executablePath: () => ffmpegExecutable,
+    //   executablePathOrDie: (sdkLanguage: string) => executablePathOrDie('ffmpeg', ffmpegExecutable, ffmpeg.installByDefault, sdkLanguage),
+    //   installType: ffmpeg.installByDefault ? 'download-by-default' : 'download-on-demand',
+    //   _validateHostRequirements: () => Promise.resolve(),
+    //   downloadURLs: this._downloadURLs(ffmpeg),
+    //   _install: () => this._downloadExecutable(ffmpeg, ffmpegExecutable),
+    //   _dependencyGroup: 'tools',
+    //   _isHermeticInstallation: true,
+    // });
+    // const android = descriptors.find(d => d.name === 'android')!;
+    // this._executables.push({
+    //   type: 'tool',
+    //   name: 'android',
+    //   browserName: undefined,
+    //   directory: android.dir,
+    //   executablePath: () => undefined,
+    //   executablePathOrDie: () => '',
+    //   installType: 'download-on-demand',
+    //   _validateHostRequirements: () => Promise.resolve(),
+    //   downloadURLs: this._downloadURLs(android),
+    //   _install: () => this._downloadExecutable(android),
+    //   _dependencyGroup: 'tools',
+    //   _isHermeticInstallation: true,
+    // });
 
-    this._executables.push({
-      type: 'browser',
-      name: 'bidi',
-      browserName: 'bidi',
-      directory: undefined,
-      executablePath: () => undefined,
-      executablePathOrDie: () => '',
-      installType: 'none',
-      _validateHostRequirements: () => Promise.resolve(),
-      downloadURLs: [],
-      _install: () => Promise.resolve(),
-      _dependencyGroup: 'tools',
-      _isHermeticInstallation: true,
-    });
+    // this._executables.push({
+    //   type: 'browser',
+    //   name: 'bidi',
+    //   browserName: 'bidi',
+    //   directory: undefined,
+    //   executablePath: () => undefined,
+    //   executablePathOrDie: () => '',
+    //   installType: 'none',
+    //   _validateHostRequirements: () => Promise.resolve(),
+    //   downloadURLs: [],
+    //   _install: () => Promise.resolve(),
+    //   _dependencyGroup: 'tools',
+    //   _isHermeticInstallation: true,
+    // });
   }
 
   private _createChromiumChannel(name: ChromiumChannel, lookAt: Record<'linux' | 'darwin' | 'win32', string>, install?: () => Promise<void>): ExecutableImpl {
