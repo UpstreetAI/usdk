@@ -16,7 +16,7 @@
  */
 
 import type * as types from './types';
-import fs from 'fs';
+// import fs from 'fs';
 import { isString } from '../utils';
 
 export function envObjectToArray(env: types.Env): { name: string, value: string }[] {

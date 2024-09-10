@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import childProcess from 'child_process';
+// import childProcess from 'child_process';
 import { existsAsync } from '../../utils/fileUtils';
 import { debugLogger } from '../../utils/debugLogger';
 import { ManualPromise } from '../../utils/manualPromise';
-import { colors, progress as ProgressBar } from '../../utilsBundle';
+// import { colors, progress as ProgressBar } from '../../utilsBundle';
 import { browserDirectoryToMarkerFilePath } from '.';
 import { getUserAgent } from '../../utils/userAgent';
 import type { DownloadParams } from './oopDownloadBrowserMain';

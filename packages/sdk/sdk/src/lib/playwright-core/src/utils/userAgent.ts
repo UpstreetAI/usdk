@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { execSync } from 'child_process';
+// import { execSync } from 'child_process';
 import os from 'os';
 import { getLinuxDistributionInfoSync } from '../utils/linuxUtils';
 import { wrapInASCIIBox } from './ascii';

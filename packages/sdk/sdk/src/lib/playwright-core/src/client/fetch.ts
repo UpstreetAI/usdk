@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import * as util from 'util';
 import type { Serializable } from '../../types/structs';

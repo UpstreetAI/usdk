@@ -19,7 +19,7 @@ import { Page, BindingCall } from './page';
 import { Frame } from './frame';
 import * as network from './network';
 import type * as channels from '@protocol/channels';
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import { ChannelOwner } from './channelOwner';
 import { evaluationScript } from './clientHelper';

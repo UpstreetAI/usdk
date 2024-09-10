@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
-import * as os from 'os';
-import childProcess from 'child_process';
-import * as utils from '../../utils';
+// import * as os from 'os';
+// import childProcess from 'child_process';
+// import * as utils from '../../utils';
 import { spawnAsync } from '../../utils/spawnAsync';
 import { hostPlatform, isOfficiallySupportedPlatform } from '../../utils/hostPlatform';
 import { buildPlaywrightCLICommand } from '.';

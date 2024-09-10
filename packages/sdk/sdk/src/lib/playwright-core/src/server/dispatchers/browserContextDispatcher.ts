@@ -29,7 +29,7 @@ import { ArtifactDispatcher } from './artifactDispatcher';
 import type { Artifact } from '../artifact';
 import type { Request, Response } from '../network';
 import { TracingDispatcher } from './tracingDispatcher';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import * as path from 'path';
 import { createGuid, urlMatches } from '../../utils';
 import { WritableStreamDispatcher } from './writableStreamDispatcher';

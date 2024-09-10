@@ -15,7 +15,7 @@
  */
 
 import type * as channels from '@protocol/channels';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import { Stream } from './stream';
 import { mkdirIfNeeded } from '../utils/fileUtils';
 import { ChannelOwner } from './channelOwner';

@@ -31,7 +31,7 @@ import type { Selectors } from './selectors';
 import type * as types from './types';
 import type * as channels from '@protocol/channels';
 import path from 'path';
-import fs from 'fs';
+// import fs from 'fs';
 import type { CallMetadata } from './instrumentation';
 import { serverSideCallMetadata, SdkObject } from './instrumentation';
 import { Debugger } from './debugger';

@@ -15,7 +15,7 @@
  */
 
 import path from 'path';
-import fs from 'fs';
+// import fs from 'fs';
 import { HttpServer } from '../../../utils/httpServer';
 import type { Transport } from '../../../utils/httpServer';
 import { gracefullyProcessExitDoNotHang, isUnderTest } from '../../../utils';

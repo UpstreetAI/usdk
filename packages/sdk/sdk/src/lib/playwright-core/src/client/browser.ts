@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import type * as channels from '@protocol/channels';
 import { BrowserContext, prepareBrowserContextParams } from './browserContext';
 import type { Page } from './page';

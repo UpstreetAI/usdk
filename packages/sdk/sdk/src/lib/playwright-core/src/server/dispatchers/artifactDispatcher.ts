@@ -18,7 +18,7 @@ import type * as channels from '@protocol/channels';
 import { Dispatcher, existingDispatcher } from './dispatcher';
 import type { DispatcherScope } from './dispatcher';
 import { StreamDispatcher } from './streamDispatcher';
-import fs from 'fs';
+// import fs from 'fs';
 import { mkdirIfNeeded } from '../../utils/fileUtils';
 import type { Artifact } from '../artifact';
 import type { CallMetadata } from '../instrumentation';

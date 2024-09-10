@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import { assert } from '../utils';
 import { ManualPromise } from '../utils/manualPromise';
 import { SdkObject } from './instrumentation';

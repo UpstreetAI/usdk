@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import type * as structs from '../../types/structs';
 import type * as api from '../../types/types';

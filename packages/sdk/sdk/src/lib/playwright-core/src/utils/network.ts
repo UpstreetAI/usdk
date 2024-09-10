@@ -15,10 +15,10 @@
  */
 
 
-import http from 'http';
-import https from 'https';
-import http2 from 'http2';
-import type net from 'net';
+// import http from 'http';
+// import https from 'https';
+// import http2 from 'http2';
+// import type net from 'net';
 import { getProxyForUrl } from '../utilsBundle';
 import { HttpsProxyAgent } from '../utilsBundle';
 import url from 'url';

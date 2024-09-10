@@ -24,7 +24,7 @@ import { getByAltTextSelector, getByLabelSelector, getByPlaceholderSelector, get
 import type { ByRoleOptions } from '../utils/isomorphic/locatorUtils';
 import { ElementHandle, convertSelectOptionValues, convertInputFiles } from './elementHandle';
 import { assertMaxArguments, JSHandle, serializeArgument, parseResult } from './jsHandle';
-import fs from 'fs';
+// import fs from 'fs';
 import * as network from './network';
 import type { Page } from './page';
 import { EventEmitter } from 'events';

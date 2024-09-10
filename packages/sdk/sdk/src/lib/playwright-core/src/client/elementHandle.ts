@@ -20,7 +20,7 @@ import type { Locator } from './locator';
 import { JSHandle, serializeArgument, parseResult } from './jsHandle';
 import type { ChannelOwner } from './channelOwner';
 import type { SelectOption, FilePayload, Rect, SelectOptionOptions } from './types';
-import fs from 'fs';
+// import fs from 'fs';
 import { mime } from '../utilsBundle';
 import path from 'path';
 import { assert, isString } from '../utils';

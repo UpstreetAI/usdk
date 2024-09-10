@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import net from 'net';
-import http2 from 'http2';
-import type https from 'https';
-import tls from 'tls';
-import stream from 'stream';
+// import net from 'net';
+// import http2 from 'http2';
+// import type https from 'https';
+// import tls from 'tls';
+// import stream from 'stream';
 import { createSocket, createTLSSocket } from '../utils/happy-eyeballs';
 import { escapeHTML, generateSelfSignedCertificate, ManualPromise, rewriteErrorMessage } from '../utils';
 import type { SocksSocketClosedPayload, SocksSocketDataPayload, SocksSocketRequestedPayload } from '../common/socksProxy';

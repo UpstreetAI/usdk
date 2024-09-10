@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type http from 'http';
-import type stream from 'stream';
+// import type http from 'http';
+// import type stream from 'stream';
 import { createHttpServer } from '../utils';
-import type { WebSocketServer, WebSocket } from '../utilsBundle';
-import { wsServer } from '../utilsBundle';
+// import type { WebSocketServer, WebSocket } from '../utilsBundle';
+// import { wsServer } from '../utilsBundle';
 import { debugLogger } from './debugLogger';
 
 let lastConnectionId = 0;

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
-import * as childProcess from 'child_process';
-import * as readline from 'readline';
+// import fs from 'fs';
+// import * as childProcess from 'child_process';
+// import * as readline from 'readline';
 import { isUnderTest } from './';
 import { removeFolders } from './fileUtils';
 

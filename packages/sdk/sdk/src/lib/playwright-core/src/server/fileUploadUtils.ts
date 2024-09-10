@@ -15,7 +15,7 @@
  */
 
 import type * as channels from '@protocol/channels';
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import { assert, fileUploadSizeLimit } from '../utils';
 import { mime } from '../utilsBundle';

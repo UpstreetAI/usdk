@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import type { CRSession } from './crConnection';
 
 const kBindingName = '__pw_devtools__';

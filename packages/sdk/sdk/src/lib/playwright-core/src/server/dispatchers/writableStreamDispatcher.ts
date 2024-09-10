@@ -16,7 +16,7 @@
 
 import type * as channels from '@protocol/channels';
 import { Dispatcher } from './dispatcher';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import { createGuid } from '../../utils';
 import type { BrowserContextDispatcher } from './browserContextDispatcher';
 

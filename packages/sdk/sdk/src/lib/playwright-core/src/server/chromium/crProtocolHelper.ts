@@ -17,7 +17,7 @@
 
 import type { CRSession } from './crConnection';
 import type { Protocol } from './protocol';
-import fs from 'fs';
+// import fs from 'fs';
 import type * as types from '../types';
 import { mkdirIfNeeded } from '../../utils/fileUtils';
 import { splitErrorMessage } from '../../utils/stackTrace';

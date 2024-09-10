@@ -16,7 +16,7 @@
 
 import type * as channels from '@protocol/channels';
 import type { CallLog, CallLogStatus, EventData, Mode, OverlayState, Source, UIState } from '@recorder/recorderTypes';
-import * as fs from 'fs';
+// import * as fs from 'fs';
 import type { Point } from '../common/types';
 import * as consoleApiSource from '../generated/consoleApiSource';
 import { isUnderTest } from '../utils';

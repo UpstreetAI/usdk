@@ -17,8 +17,8 @@
 
 import * as os from 'os';
 import path from 'path';
-import * as util from 'util';
-import * as fs from 'fs';
+// import * as util from 'util';
+// import * as fs from 'fs';
 import { lockfile } from '../../utilsBundle';
 import { fetchData } from '../../utils/network';
 import { getEmbedderName } from '../../utils/userAgent';

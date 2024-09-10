@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import fs from 'fs';
+// import fs from 'fs';
 import path from 'path';
 import type { Page } from '../page';
 import { ProgressController } from '../progress';
