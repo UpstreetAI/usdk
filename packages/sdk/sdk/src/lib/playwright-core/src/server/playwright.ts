@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { Android } from './android/android';
-import { AdbBackend } from './android/backendAdb';
+// import { Android } from './android/android';
+// import { AdbBackend } from './android/backendAdb';
 import type { Browser } from './browser';
 import { Chromium } from './chromium/chromium';
-import { Electron } from './electron/electron';
-import { Firefox } from './firefox/firefox';
+// import { Electron } from './electron/electron';
+// import { Firefox } from './firefox/firefox';
 import { Selectors } from './selectors';
-import { WebKit } from './webkit/webkit';
+// import { WebKit } from './webkit/webkit';
 import type { CallMetadata } from './instrumentation';
 import { createInstrumentation, SdkObject } from './instrumentation';
 import { debugLogger, type Language } from '../utils';
 import type { Page } from './page';
-import { DebugController } from './debugController';
+// import { DebugController } from './debugController';
 import type { BrowserType } from './browserType';
-import { BidiChromium } from './bidi/bidiChromium';
-import { BidiFirefox } from './bidi/bidiFirefox';
+// import { BidiChromium } from './bidi/bidiChromium';
+// import { BidiFirefox } from './bidi/bidiFirefox';
 
 type PlaywrightOptions = {
   socksProxyPort?: number;
@@ -41,14 +41,14 @@ type PlaywrightOptions = {
 export class Playwright extends SdkObject {
   readonly selectors: Selectors;
   readonly chromium: BrowserType;
-  readonly android: Android;
-  readonly electron: Electron;
-  readonly firefox: BrowserType;
-  readonly webkit: BrowserType;
-  readonly bidiChromium: BrowserType;
-  readonly bidiFirefox: BrowserType;
+  // readonly android: Android;
+  // readonly electron: Electron;
+  // readonly firefox: BrowserType;
+  // readonly webkit: BrowserType;
+  // readonly bidiChromium: BrowserType;
+  // readonly bidiFirefox: BrowserType;
   readonly options: PlaywrightOptions;
-  readonly debugController: DebugController;
+  // readonly debugController: DebugController;
   private _allPages = new Set<Page>();
   private _allBrowsers = new Set<Browser>();
 
@@ -66,14 +66,14 @@ export class Playwright extends SdkObject {
       }
     }, null);
     this.chromium = new Chromium(this);
-    this.bidiChromium = new BidiChromium(this);
-    this.bidiFirefox = new BidiFirefox(this);
-    this.firefox = new Firefox(this);
-    this.webkit = new WebKit(this);
-    this.electron = new Electron(this);
-    this.android = new Android(this, new AdbBackend());
+    // this.bidiChromium = new BidiChromium(this);
+    // this.bidiFirefox = new BidiFirefox(this);
+    // this.firefox = new Firefox(this);
+    // this.webkit = new WebKit(this);
+    // this.electron = new Electron(this);
+    // this.android = new Android(this, new AdbBackend());
     this.selectors = new Selectors();
-    this.debugController = new DebugController(this);
+    // this.debugController = new DebugController(this);
   }
 
   async hideHighlight() {
