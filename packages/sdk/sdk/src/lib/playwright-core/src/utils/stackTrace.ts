@@ -132,9 +132,13 @@ export function splitErrorMessage(message: string): { name: string, message: str
 export function formatCallLog(log: string[] | undefined): string {
   if (!log || !log.some(l => !!l))
     return '';
+//   return `
+// Call log:
+//   ${colors.dim('- ' + (log || []).join('\n  - '))}
+// `;
   return `
 Call log:
-  ${colors.dim('- ' + (log || []).join('\n  - '))}
+  ${'- ' + (log || []).join('\n  - ')}
 `;
 }
 
