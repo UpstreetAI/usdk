@@ -21,7 +21,7 @@
 // import type net from 'net';
 // import { getProxyForUrl } from '../utilsBundle';
 // import { HttpsProxyAgent } from '../utilsBundle';
-import url from 'url';
+// import url from 'url';
 // import { httpHappyEyeballsAgent, httpsHappyEyeballsAgent } from './happy-eyeballs';
 
 export type HTTPRequestParams = {

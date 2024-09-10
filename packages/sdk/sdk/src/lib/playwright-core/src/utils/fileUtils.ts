@@ -18,7 +18,7 @@
 import path from 'path';
 import { ManualPromise } from './manualPromise';
 import type { EventEmitter } from 'events';
-import { yazl } from '../zipBundle';
+// import { yazl } from '../zipBundle';
 
 export const fileUploadSizeLimit = 50 * 1024 * 1024;
 

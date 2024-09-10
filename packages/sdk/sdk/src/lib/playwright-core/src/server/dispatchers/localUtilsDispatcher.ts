@@ -23,7 +23,7 @@ import { ManualPromise } from '../../utils/manualPromise';
 import { assert, calculateSha1, createGuid, removeFolders } from '../../utils';
 import type { RootDispatcher } from './dispatcher';
 import { Dispatcher } from './dispatcher';
-import { yazl, yauzl } from '../../zipBundle';
+// import { yazl, yauzl } from '../../zipBundle';
 import { ZipFile } from '../../utils/zipFile';
 import type * as har from '@trace/har';
 import type { HeadersArray } from '../types';

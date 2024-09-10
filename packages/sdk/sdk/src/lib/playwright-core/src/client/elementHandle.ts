@@ -29,10 +29,10 @@ import type * as api from '../../types/types';
 import type * as structs from '../../types/structs';
 import type { BrowserContext } from './browserContext';
 import { WritableStream } from './writableStream';
-import { pipeline } from 'stream';
-import { promisify } from 'util';
+// import { pipeline } from 'stream';
+// import { promisify } from 'util';
 
-const pipelineAsync = promisify(pipeline);
+// const pipelineAsync = promisify(pipeline);
 
 export class ElementHandle<T extends Node = Node> extends JSHandle<T> implements api.ElementHandle {
   readonly _elementChannel: channels.ElementHandleChannel;

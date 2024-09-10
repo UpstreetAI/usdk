@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { URLSearchParams } from 'url';
+// import { URLSearchParams } from 'url';
 import type * as channels from '@protocol/channels';
 import { ChannelOwner } from './channelOwner';
 import { Frame } from './frame';

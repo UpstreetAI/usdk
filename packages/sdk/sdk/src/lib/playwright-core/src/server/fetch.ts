@@ -16,12 +16,12 @@
 
 import type * as channels from '@protocol/channels';
 import type { LookupAddress } from 'dns';
-import http from 'http';
-import https from 'https';
+// import http from 'http';
+// import https from 'https';
 import type { Readable, TransformCallback } from 'stream';
-import { pipeline, Transform } from 'stream';
-import url from 'url';
-import zlib from 'zlib';
+import { /*pipeline,*/ Transform } from 'stream';
+// import url from 'url';
+// import zlib from 'zlib';
 import type { HTTPCredentials } from '../../types/types';
 import { TimeoutSettings } from '../common/timeoutSettings';
 import { getUserAgent } from '../utils/userAgent';
