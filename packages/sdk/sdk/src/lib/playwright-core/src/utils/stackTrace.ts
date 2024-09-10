@@ -29,7 +29,8 @@ export function rewriteErrorMessage<E extends Error>(e: E, newMessage: string): 
   return e;
 }
 
-const CORE_DIR = path.resolve(__dirname, '..', '..');
+// const CORE_DIR = path.resolve(__dirname, '..', '..');
+const CORE_DIR = '/tmp';
 
 const internalStackPrefixes = [
   CORE_DIR,
