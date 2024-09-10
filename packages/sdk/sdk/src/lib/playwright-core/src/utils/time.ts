@@ -24,10 +24,24 @@
 //
 // To make the `monotonicTime()` a reasonable value, we anchor
 // it to the time of the first import of this utility.
-const initialTime = process.hrtime();
+export function hrtime(previousTimestamp?: [number, number]): [number, number] {
+  const timeInMs = performance.now();
+
+  if (previousTimestamp !== undefined) {
+      const diffInMs = timeInMs - (previousTimestamp[0] * 1e3 + previousTimestamp[1] / 1e6);
+      const seconds = Math.floor(diffInMs / 1000);
+      const nanoseconds = Math.floor((diffInMs % 1000) * 1e6);
+      return [seconds, nanoseconds];
+  } else {
+      const seconds = Math.floor(timeInMs / 1000);
+      const nanoseconds = Math.floor((timeInMs % 1000) * 1e6);
+      return [seconds, nanoseconds];
+  }
+}
+const initialTime = hrtime();
 
 export function monotonicTime(): number {
-  const [seconds, nanoseconds] = process.hrtime(initialTime);
+  const [seconds, nanoseconds] = hrtime(initialTime);
   return seconds * 1000 + (nanoseconds / 1000 | 0) / 1000;
 }
 
