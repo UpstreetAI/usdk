@@ -33,8 +33,10 @@ import { downloadBrowserWithProgressBar, logPolitely } from './browserFetcher';
 export { writeDockerVersion } from './dependencies';
 import { debugLogger } from '../../utils/debugLogger';
 
-const PACKAGE_PATH = path.join(__dirname, '..', '..', '..');
-const BIN_PATH = path.join(__dirname, '..', '..', '..', 'bin');
+// const PACKAGE_PATH = path.join(__dirname, '..', '..', '..');
+const PACKAGE_PATH = '/tmp';
+// const BIN_PATH = path.join(__dirname, '..', '..', '..', 'bin');
+const BIN_PATH = '/tmp/bin';
 
 const PLAYWRIGHT_CDN_MIRRORS = [
   'https://playwright.azureedge.net',

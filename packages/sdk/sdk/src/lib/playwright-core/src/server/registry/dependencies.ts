@@ -25,7 +25,8 @@ import { buildPlaywrightCLICommand } from '.';
 import { deps } from './nativeDeps';
 import { getPlaywrightVersion } from '../../utils/userAgent';
 
-const BIN_DIRECTORY = path.join(__dirname, '..', '..', '..', 'bin');
+// const BIN_DIRECTORY = path.join(__dirname, '..', '..', '..', 'bin');
+const BIN_DIRECTORY = '/tmp/bin'
 const languageBindingVersion = process.env.PW_CLI_DISPLAY_VERSION || require('../../../package.json').version;
 
 const dockerVersionFilePath = '/ms-playwright/.docker-info';
