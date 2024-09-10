@@ -27,8 +27,9 @@ import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
 import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
-
+import { webbrowserActionsToText } from 'usdk/sdk/src/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
+
 
 //
 
@@ -200,6 +201,60 @@ function getMessageComponent(room: string, message: Message, id: string, players
           timestamp={message.timestamp}
         />
       )
+    }
+
+    case 'browserAction': {
+      const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+      
+      const {
+        // agent:,
+        // method,
+        args: messageArgs,
+        // result,
+        // error,
+      } = message;
+      const {
+        method,
+        args,
+        result,
+        error,
+      } = messageArgs as {
+        method: string;
+        args: any;
+        result: any;
+        error: any;
+      };
+      const spec = webbrowserActionsToText.find((spec) => method === method);
+      if (spec) {
+        const agent = player?.getPlayerSpec();
+        const o = {
+          agent,
+          method,
+          args,
+          result,
+          error,
+        };
+        // console.log('get text 1', o);
+        const text = spec.toText(o);
+        // console.log('get text 2', o, { text });
+        return (
+          <div className="opacity-60 text-xs">{text}</div>
+        );
+        // return (
+        //   <ChatMessage
+        //     id={id}
+        //     name={message.name}
+        //     content={text}
+        //     media={null}
+        //     player={player}
+        //     room={room}
+        //     timestamp={message.timestamp}
+        //   />
+        // );
+      } else {
+        return null;
+      }
     }
 
     case 'paymentRequest': {
