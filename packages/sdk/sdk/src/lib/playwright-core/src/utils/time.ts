@@ -30,3 +30,7 @@ export function monotonicTime(): number {
   const [seconds, nanoseconds] = process.hrtime(initialTime);
   return seconds * 1000 + (nanoseconds / 1000 | 0) / 1000;
 }
+
+export function setImmediate(callback: (...args: any[]) => void, ...args: any[]): void {
+  setTimeout(callback, 0, ...args);
+}
