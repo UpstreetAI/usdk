@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import os from 'os';
-import { getLinuxDistributionInfoSync } from './linuxUtils';
+// import os from 'os';
+// import { getLinuxDistributionInfoSync } from './linuxUtils';
 
 export type HostPlatform = 'win64' |
                            'mac10.13' |
@@ -34,7 +34,8 @@ export type HostPlatform = 'win64' |
                            '<unknown>';
 
 function calculatePlatform(): { hostPlatform: HostPlatform, isOfficiallySupportedPlatform: boolean } {
-  const platform = os.platform();
+  return { hostPlatform: '<unknown>', isOfficiallySupportedPlatform: true };
+  /* const platform = os.platform();
   if (platform === 'darwin') {
     const ver = os.release().split('.').map((a: string) => parseInt(a, 10));
     let macVersion = '';
@@ -100,7 +101,7 @@ function calculatePlatform(): { hostPlatform: HostPlatform, isOfficiallySupporte
   }
   if (platform === 'win32')
     return { hostPlatform: 'win64', isOfficiallySupportedPlatform: true };
-  return { hostPlatform: '<unknown>', isOfficiallySupportedPlatform: false };
+  return { hostPlatform: '<unknown>', isOfficiallySupportedPlatform: false }; */
 }
 
 export const { hostPlatform, isOfficiallySupportedPlatform } = calculatePlatform();
