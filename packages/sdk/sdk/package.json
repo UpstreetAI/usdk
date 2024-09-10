@@ -16,6 +16,7 @@
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
     "openai": "^4.56.0",
+    "playwright-core": "file:src/lib/playwright-core",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "stripe": "^16.10.0",
