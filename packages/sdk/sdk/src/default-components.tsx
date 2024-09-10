@@ -1054,6 +1054,7 @@ export const DefaultSenses = () => {
       <Conversation>
         <MultimediaSense />
       </Conversation>
+      <WebBrowser />
     </>
   );
 };
