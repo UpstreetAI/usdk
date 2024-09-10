@@ -203,6 +203,15 @@ function getMessageComponent(room: string, message: Message, id: string, players
       )
     }
 
+    case 'mediaPerception': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} checked an attachment</div>
+      );
+    }
+
     case 'browserAction': {
       const player = playersCache.get(message.userId);
       // const media = (message.attachments ?? [])[0] ?? null;
