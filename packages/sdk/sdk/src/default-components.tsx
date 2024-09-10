@@ -1855,7 +1855,7 @@ type WebBrowserActionSpec = {
   method: string;
   description: string;
   schema: ZodTypeAny,
-  schemaDefault: () => ZodTypeAny,
+  schemaDefault: () => object,
   handle: (opts: WebBrowserActionHandlerOptions) => Promise<any>;
   toText: (opts: any) => string;
 };
@@ -1868,7 +1868,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     method: 'createPage',
     description: 'Create a new browser page.',
     schema: z.object({}),
-    schemaDefault: () => z.object({}),
+    schemaDefault: () => ({}),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const browserState = await opts.ensureBrowserState();
       const guid = crypto.randomUUID();
@@ -1885,9 +1885,13 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       pageId: z.string(),
       url: z.string(),
     }),
-    schemaDefault: () => z.object({
-      pageId: z.string().default(crypto.randomUUID()),
-      url: z.string().default('https://example.com'),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    //   url: z.string().default('https://example.com'),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+      url: 'https://example.com',
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -1917,9 +1921,13 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       pageId: z.string(),
       text: z.string(),
     }),
-    schemaDefault: () => z.object({
-      pageId: z.string().default(crypto.randomUUID()),
-      text: z.string().default('Next'),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    //   text: z.string().default('Next'),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+      text: 'Next',
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -1952,8 +1960,11 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       pageId: z.string(),
     }),
-    schemaDefault: () => z.object({
-      pageId: z.string().default(crypto.randomUUID()),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -1991,8 +2002,11 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       pageId: z.string(),
     }),
-    schemaDefault: () => z.object({
-      pageId: z.string().default(crypto.randomUUID()),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -2020,8 +2034,11 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       url: z.string(),
     }),
-    schemaDefault: () => z.object({
-      url: z.string().default('https://example.com'),
+    // schemaDefault: () => z.object({
+    //   url: z.string().default('https://example.com'),
+    // }),
+    schemaDefault: () => ({
+      url: 'https://example.com',
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -2048,7 +2065,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     method: 'cleanup',
     description: 'Close the browser and clean up resources. Perform this as a courtesy when you are done.',
     schema: z.object({}),
-    schemaDefault: () => z.object({}),
+    schemaDefault: () => ({}),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
         // args,
@@ -2083,7 +2100,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const examples = webbrowserActions.map((action) => {
     return {
       method: action.method,
-      args: action.schemaDefault().parse({}),
+      args: action.schemaDefault,
     };
   });
 
