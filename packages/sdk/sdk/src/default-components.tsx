@@ -5,17 +5,10 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
-// import CDP from 'chrome-remote-interface';
-// import type { ProtocolProxyApi } from "devtools-protocol/types/protocol-proxy-api";
-// type Page = ProtocolProxyApi.PageApi;
+// XXX unlock these
+// import { createBrowser } from './util/create-browser.mjs';
+// import type { Browser, BrowserContext, Page } from 'playwright-core';
 
-import { createBrowser } from './util/create-browser.mjs';
-// import { chromium } from "playwright-core";
-// import BrowserType from 'playwright-core/lib/client/browserType';
-import type { Browser, BrowserContext, Page } from "playwright-core";
-// import { Browserbase } from "@browserbasehq/sdk";
-// import puppeteer from '@cloudflare/puppeteer';
-// import type { ZodTypeAny } from 'zod';
 import type {
   AppContextValue,
   // AgentProps,
@@ -100,10 +93,7 @@ import {
   generateModel,
 } from './util/generate-model.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
-import { webbrowserActionsToText } from 'usdk/sdk/src/util/browser-action-utils.mjs';
-// import {
-//   aiProxyHost,
-// } from './util/endpoints.mjs';
+import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -115,7 +105,7 @@ const timeAgo = (timestamp: Date) => {
   return jsAgo(timestampInSeconds, { format: 'short' });
 };
 const defaultPriorityOffset = 100;
-const randomId = crypto.randomUUID(); // used for schema substitutions
+const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 
 // defaults
 
@@ -866,7 +856,7 @@ const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPercepti
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
-  const randomId = useMemo(() => crypto.randomUUID(), []);
+  const randomId = useMemo(getRandomId, []);
 
   const collectSupportedAttachments = (messages: ActionMessage[]) => {
     const result = [];
@@ -888,7 +878,7 @@ export const MultimediaSense = () => {
     <Action
       name="mediaPerception"
       description={
-        dedent`
+        dedent`\
           Query multimedia content using natural language questions + answers.
           The questions should be short and specific.
           Use this whenever you need to know more information about a piece of media, like an image attachment.
@@ -897,7 +887,7 @@ export const MultimediaSense = () => {
           \`\`\`
         ` + '\n' +
         JSON.stringify(attachments, null, 2) + '\n' +
-        dedent`
+        dedent`\
           \`\`\`
         `
       }
@@ -968,14 +958,14 @@ export const MultimediaSense = () => {
         }
 
         const attachment = attachments.find(attachment => attachment.id === attachmentId);
-        console.log('mediaPerception handler 2', {
-          attachmentId,
-          attachments,
-          attachment,
-          questions,
-          agent,
-          conversation,
-        });
+        // console.log('mediaPerception handler 2', {
+        //   attachmentId,
+        //   attachments,
+        //   attachment,
+        //   questions,
+        //   agent,
+        //   conversation,
+        // });
         if (attachment) {
           const {
             type,
@@ -1008,6 +998,7 @@ export const MultimediaSense = () => {
               (e.data.message.args as any).questions = questions;
               // console.log('commit 1', e.data.message);
               await e.commit();
+
               const alt = makeQa(questions, answers);
               // console.log('commit 2', e.data.message, alt);
               await agent.think(
@@ -1864,7 +1855,7 @@ type WebBrowserActionSpec = {
   method: string;
   description: string;
   schema: ZodTypeAny,
-  schemaDefault: ZodTypeAny,
+  schemaDefault: () => ZodTypeAny,
   handle: (opts: WebBrowserActionHandlerOptions) => Promise<any>;
   toText: (opts: any) => string;
 };
@@ -1877,7 +1868,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     method: 'createPage',
     description: 'Create a new browser page.',
     schema: z.object({}),
-    schemaDefault: z.object({}),
+    schemaDefault: () => z.object({}),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const browserState = await opts.ensureBrowserState();
       const guid = crypto.randomUUID();
@@ -1894,8 +1885,8 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       pageId: z.string(),
       url: z.string(),
     }),
-    schemaDefault: z.object({
-      pageId: z.string().default(randomId),
+    schemaDefault: () => z.object({
+      pageId: z.string().default(crypto.randomUUID()),
       url: z.string().default('https://example.com'),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
@@ -1926,8 +1917,8 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       pageId: z.string(),
       text: z.string(),
     }),
-    schemaDefault: z.object({
-      pageId: z.string().default(randomId),
+    schemaDefault: () => z.object({
+      pageId: z.string().default(crypto.randomUUID()),
       text: z.string().default('Next'),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
@@ -1961,8 +1952,8 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       pageId: z.string(),
     }),
-    schemaDefault: z.object({
-      pageId: z.string().default(randomId),
+    schemaDefault: () => z.object({
+      pageId: z.string().default(crypto.randomUUID()),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -2000,8 +1991,8 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       pageId: z.string(),
     }),
-    schemaDefault: z.object({
-      pageId: z.string().default(randomId),
+    schemaDefault: () => z.object({
+      pageId: z.string().default(crypto.randomUUID()),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
@@ -2029,7 +2020,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     schema: z.object({
       url: z.string(),
     }),
-    schemaDefault: z.object({
+    schemaDefault: () => z.object({
       url: z.string().default('https://example.com'),
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
@@ -2057,7 +2048,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     method: 'cleanup',
     description: 'Close the browser and clean up resources. Perform this as a courtesy when you are done.',
     schema: z.object({}),
-    schemaDefault: z.object({}),
+    schemaDefault: () => z.object({}),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
         // args,
@@ -2092,7 +2083,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const examples = webbrowserActions.map((action) => {
     return {
       method: action.method,
-      args: action.schemaDefault.parse({}),
+      args: action.schemaDefault().parse({}),
     };
   });
 
@@ -2200,9 +2191,9 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
               },
               // attachments?: Attachment[],
             };
-            console.log('add browser action message 1', m);
+            // console.log('add browser action message 1', m);
             await agent.addMessage(m);
-            console.log('add browser action message 2', m);
+            // console.log('add browser action message 2', m);
             agent.think();
           } catch (err) {
             console.warn('Failed to perform web browser action: ' + err);
