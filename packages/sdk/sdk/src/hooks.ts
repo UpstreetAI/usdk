@@ -339,8 +339,6 @@ export const usePurchases = () => {
         const agentWebhooksState = await kv.get<AgentWebhooksState>(agentWebhooksStateKey, makeAgentWebhooksState);
         if (!live) return;
 
-        console.log('initial', agentWebhooksState);
-
         const result = await supabase
           .from('webhooks')
           .select('*')
