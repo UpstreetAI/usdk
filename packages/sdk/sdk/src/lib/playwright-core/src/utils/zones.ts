@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-import { AsyncLocalStorage } from 'async_hooks';
+// import { AsyncLocalStorage } from 'async_hooks';
+class AsyncLocalStorage<T> {
+  store: T | undefined = undefined;
+
+  run(store: T, callback: () => T): T {
+    this.store = store;
+
+    try {
+      return callback();
+    } finally {
+      this.store = undefined;
+    }
+  }
+  getStore(): T | undefined {
+    return this.store;
+  }
+
+}
 
 export type ZoneType = 'apiZone' | 'expectZone' | 'stepZone';
 
