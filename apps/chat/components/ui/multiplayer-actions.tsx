@@ -86,6 +86,7 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
+  typingMap: TypingMap
   epoch: number
 }
 
@@ -501,7 +502,11 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     console.warn(err);
   });
 
-  return realms;
+  return {
+    realms,
+    playersMap,
+    typingMap,
+  };
 };
 
 const makeFakePlayerSpec = () => (
@@ -522,6 +527,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
     let playersMap: Map<string, Player> = new Map();
     let playersCache: Map<string, Player> = new Map();
+    let typingMap = new TypingMap();
     let messages: object[] = [];
 
     const refresh = () => {
@@ -570,6 +576,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       getLocalPlayerSpec: () => localPlayerSpec,
       getPlayersMap: () => playersMap,
       getPlayersCache: () => playersCache,
+      getTypingMap: () => typingMap,
       getMessages: () => messages,
       setMultiplayerConnectionParameters: (opts: object | null) => {
         let newRoom: string = (opts as any)?.room || '';
@@ -593,7 +600,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            realms = connectMultiplayer(room, newLocalPlayerSpec);
+            const connectResult = connectMultiplayer(room, newLocalPlayerSpec);
+
+            realms = connectResult.realms;
             realms.addEventListener('connect', e => {
               console.log('connect event');
 
@@ -619,6 +628,11 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 playersCache.set(playerId, player);
               }
 
+              refresh();
+            });
+
+            typingMap = connectResult.typingMap;
+            typingMap.addEventListener('typingchange', (e) => {
               refresh();
             });
           }
@@ -679,6 +693,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           const blob = await res.blob();
         }
       },
+      typingMap,
     };
     return multiplayerState;
   });
@@ -689,6 +704,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const playersMap = multiplayerState.getPlayersMap();
   const playersCache = multiplayerState.getPlayersCache();
   const messages = multiplayerState.getMessages();
+  const typingMap = multiplayerState.getTypingMap();
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
   // const sendRawMessage = multiplayerState.sendRawMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
@@ -712,6 +728,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendMediaMessage,
         agentJoin,
         agentLeave,
+        typingMap,
         epoch,
       }}
     >

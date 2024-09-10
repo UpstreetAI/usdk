@@ -23,7 +23,33 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const { connected, typingMap, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const [typing, setTyping] = React.useState('');
+
+  React.useEffect(() => {
+    // typing
+    if (typingMap) {
+      // console.log('bind typing map' + typingMap);
+      const typingchange = (e: any) => {
+        // console.log('typingchange 1', e);
+
+        const tm = typingMap.getMap();
+        const specs = Array.from(tm.values()).filter((spec) => spec.typing);
+        if (specs.length > 0) {
+          const s = specs.map((spec) => spec.name).join(', ');
+          setTyping(`${s} ${specs.length > 1 ? 'are' : 'is'} typing...`);
+        } else {
+          setTyping('');
+        }
+
+        // console.log('typingchange 2', specs);
+      };
+      typingMap.addEventListener('typingchange', typingchange);
+      return () => {
+        typingMap.removeEventListener('typingchange', typingchange);
+      };
+    }
+  }, [typingMap]);
 
   const toggleMediaPicker = () => {
     setMediaPickerOpen(open => !open)
@@ -135,6 +161,9 @@ export function PromptForm({
           </TooltipTrigger>
           <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
+        {typing && (
+          <div className="absolute -top-12 left-0 text-muted-foreground text-sm">{typing}</div>
+        )}
         <Textarea
           ref={inputRef}
           tabIndex={0}
