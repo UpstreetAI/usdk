@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import * as dns from 'dns';
-import * as http from 'http';
-import * as https from 'https';
-import * as net from 'net';
-import * as tls from 'tls';
+// import * as dns from 'dns';
+// import * as http from 'http';
+// import * as https from 'https';
+// import * as net from 'net';
+// import * as tls from 'tls';
 import { ManualPromise } from './manualPromise';
 import { assert } from './debug';
 
@@ -28,27 +28,27 @@ import { assert } from './debug';
 // Same as in Chromium (https://source.chromium.org/chromium/chromium/src/+/5666ff4f5077a7e2f72902f3a95f5d553ea0d88d:net/socket/transport_connect_job.cc;l=102)
 const connectionAttemptDelayMs = 300;
 
-class HttpHappyEyeballsAgent extends http.Agent {
-  createConnection(options: http.ClientRequestArgs, oncreate?: (err: Error | null, socket?: net.Socket) => void): net.Socket | undefined {
-    // There is no ambiguity in case of IP address.
-    if (net.isIP(clientRequestArgsToHostName(options)))
-      return net.createConnection(options as net.NetConnectOpts);
-    createConnectionAsync(options, oncreate, /* useTLS */ false).catch(err => oncreate?.(err));
-  }
-}
+// class HttpHappyEyeballsAgent extends http.Agent {
+//   createConnection(options: http.ClientRequestArgs, oncreate?: (err: Error | null, socket?: net.Socket) => void): net.Socket | undefined {
+//     // There is no ambiguity in case of IP address.
+//     if (net.isIP(clientRequestArgsToHostName(options)))
+//       return net.createConnection(options as net.NetConnectOpts);
+//     createConnectionAsync(options, oncreate, /* useTLS */ false).catch(err => oncreate?.(err));
+//   }
+// }
 
-class HttpsHappyEyeballsAgent extends https.Agent {
-  createConnection(options: http.ClientRequestArgs, oncreate?: (err: Error | null, socket?: net.Socket) => void): net.Socket | undefined {
-    // There is no ambiguity in case of IP address.
-    if (net.isIP(clientRequestArgsToHostName(options)))
-      return tls.connect(options as tls.ConnectionOptions);
-    createConnectionAsync(options, oncreate, /* useTLS */ true).catch(err => oncreate?.(err));
-  }
-}
+// class HttpsHappyEyeballsAgent extends https.Agent {
+//   createConnection(options: http.ClientRequestArgs, oncreate?: (err: Error | null, socket?: net.Socket) => void): net.Socket | undefined {
+//     // There is no ambiguity in case of IP address.
+//     if (net.isIP(clientRequestArgsToHostName(options)))
+//       return tls.connect(options as tls.ConnectionOptions);
+//     createConnectionAsync(options, oncreate, /* useTLS */ true).catch(err => oncreate?.(err));
+//   }
+// }
 
-// These options are aligned with the default Node.js globalAgent options.
-export const httpsHappyEyeballsAgent = new HttpsHappyEyeballsAgent({ keepAlive: true });
-export const httpHappyEyeballsAgent = new HttpHappyEyeballsAgent({ keepAlive: true });
+// // These options are aligned with the default Node.js globalAgent options.
+// export const httpsHappyEyeballsAgent = new HttpsHappyEyeballsAgent({ keepAlive: true });
+// export const httpHappyEyeballsAgent = new HttpHappyEyeballsAgent({ keepAlive: true });
 
 export async function createSocket(host: string, port: number): Promise<net.Socket> {
   return new Promise((resolve, reject) => {
