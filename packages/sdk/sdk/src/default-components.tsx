@@ -433,7 +433,7 @@ export const CachedMessagesPrompt = () => {
         ${
           cachedMessages.length > 0
             ? dedent`
-              Here is the chat so far, in JSON format:
+              Here is the chat so far:
             ` +
               '\n' +
               '```' +
