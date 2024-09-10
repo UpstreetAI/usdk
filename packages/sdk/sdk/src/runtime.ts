@@ -82,10 +82,11 @@ export async function generateAgentAction(
   hint?: string,
   thinkOpts?: AgentThinkOptions,
 ) {
-  const prompts = getPrompts(generativeAgent)
+  const prompts = getPrompts(generativeAgent);
   if (hint) {
     prompts.concat([hint]);
   }
+  // console.log('prompts', prompts, new Error().stack);
   const promptString = prompts.join('\n\n');
   const promptMessages = [
     {
@@ -136,6 +137,10 @@ async function _generateAgentActionFromMessages(
           console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
         }
       }
+      // console.warn('generated new message', {
+      //   prompt: promptMessages[0].content,
+      //   newMessage,
+      // });
       return newMessage;
     } else {
       throw new Error('no action handler found for method: ' + method);

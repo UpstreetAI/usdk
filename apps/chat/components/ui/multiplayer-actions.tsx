@@ -431,10 +431,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
       switch (method) {
         case 'say': {
-          const { text } = args;
-          if (messageUserId !== userId) {
-            console.log(`${name}: ${text}`);
-          }
+          // const { text } = args;
+          // if (messageUserId !== userId) {
+          //   console.log(`${name}: ${text}`);
+          // }
           break;
         }
         case 'log': {
@@ -461,7 +461,9 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           break;
         }
         case 'mediaPerception':
-        case 'paymentRequest': {
+        case 'browserAction':
+        case 'paymentRequest':
+        {
           break;
         }
         default: {

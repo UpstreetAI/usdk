@@ -15,30 +15,28 @@ export class RenderLoader extends EventTarget {
       const index = this.userLoadPromises.indexOf(p);
       this.userLoadPromises.splice(index, 1);
       // console.log('user load promise resolve', this.userLoadPromises.map((p) => (p as any).error.stack));
+      if (this.userLoadPromises.length === 0) {
+        this.dispatchEvent(new MessageEvent('drain', {
+          data: null,
+        }));
+      }
     });
     // console.log('use load 2:', this.userLoadPromises.length);
-    this.dispatchEvent(new MessageEvent('loadadd', {
-      data: null,
-    }));
+    // if (this.userLoadPromises.length === 1) {
+    //   this.dispatchEvent(new MessageEvent('flood', {
+    //     data: null,
+    //   }));
+    // }
     // console.log('use load 3');
   }
   async waitForLoad() {
-    // console.log('wait for load 1');
-    if (this.userLoadPromises.length === 0) {
-      // console.log('wait for load 2');
-      await new Promise((accept) => {
-        // console.log('wait for load 3');
-        this.addEventListener('loadadd', () => {
-          accept(null);
-        }, {
-          once: true,
-        });
-        // console.log('wait for load 4');
+    await new Promise((accept) => {
+      this.addEventListener('drain', () => {
+        accept(null);
+      }, {
+        once: true,
       });
-    }
-    // console.log('wait for load 5:', this.userLoadPromises.map((p) => (p as any).error.stack));
-    await Promise.all(this.userLoadPromises);
-    // console.log('wait for load 6');
+    });
   }
   clear() {
     // console.log('clear 1');

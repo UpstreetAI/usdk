@@ -1,11 +1,14 @@
-import React, { useRef } from 'react';
-import { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
-import { ZodTypeAny, z } from 'zod';
+import { ZodTypeAny, ZodUnion, z } from 'zod';
+import { printNode, zodToTs } from 'zod-to-ts';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
-// import puppeteer from '@cloudflare/puppeteer';
-// import type { ZodTypeAny } from 'zod';
+
+// XXX unlock these
+// import { createBrowser } from './util/create-browser.mjs';
+// import type { Browser, BrowserContext, Page } from 'playwright-core';
+
 import type {
   AppContextValue,
   // AgentProps,
@@ -26,6 +29,7 @@ import type {
   Attachment,
   FormattedAttachment,
   AgentThinkOptions,
+  GenerativeAgentObject,
 } from './types';
 import {
   AppContext,
@@ -89,14 +93,19 @@ import {
   generateModel,
 } from './util/generate-model.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
+import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
 
 // utils
 
-const timeAgo = (timestamp: Date) => jsAgo(+timestamp / 1000, { format: 'short' });
+const timeAgo = (timestamp: Date) => {
+  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
+  return jsAgo(timestampInSeconds, { format: 'short' });
+};
 const defaultPriorityOffset = 100;
+const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 
 // defaults
 
@@ -403,7 +412,13 @@ export const ConversationMessagesPrompt = () => {
 export const CachedMessagesPrompt = () => {
   const cachedMessages = useCachedMessages();
 
-  const formatAttachments = (attachments: Attachment[]) => attachments.map((attachment) => formatAttachment(attachment));
+  const formatAttachments = (attachments: Attachment[]) => {
+    if (attachments.length > 0) {
+      return attachments.map((attachment) => formatAttachment(attachment));
+    } else {
+      return undefined;
+    }
+  };
   const formatAttachment = (attachment: Attachment): FormattedAttachment => {
     const {
       id,
@@ -424,7 +439,7 @@ export const CachedMessagesPrompt = () => {
         ${
           cachedMessages.length > 0
             ? dedent`
-              Here is the chat so far, in JSON format:
+              Here is the chat so far:
             ` +
               '\n' +
               '```' +
@@ -841,7 +856,7 @@ const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPercepti
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
-  const randomId = useMemo(() => crypto.randomUUID(), []);
+  const randomId = useMemo(getRandomId, []);
 
   const collectSupportedAttachments = (messages: ActionMessage[]) => {
     const result = [];
@@ -863,16 +878,16 @@ export const MultimediaSense = () => {
     <Action
       name="mediaPerception"
       description={
-        dedent`
+        dedent`\
           Query multimedia content using natural language questions + answers.
           The questions should be short and specific.
           Use this whenever you need to know more information about a piece of media, like an image attachment.
 
-          The available content is:
+          The available media are:
           \`\`\`
         ` + '\n' +
         JSON.stringify(attachments, null, 2) + '\n' +
-        dedent`
+        dedent`\
           \`\`\`
         `
       }
@@ -943,14 +958,14 @@ export const MultimediaSense = () => {
         }
 
         const attachment = attachments.find(attachment => attachment.id === attachmentId);
-        console.log('mediaPerception handler 2', {
-          attachmentId,
-          attachments,
-          attachment,
-          questions,
-          agent,
-          conversation,
-        });
+        // console.log('mediaPerception handler 2', {
+        //   attachmentId,
+        //   attachments,
+        //   attachment,
+        //   questions,
+        //   agent,
+        //   conversation,
+        // });
         if (attachment) {
           const {
             type,
@@ -983,6 +998,7 @@ export const MultimediaSense = () => {
               (e.data.message.args as any).questions = questions;
               // console.log('commit 1', e.data.message);
               await e.commit();
+
               const alt = makeQa(questions, answers);
               // console.log('commit 2', e.data.message, alt);
               await agent.think(
@@ -1029,6 +1045,7 @@ export const DefaultSenses = () => {
       <Conversation>
         <MultimediaSense />
       </Conversation>
+      <WebBrowser />
     </>
   );
 };
@@ -1295,7 +1312,7 @@ const generateJson = async (prompt: string, context: AppContextValue) => {
     },
   ];
   const newMessage = await context.subtleAi.complete(messages);
-  const responseString = newMessage.content;
+  const responseString = newMessage.content as string;
   return new Response(responseString, {
     status: 200,
     headers: {
@@ -1785,85 +1802,423 @@ export const GenerativeServer = ({
   );
 };
 
-export type WebBrowserProps = {
-  hint: string,
-  maxSteps: number,
-  navigationTimeout: number,
+//
+
+type AgentBrowser = Browser & {
+  // sessionId: string;
+  context: BrowserContext,
+  destroy: () => Promise<void>;
 };
+
+//
+
+export type WebBrowserProps = {
+  hint?: string;
+  // maxSteps: number;
+  // navigationTimeout: number;
+};
+class BrowserState {
+  // sessionId: string;
+  browser: AgentBrowser;
+  destroySession: () => Promise<void>;
+  pages = new Map<string, Page>();
+  constructor({
+    // sessionId,
+    browser,
+    destroySession,
+  }: {
+    // sessionId: string;
+    browser: any;
+    destroySession: () => Promise<void>;
+  }) {
+    // this.sessionId = sessionId;
+    this.browser = browser;
+    this.destroySession = destroySession;
+  }
+  toJSON() {
+    return {
+      pages: Array.from(this.pages.keys()),
+    };
+  }
+  async destroy() {
+    await this.destroySession();
+  }
+}
+type WebBrowserActionHandlerOptions = {
+  args: any;
+  agent?: GenerativeAgentObject;
+  ensureBrowserState: () => Promise<BrowserState>;
+  browserState: BrowserState;
+  browserStatePromise: React.MutableRefObject<Promise<BrowserState>>;
+};
+type WebBrowserActionSpec = {
+  method: string;
+  description: string;
+  schema: ZodTypeAny,
+  schemaDefault: () => object,
+  handle: (opts: WebBrowserActionHandlerOptions) => Promise<any>;
+  toText: (opts: any) => string;
+};
+type WebBrowserActionObject = {
+  method: string;
+  args: any;
+};
+export const webbrowserActions: WebBrowserActionSpec[] = [
+  {
+    method: 'createPage',
+    description: 'Create a new browser page.',
+    schema: z.object({}),
+    schemaDefault: () => ({}),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const browserState = await opts.ensureBrowserState();
+      const guid = crypto.randomUUID();
+      const page = await browserState.browser.context.newPage();
+      browserState.pages.set(guid, page);
+      return page;
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'createPage')?.toText,
+  },
+  {
+    method: 'pageGoto',
+    description: 'Navigate to a URL on a page.',
+    schema: z.object({
+      pageId: z.string(),
+      url: z.string(),
+    }),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    //   url: z.string().default('https://example.com'),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+      url: 'https://example.com',
+    }),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        args,
+        agent,
+      } = opts;
+      const {
+        pageId,
+        url,
+      } = args as {
+        pageId: string;
+        url: string;
+      };
+      const browserState = await opts.ensureBrowserState();
+      const page = browserState.pages.get(pageId);
+      if (!page) {
+        throw new Error(`Page with guid ${pageId} not found.`);
+      }
+      await page.goto(url);
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'pageGoto')?.toText,
+  },
+  {
+    method: 'elementClick',
+    description: 'Click on an element with the given text on a page.',
+    schema: z.object({
+      pageId: z.string(),
+      text: z.string(),
+    }),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    //   text: z.string().default('Next'),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+      text: 'Next',
+    }),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        args,
+        agent,
+      } = opts;
+      const {
+        pageId,
+        text,
+      } = args as {
+        pageId: string;
+        text: string;
+      };
+      const browserState = await opts.ensureBrowserState();
+      const page = browserState.pages.get(pageId);
+      if (!page) {
+        throw new Error(`Page with guid ${pageId} not found.`);
+      }
+      const element = await page.getByText(text);
+      if (!element) {
+        throw new Error(`Element with text ${text} not found.`);
+      }
+      await element.click();
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'elementClick')?.toText,
+  },
+  {
+    method: 'pageScreenshot',
+    description: 'Screenshot a page and send it as a message attachment.',
+    schema: z.object({
+      pageId: z.string(),
+    }),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+    }),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        args,
+        agent,
+      } = opts;
+      const {
+        pageId,
+      } = args as {
+        pageId: string;
+      };
+      const browserState = await opts.ensureBrowserState();
+      const page = browserState.pages.get(pageId);
+      if (!page) {
+        throw new Error(`Page with guid ${pageId} not found.`);
+      }
+      const screenshot = await page.screenshot();
+      console.log('got screenshot', screenshot);
+      // const attachment = await agent.createAttachment({
+      //   type: 'image/png',
+      //   data: screenshot,
+      // });
+      // await agent.send({
+      //   type: 'mediaPerception',
+      //   data: {
+      //     attachment,
+      //   },
+      // });
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'pageScreenshot')?.toText,
+  },
+  {
+    method: 'pageClose',
+    description: 'Close a page.',
+    schema: z.object({
+      pageId: z.string(),
+    }),
+    // schemaDefault: () => z.object({
+    //   pageId: z.string().default(crypto.randomUUID()),
+    // }),
+    schemaDefault: () => ({
+      pageId: crypto.randomUUID(),
+    }),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        args,
+        agent,
+      } = opts;
+      const {
+        pageId,
+      } = args as {
+        pageId: string;
+      };
+      const browserState = await opts.ensureBrowserState();
+      const page = browserState.pages.get(pageId);
+      if (!page) {
+        throw new Error(`Page with guid ${pageId} not found.`);
+      }
+      await page.close();
+      browserState.pages.delete(pageId);
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'pageClose')?.toText,
+  },
+  {
+    method: 'downloadUrl',
+    description: 'Download a file via the browser.',
+    schema: z.object({
+      url: z.string(),
+    }),
+    // schemaDefault: () => z.object({
+    //   url: z.string().default('https://example.com'),
+    // }),
+    schemaDefault: () => ({
+      url: 'https://example.com',
+    }),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        args,
+        agent,
+      } = opts;
+      const {
+        url,
+      } = args as {
+        url: string;
+      };
+      console.log('download url', {
+        url,
+      });
+      // const browserState = await ensureBrowserState();
+      // const page = await browserState.browser.newPage();
+      // await page.goto(url);
+      // const download = await page.waitForEvent('download');
+      // await download.saveAs(download.suggestedFilename);
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'downloadUrl')?.toText,
+  },
+  {
+    method: 'cleanup',
+    description: 'Close the browser and clean up resources. Perform this as a courtesy when you are done.',
+    schema: z.object({}),
+    schemaDefault: () => ({}),
+    handle: async (opts: WebBrowserActionHandlerOptions) => {
+      const {
+        // args,
+        // agent,
+        browserState,
+        browserStatePromise,
+      } = opts;
+      // const browserState = await opts.ensureBrowserState();
+      if (browserState) {
+        browserState.destroy();
+        browserStatePromise.current = null;
+      }
+    },
+    toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
+  },
+];
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
-  const agent = useAgent();
+  // const agent = useAgent();
   const authToken = useAuthToken();
   const hint = props.hint ?? '';
+
+  const [browserState, setBrowserState] = useState<BrowserState | null>(null);
+  const browserStatePromise = useRef<Promise<BrowserState>>(null);
+  // const randomId = useMemo(() => crypto.randomUUID(), []);
+
+  const actionTypeUnion = z.union(webbrowserActions.map((action) => {
+    return z.object({
+      method: z.literal(action.method),
+      args: action.schema,
+    });
+  }) as any);
+  const examples = webbrowserActions.map((action) => {
+    return {
+      method: action.method,
+      args: action.schemaDefault,
+    };
+  });
+
+  const ensureBrowserState = async () => {
+    if (!browserStatePromise.current) {
+      const p = (async () => {
+        const browserResult = await createBrowser({
+          jwt: authToken,
+        });
+        const {
+          sessionId,
+          url,
+          browser,
+          destroySession,
+        } = browserResult;
+        if (p === browserStatePromise.current) {
+          // if we are still the current browser state promise, latch the state
+          const browserState = new BrowserState({
+            // sessionId: browser.sessionId,
+            browser,
+            destroySession,
+          });
+          setBrowserState(browserState);
+          return browserState;
+        } else {
+          // else if we are not the current browser state promise, clean up
+          // browser.destroy();
+          destroySession();
+        }
+      })();
+      browserStatePromise.current = p;
+    }
+    return await browserStatePromise.current;
+  };
+
+  // latch cleanup
+  useEffect(() => {
+    if (browserState) {
+      return () => {
+        browserState.destroy();
+      };
+    }
+  }, [browserState]);
+
+  const browserAction = 'browserAction';
   return (
     <Action
-      name="webBrowser"
-      description={`Browse the web and return some result. Specify the url to navigate to, the data type of result we are looking for, and the action to perform on the page to get the result.${hint ? ` ${hint}` : ''}`}
-      schema={
-        z.object({
-          url: z.string(),
-          resultType: z.enum([
-            'text',
-            'image',
-            'data',
-          ]),
-          action: z.string(),
-        })
+      name={browserAction}
+      description={
+        dedent`\
+          Perform a web browsing action.
+
+          The current browser state is:
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(browserState, null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+
+          The allowed methods are:
+        ` + '\n\n' +
+        JSON.stringify(webbrowserActions.map((action) => {
+          return {
+            method: action.method,
+            description: action.description,
+            schema: printNode(zodToTs(action.schema).node),
+          };
+        }), null, 2) + '\n\n' +
+        hint
       }
-      examples={[
-        {
-          url: `https://imgur.com/`,
-          action: 'Return the most interesting image',
-          resultType: 'image',
-        },
-      ]}
+      schema={actionTypeUnion}
+      examples={examples}
       handler={async (e: PendingActionEvent) => {
-        const { message } = e.data;
-        const { args } = message;
-        const { url, action, resultType } = args;
+        const { agent, message } = e.data;
+        const webBrowserActionArgs = message.args as WebBrowserActionObject;
+        const { method, args } = webBrowserActionArgs;
 
-        const browserWSEndpoint = await (async () => {
-          const res = await fetch(`https://ai.upstreet.ai/api/browserBase/connectUrl`, {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          });
-          const j = await res.json();
-          const { url } = j;
-          return url;
-        })();
-        let browser = null;
-        let page = null;
-        try {
-          browser = await puppeteer.connect({
-            browserWSEndpoint,
-          });
-          const pages = await browser.pages();
-          page = pages[0];
-          await page.goto(url);
+        const retry = () => {
+          agent.think();
+        };
 
-          const [
-            extractedHtml,
-            extractedText,
-          ] = await Promise.all([
-            page.$eval('*', (el: any) => el.outerHtml),
-            page.$eval('*', (el: any) => {
-              const selection = window.getSelection();
-              const range = document.createRange();
-              range.selectNode(el);
-              selection.removeAllRanges();
-              selection.addRange(range);
-              return window.getSelection().toString();
-            }),
-          ]);
+        const webbrowserAction = webbrowserActions.find((action) => action.method === method);
+        if (webbrowserAction) {
+          try {
+            // XXX unlock this to capture actual results and errors
+            // await webbrowserAction.handle({
+            //   args,
+            //   agent,
+            //   ensureBrowserState,
+            //   browserState,
+            //   browserStatePromise,
+            // });
 
-          const response = await agent.generate(dedent`
-          `, {
-            // XXX zod schema
-          });
-          // XXX finish this
-        } finally {
-          page && page.close();
-          browser && browser.close();
+            let result: any = undefined;
+            let error: (string | undefined) = undefined;
+            error = 'Web browser functionality is not implemented. Do not retry, it will not work..';
+
+            const m = {
+              method: browserAction,
+              args: {
+                method,
+                args,
+                error,
+                result,
+              },
+              // attachments?: Attachment[],
+            };
+            // console.log('add browser action message 1', m);
+            await agent.addMessage(m);
+            // console.log('add browser action message 2', m);
+            agent.think();
+          } catch (err) {
+            console.warn('Failed to perform web browser action: ' + err);
+            retry();
+          }
+        } else {
+          console.warn('Unknown web browser action method: ' + method);
+          retry();
         }
       }}
     />

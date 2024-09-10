@@ -186,6 +186,9 @@ export class AgentRenderer {
     const useChatsSpecification = () => {
       return this.chatsSpecification;
     };
+    const useRegistry = () => {
+      return this.registry;
+    };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
@@ -193,6 +196,7 @@ export class AgentRenderer {
       authToken: useAuthToken(),
       supabase: useSupabase(),
       chatsSpecification: useChatsSpecification(),
+      registry: useRegistry(),
     });
 
     // run the module to get the result
@@ -226,6 +230,7 @@ export class AgentRenderer {
       resetAfterCommit: () => {
         // console.log('reset after commit');
         this.registry.load(this.container);
+        // console.log('registry updated:', Array.from(this.registry.agents.values()));
         // console.log('registry updated:', inspect(Array.from(this.registry.agents.values()), {
         //   depth: 3,
         // }));
@@ -316,7 +321,7 @@ export class AgentRenderer {
 
   // rendering
 
-  async render(props: any) {
+  async renderProps(props: any) {
     props.topLevelRenderPromise = makePromise();
     this.renderLoader.clear();
     this.renderLoader.useLoad(props.topLevelRenderPromise);
@@ -334,7 +339,7 @@ export class AgentRenderer {
 
     await this.renderLoader.waitForLoad();
   }
-  async rerender() {
+  async render() {
     const {
       userRender,
       appContextValue,
@@ -346,7 +351,7 @@ export class AgentRenderer {
       topLevelRenderPromise: null,
     };
     // console.log('render 1');
-    await this.render(props);
+    await this.renderProps(props);
     // console.log('render 2');
   }
 
@@ -355,7 +360,7 @@ export class AgentRenderer {
   async waitForRender() {
     if (!this.renderPromise) {
       this.renderPromise = (async () => {
-        await this.rerender();
+        await this.render();
       })();
     }
     await this.renderPromise;

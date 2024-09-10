@@ -200,7 +200,7 @@ export class AgentRegistry {
     this.serversMap.set(key, null);
   }
 }
-export class RenderRegistry {
+export class RenderRegistry extends EventTarget {
   agents: ActiveAgentObject[] = [];
   load(container: Instance) {
     this.agents.length = 0;
@@ -245,5 +245,9 @@ export class RenderRegistry {
         });
       }
     });
+
+    this.dispatchEvent(new MessageEvent('update', {
+      data: null,
+    }));
   }
 }

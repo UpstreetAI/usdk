@@ -20,18 +20,25 @@ export const CACHED_MESSAGES_LIMIT = 50;
 
 //
 
-class MessageCache {
+class MessageCache extends EventTarget {
   messages: ActionMessage[] = [];
   loaded: boolean = false;
   loadPromise: Promise<void> | null = null;
 
+  tickUpdate() {
+    this.dispatchEvent(new MessageEvent('update', {
+      data: null,
+    }));
+  }
   pushMessage(message: ActionMessage) {
     this.messages.push(message);
     this.trim();
+    this.tickUpdate();
   }
   prependMessages(messages: ActionMessage[]) {
     this.messages.unshift(...messages);
     this.trim();
+    this.tickUpdate();
   }
   trim() {
     if (this.messages.length > CACHED_MESSAGES_LIMIT) {
@@ -220,16 +227,16 @@ export class ConversationObject extends EventTarget {
     await e.waitForFinish();
   }
   // push a message to the network
-  addLocalAndRemoteMessage(message: ActionMessage) {
+  async addLocalAndRemoteMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
-    this.dispatchEvent(
-      new MessageEvent('remotemessage', {
-        data: {
-          message,
-        },
-      }),
-    );
+    const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
+      data: {
+        message,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {
