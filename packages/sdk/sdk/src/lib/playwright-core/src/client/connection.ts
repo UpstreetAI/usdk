@@ -34,7 +34,7 @@ import { Stream } from './stream';
 import { WritableStream } from './writableStream';
 import { debugLogger } from '../utils/debugLogger';
 import { SelectorsOwner } from './selectors';
-import { Android, AndroidSocket, AndroidDevice } from './android';
+// import { Android, AndroidSocket, AndroidDevice } from './android';
 import { Artifact } from './artifact';
 import { EventEmitter } from 'events';
 import { JsonPipe } from './jsonPipe';
@@ -223,15 +223,15 @@ export class Connection extends EventEmitter {
     const validator = findValidator(type, '', 'Initializer');
     initializer = validator(initializer, '', { tChannelImpl: this._tChannelImplFromWire.bind(this), binary: this._rawBuffers ? 'buffer' : 'fromBase64' });
     switch (type) {
-      case 'Android':
-        result = new Android(parent, type, guid, initializer);
-        break;
-      case 'AndroidSocket':
-        result = new AndroidSocket(parent, type, guid, initializer);
-        break;
-      case 'AndroidDevice':
-        result = new AndroidDevice(parent, type, guid, initializer);
-        break;
+      // case 'Android':
+      //   result = new Android(parent, type, guid, initializer);
+      //   break;
+      // case 'AndroidSocket':
+      //   result = new AndroidSocket(parent, type, guid, initializer);
+      //   break;
+      // case 'AndroidDevice':
+      //   result = new AndroidDevice(parent, type, guid, initializer);
+      //   break;
       case 'APIRequestContext':
         result = new APIRequestContext(parent, type, guid, initializer);
         break;
