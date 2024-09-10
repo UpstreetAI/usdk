@@ -1073,7 +1073,11 @@ export class Registry {
       let linkTarget = '';
       try {
         linkTarget = (await fs.promises.readFile(linkPath)).toString();
-        const browsersJSON = require(path.join(linkTarget, 'browsers.json'));
+        // const browsersJSON = require(path.join(linkTarget, 'browsers.json'));
+        const browsersJSON = {
+          comment: '',
+          browsers: [],
+        };
         const descriptors = readDescriptors(browsersJSON);
         for (const browserName of allDownloadable) {
           // We retain browsers if they are found in the descriptor.
