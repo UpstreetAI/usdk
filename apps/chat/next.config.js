@@ -50,6 +50,7 @@ module.exports = {
     };
     config.plugins.push(
       replacePlugin(sdkPath, /^react/),
+      replacePlugin(sdkPath, /^playwright-core/),
     );
 
     return config;
