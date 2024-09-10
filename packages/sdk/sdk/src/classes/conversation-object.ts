@@ -230,13 +230,6 @@ export class ConversationObject extends EventTarget {
   async addLocalAndRemoteMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
-    // this.dispatchEvent(
-    //   new MessageEvent('remotemessage', {
-    //     data: {
-    //       message,
-    //     },
-    //   }),
-    // );
     const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
       data: {
         message,
