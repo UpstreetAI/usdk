@@ -87,7 +87,9 @@ export class RecorderApp extends EventEmitter implements IRecorderApp {
         return false;
 
       const uri = route.request().url().substring('https://playwright/'.length);
-      const file = require.resolve('../../vite/recorder/' + uri);
+      // const file = require.resolve('../../vite/recorder/' + uri);
+      debugger;
+      throw new Error('Not implemented');
       fs.promises.readFile(file).then(buffer => {
         route.fulfill({
           requestUrl: route.request().url(),
