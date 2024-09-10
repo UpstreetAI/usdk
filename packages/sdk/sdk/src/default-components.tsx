@@ -1321,7 +1321,7 @@ const generateJson = async (prompt: string, context: AppContextValue) => {
     },
   ];
   const newMessage = await context.subtleAi.complete(messages);
-  const responseString = newMessage.content;
+  const responseString = newMessage.content as string;
   return new Response(responseString, {
     status: 200,
     headers: {
