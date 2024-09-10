@@ -95,7 +95,10 @@ import { r2EndpointUrl } from './util/endpoints.mjs';
 
 // utils
 
-const timeAgo = (timestamp: Date) => jsAgo(+timestamp / 1000, { format: 'short' });
+const timeAgo = (timestamp: Date) => {
+  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
+  return jsAgo(timestampInSeconds, { format: 'short' });
+};
 const defaultPriorityOffset = 100;
 
 // defaults
