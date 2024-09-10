@@ -19,13 +19,16 @@ import * as path from 'path';
 
 const profileDir = process.env.PWTEST_PROFILE_DIR || '';
 
-let session: import('inspector').Session;
+// let session: import('inspector').Session;
+let session = null;
 
 export async function startProfiling() {
   if (!profileDir)
     return;
 
-  session = new (require('inspector').Session)();
+  // session = new (require('inspector').Session)();
+  debugger;
+  throw new Error('Not implemented');
   session.connect();
   await new Promise<void>(f => {
     session.post('Profiler.enable', () => {
