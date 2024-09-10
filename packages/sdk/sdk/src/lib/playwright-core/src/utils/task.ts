@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { setImmediate } from './time';
+
 // See https://joel.tools/microtasks/
 export function makeWaitForNextTask() {
   // As of Mar 2021, Electron v12 doesn't create new task with `setImmediate` despite
