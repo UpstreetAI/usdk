@@ -19,10 +19,10 @@
 // import https from 'https';
 // import http2 from 'http2';
 // import type net from 'net';
-import { getProxyForUrl } from '../utilsBundle';
-import { HttpsProxyAgent } from '../utilsBundle';
+// import { getProxyForUrl } from '../utilsBundle';
+// import { HttpsProxyAgent } from '../utilsBundle';
 import url from 'url';
-import { httpHappyEyeballsAgent, httpsHappyEyeballsAgent } from './happy-eyeballs';
+// import { httpHappyEyeballsAgent, httpsHappyEyeballsAgent } from './happy-eyeballs';
 
 export type HTTPRequestParams = {
   url: string,

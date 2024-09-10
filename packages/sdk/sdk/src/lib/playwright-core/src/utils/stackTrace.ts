@@ -18,7 +18,7 @@ import path from 'path';
 import { parseStackTraceLine } from '../utilsBundle';
 import { isUnderTest } from './';
 import type { StackFrame } from '@protocol/channels';
-import { colors } from '../utilsBundle';
+// import { colors } from '../utilsBundle';
 
 export function rewriteErrorMessage<E extends Error>(e: E, newMessage: string): E {
   const lines: string[] = (e.stack?.split('\n') || []).filter(l => l.startsWith('    at '));

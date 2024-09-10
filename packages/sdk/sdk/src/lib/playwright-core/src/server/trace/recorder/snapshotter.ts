@@ -25,7 +25,7 @@ import { frameSnapshotStreamer } from './snapshotterInjected';
 import { calculateSha1, createGuid, monotonicTime } from '../../../utils';
 import type { FrameSnapshot } from '@trace/snapshot';
 import type { ElementHandle } from '../../dom';
-import { mime } from '../../../utilsBundle';
+// import { mime } from '../../../utilsBundle';
 
 export type SnapshotterBlob = {
   buffer: Buffer,

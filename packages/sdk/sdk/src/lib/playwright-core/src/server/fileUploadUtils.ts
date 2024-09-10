@@ -18,7 +18,7 @@ import type * as channels from '@protocol/channels';
 // import fs from 'fs';
 import path from 'path';
 import { assert, fileUploadSizeLimit } from '../utils';
-import { mime } from '../utilsBundle';
+// import { mime } from '../utilsBundle';
 import type { WritableStreamDispatcher } from './dispatchers/writableStreamDispatcher';
 import type { InputFilesItems } from './dom';
 import type { Frame } from './frames';

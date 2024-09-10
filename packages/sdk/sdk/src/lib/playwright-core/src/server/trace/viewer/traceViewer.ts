@@ -23,7 +23,7 @@ import { syncLocalStorageWithSettings } from '../../launchApp';
 import { serverSideCallMetadata } from '../../instrumentation';
 import { createPlaywright } from '../../playwright';
 import { ProgressController } from '../../progress';
-import { open } from '../../../utilsBundle';
+// import { open } from '../../../utilsBundle';
 import type { Page } from '../../page';
 import type { BrowserType } from '../../browserType';
 import { launchApp } from '../../launchApp';

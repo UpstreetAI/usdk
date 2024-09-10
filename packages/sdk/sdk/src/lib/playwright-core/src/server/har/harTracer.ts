@@ -25,7 +25,7 @@ import type * as har from '@trace/har';
 import { assert, calculateSha1, monotonicTime } from '../../utils';
 import type { RegisteredListener } from '../../utils/eventsHelper';
 import { eventsHelper } from '../../utils/eventsHelper';
-import { mime } from '../../utilsBundle';
+// import { mime } from '../../utilsBundle';
 import { ManualPromise } from '../../utils/manualPromise';
 import { getPlaywrightVersion, isTextualMimeType, urlMatches } from '../../utils';
 import { Frame } from '../frames';

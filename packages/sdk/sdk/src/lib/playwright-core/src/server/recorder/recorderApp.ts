@@ -22,7 +22,7 @@ import { EventEmitter } from 'events';
 import { serverSideCallMetadata } from '../instrumentation';
 import type { CallLog, EventData, Mode, Source } from '@recorder/recorderTypes';
 import { isUnderTest } from '../../utils';
-import { mime } from '../../utilsBundle';
+// import { mime } from '../../utilsBundle';
 import { syncLocalStorageWithSettings } from '../launchApp';
 import type { Recorder, RecorderAppFactory } from '../recorder';
 import type { BrowserContext } from '../browserContext';
