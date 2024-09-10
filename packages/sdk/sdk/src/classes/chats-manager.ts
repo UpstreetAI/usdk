@@ -21,6 +21,7 @@ import type {
   ChatsSpecification,
   RoomSpecification,
   PerceptionModifierProps,
+  ActionMessageEventData,
 } from '../types';
 import {
   ConversationObject,
@@ -386,23 +387,41 @@ export class ChatsManager extends EventTarget {
             })());
           });
     
-          conversation.addEventListener('remotemessage', async (e: MessageEvent) => {
-            const { message } = e.data;
-            if (realms.isConnected()) {
-              realms.sendChatMessage(message);
-            }
-    
-            (async () => {
-              const supabase = this.agent.useSupabase();
-              const jwt = this.agent.useAuthToken();
-              await saveMessageToDatabase({
-                supabase,
-                jwt,
-                userId: guid,
-                conversationId: key,
-                message,
+          conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+            e.waitUntil((async () => {
+              // send on the network
+              const { message } = e.data;
+              if (realms.isConnected()) {
+                realms.sendChatMessage(message);
+              }
+      
+              // save to database
+              (async () => {
+                const supabase = this.agent.useSupabase();
+                const jwt = this.agent.useAuthToken();
+                await saveMessageToDatabase({
+                  supabase,
+                  jwt,
+                  userId: guid,
+                  conversationId: key,
+                  message,
+                });
+              })();
+
+              // wait for re-render. this must be happening since we just triggered the message cache to update.
+              // wait for the render registry to emit 'update'
+              const renderRegistry = this.agent.appContextValue.useRegistry();
+              await new Promise((resolve) => {
+                // console.log('wait for registry render 1', renderRegistry);
+                renderRegistry.addEventListener('update', () => {
+                  // console.log('wait for registry render 2', renderRegistry);
+                  resolve(null);
+                }, {
+                  once: true,
+                });
               });
-            })();
+              // console.log('wait for registry render 3', renderRegistry);
+            })());
           });
 
           //
