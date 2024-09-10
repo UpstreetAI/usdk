@@ -120,60 +120,63 @@ export const testBrowser = async ({
     browser,
     destroySession,
   } = browserResult;
-  console.log('got browser', browser);
-  const contexts = browser.contexts();
-  console.log('got contexts', contexts);
-  const context = contexts[0];
-  if (!context) {
-    throw new Error('no default browser context');
-  }
-  // context.setDefaultTimeout(defaultTimeout);
-  // context.setDefaultNavigationTimeout(defaultTimeout);
-  browser.on('disconnected', () => {
-    console.log('browser disconnected!!!', new Error().stack);
-  });
-  const page = await context.newPage();
-  console.log('got page', page);
-  // go to gamespot.com
   try {
-    await page.goto('https://www.gamespot.com', {
-      waitUntil: 'networkidle',
+    console.log('got browser', browser);
+    const contexts = browser.contexts();
+    console.log('got contexts', contexts);
+    const context = contexts[0];
+    if (!context) {
+      throw new Error('no default browser context');
+    }
+    // context.setDefaultTimeout(defaultTimeout);
+    // context.setDefaultNavigationTimeout(defaultTimeout);
+    browser.on('disconnected', () => {
+      console.log('browser disconnected!!!', new Error().stack);
     });
-  } catch (err) {
-    console.error('failed to navigate to gamespot.com', err);
-  }
-  console.log('navigated page');
-  // screenshot the page
-  const screenshot = await page.screenshot({
-    // fullPage: true,
-    type: 'jpeg', // 'png',
-    quality: 70,
-  });
-  console.log('got screenshot', screenshot);
-  {
-    const blob = new Blob([screenshot], { type: 'image/png' });
-    const imgSrc = URL.createObjectURL(blob);
-    console.log('got img src', imgSrc);
-    const img = new Image();
-    img.src = imgSrc;
-    img.style.cssText = `\
-      position: fixed;
-      bottom: 0;
-      right: 0;
-      width: 600px;
-      height: auto;
-      z-index: 100;
-    `;
-    document.body.appendChild(img);
-    await new Promise((accept, reject) => {
-      img.onload = accept;
-      img.onerror = reject;
+    const page = await context.newPage();
+    console.log('got page', page);
+    // go to gamespot.com
+    try {
+      await page.goto('https://www.gamespot.com', {
+        waitUntil: 'networkidle',
+      });
+    } catch (err) {
+      console.error('failed to navigate to gamespot.com', err);
+    }
+    console.log('navigated page');
+    // screenshot the page
+    const screenshot = await page.screenshot({
+      // fullPage: true,
+      type: 'jpeg', // 'png',
+      quality: 70,
     });
+    console.log('got screenshot', screenshot);
+    {
+      const blob = new Blob([screenshot], { type: 'image/png' });
+      const imgSrc = URL.createObjectURL(blob);
+      console.log('got img src', imgSrc);
+      const img = new Image();
+      img.src = imgSrc;
+      img.style.cssText = `\
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 600px;
+        height: auto;
+        z-index: 100;
+      `;
+      document.body.appendChild(img);
+      await new Promise((accept, reject) => {
+        img.onload = accept;
+        img.onerror = reject;
+      });
+    }
+    await page.close();
+    console.log('page closed');
+    await browser.close();
+    console.log('browser closed');
+  } finally {
+    destroySession();
+    await console.log('session destroyed');
   }
-  await page.close();
-  console.log('page closed');
-  await browser.close();
-  console.log('browser closed');
-  destroySession();
-  await console.log('session destroyed');
 };
