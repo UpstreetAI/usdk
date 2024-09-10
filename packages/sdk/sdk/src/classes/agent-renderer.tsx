@@ -316,7 +316,7 @@ export class AgentRenderer {
 
   // rendering
 
-  async render(props: any) {
+  async renderProps(props: any) {
     props.topLevelRenderPromise = makePromise();
     this.renderLoader.clear();
     this.renderLoader.useLoad(props.topLevelRenderPromise);
@@ -334,7 +334,7 @@ export class AgentRenderer {
 
     await this.renderLoader.waitForLoad();
   }
-  async rerender() {
+  async render() {
     const {
       userRender,
       appContextValue,
@@ -346,7 +346,7 @@ export class AgentRenderer {
       topLevelRenderPromise: null,
     };
     // console.log('render 1');
-    await this.render(props);
+    await this.renderProps(props);
     // console.log('render 2');
   }
 
@@ -355,7 +355,7 @@ export class AgentRenderer {
   async waitForRender() {
     if (!this.renderPromise) {
       this.renderPromise = (async () => {
-        await this.rerender();
+        await this.render();
       })();
     }
     await this.renderPromise;
