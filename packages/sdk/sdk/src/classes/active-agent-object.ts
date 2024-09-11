@@ -162,15 +162,15 @@ export class ActiveAgentObject extends AgentObject {
       });
       return data as Array<Memory>;
     } else {
-      throw new Error(error + '');
+      throw new Error(error);
     }
   }
   async addMemory(
     text: string,
     content?: any,
-    opts?: MemoryOpts,
+    // opts?: MemoryOpts,
   ) {
-    const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
+    // const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
     const id = crypto.randomUUID();
     const embedding = await this.appContextValue.embed(text);
@@ -178,87 +178,23 @@ export class ActiveAgentObject extends AgentObject {
     // const jwt = this.useAuthToken();
     // const supabase = makeAnonymousClient(env, jwt);
     const supabase = this.useSupabase();
-    const readResult = await supabase.rpc('match_memory_user_id', {
-      user_id: this.id,
-      query_embedding: embedding,
-      match_threshold: matchThreshold,
-      match_count: matchCount,
-    });
-    const { error, data } = readResult;
-    if (!error) {
-      const replaceIndexes = await (async () => {
-        if (data) {
-          const numRetries = 5;
-          return await retry(async () => {
-            const promptMessages = [
-              {
-                role: 'assistant',
-                content: dedent`
-                  You are a memory relevance evaluator for an AI agent.
-                  The user will provide an list of old memories and a new memory, as text strings.
-                  Evaluate which memories the new memory should replace and reply with a list of the memory indexes that the new memory should replace from the list of old memories (splice). The indexes you should return are the 0-indexed position of the memory to replace. The replacement list you return may be the empty array.
-                  For example, if the previous memories state that ["A is B", "C is D"], and the new memory states that "A is E", the replacement list would be [0].
-                  When in doubt, keep the old memory and do not include it in the replacement list.
-                  Wrap your response in code blocks e.g.
-                  \`\`\`json
-                  [0, 1, 2]
-                  \`\`\`
-                `,
-              },
-              {
-                role: 'user',
-                content:
-                  dedent`
-                  # Old memories
-                  \`\`\`` +
-                  '\n' +
-                  JSON.stringify(
-                    data.map((memory) => memory.text),
-                    null,
-                    2,
-                  ) +
-                  '\n' +
-                  dedent`
-                  \`\`\`
-                  # New memory
-                  \`\`\`` +
-                  '\n' +
-                  JSON.stringify([text], null, 2) +
-                  '\n' +
-                  dedent`
-                  \`\`\`
-                  `,
-              },
-            ];
-            const message = await this.appContextValue.complete(promptMessages, {
-              model: this.model,
-            });
-            // extract the code block
-            const s = parseCodeBlock(message.content);
-            // parse the json in the code block
-            const rawJson = JSON.parse(s);
-            // validate that the json matches the expected schema
-            const schema = z.array(z.number());
-            const parsedJson = schema.parse(rawJson);
-            return parsedJson;
-          }, numRetries);
-        } else {
-          return [];
-        }
-      })();
-
-      const writeResult = await supabase
-        .from('ai_memory')
-        .insert({
-          id,
-          user_id: this.id,
-          text,
-          embedding,
-          content,
-        });
-      const { error: error2, data: data2 } = writeResult;
+    const writeResult = await supabase
+      .from('ai_memory')
+      .insert({
+        id,
+        user_id: this.id,
+        text,
+        embedding,
+        content,
+      });
+    const { error: error2, data: data2 } = writeResult;
+    if (!error2) {
+      console.log('app context value recall 3', {
+        data2,
+      });
+      return data2 as Memory;
     } else {
-      throw new Error(JSON.stringify(error));
+      throw new Error(error2);
     }
   }
   live() {

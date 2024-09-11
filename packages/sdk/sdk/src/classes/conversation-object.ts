@@ -144,6 +144,25 @@ export class ConversationObject extends EventTarget {
     );
   }
 
+  getEmbeddingString() {
+    const allMessages = this.messageCache.messages;
+
+    const allAgents: object[] = [
+      ...this.agentsMap.values(),
+    ];
+    const agent = this.agent;
+    if (agent) {
+      allAgents.push(agent);
+    }
+
+    return [
+      allMessages.map(m => {
+        return `${m.name}: ${m.method} ${JSON.stringify(m.args)}`;
+      }),
+      JSON.stringify(allAgents),
+    ].join('\n');
+  }
+
   getCachedMessages(filter?: MessageFilter) {
     const agent = filter?.agent;
     const idMatches = agent?.idMatches;

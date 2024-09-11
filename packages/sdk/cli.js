@@ -1119,6 +1119,14 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           log(`[${name} checked an attachment`);
           break;
         }
+        case 'addMemory': {
+          log(`[${name} will remember that]`);
+          break;
+        }
+        case 'queryMemories': {
+          log(`[${name} is trying to remember]`);
+          break;
+        }
         case 'browserAction': {
           const {
             method: method2,

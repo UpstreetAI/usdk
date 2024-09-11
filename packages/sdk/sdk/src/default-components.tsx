@@ -68,6 +68,7 @@ import {
   useTts,
   useConversation,
   useCachedMessages,
+  useNumMessages,
 } from './hooks';
 // import type { AppContextValue } from './types';
 import { parseCodeBlock, printZodSchema } from './util/util.mjs';
@@ -104,8 +105,22 @@ const timeAgo = (timestamp: Date) => {
   const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
   return jsAgo(timestampInSeconds, { format: 'short' });
 };
-const defaultPriorityOffset = 100;
+// a fast array shuffle implementation
+const shuffle = (array: any[]) => {
+  let currentIndex = array.length, randomIndex = 0;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+};
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
+const defaultPriorityOffset = 100;
+const maxDefaultMemoryValues = 8;
+const maxMemoryQueries = 8;
+const maxMemoryQueryValues = 3;
 
 // defaults
 
@@ -118,12 +133,12 @@ export const DefaultAgentComponents = () => {
     <>
       <DefaultFormatters />
       <DefaultActions />
-      <DefaultPrompts />
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
-      <DefaultTasks />
-      <DefaultServers />
+      <RAGMemory />
+      <DefaultPrompts />
+      {/* <DefaultServers /> */}
     </>
   );
 };
@@ -205,6 +220,311 @@ const StoreActions = () => {
   );
 };
 
+//
+
+const EveryNMessages = ({
+  n,
+  children,
+}: {
+  n: number,
+  children: () => void,
+}) => {
+  const numMessages = useNumMessages();
+  const startNumMessages = useMemo(() => numMessages, []);
+
+  useEffect(() => {
+    // if (numMessages !== startNumMessages) {
+      const diff = numMessages - startNumMessages;
+      if (diff % n === 0) {
+        const fn = children;
+        fn();
+      }
+    // }
+  }, [numMessages, startNumMessages, n]);
+
+  return null;
+};
+
+//
+
+const DefaultMemoriesInternal = () => {
+  const agent = useAgent();
+  const conversation = useConversation();
+  const [defaultMemoriesValue, setDefaultMemoriesValue] = useState<string[]>([]);
+
+  const refreshDefaultMemories = async () => {
+    const embeddingString = conversation.getEmbeddingString();
+    const memories = await agent.getMemory(embeddingString, {
+      matchCount: maxDefaultMemoryValues,
+    });
+    const value = memories.map(memory => memory.text);
+    setDefaultMemoriesValue(value);
+  };
+
+  return defaultMemoriesValue.length > 0 && (
+    <>
+      <Prompt>
+        {dedent`\
+          # Memories
+          The character has in mind the following memories:
+          ` + '\n' +
+          JSON.stringify(defaultMemoriesValue, null, 2)
+        }
+      </Prompt>
+      <EveryNMessages n={1}>{() => {
+        refreshDefaultMemories();
+      }}</EveryNMessages>
+    </>
+  );
+};
+const DefaultMemories = () => {
+  return (
+    <Conversation>
+      <DefaultMemoriesInternal />
+    </Conversation>
+  );
+};
+const MemoryWatchers = ({
+  memoryQueries,
+}: {
+  memoryQueries: MemoryQuery[],
+}) => {
+  const agent = useAgent();
+  const [memoryWatchers, setMemoryWatchers] = useState(() => new Map<string, MemoryWatcherObject>());
+  const [memoryEpoch, setMemoryEpoch] = useState(0);
+
+  const allMemoryWatchers = Array.from(memoryWatchers.values());
+
+  // listen to the queries and start/stop the watchers
+  useEffect(() => {
+    // console.log('got memory queries update', structuredClone(memoryQueries));
+
+    // remove old watchers
+    for (const [query, watcher] of Array.from(memoryWatchers.entries())) {
+      if (!memoryQueries.some(memoryQuery => memoryQuery.query === query)) {
+        // console.log('remove old watcher', { query });
+        memoryWatchers.delete(query);
+        watcher.destroy();
+      }
+    }
+    // add new watchers
+    for (const memoryQuery of memoryQueries) {
+      const { query } = memoryQuery;
+      if (!memoryWatchers.has(query)) {
+        const watcher = new MemoryWatcherObject(query, {
+          agent,
+        });
+        // console.log('add new watcher', { query });
+        // trigger re-render when the watched value updates
+        watcher.addEventListener('update', () => {
+          // console.log('watcher update', {
+          //   query,
+          //   value: watcher.value,
+          // });
+          setMemoryEpoch(e => e + 1);
+        });
+        memoryWatchers.set(query, watcher);
+      }
+    }
+  }, [JSON.stringify(memoryQueries)]);
+  
+  return allMemoryWatchers.length > 0 && (
+    <Conversation>
+      {/* Memory prompt injection */}
+      <Prompt>
+        {dedent`\
+          # Memory Watchers
+          Here are the memory watchers that are currently active, along with the results.
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(allMemoryWatchers.map(watcher => watcher.getQa()), null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `}
+      </Prompt>
+      {/* trigger memory watcher refresh */}
+      {allMemoryWatchers.map((memoryWatcher, index) => {
+        return (
+          <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
+            memoryWatcher.refresh();
+          }}</EveryNMessages>
+        );
+      })}
+    </Conversation>
+  );
+};
+
+//
+
+type MemoryQuery = {
+  query: string;
+};
+class MemoryWatcherObject extends EventTarget {
+  query: string = '';
+  value: string[] | undefined = [];
+  agent: ActiveAgentObject;
+  constructor(query: string, opts?: any) {
+    super();
+
+    const {
+      agent,
+    }: {
+      agent: any,
+    } = opts ?? {};
+
+    this.query = query;
+    this.agent = agent;
+  }
+  async refresh() {
+    const { agent } = this;
+    const memories = await agent.getMemory(this.query, {
+      matchCount: maxMemoryQueryValues,
+    });
+    this.value = memories.map(memory => memory.text);
+
+    this.dispatchEvent(new MessageEvent('update', {
+      data: {
+        value: this.value,
+      },
+    }));
+  }
+  getQa() {
+    return {
+      q: this.query,
+      a: this.value,
+    };
+  }
+  destroy() {
+    // nothing
+  }
+};
+const RAGMemory = () => {
+  const agent = useAgent();
+  const kv = useKv();
+  const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>('memoryQueries', () => []);
+
+  //
+
+  return (
+    <>
+      <Action
+        name="addMemory"
+        description={dedent`\
+          Make a note of a specific answer to a query.
+          Phrase the memory in the form of a question + answer.
+          This should include any newly relevant context or details.
+          You can use this liberally.
+        `}
+        schema={
+          z.object({
+            query: z.string(),
+            answer: z.string(),
+          })
+        }
+        examples={[
+          {
+            query: 'What time did we schedule the karaoke night?',
+            answer: '7pm, but bring glitter.',
+          },
+          {
+            query: 'What was the secret password to enter the speakeasy?',
+            answer: 'Flamingo hats unite!',
+          },
+          {
+            query: 'Who is the lead singer of our virtual rock band?',
+            answer: 'Captain Zed the Time Traveler.',
+          },
+          {
+            query: 'What was the last pizza topping we debated?',
+            answer: 'Pineapple, and it got heated.',
+          },
+          {
+            query: 'What is my character\'s mission in this quirky reality show?',
+            answer: 'Win the golden avocado.',
+          },
+          {
+            query: 'When are we supposed to launch the confetti cannon?',
+            answer: 'Right after the CEO’s dance-off.',
+          },
+          {
+            query: 'What’s the name of our team’s pet mascot?',
+            answer: 'Sir Fluffington the Third.',
+          },
+          {
+            query: 'What’s the theme of this week\'s office party?',
+            answer: 'Space pirates with neon lights.',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const { query, answer } = e.data.message.args as {
+            query: string,
+            answer: string,
+          };
+          const text = `${query}\n${answer}`;
+          const content = {
+            query,
+            answer,
+          };
+          await agent.addMemory(text, content);
+          await e.commit();
+        }}
+      />
+      <Action
+        name="queryMemories"
+        description={
+          dedent`\
+            This action lets you remember specific details better by focusing your attention on a question.
+            Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
+            For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
+
+            We are already querying the following:
+          ` + '\n' +
+          JSON.stringify(memoryQueries, null, 2)
+        }
+        schema={
+          z.object({
+            query: z.string(),
+          })
+        }
+        examples={[
+          {
+            query: 'What pizza toppings does everyone like for the next movie marathon?',
+          },
+          {
+            query: 'When is the CEO’s karaoke battle scheduled again?',
+          },
+          {
+            query: 'Which team member is in charge of the surprise flash mob?',
+          },
+          {
+            query: 'What wild idea did we brainstorm for the company’s anniversary?',
+          },
+          {
+            query: 'Who volunteered to handle the laser light show at the next event?',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const { query } = e.data.message.args as {
+            query: string,
+          };
+          setMemoryQueries((queries = []) => {
+            const o = shuffle([
+              ...queries,
+              {
+                query,
+              },
+            ]).slice(-maxMemoryQueries);
+            return o;
+          });
+          await e.commit();
+        }}
+      />
+      <DefaultMemories />
+      <MemoryWatchers memoryQueries={memoryQueries} />
+    </>
+  );
+};
+
 /**
  * Renders the default actions components.
  * @returns The JSX elements representing the default actions components.
@@ -229,7 +549,6 @@ export const DefaultPrompts = () => {
     <>
       <DefaultHeaderPrompt />
       <ConversationEnvironmentPrompt />
-      {/* <RAGMemoriesPrompt agents={[currentAgent]} /> */}
       <ActionsPrompt />
       <StorePrompt />
       <ConversationMessagesPrompt />
@@ -310,27 +629,6 @@ export const CharactersPrompt = () => {
     </Prompt>
   );
 };
-/* export const RAGMemoriesPrompt = ({
-  agents,
-}: {
-  agents: Array<AgentObject>;
-}) => {
-  // XXX make this asynchroneous
-  return null;
-  // return (
-  //   <Prompt>
-  //     {dedent`
-  //       ## Memories
-  //       ${agents.map((agent) => {
-  //         return dedent`
-  //           ### ${agent.name}
-  //           ${agent.memory.text}
-  //         `;
-  //       })}
-  //     `}
-  //   </Prompt>
-  // );
-}; */
 export const ActionsPrompt = () => {
   const actions = useActions();
   const formatters = useFormatters();
@@ -402,6 +700,9 @@ export const StorePrompt = () => {
     </>
   );
 };
+
+//
+
 export const ConversationMessagesPrompt = () => {
   return (
     <Conversation>
@@ -1058,82 +1359,6 @@ export const DefaultSenses = () => {
  */
 export const DefaultServers = () => {
   return <StaticServer />;
-};
-
-// task
-
-/**
- * Renders the default server components.
- * @returns The JSX elements representing the default server components.
- */
-export const DefaultTasks = () => {
-  return <StatusTask />
-};
-export const StatusTask = () => {
-  // const agent = useAgent();
-  // const agents = useAgents();
-  // const conversation = useConversation();
-  // const agents = conversation.getAgents();
-  // const lastActions = useActionHistory({
-  //   filter: {
-  //     limit: 1,
-  //   },
-  // });
-  // console.log('got last actions', lastActions);
-  // XXX use exponential backoff
-
-  // const symbol = useMemo(() => Symbol('task'), []);
-  // const [enabled, setEnabled] = useState(false);
-  // const [timestampOfLastRemoteChatMessage, setTimestampOfLastRemoteChatMessage] = useState(0);
-
-  return (
-    // <>
-    //   <Server>
-    //     {() => {
-    //       return {
-    //         async fetch(request: Request, env: object) {
-    //           if (request.method === 'POST' && request.url === '/status') {
-    //             const j = await request.json();
-    //             const enabled = j?.enabled;
-    //             if (typeof enabled === 'boolean') {
-    //               setEnabled(enabled);
-    //               return new Response(JSON.stringify({
-    //                 ok: true,
-    //               }));
-    //             } else {
-    //               return new Response(JSON.stringify({
-    //                 error: `Invalid value for 'enabled'.`,
-    //               }));
-    //             }
-    //           } else {
-    //             return null;
-    //           }
-    //         },
-    //       };
-    //     }}
-    //   </Server>
-    //   {enabled && <Task
-    //     id={symbol}
-    //     handler={async (e) => {
-    //       await agent.think();
-    //       return new TaskResult(TaskResult.SCHEDULE, {
-    //         timestamp: Date.now() + 2000,
-    //       });
-    //     }}
-    //   />}
-    // </>
-    <>
-      {/* <Task
-        id={symbol}
-        handler={async (e) => {
-          await agent.think();
-          return new TaskResult(TaskResult.SCHEDULE, {
-            timestamp: new Date(Date.now() + 2000),
-          });
-        }}
-      /> */}
-    </>
-  );
 };
 
 // const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

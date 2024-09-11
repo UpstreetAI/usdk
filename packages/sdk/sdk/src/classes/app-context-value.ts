@@ -141,15 +141,15 @@ export class AppContextValue {
       async set<T>(key: string, value: T | ((oldValue: T | undefined) => T)) {
         const fullKey = getFullKey(key);
 
-        const newLoadPromise = Promise.resolve(value);
-        const encodedData = zbencode(value);
-        const base64Data = uint8ArrayToBase64(encodedData);
-
         if (typeof value === 'function') {
-          const oldValue = await kv.get<T>(key);
+          const oldValue = await kv.get<T>(fullKey);
           const newValue = (value as (oldValue: T | undefined) => T)(oldValue);
           value = newValue;
         }
+
+        const newLoadPromise = Promise.resolve(value);
+        const encodedData = zbencode(value);
+        const base64Data = uint8ArrayToBase64(encodedData);
 
         kvLoadPromises.set(key, newLoadPromise);
         setKvCache((kvCache) => {
@@ -172,6 +172,7 @@ export class AppContextValue {
           throw new Error('error setting key value: ' + JSON.stringify(error));
         }
       },
+      // note: key must be the same across calls, changing it is not allowed!
       use: <T>(key: string, defaultValue?: T | (() => T)) => {
         const ensureDefaultValue = (() => {
           let cachedDefaultValue: T | undefined;
@@ -182,14 +183,22 @@ export class AppContextValue {
             return cachedDefaultValue;
           };
         })();
-        const value: T = kvCache.get(key) ?? ensureDefaultValue();
-        const setValue = async (value: T | ((oldValue: T | undefined) => T)) => kv.set<T>(key, value);
+        const [valueEpoch, setValueEpoch] = useState(0);
+        // get the fresh value each render
+        const value = kvCache.get(key) ?? ensureDefaultValue();
+        const setValue2 = async (value: T | ((oldValue: T | undefined) => T)) => {
+          // trigger re-render of the use() hook
+          setValueEpoch((epoch) => epoch + 1);
+          // perform the set
+          return await kv.set<T>(key, value);
+        };
 
+        // trigger the initial load
         useEffect(() => {
           ensureLoadPromise(key, ensureDefaultValue);
-        }, [key]);
+        }, []);
 
-        return [value, setValue];
+        return [value, setValue2];
       },
     }), []);
 
