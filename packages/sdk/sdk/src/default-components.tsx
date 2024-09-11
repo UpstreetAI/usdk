@@ -105,8 +105,22 @@ const timeAgo = (timestamp: Date) => {
   const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
   return jsAgo(timestampInSeconds, { format: 'short' });
 };
-const defaultPriorityOffset = 100;
+// a fast array shuffle implementation
+const shuffle = (array: any[]) => {
+  let currentIndex = array.length, randomIndex = 0;
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex], array[currentIndex]];
+  }
+  return array;
+};
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
+const defaultPriorityOffset = 100;
+const maxDefaultMemoryValues = 8;
+const maxMemoryQueries = 8;
+const maxMemoryQueryValues = 3;
 
 // defaults
 
@@ -205,6 +219,9 @@ const StoreActions = () => {
     </>
   );
 };
+
+//
+
 const EveryNMessages = ({
   n,
   children,
@@ -216,71 +233,72 @@ const EveryNMessages = ({
   const startNumMessages = useMemo(() => numMessages, []);
 
   useEffect(() => {
-    if (numMessages !== startNumMessages) {
+    // if (numMessages !== startNumMessages) {
       const diff = numMessages - startNumMessages;
       if (diff % n === 0) {
         const fn = children;
         fn();
       }
-    }
+    // }
   }, [numMessages, startNumMessages, n]);
 
   return null;
-}
-type MemoryQuery = {
-  query: string;
 };
-class MemoryWatcherObject extends EventTarget {
-  query: string = '';
-  value: string[] | undefined = [];
-  agent: ActiveAgentObject;
-  // loadPromise: Promise<void> | null = null;
-  constructor(query: string, opts?: any) {
-    super();
 
-    const {
-      agent,
-    }: {
-      agent: any,
-    } = opts ?? {};
+//
 
-    this.query = query;
-    this.agent = agent;
-
-    // this.loadPromise = this.refresh();
-    this.refresh();
-  }
-  async refresh() {
-    const { agent } = this;
-    const memories = await agent.getMemory(this.query);
-    this.value = memories.map(memory => memory.text);
-
-    this.dispatchEvent(new MessageEvent('update', {
-      data: {
-        value: this.value,
-      },
-    }));
-  }
-  getQa() {
-    return {
-      q: this.query,
-      a: this.value,
-    };
-  }
-  destroy() {
-    // nothing
-  }
-}
-const MemoryActions = () => {
+const DefaultMemoriesInternal = () => {
   const agent = useAgent();
-  const kv = useKv();
-  const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>('memoryQueries', () => []);
-  const [memoryWatchers, setMemoryWatchers] = useState(new Map<string, MemoryWatcherObject>());
+  const conversation = useConversation();
+  const [defaultMemoriesValue, setDefaultMemoriesValue] = useState<string[]>([]);
+
+  const refreshDefaultMemories = async () => {
+    const embeddingString = conversation.getEmbeddingString();
+    const memories = await agent.getMemory(embeddingString, {
+      matchCount: maxDefaultMemoryValues,
+    });
+    const value = memories.map(memory => memory.text);
+    setDefaultMemoriesValue(value);
+  };
+
+  return (
+    <>
+      {/* Default memories */}
+      {defaultMemoriesValue.length > 0 && (
+        <>
+          <Prompt>
+            {dedent`\
+              # Memories
+              The character has in mind the following memories:
+              ` + '\n' +
+              JSON.stringify(defaultMemoriesValue, null, 2)
+            }
+          </Prompt>
+          <EveryNMessages n={1}>{() => {
+            refreshDefaultMemories();
+          }}</EveryNMessages>
+        </>
+      )}
+    </>
+  );
+};
+const DefaultMemories = () => {
+  return (
+    <Conversation>
+      <DefaultMemoriesInternal />
+    </Conversation>
+  );
+};
+const MemoryWatchers = ({
+  memoryQueries,
+}: {
+  memoryQueries: MemoryQuery[],
+}) => {
+  const agent = useAgent();
+  const [memoryWatchers, setMemoryWatchers] = useState(() => new Map<string, MemoryWatcherObject>());
   const [memoryEpoch, setMemoryEpoch] = useState(0);
 
-  const maxMemoryQueries = 8;
-
-  // console.log('got memory queries', memoryQueries);
+  const allMemoryWatchers = Array.from(memoryWatchers.values());
 
   // listen to the queries and start/stop the watchers
   useEffect(() => {
@@ -314,11 +332,81 @@ const MemoryActions = () => {
       }
     }
   }, [JSON.stringify(memoryQueries)]);
+  
+  return allMemoryWatchers.length > 0 && (
+    <Conversation>
+      {/* Memory prompt injection */}
+      <Prompt>
+        {dedent`\
+          # Memory Watchers
+          Here are the memory watchers that are currently active, along with the results.
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(allMemoryWatchers.map(watcher => watcher.getQa()), null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `}
+      </Prompt>
+      {/* trigger memory watcher refresh */}
+      {allMemoryWatchers.map((memoryWatcher, index) => {
+        return (
+          <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
+            memoryWatcher.refresh();
+          }}</EveryNMessages>
+        );
+      })}
+    </Conversation>
+  );
+};
 
-  //
+//
 
-  // const qa = Array.from(memoryWatchers.values()).map(watcher => watcher.getQa());
-  const allMemoryWatchers = Array.from(memoryWatchers.values());
+type MemoryQuery = {
+  query: string;
+};
+class MemoryWatcherObject extends EventTarget {
+  query: string = '';
+  value: string[] | undefined = [];
+  agent: ActiveAgentObject;
+  constructor(query: string, opts?: any) {
+    super();
+
+    const {
+      agent,
+    }: {
+      agent: any,
+    } = opts ?? {};
+
+    this.query = query;
+    this.agent = agent;
+  }
+  async refresh() {
+    const { agent } = this;
+    const memories = await agent.getMemory(this.query, {
+      matchCount: maxMemoryQueryValues,
+    });
+    this.value = memories.map(memory => memory.text);
+
+    this.dispatchEvent(new MessageEvent('update', {
+      data: {
+        value: this.value,
+      },
+    }));
+  }
+  getQa() {
+    return {
+      q: this.query,
+      a: this.value,
+    };
+  }
+  destroy() {
+    // nothing
+  }
+};
+const MemoryActions = () => {
+  const agent = useAgent();
+  const kv = useKv();
+  const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>('memoryQueries', () => []);
 
   //
 
@@ -387,16 +475,14 @@ const MemoryActions = () => {
         }}
       />
       <Action
-        name="addMemoryWatcher"
+        name="queryMemories"
         description={
           dedent`\
-            This action gives you the ability to remember memories using attentional memory recall.
-
-            Use this action to set a text query that would help us generate high quality responses in the current conversation.
+            This action lets you remember specific details better by focusing your attention on a question.
+            Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
             For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
-            Use this to ask for additional information from the system.
 
-            We are already paying attention to the following queries:
+            We are already querying the following:
           ` + '\n' +
           JSON.stringify(memoryQueries, null, 2)
         }
@@ -427,43 +513,19 @@ const MemoryActions = () => {
             query: string,
           };
           setMemoryQueries((queries = []) => {
-            const o = [
+            const o = shuffle([
               ...queries,
               {
                 query,
               },
-            ].slice(-maxMemoryQueries);
+            ]).slice(-maxMemoryQueries);
             return o;
           });
           await e.commit();
         }}
       />
-      {allMemoryWatchers.length > 0 && (
-        <>
-          {/* Memory prompt injection */}
-          <Prompt>
-            {dedent`\
-              # Memory Watchers
-              Here are the memory watchers that are currently active, along with the results of the queries.
-              \`\`\`
-            ` + '\n' +
-            JSON.stringify(allMemoryWatchers.map(watcher => watcher.getQa()), null, 2) + '\n' +
-            dedent`\
-              \`\`\`
-            `}
-          </Prompt>
-          {/* trigger memory watcher refresh */}
-          <Conversation>
-            {allMemoryWatchers.map((memoryWatcher, index) => {
-              return (
-                <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
-                  memoryWatcher.refresh();
-                }}</EveryNMessages>
-              );
-            })}
-          </Conversation>
-        </>
-      )}
+      <DefaultMemories />
+      <MemoryWatchers memoryQueries={memoryQueries} />
     </>
   );
 };
