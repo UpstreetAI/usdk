@@ -68,6 +68,10 @@ export const useAgent = () => {
   const agentContextValue = useContext(AgentContext);
   return agentContextValue;
 };
+export const useSupabase = () => {
+  const agentContextValue = useContext(AgentContext);
+  return agentContextValue.appContextValue.useSupabase();
+};
 export const useConversations = () => {
   const conversationsContext = useContext(ConversationsContext);
   return conversationsContext.conversations;
@@ -113,6 +117,10 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const conversation = useConversation();
   const [cachedMessagesEpoch, setCachedMessagesEpoch] = useState(0);
 
+  if (!conversation) {
+    throw new Error('useCachedMessages() can only be used within a conversation context');
+  }
+
   // listen for messasge cache updates
   const update = () => {
     setCachedMessagesEpoch(cachedMessagesEpoch => cachedMessagesEpoch + 1);
@@ -139,6 +147,10 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   use(conversation.messageCache.loadPromise);
   const messages = conversation.getCachedMessages(opts?.filter);
   return messages;
+};
+export const useNumMessages = () => {
+  const cachedMessages = useCachedMessages();
+  return cachedMessages.length;
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
