@@ -261,24 +261,19 @@ const DefaultMemoriesInternal = () => {
     setDefaultMemoriesValue(value);
   };
 
-  return (
+  return defaultMemoriesValue.length > 0 && (
     <>
-      {/* Default memories */}
-      {defaultMemoriesValue.length > 0 && (
-        <>
-          <Prompt>
-            {dedent`\
-              # Memories
-              The character has in mind the following memories:
-              ` + '\n' +
-              JSON.stringify(defaultMemoriesValue, null, 2)
-            }
-          </Prompt>
-          <EveryNMessages n={1}>{() => {
-            refreshDefaultMemories();
-          }}</EveryNMessages>
-        </>
-      )}
+      <Prompt>
+        {dedent`\
+          # Memories
+          The character has in mind the following memories:
+          ` + '\n' +
+          JSON.stringify(defaultMemoriesValue, null, 2)
+        }
+      </Prompt>
+      <EveryNMessages n={1}>{() => {
+        refreshDefaultMemories();
+      }}</EveryNMessages>
     </>
   );
 };
