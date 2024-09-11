@@ -145,7 +145,7 @@ export class ActiveAgentObject extends AgentObject {
       query,
     });
     const embedding = await this.appContextValue.embed(query);
-    const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
+    const { matchThreshold = 0.5, matchCount = 3 } = opts || {};
 
     // const jwt = this.useAuthToken();
     // const supabase = makeAnonymousClient(env, jwt);
