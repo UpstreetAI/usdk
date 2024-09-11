@@ -133,12 +133,12 @@ export const DefaultAgentComponents = () => {
     <>
       <DefaultFormatters />
       <DefaultActions />
-      <DefaultPrompts />
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
-      <DefaultTasks />
-      <DefaultServers />
+      <RAGMemory />
+      <DefaultPrompts />
+      {/* <DefaultServers /> */}
     </>
   );
 };
@@ -398,7 +398,7 @@ class MemoryWatcherObject extends EventTarget {
     // nothing
   }
 };
-const MemoryActions = () => {
+const RAGMemory = () => {
   const agent = useAgent();
   const kv = useKv();
   const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>('memoryQueries', () => []);
@@ -534,7 +534,6 @@ export const DefaultActions = () => {
     <>
       <ChatActions />
       <StoreActions />
-      <MemoryActions />
     </>
   );
 };
@@ -1360,82 +1359,6 @@ export const DefaultSenses = () => {
  */
 export const DefaultServers = () => {
   return <StaticServer />;
-};
-
-// task
-
-/**
- * Renders the default server components.
- * @returns The JSX elements representing the default server components.
- */
-export const DefaultTasks = () => {
-  return <StatusTask />
-};
-export const StatusTask = () => {
-  // const agent = useAgent();
-  // const agents = useAgents();
-  // const conversation = useConversation();
-  // const agents = conversation.getAgents();
-  // const lastActions = useActionHistory({
-  //   filter: {
-  //     limit: 1,
-  //   },
-  // });
-  // console.log('got last actions', lastActions);
-  // XXX use exponential backoff
-
-  // const symbol = useMemo(() => Symbol('task'), []);
-  // const [enabled, setEnabled] = useState(false);
-  // const [timestampOfLastRemoteChatMessage, setTimestampOfLastRemoteChatMessage] = useState(0);
-
-  return (
-    // <>
-    //   <Server>
-    //     {() => {
-    //       return {
-    //         async fetch(request: Request, env: object) {
-    //           if (request.method === 'POST' && request.url === '/status') {
-    //             const j = await request.json();
-    //             const enabled = j?.enabled;
-    //             if (typeof enabled === 'boolean') {
-    //               setEnabled(enabled);
-    //               return new Response(JSON.stringify({
-    //                 ok: true,
-    //               }));
-    //             } else {
-    //               return new Response(JSON.stringify({
-    //                 error: `Invalid value for 'enabled'.`,
-    //               }));
-    //             }
-    //           } else {
-    //             return null;
-    //           }
-    //         },
-    //       };
-    //     }}
-    //   </Server>
-    //   {enabled && <Task
-    //     id={symbol}
-    //     handler={async (e) => {
-    //       await agent.think();
-    //       return new TaskResult(TaskResult.SCHEDULE, {
-    //         timestamp: Date.now() + 2000,
-    //       });
-    //     }}
-    //   />}
-    // </>
-    <>
-      {/* <Task
-        id={symbol}
-        handler={async (e) => {
-          await agent.think();
-          return new TaskResult(TaskResult.SCHEDULE, {
-            timestamp: new Date(Date.now() + 2000),
-          });
-        }}
-      /> */}
-    </>
-  );
 };
 
 // const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
