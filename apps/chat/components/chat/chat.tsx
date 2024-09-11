@@ -203,6 +203,23 @@ function getMessageComponent(room: string, message: Message, id: string, players
       )
     }
 
+    case 'addMemory': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} will rememeber that</div>
+      );
+    }
+    case 'addMemoryWatcher': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} is trying to remember</div>
+      );
+    }
+
     case 'mediaPerception': {
       // const player = playersCache.get(message.userId);
       // const media = (message.attachments ?? [])[0] ?? null;
