@@ -228,6 +228,7 @@ export type ConversationObject = EventTarget & {
   addAgent: (agentId: string, player: Player) => void;
   removeAgent: (agentId: string) => void;
   getKey: () => string;
+  getEmbeddingString: () => string;
 };
 export type RoomSpecification = {
   room: string;
