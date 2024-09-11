@@ -162,15 +162,15 @@ export class ActiveAgentObject extends AgentObject {
       });
       return data as Array<Memory>;
     } else {
-      throw new Error(error + '');
+      throw new Error(error);
     }
   }
   async addMemory(
     text: string,
     content?: any,
-    opts?: MemoryOpts,
+    // opts?: MemoryOpts,
   ) {
-    const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
+    // const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
     const id = crypto.randomUUID();
     const embedding = await this.appContextValue.embed(text);

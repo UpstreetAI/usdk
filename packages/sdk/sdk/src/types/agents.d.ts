@@ -307,7 +307,7 @@ export type ActiveAgentObject = AgentObject & {
   addMemory: (
     text: string,
     content?: any,
-    opts?: MemoryOpts,
+    // opts?: MemoryOpts,
   ) => Promise<void>;
 
   live: () => void;
