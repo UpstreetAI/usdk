@@ -1123,7 +1123,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           log(`[${name} will remember that]`);
           break;
         }
-        case 'addMemoryWatcher': {
+        case 'queryMemories': {
           log(`[${name} is trying to remember]`);
           break;
         }

@@ -211,7 +211,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         <div className="opacity-60 text-xs">{message.name} will rememeber that</div>
       );
     }
-    case 'addMemoryWatcher': {
+    case 'queryMemories': {
       // const player = playersCache.get(message.userId);
       // const media = (message.attachments ?? [])[0] ?? null;
 
