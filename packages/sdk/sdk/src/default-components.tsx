@@ -390,9 +390,9 @@ const MemoryActions = () => {
         name="addMemoryWatcher"
         description={
           dedent`\
-            This action forms the basis of the memory retrieval system.
+            This action gives you the ability to remember memories using attentional memory recall.
 
-            Use this action to set our attentional memory to a query that would help us reason about the currently ongoing conversation.
+            Use this action to set a text query that would help us generate high quality responses in the current conversation.
             For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
             Use this to ask for additional information from the system.
 
