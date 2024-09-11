@@ -280,16 +280,16 @@ const MemoryActions = () => {
 
   const maxMemoryQueries = 8;
 
-  console.log('got memory queries', memoryQueries);
+  // console.log('got memory queries', memoryQueries);
 
   // listen to the queries and start/stop the watchers
   useEffect(() => {
-    console.log('got memory queries update', structuredClone(memoryQueries));
+    // console.log('got memory queries update', structuredClone(memoryQueries));
 
     // remove old watchers
     for (const [query, watcher] of Array.from(memoryWatchers.entries())) {
       if (!memoryQueries.some(memoryQuery => memoryQuery.query === query)) {
-        console.log('remove old watcher', { query });
+        // console.log('remove old watcher', { query });
         memoryWatchers.delete(query);
         watcher.destroy();
       }
@@ -301,13 +301,13 @@ const MemoryActions = () => {
         const watcher = new MemoryWatcherObject(query, {
           agent,
         });
-        console.log('add new watcher', { query });
+        // console.log('add new watcher', { query });
         // trigger re-render when the watched value updates
         watcher.addEventListener('update', () => {
-          console.log('watcher update', {
-            query,
-            value: watcher.value,
-          });
+          // console.log('watcher update', {
+          //   query,
+          //   value: watcher.value,
+          // });
           setMemoryEpoch(e => e + 1);
         });
         memoryWatchers.set(query, watcher);
