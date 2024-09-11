@@ -518,8 +518,6 @@ export class ChatsManager extends EventTarget {
     } = this.abortController;
 
     (async () => {
-      // connect to initial rooms
-      await this.chatsSpecification.waitForLoad();
       if (signal.aborted) return;
 
       // listen for rooms changes
@@ -541,6 +539,9 @@ export class ChatsManager extends EventTarget {
         this.chatsSpecification.removeEventListener('join', onjoin);
         this.chatsSpecification.removeEventListener('leave', onleave);
       });
+
+      // connect to initial rooms
+      await this.chatsSpecification.waitForLoad();
     })();
 
     // disconnect on destroy

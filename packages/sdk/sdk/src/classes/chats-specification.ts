@@ -297,8 +297,6 @@ export class ChatsSpecification extends EventTarget {
       _deleteAllRows(),
     ]);
 
-    // clear all the roomSpecifications list
-    this.roomSpecifications = []
   }
 
   // return the next alarm time
