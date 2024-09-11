@@ -141,15 +141,15 @@ export class AppContextValue {
       async set<T>(key: string, value: T | ((oldValue: T | undefined) => T)) {
         const fullKey = getFullKey(key);
 
-        const newLoadPromise = Promise.resolve(value);
-        const encodedData = zbencode(value);
-        const base64Data = uint8ArrayToBase64(encodedData);
-
         if (typeof value === 'function') {
-          const oldValue = await kv.get<T>(key);
+          const oldValue = await kv.get<T>(fullKey);
           const newValue = (value as (oldValue: T | undefined) => T)(oldValue);
           value = newValue;
         }
+
+        const newLoadPromise = Promise.resolve(value);
+        const encodedData = zbencode(value);
+        const base64Data = uint8ArrayToBase64(encodedData);
 
         kvLoadPromises.set(key, newLoadPromise);
         setKvCache((kvCache) => {
