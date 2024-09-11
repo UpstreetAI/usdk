@@ -172,6 +172,7 @@ export class AppContextValue {
           throw new Error('error setting key value: ' + JSON.stringify(error));
         }
       },
+      // note: key must be the same across calls, changing it is not allowed!
       use: <T>(key: string, defaultValue?: T | (() => T)) => {
         const ensureDefaultValue = (() => {
           let cachedDefaultValue: T | undefined;
@@ -182,14 +183,20 @@ export class AppContextValue {
             return cachedDefaultValue;
           };
         })();
-        const value: T = kvCache.get(key) ?? ensureDefaultValue();
-        const setValue = async (value: T | ((oldValue: T | undefined) => T)) => kv.set<T>(key, value);
+        const [value, setValue] = useState<T>(() => kvCache.get(key) ?? ensureDefaultValue());
+        const setValue2 = async (value: T | ((oldValue: T | undefined) => T)) => {
+          // trigger re-render of the use() hook
+          setValue(value);
+          // perform the set
+          return await kv.set<T>(key, value);
+        };
 
+        // trigger the initial load
         useEffect(() => {
           ensureLoadPromise(key, ensureDefaultValue);
-        }, [key]);
+        }, []);
 
-        return [value, setValue];
+        return [value, setValue2];
       },
     }), []);
 
