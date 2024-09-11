@@ -183,10 +183,12 @@ export class AppContextValue {
             return cachedDefaultValue;
           };
         })();
-        const [value, setValue] = useState<T>(() => kvCache.get(key) ?? ensureDefaultValue());
+        const [valueEpoch, setValueEpoch] = useState(0);
+        // get the fresh value each render
+        const value = kvCache.get(key) ?? ensureDefaultValue();
         const setValue2 = async (value: T | ((oldValue: T | undefined) => T)) => {
           // trigger re-render of the use() hook
-          setValue(value);
+          setValueEpoch((epoch) => epoch + 1);
           // perform the set
           return await kv.set<T>(key, value);
         };
