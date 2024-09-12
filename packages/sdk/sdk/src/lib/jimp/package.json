@@ -87,5 +87,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "module": "./dist/browser/index.js"
+  "module": "./dist/esm/index.js"
 }
