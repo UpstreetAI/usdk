@@ -273,16 +273,18 @@ export class ChatsManager extends EventTarget {
         const _bindMultiplayerChat = () => {
           // console.log('bind multiplayer chat');
 
-          const handleRemoteUserMessage = async (message) => {
+          const handleRemoteMessage = async (message) => {
             if (!message.hidden) {
-              conversation.addLocalMessage(message);
+              await conversation.addLocalMessage(message);
+            } else {
+              await conversation.addHiddenMessage(message);
             }
           };
           realms.addEventListener('chat', async (e) => {
             try {
               const { playerId, message } = e.data;
               if (playerId !== guid) {
-                await handleRemoteUserMessage(message);
+                await handleRemoteMessage(message);
               }
             } catch (err) {
               console.warn(err.stack);
@@ -306,68 +308,87 @@ export class ChatsManager extends EventTarget {
         _bindDisconnect();
 
         const _bindConversation = () => {
+          // run all perception modifiers and perceptions for a given event
+          // the modifiers have a chance to abort the perception
+          const handleChatPerception = async (data: ActionMessageEventData) => {
+            const {
+              agent: sourceAgent,
+              message,
+            } = data;
+
+            const {
+              perceptions,
+              perceptionModifiers,
+            } = this.agent.registry;
+
+            // collect perception modifiers
+            const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
+            // for each priority, run the perception modifiers, checking for abort at each step
+            let aborted = false;
+            for (const perceptionModifiers of perceptionModifiersPerPriority) {
+              const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
+                return perceptionModifier.type === message.method;
+              }).map(async (perceptionModifier) => {
+                const targetAgent = this.agent.generative({
+                  conversation,
+                });
+                const e = new AbortablePerceptionEvent({
+                  targetAgent,
+                  sourceAgent,
+                  message,
+                });
+                await perceptionModifier.handler(e);
+                return e;
+              });
+              const messageEvents = await Promise.all(abortableEventPromises);
+              aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+              if (aborted) {
+                break;
+              }
+            }
+
+            // if no aborts, run the perceptions
+            if (!aborted) {
+              const perceptionPromises = [];
+              for (const perception of perceptions) {
+                if (perception.type === message.method) {
+                  const targetAgent = this.agent.generative({
+                    conversation,
+                  });
+                  const e = new PerceptionEvent({
+                    targetAgent,
+                    sourceAgent,
+                    message,
+                  });
+                  const p = perception.handler(e);
+                  perceptionPromises.push(p);
+                }
+              }
+              await Promise.all(perceptionPromises);
+            }
+            return {
+              aborted,
+            };
+          };
           conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
             const { agent: sourceAgent, message } = e.data;
             e.waitUntil((async () => {
               await this.incomingMessageDebouncer.waitForTurn(async () => {
                 try {
-                  // wait for re-render
+                  // wait for re-render, since we just changed the message cache
+                  // XXX can this be handled in the message cache?
                   {
                     const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
                     this.agent.dispatchEvent(e);
                     await e.waitForFinish();
                   }
 
+                  // handle the perception
                   const {
-                    perceptions,
-                    perceptionModifiers,
-                  } = this.agent.registry;
-
-                  // collect perception modifiers
-                  const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
-                  // for each priority, run the perception modifiers, checking for abort at each step
-                  let aborted = false;
-                  for (const perceptionModifiers of perceptionModifiersPerPriority) {
-                    const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
-                      return perceptionModifier.type === message.method;
-                    }).map(async (perceptionModifier) => {
-                      const targetAgent = this.agent.generative({
-                        conversation,
-                      });
-                      const e = new AbortablePerceptionEvent({
-                        targetAgent,
-                        sourceAgent,
-                        message,
-                      });
-                      await perceptionModifier.handler(e);
-                      return e;
-                    });
-                    const messageEvents = await Promise.all(abortableEventPromises);
-                    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
-                    if (aborted) {
-                      break;
-                    }
-                  }
-
-                  // if no aborts, run the perceptions
+                    aborted,
+                  } = await handleChatPerception(e.data);
                   if (!aborted) {
-                    const perceptionPromises = [];
-                    for (const perception of perceptions) {
-                      if (perception.type === message.method) {
-                        const targetAgent = this.agent.generative({
-                          conversation,
-                        });
-                        const e = new PerceptionEvent({
-                          targetAgent,
-                          sourceAgent,
-                          message,
-                        });
-                        const p = perception.handler(e);
-                        perceptionPromises.push(p);
-                      }
-                    }
-                    await Promise.all(perceptionPromises);
-          
+                    // save the perception to the databaase
                     (async () => {
                       const supabase = this.agent.useSupabase();
                       const jwt = this.agent.useAuthToken();
@@ -383,6 +404,20 @@ export class ChatsManager extends EventTarget {
                 } catch (err) {
                   console.warn('caught new message error', err);
                 }
+              });
+            })());
+          });
+          conversation.addEventListener('hiddenmessage', (e: ActionMessageEvent) => {
+            // console.log('got hidden message 0', e.data);
+            e.waitUntil((async () => {
+              await this.incomingMessageDebouncer.waitForTurn(async () => {
+                // console.log('handle hidden message 1', e.data);
+                const {
+                  aborted,
+                } = await handleChatPerception(e.data);
+                // console.log('handle hidden message 2', e.data, {
+                //   aborted,
+                // });
               });
             })());
           });

@@ -102,7 +102,7 @@ export class DurableObject extends EventTarget {
         const subpath = match[1];
         const guid = this.#getId();
 
-        const handleAgentJson = async () => {
+        /* const handleAgentJson = async () => {
           const agentJson = this.#getAgentJson();
           const s = JSON.stringify(agentJson);
           return new Response(s, {
@@ -111,8 +111,8 @@ export class DurableObject extends EventTarget {
               'Content-Type': 'application/json',
             },
           });
-        };
-        const handleWs = async () => {
+        }; */
+        /* const handleWs = async () => {
           // Expect to receive a WebSocket Upgrade request.
           // If there is one, accept the request and return a WebSocket Response.
           const upgradeHeader = request.headers.get('Upgrade');
@@ -199,8 +199,8 @@ export class DurableObject extends EventTarget {
               headers,
             });
           }
-        };
-        const handleEvents = async () => {
+        }; */
+        /* const handleEvents = async () => {
           throw new Error('not implemented');
 
           // output to the event stream
@@ -241,8 +241,8 @@ export class DurableObject extends EventTarget {
             },
           });
           return res;
-        };
-        const handleStatus = async () => {
+        }; */
+        /* const handleStatus = async () => {
           const registry = this.agentRenderer.registry;
 
           const agents = registry.agents.map((agent) => {
@@ -278,8 +278,8 @@ export class DurableObject extends EventTarget {
               'Content-Type': 'application/json',
             },
           });
-        };
-        const handleWebhook = async () => {
+        }; */
+        /* const handleWebhook = async () => {
           if (request.method === 'POST') {
             const jsonPromise = request.json();
 
@@ -321,7 +321,7 @@ export class DurableObject extends EventTarget {
               headers,
             });
           }
-        };
+        }; */
         const handleJoin = async () => {
           // read the body json
           const body = await request.json();
@@ -385,16 +385,16 @@ export class DurableObject extends EventTarget {
         };
 
         switch (subpath) {
-          case 'agent.json':
-            return await handleAgentJson();
-          case 'status':
-            return await handleStatus();
-          case 'ws':
-            return await handleWs();
-          case 'events':
-            return await handleEvents();
-          case 'webhook':
-            return await handleWebhook();
+          // case 'agent.json':
+          //   return await handleAgentJson();
+          // case 'status':
+          //   return await handleStatus();
+          // case 'ws':
+          //   return await handleWs();
+          // case 'events':
+          //   return await handleEvents();
+          // case 'webhook':
+          //   return await handleWebhook();
           case 'join':
             return await handleJoin();
           case 'leave':

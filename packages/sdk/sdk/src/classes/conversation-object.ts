@@ -68,10 +68,6 @@ export class ConversationObject extends EventTarget {
   }) {
     super();
 
-    // this.id = ConversationObject.getKey({
-    //   room,
-    //   endpointUrl,
-    // });
     this.room = room;
     this.endpointUrl = endpointUrl;
   }
@@ -222,7 +218,7 @@ export class ConversationObject extends EventTarget {
     return [] as ActionMessage[];
   }
 
-  // pull a message from the network
+  // pull a logged message from the network
   async addLocalMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
@@ -237,6 +233,27 @@ export class ConversationObject extends EventTarget {
     }
 
     const e = new ExtendableMessageEvent<ActionMessageEventData>('localmessage', {
+      data: {
+        agent: playerSpec,
+        message,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
+  }
+  // pull a hidden message from the network
+  async addHiddenMessage(message: ActionMessage) {
+    const { userId } = message;
+    const player = this.agentsMap.get(userId) ?? null;
+    const playerSpec = player?.getPlayerSpec() ?? null;
+    if (!playerSpec) {
+      console.log('got message for unknown agent', {
+        message,
+        agentsMap: this.agentsMap,
+      });
+    }
+
+    const e = new ExtendableMessageEvent<ActionMessageEventData>('hiddenmessage', {
       data: {
         agent: playerSpec,
         message,

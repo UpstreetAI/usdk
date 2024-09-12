@@ -81,14 +81,19 @@ interface MultiplayerActionsContextType {
   playersCache: Map<string, Player>
   messages: object[]
   setMultiplayerConnectionParameters: (params: object | null) => void
-  // sendRawMessage: (method: string, args: object) => void
+  // sendMessage: (method: string, args: object, attachments?: Attachment[], opts?: MessageSendOptions) => void
   sendChatMessage: (text: string) => void
   sendMediaMessage: (file: File) => Promise<void>
+  sendNudgeMessage: (guid: string) => Promise<void>
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   typingMap: TypingMap
   epoch: number
 }
+type MessageSendOptions = {
+  hidden?: boolean;
+  human?: boolean;
+};
 
 const MultiplayerActionsContext = React.createContext<MultiplayerActionsContextType | undefined>(
   undefined
@@ -187,7 +192,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
           playersMap.set(userId, localPlayer);
           realms.dispatchEvent(new MessageEvent('playerschange', {
-            data: playersMap,
+            data: null,
           }));
           const _pushInitialPlayer = () => {
             realms.localPlayer?.initializePlayer(
@@ -455,9 +460,10 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
           typingMap.set(messageUserId, { userId: messageUserId, name, typing });
           break;
         }
-        // case 'nudge':
         case 'join':
-        case 'leave': {
+        case 'leave':
+        case 'nudge':
+        {
           // nothing
           break;
         }
@@ -465,6 +471,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         case 'browserAction':
         case 'paymentRequest':
         {
+          // nothing
           break;
         }
         default: {
@@ -534,7 +541,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       setEpoch((prev) => prev + 1);
     };
 
-    const sendRawMessage = (method: string, args: object = {}, attachments?: Attachment[]) => {
+    const sendMessage = (method: string, args: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
       if (realms) {
         const { id: userId, name } = localPlayerSpec;
 
@@ -545,8 +552,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           name,
           args,
           attachments,
-          human: true,
-          hidden: false,
+          human: typeof opts?.human === 'boolean' ? opts.human : true,
+          hidden: !!opts?.hidden,
           timestamp,
         };
         // console.log('send chat message', message);
@@ -620,8 +627,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               messages = [...messages, message];
               refresh();
             });
-            realms.addEventListener('playerschange', (e) => {
-              playersMap = (e as any).data;
+            realms.addEventListener('playerschange', (e: any) => {
+              // const playersMap = (e as any).data;
 
               // ensure all players are in the players cache
               for (const [playerId, player] of playersMap) {
@@ -630,6 +637,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
               refresh();
             });
+
+            playersMap = connectResult.playersMap;
 
             typingMap = connectResult.typingMap;
             typingMap.addEventListener('typingchange', (e) => {
@@ -640,21 +649,30 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           refresh();
         }
       },
-      // sendRawMessage,
+      // sendMessage,
       sendChatMessage: (text: string) =>
-        sendRawMessage('say', {
+        sendMessage('say', {
           text,
         }),
       sendMediaMessage: async (file: File) => {
         const url = await uploadFile(file);
         const id = crypto.randomUUID();
-        return sendRawMessage('say', undefined, [
+        sendMessage('say', undefined, [
           {
             id,
             type: file.type,
             url,
           },
         ]);
+      },
+      sendNudgeMessage: (guid: string) => {
+        sendMessage('nudge', {
+          args: {
+            targetUserId: guid,
+          },
+        }, undefined, {
+          hidden: true,
+        });
       },
       agentJoin: async (guid: string) => {
         const oldRoom = multiplayerState.getRoom();
@@ -706,9 +724,10 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const messages = multiplayerState.getMessages();
   const typingMap = multiplayerState.getTypingMap();
   const setMultiplayerConnectionParameters = multiplayerState.setMultiplayerConnectionParameters;
-  // const sendRawMessage = multiplayerState.sendRawMessage;
+  // const sendMessage = multiplayerState.sendMessage;
   const sendChatMessage = multiplayerState.sendChatMessage;
   const sendMediaMessage = multiplayerState.sendMediaMessage;
+  const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
   const agentLeave = multiplayerState.agentLeave;
 
@@ -723,9 +742,10 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         playersCache,
         messages,
         setMultiplayerConnectionParameters,
-        // sendRawMessage,
+        // sendMessage,
         sendChatMessage,
         sendMediaMessage,
+        sendNudgeMessage,
         agentJoin,
         agentLeave,
         typingMap,
