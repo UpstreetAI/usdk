@@ -8,7 +8,7 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import recursiveCopy from 'recursive-copy';
 import pc from 'picocolors';
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
 import {
