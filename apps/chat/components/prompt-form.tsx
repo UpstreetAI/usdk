@@ -24,7 +24,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendMessage, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
 
   React.useEffect(() => {
@@ -75,21 +75,15 @@ export function PromptForm({
     }
   };
   const nudgeContinue = () => {
-    console.log('continue', {
-      botAgents,
-    });
+    // console.log('continue', {
+    //   botAgents,
+    // });
     const randomBotAgent = shuffle(botAgents.slice())[0];
-    console.log('continue 2', {
-      botAgents,
-      randomBotAgent,
-    });
-    sendMessage('nudge', {
-      args: {
-        targetUserId: randomBotAgent.id,
-      },
-    }, undefined, {
-      hidden: true,
-    });
+    // console.log('continue 2', {
+    //   botAgents,
+    //   randomBotAgent,
+    // });
+    sendNudgeMessage(randomBotAgent.id);
   };
 
   const onKeyDown = (
