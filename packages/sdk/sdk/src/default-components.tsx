@@ -1103,7 +1103,7 @@ const MediaGenerator = () => {
                   body: blob,
                 });
                 if (res.ok) {
-                  const imageUrl = await res.json();
+                  const mediaUrl = await res.json();
                   const m = {
                     method: 'say',
                     args: {
@@ -1113,7 +1113,7 @@ const MediaGenerator = () => {
                       {
                         id: guid,
                         type: blob.type,
-                        url: imageUrl,
+                        url: mediaUrl,
                       },
                     ],
                   };
