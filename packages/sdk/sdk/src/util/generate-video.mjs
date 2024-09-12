@@ -1,5 +1,5 @@
 import { aiProxyHost } from './endpoints.mjs';
-import { Jimp } from 'jimp';
+import Jimp from 'jimp';
 
 const blob2jimp = async (blob) => {
   const arrayBuffer = await blob.arrayBuffer();

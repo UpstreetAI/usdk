@@ -13,7 +13,7 @@ import open from 'open';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
-import { Jimp } from 'jimp';
+import Jimp from 'jimp';
 import recursiveReaddir from 'recursive-readdir';
 // import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
