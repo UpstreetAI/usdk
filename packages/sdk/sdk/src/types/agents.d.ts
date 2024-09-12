@@ -59,7 +59,7 @@ export type GenerativeAgentObject =  {
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
 
-  addMessage: (m: PendingActionMessage) => void;
+  addMessage: (m: PendingActionMessage) => Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
 
