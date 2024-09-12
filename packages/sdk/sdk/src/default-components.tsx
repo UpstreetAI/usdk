@@ -5,10 +5,6 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
-// XXX unlock these
-// import { createBrowser } from './util/create-browser.mjs';
-// import type { Browser, BrowserContext, Page } from 'playwright-core';
-
 import type {
   AppContextValue,
   // AgentProps,
@@ -93,6 +89,9 @@ import {
 import {
   generateModel,
 } from './util/generate-model.mjs';
+import {
+  generateVideo,
+} from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 
@@ -998,6 +997,27 @@ const mediaGeneratorSpecs = [
         type: this.types[0],
       });
       return blob2;
+    }
+  },
+  {
+    types: ['model/video/mp4+video'],
+    ext: 'mp4',
+    async generate({
+      prompt,
+    }: {
+      prompt: string,
+    }, {
+      jwt,
+    }) {
+      const imageBlob = await fetchImageGeneration(prompt, {
+        image_size: imageSizes[0],
+      }, {
+        jwt,
+      });
+      const videoBlob = await generateVideo(imageBlob, {
+        jwt,
+      });
+      return videoBlob;
     }
   },
 ];

@@ -1,9 +1,12 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
 import Jimp from 'jimp';
+// import { intToRGBA } from "@jimp/utils";
+const { intToRGBA } = Jimp;
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from '../util/queue-manager.mjs';
+import { WebPEncoder } from './codecs.mjs';
 
 //
 
@@ -77,13 +80,16 @@ export class ImageRenderer {
 
       const {width, height} = calculateWidthHeight(bitmap.width, bitmap.height, inputWidth, inputHeight, preserveAspectRatio);
 
-      image.resize(width, height);
+      image.resize({
+        w: width,
+        h: height,
+      });
 
       let result = '';
       for (let y = 0; y < image.bitmap.height - 1; y += 2) {
         for (let x = 0; x < image.bitmap.width; x++) {
-          const {r, g, b, a} = Jimp.intToRGBA(image.getPixelColor(x, y));
-          const {r: r2, g: g2, b: b2} = Jimp.intToRGBA(image.getPixelColor(x, y + 1));
+          const {r, g, b, a} = intToRGBA(image.getPixelColor(x, y));
+          const {r: r2, g: g2, b: b2} = intToRGBA(image.getPixelColor(x, y + 1));
           result += a === 0 ? chalk.reset(' ') : chalk.bgRgb(r, g, b).rgb(r2, g2, b2)(PIXEL);
         }
 
@@ -93,7 +99,10 @@ export class ImageRenderer {
       return result;
     }
 
-    const image = new Jimp(imageData.width, imageData.height);
+    const image = new Jimp({
+      width: imageData.width,
+      height: imageData.height,
+    });
     image.bitmap.data.set(imageData.data);
     const text = render(image, {
       width,
@@ -248,10 +257,10 @@ export class VideoInput extends EventEmitter {
               if (typeof width === 'number' || typeof height === 'number') {
                 const image = new Jimp(imageData.width, imageData.height);
                 image.bitmap.data.set(imageData.data);
-                image.resize(
-                  typeof width === 'number' ? width : Jimp.AUTO,
-                  typeof height === 'number' ? height : Jimp.AUTO,
-                );
+                image.resize({
+                  w: typeof width === 'number' ? width : undefined,
+                  h: typeof height === 'number' ? height : undefined,
+                });
                 // imageData.data.set(image.bitmap.data);
                 // imageData.width = image.bitmap.width;
                 // imageData.height = image.bitmap.height;

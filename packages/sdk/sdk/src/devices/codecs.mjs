@@ -3,10 +3,9 @@ import { makePromise } from '../util/util.mjs';
 
 export class WebPEncoder {
   constructor() {
-    console.log('calling');
-    // this.worker = new Worker(new URL('./webp-worker.mjs', import.meta.url), {
-    //   type: 'module',
-    // });
+    this.worker = new Worker(new URL('./webp-worker.mjs', import.meta.url), {
+      type: 'module',
+    });
 
     this.worker.onmessage = e => {
       const promise = this.promises.shift();

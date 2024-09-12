@@ -404,7 +404,6 @@ export const create = async (args, opts) => {
         dependencies: {
           ...a.dependencies,
           ...b.dependencies,
-          'react-agents': 'file:./sdk/src',
         },
       };
     }),
