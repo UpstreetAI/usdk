@@ -273,7 +273,7 @@ const DefaultMemories = () => {
     </Conversation>
   );
 };
-const MemoryWatchers = ({
+const MemoryWatcher = ({
   memoryQueries,
 }: {
   memoryQueries: MemoryQuery[],
@@ -387,78 +387,79 @@ class MemoryWatcherObject extends EventTarget {
     // nothing
   }
 };
-const RAGMemory = () => {
+const AddMemoryAction = () => {
   const agent = useAgent();
-  const kv = useKv();
-  const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>('memoryQueries', () => []);
-
-  //
-
   return (
-    <>
-      <Action
-        name="addMemory"
-        description={dedent`\
-          Make a note of a specific answer to a query.
-          Phrase the memory in the form of a question + answer.
-          This should include any newly relevant context or details.
-          You can use this liberally.
-        `}
-        schema={
-          z.object({
-            query: z.string(),
-            answer: z.string(),
-          })
-        }
-        examples={[
-          {
-            query: 'What time did we schedule the karaoke night?',
-            answer: '7pm, but bring glitter.',
-          },
-          {
-            query: 'What was the secret password to enter the speakeasy?',
-            answer: 'Flamingo hats unite!',
-          },
-          {
-            query: 'Who is the lead singer of our virtual rock band?',
-            answer: 'Captain Zed the Time Traveler.',
-          },
-          {
-            query: 'What was the last pizza topping we debated?',
-            answer: 'Pineapple, and it got heated.',
-          },
-          {
-            query: 'What is my character\'s mission in this quirky reality show?',
-            answer: 'Win the golden avocado.',
-          },
-          {
-            query: 'When are we supposed to launch the confetti cannon?',
-            answer: 'Right after the CEO’s dance-off.',
-          },
-          {
-            query: 'What’s the name of our team’s pet mascot?',
-            answer: 'Sir Fluffington the Third.',
-          },
-          {
-            query: 'What’s the theme of this week\'s office party?',
-            answer: 'Space pirates with neon lights.',
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const { query, answer } = e.data.message.args as {
-            query: string,
-            answer: string,
-          };
-          const text = `${query}\n${answer}`;
-          const content = {
-            query,
-            answer,
-          };
-          await agent.addMemory(text, content);
-          await e.commit();
-        }}
-      />
-      <Action
+    <Action
+      name="addMemory"
+      description={dedent`\
+        Make a note of a specific answer to a query.
+        Phrase the memory in the form of a question + answer.
+        This should include any newly relevant context or details.
+        You can use this liberally.
+      `}
+      schema={
+        z.object({
+          query: z.string(),
+          answer: z.string(),
+        })
+      }
+      examples={[
+        {
+          query: 'What time did we schedule the karaoke night?',
+          answer: '7pm, but bring glitter.',
+        },
+        {
+          query: 'What was the secret password to enter the speakeasy?',
+          answer: 'Flamingo hats unite!',
+        },
+        {
+          query: 'Who is the lead singer of our virtual rock band?',
+          answer: 'Captain Zed the Time Traveler.',
+        },
+        {
+          query: 'What was the last pizza topping we debated?',
+          answer: 'Pineapple, and it got heated.',
+        },
+        {
+          query: 'What is my character\'s mission in this quirky reality show?',
+          answer: 'Win the golden avocado.',
+        },
+        {
+          query: 'When are we supposed to launch the confetti cannon?',
+          answer: 'Right after the CEO’s dance-off.',
+        },
+        {
+          query: 'What’s the name of our team’s pet mascot?',
+          answer: 'Sir Fluffington the Third.',
+        },
+        {
+          query: 'What’s the theme of this week\'s office party?',
+          answer: 'Space pirates with neon lights.',
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const { query, answer } = e.data.message.args as {
+          query: string,
+          answer: string,
+        };
+        const text = `${query}\n${answer}`;
+        const content = {
+          query,
+          answer,
+        };
+        await agent.addMemory(text, content);
+        await e.commit();
+      }}
+    />
+  );
+};
+const QueryMemoriesAction = ({
+  memoryQueries,
+  setMemoryQueries,
+}) => {
+  return (
+    <Action
         name="queryMemories"
         description={
           dedent`\
@@ -508,8 +509,33 @@ const RAGMemory = () => {
           await e.commit();
         }}
       />
+  );
+};
+const MemoryQueriesInternal = () => {
+  const conversation = useConversation();
+  const kv = useKv();
+  const [memoryQueries, setMemoryQueries] = kv.use<MemoryQuery[]>(`memoryQueries-${conversation.getKey()}`, () => []);
+
+  return (
+    <>
+      <QueryMemoriesAction memoryQueries={memoryQueries} setMemoryQueries={setMemoryQueries} />
+      <MemoryWatcher memoryQueries={memoryQueries} />
+    </>
+  );
+};
+const MemoryQueries = () => {
+  return (
+    <Conversation>
+      <MemoryQueriesInternal />
+    </Conversation>
+  );
+};
+const RAGMemory = () => {
+  return (
+    <>
       <DefaultMemories />
-      <MemoryWatchers memoryQueries={memoryQueries} />
+      <AddMemoryAction />
+      <MemoryQueries />
     </>
   );
 };
@@ -871,17 +897,14 @@ export const DefaultPerceptions = () => {
 
   return (
     <>
-      {/* <Perception
-        type="nudge"
-        handler={async (e) => {
-          const targetPlayerId = (e.data.message.args as any).targetPlayerId as string;
-          if (targetPlayerId === agent.id) {
-            await e.data.targetAgent.think();
-          }
-        }}
-      /> */}
       <Perception
         type="say"
+        handler={async (e) => {
+          await e.data.targetAgent.think();
+        }}
+      />
+      <Perception
+        type="nudge"
         handler={async (e) => {
           await e.data.targetAgent.think();
         }}
