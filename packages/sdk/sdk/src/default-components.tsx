@@ -906,7 +906,15 @@ export const DefaultPerceptions = () => {
       <Perception
         type="nudge"
         handler={async (e) => {
-          await e.data.targetAgent.think();
+          const { message } = e.data;
+          const {
+            args,
+          } = message;
+          const targetUserId = (args as any)?.targetUserId;
+          // if the nudge is for us
+          if (targetUserId === e.data.targetAgent.agent.id) {
+            await e.data.targetAgent.think();
+          }
         }}
       />
     </>
