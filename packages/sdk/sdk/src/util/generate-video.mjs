@@ -36,10 +36,7 @@ export const generateVideo = async (imageBlob, {
   const image = await blob2jimp(imageBlob);
   // resize to the needed size
   // console.log('load blob 2', image);
-  image.resize({
-    w: dimensions.width,
-    h: dimensions.height,
-  });
+  image.resize(dimensions.width, dimensions.height);
   console.log('load blob 3', image);
   // const resizedImage = await resizeImageBlob(image, 768, 768);
   const imageBlob2 = await jimp2blob(image, {

@@ -80,10 +80,7 @@ export class ImageRenderer {
 
       const {width, height} = calculateWidthHeight(bitmap.width, bitmap.height, inputWidth, inputHeight, preserveAspectRatio);
 
-      image.resize({
-        w: width,
-        h: height,
-      });
+      image.resize(width, height);
 
       let result = '';
       for (let y = 0; y < image.bitmap.height - 1; y += 2) {
@@ -99,10 +96,7 @@ export class ImageRenderer {
       return result;
     }
 
-    const image = new Jimp({
-      width: imageData.width,
-      height: imageData.height,
-    });
+    const image = new Jimp(imageData.width, imageData.height);
     image.bitmap.data.set(imageData.data);
     const text = render(image, {
       width,
@@ -257,10 +251,10 @@ export class VideoInput extends EventEmitter {
               if (typeof width === 'number' || typeof height === 'number') {
                 const image = new Jimp(imageData.width, imageData.height);
                 image.bitmap.data.set(imageData.data);
-                image.resize({
-                  w: typeof width === 'number' ? width : undefined,
-                  h: typeof height === 'number' ? height : undefined,
-                });
+                image.resize(
+                  typeof width === 'number' ? width : Jimp.AUTO,
+                  typeof height === 'number' ? height : Jimp.AUTO,
+                );
                 // imageData.data.set(image.bitmap.data);
                 // imageData.width = image.bitmap.width;
                 // imageData.height = image.bitmap.height;
