@@ -5,9 +5,6 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
-// import { createBrowser } from './util/create-browser.mjs';
-// import type { Browser, BrowserContext, Page } from 'playwright-core';
-
 import type {
   AppContextValue,
   // AgentProps,
