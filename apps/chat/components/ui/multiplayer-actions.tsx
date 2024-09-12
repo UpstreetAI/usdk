@@ -84,7 +84,7 @@ interface MultiplayerActionsContextType {
   // sendMessage: (method: string, args: object, attachments?: Attachment[], opts?: MessageSendOptions) => void
   sendChatMessage: (text: string) => void
   sendMediaMessage: (file: File) => Promise<void>
-  sendNudgeMessage: (guid: string) => Promise<void>
+  sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   typingMap: TypingMap
