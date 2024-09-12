@@ -667,9 +667,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       },
       sendNudgeMessage: (guid: string) => {
         sendMessage('nudge', {
-          args: {
-            targetUserId: guid,
-          },
+          targetUserId: guid,
         }, undefined, {
           hidden: true,
         });
