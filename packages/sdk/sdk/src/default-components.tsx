@@ -1262,7 +1262,7 @@ export const MultimediaSense = () => {
         },
       ]}
       handler={async (e: PendingActionEvent) => {
-        console.log('mediaPerception handler 1', e.data);
+        // console.log('mediaPerception handler 1', e.data);
         const {
           agent,
           message: {
@@ -1329,7 +1329,7 @@ export const MultimediaSense = () => {
                 jwt: authToken,
               });
               // const alt = makeQa(questions, answers);
-              console.log('got answers', {
+              console.log('media perception qa', {
                 questions,
                 answers,
                 // alt,
