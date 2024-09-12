@@ -71,7 +71,7 @@ import {
   useNumMessages,
 } from './hooks';
 // import type { AppContextValue } from './types';
-import { parseCodeBlock, printZodSchema } from './util/util.mjs';
+import { shuffle, parseCodeBlock, printZodSchema } from './util/util.mjs';
 import {
   storeItemType,
 } from './util/agent-features.mjs';
@@ -104,17 +104,6 @@ import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 const timeAgo = (timestamp: Date) => {
   const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
   return jsAgo(timestampInSeconds, { format: 'short' });
-};
-// a fast array shuffle implementation
-const shuffle = (array: any[]) => {
-  let currentIndex = array.length, randomIndex = 0;
-  while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex], array[currentIndex]];
-  }
-  return array;
 };
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 const defaultPriorityOffset = 100;
