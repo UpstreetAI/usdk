@@ -1334,17 +1334,20 @@ export const MultimediaSense = () => {
                 answers,
                 // alt,
               });
-              (e.data.message.args as any).questions = questions;
+              const qa = makeQa(questions, answers);
+              (e.data.message.args as any).queries = qa;
               // console.log('commit 1', e.data.message);
               await e.commit();
 
-              const alt = makeQa(questions, answers);
               // console.log('commit 2', e.data.message, alt);
-              await agent.think(
+              agent.think(
                 dedent`\
-                  Character looked at attachment and discovered the following:
+                  Your character looked at an attachment and discovered the following:
                 ` + '\n' +
-                  JSON.stringify(alt, null, 2),
+                  JSON.stringify({
+                    attachmentId: attachment.id,
+                    ...qa,
+                  }, null, 2),
                 {
                   excludeActions: ['mediaPerception'],
                 },
