@@ -1057,14 +1057,22 @@ const MediaGenerator = () => {
           const {
             agent,
             message: {
-              args: {
-                type,
-                prompt,
-                options,
-                chatText,
-              },
+              args: generationArgs,
             },
           } = e.data;
+          const {
+            type,
+            prompt,
+            options,
+            chatText,
+          } = generationArgs as {
+            type: string,
+            prompt: string,
+            options?: {
+              image_size?: string,
+            },
+            chatText?: string,
+          };
           // console.log('send media args', e.data.message.args);
 
           const retry = () => {
@@ -1073,49 +1081,59 @@ const MediaGenerator = () => {
 
           const mediaGeneratorSpec = mediaGeneratorSpecs.find(spec => spec.types.includes(type));
           if (mediaGeneratorSpec) {
-            const blob = await mediaGeneratorSpec.generate({
-              prompt,
-              options,
-            }, {
-              jwt: authToken,
-            });
-            // console.log('got blob', blob);
-
-            // upload to r2
-            const guid = crypto.randomUUID();
-            const keyPath = ['assets', guid, `media.${mediaGeneratorSpec.ext}`].join('/');
-            const u = `${r2EndpointUrl}/${keyPath}`;
             try {
-              const res = await fetch(u, {
-                method: 'PUT',
-                headers: {
-                  'Authorization': `Bearer ${authToken}`,
-                },
-                body: blob,
+              const blob = await mediaGeneratorSpec.generate({
+                prompt,
+                options,
+              }, {
+                jwt: authToken,
               });
-              if (res.ok) {
-                const imageUrl = await res.json();
-                const m = {
-                  method: 'say',
-                  args: {
-                    text: chatText ?? '',
+              // console.log('got blob', blob);
+
+              // upload to r2
+              const guid = crypto.randomUUID();
+              const keyPath = ['assets', guid, `media.${mediaGeneratorSpec.ext}`].join('/');
+              const u = `${r2EndpointUrl}/${keyPath}`;
+              try {
+                const res = await fetch(u, {
+                  method: 'PUT',
+                  headers: {
+                    'Authorization': `Bearer ${authToken}`,
                   },
-                  attachments: [
-                    {
-                      id: guid,
-                      type: blob.type,
-                      url: imageUrl,
+                  body: blob,
+                });
+                if (res.ok) {
+                  const imageUrl = await res.json();
+                  const m = {
+                    method: 'say',
+                    args: {
+                      text: chatText ?? '',
                     },
-                  ],
-                };
-                // console.log('add message', m);
-                await agent.addMessage(m);
-              } else {
-                const text = await res.text();
-                throw new Error(`could not upload media file: ${blob.type}: ${text}`);
+                    attachments: [
+                      {
+                        id: guid,
+                        type: blob.type,
+                        url: imageUrl,
+                      },
+                    ],
+                  };
+                  // console.log('add message', m);
+                  await agent.addMessage(m);
+                } else {
+                  const text = await res.text();
+                  throw new Error(`could not upload media file: ${blob.type}: ${text}`);
+                }
+              } catch (err) {
+                throw new Error('failed to put voice: ' + u + ': ' + err.stack);
               }
             } catch (err) {
-              throw new Error('failed to put voice: ' + u + ': ' + err.stack);
+              const monologueString = dedent`\
+                The following error occurred while generating the media:
+              ` + '\n\n' + JSON.stringify(generationArgs) + '\n\n'+ err.stack;
+              console.log('generating monologue for', {
+                monologueString,
+              });
+              await agent.monologue(monologueString);
             }
           } else {
             console.warn('warning: no media generator spec found for type', {
