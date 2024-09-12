@@ -84,7 +84,7 @@ export async function generateAgentAction(
 ) {
   const prompts = getPrompts(generativeAgent);
   if (hint) {
-    prompts.concat([hint]);
+    prompts.push(hint);
   }
   // console.log('prompts', prompts, new Error().stack);
   const promptString = prompts.join('\n\n');
