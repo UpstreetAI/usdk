@@ -255,7 +255,7 @@ const DefaultMemoriesInternal = () => {
       <Prompt>
         {dedent`\
           # Memories
-          The character has in mind the following memories:
+          Your character has the following in mind:
           ` + '\n' +
           JSON.stringify(defaultMemoriesValue, null, 2)
         }
