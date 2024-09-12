@@ -26,6 +26,6 @@ export class PendingActionEvent extends MessageEvent<PendingActionEventData> {
       agent: generativeAgent,
       message,
     } = this.data;
-    generativeAgent.addMessage(message);
+    await generativeAgent.addMessage(message);
   }
 }
