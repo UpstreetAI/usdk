@@ -94,6 +94,7 @@ import {
 } from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
+import { testBrowser } from 'react-agents/util/create-browser.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -2481,6 +2482,16 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
             //   browserState,
             //   browserStatePromise,
             // });
+
+            (async () => {
+              console.log('browser test 1');
+              const result = await testBrowser({
+                jwt: authToken,
+              });
+              console.log('browser test 2', {
+                result,
+              });
+            })();
 
             let result: any = undefined;
             let error: (string | undefined) = undefined;
