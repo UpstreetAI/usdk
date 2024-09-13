@@ -1,5 +1,5 @@
 import { chromium } from "playwright-core";
-import { aiProxyHost } from './endpoints.mjs';
+import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
 
 // type CreateSessionOptions = {
 //   browserSettings?: {
@@ -30,7 +30,7 @@ const createSession = async (opts/*: CreateSessionOptions = {}*/, {
   });
   if (res.ok) {
     const j = await res.json();
-    const { id: sessionId, url } = j;
+    const { sessionId, url } = j;
     return { sessionId, url };
   } else {
     const text = await res.text();
@@ -135,7 +135,7 @@ export const testBrowser = async ({
     console.log('got page', page);
     // go to gamespot.com
     try {
-      await page.goto('https://www.gamespot.com', {
+      await page.goto('https://pokemon.fandom.com/wiki/Liko', {
         waitUntil: 'networkidle',
       });
     } catch (err) {
@@ -150,10 +150,29 @@ export const testBrowser = async ({
     });
     console.log('got screenshot', screenshot);
     {
-      const blob = new Blob([screenshot], { type: 'image/png' });
-      const imgSrc = URL.createObjectURL(blob);
-      console.log('got img src', imgSrc);
-      const img = new Image();
+      const screenshotBlob = new Blob([screenshot], { type: 'image/jpeg' });
+      console.log('got screenshot blob', screenshotBlob);
+
+      // const jwt = await getJWT();
+      const guid = crypto.randomUUID();
+      const keyPath = ['assets', guid, 'screenshot.jpg'].join('/');
+      const u = `${r2EndpointUrl}/${keyPath}`;
+      const res = await fetch(u, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        },
+        body: screenshotBlob,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        return j;
+      } else {
+        const text = await res.text();
+        throw new Error(`could not upload avatar file: ${text}`);
+      }
+
+      /* const img = new Image();
       img.src = imgSrc;
       img.style.cssText = `\
         position: fixed;
@@ -167,7 +186,7 @@ export const testBrowser = async ({
       await new Promise((accept, reject) => {
         img.onload = accept;
         img.onerror = reject;
-      });
+      }); */
     }
     await page.close();
     console.log('page closed');
