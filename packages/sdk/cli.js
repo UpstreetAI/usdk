@@ -67,7 +67,6 @@ import {
   aiProxyHost,
 } from './sdk/src/util/endpoints.mjs';
 import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
-import { VoiceTrainer } from './sdk/src/lib/voice-output/voice-trainer.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './sdk/src/lib/multiplayer/public/audio/audio-decode.mjs';
@@ -2985,7 +2984,56 @@ const voice = async (args) => {
   if (jwt !== null) {
     const userId = await getUserIdForJwt(jwt);
 
-    const voiceTrainer = new VoiceTrainer();
+    const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
+    const addVoice = async (name, files, {
+      jwt,
+    }) => {
+      const fd = new FormData();
+      fd.append('name', name);
+      for (const file of files) {
+        fd.append('files', file, file.name);
+      }
+
+      const res = await fetch(`${voicesEndpointApiUrl}/add`, {
+        method: 'POST',
+        body: fd,
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (res.ok) {
+        const j = await res.json();
+        // console.log('got add response', j);
+        return j;
+      } else {
+        const text = await res.text();
+        throw new Error(`failed to get voice response: ${res.status}: ${text}`);
+      }
+    };
+    const removeVoice = async (id, {
+      jwt,
+    }) => {
+      const u = `${voicesEndpointApiUrl}/${id}`;
+      const res = await fetch(u, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (res.ok) {
+        const j = await res.json();
+        // console.log('got remove response', j);
+        return j;
+      } else {
+        if (res.status === 404) {
+          console.log(`voice not found: ${id}`);
+        } else {
+          const text = await res.text();
+          throw new Error(`failed to get voice response: ${u}: ${res.status}: ${text}`);
+        }
+      }
+    };
+
     switch (subcommand) {
       case 'ls': {
         const supabase = makeSupabase(jwt);
@@ -3127,15 +3175,10 @@ const voice = async (args) => {
             return blob;
           }));
 
-          // XXX move this to the voices api
-          const result = await voiceTrainer.addVoice(voiceName, voiceFiles, {
+          const result = await addVoice(voiceName, voiceFiles, {
             jwt,
           });
           console.log('got result', result);
-          // const {
-          //   voiceId,
-          //   voiceUrls,
-          // } = result;
         } else {
           console.warn('invalid arguments');
           process.exit(1);
@@ -3145,7 +3188,7 @@ const voice = async (args) => {
       case 'remove': {
         const id = subcommandArgs[0] ?? '';
         if (id) {
-          await voiceTrainer.removeVoice(id, {
+          await removeVoice(id, {
             jwt,
           });
         } else {
