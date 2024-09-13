@@ -23,10 +23,10 @@ import {
   // number,
   // rawlist,
 } from '@inquirer/prompts';
-import { createAgentGuid } from '../sdk/src/util/guid-util.mjs';
+import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import {
   getAgentToken,
-} from '../sdk/src/util/jwt-utils.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
   generateMnemonic,
 } from '../util/ethereum-utils.mjs';
@@ -43,24 +43,24 @@ import {
 } from './locations.mjs';
 import {
   ImageRenderer,
-} from '../sdk/src/devices/video-input.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
   getUserForJwt,
-} from '../sdk/src/util/supabase-client.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
-} from '../sdk/src/util/ethereum-utils.mjs';
-import { AgentInterview } from '../sdk/src/util/agent-interview.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
+import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
   ensureAgentJsonDefaults,
-} from '../sdk/src/agent-defaults.mjs';
-import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
-import { consoleImageWidth } from '../sdk/src/constants.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
+import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 //
 
