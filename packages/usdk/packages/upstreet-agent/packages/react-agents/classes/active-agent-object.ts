@@ -140,12 +140,29 @@ export class ActiveAgentObject extends AgentObject {
       agent: this,
       query,
     });
+
+    const supabase = this.useSupabase();
+
+    // in case a completely contextless room is joined, agent initialises the top 5 most recent memories it had saved
+    // limit can either be removed kept as a hyperparameter
+    if (query === '') {
+      console.log("id: ", this.id);
+      // get the most recent 5 memories for the agent
+      const { data, error } = await supabase
+        .from('ai_memory')
+        .select('*')
+        .eq('user_id', this.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      console.log("top 5 memories from supabase: ", data);
+      return data as Array<Memory>;
+    }
     const embedding = await this.appContextValue.embed(query);
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
     // const jwt = this.useAuthToken();
     // const supabase = makeAnonymousClient(env, jwt);
-    const supabase = this.useSupabase();
     const { data, error } = await supabase.rpc('match_memory_user_id', {
       user_id: this.id,
       query_embedding: embedding,

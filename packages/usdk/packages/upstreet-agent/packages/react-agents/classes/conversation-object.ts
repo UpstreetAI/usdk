@@ -146,11 +146,18 @@ export class ConversationObject extends EventTarget {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
+
+    
     const agent = this.agent;
+
     if (agent) {
       allAgents.push(agent.agentJson);
     }
-
+    // in case their are no agents and no messages (0 context) return an empty embedding string
+    if (!allAgents.length && !allMessages.length){
+      return '';
+    }
+    
     return [
       allMessages.map(m => {
         return `${m.name}: ${m.method} ${JSON.stringify(m.args)}`;
