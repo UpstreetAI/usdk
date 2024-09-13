@@ -117,8 +117,6 @@ import {
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
-// const multiplayerPort = 2222;
-
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
 const wranglerToml = toml.parse(wranglerTomlString);
 const env = wranglerToml.vars;
