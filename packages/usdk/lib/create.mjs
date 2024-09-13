@@ -71,7 +71,12 @@ const execFile = util.promisify(child_process.execFile);
 
 //
 
-const mergeJson = async (
+const writeFile = async (dstPath, s) => {
+  await mkdirp(path.dirname(dstPath));
+  await fs.promises.writeFile(dstPath, s);
+};
+
+/* const mergeJson = async (
   dstPath,
   srcPaths,
   mergeFn = (a, b) => {
@@ -114,7 +119,7 @@ const mergeJson = async (
   // write the result
   const s = JSON.stringify(j, null, 2);
   await fs.promises.writeFile(dstPath, s);
-};
+}; */
 const copyWithStringTransform = async (src, dst, transformFn) => {
   let s = await fs.promises.readFile(src, 'utf8');
   s = transformFn(s);
@@ -160,7 +165,7 @@ export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
   const agentJsonString = args.json;
-  const template = args.template ?? 'basic';
+  // const template = args.template ?? 'basic';
   const source = args.source;
   const yes = args.yes;
   const force = !!args.force;
@@ -395,7 +400,14 @@ export const create = async (args, opts) => {
         await fs.promises.writeFile(dstAgentTsxPath, sourceFile);
       }
     })(),
-    // root package.json
+    writeFile(dstPackageJsonPath, JSON.stringify({
+      name: 'my-agent',
+      description: 'My AI agent, created with the upstreet SDK!',
+      dependencies: {
+        'upstreet-agent': 'file:./packages/upstreet-agent',
+      },
+    }, null, 2)),
+    /* // root package.json
     mergeJson(dstPackageJsonPath, srcPackageJsonPaths, (a, b) => {
       return {
         ...a,
@@ -406,7 +418,7 @@ export const create = async (args, opts) => {
           ...b.dependencies,
         },
       };
-    }),
+    }), */
     // root tsconfig
     recursiveCopy(srcTsconfigPath, dstTsconfigPath, copyOpts),
     // root jest config
