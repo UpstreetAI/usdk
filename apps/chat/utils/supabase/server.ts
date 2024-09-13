@@ -110,7 +110,7 @@ export async function getCredits(id: string, select = '*', supabaseClient = make
     .eq( 'agent_id', id )
     .limit(1)
     // .single()
-  return (data?.[0] as any|null)?.credits;
+  return (data?.[0] as any|null)?.credits ?? 0;
 }
 
 export async function getCreditsUsageHistory(id: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
