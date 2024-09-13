@@ -360,16 +360,16 @@ export const create = async (args, opts) => {
 
   // copy over files
   const srcPackageJsonPaths = [
-    path.join(BASE_DIRNAME, 'sdk', 'package.json'), // sdk base package.json
+    path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'package.json'), // upstreet-agent package.json
     path.join(srcTemplateDir, 'package.json'), // template package.json
   ];
   const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
-  const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
+  const srcWranglerToml = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
   const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
-  const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
-  const srcDstDir = path.join(dstDir, 'sdk');
+  const srcSdkDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
+  const srcDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
   const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
   const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
