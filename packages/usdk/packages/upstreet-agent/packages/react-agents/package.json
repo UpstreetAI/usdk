@@ -1,3 +1,6 @@
 {
-  "main": "index.tsx"
+  "main": "index.tsx",
+  "dependencies": {
+    "playwright-core": "file:./packages/playwright-core"
+  }
 }
