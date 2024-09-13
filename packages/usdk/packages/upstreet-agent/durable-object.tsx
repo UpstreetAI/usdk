@@ -1,16 +1,16 @@
 import 'localstorage-polyfill';
-import { headers } from './src/constants.mjs';
-import { makeAnonymousClient, getUserIdForJwt } from './src/util/supabase-client.mjs';
-import { AgentRenderer } from './src/classes/agent-renderer.tsx';
-import { ChatsSpecification } from './src/classes/chats-specification.ts';
+import { headers } from './packages/react-agents/constants.mjs';
+import { makeAnonymousClient, getUserIdForJwt } from './packages/react-agents/util/supabase-client.mjs';
+import { AgentRenderer } from './packages/react-agents/classes/agent-renderer.tsx';
+import { ChatsSpecification } from './packages/react-agents/classes/chats-specification.ts';
 import {
   serverHandler,
-} from './src/routes/server.ts';
+} from './packages/react-agents/routes/server.ts';
 import {
   multiplayerEndpointUrl,
-} from './src/util/endpoints.mjs';
+} from './packages/react-agents/util/endpoints.mjs';
 
-import agentTsxUserRender from '../agent.tsx'; // note: this will be overwritten by the build process
+import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
 
 Error.stackTraceLimit = 300;
 

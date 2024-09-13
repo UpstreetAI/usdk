@@ -12,7 +12,7 @@ import { ChatList } from '@/components/chat/chat-list'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 // import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { defaultUserPreviewUrl } from 'usdk/sdk/src/defaults.mjs';
+import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
 // import { useAIState } from 'ai/rsc'
 // import { Message } from '@/lib/types'
 // import { usePathname, useRouter } from 'next/navigation'
@@ -25,10 +25,10 @@ import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
-import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
-import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
-import { webbrowserActionsToText } from 'usdk/sdk/src/util/browser-action-utils.mjs';
-import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
+import { PaymentItem, SubscriptionProps } from 'react-agents/types';
+import { createSession } from 'react-agents/util/stripe-utils.mjs';
+import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
+import { currencies, intervals } from 'react-agents/constants.mjs';
 
 
 //
