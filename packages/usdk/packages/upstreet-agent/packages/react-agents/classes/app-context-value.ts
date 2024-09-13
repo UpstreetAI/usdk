@@ -245,6 +245,8 @@ export class AppContextValue {
   }
 
   async embed(text: string) {
+    const jwt = this.authToken;
+    localStorage.setItem('jwt', JSON.stringify(jwt));
     const embedding = await lembed(text);
     return embedding;
   }
