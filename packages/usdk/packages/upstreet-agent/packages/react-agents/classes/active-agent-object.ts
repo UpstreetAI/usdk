@@ -136,10 +136,10 @@ export class ActiveAgentObject extends AgentObject {
     query: string,
     opts?: MemoryOpts,
   ) {
-    console.log('app context value recall 1', {
-      agent: this,
-      query,
-    });
+    // console.log('app context value recall 1', {
+    //   agent: this,
+    //   query,
+    // });
     const embedding = await this.appContextValue.embed(query);
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
@@ -153,9 +153,9 @@ export class ActiveAgentObject extends AgentObject {
       match_count: matchCount,
     });
     if (!error) {
-      console.log('app context value recall 2', {
-        data,
-      });
+      // console.log('app context value recall 2', {
+      //   data,
+      // });
       return data as Array<Memory>;
     } else {
       throw new Error(error);
