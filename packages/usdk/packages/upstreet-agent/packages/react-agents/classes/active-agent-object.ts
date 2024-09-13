@@ -50,6 +50,7 @@ import { AgentRegistry } from './render-registry';
 
 export class ActiveAgentObject extends AgentObject {
   // arguments
+  agentJson: AgentObject;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
@@ -74,6 +75,7 @@ export class ActiveAgentObject extends AgentObject {
 
     //
 
+    this.agentJson = agentJson;
     this.appContextValue = appContextValue;
     this.registry = registry;
 
