@@ -1,5 +1,5 @@
 {
-  "name": "upstreet-sdk-agent",
+  "name": "upstreet-agent",
   "type": "module",
   "dependencies": {
     "@aws-sdk/util-format-url": "^3.577.0",

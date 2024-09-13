@@ -14,7 +14,7 @@
   "license": "ISC",
   "files": [
     "certs-local",
-    "sdk",
+    "packages",
     "lib",
     "util",
     "examples/**",
