@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 
 import { mkdirp } from 'mkdirp';
-import { makeId } from '../sdk/src/util/util.mjs';
+import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 export async function tryReadFileAsync(filePath, encoding) {
   try {

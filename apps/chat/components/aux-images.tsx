@@ -13,16 +13,16 @@ import {
   generateCharacterImage,
   generateEmotionImages,
   generate360Images,
-} from 'usdk/sdk/src/util/generate-image.mjs';
+} from 'react-agents/util/generate-image.mjs';
 import {
   generateModel,
-} from 'usdk/sdk/src/util/generate-model.mjs';
+} from 'react-agents/util/generate-model.mjs';
 import {
   removeBackground,
-} from 'usdk/sdk/src/util/vision.mjs';
+} from 'react-agents/util/vision.mjs';
 import {
   r2EndpointUrl,
-} from 'usdk/sdk/src/util/endpoints.mjs';
+} from 'react-agents/util/endpoints.mjs';
 // import { OrbitControls } from '@react-three/drei';
 
 const getUserImageSrc = (type: string) => (user: any) : (string | string[] | null) => {

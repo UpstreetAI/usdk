@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { getJWT } from '@/lib/jwt';
 import { env } from '@/lib/env'
-import { AutoVoiceEndpoint, VoiceEndpointVoicer } from 'usdk/sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
+import { AutoVoiceEndpoint, VoiceEndpointVoicer } from 'react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import { aiProxyHost } from '../../utils/const/endpoints';

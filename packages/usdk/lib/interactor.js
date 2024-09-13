@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import dedent from 'dedent';
 import { generationModel } from '../const.js';
-import { fetchJsonCompletion } from '../sdk/src/util/fetch.mjs';
-import { QueueManager } from '../sdk/src/util/queue-manager.mjs';
+import { fetchJsonCompletion } from '../packages/upstreet-agent/packages/react-agents/util/fetch.mjs';
+import { QueueManager } from '../packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
 
 //
 

@@ -2,10 +2,10 @@ import dedent from 'dedent';
 import { z } from 'zod';
 import {
   Interactor,
-} from '../../../lib/interactor.js';
+} from '../../../../../lib/interactor.js';
 import {
   ValueUpdater,
-} from '../../../lib/value-updater.js';
+} from '../../../../../lib/value-updater.js';
 import {
   generateCharacterImage,
   generateBackgroundImage,

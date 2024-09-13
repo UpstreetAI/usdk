@@ -14,7 +14,7 @@
   "license": "ISC",
   "files": [
     "certs-local",
-    "sdk",
+    "packages",
     "lib",
     "util",
     "examples/**",
@@ -67,7 +67,7 @@
     "toml": "^3.0.0",
     "tsdoc-extractor": "^0.2.0",
     "unique-names-generator": "^4.7.1",
-    "upstreet-sdk-agent": "file:./sdk",
+    "upstreet-agent": "file:./upstreet-agent",
     "vercel": "^34.2.6",
     "web-worker": "1.2.0",
     "webp-wasm": "^1.0.6",

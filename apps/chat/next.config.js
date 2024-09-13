@@ -37,7 +37,7 @@ module.exports = {
     config.module.noParse = /typescript\/lib\/typescript\.js$/;
 
     // fix react resolution in sdk subpackage
-    const sdkPath = path.resolve(__dirname, '../../packages/sdk');
+    const sdkPath = path.resolve(__dirname, '../../packages/usdk');
     const replacePlugin = (scopePath, moduleRegexp) => {
       return new webpack.NormalModuleReplacementPlugin(moduleRegexp, (resource) => {
         if (resource.context.includes(scopePath)) {
@@ -50,7 +50,7 @@ module.exports = {
     };
     config.plugins.push(
       replacePlugin(sdkPath, /^react/),
-      replacePlugin(sdkPath, /^playwright-core/),
+      // replacePlugin(sdkPath, /^playwright-core/),
     );
 
     return config;
