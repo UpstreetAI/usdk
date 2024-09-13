@@ -251,7 +251,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         result: any;
         error: any;
       };
-      const spec = webbrowserActionsToText.find((spec) => method === method);
+      const spec = webbrowserActionsToText.find((spec) => spec.method === method);
       if (spec) {
         const agent = player?.getPlayerSpec();
         const o = {
