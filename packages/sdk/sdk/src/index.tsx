@@ -8,7 +8,6 @@ export * from './hooks';
 
 export type {
   AgentEvent,
-  ActionEvent,
   PendingActionEvent,
   PerceptionEvent,
   ActionMessage,
