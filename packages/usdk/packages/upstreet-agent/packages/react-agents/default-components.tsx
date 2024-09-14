@@ -2498,7 +2498,6 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   }, [browserState]);
 
   const browserAction = 'browserAction';
-  console.log('call', Action);
   return (
     <Action
       name={browserAction}
