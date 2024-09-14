@@ -2725,7 +2725,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
         }
         message.attachments.push({
           id: playableAudioStream.id,
-          type,
+          type: `${type}+voice`,
         });
       }}
     />
