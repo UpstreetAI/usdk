@@ -27,10 +27,10 @@ import Table from 'cli-table3';
 import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { isGuid } from './sdk/src/util/guid-util.mjs';
-import { QueueManager } from './sdk/src/util/queue-manager.mjs';
-import { lembed } from './sdk/src/util/embedding.mjs';
-import { makeId } from './sdk/src/util/util.mjs';
+import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
+import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
+import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
+import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import {
   localPort,
   callbackPort,
@@ -40,22 +40,22 @@ import {
   getLocalAgentHost,
   getCloudAgentHost,
   ensureAgentJsonDefaults,
-} from './sdk/src/agent-defaults.mjs';
+} from './packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
   getUserForJwt,
-} from './sdk/src/util/supabase-client.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
-} from './sdk/src/util/ethereum-utils.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import {
   getAgentToken,
-} from './sdk/src/util/jwt-utils.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
   aiHost,
   metamaskHost,
@@ -65,36 +65,36 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
-} from './sdk/src/util/endpoints.mjs';
-import { NetworkRealms } from './sdk/src/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
+} from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
+import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
-import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './sdk/src/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './sdk/src/lib/multiplayer/public/audio/audio-decode.mjs';
-import { SpeakerOutputStream } from './sdk/src/devices/audio-output.mjs';
+import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
+import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/audio-decode.mjs';
+import { SpeakerOutputStream } from './packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs';
 
-import { webbrowserActionsToText } from './sdk/src/util/browser-action-utils.mjs';
+import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
 
 import {
   InputDevices,
-} from './sdk/src/devices/input-devices.mjs';
+} from './packages/upstreet-agent/packages/react-agents/devices/input-devices.mjs';
 import {
   VoiceActivityMicrophoneInput,
   encodeMp3,
   transcribe,
-} from './sdk/src/devices/audio-input.mjs';
+} from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,
-} from './sdk/src/devices/video-input.mjs';
+} from './packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
   describe,
-} from './sdk/src/util/vision.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
 import {
   WebPEncoder,
-} from './sdk/src/devices/codecs.mjs';
+} from './packages/upstreet-agent/packages/react-agents/devices/codecs.mjs';
 import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
@@ -113,11 +113,9 @@ import {
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
-} from './sdk/src/constants.mjs';
+} from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
-
-// const multiplayerPort = 2222;
 
 const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
 const wranglerToml = toml.parse(wranglerTomlString);
@@ -1053,8 +1051,9 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
       const { message } = e.data;
-      const { userId: messageUserId, name, method, args, attachments } = message;
+      const { userId: messageUserId, name, method, args } = message;
       // console.log('got message', message);
+      const attachments = (message.attachments ?? []).filter(a => !!a.url);
 
       switch (method) {
         case 'say': {

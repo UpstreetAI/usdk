@@ -1,5 +1,5 @@
 name = ""
-main = "sdk/main.jsx"
+main = "packages/upstreet-agent/main.jsx"
 compatibility_date = "2023-11-21"
 node_compat = true
 workers_dev = true

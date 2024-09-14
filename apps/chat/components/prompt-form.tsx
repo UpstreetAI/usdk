@@ -13,7 +13,7 @@ import {
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { newChat } from '@/lib/chat/actions'
 import { cn } from '@/lib/utils'
-import { shuffle } from 'usdk/sdk/src/util/util.mjs';
+import { shuffle } from 'react-agents/util/util.mjs';
 
 export function PromptForm({
   input,

@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
-// import type { Context } from 'react';
-import { z } from 'zod';
-// import * as Y from 'yjs';
-// import type { ZodTypeAny } from 'zod';
-import dedent from 'dedent';
-// import {
-//   EpochContext,
-// } from '../context';
+// import { z } from 'zod';
+// import dedent from 'dedent';
 import {
   AgentObject,
 } from './agent-object';
@@ -22,10 +16,10 @@ import {
 // import {
 //   QueueManager,
 // } from '../util/queue-manager.mjs';
-import {
-  makePromise,
-  parseCodeBlock,
-} from '../util/util.mjs';
+// import {
+//   makePromise,
+//   parseCodeBlock,
+// } from '../util/util.mjs';
 // import { Player } from './player';
 // import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
 // import {
@@ -34,9 +28,9 @@ import {
 // import {
 //   ExtendableMessageEvent,
 // } from '../util/extendable-message-event';
-import {
-  retry,
-} from '../util/util.mjs';
+// import {
+//   retry,
+// } from '../util/util.mjs';
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
@@ -56,6 +50,7 @@ import { AgentRegistry } from './render-registry';
 
 export class ActiveAgentObject extends AgentObject {
   // arguments
+  agentJson: AgentObject;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
@@ -80,6 +75,7 @@ export class ActiveAgentObject extends AgentObject {
 
     //
 
+    this.agentJson = agentJson;
     this.appContextValue = appContextValue;
     this.registry = registry;
 
@@ -140,10 +136,10 @@ export class ActiveAgentObject extends AgentObject {
     query: string,
     opts?: MemoryOpts,
   ) {
-    console.log('app context value recall 1', {
-      agent: this,
-      query,
-    });
+    // console.log('app context value recall 1', {
+    //   agent: this,
+    //   query,
+    // });
     const embedding = await this.appContextValue.embed(query);
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
@@ -157,9 +153,9 @@ export class ActiveAgentObject extends AgentObject {
       match_count: matchCount,
     });
     if (!error) {
-      console.log('app context value recall 2', {
-        data,
-      });
+      // console.log('app context value recall 2', {
+      //   data,
+      // });
       return data as Array<Memory>;
     } else {
       throw new Error(error);

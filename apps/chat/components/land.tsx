@@ -50,7 +50,7 @@ import {
 } from '@/utils/const/endpoints';
 import {
   defaultQuality,
-} from 'usdk/sdk/src/defaults.mjs';
+} from 'react-agents/defaults.mjs';
 import {
   describe,
   describeJson,
@@ -59,18 +59,18 @@ import {
   segment,
   segmentAll,
   removeBackground,
-} from 'usdk/sdk/src/util/vision.mjs';
+} from 'react-agents/util/vision.mjs';
 import {
   generateSound,
-} from 'usdk/sdk/src/util/generate-sound.mjs';
+} from 'react-agents/util/generate-sound.mjs';
 import {
   generateModel,
-} from 'usdk/sdk/src/util/generate-model.mjs';
+} from 'react-agents/util/generate-model.mjs';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
 import { useTextureLoaderBlob, useTextureLoaderImage, useTextureLoaderUrl } from '@/utils/texture-utils';
-import { fetchImageGeneration, inpaintImage } from 'usdk/sdk/src/util/generate-image.mjs';
+import { fetchImageGeneration, inpaintImage } from 'react-agents/util/generate-image.mjs';
 
 const mod = (a: number, b: number) => ((a % b) + b) % b;
 

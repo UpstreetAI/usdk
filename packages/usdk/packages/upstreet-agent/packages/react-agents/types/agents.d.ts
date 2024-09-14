@@ -273,6 +273,7 @@ export type PingManager = {
   destroy: () => void;
 };
 export type ActiveAgentObject = AgentObject & {
+  agentJson: AgentObject;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 

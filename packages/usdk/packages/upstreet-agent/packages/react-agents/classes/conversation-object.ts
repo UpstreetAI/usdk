@@ -144,11 +144,11 @@ export class ConversationObject extends EventTarget {
     const allMessages = this.messageCache.messages;
 
     const allAgents: object[] = [
-      ...this.agentsMap.values(),
+      ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
     const agent = this.agent;
     if (agent) {
-      allAgents.push(agent);
+      allAgents.push(agent.agentJson);
     }
 
     return [

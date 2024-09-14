@@ -23,10 +23,10 @@ import {
   // number,
   // rawlist,
 } from '@inquirer/prompts';
-import { createAgentGuid } from '../sdk/src/util/guid-util.mjs';
+import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import {
   getAgentToken,
-} from '../sdk/src/util/jwt-utils.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
   generateMnemonic,
 } from '../util/ethereum-utils.mjs';
@@ -43,24 +43,24 @@ import {
 } from './locations.mjs';
 import {
   ImageRenderer,
-} from '../sdk/src/devices/video-input.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
   getUserForJwt,
-} from '../sdk/src/util/supabase-client.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import {
   providers,
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
-} from '../sdk/src/util/ethereum-utils.mjs';
-import { AgentInterview } from '../sdk/src/util/agent-interview.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
+import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
   ensureAgentJsonDefaults,
-} from '../sdk/src/agent-defaults.mjs';
-import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
-import { consoleImageWidth } from '../sdk/src/constants.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
+import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 //
 
@@ -71,7 +71,12 @@ const execFile = util.promisify(child_process.execFile);
 
 //
 
-const mergeJson = async (
+const writeFile = async (dstPath, s) => {
+  await mkdirp(path.dirname(dstPath));
+  await fs.promises.writeFile(dstPath, s);
+};
+
+/* const mergeJson = async (
   dstPath,
   srcPaths,
   mergeFn = (a, b) => {
@@ -114,7 +119,7 @@ const mergeJson = async (
   // write the result
   const s = JSON.stringify(j, null, 2);
   await fs.promises.writeFile(dstPath, s);
-};
+}; */
 const copyWithStringTransform = async (src, dst, transformFn) => {
   let s = await fs.promises.readFile(src, 'utf8');
   s = transformFn(s);
@@ -160,7 +165,7 @@ export const create = async (args, opts) => {
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
   const agentJsonString = args.json;
-  const template = args.template ?? 'basic';
+  // const template = args.template ?? 'basic';
   const source = args.source;
   const yes = args.yes;
   const force = !!args.force;
@@ -360,16 +365,16 @@ export const create = async (args, opts) => {
 
   // copy over files
   const srcPackageJsonPaths = [
-    path.join(BASE_DIRNAME, 'sdk', 'package.json'), // sdk base package.json
+    path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'package.json'), // upstreet-agent package.json
     path.join(srcTemplateDir, 'package.json'), // template package.json
   ];
   const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
-  const srcWranglerToml = path.join(BASE_DIRNAME, 'sdk', 'wrangler.toml');
+  const srcWranglerToml = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
   const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
-  const srcSdkDir = path.join(BASE_DIRNAME, 'sdk');
-  const srcDstDir = path.join(dstDir, 'sdk');
+  const srcSdkDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
+  const srcDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
   const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
   const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
@@ -395,7 +400,14 @@ export const create = async (args, opts) => {
         await fs.promises.writeFile(dstAgentTsxPath, sourceFile);
       }
     })(),
-    // root package.json
+    writeFile(dstPackageJsonPath, JSON.stringify({
+      name: 'my-agent',
+      description: 'My AI agent, created with the upstreet SDK!',
+      dependencies: {
+        'upstreet-agent': 'file:./packages/upstreet-agent',
+      },
+    }, null, 2)),
+    /* // root package.json
     mergeJson(dstPackageJsonPath, srcPackageJsonPaths, (a, b) => {
       return {
         ...a,
@@ -406,7 +418,7 @@ export const create = async (args, opts) => {
           ...b.dependencies,
         },
       };
-    }),
+    }), */
     // root tsconfig
     recursiveCopy(srcTsconfigPath, dstTsconfigPath, copyOpts),
     // root jest config

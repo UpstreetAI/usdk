@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
+import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
@@ -31,7 +32,7 @@ import {
   AppContext,
 } from './context';
 import {
-  Agent,
+  // Agent,
   Action,
   ActionModifier,
   Prompt,
@@ -94,6 +95,7 @@ import {
 } from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
+import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -249,16 +251,18 @@ const DefaultMemoriesInternal = () => {
     setDefaultMemoriesValue(value);
   };
 
-  return defaultMemoriesValue.length > 0 && (
+  return (
     <>
-      <Prompt>
-        {dedent`\
-          # Memories
-          Your character has the following in mind:
-          ` + '\n' +
-          JSON.stringify(defaultMemoriesValue, null, 2)
-        }
-      </Prompt>
+      {defaultMemoriesValue.length > 0 && (
+        <Prompt>
+          {dedent`\
+            # Memories
+            Your character has the following in mind:
+            ` + '\n' +
+            JSON.stringify(defaultMemoriesValue, null, 2)
+          }
+        </Prompt>
+      )}
       <EveryNMessages n={1}>{() => {
         refreshDefaultMemories();
       }}</EveryNMessages>
@@ -1212,26 +1216,25 @@ const mediaPerceptionSpecs = [
   },
 ];
 const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPerceptionSpec => mediaPerceptionSpec.types);
+const collectAttachments = (messages: ActionMessage[]) => {
+  const result = [];
+  for (const message of messages) {
+    if (message.attachments) {
+      result.push(...message.attachments);
+    }
+  }
+  return result;
+};
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
   const randomId = useMemo(getRandomId, []);
 
-  const collectSupportedAttachments = (messages: ActionMessage[]) => {
-    const result = [];
-    for (const message of messages) {
-      if (message.attachments) {
-        for (const attachment of message.attachments) {
-          const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
-          if (supportedMediaPerceptionTypes.includes(typeClean)) {
-            result.push(attachment);
-          }
-        }
-      }
-    }
-    return result;
-  };
-  const attachments = collectSupportedAttachments(conversation.messageCache.messages);
+  const attachments = collectAttachments(conversation.messageCache.messages)
+    .filter(attachment => {
+      const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
+      return supportedMediaPerceptionTypes.includes(typeClean);
+    });
 
   return attachments.length > 0 && (
     <Action
@@ -2133,6 +2136,7 @@ class BrowserState {
 type WebBrowserActionHandlerOptions = {
   args: any;
   agent?: GenerativeAgentObject;
+  authToken?: string;
   ensureBrowserState: () => Promise<BrowserState>;
   browserState: BrowserState;
   browserStatePromise: React.MutableRefObject<Promise<BrowserState>>;
@@ -2142,7 +2146,7 @@ type WebBrowserActionSpec = {
   description: string;
   schema: ZodTypeAny,
   schemaDefault: () => object,
-  handle: (opts: WebBrowserActionHandlerOptions) => Promise<any>;
+  handle: (opts: WebBrowserActionHandlerOptions) => Promise<string>;
   toText: (opts: any) => string;
 };
 type WebBrowserActionObject = {
@@ -2158,9 +2162,14 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const browserState = await opts.ensureBrowserState();
       const guid = crypto.randomUUID();
-      const page = await browserState.browser.context.newPage();
+      const contexts = browserState.browser.contexts();
+      const context = contexts[0];
+      const page = await context.newPage();
       browserState.pages.set(guid, page);
-      return page;
+      return JSON.stringify({
+        ok: true,
+        pageId: guid,
+      });
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'createPage')?.toText,
   },
@@ -2197,6 +2206,10 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
         throw new Error(`Page with guid ${pageId} not found.`);
       }
       await page.goto(url);
+
+      return JSON.stringify({
+        ok: true,
+      });
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'pageGoto')?.toText,
   },
@@ -2237,6 +2250,10 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
         throw new Error(`Element with text ${text} not found.`);
       }
       await element.click();
+
+      return JSON.stringify({
+        ok: true,
+      });
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'elementClick')?.toText,
   },
@@ -2256,6 +2273,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       const {
         args,
         agent,
+        authToken,
       } = opts;
       const {
         pageId,
@@ -2267,18 +2285,57 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       if (!page) {
         throw new Error(`Page with guid ${pageId} not found.`);
       }
-      const screenshot = await page.screenshot();
+      const screenshot = await page.screenshot({
+        type: 'jpeg',
+        quality: 70,
+      });
       console.log('got screenshot', screenshot);
-      // const attachment = await agent.createAttachment({
-      //   type: 'image/png',
-      //   data: screenshot,
-      // });
-      // await agent.send({
-      //   type: 'mediaPerception',
-      //   data: {
-      //     attachment,
-      //   },
-      // });
+      const blob = new Blob([screenshot], {
+        type: 'image/jpeg',
+      });
+
+      const guid = crypto.randomUUID();
+      const guid2 = crypto.randomUUID();
+      const keyPath = ['assets', guid, `screenshot.jpeg`].join('/');
+      const u = `${r2EndpointUrl}/${keyPath}`;
+      try {
+        const res = await fetch(u, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+          },
+          body: blob,
+        });
+        if (res.ok) {
+          const screenshotUrl = await res.json();
+
+          const m = {
+            method: 'say',
+            args: {
+              text: '',
+            },
+            attachments: [
+              {
+                id: guid2,
+                type: blob.type,
+                url: screenshotUrl,
+              },
+            ],
+          };
+          // console.log('add message', m);
+          await agent.addMessage(m);
+
+          return JSON.stringify({
+            ok: true,
+            screenshotUrl,
+          });
+        } else {
+          const text = await res.text();
+          throw new Error(`could not upload media file: ${blob.type}: ${text}`);
+        }
+      } catch (err) {
+        throw new Error('failed to put voice: ' + u + ': ' + err.stack);
+      }
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'pageScreenshot')?.toText,
   },
@@ -2311,10 +2368,14 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       }
       await page.close();
       browserState.pages.delete(pageId);
+
+      return JSON.stringify({
+        ok: true,
+      });
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'pageClose')?.toText,
   },
-  {
+  /* {
     method: 'downloadUrl',
     description: 'Download a file via the browser.',
     schema: z.object({
@@ -2346,7 +2407,7 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
       // await download.saveAs(download.suggestedFilename);
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'downloadUrl')?.toText,
-  },
+  }, */
   {
     method: 'cleanup',
     description: 'Close the browser and clean up resources. Perform this as a courtesy when you are done.',
@@ -2364,6 +2425,10 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
         browserState.destroy();
         browserStatePromise.current = null;
       }
+
+      return JSON.stringify({
+        ok: true,
+      });
     },
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
@@ -2392,8 +2457,9 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
 
   const ensureBrowserState = async () => {
     if (!browserStatePromise.current) {
-      const p = (async () => {
-        const browserResult = await createBrowser({
+      const localPromise = (async () => {
+        console.log('create browser with jwt', authToken);
+        const browserResult = await createBrowser(undefined, {
           jwt: authToken,
         });
         const {
@@ -2402,7 +2468,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
           browser,
           destroySession,
         } = browserResult;
-        if (p === browserStatePromise.current) {
+        if (localPromise === browserStatePromise.current) {
           // if we are still the current browser state promise, latch the state
           const browserState = new BrowserState({
             // sessionId: browser.sessionId,
@@ -2417,7 +2483,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
           destroySession();
         }
       })();
-      browserStatePromise.current = p;
+      browserStatePromise.current = localPromise;
     }
     return await browserStatePromise.current;
   };
@@ -2438,14 +2504,24 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
       description={
         dedent`\
           Perform a web browsing action.
-
-          The current browser state is:
-          \`\`\`
-        ` + '\n' +
-        JSON.stringify(browserState, null, 2) + '\n' +
+        ` + '\n\n' +
+        (
+          browserState ? (
+            dedent`\
+              The current browser state is:
+              \`\`\`
+            ` + '\n' +
+            JSON.stringify(browserState, null, 2) + '\n' +
+            dedent`\
+              \`\`\`
+            ` + '\n\n'
+          ) : (
+            dedent`\
+              There are no active browser sessions.
+            `
+          )
+        ) +
         dedent`\
-          \`\`\`
-
           The allowed methods are:
         ` + '\n\n' +
         JSON.stringify(webbrowserActions.map((action) => {
@@ -2471,18 +2547,48 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
         const webbrowserAction = webbrowserActions.find((action) => action.method === method);
         if (webbrowserAction) {
           try {
-            // XXX unlock this to capture actual results and errors
-            // await webbrowserAction.handle({
-            //   args,
-            //   agent,
-            //   ensureBrowserState,
-            //   browserState,
-            //   browserStatePromise,
-            // });
-
-            let result: any = undefined;
+            let result: any = null;
             let error: (string | undefined) = undefined;
-            error = 'Web browser functionality is not implemented. Do not retry, it will not work..';
+            try {
+              const opts = {
+                args,
+                agent,
+                authToken,
+                ensureBrowserState,
+                browserState,
+                browserStatePromise,
+              };
+              console.log('execute browser action 1', {
+                method,
+                args,
+                opts,
+              });
+              result = await webbrowserAction.handle(opts);
+              console.log('execute browser action 2', {
+                method,
+                args,
+                opts,
+                result,
+              });
+            } catch (err) {
+              console.log('got web browser action result', {
+                result,
+                err,
+              }, err.stack);
+              error = err.stack;
+            }
+
+            /* (async () => {
+              console.log('browser test 1');
+              const result = await testBrowser({
+                jwt: authToken,
+              });
+              console.log('browser test 2', {
+                result,
+              });
+            })(); */
+
+            // error = 'Web browser functionality is not implemented. Do not retry, it will not work..';
 
             const m = {
               method: browserAction,
@@ -2496,6 +2602,10 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
             };
             // console.log('add browser action message 1', m);
             await agent.addMessage(m);
+
+            // XXX
+            return;
+
             // console.log('add browser action message 2', m);
             agent.think();
           } catch (err) {
@@ -2614,7 +2724,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
         }
         message.attachments.push({
           id: playableAudioStream.id,
-          type,
+          type: `${type}+voice`,
         });
       }}
     />
