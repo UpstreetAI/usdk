@@ -188,7 +188,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
     
     case 'say': {
       const player = playersCache.get(message.userId);
-      const media = (message.attachments ?? [])[0] ?? null;
+      const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
 
       return (
         <ChatMessage
