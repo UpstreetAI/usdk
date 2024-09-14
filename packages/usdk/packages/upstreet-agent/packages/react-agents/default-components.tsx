@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
+import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
