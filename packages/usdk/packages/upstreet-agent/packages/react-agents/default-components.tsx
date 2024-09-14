@@ -1216,26 +1216,25 @@ const mediaPerceptionSpecs = [
   },
 ];
 const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPerceptionSpec => mediaPerceptionSpec.types);
+const collectAttachments = (messages: ActionMessage[]) => {
+  const result = [];
+  for (const message of messages) {
+    if (message.attachments) {
+      result.push(...message.attachments);
+    }
+  }
+  return result;
+};
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
   const randomId = useMemo(getRandomId, []);
 
-  const collectSupportedAttachments = (messages: ActionMessage[]) => {
-    const result = [];
-    for (const message of messages) {
-      if (message.attachments) {
-        for (const attachment of message.attachments) {
-          const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
-          if (supportedMediaPerceptionTypes.includes(typeClean)) {
-            result.push(attachment);
-          }
-        }
-      }
-    }
-    return result;
-  };
-  const attachments = collectSupportedAttachments(conversation.messageCache.messages);
+  const attachments = collectAttachments(conversation.messageCache.messages)
+    .filter(attachment => {
+      const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
+      return supportedMediaPerceptionTypes.includes(typeClean);
+    });
 
   return attachments.length > 0 && (
     <Action
