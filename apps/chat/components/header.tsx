@@ -21,6 +21,12 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
           </Link>
         </div>
+        <Link href="/agents" rel="nofollow">
+            Agents
+          </Link>
+          <Link href="/accounts" rel="nofollow" className='ml-8'>
+            Accounts
+          </Link>
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
         <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
