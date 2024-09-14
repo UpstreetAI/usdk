@@ -2175,13 +2175,17 @@ export const GenerativeServer = ({
 
 //
 
+export type StatusUpdateProps = {
+  // nothing
+};
+
+//
+
 type AgentBrowser = Browser & {
   // sessionId: string;
   context: BrowserContext,
   destroy: () => Promise<void>;
 };
-
-//
 
 export type WebBrowserProps = {
   hint?: string;
@@ -2515,6 +2519,62 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
 ];
+export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdateProps) => {
+  const conversation = useConversation();
+  const randomId = useMemo(() => crypto.randomUUID(), []);
+
+  const attachments = collectAttachments(conversation.messageCache.messages);
+
+  return (
+    <Action
+      name="statusUpdate"
+      description={
+        dedent`\
+          Write a social media post about what interesting things you are up to.
+          You can optionally attach exiting media to your post.
+        ` + (
+          attachments.length > 0 ?
+            dedent`\
+              If included, the attachment must be one of the following:
+              \`\`\`
+            ` + '\n' +
+            JSON.stringify(attachments, null, 2) + '\n' +
+            dedent`\
+              \`\`\`
+            `
+          :
+            dedent`\
+              Unfortunately, there are no available media to attach.
+            `
+        )
+      }
+      schema={
+        z.object({
+          text: z.string(),
+          attachments: z.array(z.object({
+            attachmentId: z.string(),
+          })).optional(),
+        })
+      }
+      examples={[
+        {
+          text: `Just setting up my uttr account`,
+        },
+        {
+          text: `Guess where I am?`,
+          attachments: [
+            {
+              attachmentId: randomId,
+            },
+          ],
+        },
+      ]}
+      // handler={async (e: PendingActionEvent) => {
+      //   await e.commit();
+      // }}
+    />
+  );
+};
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
   // const agent = useAgent();
   const authToken = useAuthToken();
