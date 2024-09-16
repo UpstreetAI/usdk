@@ -143,16 +143,22 @@ export class ConversationObject extends EventTarget {
     );
   }
 
-  getEmbeddingString() {
-    const allMessages = this.messageCache.messages;
-
+  #getAllMessages() {
+    return this.messageCache.messages;
+  }
+  #getAllAgents() {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
     const agent = this.agent;
-    if (agent) {
-      allAgents.push(agent.agentJson);
-    }
+    // if (agent) {
+    allAgents.push(agent.agentJson);
+    // }
+    return allAgents;
+  }
+  getEmbeddingString() {
+    const allMessages = this.#getAllMessages();
+    const allAgents = this.#getAllAgents();
 
     return [
       allMessages.map(m => {
