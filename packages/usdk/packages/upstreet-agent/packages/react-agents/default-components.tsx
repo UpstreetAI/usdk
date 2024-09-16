@@ -69,6 +69,7 @@ import {
   useCachedMessages,
   useNumMessages,
 } from './hooks';
+import { DiscordClient } from './lib/discord-bot/discord-bot';
 // import type { AppContextValue } from './types';
 import { shuffle, parseCodeBlock, printZodSchema } from './util/util.mjs';
 import {
@@ -2807,4 +2808,20 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
       }}
     />
   );
+};
+type DiscordBotProps = {
+  token: string;
+  channelWhitelist: string[];
+  userWhitelist: string[];
+};
+export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+  const discordClient = useMemo(() => {
+    const discordClient = new DiscordClient({
+      token,
+      channelWhitelist,
+      userWhitelist,
+    });
+  }, []);
+
+  return null;
 };
