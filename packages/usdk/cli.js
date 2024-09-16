@@ -1063,7 +1063,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           const { text } = args;
           if (messageUserId !== userId) {
             let s = `${name}: ${text}`;
-            if (attachments) {
+            if (attachments.length > 0) {
               s += '\n[Attachments:';
               for (const attachment of attachments) {
                 const { type, url } = attachment;
