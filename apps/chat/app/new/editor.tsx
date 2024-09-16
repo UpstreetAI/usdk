@@ -7,7 +7,11 @@ import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client'
+import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
+import {
+  defaultModels,
+  defaultImageModels,
+} from 'react-agents/constants.mjs';
 import {
   createAgentGuid,
 } from 'react-agents/util/guid-util.mjs';
@@ -207,6 +211,9 @@ export default function AgentEditor({
   const [bio, setBio] = useState('');
   const [visualDescription, setVisualDescription] = useState('');
   const [homespaceDescription, setHomespaceDescription] = useState('');
+
+  const [model, setModel] = useState(defaultModels[0]);
+  const [imageModel, setImageModel] = useState(defaultImageModels[0]);
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -846,6 +853,42 @@ export default function AgentEditor({
             <input type="text" className="px-2" value={homespaceDescription} placeholder="Homespace description" onChange={e => {
               setHomespaceDescription(e.target.value);
             }} />
+            <label className="flex">
+              <div className="w-36 mr-2">
+                Text model
+              </div>
+              <select
+                className="w-24"
+                value={model}
+                onChange={e => {
+                  setModel(e.target.value);
+                }}
+              >
+                {defaultModels.map(model => {
+                  return (
+                    <option value={model} key={model}>{model}</option>
+                  );
+                })}
+              </select>
+            </label>
+            <label className="flex">
+              <div className="w-36 mr-2">
+                Image model
+              </div>
+              <select
+                className="w-24"
+                value={imageModel}
+                onChange={e => {
+                  setImageModel(e.target.value);
+                }}
+              >
+                {defaultImageModels.map(model => {
+                  return (
+                    <option value={model} key={model}>{model}</option>
+                  );
+                })}
+              </select>
+            </label>
           </div>
           <div
             className="flex flex-col w-20"
