@@ -14,7 +14,7 @@ import {
 import {
   fetchJsonCompletion,
 } from 'react-agents/util/fetch.mjs';
-import { generationModel } from 'usdk/const.js';
+import { defaultModels } from 'react-agents/constants.mjs';
 import {
   r2EndpointUrl,
 } from 'react-agents/util/endpoints.mjs';
@@ -116,7 +116,7 @@ export function Profile({
 
       const updateObject = await fetchJsonCompletion({
         // model: 'profile',
-        model: generationModel,
+        model: defaultModels[0],
         messages,
         // stream: false,
         // signal: undefined,
