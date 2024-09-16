@@ -10,7 +10,7 @@ import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
 import {
   defaultModels,
-  defaultImageModels,
+  defaultVisionModels,
 } from 'react-agents/constants.mjs';
 import {
   createAgentGuid,
@@ -213,7 +213,7 @@ export default function AgentEditor({
   const [homespaceDescription, setHomespaceDescription] = useState('');
 
   const [model, setModel] = useState(defaultModels[0]);
-  const [imageModel, setImageModel] = useState(defaultImageModels[0]);
+  const [visionModel, setVisionModel] = useState(defaultVisionModels[0]);
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -873,16 +873,16 @@ export default function AgentEditor({
             </label>
             <label className="flex">
               <div className="w-36 mr-2">
-                Image model
+                Vision model
               </div>
               <select
                 className="w-24"
-                value={imageModel}
+                value={visionModel}
                 onChange={e => {
-                  setImageModel(e.target.value);
+                  setVisionModel(e.target.value);
                 }}
               >
-                {defaultImageModels.map(model => {
+                {defaultVisionModels.map(model => {
                   return (
                     <option value={model} key={model}>{model}</option>
                   );
