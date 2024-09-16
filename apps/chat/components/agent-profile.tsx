@@ -17,29 +17,25 @@ export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions()
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto h-[calc(100vh-68px)]">
 
-      <HeaderMaskFrame>
-        <div className="w-full bg-blue-500 pt-20 h-52" />
-      </HeaderMaskFrame>
+      <div className="w-full max-w-6xl mx-auto h-full bg-blue-500 pt-20 relative">
 
-      <div className="w-full max-w-2xl mx-auto pt-20 relative">
-
-        <div className="flex">
-          <div className="mr-4 mb-4 size-32 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+        <div className="flex absolute bottom-0 left-0">
+          {/* <div className="mr-4 mb-4 size-32 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
             {isValidUrl(agent.preview_url) ? (
               <Image src={agent?.preview_url} alt="Profile picture" width={160} height={160} />
             ) : (
               <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
             )}
-          </div>
+          </div> */}
           
           <div>
-          <h2 className="text-[28px] uppercase font-bold">{agent.name}</h2>
-          <h3 className="text-sm mb-6">{agent.id}</h3>
-
+          <h2 className="text-4xl uppercase font-bold">{agent.name}</h2>
+          <h3 className="text-sm mb-6 bg-gray-800 px-2 py-1">{agent.id}</h3>
+          <h3 className="text-sm mb-6">Created by: Doolen</h3>
           <Button variant="outline" className="text-xs mb-1" onClick={e => {
-            (async () => {
+            (async () => { 
               await agentJoin(agent.id);
             })();
           }}>
