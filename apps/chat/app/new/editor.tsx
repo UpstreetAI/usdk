@@ -43,7 +43,7 @@ import {
   SubscriptionProps,
   Currency,
   Interval,
-} from 'usdk/sdk/src/types';
+} from 'react-agents/types';
 const ensureEsbuild = (() => {
   let esBuildPromise: Promise<void> | null = null;
   return () => {
