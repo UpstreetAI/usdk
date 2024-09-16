@@ -853,7 +853,7 @@ export default function AgentEditor({
             <input type="text" className="px-2" value={homespaceDescription} placeholder="Homespace description" onChange={e => {
               setHomespaceDescription(e.target.value);
             }} />
-            <label className="flex">
+            {/* <label className="flex">
               <div className="w-36 mr-2">
                 Text model
               </div>
@@ -888,7 +888,7 @@ export default function AgentEditor({
                   );
                 })}
               </select>
-            </label>
+            </label> */}
           </div>
           <div
             className="flex flex-col w-20"
