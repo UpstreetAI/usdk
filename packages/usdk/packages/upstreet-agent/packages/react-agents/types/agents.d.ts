@@ -163,9 +163,10 @@ export type SubtleAi = {
 export type ActionOpts = {
   conversation?: ConversationObject;
 };
-export type MemoryOpts = {
+export type GetMemoryOpts = {
   matchThreshold?: number;
   matchCount?: number;
+  signal?: AbortSignal;
 };
 export type QueueManager = EventTarget & {
   isIdle: () => boolean;
@@ -207,10 +208,10 @@ export type ConversationObject = EventTarget & {
   getBrowserUrl: () => string;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
-  fetchMessages: (filter?: MessageFilter, opts?: {
+  /* fetchMessages: (filter?: MessageFilter, opts?: {
     supabase: any,
     signal: AbortSignal,
-  }) => Promise<ActionMessage[]>;
+  }) => Promise<ActionMessage[]>; */
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
@@ -222,7 +223,7 @@ export type ConversationObject = EventTarget & {
   setScene: (scene: SceneObject | null) => void;
 
   getAgent: () => ActiveAgentObject | null;
-  setAgent: (agent: ActiveAgentObject) => void;
+  // setAgent: (agent: ActiveAgentObject) => void;
 
   getAgents: () => Player[];
   addAgent: (agentId: string, player: Player) => void;
@@ -305,11 +306,11 @@ export type ActiveAgentObject = AgentObject & {
     conversation: ConversationObject,
   }) => GenerativeAgentObject;
 
-  getMemory: (query: string, opts?: MemoryOpts) => Promise<Array<Memory>>;
+  getMemories: (opts?: GetMemoryOpts) => Promise<Array<Memory>>;
+  getMemory: (query: string, opts?: GetMemoryOpts) => Promise<Array<Memory>>;
   addMemory: (
     text: string,
     content?: any,
-    // opts?: MemoryOpts,
   ) => Promise<void>;
 
   live: () => void;
