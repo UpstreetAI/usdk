@@ -6,7 +6,7 @@ import {
 } from './agent-object';
 import type {
   AppContextValue,
-  MemoryOpts,
+  GetMemoryOpts,
   Memory,
   // ChatsSpecification,
 } from '../types';
@@ -132,19 +132,40 @@ export class ActiveAgentObject extends AgentObject {
     return generativeAgent;
   }
 
+  async getMemories(
+    opts?: GetMemoryOpts,
+  ) {
+    console.log('getMemories 1', {
+      opts,
+    });
+    const { matchCount = 1 } = opts || {};
+
+    const supabase = this.useSupabase();
+    const { data, error } = await supabase.from('memories')
+      .select('*')
+      .eq('user_id', this.id)
+      .limit(matchCount);
+    console.log('getMemories 2', {
+      data,
+      error,
+    });
+    if (!error) {
+      return data as Array<Memory>;
+    } else {
+      throw new Error(error);
+    }
+  }
   async getMemory(
     query: string,
-    opts?: MemoryOpts,
+    opts?: GetMemoryOpts,
   ) {
-    // console.log('app context value recall 1', {
+    // console.log('getMemory 1', {
     //   agent: this,
     //   query,
     // });
     const embedding = await this.appContextValue.embed(query);
     const { matchThreshold = 0.5, matchCount = 1 } = opts || {};
 
-    // const jwt = this.useAuthToken();
-    // const supabase = makeAnonymousClient(env, jwt);
     const supabase = this.useSupabase();
     const { data, error } = await supabase.rpc('match_memory_user_id', {
       user_id: this.id,
@@ -153,7 +174,7 @@ export class ActiveAgentObject extends AgentObject {
       match_count: matchCount,
     });
     if (!error) {
-      // console.log('app context value recall 2', {
+      // console.log('getMemory 2', {
       //   data,
       // });
       return data as Array<Memory>;
