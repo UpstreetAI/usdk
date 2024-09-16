@@ -1051,8 +1051,9 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
       const { message } = e.data;
-      const { userId: messageUserId, name, method, args, attachments } = message;
+      const { userId: messageUserId, name, method, args } = message;
       // console.log('got message', message);
+      const attachments = (message.attachments ?? []).filter(a => !!a.url);
 
       switch (method) {
         case 'say': {

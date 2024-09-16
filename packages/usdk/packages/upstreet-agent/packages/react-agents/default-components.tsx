@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
+import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import jsAgo from 'js-ago';
 
@@ -31,7 +32,7 @@ import {
   AppContext,
 } from './context';
 import {
-  Agent,
+  // Agent,
   Action,
   ActionModifier,
   Prompt,
@@ -1215,26 +1216,25 @@ const mediaPerceptionSpecs = [
   },
 ];
 const supportedMediaPerceptionTypes = mediaPerceptionSpecs.flatMap(mediaPerceptionSpec => mediaPerceptionSpec.types);
+const collectAttachments = (messages: ActionMessage[]) => {
+  const result = [];
+  for (const message of messages) {
+    if (message.attachments) {
+      result.push(...message.attachments);
+    }
+  }
+  return result;
+};
 export const MultimediaSense = () => {
   const conversation = useConversation();
   const authToken = useAuthToken();
   const randomId = useMemo(getRandomId, []);
 
-  const collectSupportedAttachments = (messages: ActionMessage[]) => {
-    const result = [];
-    for (const message of messages) {
-      if (message.attachments) {
-        for (const attachment of message.attachments) {
-          const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
-          if (supportedMediaPerceptionTypes.includes(typeClean)) {
-            result.push(attachment);
-          }
-        }
-      }
-    }
-    return result;
-  };
-  const attachments = collectSupportedAttachments(conversation.messageCache.messages);
+  const attachments = collectAttachments(conversation.messageCache.messages)
+    .filter(attachment => {
+      const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
+      return supportedMediaPerceptionTypes.includes(typeClean);
+    });
 
   return attachments.length > 0 && (
     <Action
@@ -2498,7 +2498,6 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   }, [browserState]);
 
   const browserAction = 'browserAction';
-  console.log('call', Action);
   return (
     <Action
       name={browserAction}
@@ -2725,7 +2724,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
         }
         message.attachments.push({
           id: playableAudioStream.id,
-          type,
+          type: `${type}+voice`,
         });
       }}
     />
