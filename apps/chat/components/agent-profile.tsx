@@ -16,6 +16,9 @@ export interface AgentProps extends React.ComponentProps<'div'> {
 export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions()
 
+
+  console.log(agent)
+
   return (
     <div className="w-full mx-auto h-[calc(100vh-68px)]">
 
@@ -32,8 +35,8 @@ export function AgentProfile({ agent }: AgentProps) {
           
           <div>
           <h2 className="text-4xl uppercase font-bold">{agent.name}</h2>
-          <h3 className="text-sm mb-6 bg-gray-800 px-2 py-1">{agent.id}</h3>
-          <h3 className="text-sm mb-6">Created by: Doolen</h3>
+          <h3 className="text-sm mb-2 bg-gray-800 px-2 py-1">{agent.id}</h3>
+          <h3 className="text-sm mb-4">Created by: {agent?.author?.name}</h3>
           <Button variant="outline" className="text-xs mb-1" onClick={e => {
             (async () => { 
               await agentJoin(agent.id);

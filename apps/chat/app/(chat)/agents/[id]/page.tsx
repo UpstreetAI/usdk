@@ -82,7 +82,10 @@ export default async function AgentProfilePage({ params }: Params) {
 
   const { data: agentData } = await supabase
     .from('assets')
-    .select('*')
+    .select(`
+      *,
+      author: accounts ( id, name )
+    `)
     .eq('id', agentId)
     .single();
 
