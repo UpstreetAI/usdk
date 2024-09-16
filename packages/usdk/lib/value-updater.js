@@ -1,10 +1,3 @@
-// import { z } from 'zod';
-// import dedent from 'dedent';
-// import { generationModel } from '../const.js';
-// import { fetchJsonCompletion } from '../sdk/src/util/fetch.mjs';
-
-//
-
 export class ValueUpdater extends EventTarget {
   lastValue;
   onChangeFn = async (result, { signal }) => {};
