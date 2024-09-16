@@ -62,12 +62,15 @@ export class ConversationObject extends EventTarget {
   constructor({
     room,
     endpointUrl,
+    agent,
   }: {
+    agent: ActiveAgentObject;
     room: string;
     endpointUrl: string;
   }) {
     super();
 
+    this.agent = agent;
     this.room = room;
     this.endpointUrl = endpointUrl;
   }
@@ -115,9 +118,9 @@ export class ConversationObject extends EventTarget {
   getAgent() {
     return this.agent;
   }
-  setAgent(agent: ActiveAgentObject) {
-    this.agent = agent;
-  }
+  // setAgent(agent: ActiveAgentObject) {
+  //   this.agent = agent;
+  // }
 
   getAgents() {
     return Array
