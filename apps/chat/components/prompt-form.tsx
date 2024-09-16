@@ -4,7 +4,7 @@ import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button } from '@/components/ui/button'
-import { IconPlus, IconImage, IconDocument, IconAudio, IconCapture, IconUpstreet } from '@/components/ui/icons'
+import { IconPlus, IconImage, IconDocument, IconAudio, IconCapture, IconTriangleDown, IconTriangleSmallDown, IconUpstreet } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +13,7 @@ import {
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { newChat } from '@/lib/chat/actions'
 import { cn } from '@/lib/utils'
+import { shuffle } from 'react-agents/util/util.mjs';
 
 export function PromptForm({
   input,
@@ -23,22 +24,66 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const [typing, setTyping] = React.useState('');
+
+  React.useEffect(() => {
+    // typing
+    if (typingMap) {
+      // console.log('bind typing map' + typingMap);
+      const typingchange = (e: any) => {
+        // console.log('typingchange 1', e);
+
+        const tm = typingMap.getMap();
+        const specs = Array.from(tm.values()).filter((spec) => spec.typing);
+        if (specs.length > 0) {
+          const s = specs.map((spec) => spec.name).join(', ');
+          setTyping(`${s} ${specs.length > 1 ? 'are' : 'is'} typing...`);
+        } else {
+          setTyping('');
+        }
+
+        // console.log('typingchange 2', specs);
+      };
+      typingMap.addEventListener('typingchange', typingchange);
+      return () => {
+        typingMap.removeEventListener('typingchange', typingchange);
+      };
+    }
+  }, [typingMap]);
+
+  // can continue if there is a non-human agent who is not typing
+  const botAgents = Array.from(playersMap.values())
+    .map((player) => player.playerSpec)
+    .filter((playerSpec) => !playerSpec.capabilities?.includes('human'));
+  const nonTypingBotAgents = botAgents.filter((player) => !typingMap.getMap().get(player.id)?.typing);
+  const canContinue = nonTypingBotAgents.length > 0;
 
   const toggleMediaPicker = () => {
     setMediaPickerOpen(open => !open)
   };
 
   const submitMessage = () => {
-    const value = input.trim()
-    setInput('')
-    if (!value) return
-
-    // Submit and get response message
-    // const responseMessage = await submitUserMessage(value)
-    // setMessages(currentMessages => [...currentMessages, responseMessage])
-    console.log('submit chat message', value);
-    sendChatMessage(value);
+    const value = input.trim();
+    setInput('');
+    if (value) {
+      // setMessages(currentMessages => [...currentMessages, responseMessage])
+      console.log('submit chat message', value);
+      sendChatMessage(value);
+    } else if (canContinue) {
+      nudgeContinue();
+    }
+  };
+  const nudgeContinue = () => {
+    // console.log('continue', {
+    //   botAgents,
+    // });
+    const randomBotAgent = shuffle(botAgents.slice())[0];
+    // console.log('continue 2', {
+    //   botAgents,
+    //   randomBotAgent,
+    // });
+    sendNudgeMessage(randomBotAgent.id);
   };
 
   const onKeyDown = (
@@ -63,7 +108,7 @@ export function PromptForm({
       // ref={formRef}
       onSubmit={async (e: any) => {
         e.preventDefault()
-        submitMessage()
+        // submitMessage()
       }}
     >
       <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
@@ -135,6 +180,19 @@ export function PromptForm({
           </TooltipTrigger>
           <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
+        {typing && (
+          <div className="absolute -top-12 left-0 text-muted-foreground text-sm">{typing}</div>
+        )}
+        {canContinue && (
+          <div
+            className="absolute -top-12 right-7 text-sm cursor-pointer animate-[blink_1s_steps(1)_infinite]"
+            onClick={e => {
+              nudgeContinue();
+            }}
+          >
+            <IconTriangleSmallDown />
+          </div>
+        )}
         <Textarea
           ref={inputRef}
           tabIndex={0}

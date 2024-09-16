@@ -50,7 +50,7 @@ import { Button } from '@/components/ui/button';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
 import { fetchJsonCompletion } from '@/utils/fetch';
-import { fetchImageGeneration } from 'usdk/sdk/src/util/generate-image.mjs';
+import { fetchImageGeneration } from 'react-agents/util/generate-image.mjs';
 // import { defaultOpenAIModel } from '@/utils/const/defaults.js';
 import { ChatMessage } from '@/utils/fetch';
 import { useTextureLoaderUrl } from '@/utils/texture-utils';

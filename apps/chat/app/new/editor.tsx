@@ -10,10 +10,11 @@ import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client'
 import {
   createAgentGuid,
-} from 'usdk/sdk/src/util/guid-util.mjs';
+} from 'react-agents/util/guid-util.mjs';
 import {
   getAgentToken,
-} from 'usdk/sdk/src/util/jwt-utils.mjs';
+} from 'react-agents/util/jwt-utils.mjs';
+// XXX this is a bad dependency, this should be moved down to the lower layer
 import {
   generateMnemonic,
 } from 'usdk/util/ethereum-utils.mjs';
@@ -21,19 +22,20 @@ import {
   Chat,
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
-import { ensureAgentJsonDefaults } from 'usdk/sdk/src/agent-defaults.mjs';
+import { ensureAgentJsonDefaults } from 'react-agents/agent-defaults.mjs';
 import {
   generateCharacterImage,
   generateBackgroundImage,
-} from 'usdk/sdk/src/util/generate-image.mjs';
-import { AgentInterview } from 'usdk/sdk/src/util/agent-interview.mjs';
+} from 'react-agents/util/generate-image.mjs';
+import { AgentInterview } from 'react-agents/util/agent-interview.mjs';
 import { 
   defaultVoices,
-} from 'usdk/sdk/src/util/agent-features.mjs';
+} from 'react-agents/util/agent-features.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
-import { makeAgentSourceCode } from 'usdk/sdk/src/util/agent-source-code-formatter.mjs';
-import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
+import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
+import { currencies, intervals } from 'react-agents/constants.mjs';
+// import { createBrowser, testBrowser } from 'react-agents/util/create-browser.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 import {
@@ -239,6 +241,18 @@ export default function AgentEditor({
 
   const monaco = useMonaco();
 
+  // useEffect(() => {
+  //   (async () => {
+  //     const jwt = await getJWT();
+  //     (globalThis as any).testBrowser = async () => {
+  //       return await testBrowser({
+  //         jwt,
+  //       });
+  //     };
+  //     console.log('test initialized');
+  //   })();
+  // }, []);
+
   // effects
   // sync previewBlob -> previewUrl
   useEffect(() => {
@@ -266,7 +280,7 @@ export default function AgentEditor({
       setHomespaceUrl('');
     }
   }, [homespaceBlob]);
-  // load voices
+  // load custom voices from account
   useEffect(() => {
     const abortController = new AbortController();
     const { signal } = abortController;
@@ -425,7 +439,7 @@ export default function AgentEditor({
         console.log('starting worker with env:', env);
 
         // initialize the agent worker
-        const newWorker = new Worker(new URL('usdk/sdk/worker.tsx', import.meta.url)) as FetchableWorker;
+        const newWorker = new Worker(new URL('upstreet-agent/worker.tsx', import.meta.url)) as FetchableWorker;
         newWorker.postMessage({
           method: 'initDurableObject',
           args: {

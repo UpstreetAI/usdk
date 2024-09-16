@@ -5,7 +5,7 @@ import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
 import { LoginButton } from '../login-button';
-import { createSession, cancelPlan } from 'usdk/sdk/src/util/stripe-utils.mjs';
+import { createSession, cancelPlan } from 'react-agents/util/stripe-utils.mjs';
 
 //
 

@@ -10,14 +10,14 @@ import { getJWT } from '@/lib/jwt';
 import { blob2img } from '@/lib/blob';
 import {
   generateCharacterImage,
-} from 'usdk/sdk/src/util/generate-image.mjs';
+} from 'react-agents/util/generate-image.mjs';
 import {
   fetchJsonCompletion,
-} from 'usdk/sdk/src/util/fetch.mjs';
+} from 'react-agents/util/fetch.mjs';
 import { generationModel } from 'usdk/const.js';
 import {
   r2EndpointUrl,
-} from 'usdk/sdk/src/util/endpoints.mjs';
+} from 'react-agents/util/endpoints.mjs';
 import {
   AuxImages,
 } from '@/components/aux-images';

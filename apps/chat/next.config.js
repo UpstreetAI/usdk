@@ -37,7 +37,9 @@ module.exports = {
     config.module.noParse = /typescript\/lib\/typescript\.js$/;
 
     // fix react resolution in sdk subpackage
-    const sdkPath = path.resolve(__dirname, '../../packages/sdk');
+    const usdkPath = path.resolve(__dirname, '../../packages/usdk');
+    const upstreetAgentPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent');
+    const reactAgentsPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent/packages/react-agents');
     const replacePlugin = (scopePath, moduleRegexp) => {
       return new webpack.NormalModuleReplacementPlugin(moduleRegexp, (resource) => {
         if (resource.context.includes(scopePath)) {
@@ -49,7 +51,9 @@ module.exports = {
       });
     };
     config.plugins.push(
-      replacePlugin(sdkPath, /^react/),
+      replacePlugin(reactAgentsPath, /^react/),
+      replacePlugin(upstreetAgentPath, /^react/),
+      replacePlugin(usdkPath, /^react/),
     );
 
     return config;

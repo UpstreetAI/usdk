@@ -689,6 +689,39 @@ function IconChevronUpDown({
   )
 }
 
+function IconTriangleDown({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 1200 1200"
+      {...props}
+    >
+      <path d="m567.56 1068.8c6.707 11.566 19.066 18.684 32.438 18.684s25.73-7.1172 32.438-18.684l455.06-787.5c6.6953-11.598 6.6992-25.883 0.007812-37.484-6.6875-11.598-19.055-18.75-32.445-18.766h-909.75c-8.8555-0.078125-17.453 2.9766-24.27 8.6289-6.8164 5.6523-11.414 13.531-12.98 22.25-1.5625 8.7148 0.007812 17.703 4.4375 25.371z"/>
+    </svg>
+  )
+}
+function IconTriangleSmallDown({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 1200 1200"
+      {...props}
+    >
+      <path d="m199.4 310.5c-19.801 0-26.113 12.84-14.039 28.523l392.68 509.95c12.07 15.684 31.848 15.684 43.922 0l392.68-509.95c12.07-15.684 5.7617-28.523-14.039-28.523z"/>
+    </svg>
+  );
+}
+
 function IconUpstreet({
   className,
   inverted,
@@ -824,6 +857,8 @@ export {
   IconSeparator,
   IconArrowDown,
   IconArrowRight,
+  IconTriangleDown,
+  IconTriangleSmallDown,
   IconUser,
   IconPlus,
   IconArrowElbow,

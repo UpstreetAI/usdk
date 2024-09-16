@@ -12,7 +12,7 @@ import { ChatList } from '@/components/chat/chat-list'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 // import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { defaultUserPreviewUrl } from 'usdk/sdk/src/defaults.mjs';
+import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
 // import { useAIState } from 'ai/rsc'
 // import { Message } from '@/lib/types'
 // import { usePathname, useRouter } from 'next/navigation'
@@ -25,10 +25,11 @@ import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
-import { PaymentItem, SubscriptionProps } from 'usdk/sdk/src/types';
-import { createSession } from 'usdk/sdk/src/util/stripe-utils.mjs';
+import { PaymentItem, SubscriptionProps } from 'react-agents/types';
+import { createSession } from 'react-agents/util/stripe-utils.mjs';
+import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
+import { currencies, intervals } from 'react-agents/constants.mjs';
 
-import { currencies, intervals } from 'usdk/sdk/src/constants.mjs';
 
 //
 
@@ -187,7 +188,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
     
     case 'say': {
       const player = playersCache.get(message.userId);
-      const media = (message.attachments ?? [])[0] ?? null;
+      const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
 
       return (
         <ChatMessage
@@ -200,6 +201,75 @@ function getMessageComponent(room: string, message: Message, id: string, players
           timestamp={message.timestamp}
         />
       )
+    }
+
+    case 'addMemory': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} will rememeber that</div>
+      );
+    }
+    case 'queryMemories': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} is trying to remember</div>
+      );
+    }
+
+    case 'mediaPerception': {
+      // const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+
+      return (
+        <div className="opacity-60 text-xs">{message.name} checked an attachment</div>
+      );
+    }
+
+    case 'browserAction': {
+      const player = playersCache.get(message.userId);
+      // const media = (message.attachments ?? [])[0] ?? null;
+      
+      const {
+        // agent:,
+        // method,
+        args: messageArgs,
+        // result,
+        // error,
+      } = message;
+      const {
+        method,
+        args,
+        result,
+        error,
+      } = messageArgs as {
+        method: string;
+        args: any;
+        result: any;
+        error: any;
+      };
+      const spec = webbrowserActionsToText.find((spec) => spec.method === method);
+      if (spec) {
+        const agent = player?.getPlayerSpec();
+        const o = {
+          agent,
+          method,
+          args,
+          result,
+          error,
+        };
+        // console.log('get text 1', o);
+        const text = spec.toText(o);
+        // console.log('get text 2', o, { text });
+        return (
+          <div className="opacity-60 text-xs">{text}</div>
+        );
+      } else {
+        return null;
+      }
     }
 
     case 'paymentRequest': {
