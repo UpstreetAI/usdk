@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
@@ -220,17 +220,21 @@ const EveryNMessages = ({
   children: () => void,
 }) => {
   const numMessages = useNumMessages();
-  const startNumMessages = useMemo(() => numMessages, []);
+  const startNumMessagesRef = useRef(numMessages);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    // if (numMessages !== startNumMessages) {
-      const diff = numMessages - startNumMessages;
-      if (diff % n === 0) {
-        const fn = children;
-        fn();
-      }
-    // }
-  }, [numMessages, startNumMessages, n]);
+    const diff = numMessages - startNumMessagesRef.current;
+    if (diff % n === 0 && isMountedRef.current) {
+      children();
+    }
+  }, [numMessages, n, children]);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   return null;
 };
@@ -241,15 +245,33 @@ const DefaultMemoriesInternal = () => {
   const agent = useAgent();
   const conversation = useConversation();
   const [defaultMemoriesValue, setDefaultMemoriesValue] = useState<string[]>([]);
+  const isMountedRef = useRef(true);
 
-  const refreshDefaultMemories = async () => {
-    const embeddingString = conversation.getEmbeddingString();
-    const memories = await agent.getMemory(embeddingString, {
-      matchCount: maxDefaultMemoryValues,
-    });
-    const value = memories.map(memory => memory.text);
-    setDefaultMemoriesValue(value);
-  };
+  const refreshDefaultMemories = useCallback(async () => {
+    if (!isMountedRef.current) return;
+
+    try {
+      const embeddingString = conversation.getEmbeddingString();
+      const memories = await agent.getMemory(embeddingString, {
+        matchCount: maxDefaultMemoryValues,
+      });
+
+      const value = memories.map(memory => memory.text);
+      setDefaultMemoriesValue(value);
+    } catch (error) {
+      console.error("Error refreshing memories:", error);
+    }
+  }, [agent, conversation]);
+
+  useEffect(() => {
+    refreshDefaultMemories();
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [refreshDefaultMemories]);
+
+  if (!isMountedRef.current) return null;
 
   return (
     <>
@@ -263,9 +285,7 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <EveryNMessages n={1}>{() => {
-        refreshDefaultMemories();
-      }}</EveryNMessages>
+      <EveryNMessages n={2} children={refreshDefaultMemories} />
     </>
   );
 };
@@ -337,9 +357,12 @@ const MemoryWatcher = ({
       {/* trigger memory watcher refresh */}
       {allMemoryWatchers.map((memoryWatcher, index) => {
         return (
-          <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
+          <EveryNMessages 
+          n={2}
+          key={memoryWatcher.query} 
+          children={() => {
             memoryWatcher.refresh();
-          }}</EveryNMessages>
+          }} />
         );
       })}
     </Conversation>
