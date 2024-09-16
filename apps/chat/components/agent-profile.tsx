@@ -18,26 +18,23 @@ export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions()
   const { supabase } = useSupabase();
   const [rooms, setRooms] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchRooms() {
+      setIsLoading(true);
       
-      console.log("fetching rooms");
-      console.log("agentId: ", agent.id);
-
       const { data, error } = await supabase
         .from('chat_specifications')
-        .select('*')
+        .select('data')
         .eq('user_id', agent.id);
+    
+      setIsLoading(false);
 
       if (error) {
         console.error('Error fetching rooms:', error);
       } else {
-        console.log("data fetched: ", data);
-        const roomIds = data?.map((row: any) => {
-          const parsedData = JSON.parse(row.data);
-          return parsedData.room;
-        });
+        const roomIds = data?.map((row: any) => row.data.room); // data contains object having room and endpoint_url
         setRooms(roomIds || []);
       }
     }
@@ -67,11 +64,15 @@ export function AgentProfile({ agent }: AgentProps) {
         Chat
       </Button>
       <h3>Rooms</h3>
-      {rooms.length > 0 ? (
+      {isLoading ? (
         <div className="mt-4">
-          <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
+          Loading Rooms
+        </div>
+      ) : rooms.length > 0 ? (
+        <div className="mt-4">
+          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2">
             {rooms.map((room) => (
-              <div key={room} className="bg-gray-100 rounded-md p-2 mb-2">
+              <div key={room} className="rounded-md p-2 mb-2 bg-gray-200 dark:bg-gray-700">
                 {room}
               </div>
             ))}
