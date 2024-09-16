@@ -1,5 +1,5 @@
 import packageJson from '../../../../package.json' with { type: 'json' };
-import { generationModel } from '../../../../const.js';
+import { defaultModels } from './constants.mjs';
 import { workersHost } from './util/endpoints.mjs';
 
 export const localPort = 3000;
@@ -25,7 +25,7 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.ownerId = '';
   }
   if (typeof spec.model !== 'string') {
-    spec.model = generationModel;
+    spec.model = defaultModels[0];
   }
   if (typeof spec.startUrl !== 'string') {
     spec.startUrl = getCloudAgentHost(spec.id);
