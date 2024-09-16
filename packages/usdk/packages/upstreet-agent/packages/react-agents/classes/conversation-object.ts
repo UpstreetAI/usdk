@@ -206,7 +206,7 @@ export class ConversationObject extends EventTarget {
     }
     return messages;
   }
-  async fetchMessages(filter: MessageFilter, {
+  /* async fetchMessages(filter: MessageFilter, {
     supabase,
     signal,
   }: {
@@ -225,7 +225,7 @@ export class ConversationObject extends EventTarget {
     throw new Error('not implemented');
 
     return [] as ActionMessage[];
-  }
+  } */
 
   // pull a logged message from the network
   async addLocalMessage(message: ActionMessage) {
