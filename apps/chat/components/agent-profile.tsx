@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
+import { useEffect, useState } from 'react'
+import { useSupabase } from '@/lib/hooks/use-supabase'
 
 export interface AgentProps extends React.ComponentProps<'div'> {
   agent: {
@@ -14,6 +16,34 @@ export interface AgentProps extends React.ComponentProps<'div'> {
 
 export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions()
+  const { supabase } = useSupabase();
+  const [rooms, setRooms] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function fetchRooms() {
+      
+      console.log("fetching rooms");
+      console.log("agentId: ", agent.id);
+
+      const { data, error } = await supabase
+        .from('chat_specifications')
+        .select('*')
+        .eq('user_id', agent.id);
+
+      if (error) {
+        console.error('Error fetching rooms:', error);
+      } else {
+        console.log("data fetched: ", data);
+        const roomIds = data?.map((row: any) => {
+          const parsedData = JSON.parse(row.data);
+          return parsedData.room;
+        });
+        setRooms(roomIds || []);
+      }
+    }
+
+    fetchRooms();
+  }, []);
 
   return (
     <div
@@ -36,6 +66,22 @@ export function AgentProfile({ agent }: AgentProps) {
       }}>
         Chat
       </Button>
+      <h3>Rooms</h3>
+      {rooms.length > 0 ? (
+        <div className="mt-4">
+          <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
+            {rooms.map((room) => (
+              <div key={room} className="bg-gray-100 rounded-md p-2 mb-2">
+                {room}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <p>This agent is currently not in any room.</p>
+        </div>
+      )}
     </div>
   )
 }
