@@ -11,7 +11,7 @@ export const defaultModels = [
   // 'lambdalabs:hermes-3-llama-3.1-405b-fp8-128k',
 ];
 
-export const defaultImageModels = [
+export const defaultVisionModels = [
   'openai:gpt-4o-2024-08-06',
   'anthropic:claude-3-5-sonnet-20240620',
 ];
