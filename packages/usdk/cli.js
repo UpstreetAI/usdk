@@ -21,6 +21,9 @@ import jsAgo from 'js-ago';
 import 'localstorage-polyfill';
 import JSZip from 'jszip';
 // import { doc } from 'tsdoc-extractor';
+// import {
+//   defaultModels,
+// } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -2082,7 +2085,7 @@ const withdraw = async (args) => {
       localStorage.setItem('jwt', JSON.stringify(jwt));
       try {
         const content = await fetchChatCompletion({
-          model: generationModel,
+          model: defaultModels[0],
           messages,
         });
         const codeBlock = parseCodeBlock(content);
