@@ -212,24 +212,38 @@ const StoreActions = () => {
 
 //
 
+type EveryNMessagesOptions = {
+  signal: AbortSignal,
+};
 const EveryNMessages = ({
   n,
   children,
 }: {
   n: number,
-  children: () => void,
+  children: (opts: EveryNMessagesOptions) => void,
 }) => {
   const numMessages = useNumMessages();
   const startNumMessages = useMemo(() => numMessages, []);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    // if (numMessages !== startNumMessages) {
-      const diff = numMessages - startNumMessages;
-      if (diff % n === 0) {
-        const fn = children;
-        fn();
+    const diff = numMessages - startNumMessages;
+    if (diff % n === 0) {
+      if (!abortControllerRef.current) {
+        abortControllerRef.current = new AbortController();
       }
-    // }
+      const { signal } = abortControllerRef.current;
+
+      const fn = children;
+      fn({
+        signal,
+      });
+
+      return () => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+      };
+    }
   }, [numMessages, startNumMessages, n]);
 
   return null;
