@@ -254,31 +254,89 @@ const EveryNMessages = ({
 const DefaultMemoriesInternal = () => {
   const agent = useAgent();
   const conversation = useConversation();
-  const [defaultMemoriesValue, setDefaultMemoriesValue] = useState<string[]>([]);
+  const [recentMemoriesValue, setRecentMemoriesValue] = useState<string[]>([]);
+  const [queriedMemoriesValue, setQueriedMemoriesValue] = useState<string[]>([]);
 
-  const refreshDefaultMemories = async () => {
+  const refreshRecentMemories = async ({
+    signal,
+  }: {
+    signal: AbortSignal,
+  }) => {
+    const memories = await agent.getMemories({
+      matchCount: maxDefaultMemoryValues,
+      signal,
+    });
+    // console.log('got new value 1', memories, signal.aborted);
+    if (signal.aborted) return;
+
+    const value = memories.map(memory => memory.text);
+    // console.log('got new value 2', value);
+    setRecentMemoriesValue(value);
+  };
+  const refreshQueriedMemories = async ({
+    signal,
+  }: {
+    signal: AbortSignal,
+  }) => {
     const embeddingString = conversation.getEmbeddingString();
     const memories = await agent.getMemory(embeddingString, {
       matchCount: maxDefaultMemoryValues,
+      signal,
     });
+    // console.log('got new value 3', memories, signal.aborted);
+    if (signal.aborted) return;
+
     const value = memories.map(memory => memory.text);
-    setDefaultMemoriesValue(value);
+    // console.log('got new value 4', value);
+    setQueriedMemoriesValue(value);
   };
+
+  const allMemoriesValue = [
+    ...recentMemoriesValue,
+    ...queriedMemoriesValue,
+  ];
+  console.log('render all memories', {
+    allMemoriesValue,
+    recentMemoriesValue,
+    queriedMemoriesValue,
+  });
 
   return (
     <>
-      {defaultMemoriesValue.length > 0 && (
+      {allMemoriesValue.length > 0 && (
         <Prompt>
           {dedent`\
             # Memories
-            Your character has the following in mind:
-            ` + '\n' +
-            JSON.stringify(defaultMemoriesValue, null, 2)
+            Your character remembers the following:
+            \`\`\`
+          ` + '\n' +
+          JSON.stringify(queriedMemoriesValue, null, 2) + '\n' +
+          dedent`\
+            \`\`\`
+          ` + '\n' +
+          dedent`\
+            Note: to remember more specific memories, use the \`queryMemories\` action.
+          ` 
           }
         </Prompt>
       )}
-      <EveryNMessages n={1}>{() => {
-        refreshDefaultMemories();
+      <EveryNMessages n={10}>{({
+        signal,
+      }: {
+        signal: AbortSignal,
+      }) => {
+        refreshRecentMemories({
+          signal,
+        });
+      }}</EveryNMessages>
+      <EveryNMessages n={1}>{({
+        signal,
+      }: {
+        signal: AbortSignal,
+      }) => {
+        refreshQueriedMemories({
+          signal,
+        });
       }}</EveryNMessages>
     </>
   );
