@@ -626,6 +626,7 @@ const DefaultConnectors = () => {
     <DiscordBot
       token='MTI4NDgxNzQ1NDQ2NzY0NTUzMA.GSYqVY.g-U0pVRX3BcEGgmB3T24V5D6TuspzSsoyCeKJY'
       channels={['scilly', 'coding']}
+      users='avaer'
     />
   );
 }
@@ -2821,76 +2822,139 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-type DiscordBotChannelSpec = RegExp | string;
-type DiscordBotChannelSpecs = DiscordBotChannelSpec | DiscordBotChannelSpec[];
+type DiscordBotRoomSpec = RegExp | string;
+type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
 type DiscordBotProps = {
   token: string;
-  channels?: DiscordBotChannelSpecs;
+  channels?: DiscordBotRoomSpecs;
+  users?: DiscordBotRoomSpecs;
   userWhitelist?: string[];
 };
-const testChannelMatch = (channel: any, channelSpec: DiscordBotChannelSpec) => {
+const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec) => {
   if (typeof channelSpec === 'string') {
-    return channel.name.toLowerCase() === channelSpec.toLowerCase();
+    return channelName.toLowerCase() === channelSpec.toLowerCase();
   } else if (channelSpec instanceof RegExp) {
-    return channelSpec.test(channel.name);
+    return channelSpec.test(channelName);
   } else {
     return false;
   }
 };
 export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+  // console.log('discord bot component', props);
   const {
     token,
     channels,
-    userWhitelist = [],
+    users,
+    userWhitelist,
   } = props;
   const channelSpecs = channels ? (Array.isArray(channels) ? channels : [channels]) : [];
-  const discordBotClient = useMemo(() => {
+  const userSpecs = users ? (Array.isArray(users) ? users : [users]) : [];
+
+  const [discordBotClient, setDiscordBotClient] = useState<DiscordBotClient | null>(null);
+
+  // initialize discord bot client
+  useEffect(() => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+
+    // latch the new client
     const discordBotClient = new DiscordBotClient({
       token,
       // channelWhitelist,
       // userWhitelist,
     });
+    setDiscordBotClient(discordBotClient);
+    signal.addEventListener('abort', () => {
+      discordBotClient.destroy();
+    });
+
+    // connect
     (async () => {
       const status = await discordBotClient.status();
-      let candidateChannels = status.channels
+      if (signal.aborted) return;
+
+      let connectableChannels = status.channels
         .filter((channel: any) => [0, 2].includes(channel.type));
       if (channelSpecs.length > 0) {
-        candidateChannels = candidateChannels
+        connectableChannels = connectableChannels
           .filter((channel: any) =>
             channelSpecs
-              .some(channelSpec => testChannelMatch(channel, channelSpec))
+              .some(channelSpec => testRoomNameMatch(channel.name, channelSpec))
           );
       }
-      const connectableChannels = candidateChannels
-        // .map((o: any) => {
-        //   const {
-        //     name,
-        //     type,
-        //   } = o;
-        //   return {
-        //     name,
-        //     type,
-        //   };
-        // });
-      const connectableChannelNames = connectableChannels.map((o: any) => o.name);
-      console.log('got connectable channels', {
+
+      let connectableUsers = status.users;
+      if (userSpecs.length > 0) {
+        connectableUsers = connectableUsers
+          .filter((user: any) =>
+            userSpecs
+              .some(userSpec => testRoomNameMatch(user.displayName, userSpec))
+          );
+      }
+      console.log('got channels + users', {
         connectableChannels,
-        // names: status.channels.map((o: any) => o.name),
-        // channels: status.channels,
-        // channels2: channels,
-        // channelSpecs,
+        connectableUsers,
       });
 
       discordBotClient.addEventListener('channelconnect', (e) => {
-        console.log('channel connect', e.data);
+        const {
+          channel,
+        } = e.data;
+        const {
+          id: channelId,
+          type,
+        } = channel;
+        console.log('connected to channel', e.data, {
+          channelId,
+          type,
+        });
+        if (type === 0) { // text channel
+          console.log('write text to channel', {
+            channelId,
+          });
+          const text = `hi there!`;
+          discordBotClient.input.writeText(text, {
+            channelId,
+          });
+        } else if (type === 2) { // voice channel
+          // nothing
+        }
       });
+      discordBotClient.addEventListener('userconnect', (e) => {
+        const {
+          user,
+        } = e.data;
+        const {
+          id: userId,
+        } = user;
+        // console.log('connected to user', e.data, {
+        //   userId,
+        // });
+        console.log('write text to user', {
+          userId,
+        });
+        const text = `hiya!!`;
+        discordBotClient.input.writeText(text, {
+          userId,
+        });
+      });
+      discordBotClient.addEventListener('text', (e) => {
+        console.log('incoming message', e.data);
+      });
+
       await discordBotClient.connect({
-        channels: connectableChannelNames,
+        channels: connectableChannels.map((o: any) => o.name),
+        users: connectableUsers.map((o: any) => o.displayName),
+        userWhitelist,
       });
+      if (signal.aborted) return;
     })().catch((err) => {
       console.warn('failed to get channels', err);
     });
-    return discordBotClient;
+
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
   return null;
