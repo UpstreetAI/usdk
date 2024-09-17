@@ -204,6 +204,18 @@ type AgentEditorProps = {
   user: any;
 };
 
+const clearLocalStorage = () => {
+  localStorage.removeItem('name');
+  localStorage.removeItem('bio');
+  localStorage.removeItem('visualDescription');
+  localStorage.removeItem('homespaceDescription');
+  localStorage.removeItem('previewUrl');
+  localStorage.removeItem('homespaceUrl');
+  localStorage.removeItem('previewBlob');
+  localStorage.removeItem('homespaceBlob');
+  localStorage.removeItem('features');
+};
+
 export default function AgentEditor({
   user,
 }: AgentEditorProps) {
@@ -853,6 +865,7 @@ export default function AgentEditor({
                   const agentJsonOutput = JSON.parse(agentJsonOutputString);
                   const guid = agentJsonOutput.id;
                   location.href = `/agents/${guid}`;
+                  clearLocalStorage();
                 } else {
                   console.error('failed to deploy agent', res);
                 }
