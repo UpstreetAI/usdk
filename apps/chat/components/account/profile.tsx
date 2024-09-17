@@ -23,6 +23,7 @@ import {
 } from '@/components/aux-images';
 
 import DevMode from '@/components/development';
+import { IconSpinner } from '../ui/icons';
 
 export interface ProfileProps {
   user: any,
@@ -51,8 +52,12 @@ export function Profile({
     _setVisualDescription(visualDescription);
     // user.playerSpec.visualDescription = visualDescription;
   };
+  const [isAutofillLoading, setIsAutofillLoading] = useState(false);
+  const [isSavingInfo, setIsSavingInfo] = useState(false);
 
   const saveInfo = async () => {
+
+    setIsSavingInfo(true);
     const o = {
       name,
       playerSpec: {
@@ -65,6 +70,9 @@ export function Profile({
       .from('accounts')
       .update(o)
       .eq('id', user.id);
+
+    setIsSavingInfo(false);
+    
     const { error } = result;
     if (error) {
       console.error(error)
@@ -72,6 +80,7 @@ export function Profile({
   };
 
   const ensureAutofill = async () => {
+    setIsAutofillLoading(true);
     const oldObject = {} as any;
     const typeObject = {} as any;
     if (name) {
@@ -148,6 +157,7 @@ export function Profile({
             visualDescription: updateObject.visualDescription,
           },
         }));
+        setIsAutofillLoading(false);
         setVisualDescription(updateObject.visualDescription);
       }
     }
@@ -257,18 +267,21 @@ export function Profile({
                 onChange={e => setVisualDescription(e.target.value)}
               />
               <div className="flex flex-row items-center justify-end">
-                <Button
-                  onClick={ensureAutofill}
-                  className="mr-2"
-                >
-                  Autofill
-                </Button>
-                <Button
-                  onClick={saveInfo}
-                // className="mr-2"
-                >
-                  Save Info
-                </Button>
+              <Button
+                onClick={ensureAutofill}
+                className="mr-2"
+                disabled={isAutofillLoading}
+              >
+                {isAutofillLoading && <IconSpinner className="mr-2" />}
+                {isAutofillLoading ? 'Autofilling...' : 'Autofill'}
+              </Button>
+              <Button
+                onClick={saveInfo}
+                disabled={isSavingInfo}
+              >
+                {isSavingInfo && <IconSpinner className="mr-2" />}
+                {isSavingInfo ? 'Saving...' : 'Save Info'}
+              </Button>
               </div>
             </div>
           </div>
