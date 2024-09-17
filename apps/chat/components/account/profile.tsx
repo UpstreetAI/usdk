@@ -164,16 +164,6 @@ export function Profile({
       jwt,
     });
 
-    const img = await blob2img(blob);
-    img.style.cssText = `
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: 300px;
-      z-index: 9999;
-    `;
-    document.body.appendChild(img);
-
     // upload the image to r2
     const guid = crypto.randomUUID();
     const res = await fetch(`${r2EndpointUrl}/${guid}/avatar.webp`, {
