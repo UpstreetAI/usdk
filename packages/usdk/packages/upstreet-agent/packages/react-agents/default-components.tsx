@@ -69,7 +69,7 @@ import {
   useCachedMessages,
   useNumMessages,
 } from './hooks';
-import { DiscordClient } from './lib/discord-bot/discord-bot';
+import { DiscordBotClient } from './lib/discord/discord-client';
 // import type { AppContextValue } from './types';
 import { shuffle, parseCodeBlock, printZodSchema } from './util/util.mjs';
 import {
