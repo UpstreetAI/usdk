@@ -31,8 +31,8 @@ import type {
   GenerativeAgentObject,
   DiscordBotRoomSpec,
   DiscordBotRoomSpecs,
+  DiscordBotProps,
   DiscordBotArgs,
-  DiscordBotClientArgs,
 } from './types';
 import {
   AppContext,
@@ -73,7 +73,6 @@ import {
   useCachedMessages,
   useNumMessages,
 } from './hooks';
-import { DiscordBotClient } from './lib/discord/discord-client';
 // import type { AppContextValue } from './types';
 import { shuffle, parseCodeBlock } from './util/util.mjs';
 import {
@@ -2826,159 +2825,33 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-type DiscordBotProps = DiscordBotArgs;
-const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec) => {
-  if (typeof channelSpec === 'string') {
-    return channelName.toLowerCase() === channelSpec.toLowerCase();
-  } else if (channelSpec instanceof RegExp) {
-    return channelSpec.test(channelName);
-  } else {
-    return false;
-  }
-};
 export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
-  const agent = useAgent();
-
-  // destination type:
-  const normalizeArgs = (args: DiscordBotArgs): DiscordBotClientArgs => {
-    const {
-      token,
-      channels,
-      users,
-      userWhitelist,
-    } = args;
-    return {
-      token,
-      channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
-      users: users ? (Array.isArray(users) ? users : [users]) : [],
-      userWhitelist,
-    };
-  };
-
-  useEffect(() => {
-    const args = normalizeArgs(props);
-    const discordBotClient = agent.discordManager.addDiscordBotClient(args);
-    return () => {
-      agent.discordManager.removeDiscordBotClient(discordBotClient);
-    };
-  }, []);
-
-  // console.log('discord bot component', props);
   const {
     token,
     channels,
     users,
     userWhitelist,
   } = props;
-  const channelSpecs = channels ? (Array.isArray(channels) ? channels : [channels]) : [];
-  const userSpecs = users ? (Array.isArray(users) ? users : [users]) : [];
+  const agent = useAgent();
 
-  const [discordBotClient, setDiscordBotClient] = useState<DiscordBotClient | null>(null);
-
-  // initialize discord bot client
   useEffect(() => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-
-    // latch the new client
-    const discordBotClient = new DiscordBotClient({
+    const args: DiscordBotArgs = {
       token,
-      // channelWhitelist,
-      // userWhitelist,
-    });
-    setDiscordBotClient(discordBotClient);
-    signal.addEventListener('abort', () => {
-      discordBotClient.destroy();
-    });
-
-    // connect
-    (async () => {
-      const status = await discordBotClient.status();
-      if (signal.aborted) return;
-
-      let connectableChannels = status.channels
-        .filter((channel: any) => [0, 2].includes(channel.type));
-      if (channelSpecs.length > 0) {
-        connectableChannels = connectableChannels
-          .filter((channel: any) =>
-            channelSpecs
-              .some(channelSpec => testRoomNameMatch(channel.name, channelSpec))
-          );
-      }
-
-      let connectableUsers = status.users;
-      if (userSpecs.length > 0) {
-        connectableUsers = connectableUsers
-          .filter((user: any) =>
-            userSpecs
-              .some(userSpec => testRoomNameMatch(user.displayName, userSpec))
-          );
-      }
-      console.log('got channels + users', {
-        connectableChannels,
-        connectableUsers,
-      });
-
-      discordBotClient.addEventListener('channelconnect', (e) => {
-        const {
-          channel,
-        } = e.data;
-        const {
-          id: channelId,
-          type,
-        } = channel;
-        console.log('connected to channel', e.data, {
-          channelId,
-          type,
-        });
-        if (type === 0) { // text channel
-          console.log('write text to channel', {
-            channelId,
-          });
-          const text = `hi there!`;
-          discordBotClient.input.writeText(text, {
-            channelId,
-          });
-        } else if (type === 2) { // voice channel
-          // nothing
-        }
-      });
-      discordBotClient.addEventListener('userconnect', (e) => {
-        const {
-          user,
-        } = e.data;
-        const {
-          id: userId,
-        } = user;
-        // console.log('connected to user', e.data, {
-        //   userId,
-        // });
-        console.log('write text to user', {
-          userId,
-        });
-        const text = `hiya!!`;
-        discordBotClient.input.writeText(text, {
-          userId,
-        });
-      });
-      discordBotClient.addEventListener('text', (e) => {
-        console.log('incoming message', e.data);
-      });
-
-      await discordBotClient.connect({
-        channels: connectableChannels.map((o: any) => o.name),
-        users: connectableUsers.map((o: any) => o.displayName),
-        userWhitelist,
-      });
-      if (signal.aborted) return;
-    })().catch((err) => {
-      console.warn('failed to get channels', err);
-    });
-
-    return () => {
-      abortController.abort();
+      channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
+      users: users ? (Array.isArray(users) ? users : [users]) : [],
+      userWhitelist,
+      agent,
     };
-  }, []);
+    const discordBot = agent.discordManager.addDiscordBot(args);
+    return () => {
+      agent.discordManager.removeDiscordBot(discordBot);
+    };
+  }, [
+    token,
+    JSON.stringify(channels),
+    JSON.stringify(users),
+    JSON.stringify(userWhitelist),
+  ]);
 
   return null;
 };
