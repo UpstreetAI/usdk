@@ -7,12 +7,11 @@ import {
   PendingActionMessage,
   ActionMessageEventData,
   PlayableAudioStream,
+  GetHashFn,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
-import { chatEndpointUrl } from '../util/endpoints.mjs';
-import { getChatKey } from './chats-manager';
 
 //
 
@@ -50,9 +49,7 @@ class MessageCache extends EventTarget {
 //
 
 export class ConversationObject extends EventTarget {
-  // id: string;
-  room: string;
-  endpointUrl: string;
+  getHash: GetHashFn;
   scene: SceneObject | null = null;
   agent: ActiveAgentObject | null = null;
   agentsMap: Map<string, Player> = new Map();
@@ -60,25 +57,16 @@ export class ConversationObject extends EventTarget {
   numTyping: number = 0;
 
   constructor({
-    room,
-    endpointUrl,
     agent,
+    getHash,
   }: {
     agent: ActiveAgentObject;
-    room: string;
-    endpointUrl: string;
+    getHash: GetHashFn;
   }) {
     super();
 
     this.agent = agent;
-    this.room = room;
-    this.endpointUrl = endpointUrl;
-  }
-
-  //
-
-  getBrowserUrl() {
-    return `${chatEndpointUrl}/rooms/${this.room}`;
+    this.getHash = getHash;
   }
 
   //
@@ -135,12 +123,7 @@ export class ConversationObject extends EventTarget {
   }
 
   getKey() {
-    return getChatKey(
-      {
-        room: this.room,
-        endpointUrl: this.endpointUrl,
-      }
-    );
+    return this.getHash(this);
   }
 
   #getAllMessages() {

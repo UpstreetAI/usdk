@@ -118,8 +118,14 @@ export class ChatsManager extends EventTarget {
 
       const conversation = new ConversationObject({
         agent,
-        room,
-        endpointUrl,
+        // room,
+        // endpointUrl,
+        getHash: () => {
+          return getChatKey({
+            room,
+            endpointUrl,
+          });
+        },
       });
       this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
         data: {
