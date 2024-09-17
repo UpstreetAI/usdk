@@ -247,10 +247,13 @@ export default function AgentEditor({
   const editorForm = useRef<HTMLFormElement>(null);
 
   const [voices, setVoices] = useState(() => defaultVoices.slice());
-  const [features, setFeatures] = useState<FeaturesObject>({
-    tts: null,
-    rateLimit: null,
-    storeItems: null,
+  const [features, setFeatures] = useState<FeaturesObject>(() => {
+    const savedFeatures = localStorage.getItem('features');
+    return savedFeatures ? JSON.parse(savedFeatures) : {
+      tts: null,
+      rateLimit: null,
+      storeItems: null,
+    };
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -301,6 +304,10 @@ export default function AgentEditor({
       localStorage.removeItem('homespaceBlob');
     }
   }, [homespaceBlob]);
+
+  useEffect(() => {
+    localStorage.setItem('features', JSON.stringify(features));
+  }, [features]);
 
   // useEffect(() => {
   //   (async () => {
