@@ -117,6 +117,7 @@ export class ChatsManager extends EventTarget {
       const guid = agent.id;
 
       const conversation = new ConversationObject({
+        agent,
         room,
         endpointUrl,
       });
@@ -196,13 +197,6 @@ export class ChatsManager extends EventTarget {
               _pushInitialPlayer();
 
               const _bindRoomState = () => {
-                const _bindAgent = () => {
-                  conversation.setAgent(this.agent);
-                };
-                _bindAgent();
-        
-                //
-        
                 const _bindScene = () => {
                   const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
                   const { networkedCrdtClient } = headRealm;
@@ -563,10 +557,6 @@ export class ChatsManager extends EventTarget {
     } = this.abortController;
 
     (async () => {
-      // connect to initial rooms
-      await this.chatsSpecification.waitForLoad();
-      if (signal.aborted) return;
-
       // listen for rooms changes
       const onjoin = (e: ExtendableMessageEvent<RoomSpecification>) => {
         e.waitUntil((async () => {
@@ -586,6 +576,10 @@ export class ChatsManager extends EventTarget {
         this.chatsSpecification.removeEventListener('join', onjoin);
         this.chatsSpecification.removeEventListener('leave', onleave);
       });
+
+      // connect to initial rooms
+      await this.chatsSpecification.waitForLoad();
+      if (signal.aborted) return;
     })();
 
     // disconnect on destroy

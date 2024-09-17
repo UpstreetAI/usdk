@@ -62,12 +62,15 @@ export class ConversationObject extends EventTarget {
   constructor({
     room,
     endpointUrl,
+    agent,
   }: {
+    agent: ActiveAgentObject;
     room: string;
     endpointUrl: string;
   }) {
     super();
 
+    this.agent = agent;
     this.room = room;
     this.endpointUrl = endpointUrl;
   }
@@ -115,9 +118,9 @@ export class ConversationObject extends EventTarget {
   getAgent() {
     return this.agent;
   }
-  setAgent(agent: ActiveAgentObject) {
-    this.agent = agent;
-  }
+  // setAgent(agent: ActiveAgentObject) {
+  //   this.agent = agent;
+  // }
 
   getAgents() {
     return Array
@@ -140,16 +143,22 @@ export class ConversationObject extends EventTarget {
     );
   }
 
-  getEmbeddingString() {
-    const allMessages = this.messageCache.messages;
-
+  #getAllMessages() {
+    return this.messageCache.messages;
+  }
+  #getAllAgents() {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
     const agent = this.agent;
-    if (agent) {
-      allAgents.push(agent.agentJson);
-    }
+    // if (agent) {
+    allAgents.push(agent.agentJson);
+    // }
+    return allAgents;
+  }
+  getEmbeddingString() {
+    const allMessages = this.#getAllMessages();
+    const allAgents = this.#getAllAgents();
 
     return [
       allMessages.map(m => {
@@ -197,7 +206,7 @@ export class ConversationObject extends EventTarget {
     }
     return messages;
   }
-  async fetchMessages(filter: MessageFilter, {
+  /* async fetchMessages(filter: MessageFilter, {
     supabase,
     signal,
   }: {
@@ -216,7 +225,7 @@ export class ConversationObject extends EventTarget {
     throw new Error('not implemented');
 
     return [] as ActionMessage[];
-  }
+  } */
 
   // pull a logged message from the network
   async addLocalMessage(message: ActionMessage) {

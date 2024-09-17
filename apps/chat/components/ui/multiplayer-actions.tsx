@@ -13,7 +13,7 @@ import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import type {
   ActionMessage,
   Attachment,
-} from 'usdk/sdk/src/types';
+} from 'react-agents/types';
 
 //
 

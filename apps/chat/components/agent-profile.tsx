@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react'
+import { useSupabase } from '@/lib/hooks/use-supabase'
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { IconCheck, IconCopy } from '@/components/ui/icons';
@@ -38,6 +40,32 @@ export function AgentProfile({ agent }: AgentProps) {
   const backgroundImageUrl = agent.images?.[0]?.url || '/images/backgrounds/agents/default-agent-profile-background.jpg';
   const isPreviewUrlValid = isValidUrl(agent.preview_url);
   const agentInitial = agent.name.charAt(0).toUpperCase();
+  
+  const { supabase } = useSupabase();
+  const [rooms, setRooms] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRooms() {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('chat_specifications')
+        .select('data')
+        .eq('user_id', agent.id);
+    
+      setIsLoading(false);
+
+      if (error) {
+        console.error('Error fetching rooms:', error);
+      } else {
+        const roomIds = data?.map((row: any) => row.data.room); // data contains object having room and endpoint_url
+        setRooms(roomIds || []);
+      }
+    }
+
+    fetchRooms();
+  }, []);
 
   return (
     <div
@@ -45,6 +73,7 @@ export function AgentProfile({ agent }: AgentProps) {
       style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
     >
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
+
         <div className="absolute bottom-16 left-4">
           <div className="mr-4 mb-4 w-12 h-12 bg-opacity-10 overflow-hidden rounded-2xl flex items-center justify-center">
             {isPreviewUrlValid ? (
@@ -81,6 +110,29 @@ export function AgentProfile({ agent }: AgentProps) {
             </Button>
           </div>
         </div>
+
+        <div className='asolute top-0 right-0'>
+        <h3>Rooms</h3>
+      {isLoading ? (
+        <div className="mt-4">
+          Loading Rooms
+        </div>
+      ) : rooms.length > 0 ? (
+        <div className="mt-4">
+          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2">
+            {rooms.map((room) => (
+              <div key={room} className="rounded-md p-2 mb-2 bg-gray-200 dark:bg-gray-700">
+                {room}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <p>This agent is currently not in any room.</p>
+        </div>
+      )}
+          </div>
       </div>
     </div>
   );
