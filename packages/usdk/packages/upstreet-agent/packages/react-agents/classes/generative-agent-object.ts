@@ -1,7 +1,4 @@
-// import { useContext } from 'react';
-// import { z } from 'zod';
 import type { ZodTypeAny } from 'zod';
-// import dedent from 'dedent';
 import type {
   ActionMessage,
   ChatMessages,
@@ -17,8 +14,6 @@ import {
 import {
   generateAgentAction,
   executeAgentAction,
-  // generateJsonMatchingSchema,
-  // generateString,
 } from '../runtime';
 import {
   ActiveAgentObject,
@@ -27,6 +22,7 @@ import {
   QueueManager,
 } from '../util/queue-manager.mjs';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
+import { chatEndpointUrl } from '../util/endpoints.mjs';
 
 //
 
@@ -50,7 +46,7 @@ export class GenerativeAgentObject {
   //
 
   get location() {
-    return new URL(this.conversation.getBrowserUrl());
+    return new URL(`${chatEndpointUrl}/rooms/${this.conversation.room}`);
   }
 
   //
