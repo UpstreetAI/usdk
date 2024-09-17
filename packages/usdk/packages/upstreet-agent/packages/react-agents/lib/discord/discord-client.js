@@ -38,14 +38,21 @@ export class DiscordInput {
     this.streamSpecs = new Map();
   }
 
-  writeText(text) {
-    const writeTextMessage = {
+  writeText(text, {
+    channelId,
+    userId,
+  } = {}) {
+    const m = {
       method: 'writeText',
       args: {
         text,
+        channelId,
+        userId,
       },
     };
-    this.ws.send(JSON.stringify(writeTextMessage));
+    // console.log('send message', m);
+    const s = JSON.stringify(m);
+    this.ws.send(s);
   }
 
   // async to wait for consumption of the stream by the discord api
@@ -140,7 +147,10 @@ export class DiscordInput {
 
     this.streamSpecs.delete(streamId);
   }
-  cancelStream(streamId) {
+  cancelStream(args) {
+    const {
+      streamId,
+    } = args;
     const streamSpec = this.streamSpecs.get(streamId);
     if (streamSpec) {
       streamSpec.cancel();
@@ -278,16 +288,25 @@ export class DiscordOutput extends EventTarget {
     this.streams = new Map();
   }
 
-  pushUserTextMessage(username, text) {
-    this.dispatchEvent(new MessageEvent('usermessage', {
-      data: {
-        username,
-        text,
-      },
+  pushText(args) {
+    // const {
+    //   userId,
+    //   username,
+    //   text,
+    //   channelId,
+    // } = args;
+    this.dispatchEvent(new MessageEvent('text', {
+      data: args,
     }));
   }
 
-  pushStreamStart(username, streamId) {
+  pushStreamStart(args) {
+    const {
+      userId,
+      username,
+      channelId,
+      streamId,
+    } = args;
     let stream = this.streams.get(streamId);
     if (!stream) {
       const {
@@ -302,10 +321,12 @@ export class DiscordOutput extends EventTarget {
       stream.addEventListener('speech', e => {
         const text = e.data;
 
-        this.dispatchEvent(new MessageEvent('usermessage', {
+        this.dispatchEvent(new MessageEvent('text', {
           data: {
+            userId,
             username,
             text,
+            channelId,
           },
         }));
       });
@@ -315,7 +336,11 @@ export class DiscordOutput extends EventTarget {
     }
   }
 
-  pushStreamEnd(streamId) {
+  pushStreamEnd(args) {
+    const {
+      userId,
+      streamId,
+    } = args;
     const stream = this.streams.get(streamId);
     if (stream) {
       stream.end();
@@ -370,6 +395,7 @@ export class DiscordBotClient extends EventTarget {
   }
   async connect({
     channels = [],
+    users = [],
     userWhitelist = [],
   }) {
     const channelSpecs = channels.map((channel) => {
@@ -385,6 +411,7 @@ export class DiscordBotClient extends EventTarget {
       const u = new URL(discordBotEndpointUrl);
       u.searchParams.set('token', this.token);
       u.searchParams.set('channels', JSON.stringify(channelSpecs));
+      u.searchParams.set('users', JSON.stringify(users));
       u.searchParams.set('userWhitelist', JSON.stringify(userWhitelist));
       return u;
     })();
@@ -440,44 +467,30 @@ export class DiscordBotClient extends EventTarget {
             }));
             break;
           }
+          case 'userconnect': {
+            this.dispatchEvent(new MessageEvent('userconnect', {
+              data: args,
+            }));
+            break;
+          }
           case 'voicestart': {
-            const {
-              userId,
-              username,
-              streamId,
-            } = args;
-            console.log('voice start', userId, username, streamId);
-            this.output.pushStreamStart(username, streamId);
+            console.log('voice start', args);
+            this.output.pushStreamStart(args);
             break;
           }
           case 'voiceend': {
-            const {
-              userId,
-              streamId,
-            } = args;
-            console.log('voice end', userId, streamId);
-            this.output.pushStreamEnd(streamId);
+            console.log('voice end', args);
+            this.output.pushStreamEnd(args);
             break;
           }
-          case 'voiceidle': {
-            const {
-              streamId,
-            } = args;
-            this.input.cancelStream(streamId);
+          case 'voiceidle': { // feedback that discord is no longer listening
+            console.log('voice idle', args);
+            this.input.cancelStream(args);
             break;
           }
           case 'text': {
-            const {
-              userId,
-              username,
-              text,
-            } = args;
-            console.log('text message', {
-              userId,
-              username,
-              text,
-            });
-            this.output.pushUserTextMessage(username, text);
+            console.log('text message', args);
+            this.output.pushText(args);
             break;
           }
           default: {
@@ -494,7 +507,7 @@ export class DiscordBotClient extends EventTarget {
     this.ws = ws;
 
     this.input = new DiscordInput({
-      ws: this.ws,
+      ws,
     });
     this.output = new DiscordOutput();
 
