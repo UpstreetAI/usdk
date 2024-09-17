@@ -1,55 +1,87 @@
-'use client'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { isValidUrl } from '@/utils/helpers/urls'
-import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
-import HeaderMaskFrame from './masks/HeaderMaskFrame'
+'use client';
 
-export interface AgentProps extends React.ComponentProps<'div'> {
-  agent: {
-    name: string
-    id: string
-    preview_url: string
-  }
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { IconCheck, IconCopy } from '@/components/ui/icons';
+import { useCopyToClipboard } from '@/lib/client/hooks/use-copy-to-clipboard';
+import { isValidUrl } from '@/utils/helpers/urls';
+import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
+
+interface AgentImage {
+  url: string;
+}
+
+interface Agent {
+  images: AgentImage[];
+  name: string;
+  id: string;
+  preview_url: string;
+  author: {
+    name: string;
+  };
+}
+
+interface AgentProps {
+  agent: Agent;
 }
 
 export function AgentProfile({ agent }: AgentProps) {
-  const { agentJoin } = useMultiplayerActions()
+  const { agentJoin } = useMultiplayerActions();
+  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
 
+  const handleCopy = () => {
+    if (!isCopied) {
+      copyToClipboard(agent.id);
+    }
+  };
 
-  console.log(agent)
+  const backgroundImageUrl = agent.images?.[0]?.url || '/images/backgrounds/agents/default-agent-profile-background.jpg';
+  const isPreviewUrlValid = isValidUrl(agent.preview_url);
+  const agentInitial = agent.name.charAt(0).toUpperCase();
 
   return (
-    <div className="w-full mx-auto h-[calc(100vh-68px)]">
-
-      <div className="w-full max-w-6xl mx-auto h-full bg-blue-500 pt-20 relative">
-
-        <div className="flex absolute bottom-0 left-0">
-          {/* <div className="mr-4 mb-4 size-32 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
-            {isValidUrl(agent.preview_url) ? (
-              <Image src={agent?.preview_url} alt="Profile picture" width={160} height={160} />
+    <div
+      className="w-full h-[calc(100vh-68px)] bg-cover bg-center"
+      style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
+    >
+      <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
+        <div className="absolute bottom-16 left-4">
+          <div className="mr-4 mb-4 w-12 h-12 bg-opacity-10 overflow-hidden rounded-2xl flex items-center justify-center">
+            {isPreviewUrlValid ? (
+              <Image
+                src={agent.preview_url}
+                alt="Profile picture"
+                width={160}
+                height={160}
+              />
             ) : (
-              <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
+              <div className="uppercase text-lg font-bold">
+                {agentInitial}
+              </div>
             )}
-          </div> */}
-          
-          <div>
-          <h2 className="text-4xl uppercase font-bold">{agent.name}</h2>
-          <h3 className="text-sm mb-2 bg-gray-800 px-2 py-1">{agent.id}</h3>
-          <h3 className="text-sm mb-4">Created by: {agent?.author?.name}</h3>
-          <Button variant="outline" className="text-xs mb-1" onClick={e => {
-            (async () => { 
-              await agentJoin(agent.id);
-            })();
-          }}>
-            Chat
-          </Button>
           </div>
-
+          <div>
+          <h2 className="text-6xl uppercase font-bold text-stroke">{agent.name}</h2>
+            <div className="flex items-center mb-2">
+              <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
+              <Button variant="ghost" size="icon" onClick={handleCopy}>
+                {isCopied ? <IconCheck /> : <IconCopy />}
+                <span className="sr-only">Copy ID</span>
+              </Button>
+            </div>
+            <h3 className="text-sm mb-4">
+              Created by: {agent.author.name}
+            </h3>
+            <Button
+              variant="outline"
+              className="text-xs mb-1"
+              onClick={() => agentJoin(agent.id)}
+            >
+              Chat
+            </Button>
+          </div>
         </div>
-        
       </div>
-
     </div>
   );
 }
