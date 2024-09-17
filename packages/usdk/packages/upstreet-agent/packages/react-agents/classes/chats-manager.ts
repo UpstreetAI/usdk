@@ -117,6 +117,7 @@ export class ChatsManager extends EventTarget {
       const guid = agent.id;
 
       const conversation = new ConversationObject({
+        agent,
         room,
         endpointUrl,
       });
@@ -196,13 +197,6 @@ export class ChatsManager extends EventTarget {
               _pushInitialPlayer();
 
               const _bindRoomState = () => {
-                const _bindAgent = () => {
-                  conversation.setAgent(this.agent);
-                };
-                _bindAgent();
-        
-                //
-        
                 const _bindScene = () => {
                   const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
                   const { networkedCrdtClient } = headRealm;

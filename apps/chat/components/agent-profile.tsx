@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
+import { useEffect, useState } from 'react'
+import { useSupabase } from '@/lib/hooks/use-supabase'
 
 export interface AgentProps extends React.ComponentProps<'div'> {
   agent: {
@@ -14,6 +16,31 @@ export interface AgentProps extends React.ComponentProps<'div'> {
 
 export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions()
+  const { supabase } = useSupabase();
+  const [rooms, setRooms] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchRooms() {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('chat_specifications')
+        .select('data')
+        .eq('user_id', agent.id);
+    
+      setIsLoading(false);
+
+      if (error) {
+        console.error('Error fetching rooms:', error);
+      } else {
+        const roomIds = data?.map((row: any) => row.data.room); // data contains object having room and endpoint_url
+        setRooms(roomIds || []);
+      }
+    }
+
+    fetchRooms();
+  }, []);
 
   return (
     <div
@@ -36,6 +63,26 @@ export function AgentProfile({ agent }: AgentProps) {
       }}>
         Chat
       </Button>
+      <h3>Rooms</h3>
+      {isLoading ? (
+        <div className="mt-4">
+          Loading Rooms
+        </div>
+      ) : rooms.length > 0 ? (
+        <div className="mt-4">
+          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2">
+            {rooms.map((room) => (
+              <div key={room} className="rounded-md p-2 mb-2 bg-gray-200 dark:bg-gray-700">
+                {room}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <p>This agent is currently not in any room.</p>
+        </div>
+      )}
     </div>
   )
 }
