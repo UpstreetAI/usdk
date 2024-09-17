@@ -96,18 +96,20 @@ export type TtsArgs = {
 
 export type DiscordBotRoomSpec = RegExp | string;
 export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
-export type DiscordBotArgs = {
+export type DiscordBotProps = {
   token: string;
   channels?: DiscordBotRoomSpecs;
   users?: DiscordBotRoomSpecs;
   userWhitelist?: string[];
 };
-export type DiscordBotClientArgs = {
+export type DiscordBotArgs = {
   token: string;
   channels: DiscordBotRoomSpec[];
   users: DiscordBotRoomSpec[];
   userWhitelist: string[];
+  agent: ActiveAgentObject;
 };
+export type DiscordBotClient = any;
 
 // actions
 
@@ -216,7 +218,9 @@ export type Player = {
   getPlayerSpec(): object;
   setPlayerSpec(playerSpec: object): void;
 };
+export type GetHashFn = () => string;
 export type ConversationObject = EventTarget & {
+  getHash: GetHashFn;
   scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
@@ -279,12 +283,12 @@ export type ChatsManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
-export type DiscordBotClient = {
+export type DiscordBot = {
   destroy: () => void;
 };
 export type DiscordManager = EventTarget & {
-  addDiscordBotClient: (args: DiscordBotClientArgs) => DiscordBotClient;
-  removeDiscordBotClient: (client: DiscordBotClient) => void;
+  addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
+  removeDiscordBot: (client: DiscordBot) => void;
   live: () => void;
   destroy: () => void;
 };
