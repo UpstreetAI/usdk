@@ -123,21 +123,26 @@ export const Agent = forwardRef(({
   }, [agent]);
 
   // events bindings
-  useEffect(() => {
+  // conversation managers
+  function bindConversationManager<T extends EventTarget>(conversationManager: T) {
     const onconversationadd = (e: ConversationAddEvent) => {
       setConversations((conversations) => conversations.concat([e.data.conversation]));
     };
-    agent.chatsManager.addEventListener('conversationadd', onconversationadd);
+    conversationManager.addEventListener('conversationadd', onconversationadd);
     const onconversationremove = (e: ConversationRemoveEvent) => {
       setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
     };
-    agent.chatsManager.addEventListener('conversationremove', onconversationremove);
+    conversationManager.addEventListener('conversationremove', onconversationremove);
 
     return () => {
-      agent.chatsManager.removeEventListener('conversationadd', onconversationadd);
-      agent.chatsManager.removeEventListener('conversationremove', onconversationremove);
+      conversationManager.removeEventListener('conversationadd', onconversationadd);
+      conversationManager.removeEventListener('conversationremove', onconversationremove);
     };
-  }, [agent]);
+  }
+  useEffect(() => bindConversationManager(agent.chatsManager), []);
+  useEffect(() => bindConversationManager(agent.discordManager), []);
+
+  // epoch (for re-rendering)
   useEffect(() => {
     const onepochchange = (e: MessageEvent) => {
       setRegistryEpoch((registryEpoch) => registryEpoch + 1);
