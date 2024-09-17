@@ -92,6 +92,23 @@ export type TtsArgs = {
   sampleRate?: number;
 }
 
+// discord
+
+export type DiscordBotRoomSpec = RegExp | string;
+export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
+export type DiscordBotArgs = {
+  token: string;
+  channels?: DiscordBotRoomSpecs;
+  users?: DiscordBotRoomSpecs;
+  userWhitelist?: string[];
+};
+export type DiscordBotClientArgs = {
+  token: string;
+  channels: DiscordBotRoomSpec[];
+  users: DiscordBotRoomSpec[];
+  userWhitelist: string[];
+};
+
 // actions
 
 export type FormattedAttachment = {
@@ -262,6 +279,15 @@ export type ChatsManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
+export type DiscordBotClient = {
+  destroy: () => void;
+};
+export type DiscordManager = EventTarget & {
+  addDiscordBotClient: (args: DiscordBotClientArgs) => DiscordBotClient;
+  removeDiscordBotClient: (client: DiscordBotClient) => void;
+  live: () => void;
+  destroy: () => void;
+};
 export type TaskManager = {
   tick: () => Promise<number>;
 };
@@ -278,6 +304,7 @@ export type ActiveAgentObject = AgentObject & {
   registry: AgentRegistry;
 
   chatsManager: ChatsManager;
+  discordManager: DiscordManager;
   taskManager: TaskManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
@@ -310,7 +337,7 @@ export type ActiveAgentObject = AgentObject & {
   addMemory: (
     text: string,
     content?: any,
-  ) => Promise<void>;
+  ) => Promise<Memory>;
 
   live: () => void;
   destroy: () => void;
