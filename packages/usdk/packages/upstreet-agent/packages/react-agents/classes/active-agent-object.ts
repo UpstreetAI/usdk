@@ -145,10 +145,10 @@ export class ActiveAgentObject extends AgentObject {
       .select('*')
       .eq('user_id', this.id)
       .limit(matchCount);
-    console.log('getMemories 2', {
-      data,
-      error,
-    });
+    // console.log('getMemories 2', {
+    //   data,
+    //   error,
+    // });
     if (!error) {
       return data as Array<Memory>;
     } else {
