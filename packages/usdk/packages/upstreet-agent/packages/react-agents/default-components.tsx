@@ -803,8 +803,8 @@ export const ConversationMessagesPrompt = () => {
 export const CachedMessagesPrompt = () => {
   const cachedMessages = useCachedMessages();
 
-  const formatAttachments = (attachments: Attachment[]) => {
-    if (attachments.length > 0) {
+  const formatAttachments = (attachments?: Attachment[]) => {
+    if (attachments?.length > 0) {
       return attachments.map((attachment) => formatAttachment(attachment));
     } else {
       return undefined;
