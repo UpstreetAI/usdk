@@ -1,0 +1,120 @@
+.ucomIconButton {
+  background: transparent;
+  border: 2px solid transparent;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  color: #000000;
+  font-weight: 600;
+  padding: 0.66rem;
+  font-size: 1.42rem;
+  line-height: 0;
+}
+
+.ucomIconButton.small {
+  padding: 0.42rem;
+}
+
+.ucomIconButton.medium {
+  padding: 0.66rem;
+}
+
+.ucomIconButton.large {
+  padding: 0.90rem;
+}
+
+.ucomIconButton * {
+  z-index: 1;
+  position: relative;
+  stroke-width: 6rem;
+}
+
+.ucomIconButton.shadow {
+  box-shadow: -6px 6px 0px rgba(0, 0, 0, 1);
+}
+
+/* Primary/Default variant styles */
+
+.ucomIconButton,
+.ucomIconButton.primary {
+  background: #ffe477;
+  border: 2px solid #FFFFFF;
+  color: #000000;
+}
+
+.ucomIconButton:hover,
+.ucomIconButton.primary:hover {
+  background: #FFFFFF;
+  border: 2px solid #FFFFFF;
+  color: #000000;
+}
+
+.ucomIconButton.active,
+.ucomIconButton.primary.active {
+  background: #000000;
+  border: 2px solid #000000;
+  color: #FFFFFF;
+}
+
+.ucomIconButton:disabled,
+.ucomIconButton.primary:disabled,
+.ucomIconButton:disabled:hover,
+.ucomIconButton.primary:disabled:hover {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #ffe477;
+  border: 2px solid #FFFFFF;
+  color: #000000;
+}
+
+/* Secondary variant styles */
+
+.ucomIconButton.secondary {
+  background-color: #CFF2FE;
+  border: 2px solid #7CD5F3;
+  color: #000000;
+}
+
+.ucomIconButton.secondary:hover {
+  background-color: #A2E3F9;
+  border: 2px solid #7CD5F3;
+  color: #000000;
+}
+
+.ucomIconButton.secondary.active {
+  background-color: #C96AAF;
+  border: 2px solid #7C2E70;
+  color: #FFFFFF;
+}
+
+/* Ghost variant styles */
+
+.ucomIconButton.ghost {
+  background-color: transparent;
+  border: 2px solid transparent;
+  color: #777777;
+}
+
+.ucomIconButton.ghost:hover {
+  color: #333333;
+}
+
+.ucomIconButton.ghost.active {
+  color: #000000;
+}
+
+.iconShadow {
+  position: absolute;
+  color: #000000;
+  left: 50%;
+  top: 50%;
+  stroke: #000000;
+  stroke-width: 8rem !important;
+  z-index: 0;
+  -webkit-transform: translate(-50%, -50%);;
+  transform: translate(-50%, -50);
+}
+
+.ucomIconButton:hover .iconShadow {
+  display: none;
+}
