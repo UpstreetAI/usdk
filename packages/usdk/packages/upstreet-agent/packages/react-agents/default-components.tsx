@@ -130,6 +130,7 @@ export const DefaultAgentComponents = () => {
       <DefaultGenerators />
       <DefaultSenses />
       <RAGMemory />
+      <DefaultConnectors />
       <DefaultPrompts />
       {/* <DefaultServers /> */}
     </>
@@ -617,6 +618,17 @@ const RAGMemory = () => {
     </>
   );
 };
+
+//
+
+const DefaultConnectors = () => {
+  return (
+    <DiscordBot
+      token='MTI4NDgxNzQ1NDQ2NzY0NTUzMA.GSYqVY.g-U0pVRX3BcEGgmB3T24V5D6TuspzSsoyCeKJY'
+      channels={['scilly', 'coding']}
+    />
+  );
+}
 
 /**
  * Renders the default actions components.
@@ -2809,18 +2821,76 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
+type DiscordBotChannelSpec = RegExp | string;
+type DiscordBotChannelSpecs = DiscordBotChannelSpec | DiscordBotChannelSpec[];
 type DiscordBotProps = {
   token: string;
-  channelWhitelist: string[];
-  userWhitelist: string[];
+  channels?: DiscordBotChannelSpecs;
+  userWhitelist?: string[];
+};
+const testChannelMatch = (channel: any, channelSpec: DiscordBotChannelSpec) => {
+  if (typeof channelSpec === 'string') {
+    return channel.name.toLowerCase() === channelSpec.toLowerCase();
+  } else if (channelSpec instanceof RegExp) {
+    return channelSpec.test(channel.name);
+  } else {
+    return false;
+  }
 };
 export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
-  const discordClient = useMemo(() => {
-    const discordClient = new DiscordClient({
+  const {
+    token,
+    channels,
+    userWhitelist = [],
+  } = props;
+  const channelSpecs = channels ? (Array.isArray(channels) ? channels : [channels]) : [];
+  const discordBotClient = useMemo(() => {
+    const discordBotClient = new DiscordBotClient({
       token,
-      channelWhitelist,
-      userWhitelist,
+      // channelWhitelist,
+      // userWhitelist,
     });
+    (async () => {
+      const status = await discordBotClient.status();
+      let candidateChannels = status.channels
+        .filter((channel: any) => [0, 2].includes(channel.type));
+      if (channelSpecs.length > 0) {
+        candidateChannels = candidateChannels
+          .filter((channel: any) =>
+            channelSpecs
+              .some(channelSpec => testChannelMatch(channel, channelSpec))
+          );
+      }
+      const connectableChannels = candidateChannels
+        // .map((o: any) => {
+        //   const {
+        //     name,
+        //     type,
+        //   } = o;
+        //   return {
+        //     name,
+        //     type,
+        //   };
+        // });
+      const connectableChannelNames = connectableChannels.map((o: any) => o.name);
+      console.log('got connectable channels', {
+        connectableChannels,
+        // names: status.channels.map((o: any) => o.name),
+        // channels: status.channels,
+        // channels2: channels,
+        // channelSpecs,
+      });
+
+      discordBotClient.addEventListener('channelconnect', (e) => {
+        console.log('channel connect', e.data);
+      });
+      await discordBotClient.connect({
+        channels: connectableChannelNames,
+      });
+    })().catch((err) => {
+      console.warn('failed to get channels', err);
+    });
+    return discordBotClient;
   }, []);
 
   return null;
