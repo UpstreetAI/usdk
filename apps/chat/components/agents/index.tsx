@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { AgentList } from './AgentList';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { Button } from '../ui/button';
+import { SkeletonAgentRow } from './AgentRow';
 
 export interface AgentsProps {
   loadmore: boolean
@@ -68,6 +69,17 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   useEffect(() => {
     loadAgents();
   }, []);
+
+  // Render a shimmer effect while loading
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: range }).map((_, index) => (
+          <SkeletonAgentRow key={index} />
+        ))}
+      </div>
+    );
+  }
 
   return agents.length ? (
     <>
