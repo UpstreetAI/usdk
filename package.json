@@ -6,7 +6,8 @@
   "scripts": {
     "chat": "npm run -w @upstreet/chat --",
     "docs": "npm run -w @upstreet/docs --",
-    "usdk": "npm run -w usdk --"
+    "usdk": "npm run -w usdk --",
+    "ucom": "npm run -w ucom --"
   },
   "workspaces": [
     "apps/*",
