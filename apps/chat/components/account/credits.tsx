@@ -1,13 +1,40 @@
 'use client';
 
 import { formatDateStringMoment } from '@/utils/helpers/dates';
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface AgentsProps {
   creditsUsageHistory: any;
 }
 
 export function Credits({ creditsUsageHistory }: AgentsProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10; // we can adjust this here or provide the user option to set the number themselves
+
+
+  const getPageNumbers = () => {
+    const totalPages = Math.ceil(creditsUsageHistory.length / itemsPerPage);
+    const pageNumbers = [];
+    pageNumbers.push(1);
+    for (let i = currentPage; i <= currentPage + 2 && i <= totalPages; i++) {
+      if (i !== 1) {
+        pageNumbers.push(i);
+      }
+    }
+    if (totalPages !== 1 && totalPages !== pageNumbers[pageNumbers.length - 1]) {
+      pageNumbers.push(totalPages);
+    }
+    return pageNumbers;
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = creditsUsageHistory.slice(indexOfFirstItem, indexOfLastItem);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+  const nextPage = () => setCurrentPage(currentPage + 1);
+  const prevPage = () => setCurrentPage(currentPage - 1);
+
   return (
     <div className="m-auto w-full max-w-4xl">
       <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
@@ -32,7 +59,7 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                 </tr>
               </thead>
               <tbody>
-                {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => (
+                {currentItems?.map((creditHistoryItem: any, i: number) => (
                   <tr className="hover:bg-border text-white bg-[rgba(255,255,255,0.1)] mt-1" key={i}>
                     <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
                       {creditHistoryItem?.service}
@@ -51,7 +78,7 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
 
           {/* Mobile View */}
           <div className="md:hidden block space-y-4">
-            {creditsUsageHistory?.map((creditHistoryItem: any, i: number) => (
+            {currentItems?.map((creditHistoryItem: any, i: number) => (
               <div className="bg-[rgba(255,255,255,0.1)] rounded-lg p-4" key={i}>
                 <div className="flex flex-col space-y-2">
                   <div className="text-lg font-bold text-white">
@@ -66,6 +93,34 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="flex justify-center mt-4">
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900"
+              onClick={prevPage}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            {getPageNumbers().map((pageNumber) => (
+              <button
+                key={pageNumber}
+                className={`px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 ${
+                  pageNumber === currentPage ? 'bg-gray-700' : ''
+                }`}
+                onClick={() => paginate(pageNumber)}
+              >
+                {pageNumber}
+              </button>
+            ))}
+            <button
+              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-r hover:bg-gray-900"
+              onClick={nextPage}
+              disabled={indexOfLastItem >= creditsUsageHistory.length}
+            >
+              Next
+            </button>
           </div>
 
         </div>
