@@ -71,7 +71,7 @@ import {
 } from './hooks';
 import { DiscordBotClient } from './lib/discord/discord-client';
 // import type { AppContextValue } from './types';
-import { shuffle, parseCodeBlock, printZodSchema } from './util/util.mjs';
+import { shuffle, parseCodeBlock } from './util/util.mjs';
 import {
   storeItemType,
 } from './util/agent-features.mjs';
@@ -80,7 +80,7 @@ import {
   intervals,
 } from './constants.mjs';
 import {
-  describe,
+  // describe,
   describeJson,
 } from './util/vision.mjs';
 import {
