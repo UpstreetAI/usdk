@@ -1,7 +1,7 @@
 'use client';
 
 import { formatDateStringMoment } from '@/utils/helpers/dates';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export interface AgentsProps {
   creditsUsageHistory: any;
@@ -9,8 +9,8 @@ export interface AgentsProps {
 
 export function Credits({ creditsUsageHistory }: AgentsProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // we can adjust this here or provide the user option to set the number themselves
-
+  const [viewMode, setViewMode] = useState('paginated'); // 'paginated' or 'infinite'
+  const itemsPerPage = 10;
 
   const getPageNumbers = () => {
     const totalPages = Math.ceil(creditsUsageHistory.length / itemsPerPage);
@@ -29,11 +29,31 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = creditsUsageHistory.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = viewMode === 'paginated'
+    ? creditsUsageHistory.slice(indexOfFirstItem, indexOfLastItem)
+    : creditsUsageHistory;
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
   const nextPage = () => setCurrentPage(currentPage + 1);
   const prevPage = () => setCurrentPage(currentPage - 1);
+
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
+    setCurrentPage(prevPage => prevPage + 1);
+  };
+
+  useEffect(() => {
+    if (viewMode === 'infinite') {
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode === 'infinite') {
+      setCurrentPage(1); // Reset to show all items
+    }
+  }, [viewMode]);
 
   return (
     <div className="m-auto w-full max-w-4xl">
@@ -44,10 +64,15 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
         <p className="max-w-2xl m-auto md:mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
           Overall credits usage history.
         </p>
+        <button
+          className="ml-auto px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded hover:bg-gray-900"
+          onClick={() => setViewMode(viewMode === 'paginated' ? 'infinite' : 'paginated')}
+        >
+          Switch to {viewMode === 'paginated' ? 'Infinite Scroll' : 'Paginated View'}
+        </button>
       </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
-
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -95,34 +120,35 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
             ))}
           </div>
 
-          <div className="flex justify-center mt-4">
-            <button
-              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900"
-              onClick={prevPage}
-              disabled={currentPage === 1}
-            >
-              Prev
-            </button>
-            {getPageNumbers().map((pageNumber) => (
+          {viewMode === 'paginated' && (
+            <div className="flex justify-center mt-4">
               <button
-                key={pageNumber}
-                className={`px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 ${
-                  pageNumber === currentPage ? 'bg-gray-700' : ''
-                }`}
-                onClick={() => paginate(pageNumber)}
+                className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900"
+                onClick={prevPage}
+                disabled={currentPage === 1}
               >
-                {pageNumber}
+                Prev
               </button>
-            ))}
-            <button
-              className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-r hover:bg-gray-900"
-              onClick={nextPage}
-              disabled={indexOfLastItem >= creditsUsageHistory.length}
-            >
-              Next
-            </button>
-          </div>
-
+              {getPageNumbers().map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  className={`px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 ${
+                    pageNumber === currentPage ? 'bg-gray-700' : ''
+                  }`}
+                  onClick={() => paginate(pageNumber)}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+              <button
+                className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-r hover:bg-gray-900"
+                onClick={nextPage}
+                disabled={indexOfLastItem >= creditsUsageHistory.length}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
