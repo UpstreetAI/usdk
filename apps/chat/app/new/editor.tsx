@@ -719,6 +719,28 @@ export default function AgentEditor({
     },
   });
 
+  const handleClear = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    clearLocalStorage();
+    setName('');
+    setBio('');
+    setVisualDescription('');
+    setHomespaceDescription('');
+    setPreviewBlob(null);
+    setPreviewUrl('');
+    setHomespaceBlob(null);
+    setHomespaceUrl('');
+    setFeatures({
+      tts: null,
+      rateLimit: null,
+      storeItems: null,
+    });
+    setSourceCode('');
+    setBuilderMessages([]);
+  }
+
   // render
   return (
     <div className="flex flex-1">
@@ -995,6 +1017,7 @@ export default function AgentEditor({
               }}
               disabled={deploying}
             >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+            <Button onClick={handleClear} disabled={deploying}>Clear</Button>
           </div>
         </div>
         <div className="flex flex-col">
