@@ -22,6 +22,9 @@ import {
   ChatsManager,
 } from './chats-manager';
 import {
+  DiscordManager,
+} from './discord-manager';
+import {
   TaskManager,
 } from './task-manager';
 import { PingManager } from './ping-manager';
@@ -36,6 +39,7 @@ export class ActiveAgentObject extends AgentObject {
   registry: AgentRegistry;
   // state
   chatsManager: ChatsManager;
+  discordManager: DiscordManager;
   taskManager: TaskManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
@@ -197,10 +201,12 @@ export class ActiveAgentObject extends AgentObject {
   }
   live() {
     this.chatsManager.live();
+    this.discordManager.live();
     this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
+    this.discordManager.destroy();
     this.pingManager.destroy();
   }
 }
