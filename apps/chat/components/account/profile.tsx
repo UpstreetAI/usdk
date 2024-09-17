@@ -23,6 +23,7 @@ import {
 } from '@/components/aux-images';
 
 import DevMode from '@/components/development';
+import { IconSpinner } from '../ui/icons';
 
 export interface ProfileProps {
   user: any,
@@ -51,6 +52,7 @@ export function Profile({
     _setVisualDescription(visualDescription);
     // user.playerSpec.visualDescription = visualDescription;
   };
+  const [isGeneratingPfp, setIsGeneratingPfp] = useState(false);
 
   const saveInfo = async () => {
     const o = {
@@ -153,6 +155,9 @@ export function Profile({
     }
   };
   const generatePfp = async () => {
+
+    setIsGeneratingPfp(true);
+
     await ensureAutofill();
 
     const prompt = visualDescription;
@@ -174,6 +179,7 @@ export function Profile({
       },
       body: blob,
     });
+
     const imgUrl = await res.json();
     console.log('uploaded image', imgUrl);
     // update the rendered user
@@ -181,6 +187,8 @@ export function Profile({
       ...user,
       preview_url: imgUrl,
     }));
+    setIsGeneratingPfp(false);
+
     // save the image to the account
     const result = await supabase
       .from('accounts')
@@ -218,8 +226,15 @@ export function Profile({
               />
               <Button
                 onClick={generatePfp}
+                disabled={isGeneratingPfp}
+                className={`flex items-center ${
+                  isGeneratingPfp ? 'opacity-75 cursor-not-allowed' : 'opacity-100 hover:bg-zinc-700'
+                }`}
               >
-                Generate
+                {isGeneratingPfp ? (
+                  <IconSpinner className="w-5 h-5 mr-2" />
+                ) : null}
+                {isGeneratingPfp ? 'Generating...' : 'Generate'}
               </Button>
             </div>
             <div className='flex flex-col w-full mt-4 md:mt-0 items-end'>
