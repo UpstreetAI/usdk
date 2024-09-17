@@ -93,7 +93,7 @@ export function AgentProfile({ agent }: AgentProps) {
             <h2 className="text-6xl uppercase font-bold text-stroke">{agent.name}</h2>
             <div className="flex items-center mb-2">
               <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
-              <Button variant="ghost" size="icon" onClick={handleCopy}>
+              <Button variant="ghost" size="medium" onClick={handleCopy}>
                 {isCopied ? <IconCheck /> : <IconCopy />}
                 <span className="sr-only">Copy ID</span>
               </Button>
