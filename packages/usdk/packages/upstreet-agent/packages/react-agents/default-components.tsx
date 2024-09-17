@@ -29,6 +29,10 @@ import type {
   FormattedAttachment,
   AgentThinkOptions,
   GenerativeAgentObject,
+  DiscordBotRoomSpec,
+  DiscordBotRoomSpecs,
+  DiscordBotArgs,
+  DiscordBotClientArgs,
 } from './types';
 import {
   AppContext,
@@ -2822,14 +2826,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-type DiscordBotRoomSpec = RegExp | string;
-type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
-type DiscordBotProps = {
-  token: string;
-  channels?: DiscordBotRoomSpecs;
-  users?: DiscordBotRoomSpecs;
-  userWhitelist?: string[];
-};
+type DiscordBotProps = DiscordBotArgs;
 const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec) => {
   if (typeof channelSpec === 'string') {
     return channelName.toLowerCase() === channelSpec.toLowerCase();
@@ -2840,6 +2837,32 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
   }
 };
 export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+  const agent = useAgent();
+
+  // destination type:
+  const normalizeArgs = (args: DiscordBotArgs): DiscordBotClientArgs => {
+    const {
+      token,
+      channels,
+      users,
+      userWhitelist,
+    } = args;
+    return {
+      token,
+      channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
+      users: users ? (Array.isArray(users) ? users : [users]) : [],
+      userWhitelist,
+    };
+  };
+
+  useEffect(() => {
+    const args = normalizeArgs(props);
+    const discordBotClient = agent.discordManager.addDiscordBotClient(args);
+    return () => {
+      agent.discordManager.removeDiscordBotClient(discordBotClient);
+    };
+  }, []);
+
   // console.log('discord bot component', props);
   const {
     token,
