@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react'
-import { useSupabase } from '@/lib/hooks/use-supabase'
+import { useEffect, useState } from 'react';
+import { useSupabase } from '@/lib/hooks/use-supabase';
 import Image from 'next/image';
-import { Button } from '@/components/ui/button';
 import { IconCheck, IconCopy } from '@/components/ui/icons';
 import { useCopyToClipboard } from '@/lib/client/hooks/use-copy-to-clipboard';
 import { isValidUrl } from '@/utils/helpers/urls';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
+import { IconButton, Button } from 'ucom';
+import useHash from '@/lib/hooks/use-hash';
 
 interface AgentImage {
   url: string;
@@ -29,7 +30,11 @@ interface AgentProps {
 
 export function AgentProfile({ agent }: AgentProps) {
   const { agentJoin } = useMultiplayerActions();
+  const [tab, setTab] = useHash('feed');
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
+  const { supabase } = useSupabase();
+  const [rooms, setRooms] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleCopy = () => {
     if (!isCopied) {
@@ -40,32 +45,28 @@ export function AgentProfile({ agent }: AgentProps) {
   const backgroundImageUrl = agent.images?.[0]?.url || '/images/backgrounds/agents/default-agent-profile-background.jpg';
   const isPreviewUrlValid = isValidUrl(agent.preview_url);
   const agentInitial = agent.name.charAt(0).toUpperCase();
-  
-  const { supabase } = useSupabase();
-  const [rooms, setRooms] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchRooms() {
       setIsLoading(true);
-      
+
       const { data, error } = await supabase
         .from('chat_specifications')
         .select('data')
         .eq('user_id', agent.id);
-    
+
       setIsLoading(false);
 
       if (error) {
         console.error('Error fetching rooms:', error);
       } else {
-        const roomIds = data?.map((row: any) => row.data.room); // data contains object having room and endpoint_url
+        const roomIds = data?.map((row: any) => row.data.room);
         setRooms(roomIds || []);
       }
     }
 
     fetchRooms();
-  }, []);
+  }, [agent.id, supabase]);
 
   return (
     <div
@@ -73,7 +74,6 @@ export function AgentProfile({ agent }: AgentProps) {
       style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
     >
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
-
         <div className="absolute bottom-16 left-4">
           <div className="mr-4 mb-4 w-12 h-12 bg-opacity-10 overflow-hidden rounded-2xl flex items-center justify-center">
             {isPreviewUrlValid ? (
@@ -90,7 +90,7 @@ export function AgentProfile({ agent }: AgentProps) {
             )}
           </div>
           <div>
-          <h2 className="text-6xl uppercase font-bold text-stroke">{agent.name}</h2>
+            <h2 className="text-6xl uppercase font-bold text-stroke">{agent.name}</h2>
             <div className="flex items-center mb-2">
               <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
               <Button variant="ghost" size="icon" onClick={handleCopy}>
@@ -101,38 +101,15 @@ export function AgentProfile({ agent }: AgentProps) {
             <h3 className="text-sm mb-4">
               Created by: {agent.author.name}
             </h3>
-            <Button
-              variant="outline"
-              className="text-xs mb-1"
-              onClick={() => agentJoin(agent.id)}
-            >
-              Chat
-            </Button>
+            <div className="flex gap-4">
+              <Button onClick={() => agentJoin(agent.id)}>Chat</Button>
+              <IconButton onClick={() => setTab('feed')} active={tab === 'feed'} icon="Info" size="small" variant="primary" />
+              <IconButton onClick={() => setTab('rooms')} active={tab === 'rooms'} icon="Room" size="small" variant="primary" />
+            </div>
           </div>
         </div>
 
-        <div className='asolute top-0 right-0'>
-        <h3>Rooms</h3>
-      {isLoading ? (
-        <div className="mt-4">
-          Loading Rooms
-        </div>
-      ) : rooms.length > 0 ? (
-        <div className="mt-4">
-          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md p-2">
-            {rooms.map((room) => (
-              <div key={room} className="rounded-md p-2 mb-2 bg-gray-200 dark:bg-gray-700">
-                {room}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <p>This agent is currently not in any room.</p>
-        </div>
-      )}
-          </div>
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-white bg-opacity-90 p-4 overflow-y-auto"></div>
       </div>
     </div>
   );
