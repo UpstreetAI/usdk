@@ -16,6 +16,10 @@ import type {
   StoreItem,
   PaymentProps,
   SubscriptionProps,
+  ActionPropsAux,
+  ActionModifierPropsAux,
+  PerceptionPropsAux,
+  PerceptionModifierPropsAux,
 } from '../types';
 
 //
@@ -58,11 +62,11 @@ export class AgentRegistry {
   prompts: PromptProps[] = [];
 
   // set to null to maintain registration order
-  actionsMap: Map<symbol, ActionProps | null> = new Map();
-  actionModifiersMap: Map<symbol, ActionModifierProps | null> = new Map();
+  actionsMap: Map<symbol, ActionPropsAux | null> = new Map();
+  actionModifiersMap: Map<symbol, ActionModifierPropsAux | null> = new Map();
+  perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
+  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
-  perceptionsMap: Map<symbol, PerceptionProps | null> = new Map();
-  perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
 
   namesMap: Map<symbol, NameProps | null> = new Map();
@@ -103,23 +107,41 @@ export class AgentRegistry {
     return Array.from(this.serversMap.values()).filter(Boolean);
   }
 
-  registerAction(key: symbol, action: ActionProps) {
+  registerAction(key: symbol, action: ActionPropsAux) {
     const actionExists = Array.from(this.actionsMap.values())
-      .some((a) => a?.name === action.name);
+      .some((a) => {
+        if (a) {
+          return a.name === action.name && a.conversation === action.conversation;
+        } else {
+          return false;
+        }
+      });
     if (!actionExists) {
       this.actionsMap.set(key, action);
     } else {
-      throw new Error(`Duplicate action with name ${JSON.stringify(action.name)}`);
+      throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
     }
   }
   unregisterAction(key: symbol) {
     this.actionsMap.set(key, null);
   }
-  registerActionModifier(key: symbol, action: ActionModifierProps) {
+  registerActionModifier(key: symbol, action: ActionModifierPropsAux) {
     this.actionModifiersMap.set(key, action);
   }
   unregisterActionModifier(key: symbol) {
     this.actionModifiersMap.set(key, null);
+  }
+  registerPerception(key: symbol, perception: PerceptionPropsAux) {
+    this.perceptionsMap.set(key, perception);
+  }
+  unregisterPerception(key: symbol) {
+    this.perceptionsMap.set(key, null);
+  }
+  registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux) {
+    this.perceptionModifiersMap.set(key, perception);
+  }
+  unregisterPerceptionModifier(key: symbol) {
+    this.perceptionModifiersMap.set(key, null);
   }
   registerFormatter(key: symbol, formatter: FormatterProps) {
     const formatterExists = Array.from(this.formattersMap.values())
@@ -132,18 +154,6 @@ export class AgentRegistry {
   }
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
-  }
-  registerPerception(key: symbol, perception: PerceptionProps) {
-    this.perceptionsMap.set(key, perception);
-  }
-  unregisterPerception(key: symbol) {
-    this.perceptionsMap.set(key, null);
-  }
-  registerPerceptionModifier(key: symbol, perception: PerceptionModifierProps) {
-    this.perceptionModifiersMap.set(key, perception);
-  }
-  unregisterPerceptionModifier(key: symbol) {
-    this.perceptionModifiersMap.set(key, null);
   }
   registerTask(key: symbol, task: TaskProps) {
     this.tasksMap.set(key, task);
