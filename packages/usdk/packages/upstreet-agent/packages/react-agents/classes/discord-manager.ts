@@ -31,7 +31,7 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
 
 //
 
-export class DiscordBot {
+export class DiscordBot extends EventTarget{
   id: string;
   token: string;
   channels: DiscordBotRoomSpec[];
@@ -42,6 +42,8 @@ export class DiscordBot {
   conversation: ConversationObject;
   abortController: AbortController;
   constructor(args: DiscordBotArgs) {
+    super();
+
     // bookkeeping
     this.id = crypto.randomUUID();
 
@@ -68,6 +70,12 @@ export class DiscordBot {
         return `discord:${this.id}`;
       },
     });
+    // XXX move this dispatch to the new conversation construction time
+    this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
+      data: {
+        conversation: this.conversation,
+      },
+    }));
 
     // abort controller
     this.abortController = new AbortController();
@@ -168,6 +176,7 @@ export class DiscordBot {
           userId,
           username,
           text,
+          channelId, // if there is no channelId, it's a DM
         } = e.data;
         const rawMessage = {
           method: 'say',
@@ -188,13 +197,15 @@ export class DiscordBot {
     const _bindOutgoing = () => {
       // chat messages
       this.conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-        const { message } = e.data;
-        if (realms.isConnected()) {
-          realms.sendChatMessage(message);
-        }
+        // XXX look up this conversation's discord bot channel/dm, and writeText to it
+        // const { message } = e.data;
+        // if (realms.isConnected()) {
+        //   realms.sendChatMessage(message);
+        // }
       });
       // audio
       this.conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+        // XXX finish this
         console.log('conversation outgoing audio stream', e.data);
         // const audioStream = e.data.audioStream as PlayableAudioStream;
         // (async () => {
@@ -238,29 +249,22 @@ export class DiscordManager extends EventTarget {
   addDiscordBot(args: DiscordBotArgs) {
     const discordBotClient = new DiscordBot(args);
 
-    {
-      // emit conversation add event
-      const conversation = discordBotClient.getConversation();
+    // bind events
+    discordBotClient.addEventListener('conversationadd', (e: MessageEvent<ConversationAddEventData>) => {
       this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-        data: {
-          conversation,
-        },
+        data: e.data,
       }));
-    }
+    });
+    discordBotClient.addEventListener('conversationremove', (e: MessageEvent<ConversationRemoveEventData>) => {
+      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+        data: e.data,
+      }));
+    });
 
     return discordBotClient;
   }
   removeDiscordBot(client: DiscordBot) {
-    {
-      // emit conversation remove event
-      const conversation = client.getConversation();
-      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-        data: {
-          conversation,
-        },
-      }));
-    }
-
+    // this should trigger conversationremove events
     client.destroy();
   }
   live() {

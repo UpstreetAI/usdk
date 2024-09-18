@@ -287,7 +287,7 @@ export type ChatsManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
-export type DiscordBot = {
+export type DiscordBot = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = EventTarget & {
