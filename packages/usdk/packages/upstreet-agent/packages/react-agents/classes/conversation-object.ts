@@ -123,7 +123,7 @@ export class ConversationObject extends EventTarget {
   }
 
   getKey() {
-    return this.getHash(this);
+    return this.getHash();
   }
 
   #getAllMessages() {
