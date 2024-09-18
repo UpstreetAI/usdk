@@ -1063,6 +1063,46 @@ export default function AgentEditor({
               </label>
             </div>}
           </div>
+          {/* discord bot */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.discordBot} onChange={e => {
+                setFeatures({
+                  ...features,
+                  discordBot: e.target.checked ? makeDefaultDiscordBot() : null,
+                });
+              }} />
+              <div className="px-2">Discord bot</div>
+            </label>
+            {features.discordBot && <div className="flex flex-col">
+              {/* token */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Token</div>
+                <input type="text" value={features.discordBot.token} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    discordBot: {
+                      token: e.target.value,
+                      channels: features.discordBot?.channels ?? '',
+                    },
+                  }));
+                }} placeholder="<bot token>" required />
+              </label>
+              {/* channels */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Channels</div>
+                <input type="text" value={features.discordBot.channels} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    discordBot: {
+                      token: features.discordBot?.token ?? '',
+                      channels: e.target.value,
+                    },
+                  }));
+                }} placeholder="text, voice" required />
+              </label>
+            </div>}
+          </div>
           {/* store */}
           <div className="flex flex-col">
             <label className="flex">
@@ -1163,46 +1203,6 @@ export default function AgentEditor({
                   </div>
                 );
               })}
-            </div>}
-          </div>
-          {/* discord bot */}
-          <div className="flex flex-col">
-            <label className="flex">
-              <input type="checkbox" checked={!!features.discordBot} onChange={e => {
-                setFeatures({
-                  ...features,
-                  discordBot: e.target.checked ? makeDefaultDiscordBot() : null,
-                });
-              }} />
-              <div className="px-2">Discord bot</div>
-            </label>
-            {features.discordBot && <div className="flex flex-col">
-              {/* token */}
-              <label className="flex">
-                <div className="mr-2 min-w-32">Token</div>
-                <input type="text" value={features.discordBot.token} onChange={e => {
-                  setFeatures(features => ({
-                    ...features,
-                    discordBot: {
-                      token: e.target.value,
-                      channels: features.discordBot?.channels ?? '',
-                    },
-                  }));
-                }} placeholder="<bot token>" />
-              </label>
-              {/* channels */}
-              <label className="flex">
-                <div className="mr-2 min-w-32">Channels</div>
-                <input type="text" value={features.discordBot.channels} onChange={e => {
-                  setFeatures(features => ({
-                    ...features,
-                    discordBot: {
-                      token: features.discordBot?.token ?? '',
-                      channels: e.target.value,
-                    },
-                  }));
-                }} placeholder="text, voice" />
-              </label>
             </div>}
           </div>
         </div>
