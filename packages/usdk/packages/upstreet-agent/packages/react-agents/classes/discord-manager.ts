@@ -247,21 +247,21 @@ export class DiscordBot extends EventTarget{
 }
 export class DiscordManager extends EventTarget {
   addDiscordBot(args: DiscordBotArgs) {
-    const discordBotClient = new DiscordBot(args);
+    const discordBot = new DiscordBot(args);
 
-    // bind events
-    discordBotClient.addEventListener('conversationadd', (e: MessageEvent<ConversationAddEventData>) => {
+    // route conversation events: discord bot -> discord manager
+    discordBot.addEventListener('conversationadd', (e: MessageEvent<ConversationAddEventData>) => {
       this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
         data: e.data,
       }));
     });
-    discordBotClient.addEventListener('conversationremove', (e: MessageEvent<ConversationRemoveEventData>) => {
+    discordBot.addEventListener('conversationremove', (e: MessageEvent<ConversationRemoveEventData>) => {
       this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
         data: e.data,
       }));
     });
 
-    return discordBotClient;
+    return discordBot;
   }
   removeDiscordBot(client: DiscordBot) {
     // this should trigger conversationremove events
