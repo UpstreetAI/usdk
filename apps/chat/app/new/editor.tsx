@@ -39,7 +39,6 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-// import { createBrowser, testBrowser } from 'react-agents/util/create-browser.mjs';
 
 import * as esbuild from 'esbuild-wasm';
 import {
@@ -229,13 +228,11 @@ export default function AgentEditor({
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
 
   const [builderPrompt, setBuilderPrompt] = useState('');
-  // const [agentPrompt, setAgentPrompt] = useState('');
 
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
   const builderForm = useRef<HTMLFormElement>(null);
-  // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
   const [voices, setVoices] = useState(() => defaultVoices.slice());
@@ -247,18 +244,6 @@ export default function AgentEditor({
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
   const monaco = useMonaco();
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const jwt = await getJWT();
-  //     (globalThis as any).testBrowser = async () => {
-  //       return await testBrowser({
-  //         jwt,
-  //       });
-  //     };
-  //     console.log('test initialized');
-  //   })();
-  // }, []);
 
   // effects
   // sync previewBlob -> previewUrl
