@@ -231,6 +231,7 @@ export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
     props.name,
@@ -238,10 +239,15 @@ export const Action = /*memo(*/(props: ActionProps) => {
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
     props.handler?.toString() ?? '',
+    conversation,
   ];
 
   useEffect(() => {
-    agentRegistry.registerAction(symbol, props);
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerAction(symbol, props2);
     return () => {
       agentRegistry.unregisterAction(symbol);
     };
@@ -257,6 +263,7 @@ export const ActionModifier = /*memo(*/(props: ActionModifierProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
     props.name,
@@ -265,7 +272,11 @@ export const ActionModifier = /*memo(*/(props: ActionModifierProps) => {
   ];
 
   useEffect(() => {
-    agentRegistry.registerActionModifier(symbol, props);
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerActionModifier(symbol, props2);
     return () => {
       agentRegistry.unregisterActionModifier(symbol);
     };
@@ -317,6 +328,7 @@ export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
     props.type,
@@ -324,7 +336,11 @@ export const Perception = /*memo(*/(props: PerceptionProps) => {
   ];
 
   useEffect(() => {
-    agentRegistry.registerPerception(symbol, props);
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerPerception(symbol, props2);
     return () => {
       agentRegistry.unregisterPerception(symbol);
     };
@@ -339,6 +355,7 @@ export const PerceptionModifier = /*memo(*/(props: PerceptionModifierProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
     props.type,
@@ -347,7 +364,11 @@ export const PerceptionModifier = /*memo(*/(props: PerceptionModifierProps) => {
   ];
 
   useEffect(() => {
-    agentRegistry.registerPerceptionModifier(symbol, props);
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerPerceptionModifier(symbol, props2);
     return () => {
       agentRegistry.unregisterPerceptionModifier(symbol);
     };

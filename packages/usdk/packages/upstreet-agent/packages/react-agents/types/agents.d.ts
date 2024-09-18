@@ -427,10 +427,16 @@ export type ActionProps = {
   examples: Array<object>,
   handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
 };
+export type ActionPropsAux = ActionProps & {
+  conversation: ConversationObject;
+};
 export type ActionModifierProps = {
   name: string;
   handler: ((e: AbortableActionEvent) => void) | ((e: AbortableActionEvent) => Promise<void>);
   priority?: number;
+};
+export type ActionModifierPropsAux = ActionModifierProps & {
+  conversation: ConversationObject;
 };
 export type PromptProps = {
   children: ReactNode;
@@ -443,10 +449,16 @@ export type PerceptionProps = {
   type: string;
   handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
 };
+export type PerceptionPropsAux = PerceptionProps & {
+  conversation: ConversationObject;
+};
 export type PerceptionModifierProps = {
   type: string;
   handler: ((e: AbortablePerceptionEvent) => void) | ((e: AbortablePerceptionEvent) => Promise<void>);
   priority?: number;
+};
+export type PerceptionModifierPropsAux = PerceptionModifierProps & {
+  conversation?: ConversationObject;
 };
 export enum TaskResultEnum {
   Schedule = 'schedule',
@@ -552,27 +564,27 @@ export type AgentRegistry = {
   
   serversMap: Map<symbol, ServerProps | null>;
 
-  get actions(): ActionProps[];
-  get actionModifiers(): ActionModifierProps[];
+  get actions(): ActionPropsAux[];
+  get actionModifiers(): ActionModifierPropsAux[];
+  get perceptions(): PerceptionPropsAux[];
+  get perceptionModifiers(): PerceptionModifierPropsAux[];
   get formatters(): FormatterProps[];
-  get perceptions(): PerceptionProps[];
-  get perceptionModifiers(): PerceptionModifierProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];
   get storeItems(): StoreItem[];
   get servers(): ServerProps[];
 
-  registerAction(key: symbol, action: ActionProps): void;
+  registerAction(key: symbol, action: ActionPropsAux): void;
   unregisterAction(key: symbol): void;
-  registerActionModifier(key: symbol, action: ActionModifierProps): void;
+  registerActionModifier(key: symbol, action: ActionModifierPropsAux): void;
   unregisterActionModifier(key: symbol): void;
+  registerPerception(key: symbol, perception: PerceptionPropsAux): void;
+  unregisterPerception(key: symbol): void;
+  registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux): void;
+  unregisterPerceptionModifier(key: symbol): void;
   registerFormatter(key: symbol, formatter: FormatterProps): void;
   unregisterFormatter(key: symbol): void;
-  registerPerception(key: symbol, perception: PerceptionProps): void;
-  unregisterPerception(key: symbol): void;
-  registerPerceptionModifier(key: symbol, perception: PerceptionModifierProps): void;
-  unregisterPerceptionModifier(key: symbol): void;
   registerTask(key: symbol, task: TaskProps): void;
   unregisterTask(key: symbol): void;
   registerName(key: symbol, name: NameProps): void;
