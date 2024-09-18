@@ -125,6 +125,49 @@ export const featureSpecs = [
     ],
   },
   {
+    name: 'discordBot',
+    description: dedent`\
+      Add a Discord bot to the agent.
+
+      The user should follow these instructions to set up their bot:
+      - Create a bot application at https://discord.com/developers/applications and note the CLIENT_ID (also called "application id")
+      - Enable Privileged Gateway Intents at https://discord.com/developers/applications/CLIENT_ID/bot
+      - Add the bot to your server at https://discord.com/oauth2/authorize/?permissions=-2080908480&scope=bot&client_id=CLIENT_ID
+      - Get the bot token at https://discord.com/developers/applications/CLIENT_ID/bot
+      The token is required and must be provided.
+
+      \`channels\` is an optional list of channel names (text or voice) that the agent should join. Otherwise, the agent will join all channels.
+    `,
+    schema: z.union([
+      z.object({
+        token: z.string(),
+        channels: z.array(z.string()).optional(),
+      }),
+      z.null(),
+    ]),
+    imports: (discordBot) => {
+      if (discordBot.token) {
+        return ['DiscordBot'];
+      } else {
+        return [];
+      }
+    },
+    components: (discordBot) => {
+      if (discordBot.token) {
+        return [
+          dedent`
+            <DiscordBot
+              token={${JSON.stringify(discordBot.token)}}
+              ${discordBot.channels ? `channels={${JSON.stringify(discordBot.channels.split(',').map(c => c.trim()))}}` : ''}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
     name: 'storeItems',
     description: dedent`\
       List of items that can be purchased from the agent, with associated prices.
