@@ -39,13 +39,11 @@ export class DiscordBot extends EventTarget {
   userWhitelist: string[];
   agent: ActiveAgentObject;
   discordBotClient: DiscordBotClient;
-  conversation: ConversationObject;
+  channelConversations: Map<string, ConversationObject>; // channelId -> conversation
+  dmConversations: Map<string, ConversationObject>; // userId -> conversation
   abortController: AbortController;
   constructor(args: DiscordBotArgs) {
     super();
-
-    // bookkeeping
-    this.id = crypto.randomUUID();
 
     // arguments
     const {
@@ -61,22 +59,6 @@ export class DiscordBot extends EventTarget {
     this.userWhitelist = userWhitelist;
     this.agent = agent;
 
-    // XXX should be one conversation per channel
-    // XXX and it should be rendered out in the agent
-    // conversation
-    this.conversation = new ConversationObject({
-      agent,
-      getHash: () => {
-        return `discord:${this.id}`;
-      },
-    });
-    // XXX move this dispatch to the new conversation construction time
-    this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-      data: {
-        conversation: this.conversation,
-      },
-    }));
-
     // abort controller
     this.abortController = new AbortController();
     const { signal } = this.abortController;
@@ -89,6 +71,9 @@ export class DiscordBot extends EventTarget {
     signal.addEventListener('abort', () => {
       discordBotClient.destroy();
     });
+
+    this.channelConversations = new Map();
+    this.dmConversations = new Map();
 
     // connect discord bot client
     const _connect = async () => {
@@ -134,20 +119,39 @@ export class DiscordBot extends EventTarget {
           id: channelId,
           type,
         } = channel;
-        console.log('connected to channel', e.data, {
+        console.log('channelconnect', e.data, {
           channelId,
           type,
         });
         if (type === 0) { // text channel
-          console.log('write text to channel', {
-            channelId,
+          const conversation = new ConversationObject({
+            agent,
+            getHash: () => {
+              return `discord:channel:${channelId}`;
+            },
           });
-          const text = `hi there!`;
-          discordBotClient.input.writeText(text, {
-            channelId,
+          this.channelConversations.set(channelId, conversation);
+
+          bindAgentConversation({
+            agent,
+            conversation,
           });
-        } else if (type === 2) { // voice channel
-          // nothing
+
+          this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
+            data: {
+              conversation,
+            },
+          }));
+
+          // console.log('write text to channel', {
+          //   channelId,
+          // });
+          // const text = `hi there!`;
+          // discordBotClient.input.writeText(text, {
+          //   channelId,
+          // });
+        // } else if (type === 2) { // voice channel
+        //   // nothing
         }
       });
       discordBotClient.addEventListener('dmconnect', (e: MessageEvent<{user: any}>) => {
@@ -157,38 +161,75 @@ export class DiscordBot extends EventTarget {
         const {
           id: userId,
         } = user;
-        console.log('write text to user', {
-          userId,
+
+        const conversation = new ConversationObject({
+          agent,
+          getHash: () => {
+            return `discord:dm:${userId}`;
+          },
         });
-        const text = `hiya!!`;
-        discordBotClient.input.writeText(text, {
-          userId,
+        this.dmConversations.set(userId, conversation);
+
+        bindAgentConversation({
+          agent,
+          conversation,
         });
+
+        this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
+          data: {
+            conversation,
+          },
+        }));
+
+        // console.log('write text to user', {
+        //   userId,
+        // });
+        // const text = `hiya!!`;
+        // discordBotClient.input.writeText(text, {
+        //   userId,
+        // });
       });
     };
     const _bindIncoming = () => {
       // chat messages
-      discordBotClient.addEventListener('text', async (e) => {
+      discordBotClient.addEventListener('text', async (e: MessageEvent) => {
         const {
           userId,
           username,
           text,
           channelId, // if there is no channelId, it's a DM
+          // XXX this can be made more explicit with a type: string field...
         } = e.data;
-        const rawMessage = {
-          method: 'say',
-          args: {
-            text,
-          },
-        };
-        const agent = {
-          id: userId,
-          name: username,
-        };
-        const newMessage = formatConversationMessage(rawMessage, {
-          agent,
-        });
-        await this.conversation.addLocalMessage(newMessage);
+
+        // look up conversation
+        let conversation: ConversationObject | null = null;
+        if (channelId) {
+          conversation = this.channelConversations.get(channelId) ?? null;
+        } else {
+          conversation = this.dmConversations.get(userId) ?? null;
+        }
+        if (conversation) {
+          const rawMessage = {
+            method: 'say',
+            args: {
+              text,
+            },
+          };
+          const agent = {
+            id: userId,
+            name: username,
+          };
+          const newMessage = formatConversationMessage(rawMessage, {
+            agent,
+          });
+          await conversation.addLocalMessage(newMessage);
+        } else {
+          console.warn('got message for unknown conversation', {
+            data: e.data,
+            channelConversations: this.channelConversations,
+            dmConversations: this.dmConversations,
+          });
+        }
       });
     };
     const _bindOutgoing = () => {
@@ -215,32 +256,21 @@ export class DiscordBot extends EventTarget {
       });
       // typing
       this.conversation.addEventListener('typingstart', (e) => {
+        // XXX sendTyping needs an object with { channelId | userId }
         discordBotClient.sendTyping(); // expires after 10 seconds
       });
       // this.conversation.addEventListener('typingend', (e) => {
       // });
-    };
-    const _bindAgent = () => {
-      bindAgentConversation({
-        agent,
-        conversation: this.conversation,
-      });
     };
 
     (async () => {
       _bindChannels();
       _bindIncoming();
       _bindOutgoing();
-      _bindAgent();
       await _connect();
     })();
   }
-  // XXX get rid of this
-  getConversation() {
-    return this.conversation;
-  }
   destroy() {
-    // XXX trigger conversationremove events for all live conversations
     this.abortController.abort();
     this.abortController = new AbortController();
   }
