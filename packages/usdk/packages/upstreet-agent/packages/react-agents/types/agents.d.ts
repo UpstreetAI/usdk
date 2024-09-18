@@ -281,8 +281,8 @@ export type ChatsManager = EventTarget & {
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
-  join: (opts: RoomSpecification) => Promise<void>;
-  leave: (opts: RoomSpecification) => Promise<void>;
+  // join: (opts: RoomSpecification) => Promise<void>;
+  // leave: (opts: RoomSpecification) => Promise<void>;
   tick: () => Promise<number>;
   live: () => void;
   destroy: () => void;
