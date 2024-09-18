@@ -274,21 +274,17 @@ export class ChatsManager extends EventTarget {
           const _bindIncoming = () => {
             // chat messages
             realms.addEventListener('chat', async (e) => {
-              try {
+              // try {
                 const { playerId, message } = e.data;
                 if (playerId !== agent.id) {
-                  if (!message.hidden) {
-                    await conversation.addLocalMessage(message);
-                  } else {
-                    await conversation.addHiddenMessage(message);
-                  }
+                  await conversation.addLocalMessage(message);
                 // } else {
                 //   // XXX fix this
                 //   console.warn('received own message from realms "chat" event; this should not happen', message);
                 }
-              } catch (err) {
-                console.warn(err.stack);
-              }
+              // } catch (err) {
+              //   console.warn(err.stack);
+              // }
             });
           };
           const _bindOutgoing = () => {
@@ -313,7 +309,7 @@ export class ChatsManager extends EventTarget {
             // typing
             const sendTyping = (typing: boolean) => {
               if (realms.isConnected()) {
-                try {
+                // try {
                   realms.sendChatMessage({
                     method: 'typing',
                     userId: this.agent.id,
@@ -323,9 +319,9 @@ export class ChatsManager extends EventTarget {
                     },
                     hidden: true,
                   });
-                } catch (err) {
-                  console.warn(err);
-                }
+                // } catch (err) {
+                //   console.warn(err);
+                // }
               }
             };
             conversation.addEventListener('typingstart', (e: MessageEvent) => {
