@@ -5,12 +5,17 @@ import {
   ConversationRemoveEventData,
   ActiveAgentObject,
   AgentSpec,
+  ExtendableMessageEvent,
+  ActionMessageEventData,
 } from '../types';
 import {
   ConversationObject,
 } from './conversation-object';
 import { DiscordBotClient } from '../lib/discord/discord-client';
 import { formatConversationMessage } from '../util/message-utils';
+import {
+  bindAgentConversation,
+} from '../runtime';
 
 //
 
@@ -54,6 +59,8 @@ export class DiscordBot {
     this.userWhitelist = userWhitelist;
     this.agent = agent;
 
+    // XXX should be one conversation per channel
+    // XXX and it should be rendered out in the agent
     // conversation
     this.conversation = new ConversationObject({
       agent,
@@ -105,6 +112,7 @@ export class DiscordBot {
         connectableUsers,
       });
 
+      // XXX move these bindings to instantiate conversations below
       discordBotClient.addEventListener('channelconnect', (e) => {
         const {
           channel,
@@ -145,7 +153,17 @@ export class DiscordBot {
           userId,
         });
       });
-      discordBotClient.addEventListener('text', async (e: any) => {
+
+      await discordBotClient.connect({
+        channels: connectableChannels.map((o: any) => o.name),
+        users: connectableUsers.map((o: any) => o.displayName),
+        userWhitelist,
+      });
+      if (signal.aborted) return;
+    };
+    const _bindIncoming = () => {
+      // chat messages
+      discordBotClient.addEventListener('text', async (e) => {
         const {
           userId,
           username,
@@ -157,7 +175,7 @@ export class DiscordBot {
             text,
           },
         };
-        const agent: AgentSpec = {
+        const agent = {
           id: userId,
           name: username,
         };
@@ -166,18 +184,27 @@ export class DiscordBot {
         });
         await this.conversation.addLocalMessage(newMessage);
       });
-
-      await discordBotClient.connect({
-        channels: connectableChannels.map((o: any) => o.name),
-        users: connectableUsers.map((o: any) => o.displayName),
-        userWhitelist,
-      });
-      if (signal.aborted) return;
     };
-    const _bindConversation = () => {
-      // conversation messages
-      // XXX abstract perceptions handling out of chats-manager.ts _bindConversation to runtime.ts and call it here
-
+    const _bindOutgoing = () => {
+      // chat messages
+      this.conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+        const { message } = e.data;
+        if (realms.isConnected()) {
+          realms.sendChatMessage(message);
+        }
+      });
+      // audio
+      this.conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+        console.log('conversation outgoing audio stream', e.data);
+        // const audioStream = e.data.audioStream as PlayableAudioStream;
+        // (async () => {
+        //   const {
+        //     waitForFinish,
+        //   } = realms.addAudioSource(audioStream);
+        //   await waitForFinish();
+        //   realms.removeAudioSource(audioStream);
+        // })();
+      });
       // typing
       this.conversation.addEventListener('typingstart', (e) => {
         discordBotClient.sendTyping(); // expires after 10 seconds
@@ -185,10 +212,18 @@ export class DiscordBot {
       // this.conversation.addEventListener('typingend', (e) => {
       // });
     };
+    const _bindAgent = () => {
+      bindAgentConversation({
+        agent,
+        conversation: this.conversation,
+      });
+    };
 
     (async () => {
+      _bindIncoming();
+      _bindOutgoing();
+      _bindAgent();
       await _connect();
-      _bindConversation();
     })();
   }
   getConversation() {
