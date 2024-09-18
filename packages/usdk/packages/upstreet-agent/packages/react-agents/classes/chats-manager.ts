@@ -41,6 +41,7 @@ import {
 } from './abortable-perception-event';
 import {
   collectPriorityModifiers,
+  bindAgentConversation,
 } from '../runtime';
 import {
   makePromise,
@@ -114,7 +115,6 @@ export class ChatsManager extends EventTarget {
       const {
         agent,
       } = this;
-      const guid = agent.id;
 
       const conversation = new ConversationObject({
         agent,
@@ -146,7 +146,7 @@ export class ChatsManager extends EventTarget {
       const realmsPromise = (async () => {
         const realms = new NetworkRealms({
           endpointUrl,
-          playerId: guid,
+          playerId: agent.id,
           audioManager: null,
           metadata: {
             conversation,
@@ -186,7 +186,7 @@ export class ChatsManager extends EventTarget {
                 };
               };
               const agentJson = getJson();
-              const localPlayer = new Player(guid, agentJson);
+              const localPlayer = new Player(agent.id, agentJson);
 
               const _pushInitialPlayer = () => {
                 realms.localPlayer.initializePlayer(
@@ -271,234 +271,95 @@ export class ChatsManager extends EventTarget {
         _trackRemotePlayers();
 
         const _bindMultiplayerChat = () => {
-          // console.log('bind multiplayer chat');
-
-          const handleRemoteMessage = async (message) => {
-            if (!message.hidden) {
-              await conversation.addLocalMessage(message);
-            } else {
-              await conversation.addHiddenMessage(message);
-            }
-          };
-          realms.addEventListener('chat', async (e) => {
-            try {
-              const { playerId, message } = e.data;
-              if (playerId !== guid) {
-                await handleRemoteMessage(message);
-              }
-            } catch (err) {
-              console.warn(err.stack);
-            }
-          });
-        };
-        _bindMultiplayerChat();
-
-        const _bindDisconnect = () => {
-          realms.addEventListener('disconnect', (e) => {
-            console.log('realms emitted disconnect');
-
-            cleanup();
-
-            // try to reconnect, if applicable
-            if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
-              this.#join(roomSpecification);
-            }
-          });
-        };
-        _bindDisconnect();
-
-        const _bindConversation = () => {
-          // run all perception modifiers and perceptions for a given event
-          // the modifiers have a chance to abort the perception
-          const handleChatPerception = async (data: ActionMessageEventData) => {
-            const {
-              agent: sourceAgent,
-              message,
-            } = data;
-
-            const {
-              perceptions,
-              perceptionModifiers,
-            } = this.agent.registry;
-
-            // collect perception modifiers
-            const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
-            // for each priority, run the perception modifiers, checking for abort at each step
-            let aborted = false;
-            for (const perceptionModifiers of perceptionModifiersPerPriority) {
-              const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
-                return perceptionModifier.type === message.method;
-              }).map(async (perceptionModifier) => {
-                const targetAgent = this.agent.generative({
-                  conversation,
-                });
-                const e = new AbortablePerceptionEvent({
-                  targetAgent,
-                  sourceAgent,
-                  message,
-                });
-                await perceptionModifier.handler(e);
-                return e;
-              });
-              const messageEvents = await Promise.all(abortableEventPromises);
-              aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
-              if (aborted) {
-                break;
-              }
-            }
-
-            // if no aborts, run the perceptions
-            if (!aborted) {
-              const perceptionPromises = [];
-              for (const perception of perceptions) {
-                if (perception.type === message.method) {
-                  const targetAgent = this.agent.generative({
-                    conversation,
-                  });
-                  const e = new PerceptionEvent({
-                    targetAgent,
-                    sourceAgent,
-                    message,
-                  });
-                  const p = perception.handler(e);
-                  perceptionPromises.push(p);
-                }
-              }
-              await Promise.all(perceptionPromises);
-            }
-            return {
-              aborted,
-            };
-          };
-          conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
-            const { agent: sourceAgent, message } = e.data;
-            e.waitUntil((async () => {
-              await this.incomingMessageDebouncer.waitForTurn(async () => {
-                try {
-                  // wait for re-render, since we just changed the message cache
-                  // XXX can this be handled in the message cache?
-                  {
-                    const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
-                    this.agent.dispatchEvent(e);
-                    await e.waitForFinish();
+          const _bindIncoming = () => {
+            // chat messages
+            realms.addEventListener('chat', async (e) => {
+              try {
+                const { playerId, message } = e.data;
+                if (playerId !== agent.id) {
+                  if (!message.hidden) {
+                    await conversation.addLocalMessage(message);
+                  } else {
+                    await conversation.addHiddenMessage(message);
                   }
-
-                  // handle the perception
-                  const {
-                    aborted,
-                  } = await handleChatPerception(e.data);
-                  if (!aborted) {
-                    // save the perception to the databaase
-                    (async () => {
-                      const supabase = this.agent.useSupabase();
-                      const jwt = this.agent.useAuthToken();
-                      await saveMessageToDatabase({
-                        supabase,
-                        jwt,
-                        userId: guid,
-                        conversationId: key,
-                        message,
-                      });
-                    })();
-                  }
-                } catch (err) {
-                  console.warn('caught new message error', err);
+                // } else {
+                //   // XXX fix this
+                //   console.warn('received own message from realms "chat" event; this should not happen', message);
                 }
-              });
-            })());
-          });
-          conversation.addEventListener('hiddenmessage', (e: ActionMessageEvent) => {
-            // console.log('got hidden message 0', e.data);
-            e.waitUntil((async () => {
-              await this.incomingMessageDebouncer.waitForTurn(async () => {
-                // console.log('handle hidden message 1', e.data);
-                const {
-                  aborted,
-                } = await handleChatPerception(e.data);
-                // console.log('handle hidden message 2', e.data, {
-                //   aborted,
-                // });
-              });
-            })());
-          });
-    
-          conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-            e.waitUntil((async () => {
-              // send on the network
+              } catch (err) {
+                console.warn(err.stack);
+              }
+            });
+          };
+          const _bindOutgoing = () => {
+            // chat messages
+            conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
               const { message } = e.data;
               if (realms.isConnected()) {
                 realms.sendChatMessage(message);
               }
-      
-              // save to database
+            });
+            // audio
+            conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+              const audioStream = e.data.audioStream as PlayableAudioStream;
               (async () => {
-                const supabase = this.agent.useSupabase();
-                const jwt = this.agent.useAuthToken();
-                await saveMessageToDatabase({
-                  supabase,
-                  jwt,
-                  userId: guid,
-                  conversationId: key,
-                  message,
-                });
+                const {
+                  waitForFinish,
+                } = realms.addAudioSource(audioStream);
+                await waitForFinish();
+                realms.removeAudioSource(audioStream);
               })();
-
-              // wait for re-render. this must be happening since we just triggered the message cache to update.
-              // wait for the render registry to emit 'update'
-              const renderRegistry = this.agent.appContextValue.useRegistry();
-              await new Promise((resolve) => {
-                // console.log('wait for registry render 1', renderRegistry);
-                renderRegistry.addEventListener('update', () => {
-                  // console.log('wait for registry render 2', renderRegistry);
-                  resolve(null);
-                }, {
-                  once: true,
-                });
-              });
-              // console.log('wait for registry render 3', renderRegistry);
-            })());
-          });
-
-          //
-
-          conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-            const audioStream = e.data.audioStream as PlayableAudioStream;
-            (async () => {
-              const {
-                waitForFinish,
-              } = realms.addAudioSource(audioStream);
-              await waitForFinish();
-              realms.removeAudioSource(audioStream);
-            })();
-          });
-
-          //
-
-          const sendTyping = (typing: boolean) => {
-            if (realms.isConnected()) {
-              try {
-                realms.sendChatMessage({
-                  method: 'typing',
-                  userId: this.agent.id,
-                  name: this.agent.name,
-                  args: {
-                    typing,
-                  },
-                  hidden: true,
-                });
-              } catch (err) {
-                console.warn(err);
+            });
+            // typing
+            const sendTyping = (typing: boolean) => {
+              if (realms.isConnected()) {
+                try {
+                  realms.sendChatMessage({
+                    method: 'typing',
+                    userId: this.agent.id,
+                    name: this.agent.name,
+                    args: {
+                      typing,
+                    },
+                    hidden: true,
+                  });
+                } catch (err) {
+                  console.warn(err);
+                }
               }
-            }
+            };
+            conversation.addEventListener('typingstart', (e: MessageEvent) => {
+              sendTyping(true);
+            });
+            conversation.addEventListener('typingend', (e: MessageEvent) => {
+              sendTyping(false);
+            });
           };
-          conversation.addEventListener('typingstart', (e: MessageEvent) => {
-            sendTyping(true);
-          });
-          conversation.addEventListener('typingend', (e: MessageEvent) => {
-            sendTyping(false);
-          });
+          const _bindAgent = () => {
+            bindAgentConversation({
+              agent: this.agent,
+              conversation,
+            });
+          };
+          const _bindDisconnect = () => {
+            realms.addEventListener('disconnect', (e) => {
+              console.log('realms emitted disconnect');
+  
+              cleanup();
+  
+              // try to reconnect, if applicable
+              if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
+                this.#join(roomSpecification);
+              }
+            });
+          };
+
+          _bindIncoming();
+          _bindOutgoing();
+          _bindAgent();
+          _bindDisconnect();
         };
-        _bindConversation();
+        _bindMultiplayerChat();
 
         await realms.updateRealmsKeys({
           realmsKeys: [room],
