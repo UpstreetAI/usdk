@@ -2328,7 +2328,7 @@ const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
   const uint8Array = new Uint8Array(arrayBuffer);
   return uint8Array;
 };
-const extractZip = async (zipBuffer, tempPath) => {
+/* const extractZip = async (zipBuffer, tempPath) => {
   const cleanup = async () => {
     await rimraf(tempPath);
   };
@@ -2383,7 +2383,7 @@ const extractZip = async (zipBuffer, tempPath) => {
     files,
     cleanup,
   };
-};
+}; */
 const test = async (args) => {
   const all = !!args.all;
   const dev = true;
