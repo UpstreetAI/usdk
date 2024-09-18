@@ -432,7 +432,8 @@ export const bindAgentConversation = ({
         });
       })();
 
-      // wait for re-render. this must be happening since we just triggered the message cache to update.
+      // wait for re-render before returning from the handler
+      // this must be happening since we just triggered the message cache to update
       const renderRegistry = agent.appContextValue.useRegistry();
       await new Promise((resolve) => {
         renderRegistry.addEventListener('update', () => {
