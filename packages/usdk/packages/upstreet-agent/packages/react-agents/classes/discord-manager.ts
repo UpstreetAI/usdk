@@ -35,7 +35,7 @@ export class DiscordBot extends EventTarget {
   id: string;
   token: string;
   channels: DiscordBotRoomSpec[];
-  users: DiscordBotRoomSpec[];
+  dms: DiscordBotRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
   discordBotClient: DiscordBotClient;
@@ -51,13 +51,13 @@ export class DiscordBot extends EventTarget {
     const {
       token,
       channels,
-      users,
+      dms,
       userWhitelist,
       agent,
     } = args;
     this.token = token;
     this.channels = channels;
-    this.users = users;
+    this.dms = dms;
     this.userWhitelist = userWhitelist;
     this.agent = agent;
 
@@ -108,11 +108,11 @@ export class DiscordBot extends EventTarget {
       }
 
       let connectableDms = status.users;
-      if (users.length > 0) {
+      if (dms.length > 0) {
         connectableDms = connectableDms
           .filter((user: any) =>
-            users
-              .some(userSpec => testRoomNameMatch(user.displayName, userSpec))
+            dms
+              .some(dmSpec => testRoomNameMatch(user.displayName, dmSpec))
           );
       }
       console.log('got channels + users', {
