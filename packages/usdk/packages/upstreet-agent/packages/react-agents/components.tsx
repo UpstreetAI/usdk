@@ -69,10 +69,6 @@ import {
   RenderLoader,
   RenderLoaderProvider,
 } from './classes/render-loader';
-// import { AgentContextValue } from './classes/agent-context-value';
-import {
-  getChatKey,
-} from './classes/chats-manager';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -225,7 +221,7 @@ export const Conversation = (props: ConversationProps) => {
       <ConversationInstance
         agent={agent}
         conversation={conversation}
-        key={getChatKey(conversation)}
+        key={conversation.getKey()}
       >
         {props.children}
       </ConversationInstance>
