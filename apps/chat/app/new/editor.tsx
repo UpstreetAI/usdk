@@ -40,6 +40,14 @@ import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 
+//
+
+const maxUserMessagesDefault = 5;
+const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
+const rateLimitMessageDefault = '';
+
+//
+
 import * as esbuild from 'esbuild-wasm';
 import {
   StoreItem,
@@ -66,7 +74,6 @@ const ensureEsbuild = (() => {
     return esBuildPromise;
   };
 })();
-
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -75,9 +82,6 @@ const defaultFiles = [
     `,
   },
 ];
-const maxUserMessagesDefault = 5;
-const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
-const rateLimitMessageDefault = '';
 const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
 } = {}) => {
@@ -172,6 +176,8 @@ const buildAgentSrc = async (sourceCode: string, {
     throw new Error('Failed to build: ' + JSON.stringify(errors));
   }
 };
+
+//
 
 type FetchOpts = {
   method?: string;
