@@ -63,6 +63,8 @@ export const defaultVoices = [
     description: 'Waifu girl',
   },
 ];
+const formatDiscordBotChannels = (channels = []) =>
+  channels.split(',').map(c => c.trim()).filter(Boolean);
 
 //
 
@@ -146,19 +148,21 @@ export const featureSpecs = [
       z.null(),
     ]),
     imports: (discordBot) => {
-      if (discordBot.token && discordBot.channels) {
+      const channels = formatDiscordBotChannels(discordBot.channels);
+      if (discordBot.token && channels.length > 0) {
         return ['DiscordBot'];
       } else {
         return [];
       }
     },
     components: (discordBot) => {
-      if (discordBot.token && discordBot.channels) {
+      const channels = formatDiscordBotChannels(discordBot.channels);
+      if (discordBot.token && channels.length > 0) {
         return [
           dedent`
             <DiscordBot
               token={${JSON.stringify(discordBot.token)}}
-              channels={${JSON.stringify(discordBot.channels.split(',').map(c => c.trim()))}}
+              channels={${JSON.stringify(channels)}}
             />
           `,
         ];
