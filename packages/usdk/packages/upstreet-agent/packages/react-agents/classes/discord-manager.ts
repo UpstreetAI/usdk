@@ -84,8 +84,6 @@ export class DiscordBot extends EventTarget {
     // initialize discord bot client
     const discordBotClient = new DiscordBotClient({
       token,
-      // channelWhitelist,
-      // userWhitelist,
     });
     // bind discord bot client
     signal.addEventListener('abort', () => {
