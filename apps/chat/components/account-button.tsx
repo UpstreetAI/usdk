@@ -30,7 +30,11 @@ export function AccountButton({ user }: AccountButtonProps) {
       </Link>
       <a
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
-        onClick={() => logout()}
+        onClick={() => {
+          if (window.confirm('Are you sure you want to logout?')) {
+        logout();
+          }
+        }}
       >
         <IconLogout className="mr-2 size-5" />
         <div className="hidden md:block">
