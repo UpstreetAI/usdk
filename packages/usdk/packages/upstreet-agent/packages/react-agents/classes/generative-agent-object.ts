@@ -22,6 +22,7 @@ import {
   QueueManager,
 } from '../util/queue-manager.mjs';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
+import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
 
 //
@@ -143,9 +144,6 @@ export class GenerativeAgentObject {
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      // console.log('monologue text', {
-      //   text,
-      // });
       const pendingMessage = await generateAgentAction(
         this,
         'Comment on the following:' + '\n' +
@@ -158,21 +156,11 @@ export class GenerativeAgentObject {
     });
   }
 
+  // XXX these methods can be removed since they don't really have anything to do with generation
   async addMessage(message: PendingActionMessage) {
-    const { agent } = this;
-    const { id: userId, name } = agent;
-    const { method, args, attachments } = message;
-    const timestamp = new Date();
-    const newMessage = {
-      userId,
-      name,
-      method,
-      args,
-      attachments,
-      timestamp,
-      human: false,
-      hidden: false,
-    };
+    const newMessage = formatConversationMessage(message, {
+      agent: this.agent,
+    });
     return await this.conversation.addLocalAndRemoteMessage(newMessage);
   }
 
