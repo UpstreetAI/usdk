@@ -7,9 +7,13 @@ import dedent from 'dedent';
 import {
   ChatMessages,
   PendingActionMessage,
+  ActiveAgentObject,
   ActionMessage,
   ActionProps,
+  ActionMessageEvent,
+  ActionMessageEventData,
   ConversationObject,
+  MessagesUpdateEventData,
   TaskEventData,
   AgentThinkOptions,
 } from './types';
@@ -19,14 +23,6 @@ import {
 import {
   AbortableActionEvent,
 } from './classes/abortable-action-event';
-// import { AgentRenderer } from './classes/agent-renderer';
-// import {
-//   TaskObject,
-//   TaskResult,
-// } from './classes/task-object';
-// import {
-//   ExtendableMessageEvent,
-// } from './util/extendable-message-event';
 import {
   retry,
 } from './util/util.mjs';
@@ -34,11 +30,20 @@ import {
   parseCodeBlock,
 } from './util/util.mjs';
 import {
-  ActiveAgentObject,
-} from './classes/active-agent-object';
-import {
   GenerativeAgentObject,
 } from './classes/generative-agent-object';
+import {
+  PerceptionEvent,
+} from './classes/perception-event';
+import {
+  AbortablePerceptionEvent,
+} from './classes/abortable-perception-event';
+import {
+  ExtendableMessageEvent,
+} from './util/extendable-message-event';
+import {
+  saveMessageToDatabase,
+} from './util/saveMessageToDatabase.js';
 
 //
 
@@ -293,6 +298,162 @@ export async function executeAgentAction(
     await Promise.all(actionPromises);
   }
 }
+
+// run all perception modifiers and perceptions for a given event
+// the modifiers have a chance to abort the perception
+const handleChatPerception = async (data: ActionMessageEventData, {
+  agent,
+  conversation,
+}: {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+}) => {
+  const {
+    agent: sourceAgent,
+    message,
+  } = data;
+
+  const {
+    perceptions,
+    perceptionModifiers,
+  } = agent.registry;
+
+  // collect perception modifiers
+  const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
+  // for each priority, run the perception modifiers, checking for abort at each step
+  let aborted = false;
+  for (const perceptionModifiers of perceptionModifiersPerPriority) {
+    const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
+      return perceptionModifier.type === message.method;
+    }).map(async (perceptionModifier) => {
+      const targetAgent = agent.generative({
+        conversation,
+      });
+      const e = new AbortablePerceptionEvent({
+        targetAgent,
+        sourceAgent,
+        message,
+      });
+      await perceptionModifier.handler(e);
+      return e;
+    });
+    const messageEvents = await Promise.all(abortableEventPromises);
+    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+    if (aborted) {
+      break;
+    }
+  }
+
+  // if no aborts, run the perceptions
+  if (!aborted) {
+    const perceptionPromises = [];
+    for (const perception of perceptions) {
+      if (perception.type === message.method) {
+        const targetAgent = agent.generative({
+          conversation,
+        });
+        const e = new PerceptionEvent({
+          targetAgent,
+          sourceAgent,
+          message,
+        });
+        const p = perception.handler(e);
+        perceptionPromises.push(p);
+      }
+    }
+    await Promise.all(perceptionPromises);
+  }
+  return {
+    aborted,
+  };
+};
+export const bindAgentConversation = ({
+  agent,
+  conversation,
+}: {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+}) => {
+  conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
+    const { message } = e.data;
+    e.waitUntil((async () => {
+      // await this.incomingMessageDebouncer.waitForTurn(async () => {
+        try {
+          // wait for re-render, since we just changed the message cache
+          // XXX can this be handled in the message cache?
+          {
+            const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
+            agent.dispatchEvent(e);
+            await e.waitForFinish();
+          }
+
+          // handle the perception
+          const {
+            aborted,
+          } = await handleChatPerception(e.data, {
+            agent,
+            conversation,
+          });
+          if (!aborted) {
+            // save the perception to the databaase
+            (async () => {
+              const supabase = agent.useSupabase();
+              const jwt = agent.useAuthToken();
+              await saveMessageToDatabase({
+                supabase,
+                jwt,
+                userId: agent.id,
+                conversationId: conversation.getKey(),
+                message,
+              });
+            })();
+          }
+        } catch (err) {
+          console.warn('caught new message error', err);
+        }
+      // });
+    })());
+  });
+  conversation.addEventListener('hiddenmessage', (e: ActionMessageEvent) => {
+    e.waitUntil((async () => {
+      // await this.incomingMessageDebouncer.waitForTurn(async () => {
+        const {
+          aborted,
+        } = await handleChatPerception(e.data, {
+          agent,
+          conversation,
+        });
+      // });
+    })());
+  });
+  conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+    const { message } = e.data;
+    e.waitUntil((async () => {
+      // save to database
+      (async () => {
+        const supabase = agent.useSupabase();
+        const jwt = agent.useAuthToken();
+        await saveMessageToDatabase({
+          supabase,
+          jwt,
+          userId: agent.id,
+          conversationId: conversation.getKey(),
+          message,
+        });
+      })();
+
+      // wait for re-render. this must be happening since we just triggered the message cache to update.
+      const renderRegistry = agent.appContextValue.useRegistry();
+      await new Promise((resolve) => {
+        renderRegistry.addEventListener('update', () => {
+          resolve(null);
+        }, {
+          once: true,
+        });
+      });
+    })());
+  });
+};
 
 // XXX can move this to the agent renderer
 export const compileUserAgentServer = async ({
