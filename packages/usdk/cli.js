@@ -2308,28 +2308,15 @@ const runJest = async (directory) => {
   });
 };
 const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
-  // console.log('get directory zip', dirPath);
   let files = await recursiveReaddir(dirPath);
   files = files.filter((p) => !exclude.some((re) => re.test(p)));
-  // console.log('got files', files);
 
   const zip = new JSZip();
-  // const queueManager = new QueueManager({
-  //   parallelism: 32,
-  // });
-  // const promises = [];
   for (const p of files) {
-    // const promise = queueManager.waitForTurn(async () => {
-      const basePath = p.slice(dirPath.length + 1);
-      // const stats = await fs.promises.lstat(p);
-      // if (stats.isFile()) {
-        const stream = fs.createReadStream(p);
-        zip.file(basePath, stream);
-      // }
-    // });
-    // promises.push(promise);
+    const basePath = p.slice(dirPath.length + 1);
+    const stream = fs.createReadStream(p);
+    zip.file(basePath, stream);
   }
-  // await Promise.all(promises);
 
   const arrayBuffer = await zip.generateAsync({
     type: 'arraybuffer',
