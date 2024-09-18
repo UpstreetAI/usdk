@@ -8,9 +8,10 @@ import { useState } from "react";
 
 export interface AgentListProps {
   agent: any
+  author: string
 }
 
-export function AgentRow({ agent }: AgentListProps) {
+export function AgentRow({ agent, author }: AgentListProps) {
 
   const { agentJoin } = useMultiplayerActions();
 
@@ -35,7 +36,7 @@ export function AgentRow({ agent }: AgentListProps) {
       </div>
       <div className="flex">
         <div className="mt-2 text-gray-400 line-clamp-1 w-full">
-          <IconUser className="mr-1 align-middle size-4 inline-block" /> {agent.author.name}
+          <IconUser className="mr-1 align-middle size-4 inline-block" /> {author}
         </div>
         <div className="mt-2 text-right">
           <a
