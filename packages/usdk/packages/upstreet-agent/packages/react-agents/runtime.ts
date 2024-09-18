@@ -377,6 +377,7 @@ export const bindAgentConversation = ({
   conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
     const { message } = e.data;
     e.waitUntil((async () => {
+      // XXX move debouncing elsewhere
       // await this.incomingMessageDebouncer.waitForTurn(async () => {
         try {
           // wait for re-render, since we just changed the message cache
