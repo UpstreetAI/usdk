@@ -213,6 +213,7 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
     </ConversationContext.Provider>
   );
 };
+// XXX rename this to ConversationProvider (?)
 export const Conversation = (props: ConversationProps) => {
   const agent = useContext(AgentContext);
   const conversations = useContext(ConversationsContext).conversations;
