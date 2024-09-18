@@ -225,7 +225,7 @@ export const collectPriorityModifiers = <T extends PriorityModifier>(modifiers: 
     modifiers.push(modifier);
   }
   return Array.from(result.entries())
-    .sort((a, b) => a[0] - b[0])
+    .sort((aEntry, bEntry) => aEntry[0] - bEntry[0])
     .map((entry) => entry[1]);
 };
 
@@ -233,11 +233,9 @@ export async function executeAgentAction(
   generativeAgent: GenerativeAgentObject,
   message: PendingActionMessage,
 ) {
-  // console.log('execute agent action 1', {
-  //   message,
-  // });
   const {
     agent,
+    conversation,
   } = generativeAgent;
   const {
     actions,
@@ -245,7 +243,13 @@ export async function executeAgentAction(
   } = agent.registry;
 
   // collect action modifiers
-  const actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
+  const actionModifiersPerPriority = collectPriorityModifiers(actionModifiers)
+    .map((actionModifiers) =>
+      actionModifiers.filter((actionModifier) =>
+        !actionModifier.conversation || actionModifier.conversation === conversation
+      )
+    )
+    .filter((actionModifiers) => actionModifiers.length > 0);
   // for each priority, run the action modifiers, checking for abort at each step
   let aborted = false;
   for (const actionModifiers of actionModifiersPerPriority) {
@@ -269,7 +273,10 @@ export async function executeAgentAction(
   if (!aborted) {
     const actionPromises: Promise<void>[] = [];
     for (const action of actions) {
-      if (action.name === message.method) {
+      if (
+        action.name === message.method &&
+        (!action.conversation || action.conversation === conversation)
+      ) {
         const e = new PendingActionEvent({
           agent: generativeAgent,
           message,
