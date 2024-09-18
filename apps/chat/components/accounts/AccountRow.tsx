@@ -27,6 +27,7 @@ export function AccountRow({ account }: AgentListProps) {
             <div className="line-clamp-2">{account.description}</div>
           </a>
         </div>
+        <div className="text-center ml-6">Agents: <span className="text-4xl">{account?.agents.length}</span></div>
       </div>
     </div>
   );

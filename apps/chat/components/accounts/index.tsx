@@ -30,14 +30,10 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
 
     const { error, data } = await supabase
       .from('accounts')
-      .select('*')
+      .select('*, agents: assets(*)')
       // .eq('assets.origin', 'sdk')
       .range(rangeFrom, rangeTo - 1)
       .order('created_at', { ascending: false });
-
-
-
-      console.log(data);
 
     if (!error) {
 
