@@ -542,55 +542,55 @@ const QueryMemoriesAction = ({
 }) => {
   return (
     <Action
-        name="queryMemories"
-        description={
-          dedent`\
-            This action lets you remember specific details better by focusing your attention on a question.
-            Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
-            For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
+      name="queryMemories"
+      description={
+        dedent`\
+          This action lets you remember specific details better by focusing your attention on a question.
+          Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
+          For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
 
-            We are already querying the following:
-          ` + '\n' +
-          JSON.stringify(memoryQueries, null, 2)
-        }
-        schema={
-          z.object({
-            query: z.string(),
-          })
-        }
-        examples={[
-          {
-            query: 'What pizza toppings does everyone like for the next movie marathon?',
-          },
-          {
-            query: 'When is the CEO’s karaoke battle scheduled again?',
-          },
-          {
-            query: 'Which team member is in charge of the surprise flash mob?',
-          },
-          {
-            query: 'What wild idea did we brainstorm for the company’s anniversary?',
-          },
-          {
-            query: 'Who volunteered to handle the laser light show at the next event?',
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const { query } = e.data.message.args as {
-            query: string,
-          };
-          setMemoryQueries((queries = []) => {
-            const o = shuffle([
-              ...queries,
-              {
-                query,
-              },
-            ]).slice(-maxMemoryQueries);
-            return o;
-          });
-          await e.commit();
-        }}
-      />
+          We are already querying the following:
+        ` + '\n' +
+        JSON.stringify(memoryQueries, null, 2)
+      }
+      schema={
+        z.object({
+          query: z.string(),
+        })
+      }
+      examples={[
+        {
+          query: 'What pizza toppings does everyone like for the next movie marathon?',
+        },
+        {
+          query: 'When is the CEO’s karaoke battle scheduled again?',
+        },
+        {
+          query: 'Which team member is in charge of the surprise flash mob?',
+        },
+        {
+          query: 'What wild idea did we brainstorm for the company’s anniversary?',
+        },
+        {
+          query: 'Who volunteered to handle the laser light show at the next event?',
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const { query } = e.data.message.args as {
+          query: string,
+        };
+        setMemoryQueries((queries = []) => {
+          const o = shuffle([
+            ...queries,
+            {
+              query,
+            },
+          ]).slice(-maxMemoryQueries);
+          return o;
+        });
+        await e.commit();
+      }}
+    />
   );
 };
 const MemoryQueriesInternal = () => {
