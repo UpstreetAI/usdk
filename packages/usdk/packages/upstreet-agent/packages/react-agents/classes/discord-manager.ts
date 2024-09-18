@@ -11,7 +11,7 @@ import {
 import {
   ConversationObject,
 } from './conversation-object';
-import { DiscordBotClient } from '../lib/discord/discord-client';
+import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX this can be moved to Typescript
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindAgentConversation,
