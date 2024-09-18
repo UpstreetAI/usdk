@@ -381,7 +381,8 @@ export const bindAgentConversation = ({
         try {
           // wait for re-render, since we just changed the message cache
           // XXX can this be handled in the message cache?
-          {
+          const { hidden } = message;
+          if (!hidden) {
             const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
             agent.dispatchEvent(e);
             await e.waitForFinish();
@@ -395,34 +396,24 @@ export const bindAgentConversation = ({
             conversation,
           });
           if (!aborted) {
-            // save the perception to the databaase
-            (async () => {
-              const supabase = agent.useSupabase();
-              const jwt = agent.useAuthToken();
-              await saveMessageToDatabase({
-                supabase,
-                jwt,
-                userId: agent.id,
-                conversationId: conversation.getKey(),
-                message,
-              });
-            })();
+            if (!hidden) {
+              // save the perception to the databaase
+              (async () => {
+                const supabase = agent.useSupabase();
+                const jwt = agent.useAuthToken();
+                await saveMessageToDatabase({
+                  supabase,
+                  jwt,
+                  userId: agent.id,
+                  conversationId: conversation.getKey(),
+                  message,
+                });
+              })();
+            }
           }
         } catch (err) {
           console.warn('caught new message error', err);
         }
-      // });
-    })());
-  });
-  conversation.addEventListener('hiddenmessage', (e: ActionMessageEvent) => {
-    e.waitUntil((async () => {
-      // await this.incomingMessageDebouncer.waitForTurn(async () => {
-        const {
-          aborted,
-        } = await handleChatPerception(e.data, {
-          agent,
-          conversation,
-        });
       // });
     })());
   });
