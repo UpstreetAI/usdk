@@ -31,7 +31,7 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
 
 //
 
-export class DiscordBot extends EventTarget{
+export class DiscordBot extends EventTarget {
   id: string;
   token: string;
   channels: DiscordBotRoomSpec[];
