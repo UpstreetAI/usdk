@@ -107,9 +107,9 @@ export class DiscordBot extends EventTarget {
           );
       }
 
-      let connectableUsers = status.users;
+      let connectableDms = status.users;
       if (users.length > 0) {
-        connectableUsers = connectableUsers
+        connectableDms = connectableDms
           .filter((user: any) =>
             users
               .some(userSpec => testRoomNameMatch(user.displayName, userSpec))
@@ -117,11 +117,18 @@ export class DiscordBot extends EventTarget {
       }
       console.log('got channels + users', {
         connectableChannels,
-        connectableUsers,
+        connectableDms,
       });
 
-      // XXX move these bindings to instantiate conversations below
-      discordBotClient.addEventListener('channelconnect', (e) => {
+      await discordBotClient.connect({
+        channels: connectableChannels.map((o: any) => o.name),
+        dms: connectableDms.map((o: any) => o.displayName),
+        userWhitelist,
+      });
+      if (signal.aborted) return;
+    };
+    const _bindChannels = () => {
+      discordBotClient.addEventListener('channelconnect', (e: MessageEvent<{channel: any}>) => {
         const {
           channel,
         } = e.data;
@@ -145,8 +152,7 @@ export class DiscordBot extends EventTarget {
           // nothing
         }
       });
-      // XXX rename to dmconnect
-      discordBotClient.addEventListener('userconnect', (e) => {
+      discordBotClient.addEventListener('dmconnect', (e: MessageEvent<{user: any}>) => {
         const {
           user,
         } = e.data;
@@ -161,13 +167,6 @@ export class DiscordBot extends EventTarget {
           userId,
         });
       });
-
-      await discordBotClient.connect({
-        channels: connectableChannels.map((o: any) => o.name),
-        users: connectableUsers.map((o: any) => o.displayName),
-        userWhitelist,
-      });
-      if (signal.aborted) return;
     };
     const _bindIncoming = () => {
       // chat messages
@@ -231,16 +230,19 @@ export class DiscordBot extends EventTarget {
     };
 
     (async () => {
+      _bindChannels();
       _bindIncoming();
       _bindOutgoing();
       _bindAgent();
       await _connect();
     })();
   }
+  // XXX get rid of this
   getConversation() {
     return this.conversation;
   }
   destroy() {
+    // XXX trigger conversationremove events for all live conversations
     this.abortController.abort();
     this.abortController = new AbortController();
   }
@@ -263,9 +265,8 @@ export class DiscordManager extends EventTarget {
 
     return discordBot;
   }
-  removeDiscordBot(client: DiscordBot) {
-    // this should trigger conversationremove events
-    client.destroy();
+  removeDiscordBot(discordBot: DiscordBot) {
+    discordBot.destroy();
   }
   live() {
     // nothing

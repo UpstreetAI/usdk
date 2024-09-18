@@ -629,7 +629,7 @@ const DefaultConnectors = () => {
     <DiscordBot
       token='MTI4NDgxNzQ1NDQ2NzY0NTUzMA.GSYqVY.g-U0pVRX3BcEGgmB3T24V5D6TuspzSsoyCeKJY'
       channels={['scilly', 'coding']}
-      users='avaer'
+      dms='avaer'
     />
   );
 }
@@ -2829,7 +2829,7 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
   const {
     token,
     channels,
-    users,
+    dms,
     userWhitelist,
   } = props;
   const agent = useAgent();
@@ -2838,7 +2838,7 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     const args: DiscordBotArgs = {
       token,
       channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
-      users: users ? (Array.isArray(users) ? users : [users]) : [],
+      dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],
       userWhitelist,
       agent,
     };
@@ -2849,7 +2849,7 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
   }, [
     token,
     JSON.stringify(channels),
-    JSON.stringify(users),
+    JSON.stringify(dms),
     JSON.stringify(userWhitelist),
   ]);
 

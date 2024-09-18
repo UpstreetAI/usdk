@@ -395,7 +395,7 @@ export class DiscordBotClient extends EventTarget {
   }
   async connect({
     channels = [],
-    users = [],
+    dms = [],
     userWhitelist = [],
   }) {
     const channelSpecs = channels.map((channel) => {
@@ -411,7 +411,7 @@ export class DiscordBotClient extends EventTarget {
       const u = new URL(discordBotEndpointUrl);
       u.searchParams.set('token', this.token);
       u.searchParams.set('channels', JSON.stringify(channelSpecs));
-      u.searchParams.set('users', JSON.stringify(users));
+      u.searchParams.set('dms', JSON.stringify(dms));
       u.searchParams.set('userWhitelist', JSON.stringify(userWhitelist));
       return u;
     })();
@@ -467,8 +467,8 @@ export class DiscordBotClient extends EventTarget {
             }));
             break;
           }
-          case 'userconnect': {
-            this.dispatchEvent(new MessageEvent('userconnect', {
+          case 'dmconnect': {
+            this.dispatchEvent(new MessageEvent('dmconnect', {
               data: args,
             }));
             break;

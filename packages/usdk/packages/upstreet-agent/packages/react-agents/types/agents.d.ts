@@ -102,13 +102,13 @@ export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
 export type DiscordBotProps = {
   token: string;
   channels?: DiscordBotRoomSpecs;
-  users?: DiscordBotRoomSpecs;
+  dms?: DiscordBotRoomSpecs;
   userWhitelist?: string[];
 };
 export type DiscordBotArgs = {
   token: string;
   channels: DiscordBotRoomSpec[];
-  users: DiscordBotRoomSpec[];
+  dms: DiscordBotRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
 };
