@@ -212,8 +212,8 @@ export default function AgentEditor({
   const [visualDescription, setVisualDescription] = useState('');
   const [homespaceDescription, setHomespaceDescription] = useState('');
 
-  const [model, setModel] = useState(defaultModels[0]);
-  const [visionModel, setVisionModel] = useState(defaultVisionModels[0]);
+  // const [model, setModel] = useState(defaultModels[0]);
+  // const [visionModel, setVisionModel] = useState(defaultVisionModels[0]);
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
