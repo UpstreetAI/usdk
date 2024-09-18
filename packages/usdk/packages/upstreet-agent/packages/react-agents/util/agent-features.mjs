@@ -161,7 +161,7 @@ export const featureSpecs = [
         return [
           dedent`
             <DiscordBot
-              token={${JSON.stringify(discordBot.token)}}
+              token=${JSON.stringify(discordBot.token)}
               channels={${JSON.stringify(channels)}}
             />
           `,
