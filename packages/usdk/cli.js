@@ -3656,30 +3656,30 @@ const main = async () => {
       }
     ];
 
-  program
-    .command('voice')
-    .description(
-      'Manage agent voices',
-    )
-    .argument(
-      `[subcommand]`,
-      `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
-    )
-    .argument(
-      `[args...]`,
-      `Arguments to pass to the subcommand`,
-    )
-    .action(async (subcommand = '', args = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        args = {
-          _: [subcommand, args],
-          ...opts,
-        };
-        await voice(args);
-      });
-    })
-    .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
+  // program
+  //   .command('voice')
+  //   .description(
+  //     'Manage agent voices',
+  //   )
+  //   .argument(
+  //     `[subcommand]`,
+  //     `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
+  //   )
+  //   .argument(
+  //     `[args...]`,
+  //     `Arguments to pass to the subcommand`,
+  //   )
+  //   .action(async (subcommand = '', args = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       args = {
+  //         _: [subcommand, args],
+  //         ...opts,
+  //       };
+  //       await voice(args);
+  //     });
+  //   })
+  //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
 
     
   // program
