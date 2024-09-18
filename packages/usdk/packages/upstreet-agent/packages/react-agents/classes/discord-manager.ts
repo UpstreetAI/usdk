@@ -28,6 +28,47 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
     return false;
   }
 };
+const bindBotClientConversation = ({
+  conversation,
+  discordBotClient,
+  channelId,
+  userId,
+}: {
+  conversation: ConversationObject,
+  discordBotClient: DiscordBotClient,
+  channelId?: string,
+  userId?: string,
+}) => {
+  // chat messages
+  conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+    discordBotClient.input.writeText(e.data, {
+      channelId,
+      userId,
+    });
+  });
+  // audio
+  conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+    // XXX finish this
+    console.log('conversation outgoing audio stream', e.data);
+    // const audioStream = e.data.audioStream as PlayableAudioStream;
+    // (async () => {
+    //   const {
+    //     waitForFinish,
+    //   } = realms.addAudioSource(audioStream);
+    //   await waitForFinish();
+    //   realms.removeAudioSource(audioStream);
+    // })();
+  });
+  // typing
+  conversation.addEventListener('typingstart', (e) => {
+    discordBotClient.input.sendTyping({
+      channelId,
+      userId,
+    }); // expires after 10 seconds
+  });
+  // conversation.addEventListener('typingend', (e) => {
+  // });
+}
 
 //
 
@@ -136,6 +177,11 @@ export class DiscordBot extends EventTarget {
             agent,
             conversation,
           });
+          bindBotClientConversation({
+            conversation,
+            discordBotClient,
+            channelId,
+          });
 
           this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
             data: {
@@ -173,6 +219,11 @@ export class DiscordBot extends EventTarget {
         bindAgentConversation({
           agent,
           conversation,
+        });
+        bindBotClientConversation({
+          conversation,
+          discordBotClient,
+          userId,
         });
 
         this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
@@ -232,41 +283,10 @@ export class DiscordBot extends EventTarget {
         }
       });
     };
-    const _bindOutgoing = () => {
-      // chat messages
-      this.conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-        // XXX look up this conversation's discord bot channel/dm, and writeText to it
-        // const { message } = e.data;
-        // if (realms.isConnected()) {
-        //   realms.sendChatMessage(message);
-        // }
-      });
-      // audio
-      this.conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-        // XXX finish this
-        console.log('conversation outgoing audio stream', e.data);
-        // const audioStream = e.data.audioStream as PlayableAudioStream;
-        // (async () => {
-        //   const {
-        //     waitForFinish,
-        //   } = realms.addAudioSource(audioStream);
-        //   await waitForFinish();
-        //   realms.removeAudioSource(audioStream);
-        // })();
-      });
-      // typing
-      this.conversation.addEventListener('typingstart', (e) => {
-        // XXX sendTyping needs an object with { channelId | userId }
-        discordBotClient.sendTyping(); // expires after 10 seconds
-      });
-      // this.conversation.addEventListener('typingend', (e) => {
-      // });
-    };
 
     (async () => {
       _bindChannels();
       _bindIncoming();
-      _bindOutgoing();
       await _connect();
     })();
   }
