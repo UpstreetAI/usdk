@@ -36,10 +36,9 @@ export type AgentObject = EventTarget & {
   address: string;
   stripeConnectAccountId: string;
 };
-
-export type AgentThinkOptions = {
-  forceAction?: string;
-  excludeActions?: string[];
+export type AgentSpec = {
+  id: string;
+  name: string;
 };
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
@@ -65,6 +64,10 @@ export type GenerativeAgentObject =  {
 
   addMessage: (m: PendingActionMessage) => Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
+};
+export type AgentThinkOptions = {
+  forceAction?: string;
+  excludeActions?: string[];
 };
 
 // messages
@@ -235,6 +238,7 @@ export type ConversationObject = EventTarget & {
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
+  addHiddenMessage: (message: ActionMessage) => Promise<void>;
   addLocalAndRemoteMessage: (message: ActionMessage) => Promise<void>;
 
   addAudioStream: (audioStream: PlayableAudioStream) => void;
@@ -278,8 +282,9 @@ export type ChatsManager = EventTarget & {
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
-  // join: (opts: RoomSpecification) => Promise<void>;
-  // leave: (opts: RoomSpecification) => Promise<void>;
+  join: (opts: RoomSpecification) => Promise<void>;
+  leave: (opts: RoomSpecification) => Promise<void>;
+  tick: () => Promise<number>;
   live: () => void;
   destroy: () => void;
 };
@@ -309,6 +314,7 @@ export type ActiveAgentObject = AgentObject & {
 
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  pingManager: PingManager;
   taskManager: TaskManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
@@ -621,6 +627,10 @@ export type AgentRegistry = {
   unregisterName(key: symbol): void;
   registerPersonality(key: symbol, personality: PersonalityProps): void;
   unregisterPersonality(key: symbol): void;
+  registerPayment(key: symbol, payment: PaymentProps): void;
+  unregisterPayment(key: symbol): void;
+  registerSubscription(key: symbol, subscription: SubscriptionProps): void;
+  unregisterSubscription(key: symbol): void;
   registerServer(key: symbol, server: ServerProps): void;
   unregisterServer(key: symbol): void;
 }
