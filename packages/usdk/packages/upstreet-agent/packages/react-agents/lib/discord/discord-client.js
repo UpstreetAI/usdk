@@ -158,6 +158,21 @@ export class DiscordInput {
       console.warn('no stream found for streamId: ' + streamId);
     }
   }
+
+  sendTyping({
+    channelId,
+    userId,
+  } = {}) {
+    const m = {
+      method: 'sendTyping',
+      args: {
+        channelId,
+        userId,
+      },
+    };
+    const s = JSON.stringify(m);
+    this.ws.send(s);
+  }
 }
 
 //
