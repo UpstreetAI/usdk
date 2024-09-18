@@ -238,7 +238,6 @@ export type ConversationObject = EventTarget & {
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
   addLocalMessage: (message: ActionMessage) => Promise<void>;
-  addHiddenMessage: (message: ActionMessage) => Promise<void>;
   addLocalAndRemoteMessage: (message: ActionMessage) => Promise<void>;
 
   addAudioStream: (audioStream: PlayableAudioStream) => void;
