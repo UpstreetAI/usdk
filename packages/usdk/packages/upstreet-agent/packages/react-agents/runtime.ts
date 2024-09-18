@@ -8,6 +8,7 @@ import {
   ChatMessages,
   PendingActionMessage,
   ActiveAgentObject,
+  GenerativeAgentObject,
   ActionMessage,
   ActionProps,
   ActionMessageEvent,
@@ -29,9 +30,6 @@ import {
 import {
   parseCodeBlock,
 } from './util/util.mjs';
-import {
-  GenerativeAgentObject,
-} from './classes/generative-agent-object';
 import {
   PerceptionEvent,
 } from './classes/perception-event';
