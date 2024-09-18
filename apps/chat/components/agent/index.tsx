@@ -9,6 +9,8 @@ import { isValidUrl } from '@/utils/helpers/urls';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { IconButton, Button } from 'ucom';
 import useHash from '@/lib/hooks/use-hash';
+import { AgentRooms } from './rooms';
+import Link from 'next/link';
 
 interface AgentImage {
   url: string;
@@ -20,6 +22,7 @@ interface Agent {
   id: string;
   preview_url: string;
   author: {
+    id: string;
     name: string;
   };
 }
@@ -57,6 +60,8 @@ export function AgentProfile({ agent }: AgentProps) {
 
       setIsLoading(false);
 
+      console.log(data)
+
       if (error) {
         console.error('Error fetching rooms:', error);
       } else {
@@ -75,7 +80,7 @@ export function AgentProfile({ agent }: AgentProps) {
     >
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
         <div className="absolute bottom-16 left-4">
-          <div className="mr-4 mb-4 w-12 h-12 bg-opacity-10 overflow-hidden rounded-2xl flex items-center justify-center">
+          <div className="mr-4 mb-4 size-40 border-2 border-black rounded-xl bg-opacity-10 overflow-hidden flex items-center justify-center">
             {isPreviewUrlValid ? (
               <Image
                 src={agent.preview_url}
@@ -99,7 +104,9 @@ export function AgentProfile({ agent }: AgentProps) {
               </Button>
             </div>
             <h3 className="text-sm mb-4">
+              <Link href={`/accounts/${agent.author.id}`}>
               Created by: {agent.author.name}
+              </Link>
             </h3>
             <div className="flex gap-4">
               <Button onClick={() => agentJoin(agent.id)}>Chat</Button>
@@ -108,8 +115,12 @@ export function AgentProfile({ agent }: AgentProps) {
             </div>
           </div>
         </div>
+        
+       
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-opacity-90 p-4 overflow-y-auto">
+            {tab === 'rooms' && (<AgentRooms agent={agent} />)}
+        </div>
 
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-opacity-90 p-4 overflow-y-auto"></div>
       </div>
     </div>
   );
