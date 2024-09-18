@@ -1,44 +1,4 @@
-// import { useContext, useEffect } from 'react';
-// import type { Context } from 'react';
-// import { z } from 'zod';
-// import * as Y from 'yjs';
-// import type { ZodTypeAny } from 'zod';
-// import dedent from 'dedent';
-// import {
-//   EpochContext,
-// } from '../context';
-// import {
-//   AgentObject,
-// } from './agent-object';
 import type {
-  // AppContextValue,
-  // ActionProps,
-  // FormatterProps,
-  // PromptProps,
-  // ParserProps,
-  // PerceptionProps,
-  // TaskProps,
-  // NameProps,
-  // PersonalityProps,
-  // ServerProps,
-  // TaskObject,
-  // PendingActionMessage,
-  // MemoryOpts,
-  // SubtleAiCompleteOpts,
-  // SubtleAiImageOpts,
-  // ChatMessages,
-  // ActionHistoryQuery,
-  // Memory,
-  // ActionOpts,
-  // PerceptionEventData,
-  // ConversationChangeEventData,
-  // ConversationAddEventData,
-  // ConversationRemoveEventData,
-  // ActionMessageEventData,
-  // ActionMessageEvent,
-  // MessagesUpdateEventData,
-  // PlayableAudioStream,
-  // ActiveAgentObject,
   RoomSpecification,
 } from '../types';
 // import {
