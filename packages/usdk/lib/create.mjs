@@ -200,6 +200,14 @@ export const create = async (args, opts) => {
     throw new Error('multiple mutually exclusive options --prompt, --template and --source');
   }
 
+  // ensure agent json string is provided when using source file
+  // since agentJsonString is required for proper agentJson creation
+  if (source) {
+    if (!agentJsonString) {
+      throw new Error('The --json flag is required when using the --source flag.');
+    }
+  }
+
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
