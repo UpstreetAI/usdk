@@ -6,6 +6,7 @@ import {
   AgentObject,
   ActiveAgentObject,
   ActionProps,
+  ActionPropsAux,
   FormatterProps,
   NameProps,
   PersonalityProps,
@@ -89,7 +90,7 @@ export const useAgents: () => Array<AgentObject> = () => {
   return agentContextValue.useAgents();
 }; */
 
-export const useActions: () => Array<ActionProps> = () => {
+export const useActions: () => ActionPropsAux[] = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   return agentRegistryValue.actions;
 };
