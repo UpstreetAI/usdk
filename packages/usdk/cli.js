@@ -3538,7 +3538,7 @@ const main = async () => {
   // program
   //   .command('join')
   //   .description(`Make an agent join a multiplayer room`)
-  //   .argument(`<guid>`, `Guid of the agent to`)
+  //   .argument(`<guid>`, `Guid of the agent`)
   //   .argument(`<room>`, `Name of the room to join`)
   //   .option(
   //     `-l, --local`,
