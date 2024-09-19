@@ -442,8 +442,8 @@ export type PromptProps = {
   children: ReactNode;
 };
 export type FormatterProps = {
-  schemaFn: (actions: ActionProps[], thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionProps[]) => string;
+  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[]) => string;
 };
 export type PerceptionProps = {
   type: string;
