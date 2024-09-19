@@ -52,6 +52,10 @@ export type GenerativeAgentObject =  {
   complete: (
     messages: ChatMessages,
   ) => Promise<ChatMessage>;
+  completeJson: (
+    messages: ChatMessages,
+    format: ZodTypeAny,
+  ) => Promise<ChatMessage>;
 
   think: (hint?: string, thinkOpts?: AgentThinkOptions) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
