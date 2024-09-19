@@ -133,7 +133,6 @@ export const DefaultAgentComponents = () => {
       <DefaultGenerators />
       <DefaultSenses />
       <RAGMemory />
-      <DefaultConnectors />
       <DefaultPrompts />
       {/* <DefaultServers /> */}
     </>
@@ -621,18 +620,6 @@ const RAGMemory = () => {
     </>
   );
 };
-
-//
-
-const DefaultConnectors = () => {
-  return (
-    <DiscordBot
-      token='MTI4NDgxNzQ1NDQ2NzY0NTUzMA.GSYqVY.g-U0pVRX3BcEGgmB3T24V5D6TuspzSsoyCeKJY'
-      channels={['scilly', 'coding']}
-      dms='avaer'
-    />
-  );
-}
 
 /**
  * Renders the default actions components.
