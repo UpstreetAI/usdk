@@ -1,11 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import readline from 'node:readline/promises'
-import child_process from 'child_process';
-import util from 'util';
 
 import { mkdirp } from 'mkdirp';
-import { rimraf } from 'rimraf';
 import recursiveCopy from 'recursive-copy';
 import pc from 'picocolors';
 import Jimp from 'jimp';
@@ -30,7 +26,8 @@ import {
 import {
   generateMnemonic,
 } from '../util/ethereum-utils.mjs';
-import { isYes } from '../lib/isYes.js'
+import { cleanDir } from '../lib/directory-util.mjs';
+import { npmInstall } from '../lib/npm-util.mjs';
 import {
   getLoginJwt,
 } from './login.mjs';
@@ -65,9 +62,6 @@ import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-age
 //
 
 const agentJsonSrcFilename = 'agent.json';
-// const agentJsonDstFilename = 'agent.npc';
-
-const execFile = util.promisify(child_process.execFile);
 
 //
 
@@ -76,50 +70,6 @@ const writeFile = async (dstPath, s) => {
   await fs.promises.writeFile(dstPath, s);
 };
 
-/* const mergeJson = async (
-  dstPath,
-  srcPaths,
-  mergeFn = (a, b) => {
-    return {
-      ...a,
-      ...b,
-    };
-  },
-  // finalizerFn = (a) => {
-  //   return a;
-  // },
-) => {
-  // read the jsons
-  let jsons = await Promise.all(
-    srcPaths.map(async (p) => {
-      try {
-        const s = await fs.promises.readFile(p, 'utf8');
-        const j = JSON.parse(s);
-        return j;
-      } catch (err) {
-        if (err.code === 'ENOENT') {
-          return null;
-        } else {
-          throw err;
-        }
-      }
-    }),
-  );
-  jsons = jsons.filter((j) => j !== null);
-
-  // merge the jsons
-  let j = {};
-  for (let i = 0; i < jsons.length; i++) {
-    j = mergeFn(j, jsons[i]);
-  }
-
-  // finalize the json
-  // j = finalizerFn(j);
-
-  // write the result
-  const s = JSON.stringify(j, null, 2);
-  await fs.promises.writeFile(dstPath, s);
-}; */
 const copyWithStringTransform = async (src, dst, transformFn) => {
   let s = await fs.promises.readFile(src, 'utf8');
   s = transformFn(s);
@@ -211,48 +161,11 @@ export const create = async (args, opts) => {
     sourceFile = await fs.promises.readFile(source);
   }
 
-  // remove old files
-  const files = await (async () => {
-    try {
-      return await fs.promises.readdir(dstDir);
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        return [];
-      } else {
-        throw err;
-      }
-    }
-  })();
-  // console.log('files', cwd, files.filter(f => /route/.test(f)));
-  if (files.length > 0) {
-    if (force || forceNoConfirm) {
-      if (!forceNoConfirm) {
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        });
-
-        const answer = await rl.question(`\nDelete the contents of "${path.resolve(dstDir)}"? ${pc.cyan('y/N')}: `)
-        rl.close();
-        console.log();
-
-        if (!isYes(answer)) {
-          throw new Error('aborted');
-        }
-      }
-
-      // Remove all files.
-      console.log(pc.italic('\nRemoving old files...'));
-      await Promise.all(
-        files.map((filePath) => rimraf(path.join(dstDir, filePath))),
-      );
-    } else {
-      // throw error
-      // console.warn('directory is not empty (-f to override)');
-      // console.log('files (' + dstDir + '):\n' + files.slice(0, 8).join('\n'));
-      throw new Error('directory is not empty (-f to override)');
-    }
-  }
+  // remove old directory
+  await cleanDir(dstDir, {
+    force,
+    forceNoConfirm,
+  });
 
   // bootstrap destination directory
   await mkdirp(dstDir);
@@ -436,12 +349,9 @@ export const create = async (args, opts) => {
   // npm install
   console.log(pc.italic('Installing dependencies...'));
   try {
-    await execFile('npm', ['install'], {
-      cwd: dstDir,
-      stdio: 'inherit',
-    });
+    await npmInstall(dstDir);
   } catch (err) {
-    console.warn(err.stack);
+    console.warn('npm install failed:', err.stack);
   }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
