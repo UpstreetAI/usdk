@@ -22,6 +22,7 @@
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "stripe": "^16.10.0",
     "together-ai": "^0.6.0-alpha.4",
+    "typescript": "^5.6.2",
     "yjs": "^13.6.18",
     "zod": "^3.23.8",
     "zod-to-ts": "^1.2.0"
