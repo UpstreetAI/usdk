@@ -3487,17 +3487,10 @@ const main = async () => {
         commandExecuted = true;
 
         let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [agentRefs],
-            ...opts,
-          };
-        } else {
-          args = {
-            _: [],
-            ...opts,
-          };
-        }
+        args = {
+          _: [agentRefs],
+          ...opts,
+        };
 
         await deploy(args);
       });
