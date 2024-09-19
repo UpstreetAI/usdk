@@ -10,6 +10,7 @@ import type {
   AppContextValue,
   // AgentProps,
   ActionProps,
+  ActionPropsAux,
   // PromptProps,
   FormatterProps,
   // ParserProps,
@@ -19,6 +20,7 @@ import type {
   SceneObject,
   AgentObject,
   ActiveAgentObject,
+  ConversationObject,
   PendingActionEvent,
   PerceptionEvent,
   ActionMessage,
@@ -888,7 +890,7 @@ export const JsonFormatter = () => {
   return (
     <Formatter
       /* map actions to zod schema to generate an action */
-      schemaFn={(actions: ActionProps[], thinkOpts?: AgentThinkOptions) => {
+      schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         let types: ZodTypeAny[] = [];
         const forceAction = thinkOpts?.forceAction ?? null;
         const excludeActions = thinkOpts?.excludeActions ?? [];
@@ -897,7 +899,10 @@ export const JsonFormatter = () => {
             name,
             schema: argsSchema,
           } = action;
-          const isAllowedAction = (forceAction === null || name === forceAction) && !excludeActions.includes(name);
+          const isAllowedAction =
+            (!action.conversation || action.conversation === conversation) &&
+            (forceAction === null || name === forceAction) &&
+            !excludeActions.includes(name);
           if (isAllowedAction) {
             const zodSchema = makeJsonSchema(name, argsSchema);
             types.push(zodSchema);
@@ -914,7 +919,7 @@ export const JsonFormatter = () => {
         }
       }}
       /* format actions to instruction prompt */
-      formatFn={(actions: ActionProps[]) => {
+      formatFn={(actions: ActionPropsAux[]) => {
         return actions.map((action) => {
           const {
             name,
