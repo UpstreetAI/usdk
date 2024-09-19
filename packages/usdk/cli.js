@@ -2225,7 +2225,7 @@ const setWranglerTomlAgentToken = (
   return t;
 };
 const makeRoomName = () => `room:` + makeId(8);
-const dev = async (args) => {
+/* const dev = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const debug = !!args.debug;
 
@@ -2243,7 +2243,7 @@ const dev = async (args) => {
     })
     .filter(Boolean);
   await Promise.all(devServerPromises);
-};
+}; */
 const search = async (args) => {
   const prompt = args._[0] ?? '';
 
@@ -3374,7 +3374,7 @@ const main = async () => {
     // 'fund',
     // 'deposit',
   ]; */
-  program
+  /* program
     .command('dev')
     .description(
       'Start a dev server for the agent in the current directory, and optionally run a subcommand',
@@ -3390,9 +3390,8 @@ const main = async () => {
         };
         await dev(args);
       });
-    });
-
-    program
+    }); */
+  program
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
