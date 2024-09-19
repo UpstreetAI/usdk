@@ -2633,6 +2633,38 @@ const deploy = async (args) => {
     process.exit(1);
   }
 };
+const pull = async (args) => {
+  const agentId = args._[0] ?? '';
+  const dstDir = args._[0] ?? cwd;
+
+  const jwt = await getLoginJwt();
+  const userId = jwt && (await getUserIdForJwt(jwt));
+  if (userId) {
+    const u = `${aiProxyHost}/agents/${agentId}/source`;
+    try {
+      const req = await fetch(u, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (req.ok) {
+        const arrayBuffer = await req.arrayBuffer();
+        console.log('downloaded source', arrayBuffer.byteLength);
+        // XXX extract to dstDir
+      } else {
+        const text = await req.text();
+        console.warn('pull request error', text);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.warn('pull request failed', err);
+      process.exit(1);
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
 const ls = async (args) => {
   const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
@@ -3282,6 +3314,31 @@ const main = async () => {
           };
         }
         await create(args);
+      });
+    });
+  program
+    .command('pull')
+    .description('Download the source code for your deployed agent')
+    .argument('<guid>', 'Guid of the agent')
+    .argument(`[directory]`, `The directory to create the project in`)
+    .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+    .action(async (guid = undefined, directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [guid, directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [guid],
+            ...opts,
+          };
+        }
+        await pull(args);
       });
     });
   /* const devSubcommands = [
