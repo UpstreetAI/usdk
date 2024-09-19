@@ -587,7 +587,12 @@ const login = async (args) => {
   };
 
   const generateRandomPort = () => {
-    return Math.floor(Math.random() * (65535 - 1024 + 1)) + 1024;
+    const reservedPorts = [localPort, devServerPort];
+    let port;
+    do {
+      port = Math.floor(Math.random() * (65535 - 1024 + 1)) + 1024;
+    } while (reservedPorts.includes(port));
+    return port;
   };
 
   // if (!anonymous) {
