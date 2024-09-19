@@ -14,16 +14,10 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
-import recursiveReaddir from 'recursive-readdir';
-// import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
 import jsAgo from 'js-ago';
 import 'localstorage-polyfill';
-import JSZip from 'jszip';
 // import { doc } from 'tsdoc-extractor';
-// import {
-//   defaultModels,
-// } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -34,6 +28,7 @@ import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/gui
 import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
 import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
   localPort,
   callbackPort,
@@ -2307,83 +2302,6 @@ const runJest = async (directory) => {
     },
   });
 };
-const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
-  let files = await recursiveReaddir(dirPath);
-  files = files.filter((p) => !exclude.some((re) => re.test(p)));
-
-  const zip = new JSZip();
-  for (const p of files) {
-    const basePath = p.slice(dirPath.length + 1);
-    const stream = fs.createReadStream(p);
-    zip.file(basePath, stream);
-  }
-
-  const arrayBuffer = await zip.generateAsync({
-    type: 'arraybuffer',
-    compression: 'DEFLATE',
-    compressionOptions: {
-      level: 9,
-    },
-  });
-  const uint8Array = new Uint8Array(arrayBuffer);
-  return uint8Array;
-};
-/* const extractZip = async (zipBuffer, tempPath) => {
-  const cleanup = async () => {
-    await rimraf(tempPath);
-  };
-
-  // read the zip file using jszip
-  const zip = new JSZip();
-  await zip.loadAsync(zipBuffer);
-  const ps = [];
-  const queueManager = new QueueManager({
-    parallelism: 10,
-  });
-  zip.forEach((relativePath, zipEntry) => {
-    const fullPathName = [tempPath, relativePath].join('/');
-
-    if (!zipEntry.dir) {
-      const p = (async () => {
-        return await queueManager.waitForTurn(async () => {
-          // check if the file exists
-          let stats = null;
-          try {
-            stats = await fs.promises.lstat(fullPathName);
-          } catch (err) {
-            if (err.code === 'ENOENT') {
-              // nothing
-            } else {
-              // console.warn(err.stack);
-              throw err;
-            }
-          }
-          if (stats === null) {
-            // console.log('write file 1', fullPathName);
-            const arrayBuffer = await zipEntry.async('arraybuffer');
-            // console.log('write file 2', fullPathName);
-            await mkdirp(path.dirname(fullPathName));
-            // console.log('write file 3', fullPathName);
-            await fs.promises.writeFile(
-              fullPathName,
-              Buffer.from(arrayBuffer),
-            );
-            // console.log('write file 4', fullPathName);
-            return relativePath;
-          } else {
-            throw conflictError;
-          }
-        });
-      })();
-      ps.push(p);
-    }
-  });
-  const files = await Promise.all(ps);
-  return {
-    files,
-    cleanup,
-  };
-}; */
 const test = async (args) => {
   const all = !!args.all;
   const dev = true;
@@ -2629,7 +2547,7 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
-      const uint8Array = await getDirectoryZip(directory, {
+      const uint8Array = await packZip(directory, {
         exclude: [/\/node_modules\//],
       });
       // upload the agent
