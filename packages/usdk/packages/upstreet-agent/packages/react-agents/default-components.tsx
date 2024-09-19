@@ -724,6 +724,7 @@ export const CharactersPrompt = () => {
 export const ActionsPrompt = () => {
   const actions = useActions();
   const formatters = useFormatters();
+  const conversation = useConversation();
 
   let s = '';
   if (actions.length > 0 && formatters.length > 0) {
@@ -733,7 +734,7 @@ export const ActionsPrompt = () => {
       Here are the allowed actions that your character can take:
     ` +
     '\n\n' +
-    formatter.formatFn(Array.from(actions.values()));
+    formatter.formatFn(Array.from(actions.values()), conversation);
   }
   return (
     <Prompt>{s}</Prompt>
@@ -886,25 +887,22 @@ const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) 
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
+const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+  const forceAction = thinkOpts?.forceAction ?? null;
+  const excludeActions = thinkOpts?.excludeActions ?? [];
+  return (!action.conversation || action.conversation === conversation) &&
+    (forceAction === null || action.name === forceAction) &&
+    !excludeActions.includes(action.name);
+};
 export const JsonFormatter = () => {
   return (
     <Formatter
       /* map actions to zod schema to generate an action */
       schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         let types: ZodTypeAny[] = [];
-        const forceAction = thinkOpts?.forceAction ?? null;
-        const excludeActions = thinkOpts?.excludeActions ?? [];
         for (const action of actions) {
-          const {
-            name,
-            schema: argsSchema,
-          } = action;
-          const isAllowedAction =
-            (!action.conversation || action.conversation === conversation) &&
-            (forceAction === null || name === forceAction) &&
-            !excludeActions.includes(name);
-          if (isAllowedAction) {
-            const zodSchema = makeJsonSchema(name, argsSchema);
+          if (isAllowedAction(action, conversation, thinkOpts)) {
+            const zodSchema = makeJsonSchema(action.name, action.schema);
             types.push(zodSchema);
           }
         }
@@ -919,48 +917,51 @@ export const JsonFormatter = () => {
         }
       }}
       /* format actions to instruction prompt */
-      formatFn={(actions: ActionPropsAux[]) => {
-        return actions.map((action) => {
-          const {
-            name,
-            description,
-            examples,
-          } = action;
+      formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+        return actions
+          .filter(action => isAllowedAction(action, conversation, thinkOpts))
+          .map((action) => {
+            const {
+              name,
+              description,
+              examples,
+            } = action;
 
-          const examplesJsonString = (examples ?? []).map((args) => {
-            return JSON.stringify(
-              {
-                method: name,
-                args,
-              }
+            const examplesJsonString = (examples ?? []).map((args) => {
+              return JSON.stringify(
+                {
+                  method: name,
+                  args,
+                }
+              );
+            }).join('\n');
+
+            return (
+              name ? (
+                dedent`
+                  * ${name}
+                ` +
+                '\n'
+              ) : ''
+            ) +
+            (description ? (description + '\n') : '') +
+            (examplesJsonString
+              ? (
+                dedent`
+                  Examples:
+                  \`\`\`
+                ` +
+                '\n' +
+                examplesJsonString +
+                '\n' +
+                dedent`
+                  \`\`\`
+                `
+              )
+              : ''
             );
-          }).join('\n');
-
-          return (
-            name ? (
-              dedent`
-                * ${name}
-              ` +
-              '\n'
-            ) : ''
-          ) +
-          (description ? (description + '\n') : '') +
-          (examplesJsonString
-            ? (
-              dedent`
-                Examples:
-                \`\`\`
-              ` +
-              '\n' +
-              examplesJsonString +
-              '\n' +
-              dedent`
-                \`\`\`
-              `
-            )
-            : ''
-          );
-        }).join('\n\n');
+          })
+          .join('\n\n');
       }}
     />
   );
