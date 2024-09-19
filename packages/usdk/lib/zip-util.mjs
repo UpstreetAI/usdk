@@ -1,3 +1,4 @@
+import path from 'path';
 import fs from 'fs';
 import recursiveReaddir from 'recursive-readdir';
 import { mkdirp } from 'mkdirp';
