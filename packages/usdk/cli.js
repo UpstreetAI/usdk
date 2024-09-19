@@ -112,6 +112,8 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { cleanDir } from './lib/directory-util.mjs';
+import { npmInstall } from './lib/npm-util.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -2635,11 +2637,21 @@ const deploy = async (args) => {
 };
 const pull = async (args) => {
   const agentId = args._[0] ?? '';
-  const dstDir = args._[0] ?? cwd;
+  const dstDir = args._[1] ?? cwd;
+  const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
 
   const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
+    // clean the old directory
+    await cleanDir(dstDir, {
+      force,
+      forceNoConfirm,
+    });
+
+    // download the source
+    console.log(pc.italic('Downloading source...'));
     const u = `https://${aiProxyHost}/agents/${agentId}/source`;
     try {
       const req = await fetch(u, {
@@ -2648,9 +2660,20 @@ const pull = async (args) => {
         },
       });
       if (req.ok) {
-        const arrayBuffer = await req.arrayBuffer();
-        console.log('downloaded source', arrayBuffer.byteLength);
-        // XXX extract to dstDir
+        const zipBuffer = await req.arrayBuffer();
+        // console.log('downloaded source', zipBuffer.byteLength);
+
+        // extract the source
+        console.log(pc.italic('Extracting zip...'));
+        await extractZip(zipBuffer, dstDir);
+
+        console.log(pc.italic('Installing dependencies...'));
+        try {
+          await npmInstall(dstDir);
+        } catch (err) {
+          console.warn('npm install failed:', err.stack);
+          process.exit(1);
+        }
       } else {
         const text = await req.text();
         console.warn('pull request error', text);
