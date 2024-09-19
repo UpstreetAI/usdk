@@ -586,6 +586,10 @@ const login = async (args) => {
     console.log('Successfully logged in.');
   };
 
+  const generateRandomPort = () => {
+    return Math.floor(Math.random() * (65535 - 1024 + 1)) + 1024;
+  };
+
   // if (!anonymous) {
     await new Promise((accept, reject) => {
       const serverOpts = getServerOpts();
@@ -642,7 +646,8 @@ const login = async (args) => {
       // server.on('close', () => {
       //   console.log('callback server closed');
       // });
-      server.listen(callbackPort, '0.0.0.0', (err) => {
+      const randomPort = generateRandomPort();
+      server.listen(randomPort, '0.0.0.0', (err) => {
         // console.log('callback server listening on port', {
         //   callbackPort,
         // });
@@ -651,7 +656,7 @@ const login = async (args) => {
         } else {
           const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
           const u = new URL(`${host}/logintool`);
-          u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
+          u.searchParams.set('callback_url', `https://local.upstreet.ai:${uniquePort}`);
           const p = u + '';
           console.log(`Waiting for login from ${p}`);
           open(p);
