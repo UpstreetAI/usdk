@@ -3341,7 +3341,7 @@ const main = async () => {
     });
   program
     .command('pull')
-    .description('Download the source code for your deployed agent')
+    .description('Download source of deployed agent')
     .argument('<guid>', 'Guid of the agent')
     .argument(`[directory]`, `The directory to create the project in`)
     .option(`-f, --force`, `Overwrite existing files`)
