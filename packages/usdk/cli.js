@@ -2640,7 +2640,7 @@ const pull = async (args) => {
   const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
-    const u = `${aiProxyHost}/agents/${agentId}/source`;
+    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
     try {
       const req = await fetch(u, {
         headers: {
