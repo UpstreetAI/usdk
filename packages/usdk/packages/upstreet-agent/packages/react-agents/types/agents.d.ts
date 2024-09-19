@@ -443,7 +443,7 @@ export type PromptProps = {
 };
 export type FormatterProps = {
   schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[]) => string;
+  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
 };
 export type PerceptionProps = {
   type: string;
