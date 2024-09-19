@@ -731,7 +731,7 @@ export const ActionsPrompt = () => {
     const formatter = formatters[0];
     s = dedent`
       # Actions
-      Here are the allowed actions that your character can take:
+      Here are the actions that your character can take:
     ` +
     '\n\n' +
     formatter.formatFn(Array.from(actions.values()), conversation);
