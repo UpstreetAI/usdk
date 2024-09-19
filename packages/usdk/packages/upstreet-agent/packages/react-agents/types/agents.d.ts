@@ -200,16 +200,11 @@ export type Player = {
   setPlayerSpec(playerSpec: object): void;
 };
 export type ConversationObject = EventTarget & {
-  // id: string;
-  // room: string;
-  // endpointUrl: string;
   scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
   messageCache: MessageCache;
   numTyping: number;
-
-  // getBrowserUrl: () => string;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   /* fetchMessages: (filter?: MessageFilter, opts?: {
