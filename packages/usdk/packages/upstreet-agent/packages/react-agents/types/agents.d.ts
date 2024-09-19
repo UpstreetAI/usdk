@@ -201,15 +201,15 @@ export type Player = {
 };
 export type ConversationObject = EventTarget & {
   // id: string;
-  room: string;
-  endpointUrl: string;
+  // room: string;
+  // endpointUrl: string;
   scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
   messageCache: MessageCache;
   numTyping: number;
 
-  getBrowserUrl: () => string;
+  // getBrowserUrl: () => string;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   /* fetchMessages: (filter?: MessageFilter, opts?: {
