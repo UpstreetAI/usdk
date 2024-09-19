@@ -52,6 +52,10 @@ export type GenerativeAgentObject =  {
   complete: (
     messages: ChatMessages,
   ) => Promise<ChatMessage>;
+  completeJson: (
+    messages: ChatMessages,
+    format: ZodTypeAny,
+  ) => Promise<ChatMessage>;
 
   think: (hint?: string, thinkOpts?: AgentThinkOptions) => Promise<any>;
   generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
@@ -196,16 +200,11 @@ export type Player = {
   setPlayerSpec(playerSpec: object): void;
 };
 export type ConversationObject = EventTarget & {
-  // id: string;
-  room: string;
-  endpointUrl: string;
   scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
   messageCache: MessageCache;
   numTyping: number;
-
-  getBrowserUrl: () => string;
 
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   /* fetchMessages: (filter?: MessageFilter, opts?: {
@@ -442,8 +441,8 @@ export type PromptProps = {
   children: ReactNode;
 };
 export type FormatterProps = {
-  schemaFn: (actions: ActionProps[], thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionProps[]) => string;
+  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
 };
 export type PerceptionProps = {
   type: string;
