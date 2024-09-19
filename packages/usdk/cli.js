@@ -661,7 +661,7 @@ const login = async (args) => {
         } else {
           const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
           const u = new URL(`${host}/logintool`);
-          u.searchParams.set('callback_url', `https://local.upstreet.ai:${uniquePort}`);
+          u.searchParams.set('callback_url', `https://local.upstreet.ai:${randomPort}`);
           const p = u + '';
           console.log(`Waiting for login from ${p}`);
           open(p);
