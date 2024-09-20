@@ -298,24 +298,34 @@ export class DiscordBot extends EventTarget {
     const _bindGuildMemberAdd = () => {
       discordBotClient.addEventListener('guildmemberadd', (e: MessageEvent<{member: any}>) => {
         const { member } = e.data;
-        console.log('got guild member add', {
-          member,
-        });
+        // console.log('got guild member add', {
+        //   member,
+        // });
         const player = makePlayerFromMember(member);
         for (const conversation of this.channelConversations.values()) {
           conversation.addAgent(player.playerId, player);
+        }
+
+        const dmConversation = this.dmConversations.get(member.userId);
+        if (dmConversation) {
+          dmConversation.addAgent(player.playerId, player);
         }
       });
     };
     const _bindGuildMemberRemove = () => {
       discordBotClient.addEventListener('guildmemberremove', (e: MessageEvent<{member: any}>) => {
         const { member } = e.data;
-        console.log('got guild member remove', {
-          member,
-        });
+        // console.log('got guild member remove', {
+        //   member,
+        // });
         const playerId = uuidByString(member.userId);
         for (const conversation of this.channelConversations.values()) {
           conversation.removeAgent(playerId);
+        }
+
+        const dmConversation = this.dmConversations.get(member.userId);
+        if (dmConversation) {
+          dmConversation.removeAgent(playerId);
         }
       });
     };
