@@ -5,7 +5,7 @@ import { IconLogout, IconUser } from '@/components/ui/icons';
 import { routes } from '@/routes';
 import { logout } from '@/lib/logout';
 import { IconPlus } from '@/components/ui/icons';
-import DevMode from './development';
+import Dev from './development';
 
 export interface AccountButtonProps {
   user: any
@@ -13,14 +13,14 @@ export interface AccountButtonProps {
 export function AccountButton({ user }: AccountButtonProps) {
   return (
     <div className='flex mr-4'>
-      <DevMode>
+      <Dev>
         <Link
           className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
           href={routes.new}
         >
           <IconPlus className="size-5" />
         </Link>
-      </DevMode>
+      </Dev>
       <Link
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
         href={routes.account}
