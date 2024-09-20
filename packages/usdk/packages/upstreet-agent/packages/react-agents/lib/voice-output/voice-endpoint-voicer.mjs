@@ -5,7 +5,6 @@
 import {aiProxyHost} from '../../util/endpoints.mjs'
 // import { abortableRead, makePromise } from '../../util.js';
 import { makePromise } from '../multiplayer/public/util.mjs';
-import {getCleanJwt} from '../../util/jwt-utils.mjs';
 
 //
 
@@ -17,10 +16,10 @@ const getVoiceRequest = {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
     }
-
     if (!jwt) {
-      jwt = getCleanJwt();
+      throw new Error('no jwt');
     }
+
     const baseUrl = `https://${aiProxyHost}/api/ai/text-to-speech`;
     const j = {
       text,
@@ -49,10 +48,10 @@ const getVoiceRequest = {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
     }
-
     if (!jwt) {
-      jwt = getCleanJwt();
+      throw new Error('no jwt');
     }
+
     const baseUrl = `https://${aiProxyHost}/api/tts`;
     const u = new URL(baseUrl);
     //clean emojis and special characters from text
@@ -167,21 +166,20 @@ const getVoiceStream = {
     return stream;
   },
   openai: (spec, opts) => {
+    const text = spec.text ?? '';
+    const voiceId = spec.voiceId ?? 'nova';
+    const signal = opts.signal ?? null;
+    const jwt = opts.jwt ?? null;
+    if (!jwt) {
+      throw new Error('no jwt');
+    }
+
     const throughStream = new TransformStream();
     // throughStream.text = opts.text;
 
     const close = () => {
       throughStream.writable.getWriter().close();
     };
-
-    const text = spec.text ?? '';
-    const voiceId = spec.voiceId ?? 'nova';
-    const signal = opts.signal ?? null;
-    let jwt = opts.jwt ?? null;
-
-    if (!jwt) {
-      jwt = getCleanJwt();
-    }
 
     const loadPromise = makePromise();
     (async () => {
@@ -236,10 +234,10 @@ const getVoiceConversionRequest = {
     if (!voiceId) {
       throw new Error('voiceId was not passed');
     }
-
     if (!jwt) {
-      jwt = getCleanJwt();
+      throw new Error('no jwt');
     }
+
     const baseUrl = `https://${aiProxyHost}/api/ai/speech-to-speech`;
     const fd = new FormData();
     fd.append('audio', blob);
@@ -301,7 +299,7 @@ export const getVoiceConversionStream = {
 };
 /* export const getVoiceChangeRequest = ({ audioBlob, voiceId, jwt = null }) => {
   if (!jwt) {
-    jwt = getCleanJwt();
+    throw new Error('no jwt');
   }
   const baseUrl = `https://${aiProxyHost}/api/ai/speech-to-speech`;
   const u = `${baseUrl}/${voiceId}/stream`;

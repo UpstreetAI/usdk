@@ -16,7 +16,6 @@ import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
 import jsAgo from 'js-ago';
-import 'localstorage-polyfill';
 // import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
@@ -2079,11 +2078,12 @@ const withdraw = async (args) => {
           content: `Generate an agent for the following prompt:\n${prompt}`,
         },
       ];
-      localStorage.setItem('jwt', JSON.stringify(jwt));
       try {
         const content = await fetchChatCompletion({
           model: defaultModels[0],
           messages,
+        }, {
+          jwt,
         });
         const codeBlock = parseCodeBlock(content);
         const j = JSON.parse(codeBlock);
@@ -2101,7 +2101,6 @@ const withdraw = async (args) => {
 const generateImage = async (prompt) => {
   const jwt = await getLoginJwt();
   if (jwt) {
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const blob = await fetchImageGeneration(prompt);
     return blob;
   } else {
@@ -2249,8 +2248,9 @@ const search = async (args) => {
   if (userId) {
     if (prompt) {
       const supabase = makeAnonymousClient(env);
-      localStorage.setItem('jwt', JSON.stringify(jwt));
-      const embedding = await lembed(prompt);
+      const embedding = await lembed(prompt, {
+        jwt,
+      });
       /*
         call the supabase function:
         function match_assets(

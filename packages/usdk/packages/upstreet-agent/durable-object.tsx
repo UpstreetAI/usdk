@@ -1,4 +1,3 @@
-import 'localstorage-polyfill';
 import { headers } from './packages/react-agents/constants.mjs';
 import { makeAnonymousClient, getUserIdForJwt } from './packages/react-agents/util/supabase-client.mjs';
 import { AgentRenderer } from './packages/react-agents/classes/agent-renderer.tsx';
