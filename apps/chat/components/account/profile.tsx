@@ -22,7 +22,7 @@ import {
   AuxImages,
 } from '@/components/aux-images';
 
-import DevMode from '@/components/development';
+import Dev from '@/components/development';
 import { IconSpinner } from '../ui/icons';
 
 export interface ProfileProps {
@@ -291,7 +291,7 @@ export function Profile({
           </div>
         </div>
 
-        <DevMode>
+        <Dev>
           <div className="p-4 border-t rounded-b-md border-zinc-700 text-zinc-500">
             <div className="flex flex-col items-start justify-start">
               <AuxImages
@@ -302,7 +302,7 @@ export function Profile({
               />
             </div>
           </div>
-        </DevMode>
+        </Dev>
         
       </div>
     </div>

@@ -6,7 +6,7 @@ interface ChatLayoutProps {
   children: React.ReactNode
 }
 
-export function DevMode({ children }: ChatLayoutProps)  {
+export function Dev({ children }: ChatLayoutProps)  {
   const [globalState] = useGlobalState();
 
   return globalState.isDevMode ? children : null;
