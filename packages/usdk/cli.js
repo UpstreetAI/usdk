@@ -14,16 +14,10 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
-import recursiveReaddir from 'recursive-readdir';
-// import recursiveCopy from 'recursive-copy';
 import dedent from 'dedent';
 import jsAgo from 'js-ago';
 import 'localstorage-polyfill';
-import JSZip from 'jszip';
 // import { doc } from 'tsdoc-extractor';
-// import {
-//   defaultModels,
-// } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -34,6 +28,7 @@ import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/gui
 import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
 import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
   localPort,
   callbackPort,
@@ -117,6 +112,8 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { cleanDir } from './lib/directory-util.mjs';
+import { npmInstall } from './lib/npm-util.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -2225,7 +2222,7 @@ const setWranglerTomlAgentToken = (
   return t;
 };
 const makeRoomName = () => `room:` + makeId(8);
-const dev = async (args) => {
+/* const dev = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const debug = !!args.debug;
 
@@ -2243,7 +2240,7 @@ const dev = async (args) => {
     })
     .filter(Boolean);
   await Promise.all(devServerPromises);
-};
+}; */
 const search = async (args) => {
   const prompt = args._[0] ?? '';
 
@@ -2306,96 +2303,6 @@ const runJest = async (directory) => {
       NODE_PATH: npmRoot, // needed to import usdk
     },
   });
-};
-const getDirectoryZip = async (dirPath, { exclude = [] } = {}) => {
-  // console.log('get directory zip', dirPath);
-  let files = await recursiveReaddir(dirPath);
-  files = files.filter((p) => !exclude.some((re) => re.test(p)));
-  // console.log('got files', files);
-
-  const zip = new JSZip();
-  // const queueManager = new QueueManager({
-  //   parallelism: 32,
-  // });
-  // const promises = [];
-  for (const p of files) {
-    // const promise = queueManager.waitForTurn(async () => {
-      const basePath = p.slice(dirPath.length + 1);
-      // const stats = await fs.promises.lstat(p);
-      // if (stats.isFile()) {
-        const stream = fs.createReadStream(p);
-        zip.file(basePath, stream);
-      // }
-    // });
-    // promises.push(promise);
-  }
-  // await Promise.all(promises);
-
-  const arrayBuffer = await zip.generateAsync({
-    type: 'arraybuffer',
-    compression: 'DEFLATE',
-    compressionOptions: {
-      level: 9,
-    },
-  });
-  const uint8Array = new Uint8Array(arrayBuffer);
-  return uint8Array;
-};
-const extractZip = async (zipBuffer, tempPath) => {
-  const cleanup = async () => {
-    await rimraf(tempPath);
-  };
-
-  // read the zip file using jszip
-  const zip = new JSZip();
-  await zip.loadAsync(zipBuffer);
-  const ps = [];
-  const queueManager = new QueueManager({
-    parallelism: 10,
-  });
-  zip.forEach((relativePath, zipEntry) => {
-    const fullPathName = [tempPath, relativePath].join('/');
-
-    if (!zipEntry.dir) {
-      const p = (async () => {
-        return await queueManager.waitForTurn(async () => {
-          // check if the file exists
-          let stats = null;
-          try {
-            stats = await fs.promises.lstat(fullPathName);
-          } catch (err) {
-            if (err.code === 'ENOENT') {
-              // nothing
-            } else {
-              // console.warn(err.stack);
-              throw err;
-            }
-          }
-          if (stats === null) {
-            // console.log('write file 1', fullPathName);
-            const arrayBuffer = await zipEntry.async('arraybuffer');
-            // console.log('write file 2', fullPathName);
-            await mkdirp(path.dirname(fullPathName));
-            // console.log('write file 3', fullPathName);
-            await fs.promises.writeFile(
-              fullPathName,
-              Buffer.from(arrayBuffer),
-            );
-            // console.log('write file 4', fullPathName);
-            return relativePath;
-          } else {
-            throw conflictError;
-          }
-        });
-      })();
-      ps.push(p);
-    }
-  });
-  const files = await Promise.all(ps);
-  return {
-    files,
-    cleanup,
-  };
 };
 const test = async (args) => {
   const all = !!args.all;
@@ -2642,7 +2549,7 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
-      const uint8Array = await getDirectoryZip(directory, {
+      const uint8Array = await packZip(directory, {
         exclude: [/\/node_modules\//],
       });
       // upload the agent
@@ -2722,6 +2629,59 @@ const deploy = async (args) => {
       console.log(pc.cyan('✓ Host:'), url, '\n');
       console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
       console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
+const pull = async (args) => {
+  const agentId = args._[0] ?? '';
+  const dstDir = args._[1] ?? cwd;
+  const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
+
+  const jwt = await getLoginJwt();
+  const userId = jwt && (await getUserIdForJwt(jwt));
+  if (userId) {
+    // clean the old directory
+    await cleanDir(dstDir, {
+      force,
+      forceNoConfirm,
+    });
+
+    // download the source
+    console.log(pc.italic('Downloading source...'));
+    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
+    try {
+      const req = await fetch(u, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (req.ok) {
+        const zipBuffer = await req.arrayBuffer();
+        // console.log('downloaded source', zipBuffer.byteLength);
+
+        // extract the source
+        console.log(pc.italic('Extracting zip...'));
+        await extractZip(zipBuffer, dstDir);
+
+        console.log(pc.italic('Installing dependencies...'));
+        try {
+          await npmInstall(dstDir);
+        } catch (err) {
+          console.warn('npm install failed:', err.stack);
+          process.exit(1);
+        }
+      } else {
+        const text = await req.text();
+        console.warn('pull request error', text);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.warn('pull request failed', err);
+      process.exit(1);
     }
   } else {
     console.log('not logged in');
@@ -3379,6 +3339,31 @@ const main = async () => {
         await create(args);
       });
     });
+  program
+    .command('pull')
+    .description('Download source of deployed agent')
+    .argument('<guid>', 'Guid of the agent')
+    .argument(`[directory]`, `The directory to create the project in`)
+    .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+    .action(async (guid = undefined, directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [guid, directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [guid],
+            ...opts,
+          };
+        }
+        await pull(args);
+      });
+    });
   /* const devSubcommands = [
     'chat',
     // 'simulate',
@@ -3387,7 +3372,7 @@ const main = async () => {
     // 'fund',
     // 'deposit',
   ]; */
-  program
+  /* program
     .command('dev')
     .description(
       'Start a dev server for the agent in the current directory, and optionally run a subcommand',
@@ -3403,9 +3388,8 @@ const main = async () => {
         };
         await dev(args);
       });
-    });
-
-    program
+    }); */
+  program
     .command('chat')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
@@ -3500,17 +3484,10 @@ const main = async () => {
         commandExecuted = true;
 
         let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [agentRefs],
-            ...opts,
-          };
-        } else {
-          args = {
-            _: [],
-            ...opts,
-          };
-        }
+        args = {
+          _: [agentRefs],
+          ...opts,
+        };
 
         await deploy(args);
       });
@@ -3558,7 +3535,7 @@ const main = async () => {
   // program
   //   .command('join')
   //   .description(`Make an agent join a multiplayer room`)
-  //   .argument(`<guid>`, `Guid of the agent to`)
+  //   .argument(`<guid>`, `Guid of the agent`)
   //   .argument(`<room>`, `Name of the room to join`)
   //   .option(
   //     `-l, --local`,

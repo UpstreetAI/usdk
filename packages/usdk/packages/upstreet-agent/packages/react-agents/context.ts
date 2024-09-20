@@ -17,7 +17,3 @@ export const AgentContext = createContext<ActiveAgentObject | null>(null);
 export const AgentRegistryContext = createContext<{agentRegistry: AgentRegistry}>({agentRegistry: new AgentRegistry()});
 export const ConversationContext = createContext<{conversation: ConversationObject | null}>({conversation: null});
 export const ConversationsContext = createContext<{conversations: ConversationObject[]}>({conversations: []});
-/* export const ConfigurationContext = createContext<ConfigurationContextValue>({
-  get: (key: string) => null,
-  set: (key: string, value: any) => {},
-}); */

@@ -101,13 +101,13 @@ async function _generateAgentActionFromMessages(
   promptMessages: ChatMessages,
   thinkOpts?: AgentThinkOptions,
 ) {
-  const { agent } = generativeAgent;
+  const { agent, conversation } = generativeAgent;
   const {
     formatters,
     actions,
   } = agent.registry;
   const formatter = formatters[0];
-  const actionsSchema = formatter.schemaFn(actions, thinkOpts);
+  const actionsSchema = formatter.schemaFn(actions, conversation, thinkOpts);
   const actionsSchemaResult = z.object({
     result: actionsSchema,
   });
