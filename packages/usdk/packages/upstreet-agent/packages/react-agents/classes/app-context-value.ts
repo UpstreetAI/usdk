@@ -254,10 +254,11 @@ export class AppContextValue {
   async complete(messages: ChatMessages, opts: SubtleAiCompleteOpts) {
     const { model } = opts;
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const content = await fetchChatCompletion({
       model,
       messages,
+    }, {
+      jwt,
     });
     return {
       role: 'assistant',
@@ -267,11 +268,12 @@ export class AppContextValue {
   async completeJson(messages: ChatMessages, format: ZodTypeAny, opts: SubtleAiCompleteOpts) {
     const { model } = opts;
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const content = await fetchJsonCompletion({
       model,
       messages,
-    }, format);
+    }, format, {
+      jwt,
+    });
     return {
       role: 'assistant',
       content,
@@ -279,7 +281,8 @@ export class AppContextValue {
   }
   async generateImage(prompt: string, opts: SubtleAiImageOpts) {
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
-    return await fetchImageGeneration(prompt, opts);
+    return await fetchImageGeneration(prompt, opts, {
+      jwt,
+    });
   }
 };
