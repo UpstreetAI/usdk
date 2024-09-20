@@ -3394,7 +3394,7 @@ const main = async () => {
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
-    .option(`-r, --room`, `The room name to join`)
+    .option(`-r, --room <room>`, `The room name to join`)
     // .option(
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
