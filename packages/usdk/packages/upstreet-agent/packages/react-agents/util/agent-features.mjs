@@ -129,9 +129,9 @@ export const featureSpecs = [
   {
     name: 'discordBot',
     description: dedent`\
-      Add a Discord bot to the agent.
+      Add a Discord bot to the agent. Add this feature only when the user explicitly requests it and provides a bot token.
 
-      The user should follow these instructions to set up their bot:
+      The user should follow these instructions to set up their bot (you can instruct them to do this):
       - Create a bot application at https://discord.com/developers/applications and note the CLIENT_ID (also called "application id")
       - Enable Privileged Gateway Intents at https://discord.com/developers/applications/CLIENT_ID/bot
       - Add the bot to your server at https://discord.com/oauth2/authorize/?permissions=-2080908480&scope=bot&client_id=CLIENT_ID
