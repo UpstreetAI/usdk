@@ -223,10 +223,10 @@ export type Player = {
 };
 export type GetHashFn = () => string;
 export type ConversationObject = EventTarget & {
-  getHash: GetHashFn;
-  scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
+  scene: SceneObject | null;
+  getHash: GetHashFn;
   messageCache: MessageCache;
   numTyping: number;
 
