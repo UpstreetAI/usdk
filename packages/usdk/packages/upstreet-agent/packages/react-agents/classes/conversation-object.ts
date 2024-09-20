@@ -49,23 +49,29 @@ class MessageCache extends EventTarget {
 //
 
 export class ConversationObject extends EventTarget {
+  agent: ActiveAgentObject | null;
+  agentsMap: Map<string, Player>; // note: agents does not include the current agent
+  scene: SceneObject | null;
   getHash: GetHashFn;
-  scene: SceneObject | null = null;
-  agent: ActiveAgentObject | null = null;
-  agentsMap: Map<string, Player> = new Map();
   messageCache = new MessageCache();
   numTyping: number = 0;
 
   constructor({
-    agent,
-    getHash,
+    agent = null,
+    agentsMap = new Map(),
+    scene = null,
+    getHash = () => '',
   }: {
-    agent: ActiveAgentObject;
-    getHash: GetHashFn;
+    agent?: ActiveAgentObject | null;
+    agentsMap?: Map<string, Player>;
+    scene?: SceneObject | null;
+    getHash?: GetHashFn;
   }) {
     super();
 
     this.agent = agent;
+    this.agentsMap = agentsMap;
+    this.scene = scene;
     this.getHash = getHash;
   }
 
@@ -113,7 +119,6 @@ export class ConversationObject extends EventTarget {
   getAgents() {
     return Array
       .from(this.agentsMap.values())
-      // .map(player => player.getPlayerSpec());
   }
   addAgent(agentId: string, player: Player) {
     this.agentsMap.set(agentId, player);
@@ -133,8 +138,7 @@ export class ConversationObject extends EventTarget {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
-    const agent = this.agent;
-    allAgents.push(agent.agentJson);
+    this.agent && allAgents.push(this.agent.agentJson);
     return allAgents;
   }
   getEmbeddingString() {
@@ -208,7 +212,7 @@ export class ConversationObject extends EventTarget {
     return [] as ActionMessage[];
   } */
 
-  // pull a logged message from the network
+  // pull a message from the network
   async addLocalMessage(message: ActionMessage) {
     const {
       hidden,
