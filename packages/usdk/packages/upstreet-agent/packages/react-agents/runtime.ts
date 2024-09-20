@@ -365,7 +365,7 @@ const handleChatPerception = async (data: ActionMessageEventData, {
     aborted,
   };
 };
-export const bindAgentConversation = ({
+export const bindConversationToAgent = ({
   agent,
   conversation,
 }: {

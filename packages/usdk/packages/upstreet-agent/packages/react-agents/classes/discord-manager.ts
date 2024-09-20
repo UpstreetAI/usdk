@@ -14,7 +14,7 @@ import {
 import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX this can be moved to Typescript
 import { formatConversationMessage } from '../util/message-utils';
 import {
-  bindAgentConversation,
+  bindConversationToAgent,
 } from '../runtime';
 
 //
@@ -173,7 +173,7 @@ export class DiscordBot extends EventTarget {
           });
           this.channelConversations.set(channelId, conversation);
 
-          bindAgentConversation({
+          bindConversationToAgent({
             agent,
             conversation,
           });
@@ -216,7 +216,7 @@ export class DiscordBot extends EventTarget {
         });
         this.dmConversations.set(userId, conversation);
 
-        bindAgentConversation({
+        bindConversationToAgent({
           agent,
           conversation,
         });

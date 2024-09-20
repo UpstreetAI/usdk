@@ -41,7 +41,7 @@ import {
 } from './abortable-perception-event';
 import {
   collectPriorityModifiers,
-  bindAgentConversation,
+  bindConversationToAgent,
 } from '../runtime';
 import {
   makePromise,
@@ -330,7 +330,7 @@ export class ChatsManager extends EventTarget {
             });
           };
           const _bindAgent = () => {
-            bindAgentConversation({
+            bindConversationToAgent({
               agent: this.agent,
               conversation,
             });
