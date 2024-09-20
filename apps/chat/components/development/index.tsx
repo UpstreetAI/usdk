@@ -1,2 +1,2 @@
-import { DevMode } from './DevMode';
-export default DevMode;
+import { Dev } from './Dev';
+export default Dev;
