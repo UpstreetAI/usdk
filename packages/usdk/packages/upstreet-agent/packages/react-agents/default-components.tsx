@@ -297,11 +297,11 @@ const DefaultMemoriesInternal = () => {
     ...recentMemoriesValue,
     ...queriedMemoriesValue,
   ];
-  console.log('render all memories', {
-    allMemoriesValue,
-    recentMemoriesValue,
-    queriedMemoriesValue,
-  });
+  // console.log('render all memories', {
+  //   allMemoriesValue,
+  //   recentMemoriesValue,
+  //   queriedMemoriesValue,
+  // });
 
   return (
     <>
