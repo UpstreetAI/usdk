@@ -2511,6 +2511,207 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
 ];
+type InventoryObject = {
+  name: string;
+  description: string;
+  visualDescription: string;
+  quantity: number;
+};
+type InventoryUpdateProps = {
+
+};
+const inventoryActionSpecs = [
+  {
+    method: 'addItem',
+    describe: `Add an item to your inventory.`,
+    argsSchema: z.object({
+      name: z.string(),
+      description: z.string(),
+      visualDescription: z.string(),
+      quantity: z.number(),
+    }),
+    async handle({
+      args,
+    }: {
+      args: {
+        name: string;
+        description: string;
+        visualDescription: string;
+        quantity: number;
+      },
+    }) {
+      // const blob = await fetchImageGeneration(prompt, options, {
+      //   jwt,
+      // });
+      // const blob2 = new Blob([blob], {
+      //   type: this.types[0],
+      // });
+      // return blob2;
+    },
+  },
+  {
+    method: 'pickupItem',
+    description: `Pick up an item from the environment into your inventory.`,
+    argsSchema: z.object({
+      itemId: z.string(),
+    }),
+    async handle({
+      args,
+    }: {
+      args: {
+        itemId: string;
+      },
+    }) {
+      // const blob = await fetchImageGeneration(prompt, options, {
+      //   jwt,
+      // });
+      // const blob2 = new Blob([blob], {
+      //   type: this.types[0],
+      // });
+      // return blob2;
+    },
+  },
+  {
+    method: 'dropItem',
+    description: `Drop an item from your inventory into the environment.`,
+    argsSchema: z.object({
+      itemId: z.string(),
+    }),
+    async handle({
+      args,
+    }: {
+      args: {
+        itemId: string;
+      },
+    }) {
+      // const blob = await fetchImageGeneration(prompt, options, {
+      //   jwt,
+      // });
+      // const blob2 = new Blob([blob], {
+      //   type: this.types[0],
+      // });
+      // return blob2;
+    },
+  },
+  {
+    method: 'giveItem',
+    description: `Give an item from your inventory to another player.`,
+    argsSchema: z.object({
+      itemId: z.string(),
+      targetPlayerId: z.string(),
+    }),
+    async handle({
+      args,
+    }: {
+      args: {
+        itemId: string;
+        targetPlayerId: string;
+      },
+    }) {
+      // const blob = await fetchImageGeneration(prompt, options, {
+      //   jwt,
+      // });
+      // const blob2 = new Blob([blob], {
+      //   type: this.types[0],
+      // });
+      // return blob2;
+    },
+  },
+  {
+    method: 'useItem',
+    description: `Use an item from your inventory, performing an appropriate effect.`,
+    argsSchema: z.object({
+      itemId: z.string(),
+      quantity: z.number(),
+      effectDescription: z.string(),
+    }),
+    async handle({
+      args,
+    }: {
+      args: {
+        itemId: string;
+        quantity: number;
+        effectDescription: string;
+      },
+    }) {
+      // const blob = await fetchImageGeneration(prompt, options, {
+      //   jwt,
+      // });
+      // const blob2 = new Blob([blob], {
+      //   type: this.types[0],
+      // });
+      // return blob2;
+    },
+  },
+];
+export const InventoryUpdate: React.FC<InventoryUpdateProps> = (props: InventoryUpdateProps) => {
+  // const conversation = useConversation();
+  const randomId = useMemo(() => crypto.randomUUID(), []);
+
+  const kv = useKv();
+  const [inventory, setInventory] = kv.use<InventoryObject[]>('inventory', () => []);
+
+  const inventoryActionSchemas = inventoryActionSpecs.map(spec => {
+    const o = {
+      method: z.literal(spec.method),
+      args: spec.argsSchema,
+    };
+    return z.object(o);
+  }) as unknown as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]];
+
+  return (
+    <Action
+      name="inventoryUpdate"
+      description={
+        dedent`\
+          Add, remove, or trade items in your inventory.
+          
+          Your current inventory is:
+        ` + '\n' +
+        (inventory.length > 0 ? (
+          dedent`\
+            \`\`\`
+          ` + '\n' +
+          JSON.stringify(inventory, null, 2) + '\n' +
+          dedent`\
+            \`\`\`
+          `
+        ) : (
+          '*empty*'
+        )) + '\n\n' +
+        dedent`\
+          The allowed inventory actions are:
+        ` + '\n\n' +
+        JSON.stringify(inventoryActionSpecs.map((spec) => {
+          return {
+            method: spec.method,
+            description: spec.description,
+            schema: printNode(zodToTs(spec.argsSchema).node),
+          };
+        }), null, 2)
+      }
+      schema={
+        z.union(inventoryActionSchemas)
+      }
+      examples={[
+        {
+          text: `Just setting up my uttr account`,
+        },
+        {
+          text: `Guess where I am?`,
+          attachments: [
+            {
+              attachmentId: randomId,
+            },
+          ],
+        },
+      ]}
+      // handler={async (e: PendingActionEvent) => {
+      //   await e.commit();
+      // }}
+    />
+  );
+};
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
   // const agent = useAgent();
   const authToken = useAuthToken();
