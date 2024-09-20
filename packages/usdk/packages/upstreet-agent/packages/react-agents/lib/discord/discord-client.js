@@ -31,11 +31,15 @@ import {
 
 export class DiscordInput {
   constructor({
-    ws,
-  }) {
+    ws = null,
+  } = {}) {
     this.ws = ws;
 
     this.streamSpecs = new Map();
+  }
+
+  setWs(ws) {
+    this.ws = ws;
   }
 
   writeText(text, {
@@ -172,6 +176,10 @@ export class DiscordInput {
     };
     const s = JSON.stringify(m);
     this.ws.send(s);
+  }
+
+  destroy() {
+    // nothing
   }
 }
 
@@ -385,19 +393,14 @@ export class DiscordOutput extends EventTarget {
 
 export class DiscordBotClient extends EventTarget {
   token;
-  ws;
-  input;
-  output;
+  ws = null;
+  input = new DiscordInput();
+  output = new DiscordOutput();
   constructor({
     token,
   }) {
     super();
-
     this.token = token;
-
-    this.ws = null;
-    this.input = null;
-    this.output = null;
   }
   async status() {
     const res = await fetch(`${discordBotEndpointUrl}/status`, {
@@ -520,11 +523,7 @@ export class DiscordBotClient extends EventTarget {
       connectPromise.reject(err);
     };
     this.ws = ws;
-
-    this.input = new DiscordInput({
-      ws,
-    });
-    this.output = new DiscordOutput();
+    this.input.setWs(ws);
 
     await connectPromise;
     await readyPromise;
@@ -532,6 +531,7 @@ export class DiscordBotClient extends EventTarget {
 
   destroy() {
     this.ws && this.ws.close();
-    this.output &&this.output.destroy();
+    this.input.destroy();
+    this.output.destroy();
   }
 }
