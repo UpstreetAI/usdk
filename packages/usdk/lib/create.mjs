@@ -36,7 +36,7 @@ import {
 } from './file.mjs';
 import {
   BASE_DIRNAME,
-  templatesDirectory,
+  // templatesDirectory,
 } from './locations.mjs';
 import {
   ImageRenderer,

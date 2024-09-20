@@ -27,7 +27,7 @@ export const BASE_DIRNAME = (() => {
 })();
 
 export const certsLocalPath = path.join(BASE_DIRNAME, 'certs-local');
-export const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
+// export const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
 
 export const wranglerBinPath = path.join(path.resolve(require.resolve('wrangler'), '../../../'), '.bin/wrangler');
 export const wranglerTomlPath = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');

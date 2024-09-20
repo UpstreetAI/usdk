@@ -97,7 +97,7 @@ import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
   certsLocalPath,
-  templatesDirectory,
+  // templatesDirectory,
   wranglerBinPath,
   wranglerTomlPath,
   jestBin,
@@ -3167,7 +3167,7 @@ const voice = async (args) => {
   }
 };
 
-const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
+// const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
 const handleError = async (fn) => {
   try {
     return await fn();
@@ -3306,7 +3306,7 @@ const main = async () => {
     });*/
 
   // agents
-  const templateNames = await getTemplateNames();
+  // const templateNames = await getTemplateNames();
   program
     .command('create')
     .description('Create a new agent, from either a prompt or template')
@@ -3317,10 +3317,6 @@ const main = async () => {
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
-    .option(
-      `-t, --template <string>`,
-      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
