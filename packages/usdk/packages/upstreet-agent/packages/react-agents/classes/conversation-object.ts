@@ -222,7 +222,7 @@ export class ConversationObject extends EventTarget {
     const player = this.agentsMap.get(userId) ?? null;
     const playerSpec = player?.getPlayerSpec() ?? null;
     if (!playerSpec) {
-      console.log('got message for unknown agent', {
+      console.log('got local message for unknown agent', {
         message,
         agentsMap: this.agentsMap,
       });
