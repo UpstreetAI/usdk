@@ -246,8 +246,9 @@ export class AppContextValue {
 
   async embed(text: string) {
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
-    const embedding = await lembed(text);
+    const embedding = await lembed(text, {
+      jwt,
+    });
     return embedding;
   }
   async complete(messages: ChatMessages, opts: SubtleAiCompleteOpts) {
