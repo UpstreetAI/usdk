@@ -336,14 +336,16 @@ export class ChatsManager extends EventTarget {
             });
           };
           const _bindDisconnect = () => {
-            realms.addEventListener('disconnect', (e) => {
+            realms.addEventListener('disconnect', async (e) => {
               console.log('realms emitted disconnect');
   
               cleanup();
   
               // try to reconnect, if applicable
               if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
-                this.#join(roomSpecification);
+                console.log('rejoining room', roomSpecification);
+                await this.#join(roomSpecification);
+                console.log('rejoined room', roomSpecification);
               }
             });
           };
