@@ -275,7 +275,7 @@ const DefaultMemoriesInternal = () => {
     // console.log('got new value 2', value);
     setRecentMemoriesValue(value);
   };
-  const refreshQueriedMemories = async ({
+  const refreshEmbeddedMemories = async ({
     signal,
   }: {
     signal: AbortSignal,
@@ -336,7 +336,7 @@ const DefaultMemoriesInternal = () => {
       }: {
         signal: AbortSignal,
       }) => {
-        refreshQueriedMemories({
+        refreshEmbeddedMemories({
           signal,
         });
       }}</EveryNMessages>
