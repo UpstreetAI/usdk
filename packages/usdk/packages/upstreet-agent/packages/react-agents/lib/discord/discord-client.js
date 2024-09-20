@@ -491,6 +491,23 @@ export class DiscordBotClient extends EventTarget {
             }));
             break;
           }
+          case 'guildmemberadd': {
+            this.dispatchEvent(new MessageEvent('guildmemberadd', {
+              data: args,
+            }));
+            break;
+          }
+          case 'guildmemberremove': {
+            this.dispatchEvent(new MessageEvent('guildmemberremove', {
+              data: args,
+            }));
+            break;
+          }
+          case 'text': {
+            console.log('text message', args);
+            this.output.pushText(args);
+            break;
+          }
           case 'voicestart': {
             console.log('voice start', args);
             this.output.pushStreamStart(args);
@@ -504,11 +521,6 @@ export class DiscordBotClient extends EventTarget {
           case 'voiceidle': { // feedback that discord is no longer listening
             console.log('voice idle', args);
             this.input.cancelStream(args);
-            break;
-          }
-          case 'text': {
-            console.log('text message', args);
-            this.output.pushText(args);
             break;
           }
           default: {
