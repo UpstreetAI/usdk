@@ -1,38 +1,112 @@
-import { getCleanJwt } from './jwt-utils.mjs';
 import { aiProxyHost } from './endpoints.mjs';
 
-const numRetries = 5;
-export const lembed = async (s, { signal, overridenJwt = null } = {}) => {
-  const jwt = overridenJwt == null ? getCleanJwt() : overridenJwt;
+export const embed = async (s, opts) => {
+  const { signal, jwt } = opts;
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const fd = new FormData();
+  fd.append('s', s);
+  const url = `https://${aiProxyHost}/embedding`;
+  const fetchData = {
+    method: 'POST',
+    body: fd,
+    signal,
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  };
+  const res = await fetch(url, fetchData);
+  if (res.ok) {
+    const j = await res.json();
+    return j;
+  } else {
+    throw new Error(`invalid embed response: ${res.status}`);
+  }
+};
+
+export const oembed = async (s, opts) => {
+  const { signal, jwt } = opts;
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const body = {
+    input: s,
+    model: 'text-embedding-3-small',
+  };
+  const url = `https://${aiProxyHost}/api/ai/embeddings`;
+  const fetchData = {
+    method: 'POST',
+    body: JSON.stringify(body),
+    signal,
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  };
+  const res = await fetch(url, fetchData);
+  if (res.ok) {
+    const j = await res.json();
+    const data = j.data;
+    if (data && data.length) {
+      return data[0].embedding;
+    }
+  } else {
+    throw new Error(`invalid embed response: ${res.status}`);
+  }
+};
+export const lembed = async (s, opts) => {
+  const { signal, jwt } = opts;
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
   const body = {
     input: s,
     model: 'text-embedding-3-large',
-  };
-  for (let i = 0; i < numRetries; i++) {
-    try {
-      const url = `https://${aiProxyHost}/api/ai/embeddings`;
-      const fetchData = {
-        method: 'POST',
-        body: JSON.stringify(body),
-        signal,
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      };
-      const res = await fetch(url, fetchData);
-      if (res.ok) {
-        const j = await res.json();
-        const data = j.data;
-        if (data && data.length) {
-          return data[0].embedding;
-        }
-      } else {
-        const text = await res.text();
-        throw new Error(`invalid embed response: ${res.status} : ${text} : ${JSON.stringify(fetchData)}`);
-      }
-    } catch (err) {
-      console.warn(err);
-    }
   }
-  throw new Error(`failed to embed after ${numRetries} retries`);
+  const url = `https://${aiProxyHost}/api/ai/embeddings`;
+  const fetchData = {
+    method: 'POST',
+    body: JSON.stringify(body),
+    signal,
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  };
+  const res = await fetch(url, fetchData);
+  if (res.ok) {
+    const j = await res.json();
+    const data = j.data;
+    if (data && data.length) {
+      return data[0].embedding;
+    }
+  } else {
+    throw new Error(`invalid embed response: ${res.status}`);
+  }
 };
+
+/* export const split = async (s, opts) => {
+  const { signal, jwt } = opts;
+  if (!jwt) {
+    throw new Error('no jwt');
+  }
+
+  const fd = new FormData();
+  fd.append('s', s);
+  const res = await fetch(`https://${aiProxyHost}/split`, {
+    method: 'POST',
+    body: fd,
+    signal,
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+  if (res.ok) {
+    const j = await res.json();
+    return j;
+  } else {
+    throw new Error(`invalid split response: ${res.status}`);
+  }
+}; */
