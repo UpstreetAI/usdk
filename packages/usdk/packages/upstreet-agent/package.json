@@ -13,7 +13,6 @@
     "jest": "^29.7.0",
     "jimp": "^0.22.12",
     "js-ago": "^2.1.1",
-    "localstorage-polyfill": "^1.0.1",
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
     "openai": "^4.56.0",
