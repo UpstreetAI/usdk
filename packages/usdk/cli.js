@@ -3317,10 +3317,6 @@ const main = async () => {
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent`)
-    .option(
-      `-t, --template <string>`,
-      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
