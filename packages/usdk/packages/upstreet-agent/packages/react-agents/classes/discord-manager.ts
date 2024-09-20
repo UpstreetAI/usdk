@@ -1,3 +1,4 @@
+import uuidByString from 'uuid-by-string';
 import {
   DiscordBotRoomSpec,
   DiscordBotArgs,
@@ -11,7 +12,10 @@ import {
 import {
   ConversationObject,
 } from './conversation-object';
-import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX this can be moved to Typescript
+import {
+  Player,
+} from './player';
+import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX move this to typescript
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
@@ -28,7 +32,30 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
     return false;
   }
 };
-const bindBotClientConversation = ({
+const makePlayerFromMember = (member: any) => {
+  const {
+    userId,
+    displayName,
+    displayAvatarURL,
+  } = member;
+  const id = uuidByString(userId);
+  const player = new Player(id, {
+    name: displayName,
+    previewUrl: displayAvatarURL,
+  });
+  return player;
+};
+/* const getAgentsMapFromChannel = (channel: any) => {
+  console.log('get agents map from channel', channel);
+  // XXX finish this
+  return new Map<string, Player>();
+};
+const getAgentsMapFromUser = (user: any) => {
+  console.log('get agents map from user', user);
+  // XXX finish this
+  return new Map<string, Player>();
+}; */
+const bindOutgoing = ({
   conversation,
   discordBotClient,
   channelId,
@@ -41,10 +68,28 @@ const bindBotClientConversation = ({
 }) => {
   // chat messages
   conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-    discordBotClient.input.writeText(e.data, {
-      channelId,
-      userId,
-    });
+    // console.log('conversation outgoing message', e.data, {
+    //   channelId,
+    //   userId,
+    // });
+    const {
+      message,
+    } = e.data;
+    const {
+      method,
+      args,
+    } = message;
+    if (method === 'say') {
+      const {
+        text,
+      } = args as { text: string };
+      discordBotClient.input.writeText(text, {
+        channelId,
+        userId,
+      });
+    } else {
+      // ignore
+    }
   });
   // audio
   conversation.addEventListener('audiostream', async (e: MessageEvent) => {
@@ -118,9 +163,11 @@ export class DiscordBot extends EventTarget {
 
     // connect discord bot client
     const _connect = async () => {
+      console.log('discord connect 1');
       const status = await discordBotClient.status();
       if (signal.aborted) return;
 
+      console.log('discord connect 2');
       let connectableChannels = status.channels
         .filter((channel: any) => [0, 2].includes(channel.type));
       if (channels.length > 0) {
@@ -144,12 +191,15 @@ export class DiscordBot extends EventTarget {
         connectableDms,
       });
 
+      console.log('discord connect 3');
       await discordBotClient.connect({
         channels: connectableChannels.map((o: any) => o.name),
         dms: connectableDms.map((o: any) => o.displayName),
         userWhitelist,
       });
+      console.log('discord connect 4');
       if (signal.aborted) return;
+      console.log('discord connect 5');
     };
     const _bindChannels = () => {
       discordBotClient.addEventListener('channelconnect', (e: MessageEvent<{channel: any}>) => {
@@ -165,8 +215,10 @@ export class DiscordBot extends EventTarget {
           type,
         });
         if (type === 0) { // text channel
+          // const agentsMap = getAgentsMapFromChannel(channel);
           const conversation = new ConversationObject({
             agent,
+            // agentsMap,
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
@@ -177,7 +229,7 @@ export class DiscordBot extends EventTarget {
             agent,
             conversation,
           });
-          bindBotClientConversation({
+          bindOutgoing({
             conversation,
             discordBotClient,
             channelId,
@@ -207,9 +259,11 @@ export class DiscordBot extends EventTarget {
         const {
           id: userId,
         } = user;
+        // const agentsMap = getAgentsMapFromUser(user);
 
         const conversation = new ConversationObject({
           agent,
+          // agentsMap,
           getHash: () => {
             return `discord:dm:${userId}`;
           },
@@ -220,7 +274,7 @@ export class DiscordBot extends EventTarget {
           agent,
           conversation,
         });
-        bindBotClientConversation({
+        bindOutgoing({
           conversation,
           discordBotClient,
           userId,
@@ -241,15 +295,39 @@ export class DiscordBot extends EventTarget {
         // });
       });
     };
+    const _bindGuildMemberAdd = () => {
+      discordBotClient.addEventListener('guildmemberadd', (e: MessageEvent<{member: any}>) => {
+        const { member } = e.data;
+        console.log('got guild member add', {
+          member,
+        });
+        const player = makePlayerFromMember(member);
+        for (const conversation of this.channelConversations.values()) {
+          conversation.addAgent(player.playerId, player);
+        }
+      });
+    };
+    const _bindGuildMemberRemove = () => {
+      discordBotClient.addEventListener('guildmemberremove', (e: MessageEvent<{member: any}>) => {
+        const { member } = e.data;
+        console.log('got guild member remove', {
+          member,
+        });
+        const playerId = uuidByString(member.userId);
+        for (const conversation of this.channelConversations.values()) {
+          conversation.removeAgent(playerId);
+        }
+      });
+    };
     const _bindIncoming = () => {
       // chat messages
-      discordBotClient.addEventListener('text', async (e: MessageEvent) => {
+      discordBotClient.output.addEventListener('text', async (e: MessageEvent) => {
         const {
           userId,
           username,
           text,
           channelId, // if there is no channelId, it's a DM
-          // XXX this can be made more explicit with a type: string field...
+          // XXX discord channel/dm distinction can be made more explicit with a type: string field...
         } = e.data;
 
         // look up conversation
@@ -266,8 +344,9 @@ export class DiscordBot extends EventTarget {
               text,
             },
           };
+          const id = uuidByString(userId);
           const agent = {
-            id: userId,
+            id,
             name: username,
           };
           const newMessage = formatConversationMessage(rawMessage, {
@@ -286,6 +365,8 @@ export class DiscordBot extends EventTarget {
 
     (async () => {
       _bindChannels();
+      _bindGuildMemberAdd();
+      _bindGuildMemberRemove();
       _bindIncoming();
       await _connect();
     })();
