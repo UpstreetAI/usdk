@@ -426,7 +426,7 @@ export class DiscordBotClient extends EventTarget {
       }
     });
     const u = (() => {
-      const u = new URL(discordBotEndpointUrl);
+      const u = new URL(discordBotEndpointUrl.replace(/^http/, 'ws'));
       u.searchParams.set('token', this.token);
       u.searchParams.set('channels', JSON.stringify(channelSpecs));
       u.searchParams.set('dms', JSON.stringify(dms));
