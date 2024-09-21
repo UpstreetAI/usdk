@@ -198,7 +198,10 @@ export class AppContextValue {
           ensureLoadPromise(key, ensureDefaultValue);
         }, []);
 
-        return [value, setValue2];
+        return [value, setValue2] as [
+          T,
+          (value: T | ((oldValue: T | undefined) => T)) => Promise<void>,
+        ];
       },
     }), []);
 
