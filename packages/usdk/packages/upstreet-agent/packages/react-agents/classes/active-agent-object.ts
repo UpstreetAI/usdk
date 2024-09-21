@@ -135,9 +135,9 @@ export class ActiveAgentObject extends AgentObject {
   async getMemories(
     opts?: GetMemoryOpts,
   ) {
-    console.log('getMemories 1', {
-      opts,
-    });
+    // console.log('getMemories 1', {
+    //   opts,
+    // });
     const { matchCount = 1 } = opts || {};
 
     const supabase = this.useSupabase();

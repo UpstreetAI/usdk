@@ -1,7 +1,6 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
 import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
-import { getCleanJwt } from './jwt-utils.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 
@@ -253,10 +252,6 @@ ${message.prompt}
 
     const togetherAiTemperature = 0.7;
     const togetherAiMaxTokens = 1024;
-    // const jwt = getCleanJwt();
-    // if (!jwt) {
-    //   throw new Error('no jwt');
-    // }
     const aiFetch = getAiFetch();
     const res = await aiFetch(`https://${aiProxyHost}/api/togetherAi/inference`, {
       method: 'POST',
@@ -292,9 +287,6 @@ export const fetchChatCompletion = async ({
   jwt,
 } = {}) => {
   if (!jwt) {
-    jwt = getCleanJwt();
-  }
-  if (!jwt) {
     throw new Error('no jwt');
   }
 
@@ -328,9 +320,6 @@ export const fetchJsonCompletion = async ({
 }, format, {
   jwt,
 } = {}) => {
-  if (!jwt) {
-    jwt = getCleanJwt();
-  }
   if (!jwt) {
     throw new Error('no jwt');
   }

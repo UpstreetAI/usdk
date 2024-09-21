@@ -58,6 +58,8 @@ import {
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
 import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import InterviewLogger from '../util/logger/interview-logger.mjs';
+import ReadlineStrategy from '../util/logger/readline.mjs';
 
 //
 
@@ -150,6 +152,14 @@ export const create = async (args, opts) => {
     throw new Error('multiple mutually exclusive options --prompt, --template and --source');
   }
 
+  // ensure agent json string is provided when using source file
+  // since agentJsonString is required for proper agentJson creation
+  if (source) {
+    if (!agentJsonString) {
+      throw new Error('The --json flag is required when using the --source flag.');
+    }
+  }
+
   const mnemonic = generateMnemonic();
   const wallet = getWalletFromMnemonic(mnemonic);
   const walletAddress = wallet.address.toLowerCase();
@@ -178,6 +188,10 @@ export const create = async (args, opts) => {
 
     // run the interview
     const interview = async (agentJson) => {
+      const questionLogger = new InterviewLogger(new ReadlineStrategy());
+      const getAnswer = (question) => {
+        return questionLogger.askQuestion(question);
+      };
       const agentInterview = new AgentInterview({
         agentJson,
         prompt,
@@ -188,9 +202,7 @@ export const create = async (args, opts) => {
         const {
           question,
         } = e.data;
-        const answer = await input({
-          message: question,
-        });
+        const answer = await getAnswer(question);
         agentInterview.write(answer);
       });
       agentInterview.addEventListener('output', async e => {
@@ -228,7 +240,9 @@ export const create = async (args, opts) => {
       };
       agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
       agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
-      return await agentInterview.waitForFinish();
+      const result = await agentInterview.waitForFinish();
+      questionLogger.close();
+      return result;
     };
     const createAgentJson = async () => {
       // initialize

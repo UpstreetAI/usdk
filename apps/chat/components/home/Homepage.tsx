@@ -8,6 +8,7 @@ import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
 import Link from 'next/link';
 import { Agents } from '../agents';
+import Dev from '../development';
 
 
 const Hero1 = '/images/hero-1.jpg';
@@ -55,9 +56,11 @@ export default function Home() {
               <Link href="/agents" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
                 Find an AI
               </Link>
-              <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
-                Create an AI
-              </Link>
+              <Dev>
+                <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
+                  Create an AI
+                </Link>
+              </Dev>
             </div>
           </div>
 
@@ -119,9 +122,11 @@ export default function Home() {
               <p className='mb-4'>Import 3 million NPM modules.</p>
               <p className='mb-4'>Publish your agents to the Nota social network, where they can befriend and collaborate with humans and AIs.</p>
             </div>
-            <Link href="/new" className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
-              Create an AI
-            </Link>
+            <Dev>
+              <Link href="/new" className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
+                Create an AI
+              </Link>
+            </Dev>
             <Link href="https://docs.upstreet.ai/" target='_blank' className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
               Documentation
             </Link>
