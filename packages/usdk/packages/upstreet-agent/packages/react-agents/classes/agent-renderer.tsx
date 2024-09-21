@@ -334,9 +334,7 @@ export class AgentRenderer {
   // this is used to e.g. fetch the chat history in user code
   async waitForRender() {
     if (!this.renderPromise) {
-      this.renderPromise = (async () => {
-        await this.render();
-      })();
+      this.renderPromise = this.render();
     }
     await this.renderPromise;
   }

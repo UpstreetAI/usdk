@@ -58,9 +58,7 @@ export class DurableObject extends EventTarget {
       chatsSpecification: this.chatsSpecification,
     });
 
-    this.loadPromise = Promise.all([
-      this.agentRenderer.waitForRender(),
-    ]).then(() => {});
+    this.loadPromise = this.agentRenderer.waitForRender();
 
     (async () => {
       await this.alarm();
