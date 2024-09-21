@@ -22,12 +22,10 @@ export async function AccountOrLogin() {
     <>
       {user ? (
         <>
-          <SearchBar/>
           <AccountButton user={user}/>
         </>
       ) : (
         <>
-          <SearchBar disabled />
           <LoginButton className='mr-4' text={"Login"} />
         </>
       )}
