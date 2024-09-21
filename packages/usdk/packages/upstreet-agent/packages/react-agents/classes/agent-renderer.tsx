@@ -70,29 +70,6 @@ class ErrorBoundary extends Component<
     return this.localProps.children;
   }
 }
-/* const ConfigurationComponent = ({
-  children,
-}: ChildrenProps) => {
-  const [configurationValue, setConfigurationValue] = useState(() => {
-    const data = {};
-    const result = {
-      get: (key: string) => data[key],
-      set: (key: string, value: any) => {
-        data[key] = value;
-        setConfigurationValue(result);
-      },
-    };
-    return result;
-  });
-
-  return (
-    <ConfigurationContext.Provider
-      value={configurationValue}
-    >
-      {children}
-    </ConfigurationContext.Provider>
-  );
-}; */
 type AppComponentProps = {
   userRender: UserHandler,
   appContextValue: AppContextValue,
