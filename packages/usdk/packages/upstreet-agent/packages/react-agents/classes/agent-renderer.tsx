@@ -327,9 +327,7 @@ export class AgentRenderer {
       appContextValue,
       topLevelRenderPromise: null,
     };
-    // console.log('render 1');
     await this.renderProps(props);
-    // console.log('render 2');
   }
 
   // note: needs to be async to wait for React to resolves
