@@ -120,8 +120,8 @@ export const Agent = forwardRef(({
     conversationManager.addEventListener('conversationremove', updateConversations);
 
     return () => {
-      conversationManager.removeEventListener('conversationadd', onconversationadd);
-      conversationManager.removeEventListener('conversationremove', onconversationremove);
+      conversationManager.removeEventListener('conversationadd', updateConversations);
+      conversationManager.removeEventListener('conversationremove', updateConversations);
     };
   }
   useEffect(() => bindConversationManager(agent.chatsManager.conversationManager), []);
@@ -238,7 +238,7 @@ export const Defer = (props: DeferProps) => {
   }, []);
 
   return null;
-}
+};
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
