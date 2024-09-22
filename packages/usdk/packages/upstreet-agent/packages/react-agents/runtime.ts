@@ -72,7 +72,8 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
     })
     .map((prompt) => {
       return Array.isArray(prompt.children) ? prompt.children.join('\n') : (prompt.children as string);
-    });
+    })
+    .map((prompt) => dedent(prompt));
   // console.log('got prompts', prompts);
   return prompts;
 };
