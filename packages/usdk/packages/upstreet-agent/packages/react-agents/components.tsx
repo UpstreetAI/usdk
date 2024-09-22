@@ -213,12 +213,15 @@ export const Conversation = (props: ConversationProps) => {
   });
 };
 export const Defer = (props: DeferProps) => {
+  const appContextValue = useContext(AppContext);
+  const conversationManager = appContextValue.useConversationManager();
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
   const conversation = useContext(ConversationContext).conversation;
   if (!conversation) {
     throw new Error('Defer can only be used within a conversation');
   }
+  const symbol = useMemo(makeSymbol, []);
+  const deferRender = conversationManager.useDeferRender(conversation);
 
   useEffect(() => {
     const props2 = {
@@ -231,7 +234,7 @@ export const Defer = (props: DeferProps) => {
     };
   }, []);
 
-  return null;
+  return deferRender && props.children;
 };
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
