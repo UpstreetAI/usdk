@@ -15,6 +15,7 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
+  ConversationManager,
   ConversationObject,
   ConversationProps,
   ConversationInstanceProps,
@@ -111,23 +112,20 @@ export const Agent = forwardRef(({
 
   // events bindings
   // conversation managers
-  function bindConversationManager<T extends EventTarget>(conversationManager: T) {
-    const onconversationadd = (e: ConversationAddEvent) => {
-      setConversations((conversations) => conversations.concat([e.data.conversation]));
+  function bindConversationManager(conversationManager: ConversationManager) {
+    const updateConversations = (e: any) => {
+      setConversations(conversationManager.getConversations());
     };
-    conversationManager.addEventListener('conversationadd', onconversationadd);
-    const onconversationremove = (e: ConversationRemoveEvent) => {
-      setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
-    };
-    conversationManager.addEventListener('conversationremove', onconversationremove);
+    conversationManager.addEventListener('conversationadd', updateConversations);
+    conversationManager.addEventListener('conversationremove', updateConversations);
 
     return () => {
       conversationManager.removeEventListener('conversationadd', onconversationadd);
       conversationManager.removeEventListener('conversationremove', onconversationremove);
     };
   }
-  useEffect(() => bindConversationManager(agent.chatsManager), []);
-  useEffect(() => bindConversationManager(agent.discordManager), []);
+  useEffect(() => bindConversationManager(agent.chatsManager.conversationManager), []);
+  useEffect(() => bindConversationManager(agent.discordManager.conversationManager), []);
 
   // epoch (for re-rendering)
   useEffect(() => {
