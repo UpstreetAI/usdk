@@ -255,7 +255,9 @@ export type ConversationObject = EventTarget & {
   getEmbeddingString: () => string;
 };
 export type ConversationManager = EventTarget & {
+  registry: AgentRegistry;
   conversations: Set<ConversationObject>;
+  loadedConversations: WeakMap<ConversationObject, boolean>;
   getConversations: () => ConversationObject[];
   addConversation: (conversation: ConversationObject) => void;
   removeConversation: (conversation: ConversationObject) => void;
@@ -282,8 +284,8 @@ export type ChatsSpecification = EventTarget & {
 export type ChatsManager = {
   // members
   agent: ActiveAgentObject;
-  chatsSpecification: ChatsSpecification;
   conversationManager: ConversationManager;
+  chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
   incomingMessageDebouncer: Debouncer;
@@ -653,8 +655,6 @@ export type AgentRegistry = {
   unregisterSubscription(key: symbol): void;
   registerServer(key: symbol, server: ServerProps): void;
   unregisterServer(key: symbol): void;
-
-  waitForUpdate(): Promise<void>;
 }
 export type RenderRegistry = EventTarget & {
   agents: ActiveAgentObject[];
