@@ -259,6 +259,8 @@ export type ConversationManager = EventTarget & {
   getConversations: () => ConversationObject[];
   addConversation: (conversation: ConversationObject) => void;
   removeConversation: (conversation: ConversationObject) => void;
+  useDeferRender: (conversation: ConversationObject) => boolean;
+  waitForConversationLoad: (conversation: ConversationObject) => Promise<void>;
 };
 export type RoomSpecification = {
   room: string;
