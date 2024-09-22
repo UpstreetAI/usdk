@@ -45,16 +45,6 @@ const makePlayerFromMember = (member: any) => {
   });
   return player;
 };
-/* const getAgentsMapFromChannel = (channel: any) => {
-  console.log('get agents map from channel', channel);
-  // XXX finish this
-  return new Map<string, Player>();
-};
-const getAgentsMapFromUser = (user: any) => {
-  console.log('get agents map from user', user);
-  // XXX finish this
-  return new Map<string, Player>();
-}; */
 const bindOutgoing = ({
   conversation,
   discordBotClient,
