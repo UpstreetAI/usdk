@@ -177,10 +177,10 @@ export class DiscordBot extends EventTarget {
               .some(dmSpec => testRoomNameMatch(user.displayName, dmSpec))
           );
       }
-      console.log('got channels + users', {
-        connectableChannels,
-        connectableDms,
-      });
+      // console.log('got channels + users', {
+      //   connectableChannels,
+      //   connectableDms,
+      // });
 
       console.log('discord connect 3', {
         connectableChannels: connectableChannels.map(c => c.name),
