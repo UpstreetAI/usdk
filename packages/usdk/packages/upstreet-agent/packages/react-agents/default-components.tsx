@@ -478,10 +478,8 @@ const AddMemoryAction = () => {
     <Action
       name="addMemory"
       description={dedent`\
-        Make a note of a specific answer to a query.
-        Phrase the memory in the form of a question + answer.
-        This should include any newly relevant context or details.
-        You can use this liberally.
+        Save a memory to the database in the form of a question and answer.
+        Use this whenever there there is a new fact or detail that you want to remember.
       `}
       schema={
         z.object({
