@@ -260,4 +260,14 @@ export class RenderRegistry extends EventTarget {
       data: null,
     }));
   }
+
+  async waitForUpdate() {
+    await new Promise((resolve) => {
+      this.addEventListener('update', () => {
+        resolve(null);
+      }, {
+        once: true,
+      });
+    });
+  }
 }
