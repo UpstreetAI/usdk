@@ -63,13 +63,15 @@ export class ActiveAgentObject extends AgentObject {
 
     //
 
+    const conversationManager = this.appContextValue.useConversationManager();
+    const chatsSpecification = this.appContextValue.useChatsSpecification();
     this.chatsManager = new ChatsManager({
       agent: this,
-      conversationManager: this.appContextValue.useConversationManager(),
-      chatsSpecification: this.appContextValue.useChatsSpecification(),
+      conversationManager,
+      chatsSpecification,
     });
     this.discordManager = new DiscordManager({
-      conversationManager: this.appContextValue.useConversationManager(),
+      conversationManager,
     });
     this.taskManager = new TaskManager({
       agent: this,
