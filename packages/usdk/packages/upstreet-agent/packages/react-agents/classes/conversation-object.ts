@@ -245,13 +245,23 @@ export class ConversationObject extends EventTarget {
   async addLocalAndRemoteMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
-    const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
-      data: {
-        message,
-      },
-    });
-    this.dispatchEvent(e);
-    await e.waitForFinish();
+    await Promise.all([
+      (async () => {
+        const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
+          data: {
+            message,
+          },
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      })(),
+      (async () => {
+        // wait for re-render before returning from the handler
+        // this must be happening since we just triggered the message cache to update
+        const renderRegistry = this.agent.appContextValue.useRegistry();
+        await renderRegistry.waitForUpdate();
+      })(),
+    ]);
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {

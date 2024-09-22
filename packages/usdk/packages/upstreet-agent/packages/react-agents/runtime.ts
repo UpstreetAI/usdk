@@ -418,7 +418,7 @@ export const bindConversationToAgent = ({
   });
   conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
     const { message } = e.data;
-    e.waitUntil((async () => {
+    // e.waitUntil((async () => {
       // save to database
       (async () => {
         const supabase = agent.useSupabase();
@@ -431,18 +431,7 @@ export const bindConversationToAgent = ({
           message,
         });
       })();
-
-      // wait for re-render before returning from the handler
-      // this must be happening since we just triggered the message cache to update
-      const renderRegistry = agent.appContextValue.useRegistry();
-      await new Promise((resolve) => {
-        renderRegistry.addEventListener('update', () => {
-          resolve(null);
-        }, {
-          once: true,
-        });
-      });
-    })());
+    // })());
   });
 };
 
