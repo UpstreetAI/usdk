@@ -1,13 +1,15 @@
 import type {
   ActiveAgentObject,
   // AgentProps,
-  ActionProps,
-  ActionModifierProps,
+  // ActionProps,
+  // ActionModifierProps,
   PromptProps,
   FormatterProps,
+  DeferProps,
+  DeferPropsAux,
   // ParserProps,
-  PerceptionProps,
-  PerceptionModifierProps,
+  // PerceptionProps,
+  // PerceptionModifierProps,
   TaskProps,
   NameProps,
   PersonalityProps,
@@ -67,6 +69,7 @@ export class AgentRegistry {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
+  deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
 
   namesMap: Map<symbol, NameProps | null> = new Map();
@@ -154,6 +157,12 @@ export class AgentRegistry {
   }
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
+  }
+  registerDefer(key: symbol, defer: DeferPropsAux) {
+    this.deferMap.set(key, defer);
+  }
+  unregisterDefer(key: symbol) {
+    this.deferMap.set(key, null);
   }
   registerTask(key: symbol, task: TaskProps) {
     this.tasksMap.set(key, task);

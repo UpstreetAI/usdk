@@ -218,6 +218,27 @@ export const Conversation = (props: ConversationProps) => {
     );
   });
 };
+export const Defer = (props: DeferProps) => {
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
+  if (!conversation) {
+    throw new Error('Defer can only be used within a conversation');
+  }
+
+  useEffect(() => {
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerDefer(symbol, props2);
+    return () => {
+      agentRegistry.unregisterDefer(symbol);
+    };
+  }, []);
+
+  return null;
+}
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;

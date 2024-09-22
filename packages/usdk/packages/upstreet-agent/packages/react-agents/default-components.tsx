@@ -49,6 +49,7 @@ import {
   // Scheduler,
   Server,
   Conversation,
+  Defer,
 } from './components';
 import {
   AbortableActionEvent,
@@ -73,7 +74,6 @@ import {
   useCachedMessages,
   useNumMessages,
 } from './hooks';
-// import type { AppContextValue } from './types';
 import { shuffle, parseCodeBlock } from './util/util.mjs';
 import {
   storeItemType,
@@ -326,24 +326,26 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <EveryNMessages n={10}>{({
-        signal,
-      }: {
-        signal: AbortSignal,
-      }) => {
-        refreshRecentMemories({
+      <Defer>
+        <EveryNMessages n={10}>{({
           signal,
-        });
-      }}</EveryNMessages>
-      <EveryNMessages n={1}>{({
-        signal,
-      }: {
-        signal: AbortSignal,
-      }) => {
-        refreshEmbeddedMemories({
+        }: {
+          signal: AbortSignal,
+        }) => {
+          refreshRecentMemories({
+            signal,
+          });
+        }}</EveryNMessages>
+        <EveryNMessages n={1}>{({
           signal,
-        });
-      }}</EveryNMessages>
+        }: {
+          signal: AbortSignal,
+        }) => {
+          refreshEmbeddedMemories({
+            signal,
+          });
+        }}</EveryNMessages>
+      </Defer>
     </>
   );
 };
@@ -412,14 +414,16 @@ const MemoryWatcher = ({
           \`\`\`
         `}
       </Prompt>
-      {/* trigger memory watcher refresh */}
-      {allMemoryWatchers.map((memoryWatcher, index) => {
-        return (
-          <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
-            memoryWatcher.refresh();
-          }}</EveryNMessages>
-        );
-      })}
+      <Defer>
+        {/* trigger memory watcher refresh */}
+        {allMemoryWatchers.map((memoryWatcher, index) => {
+          return (
+            <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
+              memoryWatcher.refresh();
+            }}</EveryNMessages>
+          );
+        })}
+      </Defer>
     </Conversation>
   );
 };

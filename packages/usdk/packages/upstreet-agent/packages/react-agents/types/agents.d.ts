@@ -484,10 +484,6 @@ export type ActionModifierPropsAux = ActionModifierProps & {
 export type PromptProps = {
   children: ReactNode;
 };
-export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
-};
 export type PerceptionProps = {
   type: string;
   handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
@@ -501,6 +497,16 @@ export type PerceptionModifierProps = {
   priority?: number;
 };
 export type PerceptionModifierPropsAux = PerceptionModifierProps & {
+  conversation?: ConversationObject;
+};
+export type FormatterProps = {
+  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
+};
+export type DeferProps = {
+  children: ReactNode;
+};
+export type DeferPropsAux = DeferProps & {
   conversation?: ConversationObject;
 };
 export enum TaskResultEnum {
@@ -628,6 +634,8 @@ export type AgentRegistry = {
   unregisterPerceptionModifier(key: symbol): void;
   registerFormatter(key: symbol, formatter: FormatterProps): void;
   unregisterFormatter(key: symbol): void;
+  registerDefer(key: symbol, defer: DeferPropsAux): void;
+  unregisterDefer(key: symbol): void
   registerTask(key: symbol, task: TaskProps): void;
   unregisterTask(key: symbol): void;
   registerName(key: symbol, name: NameProps): void;
