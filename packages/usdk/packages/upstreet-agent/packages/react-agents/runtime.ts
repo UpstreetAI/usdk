@@ -83,6 +83,15 @@ export async function generateAgentAction(
   hint?: string,
   thinkOpts?: AgentThinkOptions,
 ) {
+  // wait for the conversation to be loaded
+  {
+    const { agent, conversation } = generativeAgent;
+    const { appContextValue } = agent;
+    const conversationManager = appContextValue.useConversationManager();
+    await conversationManager.waitForConversationLoad(conversation);
+  }
+
+  // collect the prompts
   const prompts = getPrompts(generativeAgent);
   if (hint) {
     prompts.push(hint);
@@ -95,6 +104,7 @@ export async function generateAgentAction(
       content: promptString,
     },
   ];
+  // perform inference
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
 async function _generateAgentActionFromMessages(
