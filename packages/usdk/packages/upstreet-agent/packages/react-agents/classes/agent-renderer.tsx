@@ -167,7 +167,7 @@ export class AgentRenderer {
     };
     const useConversationManager = () => {
       return this.conversationManager;
-    }
+    };
     const useChatsSpecification = () => {
       return this.chatsSpecification;
     };
