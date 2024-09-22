@@ -19,8 +19,6 @@ import type {
   ConversationObject,
   ConversationProps,
   ConversationInstanceProps,
-  ConversationAddEvent,
-  ConversationRemoveEvent,
   MessagesUpdateEvent,
   PaymentProps,
   SubscriptionProps,
@@ -93,6 +91,7 @@ export const Agent = forwardRef(({
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
+  const conversationManger = appContextValue.useConversationManager();
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
   const agentRegistry = useMemo(() => new AgentRegistry(), []);
   const agent = useMemo<ActiveAgentObject>(() => new ActiveAgentObject(agentJson, {
@@ -111,21 +110,32 @@ export const Agent = forwardRef(({
   }, [agent]);
 
   // events bindings
-  // conversation managers
-  function bindConversationManager(conversationManager: ConversationManager) {
-    const updateConversations = (e: any) => {
-      setConversations(conversationManager.getConversations());
-    };
-    conversationManager.addEventListener('conversationadd', updateConversations);
-    conversationManager.addEventListener('conversationremove', updateConversations);
+  // // conversation managers
+  // function bindConversationManager(conversationManager: ConversationManager) {
+  //   const updateConversations = (e: any) => {
+  //     setConversations(conversationManager.getConversations());
+  //   };
+  //   conversationManager.addEventListener('conversationadd', updateConversations);
+  //   conversationManager.addEventListener('conversationremove', updateConversations);
 
-    return () => {
-      conversationManager.removeEventListener('conversationadd', updateConversations);
-      conversationManager.removeEventListener('conversationremove', updateConversations);
+  //   return () => {
+  //     conversationManager.removeEventListener('conversationadd', updateConversations);
+  //     conversationManager.removeEventListener('conversationremove', updateConversations);
+  //   };
+  // }
+  // useEffect(() => bindConversationManager(agent.chatsManager.conversationManager), []);
+  // useEffect(() => bindConversationManager(agent.discordManager.conversationManager), []);
+  useEffect(() => {
+    const updateConversations = (e: any) => {
+      setConversations(() => conversationManger.getConversations());
     };
-  }
-  useEffect(() => bindConversationManager(agent.chatsManager.conversationManager), []);
-  useEffect(() => bindConversationManager(agent.discordManager.conversationManager), []);
+    conversationManger.addEventListener('conversationadd', updateConversations);
+    conversationManger.addEventListener('conversationremove', updateConversations);
+    return () => {
+      conversationManger.removeEventListener('conversationadd', updateConversations);
+      conversationManger.removeEventListener('conversationremove', updateConversations);
+    };
+  }, [conversationManger]);
 
   // epoch (for re-rendering)
   useEffect(() => {

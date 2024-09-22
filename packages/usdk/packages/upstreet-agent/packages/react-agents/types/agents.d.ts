@@ -667,6 +667,7 @@ export type AppContextValue = {
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
+  useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
   useRegistry: () => RenderRegistry;
 

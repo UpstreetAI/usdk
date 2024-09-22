@@ -374,7 +374,12 @@ export class DiscordBot extends EventTarget {
   }
 }
 export class DiscordManager {
-  conversationManager = new ConversationManager();
+  conversationManager: ConversationManager;
+  super({
+    conversationManager,
+  }) {
+    this.conversationManager = conversationManager;
+  }
   addDiscordBot(args: DiscordBotArgs) {
     const discordBot = new DiscordBot(args);
 

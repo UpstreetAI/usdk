@@ -12,6 +12,7 @@ import type {
   ChatMessages,
   RenderRegistry,
   ReadableAudioStream,
+  ConversationManager,
   ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
@@ -39,6 +40,7 @@ export class AppContextValue {
   wallets: any;
   authToken: string;
   supabase: any;
+  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   registry: RenderRegistry;
 
@@ -48,6 +50,7 @@ export class AppContextValue {
     wallets,
     authToken,
     supabase,
+    conversationManager,
     chatsSpecification,
     registry,
   }: {
@@ -56,6 +59,7 @@ export class AppContextValue {
     wallets: any;
     authToken: string;
     supabase: any;
+    conversationManager: ConversationManager;
     chatsSpecification: ChatsSpecification;
     registry: RenderRegistry;
   }) {
@@ -64,6 +68,7 @@ export class AppContextValue {
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
+    this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
     this.registry = registry;
   }
@@ -81,6 +86,9 @@ export class AppContextValue {
   }
   useSupabase() {
     return this.supabase;
+  }
+  useConversationManager() {
+    return this.conversationManager;
   }
   useChatsSpecification() {
     return this.chatsSpecification;

@@ -65,9 +65,12 @@ export class ActiveAgentObject extends AgentObject {
 
     this.chatsManager = new ChatsManager({
       agent: this,
+      conversationManager: this.appContextValue.useConversationManager(),
       chatsSpecification: this.appContextValue.useChatsSpecification(),
     });
-    this.discordManager = new DiscordManager();
+    this.discordManager = new DiscordManager({
+      conversationManager: this.appContextValue.useConversationManager(),
+    });
     this.taskManager = new TaskManager({
       agent: this,
     });

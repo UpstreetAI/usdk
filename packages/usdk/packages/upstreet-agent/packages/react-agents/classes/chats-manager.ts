@@ -1,7 +1,5 @@
 import * as Y from 'yjs';
 import type {
-  ConversationAddEventData,
-  ConversationRemoveEventData,
   PlayableAudioStream,
   ActiveAgentObject,
   ChatsSpecification,
@@ -57,22 +55,25 @@ export const getChatKey = ({
 export class ChatsManager {
   // members
   agent: ActiveAgentObject;
+  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
-  conversationManager = new ConversationManager();
   incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
 
   constructor({
     agent,
+    conversationManager,
     chatsSpecification,
   }: {
     agent: ActiveAgentObject,
+    conversationManager: ConversationManager,
     chatsSpecification: ChatsSpecification,
   }) {
     this.agent = agent;
+    this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
   }
 
