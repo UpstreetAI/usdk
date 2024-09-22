@@ -34,6 +34,9 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
+import {
+  ConversationManager,
+} from './conversation-manager';
 
 //
 
@@ -51,12 +54,13 @@ export const getChatKey = ({
 //
 
 // tracks an agent's connected chat rooms based on the changing chatsSpecification
-export class ChatsManager extends EventTarget {
+export class ChatsManager {
   // members
   agent: ActiveAgentObject;
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
+  conversationManager = new ConversationManager();
   incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
@@ -68,8 +72,6 @@ export class ChatsManager extends EventTarget {
     agent: ActiveAgentObject,
     chatsSpecification: ChatsSpecification,
   }) {
-    super();
-
     this.agent = agent;
     this.chatsSpecification = chatsSpecification;
   }
@@ -99,18 +101,10 @@ export class ChatsManager extends EventTarget {
           });
         },
       });
-      this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-        data: {
-          conversation,
-        },
-      }));
+      this.conversationManager.addConversation(conversation);
 
       const cleanup = () => {
-        this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-          data: {
-            conversation,
-          },
-        }));
+        this.conversationManager.removeConversation(conversation);
   
         this.rooms.delete(key);
       };
@@ -358,11 +352,7 @@ export class ChatsManager extends EventTarget {
       const realms = this.rooms.get(key);
       if (realms) {
         const conversation = realms.metadata.conversation;
-        this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-          data: {
-            conversation,
-          },
-        }));
+        this.conversationManager.removeConversation(conversation);
 
         this.rooms.delete(key);
 
