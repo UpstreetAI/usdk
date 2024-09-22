@@ -648,6 +648,8 @@ export type AgentRegistry = {
   unregisterSubscription(key: symbol): void;
   registerServer(key: symbol, server: ServerProps): void;
   unregisterServer(key: symbol): void;
+
+  waitForUpdate(): Promise<void>;
 }
 export type RenderRegistry = EventTarget & {
   agents: ActiveAgentObject[];
