@@ -644,6 +644,7 @@ export type AgentRegistry = {
 export type RenderRegistry = EventTarget & {
   agents: ActiveAgentObject[];
   load(container: Instance): void;
+  waitForUpdate(): Promise<void>;
 };
 
 export type AppContextValue = {
