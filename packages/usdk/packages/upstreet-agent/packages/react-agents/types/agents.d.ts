@@ -254,6 +254,12 @@ export type ConversationObject = EventTarget & {
   getKey: () => string;
   getEmbeddingString: () => string;
 };
+export type ConversationManager = EventTarget & {
+  conversations: Set<ConversationObject>;
+  getConversations: () => ConversationObject[];
+  addConversation: (conversation: ConversationObject) => void;
+  removeConversation: (conversation: ConversationObject) => void;
+};
 export type RoomSpecification = {
   room: string;
   endpointUrl: string;
@@ -271,10 +277,11 @@ export type ChatsSpecification = EventTarget & {
   leaveAll: () => Promise<void>;
   tick: () => Promise<number>;
 };
-export type ChatsManager = EventTarget & {
+export type ChatsManager = {
   // members
   agent: ActiveAgentObject;
   chatsSpecification: ChatsSpecification;
+  conversationManager: ConversationManager;
   // state
   rooms: Map<string, NetworkRealms>;
   incomingMessageDebouncer: Debouncer;
@@ -290,7 +297,8 @@ export type ChatsManager = EventTarget & {
 export type DiscordBot = EventTarget & {
   destroy: () => void;
 };
-export type DiscordManager = EventTarget & {
+export type DiscordManager = {
+  conversationManager: ConversationManager;
   addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
   removeDiscordBot: (client: DiscordBot) => void;
   live: () => void;
