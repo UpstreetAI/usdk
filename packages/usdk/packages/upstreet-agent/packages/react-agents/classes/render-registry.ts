@@ -62,7 +62,7 @@ export class TextInstance {
 type InstanceChild = Instance | TextInstance;
 
 export class AgentRegistry {
-  prompts: PromptProps[] = [];
+  prompts: PromptPropsAux[] = [];
 
   // set to null to maintain registration order
   actionsMap: Map<symbol, ActionPropsAux | null> = new Map();
