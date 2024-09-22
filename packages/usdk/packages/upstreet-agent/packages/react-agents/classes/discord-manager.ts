@@ -20,6 +20,7 @@ import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
+import { ConversationManager } from './conversation-manager';
 
 //
 
@@ -372,20 +373,17 @@ export class DiscordBot extends EventTarget {
     this.abortController = new AbortController();
   }
 }
-export class DiscordManager extends EventTarget {
+export class DiscordManager {
+  conversationManager = new ConversationManager();
   addDiscordBot(args: DiscordBotArgs) {
     const discordBot = new DiscordBot(args);
 
     // route conversation events: discord bot -> discord manager
     discordBot.addEventListener('conversationadd', (e: MessageEvent<ConversationAddEventData>) => {
-      this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-        data: e.data,
-      }));
+      this.conversationManager.addConversation(e.data.conversation);
     });
     discordBot.addEventListener('conversationremove', (e: MessageEvent<ConversationRemoveEventData>) => {
-      this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-        data: e.data,
-      }));
+      this.conversationManager.removeConversation(e.data.conversation);
     });
 
     return discordBot;
