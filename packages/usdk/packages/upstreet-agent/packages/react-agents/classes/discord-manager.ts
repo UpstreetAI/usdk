@@ -58,7 +58,7 @@ const bindOutgoing = ({
 }) => {
   // chat messages
   conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-    // console.log('conversation outgoing message', e.data, {
+    // console.log('discord manager outgoing message', e.data, {
     //   channelId,
     //   userId,
     // });
@@ -181,7 +181,11 @@ export class DiscordBot extends EventTarget {
         connectableDms,
       });
 
-      console.log('discord connect 3');
+      console.log('discord connect 3', {
+        connectableChannels: connectableChannels.map(c => c.name),
+        connectableDms: connectableDms.map(c => c.displayName),
+        userWhitelist,
+      });
       await discordBotClient.connect({
         channels: connectableChannels.map((o: any) => o.name),
         dms: connectableDms.map((o: any) => o.displayName),
@@ -200,15 +204,9 @@ export class DiscordBot extends EventTarget {
           id: channelId,
           type,
         } = channel;
-        console.log('channelconnect', e.data, {
-          channelId,
-          type,
-        });
         if (type === 0) { // text channel
-          // const agentsMap = getAgentsMapFromChannel(channel);
           const conversation = new ConversationObject({
             agent,
-            // agentsMap,
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
@@ -249,11 +247,9 @@ export class DiscordBot extends EventTarget {
         const {
           id: userId,
         } = user;
-        // const agentsMap = getAgentsMapFromUser(user);
 
         const conversation = new ConversationObject({
           agent,
-          // agentsMap,
           getHash: () => {
             return `discord:dm:${userId}`;
           },
