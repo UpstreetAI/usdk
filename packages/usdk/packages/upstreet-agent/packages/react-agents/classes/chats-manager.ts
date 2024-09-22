@@ -246,17 +246,13 @@ export class ChatsManager extends EventTarget {
           const _bindIncoming = () => {
             // chat messages
             realms.addEventListener('chat', async (e) => {
-              // try {
-                const { playerId, message } = e.data;
-                if (playerId !== agent.id) {
-                  await conversation.addLocalMessage(message);
-                // } else {
-                //   // XXX fix this
-                //   console.warn('received own message from realms "chat" event; this should not happen', message);
-                }
-              // } catch (err) {
-              //   console.warn(err.stack);
-              // }
+              const { playerId, message } = e.data;
+              if (playerId !== agent.id) {
+                await conversation.addLocalMessage(message);
+              // } else {
+              //   // XXX fix this
+              //   console.warn('received own message from realms "chat" event; this should not happen', message);
+              }
             });
           };
           const _bindOutgoing = () => {
