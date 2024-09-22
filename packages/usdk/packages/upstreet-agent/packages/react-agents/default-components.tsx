@@ -751,20 +751,18 @@ export const ActionsPrompt = () => {
 const StoreItemsPrompt = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
-  return (
+  return !!agent.stripeConnectAccountId && storeItems.length > 0 && (
     <Prompt>
-      # Store
-      Here are the store items available for purchase.
-      {!!agent.stripeConnectAccountId && storeItems.length > 0 ? (
-        dedent`\
-          Amount in cents (e.g. 100 = $1).
-          \`\`\`
-        ` + '\n' +
-        JSON.stringify(storeItems, null, 2) + '\n' +
-        dedent`\
-          \`\`\`
-        `
-      ) : '*none*'}
+      {dedent`\
+        # Store
+        Here are the store items available for purchase.
+        Amount in cents (e.g. 100 = $1).
+        \`\`\`
+      ` + '\n' +
+      JSON.stringify(storeItems, null, 2) + '\n' +
+      dedent`\
+        \`\`\`
+      `}
     </Prompt>
   );
 };
