@@ -80,8 +80,10 @@ import {
 import {
   VoiceActivityMicrophoneInput,
   encodeMp3,
-  transcribe,
 } from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
+import {
+  transcribe,
+} from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,

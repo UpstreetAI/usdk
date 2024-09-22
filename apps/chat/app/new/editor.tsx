@@ -39,7 +39,14 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-// import { createBrowser, testBrowser } from 'react-agents/util/create-browser.mjs';
+
+//
+
+const maxUserMessagesDefault = 5;
+const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
+const rateLimitMessageDefault = '';
+
+//
 
 import * as esbuild from 'esbuild-wasm';
 import {
@@ -67,7 +74,6 @@ const ensureEsbuild = (() => {
     return esBuildPromise;
   };
 })();
-
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -76,9 +82,6 @@ const defaultFiles = [
     `,
   },
 ];
-const maxUserMessagesDefault = 5;
-const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
-const rateLimitMessageDefault = '';
 const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
 } = {}) => {
@@ -174,6 +177,8 @@ const buildAgentSrc = async (sourceCode: string, {
   }
 };
 
+//
+
 type FetchOpts = {
   method?: string;
   headers?: object | Headers;
@@ -198,6 +203,10 @@ type FeaturesObject = {
     message: string;
   } | null;
   storeItems: StoreItem[] | null;
+  discordBot: {
+    token: string;
+    channels: string;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -212,8 +221,8 @@ export default function AgentEditor({
   const [visualDescription, setVisualDescription] = useState('');
   const [homespaceDescription, setHomespaceDescription] = useState('');
 
-  const [model, setModel] = useState(defaultModels[0]);
-  const [visionModel, setVisionModel] = useState(defaultVisionModels[0]);
+  // const [model, setModel] = useState(defaultModels[0]);
+  // const [visionModel, setVisionModel] = useState(defaultVisionModels[0]);
 
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -229,13 +238,11 @@ export default function AgentEditor({
   const [worker, setWorker] = useState<FetchableWorker | null>(null);
 
   const [builderPrompt, setBuilderPrompt] = useState('');
-  // const [agentPrompt, setAgentPrompt] = useState('');
 
   const agentInterviewPromiseRef = useRef<Promise<AgentInterview> | null>(null);
   const [builderMessages, setBuilderMessages] = useState<ChatMessage[]>([]);
 
   const builderForm = useRef<HTMLFormElement>(null);
-  // const agentForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
   const [voices, setVoices] = useState(() => defaultVoices.slice());
@@ -243,22 +250,11 @@ export default function AgentEditor({
     tts: null,
     rateLimit: null,
     storeItems: null,
+    discordBot: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
   const monaco = useMonaco();
-
-  // useEffect(() => {
-  //   (async () => {
-  //     const jwt = await getJWT();
-  //     (globalThis as any).testBrowser = async () => {
-  //       return await testBrowser({
-  //         jwt,
-  //       });
-  //     };
-  //     console.log('test initialized');
-  //   })();
-  // }, []);
 
   // effects
   // sync previewBlob -> previewUrl
@@ -342,6 +338,32 @@ export default function AgentEditor({
   }, [features]);
 
   // helpers
+  const makeDefaultTts = () => ({
+    voiceEndpoint: voices[0].voiceEndpoint,
+  });
+  const makeDefaultRateLimit = () => ({
+    maxUserMessages: maxUserMessagesDefault,
+    maxUserMessagesTime: maxUserMessagesTimeDefault,
+    message: rateLimitMessageDefault,
+  });
+  const makeDefaultDiscordBot = () => ({
+    token: '',
+    channels: '',
+  });
+  const makeEmptyStoreItems = () => [
+    makeEmptyStoreItem(),
+  ];
+  const makeEmptyStoreItem = () => ({
+    type: 'payment',
+    props: {
+      name: '',
+      description: '',
+      amount: 100,
+      currency: currencies[0] as Currency,
+      interval: intervals[0] as Interval,
+      intervalCount: 1,
+    },
+  });
   const getCloudPreviewUrl = async (previewBlob: Blob | null) => {
     if (previewBlob) {
       const jwt = await getJWT();
@@ -634,17 +656,6 @@ export default function AgentEditor({
   const builderSubmit = () => {
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
-  const makeEmptyStoreItem = () => ({
-    type: 'payment',
-    props: {
-      name: '',
-      description: '',
-      amount: 100,
-      currency: currencies[0] as Currency,
-      interval: intervals[0] as Interval,
-      intervalCount: 1,
-    },
-  });
 
   // render
   return (
@@ -964,9 +975,7 @@ export default function AgentEditor({
               <input type="checkbox" checked={!!features.tts} onChange={e => {
                 setFeatures({
                   ...features,
-                  tts: e.target.checked ? {
-                    voiceEndpoint: voices[0].voiceEndpoint,
-                  } : null,
+                  tts: e.target.checked ? makeDefaultTts() : null,
                 });
               }} />
               <div className="px-2">TTS</div>
@@ -997,11 +1006,7 @@ export default function AgentEditor({
               <input type="checkbox" checked={!!features.rateLimit} onChange={e => {
                 setFeatures({
                   ...features,
-                  rateLimit: e.target.checked ? {
-                    maxUserMessages: maxUserMessagesDefault,
-                    maxUserMessagesTime: maxUserMessagesTimeDefault,
-                    message: rateLimitMessageDefault,
-                  } : null,
+                  rateLimit: e.target.checked ? makeDefaultRateLimit() : null,
                 });
               }} />
               <div className="px-2">Rate limit</div>
@@ -1058,13 +1063,53 @@ export default function AgentEditor({
               </label>
             </div>}
           </div>
+          {/* discord bot */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.discordBot} onChange={e => {
+                setFeatures({
+                  ...features,
+                  discordBot: e.target.checked ? makeDefaultDiscordBot() : null,
+                });
+              }} />
+              <div className="px-2">Discord bot</div>
+            </label>
+            {features.discordBot && <div className="flex flex-col">
+              {/* token */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Token</div>
+                <input type="text" value={features.discordBot.token} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    discordBot: {
+                      token: e.target.value,
+                      channels: features.discordBot?.channels ?? '',
+                    },
+                  }));
+                }} placeholder="<bot token>" required />
+              </label>
+              {/* channels */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Channels</div>
+                <input type="text" value={features.discordBot.channels} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    discordBot: {
+                      token: features.discordBot?.token ?? '',
+                      channels: e.target.value,
+                    },
+                  }));
+                }} placeholder="text, voice" required />
+              </label>
+            </div>}
+          </div>
           {/* store */}
           <div className="flex flex-col">
             <label className="flex">
               <input type="checkbox" checked={!!features.storeItems} onChange={e => {
                 setFeatures({
                   ...features,
-                  storeItems: e.target.checked ? [makeEmptyStoreItem()] : null,
+                  storeItems: e.target.checked ? makeEmptyStoreItems() : null,
                 });
               }} />
               <div className="px-2">Store</div>
