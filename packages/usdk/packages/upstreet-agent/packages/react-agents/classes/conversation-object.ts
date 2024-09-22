@@ -49,7 +49,7 @@ class MessageCache extends EventTarget {
 //
 
 export class ConversationObject extends EventTarget {
-  agent: ActiveAgentObject | null;
+  agent: ActiveAgentObject;
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
   getHash: GetHashFn;
@@ -57,12 +57,12 @@ export class ConversationObject extends EventTarget {
   numTyping: number = 0;
 
   constructor({
-    agent = null,
+    agent,
     agentsMap = new Map(),
     scene = null,
     getHash = () => '',
   }: {
-    agent?: ActiveAgentObject | null;
+    agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
