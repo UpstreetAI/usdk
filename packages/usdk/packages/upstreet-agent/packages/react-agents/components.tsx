@@ -109,22 +109,6 @@ export const Agent = forwardRef(({
     };
   }, [agent]);
 
-  // events bindings
-  // // conversation managers
-  // function bindConversationManager(conversationManager: ConversationManager) {
-  //   const updateConversations = (e: any) => {
-  //     setConversations(conversationManager.getConversations());
-  //   };
-  //   conversationManager.addEventListener('conversationadd', updateConversations);
-  //   conversationManager.addEventListener('conversationremove', updateConversations);
-
-  //   return () => {
-  //     conversationManager.removeEventListener('conversationadd', updateConversations);
-  //     conversationManager.removeEventListener('conversationremove', updateConversations);
-  //   };
-  // }
-  // useEffect(() => bindConversationManager(agent.chatsManager.conversationManager), []);
-  // useEffect(() => bindConversationManager(agent.discordManager.conversationManager), []);
   useEffect(() => {
     const updateConversations = (e: any) => {
       setConversations(() => conversationManger.getConversations());
