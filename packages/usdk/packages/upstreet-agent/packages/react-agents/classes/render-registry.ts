@@ -111,18 +111,22 @@ export class AgentRegistry {
   }
 
   registerAction(key: symbol, action: ActionPropsAux) {
-    const actionExists = Array.from(this.actionsMap.values())
-      .some((a) => {
-        if (a) {
-          return a.name === action.name && a.conversation === action.conversation;
-        } else {
-          return false;
-        }
-      });
-    if (!actionExists) {
+    if (!action.conversation) {
       this.actionsMap.set(key, action);
     } else {
-      throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+      const conversationActionExists = Array.from(this.actionsMap.values())
+        .some((a) => {
+          if (a) {
+            return a.name === action.name && a.conversation === action.conversation;
+          } else {
+            return false;
+          }
+        });
+      if (!conversationActionExists) {
+        this.actionsMap.set(key, action);
+      } else {
+        throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+      }
     }
   }
   unregisterAction(key: symbol) {
