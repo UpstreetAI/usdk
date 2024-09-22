@@ -616,8 +616,8 @@ const MemoryQueries = () => {
 const RAGMemory = () => {
   return (
     <>
-      <DefaultMemories />
       <AddMemoryAction />
+      <DefaultMemories />
       <MemoryQueries />
     </>
   );
