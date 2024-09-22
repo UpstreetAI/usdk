@@ -61,10 +61,7 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
       const {
         conversation: promptConversation,
         children,
-      } = prompt as {
-        conversation: ConversationObject | null,
-        children?: ReactNode,
-      };
+      } = prompt;
       return (
         (
           (typeof children === 'string' && children.length > 0) ||

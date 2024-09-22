@@ -484,6 +484,9 @@ export type ActionModifierPropsAux = ActionModifierProps & {
 export type PromptProps = {
   children: ReactNode;
 };
+export type PromptPropsAux = PromptProps & {
+  conversation: ConversationObject;
+};
 export type PerceptionProps = {
   type: string;
   handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
@@ -597,7 +600,7 @@ export type TextInstance = {
 };
 export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
-  prompts: PromptProps[];
+  prompts: PromptPropsAux[];
 
   actionsMap: Map<symbol, ActionProps | null>;
   actionModifiersMap: Map<symbol, ActionModifierProps | null>;

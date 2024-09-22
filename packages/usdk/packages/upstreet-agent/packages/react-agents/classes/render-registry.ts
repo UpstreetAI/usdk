@@ -4,6 +4,7 @@ import type {
   // ActionProps,
   // ActionModifierProps,
   PromptProps,
+  PromptPropsAux,
   FormatterProps,
   DeferProps,
   DeferPropsAux,
@@ -242,7 +243,8 @@ export class RenderRegistry extends EventTarget {
           //   agentRegistry.actions.push(childInstance.props.value);
           // }
           if (childInstance.type === 'prompt') {
-            agentRegistry.prompts.push(childInstance.props.value);
+            const promptAux = childInstance.props.value as PromptPropsAux;
+            agentRegistry.prompts.push(promptAux);
           }
           // if (childInstance.type === 'formatter') {
           //   agentRegistry.formatters.push(childInstance.props.value);
