@@ -15,9 +15,6 @@ import {
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
-// import {
-//   SceneObject,
-// } from './scene-object';
 import {
   ChatsManager,
 } from './chats-manager';
