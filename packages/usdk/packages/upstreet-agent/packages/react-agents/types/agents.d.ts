@@ -36,10 +36,9 @@ export type AgentObject = EventTarget & {
   address: string;
   stripeConnectAccountId: string;
 };
-
-export type AgentThinkOptions = {
-  forceAction?: string;
-  excludeActions?: string[];
+export type AgentSpec = {
+  id: string;
+  name: string;
 };
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
@@ -66,6 +65,10 @@ export type GenerativeAgentObject =  {
   addMessage: (m: PendingActionMessage) => Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
+export type AgentThinkOptions = {
+  forceAction?: string;
+  excludeActions?: string[];
+};
 
 // messages
 
@@ -91,6 +94,25 @@ export type TtsArgs = {
   voiceEndpoint?: string;
   sampleRate?: number;
 }
+
+// discord
+
+export type DiscordBotRoomSpec = RegExp | string;
+export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
+export type DiscordBotProps = {
+  token: string;
+  channels?: DiscordBotRoomSpecs;
+  dms?: DiscordBotRoomSpecs;
+  userWhitelist?: string[];
+};
+export type DiscordBotArgs = {
+  token: string;
+  channels: DiscordBotRoomSpec[];
+  dms: DiscordBotRoomSpec[];
+  userWhitelist: string[];
+  agent: ActiveAgentObject;
+};
+export type DiscordBotClient = any;
 
 // actions
 
@@ -199,10 +221,12 @@ export type Player = {
   getPlayerSpec(): object;
   setPlayerSpec(playerSpec: object): void;
 };
+export type GetHashFn = () => string;
 export type ConversationObject = EventTarget & {
-  scene: SceneObject | null;
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>;
+  scene: SceneObject | null;
+  getHash: GetHashFn;
   messageCache: MessageCache;
   numTyping: number;
 
@@ -230,6 +254,16 @@ export type ConversationObject = EventTarget & {
   getKey: () => string;
   getEmbeddingString: () => string;
 };
+export type ConversationManager = EventTarget & {
+  registry: AgentRegistry;
+  conversations: Set<ConversationObject>;
+  loadedConversations: WeakMap<ConversationObject, boolean>;
+  getConversations: () => ConversationObject[];
+  addConversation: (conversation: ConversationObject) => void;
+  removeConversation: (conversation: ConversationObject) => void;
+  useDeferRender: (conversation: ConversationObject) => boolean;
+  waitForConversationLoad: (conversation: ConversationObject) => Promise<void>;
+};
 export type RoomSpecification = {
   room: string;
   endpointUrl: string;
@@ -247,9 +281,10 @@ export type ChatsSpecification = EventTarget & {
   leaveAll: () => Promise<void>;
   tick: () => Promise<number>;
 };
-export type ChatsManager = EventTarget & {
+export type ChatsManager = {
   // members
   agent: ActiveAgentObject;
+  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
@@ -259,6 +294,17 @@ export type ChatsManager = EventTarget & {
 
   // join: (opts: RoomSpecification) => Promise<void>;
   // leave: (opts: RoomSpecification) => Promise<void>;
+  tick: () => Promise<number>;
+  live: () => void;
+  destroy: () => void;
+};
+export type DiscordBot = EventTarget & {
+  destroy: () => void;
+};
+export type DiscordManager = {
+  conversationManager: ConversationManager;
+  addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
+  removeDiscordBot: (client: DiscordBot) => void;
   live: () => void;
   destroy: () => void;
 };
@@ -278,6 +324,8 @@ export type ActiveAgentObject = AgentObject & {
   registry: AgentRegistry;
 
   chatsManager: ChatsManager;
+  discordManager: DiscordManager;
+  pingManager: PingManager;
   taskManager: TaskManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
@@ -310,7 +358,7 @@ export type ActiveAgentObject = AgentObject & {
   addMemory: (
     text: string,
     content?: any,
-  ) => Promise<void>;
+  ) => Promise<Memory>;
 
   live: () => void;
   destroy: () => void;
@@ -440,9 +488,8 @@ export type ActionModifierPropsAux = ActionModifierProps & {
 export type PromptProps = {
   children: ReactNode;
 };
-export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
+export type PromptPropsAux = PromptProps & {
+  conversation: ConversationObject;
 };
 export type PerceptionProps = {
   type: string;
@@ -457,6 +504,16 @@ export type PerceptionModifierProps = {
   priority?: number;
 };
 export type PerceptionModifierPropsAux = PerceptionModifierProps & {
+  conversation?: ConversationObject;
+};
+export type FormatterProps = {
+  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
+};
+export type DeferProps = {
+  children: ReactNode;
+};
+export type DeferPropsAux = DeferProps & {
   conversation?: ConversationObject;
 };
 export enum TaskResultEnum {
@@ -547,7 +604,7 @@ export type TextInstance = {
 };
 export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
-  prompts: PromptProps[];
+  prompts: PromptPropsAux[];
 
   actionsMap: Map<symbol, ActionProps | null>;
   actionModifiersMap: Map<symbol, ActionModifierProps | null>;
@@ -584,18 +641,25 @@ export type AgentRegistry = {
   unregisterPerceptionModifier(key: symbol): void;
   registerFormatter(key: symbol, formatter: FormatterProps): void;
   unregisterFormatter(key: symbol): void;
+  registerDefer(key: symbol, defer: DeferPropsAux): void;
+  unregisterDefer(key: symbol): void
   registerTask(key: symbol, task: TaskProps): void;
   unregisterTask(key: symbol): void;
   registerName(key: symbol, name: NameProps): void;
   unregisterName(key: symbol): void;
   registerPersonality(key: symbol, personality: PersonalityProps): void;
   unregisterPersonality(key: symbol): void;
+  registerPayment(key: symbol, payment: PaymentProps): void;
+  unregisterPayment(key: symbol): void;
+  registerSubscription(key: symbol, subscription: SubscriptionProps): void;
+  unregisterSubscription(key: symbol): void;
   registerServer(key: symbol, server: ServerProps): void;
   unregisterServer(key: symbol): void;
 }
 export type RenderRegistry = EventTarget & {
   agents: ActiveAgentObject[];
   load(container: Instance): void;
+  waitForUpdate(): Promise<void>;
 };
 
 export type AppContextValue = {
@@ -605,6 +669,7 @@ export type AppContextValue = {
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
+  useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
   useRegistry: () => RenderRegistry;
 

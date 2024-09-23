@@ -4,15 +4,14 @@ import {
   ActionMessage,
   // ActionMessages,
   MessageFilter,
-  PendingActionMessage,
+  // PendingActionMessage,
   ActionMessageEventData,
   PlayableAudioStream,
+  GetHashFn,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
-import { chatEndpointUrl } from '../util/endpoints.mjs';
-import { getChatKey } from './chats-manager';
 
 //
 
@@ -50,35 +49,30 @@ class MessageCache extends EventTarget {
 //
 
 export class ConversationObject extends EventTarget {
-  // id: string;
-  room: string;
-  endpointUrl: string;
-  scene: SceneObject | null = null;
-  agent: ActiveAgentObject | null = null;
-  agentsMap: Map<string, Player> = new Map();
+  agent: ActiveAgentObject;
+  agentsMap: Map<string, Player>; // note: agents does not include the current agent
+  scene: SceneObject | null;
+  getHash: GetHashFn;
   messageCache = new MessageCache();
   numTyping: number = 0;
 
   constructor({
-    room,
-    endpointUrl,
     agent,
+    agentsMap = new Map(),
+    scene = null,
+    getHash = () => '',
   }: {
-    agent: ActiveAgentObject;
-    room: string;
-    endpointUrl: string;
+    agent: ActiveAgentObject | null;
+    agentsMap?: Map<string, Player>;
+    scene?: SceneObject | null;
+    getHash?: GetHashFn;
   }) {
     super();
 
     this.agent = agent;
-    this.room = room;
-    this.endpointUrl = endpointUrl;
-  }
-
-  //
-
-  getBrowserUrl() {
-    return `${chatEndpointUrl}/rooms/${this.room}`;
+    this.agentsMap = agentsMap;
+    this.scene = scene;
+    this.getHash = getHash;
   }
 
   //
@@ -125,7 +119,6 @@ export class ConversationObject extends EventTarget {
   getAgents() {
     return Array
       .from(this.agentsMap.values())
-      // .map(player => player.getPlayerSpec());
   }
   addAgent(agentId: string, player: Player) {
     this.agentsMap.set(agentId, player);
@@ -135,12 +128,7 @@ export class ConversationObject extends EventTarget {
   }
 
   getKey() {
-    return getChatKey(
-      {
-        room: this.room,
-        endpointUrl: this.endpointUrl,
-      }
-    );
+    return this.getHash();
   }
 
   #getAllMessages() {
@@ -150,10 +138,7 @@ export class ConversationObject extends EventTarget {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
-    const agent = this.agent;
-    // if (agent) {
-    allAgents.push(agent.agentJson);
-    // }
+    this.agent && allAgents.push(this.agent.agentJson);
     return allAgents;
   }
   getEmbeddingString() {
@@ -227,15 +212,21 @@ export class ConversationObject extends EventTarget {
     return [] as ActionMessage[];
   } */
 
-  // pull a logged message from the network
+  // pull a message from the network
   async addLocalMessage(message: ActionMessage) {
-    this.messageCache.pushMessage(message);
+    const {
+      hidden,
+    } = message;
+
+    if (!hidden) {
+      this.messageCache.pushMessage(message);
+    }
 
     const { userId } = message;
     const player = this.agentsMap.get(userId) ?? null;
     const playerSpec = player?.getPlayerSpec() ?? null;
     if (!playerSpec) {
-      console.log('got message for unknown agent', {
+      console.log('got local message for unknown agent', {
         message,
         agentsMap: this.agentsMap,
       });
@@ -250,38 +241,27 @@ export class ConversationObject extends EventTarget {
     this.dispatchEvent(e);
     await e.waitForFinish();
   }
-  // pull a hidden message from the network
-  async addHiddenMessage(message: ActionMessage) {
-    const { userId } = message;
-    const player = this.agentsMap.get(userId) ?? null;
-    const playerSpec = player?.getPlayerSpec() ?? null;
-    if (!playerSpec) {
-      console.log('got message for unknown agent', {
-        message,
-        agentsMap: this.agentsMap,
-      });
-    }
-
-    const e = new ExtendableMessageEvent<ActionMessageEventData>('hiddenmessage', {
-      data: {
-        agent: playerSpec,
-        message,
-      },
-    });
-    this.dispatchEvent(e);
-    await e.waitForFinish();
-  }
   // push a message to the network
   async addLocalAndRemoteMessage(message: ActionMessage) {
     this.messageCache.pushMessage(message);
 
-    const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
-      data: {
-        message,
-      },
-    });
-    this.dispatchEvent(e);
-    await e.waitForFinish();
+    await Promise.all([
+      (async () => {
+        const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
+          data: {
+            message,
+          },
+        });
+        this.dispatchEvent(e);
+        await e.waitForFinish();
+      })(),
+      (async () => {
+        // wait for re-render before returning from the handler
+        // this must be happening since we just triggered the message cache to update
+        const renderRegistry = this.agent.appContextValue.useRegistry();
+        await renderRegistry.waitForUpdate();
+      })(),
+    ]);
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {

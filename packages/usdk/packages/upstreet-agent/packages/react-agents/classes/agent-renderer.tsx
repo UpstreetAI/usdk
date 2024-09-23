@@ -20,6 +20,7 @@ import { RenderLoader } from './render-loader';
 import { QueueManager } from '../util/queue-manager.mjs';
 import { makeAnonymousClient } from '../util/supabase-client.mjs';
 import { makePromise } from '../util/util.mjs';
+import { ConversationManager } from './conversation-manager';
 import { AppContextValue } from './app-context-value';
 import { getConnectedWalletsFromMnemonic } from '../util/ethereum-utils.mjs';
 import {
@@ -70,29 +71,6 @@ class ErrorBoundary extends Component<
     return this.localProps.children;
   }
 }
-/* const ConfigurationComponent = ({
-  children,
-}: ChildrenProps) => {
-  const [configurationValue, setConfigurationValue] = useState(() => {
-    const data = {};
-    const result = {
-      get: (key: string) => data[key],
-      set: (key: string, value: any) => {
-        data[key] = value;
-        setConfigurationValue(result);
-      },
-    };
-    return result;
-  });
-
-  return (
-    <ConfigurationContext.Provider
-      value={configurationValue}
-    >
-      {children}
-    </ConfigurationContext.Provider>
-  );
-}; */
 type AppComponentProps = {
   userRender: UserHandler,
   appContextValue: AppContextValue,
@@ -138,6 +116,7 @@ export class AgentRenderer {
   chatsSpecification: ChatsSpecification;
 
   registry: RenderRegistry;
+  conversationManager: ConversationManager;
   appContextValue: AppContextValue;
 
   reconciler: any;
@@ -164,6 +143,9 @@ export class AgentRenderer {
 
     // create the app context
     this.registry = new RenderRegistry();
+    this.conversationManager = new ConversationManager({
+      registry: this.registry,
+    });
     const subtleAi = new SubtleAi();
     const useAgentJson = () => {
       const agentJsonString = (env as any).AGENT_JSON as string;
@@ -183,6 +165,9 @@ export class AgentRenderer {
       const supabase = makeAnonymousClient(env, jwt);
       return supabase;
     };
+    const useConversationManager = () => {
+      return this.conversationManager;
+    };
     const useChatsSpecification = () => {
       return this.chatsSpecification;
     };
@@ -195,6 +180,7 @@ export class AgentRenderer {
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
+      conversationManager: useConversationManager(),
       chatsSpecification: useChatsSpecification(),
       registry: useRegistry(),
     });
@@ -350,18 +336,14 @@ export class AgentRenderer {
       appContextValue,
       topLevelRenderPromise: null,
     };
-    // console.log('render 1');
     await this.renderProps(props);
-    // console.log('render 2');
   }
 
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
   async waitForRender() {
     if (!this.renderPromise) {
-      this.renderPromise = (async () => {
-        await this.render();
-      })();
+      this.renderPromise = this.render();
     }
     await this.renderPromise;
   }

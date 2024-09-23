@@ -24,7 +24,7 @@ async function encodeMessage(message, jwt, userId, conversationId) {
   const embedding = await lembed(JSON.stringify({
     method: message.method,
     args: message.args,
-  }), { overridenJwt: jwt });
+  }), { jwt });
   return {
     method: message.method,
     args: message.args,

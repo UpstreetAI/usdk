@@ -2,11 +2,8 @@
 
 import { createContainer } from 'react-tracked';
 import { env } from '@/lib/env';
-import { useState } from 'react';
-
-interface GlobalState {
-    isDevMode: boolean;
-};
+import React, { useState } from 'react';
+import { GlobalState } from '@/lib/types';
 
 const initialGlobalState: GlobalState = {
     isDevMode: env.NEXT_PUBLIC_ENVIRONMENT === 'development' ? true : false,

@@ -29,6 +29,10 @@ import type {
   FormattedAttachment,
   AgentThinkOptions,
   GenerativeAgentObject,
+  DiscordBotRoomSpec,
+  DiscordBotRoomSpecs,
+  DiscordBotProps,
+  DiscordBotArgs,
 } from './types';
 import {
   AppContext,
@@ -45,6 +49,7 @@ import {
   // Scheduler,
   Server,
   Conversation,
+  Defer,
 } from './components';
 import {
   AbortableActionEvent,
@@ -69,8 +74,7 @@ import {
   useCachedMessages,
   useNumMessages,
 } from './hooks';
-// import type { AppContextValue } from './types';
-import { shuffle, parseCodeBlock, printZodSchema } from './util/util.mjs';
+import { shuffle, parseCodeBlock } from './util/util.mjs';
 import {
   storeItemType,
 } from './util/agent-features.mjs';
@@ -79,7 +83,7 @@ import {
   intervals,
 } from './constants.mjs';
 import {
-  describe,
+  // describe,
   describeJson,
 } from './util/vision.mjs';
 import {
@@ -275,7 +279,7 @@ const DefaultMemoriesInternal = () => {
     // console.log('got new value 2', value);
     setRecentMemoriesValue(value);
   };
-  const refreshQueriedMemories = async ({
+  const refreshEmbeddedMemories = async ({
     signal,
   }: {
     signal: AbortSignal,
@@ -297,11 +301,11 @@ const DefaultMemoriesInternal = () => {
     ...recentMemoriesValue,
     ...queriedMemoriesValue,
   ];
-  console.log('render all memories', {
-    allMemoriesValue,
-    recentMemoriesValue,
-    queriedMemoriesValue,
-  });
+  // console.log('render all memories', {
+  //   allMemoriesValue,
+  //   recentMemoriesValue,
+  //   queriedMemoriesValue,
+  // });
 
   return (
     <>
@@ -322,24 +326,26 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <EveryNMessages n={10}>{({
-        signal,
-      }: {
-        signal: AbortSignal,
-      }) => {
-        refreshRecentMemories({
+      <Defer>
+        <EveryNMessages n={10}>{({
           signal,
-        });
-      }}</EveryNMessages>
-      <EveryNMessages n={1}>{({
-        signal,
-      }: {
-        signal: AbortSignal,
-      }) => {
-        refreshQueriedMemories({
+        }: {
+          signal: AbortSignal,
+        }) => {
+          refreshRecentMemories({
+            signal,
+          });
+        }}</EveryNMessages>
+        <EveryNMessages n={1}>{({
           signal,
-        });
-      }}</EveryNMessages>
+        }: {
+          signal: AbortSignal,
+        }) => {
+          refreshEmbeddedMemories({
+            signal,
+          });
+        }}</EveryNMessages>
+      </Defer>
     </>
   );
 };
@@ -408,14 +414,16 @@ const MemoryWatcher = ({
           \`\`\`
         `}
       </Prompt>
-      {/* trigger memory watcher refresh */}
-      {allMemoryWatchers.map((memoryWatcher, index) => {
-        return (
-          <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
-            memoryWatcher.refresh();
-          }}</EveryNMessages>
-        );
-      })}
+      <Defer>
+        {/* trigger memory watcher refresh */}
+        {allMemoryWatchers.map((memoryWatcher, index) => {
+          return (
+            <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
+              memoryWatcher.refresh();
+            }}</EveryNMessages>
+          );
+        })}
+      </Defer>
     </Conversation>
   );
 };
@@ -470,10 +478,8 @@ const AddMemoryAction = () => {
     <Action
       name="addMemory"
       description={dedent`\
-        Make a note of a specific answer to a query.
-        Phrase the memory in the form of a question + answer.
-        This should include any newly relevant context or details.
-        You can use this liberally.
+        Save a memory to the database in the form of a question and answer.
+        Use this whenever there there is a new fact or detail that you want to remember.
       `}
       schema={
         z.object({
@@ -537,55 +543,55 @@ const QueryMemoriesAction = ({
 }) => {
   return (
     <Action
-        name="queryMemories"
-        description={
-          dedent`\
-            This action lets you remember specific details better by focusing your attention on a question.
-            Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
-            For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
+      name="queryMemories"
+      description={
+        dedent`\
+          This action lets you remember specific details better by focusing your attention on a question.
+          Using this whenever the topic of conversation changes. It will significantly boost your ability to recall information.
+          For example, "What are the plans to meet up?" will help us remember the details of the meet-up.
 
-            We are already querying the following:
-          ` + '\n' +
-          JSON.stringify(memoryQueries, null, 2)
-        }
-        schema={
-          z.object({
-            query: z.string(),
-          })
-        }
-        examples={[
-          {
-            query: 'What pizza toppings does everyone like for the next movie marathon?',
-          },
-          {
-            query: 'When is the CEO’s karaoke battle scheduled again?',
-          },
-          {
-            query: 'Which team member is in charge of the surprise flash mob?',
-          },
-          {
-            query: 'What wild idea did we brainstorm for the company’s anniversary?',
-          },
-          {
-            query: 'Who volunteered to handle the laser light show at the next event?',
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const { query } = e.data.message.args as {
-            query: string,
-          };
-          setMemoryQueries((queries = []) => {
-            const o = shuffle([
-              ...queries,
-              {
-                query,
-              },
-            ]).slice(-maxMemoryQueries);
-            return o;
-          });
-          await e.commit();
-        }}
-      />
+          We are already querying the following:
+        ` + '\n' +
+        JSON.stringify(memoryQueries, null, 2)
+      }
+      schema={
+        z.object({
+          query: z.string(),
+        })
+      }
+      examples={[
+        {
+          query: 'What pizza toppings does everyone like for the next movie marathon?',
+        },
+        {
+          query: 'When is the CEO’s karaoke battle scheduled again?',
+        },
+        {
+          query: 'Which team member is in charge of the surprise flash mob?',
+        },
+        {
+          query: 'What wild idea did we brainstorm for the company’s anniversary?',
+        },
+        {
+          query: 'Who volunteered to handle the laser light show at the next event?',
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const { query } = e.data.message.args as {
+          query: string,
+        };
+        setMemoryQueries((queries = []) => {
+          const o = shuffle([
+            ...queries,
+            {
+              query,
+            },
+          ]).slice(-maxMemoryQueries);
+          return o;
+        });
+        await e.commit();
+      }}
+    />
   );
 };
 const MemoryQueriesInternal = () => {
@@ -610,8 +616,8 @@ const MemoryQueries = () => {
 const RAGMemory = () => {
   return (
     <>
-      <DefaultMemories />
       <AddMemoryAction />
+      <DefaultMemories />
       <MemoryQueries />
     </>
   );
@@ -743,20 +749,18 @@ export const ActionsPrompt = () => {
 const StoreItemsPrompt = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
-  return (
+  return !!agent.stripeConnectAccountId && storeItems.length > 0 && (
     <Prompt>
-      # Store
-      Here are the store items available for purchase.
-      {!!agent.stripeConnectAccountId && storeItems.length > 0 ? (
-        dedent`\
-          Amount in cents (e.g. 100 = $1).
-          \`\`\`
-        ` + '\n' +
-        JSON.stringify(storeItems, null, 2) + '\n' +
-        dedent`\
-          \`\`\`
-        `
-      ) : '*none*'}
+      {dedent`\
+        # Store
+        Here are the store items available for purchase.
+        Amount in cents (e.g. 100 = $1).
+        \`\`\`
+      ` + '\n' +
+      JSON.stringify(storeItems, null, 2) + '\n' +
+      dedent`\
+        \`\`\`
+      `}
     </Prompt>
   );
 };
@@ -2807,4 +2811,34 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
       }}
     />
   );
+};
+export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+  const {
+    token,
+    channels,
+    dms,
+    userWhitelist,
+  } = props;
+  const agent = useAgent();
+
+  useEffect(() => {
+    const args: DiscordBotArgs = {
+      token,
+      channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
+      dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],
+      userWhitelist,
+      agent,
+    };
+    const discordBot = agent.discordManager.addDiscordBot(args);
+    return () => {
+      agent.discordManager.removeDiscordBot(discordBot);
+    };
+  }, [
+    token,
+    JSON.stringify(channels),
+    JSON.stringify(dms),
+    JSON.stringify(userWhitelist),
+  ]);
+
+  return null;
 };

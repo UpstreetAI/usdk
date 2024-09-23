@@ -1,13 +1,16 @@
 import type {
   ActiveAgentObject,
   // AgentProps,
-  ActionProps,
-  ActionModifierProps,
+  // ActionProps,
+  // ActionModifierProps,
   PromptProps,
+  PromptPropsAux,
   FormatterProps,
+  DeferProps,
+  DeferPropsAux,
   // ParserProps,
-  PerceptionProps,
-  PerceptionModifierProps,
+  // PerceptionProps,
+  // PerceptionModifierProps,
   TaskProps,
   NameProps,
   PersonalityProps,
@@ -59,7 +62,7 @@ export class TextInstance {
 type InstanceChild = Instance | TextInstance;
 
 export class AgentRegistry {
-  prompts: PromptProps[] = [];
+  prompts: PromptPropsAux[] = [];
 
   // set to null to maintain registration order
   actionsMap: Map<symbol, ActionPropsAux | null> = new Map();
@@ -67,6 +70,7 @@ export class AgentRegistry {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
+  deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
 
   namesMap: Map<symbol, NameProps | null> = new Map();
@@ -108,18 +112,22 @@ export class AgentRegistry {
   }
 
   registerAction(key: symbol, action: ActionPropsAux) {
-    const actionExists = Array.from(this.actionsMap.values())
-      .some((a) => {
-        if (a) {
-          return a.name === action.name && a.conversation === action.conversation;
-        } else {
-          return false;
-        }
-      });
-    if (!actionExists) {
+    if (!action.conversation) {
       this.actionsMap.set(key, action);
     } else {
-      throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+      const conversationActionExists = Array.from(this.actionsMap.values())
+        .some((a) => {
+          if (a) {
+            return a.name === action.name && a.conversation === action.conversation;
+          } else {
+            return false;
+          }
+        });
+      if (!conversationActionExists) {
+        this.actionsMap.set(key, action);
+      } else {
+        throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+      }
     }
   }
   unregisterAction(key: symbol) {
@@ -154,6 +162,12 @@ export class AgentRegistry {
   }
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
+  }
+  registerDefer(key: symbol, defer: DeferPropsAux) {
+    this.deferMap.set(key, defer);
+  }
+  unregisterDefer(key: symbol) {
+    this.deferMap.set(key, null);
   }
   registerTask(key: symbol, task: TaskProps) {
     this.tasksMap.set(key, task);
@@ -229,7 +243,8 @@ export class RenderRegistry extends EventTarget {
           //   agentRegistry.actions.push(childInstance.props.value);
           // }
           if (childInstance.type === 'prompt') {
-            agentRegistry.prompts.push(childInstance.props.value);
+            const promptAux = childInstance.props.value as PromptPropsAux;
+            agentRegistry.prompts.push(promptAux);
           }
           // if (childInstance.type === 'formatter') {
           //   agentRegistry.formatters.push(childInstance.props.value);
@@ -259,5 +274,15 @@ export class RenderRegistry extends EventTarget {
     this.dispatchEvent(new MessageEvent('update', {
       data: null,
     }));
+  }
+
+  async waitForUpdate() {
+    await new Promise((resolve) => {
+      this.addEventListener('update', () => {
+        resolve(null);
+      }, {
+        once: true,
+      });
+    });
   }
 }

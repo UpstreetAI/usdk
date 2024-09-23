@@ -12,6 +12,7 @@ import type {
   ChatMessages,
   RenderRegistry,
   ReadableAudioStream,
+  ConversationManager,
   ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
@@ -39,6 +40,7 @@ export class AppContextValue {
   wallets: any;
   authToken: string;
   supabase: any;
+  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   registry: RenderRegistry;
 
@@ -48,6 +50,7 @@ export class AppContextValue {
     wallets,
     authToken,
     supabase,
+    conversationManager,
     chatsSpecification,
     registry,
   }: {
@@ -56,6 +59,7 @@ export class AppContextValue {
     wallets: any;
     authToken: string;
     supabase: any;
+    conversationManager: ConversationManager;
     chatsSpecification: ChatsSpecification;
     registry: RenderRegistry;
   }) {
@@ -64,6 +68,7 @@ export class AppContextValue {
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
+    this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
     this.registry = registry;
   }
@@ -81,6 +86,9 @@ export class AppContextValue {
   }
   useSupabase() {
     return this.supabase;
+  }
+  useConversationManager() {
+    return this.conversationManager;
   }
   useChatsSpecification() {
     return this.chatsSpecification;
@@ -198,7 +206,10 @@ export class AppContextValue {
           ensureLoadPromise(key, ensureDefaultValue);
         }, []);
 
-        return [value, setValue2];
+        return [value, setValue2] as [
+          T,
+          (value: T | ((oldValue: T | undefined) => T)) => Promise<void>,
+        ];
       },
     }), []);
 
@@ -246,17 +257,19 @@ export class AppContextValue {
 
   async embed(text: string) {
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
-    const embedding = await lembed(text);
+    const embedding = await lembed(text, {
+      jwt,
+    });
     return embedding;
   }
   async complete(messages: ChatMessages, opts: SubtleAiCompleteOpts) {
     const { model } = opts;
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const content = await fetchChatCompletion({
       model,
       messages,
+    }, {
+      jwt,
     });
     return {
       role: 'assistant',
@@ -266,11 +279,12 @@ export class AppContextValue {
   async completeJson(messages: ChatMessages, format: ZodTypeAny, opts: SubtleAiCompleteOpts) {
     const { model } = opts;
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const content = await fetchJsonCompletion({
       model,
       messages,
-    }, format);
+    }, format, {
+      jwt,
+    });
     return {
       role: 'assistant',
       content,
@@ -278,7 +292,8 @@ export class AppContextValue {
   }
   async generateImage(prompt: string, opts: SubtleAiImageOpts) {
     const jwt = this.authToken;
-    localStorage.setItem('jwt', JSON.stringify(jwt));
-    return await fetchImageGeneration(prompt, opts);
+    return await fetchImageGeneration(prompt, opts, {
+      jwt,
+    });
   }
 };

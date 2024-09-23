@@ -7,9 +7,14 @@ import dedent from 'dedent';
 import {
   ChatMessages,
   PendingActionMessage,
+  ActiveAgentObject,
+  GenerativeAgentObject,
   ActionMessage,
   ActionProps,
+  ActionMessageEvent,
+  ActionMessageEventData,
   ConversationObject,
+  MessagesUpdateEventData,
   TaskEventData,
   AgentThinkOptions,
 } from './types';
@@ -19,14 +24,6 @@ import {
 import {
   AbortableActionEvent,
 } from './classes/abortable-action-event';
-// import { AgentRenderer } from './classes/agent-renderer';
-// import {
-//   TaskObject,
-//   TaskResult,
-// } from './classes/task-object';
-// import {
-//   ExtendableMessageEvent,
-// } from './util/extendable-message-event';
 import {
   retry,
 } from './util/util.mjs';
@@ -34,11 +31,17 @@ import {
   parseCodeBlock,
 } from './util/util.mjs';
 import {
-  ActiveAgentObject,
-} from './classes/active-agent-object';
+  PerceptionEvent,
+} from './classes/perception-event';
 import {
-  GenerativeAgentObject,
-} from './classes/generative-agent-object';
+  AbortablePerceptionEvent,
+} from './classes/abortable-perception-event';
+import {
+  ExtendableMessageEvent,
+} from './util/extendable-message-event';
+import {
+  saveMessageToDatabase,
+} from './util/saveMessageToDatabase.js';
 
 //
 
@@ -58,10 +61,7 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
       const {
         conversation: promptConversation,
         children,
-      } = prompt as {
-        conversation: ConversationObject | null,
-        children?: ReactNode,
-      };
+      } = prompt;
       return (
         (
           (typeof children === 'string' && children.length > 0) ||
@@ -72,7 +72,8 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
     })
     .map((prompt) => {
       return Array.isArray(prompt.children) ? prompt.children.join('\n') : (prompt.children as string);
-    });
+    })
+    .map((prompt) => dedent(prompt));
   // console.log('got prompts', prompts);
   return prompts;
 };
@@ -82,6 +83,15 @@ export async function generateAgentAction(
   hint?: string,
   thinkOpts?: AgentThinkOptions,
 ) {
+  // wait for the conversation to be loaded
+  {
+    const { agent, conversation } = generativeAgent;
+    const { appContextValue } = agent;
+    const conversationManager = appContextValue.useConversationManager();
+    await conversationManager.waitForConversationLoad(conversation);
+  }
+
+  // collect the prompts
   const prompts = getPrompts(generativeAgent);
   if (hint) {
     prompts.push(hint);
@@ -94,6 +104,7 @@ export async function generateAgentAction(
       content: promptString,
     },
   ];
+  // perform inference
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
 async function _generateAgentActionFromMessages(
@@ -293,6 +304,144 @@ export async function executeAgentAction(
     await Promise.all(actionPromises);
   }
 }
+
+// run all perception modifiers and perceptions for a given event
+// the modifiers have a chance to abort the perception
+const handleChatPerception = async (data: ActionMessageEventData, {
+  agent,
+  conversation,
+}: {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+}) => {
+  const {
+    agent: sourceAgent,
+    message,
+  } = data;
+
+  const {
+    perceptions,
+    perceptionModifiers,
+  } = agent.registry;
+
+  // collect perception modifiers
+  const perceptionModifiersPerPriority = collectPriorityModifiers(perceptionModifiers);
+  // for each priority, run the perception modifiers, checking for abort at each step
+  let aborted = false;
+  for (const perceptionModifiers of perceptionModifiersPerPriority) {
+    const abortableEventPromises = perceptionModifiers.filter(perceptionModifier => {
+      return perceptionModifier.type === message.method;
+    }).map(async (perceptionModifier) => {
+      const targetAgent = agent.generative({
+        conversation,
+      });
+      const e = new AbortablePerceptionEvent({
+        targetAgent,
+        sourceAgent,
+        message,
+      });
+      await perceptionModifier.handler(e);
+      return e;
+    });
+    const messageEvents = await Promise.all(abortableEventPromises);
+    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+    if (aborted) {
+      break;
+    }
+  }
+
+  // if no aborts, run the perceptions
+  if (!aborted) {
+    const perceptionPromises = [];
+    for (const perception of perceptions) {
+      if (perception.type === message.method) {
+        const targetAgent = agent.generative({
+          conversation,
+        });
+        const e = new PerceptionEvent({
+          targetAgent,
+          sourceAgent,
+          message,
+        });
+        const p = perception.handler(e);
+        perceptionPromises.push(p);
+      }
+    }
+    await Promise.all(perceptionPromises);
+  }
+  return {
+    aborted,
+  };
+};
+export const bindConversationToAgent = ({
+  agent,
+  conversation,
+}: {
+  agent: ActiveAgentObject;
+  conversation: ConversationObject;
+}) => {
+  conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
+    const { message } = e.data;
+    e.waitUntil((async () => {
+      // XXX move debouncing elsewhere
+      // await this.incomingMessageDebouncer.waitForTurn(async () => {
+        try {
+          // wait for re-render, since we just changed the message cache
+          // XXX can this be handled in the message cache?
+          const { hidden } = message;
+          if (!hidden) {
+            const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
+            agent.dispatchEvent(e);
+            await e.waitForFinish();
+          }
+
+          // handle the perception
+          const {
+            aborted,
+          } = await handleChatPerception(e.data, {
+            agent,
+            conversation,
+          });
+          if (!aborted) {
+            if (!hidden) {
+              // save the perception to the databaase
+              (async () => {
+                const supabase = agent.useSupabase();
+                const jwt = agent.useAuthToken();
+                await saveMessageToDatabase({
+                  supabase,
+                  jwt,
+                  userId: agent.id,
+                  conversationId: conversation.getKey(),
+                  message,
+                });
+              })();
+            }
+          }
+        } catch (err) {
+          console.warn('caught new message error', err);
+        }
+      // });
+    })());
+  });
+  conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+    const { message } = e.data;
+    // e.waitUntil((async () => {
+      // save to database
+      (async () => {
+        const supabase = agent.useSupabase();
+        const jwt = agent.useAuthToken();
+        await saveMessageToDatabase({
+          supabase,
+          jwt,
+          userId: agent.id,
+          conversationId: conversation.getKey(),
+          message,
+        });
+      })();
+    // })());
+  });
+};
 
 // XXX can move this to the agent renderer
 export const compileUserAgentServer = async ({

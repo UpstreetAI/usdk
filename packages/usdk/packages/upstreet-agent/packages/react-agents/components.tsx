@@ -1,37 +1,27 @@
 import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
 import type { Ref } from 'react';
 // import type { ZodTypeAny } from 'zod';
-import {
-  // ActionMessages,
-  // AppContextValue,
-  // PendingActionMessage,
-  // ChatMessages,
-  // SubtleAiImageOpts,
-  // SubtleAiCompleteOpts,
-  // MemoryOpts,
-  type AgentProps,
-  type RawAgentProps,
-  type ActionProps,
-  type ActionModifierProps,
-  type PromptProps,
-  type FormatterProps,
-  // type ParserProps,
-  type PerceptionProps,
-  type PerceptionModifierProps,
-  type TaskProps,
-  type NameProps,
-  type PersonalityProps,
-  type ServerProps,
-  type ConversationObject,
-  type ConversationProps,
-  type ConversationInstanceProps,
-  // ExtendableMessageEvent,
-  // type ConversationChangeEvent,
-  type ConversationAddEvent,
-  type ConversationRemoveEvent,
-  type MessagesUpdateEvent,
-  type PaymentProps,
-  type SubscriptionProps
+import type {
+  AgentProps,
+  RawAgentProps,
+  ActionProps,
+  ActionModifierProps,
+  PromptProps,
+  PerceptionProps,
+  PerceptionModifierProps,
+  FormatterProps,
+  DeferProps,
+  TaskProps,
+  NameProps,
+  PersonalityProps,
+  ServerProps,
+  ConversationManager,
+  ConversationObject,
+  ConversationProps,
+  ConversationInstanceProps,
+  MessagesUpdateEvent,
+  PaymentProps,
+  SubscriptionProps,
 } from './types';
 import {
   AppContext,
@@ -69,10 +59,6 @@ import {
   RenderLoader,
   RenderLoaderProvider,
 } from './classes/render-loader';
-// import { AgentContextValue } from './classes/agent-context-value';
-import {
-  getChatKey,
-} from './classes/chats-manager';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -105,6 +91,7 @@ export const Agent = forwardRef(({
   // hooks
   const appContextValue = useContext(AppContext);
   const agentJson = appContextValue.useAgentJson() as any;
+  const conversationManger = appContextValue.useConversationManager();
   const [conversations, setConversations] = useState<ConversationObject[]>([]);
   const agentRegistry = useMemo(() => new AgentRegistry(), []);
   const agent = useMemo<ActiveAgentObject>(() => new ActiveAgentObject(agentJson, {
@@ -122,22 +109,19 @@ export const Agent = forwardRef(({
     };
   }, [agent]);
 
-  // events bindings
   useEffect(() => {
-    const onconversationadd = (e: ConversationAddEvent) => {
-      setConversations((conversations) => conversations.concat([e.data.conversation]));
+    const updateConversations = (e: any) => {
+      setConversations(() => conversationManger.getConversations());
     };
-    agent.chatsManager.addEventListener('conversationadd', onconversationadd);
-    const onconversationremove = (e: ConversationRemoveEvent) => {
-      setConversations((conversations) => conversations.filter((c) => c !== e.data.conversation));
-    };
-    agent.chatsManager.addEventListener('conversationremove', onconversationremove);
-
+    conversationManger.addEventListener('conversationadd', updateConversations);
+    conversationManger.addEventListener('conversationremove', updateConversations);
     return () => {
-      agent.chatsManager.removeEventListener('conversationadd', onconversationadd);
-      agent.chatsManager.removeEventListener('conversationremove', onconversationremove);
+      conversationManger.removeEventListener('conversationadd', updateConversations);
+      conversationManger.removeEventListener('conversationremove', updateConversations);
     };
-  }, [agent]);
+  }, [conversationManger]);
+
+  // epoch (for re-rendering)
   useEffect(() => {
     const onepochchange = (e: MessageEvent) => {
       setRegistryEpoch((registryEpoch) => registryEpoch + 1);
@@ -212,6 +196,7 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
     </ConversationContext.Provider>
   );
 };
+// XXX rename this to ConversationProvider (?)
 export const Conversation = (props: ConversationProps) => {
   const agent = useContext(AgentContext);
   const conversations = useContext(ConversationsContext).conversations;
@@ -220,12 +205,36 @@ export const Conversation = (props: ConversationProps) => {
       <ConversationInstance
         agent={agent}
         conversation={conversation}
-        key={getChatKey(conversation)}
+        key={conversation.getKey()}
       >
         {props.children}
       </ConversationInstance>
     );
   });
+};
+export const Defer = (props: DeferProps) => {
+  const appContextValue = useContext(AppContext);
+  const conversationManager = appContextValue.useConversationManager();
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const conversation = useContext(ConversationContext).conversation;
+  if (!conversation) {
+    throw new Error('Defer can only be used within a conversation');
+  }
+  const symbol = useMemo(makeSymbol, []);
+  const deferRender = conversationManager.useDeferRender(conversation);
+
+  useEffect(() => {
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerDefer(symbol, props2);
+    return () => {
+      agentRegistry.unregisterDefer(symbol);
+    };
+  }, []);
+
+  return deferRender && props.children;
 };
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);

@@ -20,7 +20,8 @@ import {
   IconPlus,
 } from '@/components/ui/icons'
 
-import { lembed } from '@/utils/ai/embedding';
+// import { lembed } from '@/utils/ai/embedding';
+import { lembed } from 'react-agents/util/embedding.mjs';
 // import { getJWT } from '@/lib/jwt';
 // import { env } from '@/lib/env';
 

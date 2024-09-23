@@ -8,38 +8,19 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
-  // ChatsSpecification,
 } from '../types';
 import {
   ConversationObject,
 } from './conversation-object';
-// import {
-//   QueueManager,
-// } from '../util/queue-manager.mjs';
-// import {
-//   makePromise,
-//   parseCodeBlock,
-// } from '../util/util.mjs';
-// import { Player } from './player';
-// import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
-// import {
-//   loadMessagesFromDatabase,
-// } from '../util/loadMessagesFromDatabase.js';
-// import {
-//   ExtendableMessageEvent,
-// } from '../util/extendable-message-event';
-// import {
-//   retry,
-// } from '../util/util.mjs';
 import {
   GenerativeAgentObject,
 } from './generative-agent-object';
-// import {
-//   SceneObject,
-// } from './scene-object';
 import {
   ChatsManager,
 } from './chats-manager';
+import {
+  DiscordManager,
+} from './discord-manager';
 import {
   TaskManager,
 } from './task-manager';
@@ -55,6 +36,7 @@ export class ActiveAgentObject extends AgentObject {
   registry: AgentRegistry;
   // state
   chatsManager: ChatsManager;
+  discordManager: DiscordManager;
   taskManager: TaskManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
@@ -81,9 +63,15 @@ export class ActiveAgentObject extends AgentObject {
 
     //
 
+    const conversationManager = this.appContextValue.useConversationManager();
+    const chatsSpecification = this.appContextValue.useChatsSpecification();
     this.chatsManager = new ChatsManager({
       agent: this,
-      chatsSpecification: this.appContextValue.useChatsSpecification(),
+      conversationManager,
+      chatsSpecification,
+    });
+    this.discordManager = new DiscordManager({
+      conversationManager,
     });
     this.taskManager = new TaskManager({
       agent: this,
@@ -135,9 +123,9 @@ export class ActiveAgentObject extends AgentObject {
   async getMemories(
     opts?: GetMemoryOpts,
   ) {
-    console.log('getMemories 1', {
-      opts,
-    });
+    // console.log('getMemories 1', {
+    //   opts,
+    // });
     const { matchCount = 1 } = opts || {};
 
     const supabase = this.useSupabase();
@@ -145,10 +133,10 @@ export class ActiveAgentObject extends AgentObject {
       .select('*')
       .eq('user_id', this.id)
       .limit(matchCount);
-    console.log('getMemories 2', {
-      data,
-      error,
-    });
+    // console.log('getMemories 2', {
+    //   data,
+    //   error,
+    // });
     if (!error) {
       return data as Array<Memory>;
     } else {
@@ -216,10 +204,12 @@ export class ActiveAgentObject extends AgentObject {
   }
   live() {
     this.chatsManager.live();
+    this.discordManager.live();
     this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
+    this.discordManager.destroy();
     this.pingManager.destroy();
   }
 }

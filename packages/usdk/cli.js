@@ -16,7 +16,6 @@ import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
 import jsAgo from 'js-ago';
-import 'localstorage-polyfill';
 // import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
@@ -81,8 +80,10 @@ import {
 import {
   VoiceActivityMicrophoneInput,
   encodeMp3,
-  transcribe,
 } from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
+import {
+  transcribe,
+} from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,
@@ -2079,11 +2080,12 @@ const withdraw = async (args) => {
           content: `Generate an agent for the following prompt:\n${prompt}`,
         },
       ];
-      localStorage.setItem('jwt', JSON.stringify(jwt));
       try {
         const content = await fetchChatCompletion({
           model: defaultModels[0],
           messages,
+        }, {
+          jwt,
         });
         const codeBlock = parseCodeBlock(content);
         const j = JSON.parse(codeBlock);
@@ -2101,7 +2103,6 @@ const withdraw = async (args) => {
 const generateImage = async (prompt) => {
   const jwt = await getLoginJwt();
   if (jwt) {
-    localStorage.setItem('jwt', JSON.stringify(jwt));
     const blob = await fetchImageGeneration(prompt);
     return blob;
   } else {
@@ -2249,8 +2250,9 @@ const search = async (args) => {
   if (userId) {
     if (prompt) {
       const supabase = makeAnonymousClient(env);
-      localStorage.setItem('jwt', JSON.stringify(jwt));
-      const embedding = await lembed(prompt);
+      const embedding = await lembed(prompt, {
+        jwt,
+      });
       /*
         call the supabase function:
         function match_assets(
@@ -3316,7 +3318,11 @@ const main = async () => {
     .option(`-y, --yes`, `Non-interactive mode`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
-    .option(`-s, --source <string>`, `Main source file for the agent`)
+    .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
+    .option(
+      `-t, --template <string>`,
+      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
+    )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -3390,7 +3396,7 @@ const main = async () => {
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
-    .option(`-r, --room`, `The room name to join`)
+    .option(`-r, --room <room>`, `The room name to join`)
     // .option(
     //   `-d, --dev`,
     //   `Chat with a local development agent`,
@@ -3629,30 +3635,30 @@ const main = async () => {
       }
     ];
 
-  program
-    .command('voice')
-    .description(
-      'Manage agent voices',
-    )
-    .argument(
-      `[subcommand]`,
-      `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
-    )
-    .argument(
-      `[args...]`,
-      `Arguments to pass to the subcommand`,
-    )
-    .action(async (subcommand = '', args = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        args = {
-          _: [subcommand, args],
-          ...opts,
-        };
-        await voice(args);
-      });
-    })
-    .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
+  // program
+  //   .command('voice')
+  //   .description(
+  //     'Manage agent voices',
+  //   )
+  //   .argument(
+  //     `[subcommand]`,
+  //     `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
+  //   )
+  //   .argument(
+  //     `[args...]`,
+  //     `Arguments to pass to the subcommand`,
+  //   )
+  //   .action(async (subcommand = '', args = [], opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       args = {
+  //         _: [subcommand, args],
+  //         ...opts,
+  //       };
+  //       await voice(args);
+  //     });
+  //   })
+  //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
 
     
   // program
