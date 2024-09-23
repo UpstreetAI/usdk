@@ -1,3 +1,15 @@
+function createPromiseWithResolvers() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+// to ensure backward compatibility with older versions of Node.js
+const withResolvers = Promise.withResolvers || createPromiseWithResolvers;
+
 export class QueueManager extends EventTarget {
   constructor({
     parallelism = 1,
@@ -54,7 +66,7 @@ export class QueueManager extends EventTarget {
         promise,
         resolve,
         reject,
-      } = Promise.withResolvers();
+      } = withResolvers();
       this.queue.push(async () => {
         let result, error;
         try {
