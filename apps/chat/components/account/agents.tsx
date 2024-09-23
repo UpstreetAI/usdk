@@ -156,7 +156,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
 
                     const sparklineData =
                       credits_usage?.reduce((acc: any, credit: any) => {
-                        const amount = credit.amount * 1000;
+                        const amount = credit.amount;
                         if (amount >= 0.1) acc.push(amount);
                         return acc;
                       }, []) || [];
@@ -164,7 +164,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     const overallCreditsUsed =
                       credits_usage?.reduce(
                         (total: any, credit: any) =>
-                          total + credit.amount * 1000,
+                          total + credit.amount,
                         0
                       ) || 0;
 
@@ -239,7 +239,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
 
                 const sparklineData =
                   credits_usage?.reduce((acc: any, credit: any) => {
-                    const amount = credit.amount * 1000;
+                    const amount = credit.amount;
                     if (amount >= 0.1) acc.push(amount);
                     return acc;
                   }, []) || [];
@@ -247,7 +247,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                 const overallCreditsUsed =
                   credits_usage?.reduce(
                     (total: any, credit: any) =>
-                      total + credit.amount * 1000,
+                      total + credit.amount,
                     0
                   ) || 0;
 

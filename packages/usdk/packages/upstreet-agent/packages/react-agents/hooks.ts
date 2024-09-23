@@ -154,6 +154,7 @@ export const useNumMessages = () => {
   return cachedMessages.length;
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
+  // XXX finish this
   const agent = useAgent();
   const supabase = agent.useSupabase();
   const conversation = useConversation();

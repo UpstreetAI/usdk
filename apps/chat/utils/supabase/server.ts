@@ -60,6 +60,7 @@ export async function getAgents(userId: string, select = '*', supabaseClient = m
     .select(select)
     .eq( 'user_id', userId )
     .eq( 'type', 'npc' )
+    .order('created_at', { ascending: false });
     // .limit(1)
     // .single()
   if (!error) {

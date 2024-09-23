@@ -425,7 +425,7 @@ export function createOpusDecodeTransformStream({
   sampleRate,
 }) {
   if (!sampleRate) {
-    debugger;
+    throw new Error('missing sample rate');
   }
 
   let controller;

@@ -63,6 +63,8 @@ export const defaultVoices = [
     description: 'Waifu girl',
   },
 ];
+const formatDiscordBotChannels = (channels = []) =>
+  channels.split(',').map(c => c.trim()).filter(Boolean);
 
 //
 
@@ -123,6 +125,51 @@ export const featureSpecs = [
         <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
       `,
     ],
+  },
+  {
+    name: 'discordBot',
+    description: dedent`\
+      Add a Discord bot to the agent. Add this feature only when the user explicitly requests it and provides a bot token.
+
+      The user should follow these instructions to set up their bot (you can instruct them to do this):
+      - Create a bot application at https://discord.com/developers/applications and note the CLIENT_ID (also called "application id")
+      - Enable Privileged Gateway Intents at https://discord.com/developers/applications/CLIENT_ID/bot
+      - Add the bot to your server at https://discord.com/oauth2/authorize/?permissions=-2080908480&scope=bot&client_id=CLIENT_ID
+      - Get the bot token at https://discord.com/developers/applications/CLIENT_ID/bot
+      The token is required and must be provided.
+
+      \`channels\` is a comma-separated list of channel names (text or voice) that the agent should join.
+    `,
+    schema: z.union([
+      z.object({
+        token: z.string(),
+        channels: z.array(z.string()),
+      }),
+      z.null(),
+    ]),
+    imports: (discordBot) => {
+      const channels = formatDiscordBotChannels(discordBot.channels);
+      if (discordBot.token && channels.length > 0) {
+        return ['DiscordBot'];
+      } else {
+        return [];
+      }
+    },
+    components: (discordBot) => {
+      const channels = formatDiscordBotChannels(discordBot.channels);
+      if (discordBot.token && channels.length > 0) {
+        return [
+          dedent`
+            <DiscordBot
+              token=${JSON.stringify(discordBot.token)}
+              channels={${JSON.stringify(channels)}}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
   },
   {
     name: 'storeItems',

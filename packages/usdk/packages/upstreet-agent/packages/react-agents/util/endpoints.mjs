@@ -6,4 +6,5 @@ export const multiplayerEndpointUrl = 'wss://multiplayer.isekaichat.workers.dev'
 export const deployEndpointUrl = `https://deploy.upstreet.ai`;
 export const r2EndpointUrl = `https://r2.upstreet.ai`;
 export const chatEndpointUrl = `https://chat.upstreet.ai`;
+export const discordBotEndpointUrl = `https://discord-bot-upstreet.fly.dev`;
 export const workersHost = `isekaichat.workers.dev`;
