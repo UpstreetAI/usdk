@@ -68,7 +68,7 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
 
   return accounts.length ? (
     <>
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-4`}>
         <AccountList accounts={accounts} loading={loading} />
       </div>
       <div className='text-center'>

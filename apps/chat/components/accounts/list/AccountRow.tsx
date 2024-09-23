@@ -9,11 +9,11 @@ export interface AgentListProps {
 
 export function AccountRow({ account }: AgentListProps) {
   return (
-    <div className="bg-[rgba(255,255,255,0.1)] border rounded-lg p-6">
-      <div className="flex mb-2">
-        <div className="mr-4 mb-2 size-[80px] min-w-[80px] bg-[rgba(255,255,255,0.1)] rounded-full flex items-center justify-center overflow-hidden">
+    <div className="bg-gray-100 border p-4 text-black">
+      <div className="flex">
+        <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center bg-cover">
           {account.preview_url && isValidUrl(account.preview_url) ? (
-            <Image src={account.preview_url} alt="" className="h-full" width={80} height={80} />
+            <Image src={account.preview_url} alt="" className="h-full" width={160} height={160} />
           ) : (
             <div className='uppercase text-lg font-bold'>{account.name.charAt(0)}</div>
           )}

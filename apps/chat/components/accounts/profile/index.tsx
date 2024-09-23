@@ -27,7 +27,7 @@ export function AccountProfile({ account }: AccountProps) {
 
   return (
     <div className="w-full mx-auto"> 
-
+    
       <HeaderMaskFrame>
         <div className="w-full bg-blue-500 h-52" />
         <div
