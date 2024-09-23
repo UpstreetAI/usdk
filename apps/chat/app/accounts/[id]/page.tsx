@@ -1,12 +1,8 @@
 
 import { type Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
-import { AgentProfile } from '@/components/agent';
-// import { createClient } from '@/utils/supabase/server';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
-import { AgentRow } from '@/components/agents/AgentRow';
+import { AgentRow } from '@/components/agents/list/AgentRow';
 import { isValidUrl } from '@/lib/utils';
 import HeaderMaskFrame from '@/components/masks/HeaderMaskFrame';
 

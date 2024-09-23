@@ -3,7 +3,7 @@
 import { isValidUrl } from "@/utils/helpers/urls";
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import Image from "next/image";
-import { IconUser } from "../ui/icons";
+import { IconUser } from "@/components/ui/icons";
 import { useState } from "react";
 
 export interface AgentListProps {

@@ -1,7 +1,7 @@
 
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
-import { AgentProfile } from '@/components/agent';
+import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
