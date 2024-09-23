@@ -9,7 +9,7 @@ import { SearchBar } from '@/components/searchbar';
 export function Header() {
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
+      className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-background backdrop-blur-xl">
       <div className="flex items-center h-full">
         <div className='md:m-w-[200px] md:w-[168px]'>
           <Link href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
