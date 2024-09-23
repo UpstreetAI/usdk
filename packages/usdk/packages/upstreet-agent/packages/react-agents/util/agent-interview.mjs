@@ -86,7 +86,26 @@ export class AgentInterview extends EventTarget {
       homespaceDescriptionValueUpdater.setResult(agentJson.homespaceUrl);
     }
 
+    console.log('agent interview agentJson.features', agentJson.features);
+
     // interaction loop
+    const featurePrompt = Object.keys(agentJson.features ?? {}).length === 0 ? (
+        dedent`\
+          The available features are:
+        ` + '\n' +
+        featureSpecs.map(({ name, description }) => {
+          return `# ${name}\n${description}`;
+        }).join('\n') + '\n\n'
+      ) : (
+        dedent`\
+          The agent is given the following features:
+        ` + '\n' +
+        Object.keys(agentJson.features).map(feature => {
+          const spec = featureSpecs.find(spec => spec.name === feature);
+          return spec ? `# ${spec.name}\n${spec.description}` : `# ${feature}\nDescription not available.`;
+        }).join('\n') + '\n\n'
+      );
+
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
@@ -101,12 +120,7 @@ export class AgentInterview extends EventTarget {
           Use \`homespaceDescription\` to visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
         ` + '\n\n' +
-        dedent`\
-          The available features are:
-        ` + '\n' +
-        featureSpecs.map(({ name, description }) => {
-          return `# ${name}\n${description}`;
-        }).join('\n') + '\n\n' +
+        featurePrompt +
         (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
       object: agentJson,
       objectFormat: z.object({

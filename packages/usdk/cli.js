@@ -3323,6 +3323,7 @@ const main = async () => {
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
     )
+    .option(`-features, --features <string>`, `JSON string of features to enable (e.g. '{"tts": {"voiceEndpoint": "elevenlabs:drake:1thOSihlbbWeiCGuN5Nw"}, "rateLimit": {"maxUserMessages": 5, "maxUserMessagesTime": 60000, "message": "Whoa there! Let's take a moment before diving back into time."}, "storeItems": [{"type": "payment", "props": {"name": "Time Diary", "description": "A detailed account of Chrono's adventures, filled with insights and magical secrets from different epochs.", "amount": 499, "currency": "usd"}}, {"type": "subscription", "props": {"name": "Chrono's Insights Subscription", "description": "A monthly delivery of Chrono's wisdom and timely advice, straight from the past to your present.", "amount": 999, "currency": "usd", "interval": "month", "intervalCount": 1}}]}'`)
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -3338,6 +3339,13 @@ const main = async () => {
             ...opts,
           };
         }
+
+        // Parse features if provided
+        if (opts.features) {
+          args.features = JSON.parse(opts.features);
+        }
+
+        console.log('args', args);
         await create(args);
       });
     });
