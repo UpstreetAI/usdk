@@ -29,16 +29,16 @@ export async function generateMetadata({
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id)
 
-  const { data: agentData } = await supabase
+  const { data: accountData } = await supabase
     .from('accounts')
     .select('*')
     .eq('id', agentId)
     .single();
 
   const meta = {
-    title: agentData?.name ?? 'Agent not found!',
-    description: agentData?.description ?? '',
-    cardImage: agentData?.preview_image ?? '',
+    title: accountData?.name ?? 'Agent not found!',
+    description: accountData?.description ?? '',
+    cardImage: accountData?.preview_image ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
     url: `https://chat.upstreet.ai/`
@@ -80,13 +80,15 @@ export default async function AccountProfilePage({ params }: Params) {
 
   console.log('agentId', accountId);
 
-  const { data: agentData } = await supabase
+  const { data: accountData } = await supabase
     .from('accounts')
     .select(`*, agents: assets ( * )`)
     .eq('id', accountId)
     .single();
 
-  if (!agentData?.id) {
+    const fullUrl = `${window.location.origin}/accounts/${accountId}`;
+
+  if (!accountData?.id) {
     return (
       <div className="w-full max-w-2xl mx-auto p-8 text-center">
         Account Not Found
@@ -98,29 +100,52 @@ export default async function AccountProfilePage({ params }: Params) {
 
       <HeaderMaskFrame>
         <div className="w-full bg-blue-500 h-52" />
+        <div
+          className="w-full h-52 absolute top-0 left-0 bg-cover bg-center opacity-20"
+          style={{
+            backgroundImage: accountData.agents.length > 0
+              ? `url(${accountData.agents[Math.floor(Math.random() * accountData.agents.length)].images[0].url})`
+              : 'none',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
       </HeaderMaskFrame>
 
-      <div className="w-full max-w-6xl mx-auto pt-20 relative">
+      <div className="w-full max-w-6xl mx-auto pt-24 relative">
         <div className="flex">
-          <div className="mr-4 mb-4 size-32 min-w-12 bg-gray-200 p-4 overflow-hidden rounded-[8px] flex items-center justify-center">
-            {isValidUrl(agentData.preview_url) ? (
-              <Image src={agentData?.preview_url} alt="Profile picture" width={160} height={160} />
-            ) : (
-              <div className="uppercase text-lg font-bold">{agentData.name.charAt(0)}</div>
-            )}
+          <div className="mr-4 size-40 min-w-12 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+            <div
+              className="w-full h-full bg-cover bg-center"
+              style={{
+                backgroundImage: isValidUrl(accountData.preview_url)
+                  ? `url(${accountData.preview_url})`
+                  : 'none',
+                backgroundColor: isValidUrl(accountData.preview_url) ? 'transparent' : '#ccc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#fff',
+              }}
+            >
+              {!isValidUrl(accountData.preview_url) && accountData.name.charAt(0)}
+            </div>
           </div>
 
           <div>
-            <h2 className="text-[28px] uppercase font-bold">{agentData.name}</h2>
-            <h3 className="text-sm mb-6">{agentData.id}</h3>
+            <h2 className="text-4xl uppercase text-stroke font-bold">{accountData.name}</h2>
+            <a href={`/accounts/${accountData.id}`} className="text-primary hover:underline">
+              {accountData.name}
+              </a>
 
           </div>
 
         </div>
 
-        <h1>Account Public Profile: {agentData.name}</h1>
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`}>
-          {agentData.agents.map((agent: { id: string; name: string }) => <AgentRow key={agent.id} agent={agent} author={agentData.name} />)}
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-8`}>
+          {accountData.agents.map((agent: { id: string; name: string }) => <AgentRow key={agent.id} agent={agent} author={accountData.name} />)}
         </div>
 
       </div>
