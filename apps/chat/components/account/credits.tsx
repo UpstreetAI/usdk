@@ -80,6 +80,7 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                 <tr>
                   <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Service</th>
                   <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Credits Used</th>
+                  <th key={'agent_id'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Agent ID</th>
                   <th key={'preview'} scope="col" className="px-6 text-right py-3 text-[rgba(255,255,255,0.6)]">Date</th>
                 </tr>
               </thead>
@@ -91,6 +92,9 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                     </td>
                     <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
                       {creditHistoryItem?.amount}
+                    </td>
+                    <td key={'t-4'} className="px-6 py-4 text-md align-top">
+                      {creditHistoryItem?.agent_id}
                     </td>
                     <td key={'t-1'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
                       {formatDateStringMoment(creditHistoryItem?.created_at, 'MMMM Do YYYY, h:mm:ss A')}
@@ -111,6 +115,9 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
                   </div>
                   <div className="text-md text-white">
                     Credits Used: {creditHistoryItem?.amount}
+                  </div>
+                  <div className="text-md text-white">
+                    Agent ID: {creditHistoryItem?.agent_id}
                   </div>
                   <div className="text-sm text-gray-400">
                     {formatDateStringMoment(creditHistoryItem?.created_at, 'MMMM Do YYYY, h:mm:ss A')}
