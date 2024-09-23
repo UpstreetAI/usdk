@@ -16,13 +16,13 @@ export function AgentRow({ agent, author }: AgentListProps) {
   const { agentJoin } = useMultiplayerActions();
 
   const [loadingChat , setLoadingChat] = useState(false);
-
+ 
   return (
-    <div className="bg-[rgba(255,255,255,0.1)] border rounded-lg p-6">
-      <div className="flex mb-2">
-        <div className="mr-4 mb-2 size-[80px] min-w-[80px] bg-[rgba(255,255,255,0.1)] rounded-full flex items-center justify-center overflow-hidden">
+    <div className="bg-gray-100 border p-2 text-black">
+      <div className="flex">
+        <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center">
           {agent.preview_url && isValidUrl(agent.preview_url) ? (
-            <Image src={agent.preview_url} alt="" className="h-full" width={80} height={80} />
+            <Image src={agent.preview_url} alt="" className="h-full" width={160} height={160} />
           ) : (
             <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
           )}
@@ -32,9 +32,7 @@ export function AgentRow({ agent, author }: AgentListProps) {
             <div className="font-bold text-lg line-clamp-1">{agent.name}</div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
-        </div>
-      </div>
-      <div className="flex">
+          <div className="flex">
         <div className="mt-2 text-gray-400 line-clamp-1 w-full">
           <IconUser className="mr-1 align-middle size-4 inline-block" /> {author}
         </div>
@@ -51,6 +49,8 @@ export function AgentRow({ agent, author }: AgentListProps) {
             className={`hover:underline cursor-pointer whitespace-nowrap ${loadingChat &&  "animate-pulse"}`}>
             {loadingChat ? "Loading chat..." : "Chat"}
           </a>
+        </div>
+      </div>
         </div>
       </div>
     </div>

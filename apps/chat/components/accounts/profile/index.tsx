@@ -26,7 +26,7 @@ export function AccountProfile({ account }: AccountProps) {
   const agentUrl = `${origin}/accounts/${account.id}`;
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto"> 
 
       <HeaderMaskFrame>
         <div className="w-full bg-blue-500 h-52" />
@@ -74,7 +74,7 @@ export function AccountProfile({ account }: AccountProps) {
 
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-8`}>
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 py-8`}>
           {account.agents.map((agent: { id: string; name: string }) => <AgentRow key={agent.id} agent={agent} author={account.name} />)}
         </div>
 
