@@ -234,6 +234,7 @@ export class AppContextValue {
         });
         const voiceEndpointVoicer = new VoiceEndpointVoicer({
           voiceEndpoint,
+          jwt: this.authToken,
           // audioManager: null,
           // sampleRate,
         });
