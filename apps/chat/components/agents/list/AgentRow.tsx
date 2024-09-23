@@ -15,10 +15,10 @@ export function AgentRow({ agent, author }: AgentListProps) {
 
   const { agentJoin } = useMultiplayerActions();
 
-  const [loadingChat , setLoadingChat] = useState(false);
- 
+  const [loadingChat, setLoadingChat] = useState(false);
+
   return (
-    <div className="bg-gray-100 border p-2 text-black">
+    <div className="bg-gray-100 border p-4 text-black">
       <div className="flex">
         <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center">
           {agent.preview_url && isValidUrl(agent.preview_url) ? (
@@ -29,28 +29,28 @@ export function AgentRow({ agent, author }: AgentListProps) {
         </div>
         <div className="min-w-40 text-md capitalize w-full">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
-            <div className="font-bold text-lg line-clamp-1">{agent.name}</div>
+            <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex">
-        <div className="mt-2 text-gray-400 line-clamp-1 w-full">
-          <IconUser className="mr-1 align-middle size-4 inline-block" /> {author}
-        </div>
-        <div className="mt-2 text-right">
-          <a
-            onMouseDown={async e => {
-              e.preventDefault();
-              e.stopPropagation();
+            <div className="mt-2 text-gray-400 line-clamp-1 w-full">
+              <IconUser className="mr-1 align-middle size-4 inline-block" /> {author}
+            </div>
+            <div className="mt-2 text-right">
+              <a
+                onMouseDown={async e => {
+                  e.preventDefault();
+                  e.stopPropagation();
 
-              setLoadingChat(true);
+                  setLoadingChat(true);
 
-              await agentJoin(agent.id);
-            }}
-            className={`hover:underline cursor-pointer whitespace-nowrap ${loadingChat &&  "animate-pulse"}`}>
-            {loadingChat ? "Loading chat..." : "Chat"}
-          </a>
-        </div>
-      </div>
+                  await agentJoin(agent.id);
+                }}
+                className={`hover:underline cursor-pointer whitespace-nowrap ${loadingChat && "animate-pulse"}`}>
+                {loadingChat ? "Loading chat..." : "Chat"}
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
