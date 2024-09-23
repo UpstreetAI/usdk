@@ -13,14 +13,14 @@ export function Sidebar({ className, position, children }: SidebarProps) {
   return position === 'left' ? (
     <div
       data-state={isLeftSidebarOpen ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(className, 'h-full flex-col bg-zinc-950')}
     >
       {children}
     </div>
   ) : (
     <div
       data-state={isRightSidebarOpen ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(className, 'h-full flex-col bg-zinc-950')}
     >
       {children}
     </div>

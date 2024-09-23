@@ -146,7 +146,7 @@ export function SearchBar({ disabled = false }) {
                 {results.length > 0 ? results.map((agent, i) => (
                   <div className={`flex p-4 border-b`} key={i}>
                     <AgentLink name={agent.name} id={agent.id}>
-                      <div className="mr-4 size-20 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                      <div className="mr-4 size-20 min-w-12 overflow-hidden bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                         {agent.preview_url && isValidUrl(agent.preview_url) ? (
                           <Image src={agent.preview_url} alt="" className="w-full" width={48} height={48} />
                         ) : (
@@ -165,7 +165,7 @@ export function SearchBar({ disabled = false }) {
                         className={
                           cn(
                             buttonVariants({ variant: 'outline' }), 
-                            'block bg-[rgba(0,0,0,0.05)] dark:bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2'
+                            'block bg-[rgba(255,255,255,0.05)] size-18 p-6 ml-2'
                           )
                         } 
                         onMouseDown={async e => {

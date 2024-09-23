@@ -72,7 +72,7 @@ export function ChatMessage({
             </Button>
           </div>
         )}
-        <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+        <Link href={agentUrl} className="mr-4 size-12 min-w-12 overflow-hidden bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
 
           {avatarURL && isValidUrl(avatarURL) ? (
             <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
@@ -134,7 +134,7 @@ export function ChatMessageAudio({
   timestamp
 }: ChatMessageAudioProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <audio id={`audioPlayer-${timestamp}`} controls className="w-full h-10 outline-none">
         <source src={url} type="audio/mpeg" />
         Your browser does not support the audio element.
@@ -155,7 +155,7 @@ export function ChatMessageVideo({
   timestamp
 }: ChatMessageVideoProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
         <source src={url} type="video/mp4" />
           Your browser does not support the video tag.
@@ -176,7 +176,7 @@ export function ChatMessageModel({
   timestamp
 }: ChatMessageModelProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <Model src={url} />
       <Button
         variant="secondary"
@@ -206,7 +206,7 @@ export function ChatMessageImage({
   timestamp
 }: ChatMessageImageProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <img id={`image-${timestamp}`} className='rounded-[8px] w-full' src={url} alt='' />
     </div>
   )
