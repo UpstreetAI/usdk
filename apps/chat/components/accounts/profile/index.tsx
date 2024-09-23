@@ -13,7 +13,7 @@ interface Account {
   name: string;
   id: string;
   preview_url: string;
-  agents: [];
+  agents: { id: string; name: string; images: AgentImage[] }[];
 }
 
 interface AccountProps {
