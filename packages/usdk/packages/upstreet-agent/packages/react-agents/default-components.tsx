@@ -2538,7 +2538,8 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
         dedent`\
           Post to social media about what interesting things you are up to.
           Optionally attach media to your post.
-        ` + (
+        ` + '\n' + 
+        (
           attachments.length > 0 ?
             dedent`\
               If included, the attachment must be one of the following:
