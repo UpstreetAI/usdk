@@ -2614,12 +2614,20 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
         // post status update to the database
         const _postStatusUpdate = async () => {
           const supabase = agent.agent.useSupabase();
-          await supabase.from('status_updates')
-            .insert({
-              agent_id: agentId,
-              text,
-              attachments,
-            });
+          const update = {
+            agent_id: agentId,
+            text,
+            attachments,
+          };
+          console.log('post status update', update);
+          const result = await supabase.from('status_updates')
+            .insert(update);
+          const { error } = result;
+          if (!error) {
+            // nothing
+          } else {
+            throw new Error('Failed to post status update: ' + error.message);
+          }
         };
         await _postStatusUpdate();
 
