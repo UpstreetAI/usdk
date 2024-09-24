@@ -2516,7 +2516,9 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
 ];
 const SocialMediaActions = () => {
   return (
-    <StatusUpdate />
+    <Conversation>
+      <StatusUpdate />
+    </Conversation>
   );
 };
 export type StatusUpdateProps = {
@@ -2526,6 +2528,7 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
   const conversation = useConversation();
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
+  // XXX come up with a better way to fetch available attachments
   const attachments = collectAttachments(conversation.messageCache.messages);
 
   return (
