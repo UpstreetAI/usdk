@@ -915,15 +915,6 @@ export const JsonFormatter = () => {
       /* actions to zod schema */
       schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        // console.log('filtered schema actions', {
-        //   actions,
-        //   filteredActions,
-        // });
-        // for (const action of actions) {
-        //   if (!isAllowedAction(action, conversation, thinkOpts)) {
-        //     console.warn('disallowed schema action', action, action.conversation, conversation);
-        //   }
-        // }
         const types: ZodTypeAny[] = filteredActions
           .map(action => {
             const schema = makeJsonSchema(action.name, action.schema);
@@ -942,15 +933,6 @@ export const JsonFormatter = () => {
       /* actions to instruction prompt */
       formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        // console.log('filtered format actions', {
-        //   actions,
-        //   filteredActions,
-        // });
-        // for (const action of actions) {
-        //   if (!isAllowedAction(action, conversation, thinkOpts)) {
-        //     console.warn('disallowed format action', action, action.conversation, conversation);
-        //   }
-        // }
         return filteredActions
           .map((action) => {
             const {
