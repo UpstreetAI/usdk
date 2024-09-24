@@ -3313,12 +3313,15 @@ const main = async () => {
 
   // Generate the JSON string dynamically based on the examples in featureSpecs
   const features = featureSpecs.reduce((acc, feature) => {
-    acc[feature.name] = feature.example;
+    acc[feature.name] = feature.examples;
     return acc;
   }, {});
 
   const featureExamples = Object.entries(features)
-    .map(([name, example]) => `"${name}", example using json ${JSON.stringify(example)}`)
+    .map(([name, examples]) => {
+      const exampleString = examples.map(example => JSON.stringify(example)).join(', ');
+      return `"${name}", example using json ${exampleString}`;
+    })
     .join('. ');
 
   program

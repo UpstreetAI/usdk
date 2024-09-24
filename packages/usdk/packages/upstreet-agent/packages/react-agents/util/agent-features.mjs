@@ -82,7 +82,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
-    example: {voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw',},
+    examples: [{voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw'},],
     imports: () => [
       'TTS',
     ],
@@ -111,7 +111,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
-    example: { maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", },
+    examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
     imports: () => [
       'RateLimit',
     ],
@@ -149,7 +149,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
-    example: { token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], },
+    examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
     imports: (discordBot) => {
       const channels = formatDiscordBotChannels(discordBot.channels);
       if (discordBot.token && channels.length > 0) {
@@ -184,7 +184,7 @@ export const featureSpecs = [
       z.array(storeItemType),
       z.null(),
     ]),
-    example: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
+    examples: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
     imports: (storeItems) => {
       const isValidStoreItem = (storeItem) =>
         !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;
