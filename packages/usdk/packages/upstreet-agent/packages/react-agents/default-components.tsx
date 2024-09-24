@@ -2566,9 +2566,30 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
           ],
         },
       ]}
-      // handler={async (e: PendingActionEvent) => {
-      //   await e.commit();
-      // }}
+      handler={async (e: PendingActionEvent) => {
+        const { agent, message } = e.data;
+        const agentId = agent.agent.id;
+        const { text, attachments } = message.args as {
+          text: string;
+          attachments: Array<{ attachmentId: string }>;
+        };
+
+        // post status update to the database
+        const _postStatusUpdate = async () => {
+          const supabase = agent.agent.useSupabase();
+          await supabase.from('status_updates')
+            .insert({
+              agent_id: agentId,
+              text,
+              attachments,
+            });
+        };
+        await _postStatusUpdate();
+
+        // commit the message to chat history,
+        // so the agent knows it has been sent
+        await e.commit();
+      }}
     />
   );
 };
