@@ -902,7 +902,7 @@ const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObje
 export const JsonFormatter = () => {
   return (
     <Formatter
-      /* map actions to zod schema to generate an action */
+      /* actions to zod schema */
       schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         let types: ZodTypeAny[] = [];
         for (const action of actions) {
@@ -921,7 +921,7 @@ export const JsonFormatter = () => {
           return z.object({});
         }
       }}
-      /* format actions to instruction prompt */
+      /* actions to instruction prompt */
       formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
         return actions
           .filter(action => isAllowedAction(action, conversation, thinkOpts))
