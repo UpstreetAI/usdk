@@ -75,7 +75,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   useEffect(() => {
     fetchData(true);
   }, [debouncedSearchTerm]);
-
+ 
   const handleLoadMore = () => {
     setLoadingMore(true);
     setRangeFrom(rangeTo);
