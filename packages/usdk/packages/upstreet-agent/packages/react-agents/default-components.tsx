@@ -659,8 +659,8 @@ export const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
-        Role-play as a character in a chat. I will give you the context, characters, and the possible actions you can take.
-        Respond with a JSON object specifying the action method and arguments in the given format.
+        Role-play as a character in a chat given the current state.
+        Respond with a JSON object specifying the action method and arguments.
       `}
     </Prompt>
   );
