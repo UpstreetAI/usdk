@@ -86,9 +86,7 @@ export class AgentInterview extends EventTarget {
       homespaceDescriptionValueUpdater.setResult(agentJson.homespaceUrl);
     }
 
-    console.log('agent interview agentJson.features', agentJson.features);
-
-    // interaction loop
+    // Generate a prompt string based on the user specified agent's features or list all possible features.
     const featurePrompt = Object.keys(agentJson.features ?? {}).length === 0 ? (
         dedent`\
           The available features are:
@@ -106,6 +104,7 @@ export class AgentInterview extends EventTarget {
         }).join('\n') + '\n\n'
       );
 
+    // interaction loop
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
@@ -130,16 +129,25 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object((() => {
           const result = {};
-          // only use the features that the user has specified, else allow all features
-          const userSpecifiedFeatures = Object.keys(agentJson.features || {});
-          const allowAll = userSpecifiedFeatures.length === 0;
-
+          // use user specified features only otherwise use all features
+          const userSpecifiedFeatures = new Set(Object.keys(agentJson.features || {}));
+          const validFeatures = new Set(featureSpecs.map(spec => spec.name));
+        
+          // check for invalid user specified features and throw an error if any are found
+          for (const feature of userSpecifiedFeatures) {
+            if (!validFeatures.has(feature)) {
+              throw new Error(`Invalid features specified: ${feature}`);
+            }
+          }
+        
+          const allowAll = userSpecifiedFeatures.size === 0;
+        
           for (const featureSpec of featureSpecs) {
             const {
               name,
               schema,
             } = featureSpec;
-            if (allowAll || userSpecifiedFeatures.includes(name)) {
+            if (allowAll || userSpecifiedFeatures.has(name)) {
               result[name] = schema.optional();
             }
           }
