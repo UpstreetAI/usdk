@@ -2175,12 +2175,6 @@ export const GenerativeServer = ({
 
 //
 
-export type StatusUpdateProps = {
-  // nothing
-};
-
-//
-
 type AgentBrowser = Browser & {
   // sessionId: string;
   context: BrowserContext,
@@ -2519,6 +2513,9 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
 ];
+export type StatusUpdateProps = {
+  // nothing
+};
 export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdateProps) => {
   const conversation = useConversation();
   const randomId = useMemo(() => crypto.randomUUID(), []);
