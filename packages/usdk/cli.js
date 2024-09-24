@@ -3368,8 +3368,7 @@ const main = async () => {
             }, {});
           }
         }
-
-        console.log('args', args);
+        
         await create(args);
       });
     });
