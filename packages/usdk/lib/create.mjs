@@ -254,7 +254,7 @@ export const create = async (args, opts) => {
         if (agentJsonString || source || yes) {
           return agentJsonInit;
         } else {
-          // Process features
+          // Add user specified features to agentJsonInit being passed to the interview process for context
           if (Object.keys(features).length > 0) {
             agentJsonInit.features = {
               ...features,

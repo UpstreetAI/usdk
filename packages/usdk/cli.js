@@ -3317,6 +3317,10 @@ const main = async () => {
     return acc;
   }, {});
 
+  const featureExamples = Object.entries(features)
+    .map(([name, example]) => `"${name}", example using json ${JSON.stringify(example)}`)
+    .join('. ');
+
   program
     .command('create')
     .description('Create a new agent, from either a prompt or template')
@@ -3331,7 +3335,10 @@ const main = async () => {
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
     )
-    .option(`-feat, --features <feature...>`, `Agent Features to enable. Uses either the feature name provided or JSON string containg feature details. Default values will be used when feature specifications are not provided. Supported Features: ${Object.keys(features).join(', ')}`)
+    .option(
+      `-feat, --features <feature...>`,
+      `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamples)}`
+    )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
