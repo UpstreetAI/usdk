@@ -1,15 +1,22 @@
 'use client';
 
-import { AccountRow } from "./AccountRow";
+import { AccountRow, SkeletonAccountRow } from "./AccountRow";
 
 export interface AccountListProps {
   accounts: object[]
   loading: boolean
+  range: number
 }
 
-export function AccountList({ accounts, loading }: AccountListProps) {
+export function AccountList({ accounts, loading, range }: AccountListProps) {
 
-  if (loading) return <div className="animate-pulse text-center p-4 text-xl">Loading agents...</div>;
+  if (loading) return (
+    <>
+      {Array.from({ length: range }).map((_, index) => (
+        <SkeletonAccountRow key={index} />
+      ))}
+    </>
+  );
 
   if (!accounts.length) return 'No agents found.';
 
