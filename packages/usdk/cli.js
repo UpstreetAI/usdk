@@ -115,6 +115,7 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -3309,46 +3310,59 @@ const main = async () => {
 
   // agents
   const templateNames = await getTemplateNames();
-  program
-    .command('create')
-    .description('Create a new agent, from either a prompt or template')
-    .argument(`[directory]`, `The directory to create the project in`)
-    .option(`-p, --prompt <string>`, `Creation prompt`)
-    .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
-    .option(`-y, --yes`, `Non-interactive mode`)
-    .option(`-f, --force`, `Overwrite existing files`)
-    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
-    .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
-    .option(
-      `-t, --template <string>`,
-      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    )
-    .option(`-features, --features <string>`, `JSON string of features to enable (e.g. '{"tts": {"voiceEndpoint": "elevenlabs:drake:1thOSihlbbWeiCGuN5Nw"}, "rateLimit": {"maxUserMessages": 5, "maxUserMessagesTime": 60000, "message": "Whoa there! Let's take a moment before diving back into time."}, "storeItems": [{"type": "payment", "props": {"name": "Time Diary", "description": "A detailed account of Chrono's adventures, filled with insights and magical secrets from different epochs.", "amount": 499, "currency": "usd"}}, {"type": "subscription", "props": {"name": "Chrono's Insights Subscription", "description": "A monthly delivery of Chrono's wisdom and timely advice, straight from the past to your present.", "amount": 999, "currency": "usd", "interval": "month", "intervalCount": 1}}]}'`)
-    .action(async (directory = undefined, opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [directory],
-            ...opts,
-          };
-        } else {
-          args = {
-            _: [],
-            ...opts,
-          };
-        }
 
-        // Parse features if provided
-        if (opts.features) {
-          args.features = JSON.parse(opts.features);
-        }
+  // Generate the JSON string dynamically based on the examples in featureSpecs
+const features = featureSpecs.reduce((acc, feature) => {
+  acc[feature.name] = feature.example;
+  return acc;
+}, {});
 
-        console.log('args', args);
-        await create(args);
-      });
+const featuresString = JSON.stringify(features);
+
+// Supported features
+program
+  .command('create')
+  .description('Create a new agent, from either a prompt or template')
+  .argument(`[directory]`, `The directory to create the project in`)
+  .option(`-p, --prompt <string>`, `Creation prompt`)
+  .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
+  .option(`-y, --yes`, `Non-interactive mode`)
+  .option(`-f, --force`, `Overwrite existing files`)
+  .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+  .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
+  .option(
+    `-t, --template <string>`,
+    `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
+  )
+  .option(`-feat, --features <feature...>`, `Features to enable. Default values will be used when feature specifications not provided. Supported Features: ${Object.keys(features).join(', ')}`)
+  .action(async (directory = undefined, opts = {}) => {
+    await handleError(async () => {
+      commandExecuted = true;
+      let args;
+      if (typeof directory === 'string') {
+        args = {
+          _: [directory],
+          ...opts,
+        };
+      } else {
+        args = {
+          _: [],
+          ...opts,
+        };
+      }
+
+      // Parse features if provided
+      if (opts.features) {
+        args.features = opts.features.reduce((acc, feature) => {
+          acc[feature] = features[feature] || null;
+          return acc;
+        }, {});
+      }
+
+      console.log('args', args);
+      await create(args);
     });
+  });
   program
     .command('pull')
     .description('Download source of deployed agent')
