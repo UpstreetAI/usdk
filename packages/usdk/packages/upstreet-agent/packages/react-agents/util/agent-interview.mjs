@@ -130,12 +130,18 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object((() => {
           const result = {};
+          // only use the features that the user has specified, else allow all features
+          const userSpecifiedFeatures = Object.keys(agentJson.features || {});
+          const allowAll = userSpecifiedFeatures.length === 0;
+
           for (const featureSpec of featureSpecs) {
             const {
               name,
               schema,
             } = featureSpec;
-            result[name] = schema.optional();
+            if (allowAll || userSpecifiedFeatures.includes(name)) {
+              result[name] = schema.optional();
+            }
           }
           return result;
         })()).optional(),
