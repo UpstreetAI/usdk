@@ -1,15 +1,22 @@
 'use client';
 
-import { AgentRow } from "./AgentRow";
+import { AgentRow, SkeletonAgentRow } from "./AgentRow";
 
 export interface AgentListProps {
   agents: object[]
   loading: boolean
+  range: number
 }
 
-export function AgentList({ agents, loading }: AgentListProps) {
+export function AgentList({ agents, loading, range }: AgentListProps) {
 
-  if (loading) return <div className="animate-pulse text-center p-4 text-xl">Loading agents...</div>;
+  if (loading) return (
+    <>
+      {Array.from({ length: range }).map((_, index) => (
+        <SkeletonAgentRow key={index} />
+      ))}
+    </>
+  );
 
   if (!agents.length) return 'No agents found.';
 
