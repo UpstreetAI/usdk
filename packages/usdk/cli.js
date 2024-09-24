@@ -3312,57 +3312,60 @@ const main = async () => {
   const templateNames = await getTemplateNames();
 
   // Generate the JSON string dynamically based on the examples in featureSpecs
-const features = featureSpecs.reduce((acc, feature) => {
-  acc[feature.name] = feature.example;
-  return acc;
-}, {});
+  const features = featureSpecs.reduce((acc, feature) => {
+    acc[feature.name] = feature.example;
+    return acc;
+  }, {});
 
-const featuresString = JSON.stringify(features);
+  program
+    .command('create')
+    .description('Create a new agent, from either a prompt or template')
+    .argument(`[directory]`, `The directory to create the project in`)
+    .option(`-p, --prompt <string>`, `Creation prompt`)
+    .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
+    .option(`-y, --yes`, `Non-interactive mode`)
+    .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+    .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
+    .option(
+      `-t, --template <string>`,
+      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
+    )
+    .option(`-feat, --features <feature...>`, `Agent Features to enable. Uses either the feature name provided or JSON string containg feature details. Default values will be used when feature specifications are not provided. Supported Features: ${Object.keys(features).join(', ')}`)
+    .action(async (directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [],
+            ...opts,
+          };
+        }
 
-// Supported features
-program
-  .command('create')
-  .description('Create a new agent, from either a prompt or template')
-  .argument(`[directory]`, `The directory to create the project in`)
-  .option(`-p, --prompt <string>`, `Creation prompt`)
-  .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
-  .option(`-y, --yes`, `Non-interactive mode`)
-  .option(`-f, --force`, `Overwrite existing files`)
-  .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
-  .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
-  .option(
-    `-t, --template <string>`,
-    `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-  )
-  .option(`-feat, --features <feature...>`, `Features to enable. Default values will be used when feature specifications not provided. Supported Features: ${Object.keys(features).join(', ')}`)
-  .action(async (directory = undefined, opts = {}) => {
-    await handleError(async () => {
-      commandExecuted = true;
-      let args;
-      if (typeof directory === 'string') {
-        args = {
-          _: [directory],
-          ...opts,
-        };
-      } else {
-        args = {
-          _: [],
-          ...opts,
-        };
-      }
+        // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
+        if (opts.features) {
+          try {
+            const featuresString = opts.features.join(' ');
+            const parsedJson = JSON.parse(featuresString);
+            args.features = { ...parsedJson };
+          } catch (error) {
+            args.features = opts.features.reduce((acc, feature) => {
+              acc[feature] = features[feature] || null;
+              return acc;
+            }, {});
+          }
+        }
 
-      // Parse features if provided
-      if (opts.features) {
-        args.features = opts.features.reduce((acc, feature) => {
-          acc[feature] = features[feature] || null;
-          return acc;
-        }, {});
-      }
-
-      console.log('args', args);
-      await create(args);
+        console.log('args', args);
+        await create(args);
+      });
     });
-  });
   program
     .command('pull')
     .description('Download source of deployed agent')
