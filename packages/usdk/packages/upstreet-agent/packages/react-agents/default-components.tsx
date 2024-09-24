@@ -631,6 +631,7 @@ export const DefaultActions = () => {
   return (
     <>
       <ChatActions />
+      <SocialMediaActions />
       <StoreActions />
     </>
   );
@@ -2513,6 +2514,11 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
 ];
+const SocialMediaActions = () => {
+  return (
+    <StatusUpdate />
+  );
+};
 export type StatusUpdateProps = {
   // nothing
 };
