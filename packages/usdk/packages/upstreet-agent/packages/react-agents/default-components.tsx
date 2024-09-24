@@ -2528,7 +2528,7 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
   const conversation = useConversation();
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
-  // XXX come up with a better way to fetch available attachments
+  // XXX come up with a better way to fetch available attachments from all messages, not just the cache
   const attachments = collectAttachments(conversation.messageCache.messages);
 
   return (
