@@ -899,28 +899,39 @@ const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) 
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
-const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-  const forceAction = thinkOpts?.forceAction ?? null;
-  const excludeActions = thinkOpts?.excludeActions ?? [];
-  return (!action.conversation || action.conversation === conversation) &&
-    (forceAction === null || action.name === forceAction) &&
-    !excludeActions.includes(action.name);
-};
 export const JsonFormatter = () => {
+  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+    const forceAction = thinkOpts?.forceAction ?? null;
+    const excludeActions = thinkOpts?.excludeActions ?? [];
+    return (!action.conversation || action.conversation === conversation) &&
+      (forceAction === null || action.name === forceAction) &&
+      !excludeActions.includes(action.name);
+  };
+  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+    return actions.filter(action => isAllowedAction(action, conversation, thinkOpts));
+  };
   return (
     <Formatter
       /* actions to zod schema */
       schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        let types: ZodTypeAny[] = [];
-        for (const action of actions) {
-          if (isAllowedAction(action, conversation, thinkOpts)) {
-            const zodSchema = makeJsonSchema(action.name, action.schema);
-            types.push(zodSchema);
-          }
-        }
+        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
+        // console.log('filtered schema actions', {
+        //   actions,
+        //   filteredActions,
+        // });
+        // for (const action of actions) {
+        //   if (!isAllowedAction(action, conversation, thinkOpts)) {
+        //     console.warn('disallowed schema action', action, action.conversation, conversation);
+        //   }
+        // }
+        const types: ZodTypeAny[] = filteredActions
+          .map(action => {
+            const schema = makeJsonSchema(action.name, action.schema);
+            return schema;
+          });
         if (types.length >= 2) {
           return z.union(
-            types as any
+            types as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
           );
         } else if (types.length === 1) {
           return types[0];
@@ -930,8 +941,17 @@ export const JsonFormatter = () => {
       }}
       /* actions to instruction prompt */
       formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        return actions
-          .filter(action => isAllowedAction(action, conversation, thinkOpts))
+        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
+        // console.log('filtered format actions', {
+        //   actions,
+        //   filteredActions,
+        // });
+        // for (const action of actions) {
+        //   if (!isAllowedAction(action, conversation, thinkOpts)) {
+        //     console.warn('disallowed format action', action, action.conversation, conversation);
+        //   }
+        // }
+        return filteredActions
           .map((action) => {
             const {
               name,
