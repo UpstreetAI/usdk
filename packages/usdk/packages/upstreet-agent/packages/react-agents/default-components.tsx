@@ -2592,8 +2592,7 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
         };
         await _postStatusUpdate();
 
-        // commit the message to chat history,
-        // so the agent knows it has been sent
+        // commit the message to chat history, so the agent knows it has been sent
         await e.commit();
       }}
     />
