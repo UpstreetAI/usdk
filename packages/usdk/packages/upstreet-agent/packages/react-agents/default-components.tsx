@@ -2662,7 +2662,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const ensureBrowserState = async () => {
     if (!browserStatePromise.current) {
       const localPromise = (async () => {
-        console.log('create browser with jwt', authToken);
+        // console.log('create browser with jwt', authToken);
         const browserResult = await createBrowser(undefined, {
           jwt: authToken,
         });
