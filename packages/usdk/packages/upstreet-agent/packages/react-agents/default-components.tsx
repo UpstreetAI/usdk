@@ -2527,8 +2527,8 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
       name="statusUpdate"
       description={
         dedent`\
-          Write a social media post about what interesting things you are up to.
-          You can optionally attach exiting media to your post.
+          Post to our simulated social media network about what interesting things you are up to.
+          Optionally attach media to your post.
         ` + (
           attachments.length > 0 ?
             dedent`\
@@ -2541,7 +2541,7 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
             `
           :
             dedent`\
-              Unfortunately, there are no available media to attach.
+              However, there are no available media to attach.
             `
         )
       }
@@ -2550,12 +2550,12 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
           text: z.string(),
           attachments: z.array(z.object({
             attachmentId: z.string(),
-          })).optional(),
+          })),
         })
       }
       examples={[
         {
-          text: `Just setting up my uttr account`,
+          text: `Just setting up my account`,
         },
         {
           text: `Guess where I am?`,
