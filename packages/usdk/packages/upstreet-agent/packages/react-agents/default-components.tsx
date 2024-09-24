@@ -2517,14 +2517,14 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
 const SocialMediaActions = () => {
   return (
     <Conversation>
-      <StatusUpdate />
+      <StatusUpdateAction />
     </Conversation>
   );
 };
-export type StatusUpdateProps = {
+export type StatusUpdateActionProps = {
   // nothing
 };
-export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdateProps) => {
+export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: StatusUpdateActionProps) => {
   const conversation = useConversation();
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
@@ -2536,7 +2536,7 @@ export const StatusUpdate: React.FC<StatusUpdateProps> = (props: StatusUpdatePro
       name="statusUpdate"
       description={
         dedent`\
-          Post to our simulated social media network about what interesting things you are up to.
+          Post to social media about what interesting things you are up to.
           Optionally attach media to your post.
         ` + (
           attachments.length > 0 ?
