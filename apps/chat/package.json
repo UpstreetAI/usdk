@@ -23,7 +23,9 @@
     "supabase:generate-migration": "npx supabase db diff | npx supabase migration new",
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed_geo.sql",
     "supabase:push": "npx supabase db push",
-    "supabase:pull": "npx supabase db pull"
+    "supabase:pull": "npx supabase db pull",
+
+    "postinstall": "npm run -w ucom build"
   },
   "dependencies": {
     "@ai-sdk/openai": "0.0.9",
