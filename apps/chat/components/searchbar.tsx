@@ -26,7 +26,7 @@ import { getJWT } from '@/lib/jwt';
 // import { getJWT } from '@/lib/jwt';
 // import { env } from '@/lib/env';
 
-async function search(query: string, opts: { signal: AbortSignal, jwt?: string }) {
+async function search(query: string, opts: { signal: AbortSignal, jwt: string }) {
   const { signal, jwt } = opts;
 
   const { supabase } = await getSupabase({
@@ -104,10 +104,19 @@ export function SearchBar({ disabled = false }) {
       const { signal } = abortController;
 
       (async () => {
+
+        const jwt = await getJWT();
+
+        if (!jwt) {
+          console.warn('SearchBar | No JWT found');
+          setLoadingResults(false);
+          return;
+        }
+
         try {
           const agents = await search(value, {
             signal,
-            jwt: await getJWT(),
+            jwt: jwt,
           });
           setResults(agents);
           setLoadingResults(false);
