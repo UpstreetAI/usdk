@@ -728,7 +728,7 @@ export const CharactersPrompt = () => {
     </Prompt>
   );
 };
-export const ActionsPrompt = () => {
+const ActionsPromptInternal = () => {
   const actions = useActions();
   const formatters = useFormatters();
   const conversation = useConversation();
@@ -745,6 +745,13 @@ export const ActionsPrompt = () => {
   }
   return (
     <Prompt>{s}</Prompt>
+  );
+};
+export const ActionsPrompt = () => {
+  return (
+    <Conversation>
+      <ActionsPromptInternal />
+    </Conversation>
   );
 };
 const StoreItemsPrompt = () => {
