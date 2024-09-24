@@ -30,12 +30,10 @@ export function AgentRow({ agent, author }: AgentListProps) {
         <div className="min-w-40 text-md capitalize w-full">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
+            <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex">
-            <div className="mt-2 text-gray-400 line-clamp-1 w-full">
-              <IconUser className="mr-1 align-middle size-4 inline-block" /> {author}
-            </div>
             <div className="mt-2 text-right">
               <a
                 onMouseDown={async e => {
