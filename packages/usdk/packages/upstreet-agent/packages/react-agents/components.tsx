@@ -141,10 +141,8 @@ export const Agent = forwardRef(({
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={{conversations}}>
           <AgentRegistryContext.Provider value={{agentRegistry}}>
-            {/* <ConversationContext.Provider value={null}> */}
-              {!raw && <DefaultAgentComponents />}
-              {children}
-            {/* </ConversationContext.Provider> */}
+            {!raw && <DefaultAgentComponents />}
+            {children}
           </AgentRegistryContext.Provider>
         </ConversationsContext.Provider>
       </AgentContext.Provider>

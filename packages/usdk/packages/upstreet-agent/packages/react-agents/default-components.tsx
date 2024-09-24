@@ -631,6 +631,7 @@ export const DefaultActions = () => {
   return (
     <>
       <ChatActions />
+      <SocialMediaActions />
       <StoreActions />
     </>
   );
@@ -658,8 +659,8 @@ export const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
-        Role-play as a character in a chat. I will give you the context, characters, and the possible actions you can take.
-        Respond with a JSON object specifying the action method and arguments in the given format.
+        Role-play as a character in a chat given the current state.
+        Respond with a JSON object specifying the action method and arguments.
       `}
     </Prompt>
   );
@@ -727,7 +728,7 @@ export const CharactersPrompt = () => {
     </Prompt>
   );
 };
-export const ActionsPrompt = () => {
+const ActionsPromptInternal = () => {
   const actions = useActions();
   const formatters = useFormatters();
   const conversation = useConversation();
@@ -744,6 +745,13 @@ export const ActionsPrompt = () => {
   }
   return (
     <Prompt>{s}</Prompt>
+  );
+};
+export const ActionsPrompt = () => {
+  return (
+    <Conversation>
+      <ActionsPromptInternal />
+    </Conversation>
   );
 };
 const StoreItemsPrompt = () => {
@@ -891,28 +899,30 @@ const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) 
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
-const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-  const forceAction = thinkOpts?.forceAction ?? null;
-  const excludeActions = thinkOpts?.excludeActions ?? [];
-  return (!action.conversation || action.conversation === conversation) &&
-    (forceAction === null || action.name === forceAction) &&
-    !excludeActions.includes(action.name);
-};
 export const JsonFormatter = () => {
+  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+    const forceAction = thinkOpts?.forceAction ?? null;
+    const excludeActions = thinkOpts?.excludeActions ?? [];
+    return (!action.conversation || action.conversation === conversation) &&
+      (forceAction === null || action.name === forceAction) &&
+      !excludeActions.includes(action.name);
+  };
+  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+    return actions.filter(action => isAllowedAction(action, conversation, thinkOpts));
+  };
   return (
     <Formatter
-      /* map actions to zod schema to generate an action */
+      /* actions to zod schema */
       schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        let types: ZodTypeAny[] = [];
-        for (const action of actions) {
-          if (isAllowedAction(action, conversation, thinkOpts)) {
-            const zodSchema = makeJsonSchema(action.name, action.schema);
-            types.push(zodSchema);
-          }
-        }
+        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
+        const types: ZodTypeAny[] = filteredActions
+          .map(action => {
+            const schema = makeJsonSchema(action.name, action.schema);
+            return schema;
+          });
         if (types.length >= 2) {
           return z.union(
-            types as any
+            types as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
           );
         } else if (types.length === 1) {
           return types[0];
@@ -920,10 +930,10 @@ export const JsonFormatter = () => {
           return z.object({});
         }
       }}
-      /* format actions to instruction prompt */
+      /* actions to instruction prompt */
       formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        return actions
-          .filter(action => isAllowedAction(action, conversation, thinkOpts))
+        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
+        return filteredActions
           .map((action) => {
             const {
               name,
@@ -2181,8 +2191,6 @@ type AgentBrowser = Browser & {
   destroy: () => Promise<void>;
 };
 
-//
-
 export type WebBrowserProps = {
   hint?: string;
   // maxSteps: number;
@@ -2515,6 +2523,101 @@ export const webbrowserActions: WebBrowserActionSpec[] = [
     toText: webbrowserActionsToText.find((a: any) => a.method === 'cleanup')?.toText,
   },
 ];
+const SocialMediaActions = () => {
+  return (
+    <Conversation>
+      <StatusUpdateAction />
+    </Conversation>
+  );
+};
+export type StatusUpdateActionProps = {
+  // nothing
+};
+export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: StatusUpdateActionProps) => {
+  const conversation = useConversation();
+  const randomId = useMemo(() => crypto.randomUUID(), []);
+
+  // XXX come up with a better way to fetch available attachments from all messages, not just the cache
+  const attachments = collectAttachments(conversation.messageCache.messages);
+
+  return (
+    <Action
+      name="statusUpdate"
+      description={
+        dedent`\
+          Post to social media about what interesting things you are up to.
+          Optionally attach media to your post.
+        ` + '\n' + 
+        (
+          attachments.length > 0 ?
+            dedent`\
+              If included, the attachment must be one of the following:
+              \`\`\`
+            ` + '\n' +
+            JSON.stringify(attachments, null, 2) + '\n' +
+            dedent`\
+              \`\`\`
+            `
+          :
+            dedent`\
+              However, there are no available media to attach.
+            `
+        )
+      }
+      schema={
+        z.object({
+          text: z.string(),
+          attachments: z.array(z.object({
+            attachmentId: z.string(),
+          })),
+        })
+      }
+      examples={[
+        {
+          text: `Just setting up my account`,
+        },
+        {
+          text: `Guess where I am?`,
+          attachments: [
+            {
+              attachmentId: randomId,
+            },
+          ],
+        },
+      ]}
+      handler={async (e: PendingActionEvent) => {
+        const { agent, message } = e.data;
+        const agentId = agent.agent.id;
+        const { text, attachments } = message.args as {
+          text: string;
+          attachments: Array<{ attachmentId: string }>;
+        };
+
+        // post status update to the database
+        const _postStatusUpdate = async () => {
+          const supabase = agent.agent.useSupabase();
+          const update = {
+            agent_id: agentId,
+            text,
+            attachments,
+          };
+          const result = await supabase.from('status_updates')
+            .insert(update);
+          const { error } = result;
+          if (!error) {
+            // nothing
+          } else {
+            throw new Error('Failed to post status update: ' + error.message);
+          }
+        };
+        await _postStatusUpdate();
+
+        // commit the message to chat history, so the agent knows it has been sent
+        await e.commit();
+      }}
+    />
+  );
+};
 export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) => {
   // const agent = useAgent();
   const authToken = useAuthToken();
@@ -2540,7 +2643,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const ensureBrowserState = async () => {
     if (!browserStatePromise.current) {
       const localPromise = (async () => {
-        console.log('create browser with jwt', authToken);
+        // console.log('create browser with jwt', authToken);
         const browserResult = await createBrowser(undefined, {
           jwt: authToken,
         });
