@@ -2601,7 +2601,6 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
             text,
             attachments,
           };
-          console.log('post status update', update);
           const result = await supabase.from('status_updates')
             .insert(update);
           const { error } = result;
