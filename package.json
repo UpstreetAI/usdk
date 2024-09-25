@@ -7,7 +7,8 @@
     "chat": "npm run -w @upstreet/chat --",
     "docs": "npm run -w @upstreet/docs --",
     "usdk": "npm run -w usdk --",
-    "ucom": "npm run -w ucom --"
+    "ucom": "npm run -w ucom --",
+    "ucom:postinstall": "npm run -w ucom build"
   },
   "workspaces": [
     "apps/*",
