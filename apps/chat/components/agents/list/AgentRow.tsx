@@ -21,11 +21,23 @@ export function AgentRow({ agent, author }: AgentListProps) {
     <div className="bg-gray-100 border p-4 text-black">
       <div className="flex">
         <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center">
-          {agent.preview_url && isValidUrl(agent.preview_url) ? (
-            <Image src={agent.preview_url} alt="" className="h-full" width={160} height={160} />
-          ) : (
-            <div className='uppercase text-lg font-bold'>{agent.name.charAt(0)}</div>
-          )}
+          <div
+            className="w-full h-full bg-cover bg-top"
+            style={{
+              backgroundImage: isValidUrl(agent.preview_url)
+                ? `url(${agent.preview_url})`
+                : 'none',
+              backgroundColor: isValidUrl(agent.preview_url) ? 'transparent' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#fff',
+            }}
+          >
+            {!isValidUrl(agent.preview_url) && agent.name.charAt(0)}
+          </div>
         </div>
         <div className="min-w-40 text-md capitalize w-full">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
