@@ -14,7 +14,14 @@ export function Body( {children}: MainProps) {
   const {isFetchingUser} = useSupabase();
 
   return (
-    <main className="flex flex-col flex-1 bg-muted/50">
+    <main
+      className="flex flex-col flex-1"
+      style={{
+      backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
+      backgroundPosition: 'center',
+      backgroundSize: 'cover',
+      }}
+    >
       {isFetchingUser ? (
         <Loading />
       ) : children}
