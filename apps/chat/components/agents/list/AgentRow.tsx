@@ -5,6 +5,7 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import Image from "next/image";
 import { IconUser } from "@/components/ui/icons";
 import { useState } from "react";
+import { IconButton } from "ucom";
 
 export interface AgentListProps {
   agent: any
@@ -39,28 +40,27 @@ export function AgentRow({ agent, author }: AgentListProps) {
             {!isValidUrl(agent.preview_url) && agent.name.charAt(0)}
           </div>
         </div>
-        <div className="min-w-40 text-md capitalize w-full">
+        <div className="min-w-40 text-md capitalize w-full relative">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
-            <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
-          <div className="flex">
-            <div className="mt-2 text-right">
-              <a
-                onMouseDown={async e => {
-                  e.preventDefault();
-                  e.stopPropagation();
+          <div className="flex absolute bottom-0 right-0">
+            <IconButton
+              onMouseDown={async e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-                  setLoadingChat(true);
+                setLoadingChat(true);
 
-                  await agentJoin(agent.id);
-                }}
-                className={`hover:underline cursor-pointer whitespace-nowrap ${loadingChat && "animate-pulse"}`}>
-                {loadingChat ? "Loading chat..." : "Chat"}
-              </a>
-            </div>
+                await agentJoin(agent.id);
+              }}
+              icon="Chat"
+              size="small"
+              variant="primary" />
           </div>
+
+          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
         </div>
       </div>
     </div>

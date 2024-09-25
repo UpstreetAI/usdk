@@ -37,16 +37,16 @@
 
 .ucomIconButton,
 .ucomIconButton.primary {
-  background: #ffe477;
-  border: 2px solid #FFFFFF;
+  background: #ffffff;
+  border: 2px solid #000000;
   color: #000000;
 }
 
 .ucomIconButton:hover,
 .ucomIconButton.primary:hover {
   background: #FFFFFF;
-  border: 2px solid #FFFFFF;
-  color: #000000;
+  border: 2px solid #2A7FFF;
+  color: #2A7FFF;
 }
 
 .ucomIconButton.active,
@@ -108,7 +108,7 @@
   color: #000000;
   left: 50%;
   top: 50%;
-  stroke: #000000;
+  /* stroke: #000000; */
   stroke-width: 8rem !important;
   z-index: 0;
   -webkit-transform: translate(-50%, -50%);;
