@@ -32,6 +32,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
     customRangeFrom = rangeFrom,
     customRangeTo = rangeTo
   ) => {
+    
     if (searchTerm !== '') {
       setLoading(true);
     }
@@ -77,7 +78,6 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   }, [searchTerm]);
 
   useEffect(() => {
-    // Reset the range when search term changes
     setRangeFrom(0);
     setRangeTo(range);
     fetchData(true, 0, range);
@@ -114,6 +114,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <AgentList agents={agents} loading={loading} range={range} />
       </div>
+      
       <div className='text-center pt-8'>
         {agents.length > 0 && showLoadMore && (
           <Button

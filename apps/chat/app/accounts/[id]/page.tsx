@@ -2,7 +2,7 @@ import { type Metadata } from 'next';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
 import { Account } from '@/components/account';
-import { AccountProfile } from '@/components/accounts/profile';
+// import { AccountProfile } from '@/components/accounts/profile';
 
 type Params = {
   params: {
@@ -81,5 +81,6 @@ export default async function AccountProfilePage({ params }: Params) {
       </div>
     );
   }
-  return (<AccountProfile account={accountData} />);
+  return null;
+  // return (<AccountProfile account={accountData} />);
 }

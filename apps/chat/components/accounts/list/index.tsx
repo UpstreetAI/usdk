@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { AccountList } from './AccountList';
 import { useSupabase } from '@/lib/hooks/use-supabase';
-import { Button } from '@/components/ui/button';
+import { Button } from 'ucom';
 
 export interface AgentsProps {
   loadmore: boolean;
@@ -25,14 +25,24 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
   const [showLoadMore, setShowLoadMore] = useState(loadmore);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-  const fetchData = async (reset = false) => {
-    setLoading(true);
+  const fetchData = async (
+    reset = false,
+    customRangeFrom = rangeFrom,
+    customRangeTo = rangeTo
+  ) => {
+
+    if (searchTerm !== '') {
+      setLoading(true);
+    }
+
     const { data, error } = await supabase
       .from('accounts')
       .select('*, agents: assets(*)')
       .ilike('name', `%${searchTerm}%`)
-      .range(rangeFrom, rangeTo - 1)
+      .ilike('name', `%${debouncedSearchTerm}%`)
+      .range(customRangeFrom, customRangeTo - 1)
       .order('created_at', { ascending: false });
 
     if (!error) {
@@ -58,14 +68,30 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
   };
 
   useEffect(() => {
-    fetchData(true);
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
   }, [searchTerm]);
 
+  useEffect(() => {
+    setRangeFrom(0);
+    setRangeTo(range);
+    fetchData(true, 0, range);
+  }, [debouncedSearchTerm]);
+
   const handleLoadMore = () => {
+    const newRangeFrom = rangeTo;
+    const newRangeTo = rangeTo + range;
+
+    setRangeFrom(newRangeFrom);
+    setRangeTo(newRangeTo);
+
     setLoadingMore(true);
-    setRangeFrom(rangeTo);
-    setRangeTo(rangeTo + range);
-    fetchData();
+    fetchData(false, newRangeFrom, newRangeTo);
   };
 
   return (
@@ -79,8 +105,6 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
           className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
           onChange={(e) => {
             setSearchTerm(e.target.value);
-            setRangeFrom(0);
-            setRangeTo(range);
           }}
         />
       </div>
@@ -89,14 +113,13 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
         <AccountList accounts={accounts} loading={loading} range={range} />
       </div>
 
-      <div className='text-center'>
+      <div className='text-center pt-8'>
         {showLoadMore && (
           <Button
-            disabled={loadingMore}
+            size='large'
             onClick={handleLoadMore}
-            className='cursor-pointer h-auto mt-10 bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
           >
-            {loadingMore ? "Loading agents..." : "Load More"}
+            {loadingMore ? 'Loading agents...' : 'Load More'}
           </Button>
         )}
       </div>

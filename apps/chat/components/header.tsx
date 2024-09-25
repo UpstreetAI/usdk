@@ -21,8 +21,11 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
         </div>
-        <Link href="/agents" rel="nofollow">
+        <Link href="/agents" rel="nofollow" className='mr-4'>
           Agents
+        </Link>
+        <Link href="/accounts" rel="nofollow">
+          Accounts
         </Link>
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
