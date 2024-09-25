@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AgentList } from './AgentList';
+import { AccountList } from './AccountList';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { Button } from 'ucom';
 
@@ -10,15 +10,15 @@ export interface AgentsProps {
   range: number;
 }
 
-export interface Agent {
+export interface Account {
   id: number;
   name: string;
 }
 
-export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
+export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
   const { supabase } = useSupabase();
 
-  const [agents, setAgents] = useState<Agent[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [rangeFrom, setRangeFrom] = useState(0);
   const [rangeTo, setRangeTo] = useState(range);
@@ -32,24 +32,24 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
     customRangeFrom = rangeFrom,
     customRangeTo = rangeTo
   ) => {
-    
+
     if (searchTerm !== '') {
       setLoading(true);
     }
 
     const { data, error } = await supabase
-      .from('assets')
-      .select('*, author: accounts ( id, name )')
-      .eq('origin', 'sdk')
+      .from('accounts')
+      .select('*, agents: assets(*)')
+      .ilike('name', `%${searchTerm}%`)
       .ilike('name', `%${debouncedSearchTerm}%`)
       .range(customRangeFrom, customRangeTo - 1)
       .order('created_at', { ascending: false });
 
     if (!error) {
       if (reset) {
-        setAgents(data);
+        setAccounts(data);
       } else {
-        setAgents((prevAgents) => [...prevAgents, ...data]);
+        setAccounts((prevAccounts) => [...prevAccounts, ...data]);
       }
 
       if (data.length < range) {
@@ -97,12 +97,10 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
   return (
     <>
       <div className='flex mb-4'>
-        <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
-          Agents
-        </h1>
+        <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>Accounts</h1>
         <input
-          type='text'
-          placeholder='Search agents...'
+          type="text"
+          placeholder="Search accounts..."
           value={searchTerm}
           className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
           onChange={(e) => {
@@ -111,12 +109,12 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
         />
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <AgentList agents={agents} loading={loading} range={range} />
+      <div className={`grid grid-cols-1 md:grid-cols-2 gap-4`}>
+        <AccountList accounts={accounts} loading={loading} range={range} />
       </div>
-      
+
       <div className='text-center pt-8'>
-        {agents.length > 0 && showLoadMore && (
+        {showLoadMore && (
           <Button
             size='large'
             onClick={handleLoadMore}
