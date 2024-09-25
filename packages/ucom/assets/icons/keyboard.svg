@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg version="1.1" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <path d="m225 450h75v75h-75z"/>
+  <path d="m337.5 450h75v75h-75z"/>
+  <path d="m450 450h75v75h-75z"/>
+  <path d="m562.5 450h75v75h-75z"/>
+  <path d="m675 450h75v75h-75z"/>
+  <path d="m787.5 450h75v75h-75z"/>
+  <path d="m900 450h75v75h-75z"/>
+  <path d="m225 562.5h75v75h-75z"/>
+  <path d="m337.5 562.5h75v75h-75z"/>
+  <path d="m450 562.5h75v75h-75z"/>
+  <path d="m562.5 562.5h75v75h-75z"/>
+  <path d="m675 562.5h75v75h-75z"/>
+  <path d="m787.5 562.5h75v75h-75z"/>
+  <path d="m900 562.5h75v75h-75z"/>
+  <path d="m225 675h75v75h-75z"/>
+  <path d="m900 675h75v75h-75z"/>
+  <path d="m112.5 300v600h975v-600zm900 525h-825v-450h825z"/>
+  <path d="m337.5 675h525v75h-525z"/>
+ </g>
+</svg>
