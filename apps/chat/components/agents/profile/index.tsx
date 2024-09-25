@@ -96,14 +96,14 @@ export function AgentProfile({ agent }: AgentProps) {
           </div>
           <div>
             <h2 className="text-6xl uppercase font-bold text-stroke">{agent.name}</h2>
-            <div className="flex items-center mb-2">
+            <div className="flex items-center mb-1">
               <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
-              <Button variant="ghost" size="medium" onClick={handleCopy}>
+              <Button variant="ghost" size="small" onClick={handleCopy}>
                 {isCopied ? <IconCheck /> : <IconCopy />}
                 <span className="sr-only">Copy ID</span>
               </Button>
             </div>
-            <h3 className="text-sm mb-4">
+            <h3 className="text-lg mb-4">
               <Link href={`/accounts/${agent.author.id}`}>
                 Created by: {agent.author.name}
               </Link>
