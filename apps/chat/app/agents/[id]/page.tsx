@@ -1,7 +1,7 @@
 
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
-import { AgentProfile } from '@/components/agent-profile';
+import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
@@ -82,7 +82,10 @@ export default async function AgentProfilePage({ params }: Params) {
 
   const { data: agentData } = await supabase
     .from('assets')
-    .select('*')
+    .select(`
+      *,
+      author: accounts ( id, name )
+    `)
     .eq('id', agentId)
     .single();
 
