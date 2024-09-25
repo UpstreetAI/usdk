@@ -25,7 +25,7 @@
     "supabase:push": "npx supabase db push",
     "supabase:pull": "npx supabase db pull",
 
-    "postinstall": "npm run -w ucom build"
+    "preinstall": "npm run -w ucom build"
   },
   "dependencies": {
     "@ai-sdk/openai": "0.0.9",
@@ -100,7 +100,7 @@
     "three": "^0.167.1",
     "upstreet-agent": "file:../../packages/usdk/packages/upstreet-agent",
     "usdk": "file:../../packages/usdk",
-    "ucom": "file:../../packages/ucom/src",
+    "ucom": "file:../../packages/ucom",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
     "zjs": "file:../../packages/zjs",
