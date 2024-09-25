@@ -21,7 +21,7 @@ export function AgentRow({ agent, author }: AgentListProps) {
   return (
     <div className="bg-gray-100 border p-4 text-black">
       <div className="flex">
-        <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center">
+        <div className="mr-4 size-[120px] min-w-[120px] md:size-[160px] md:min-w-[160px] flex items-center justify-center">
           <div
             className="w-full h-full bg-cover bg-top"
             style={{
