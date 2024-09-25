@@ -29,9 +29,9 @@ export function AccountProfile({ account }: AccountProps) {
     <div className="w-full mx-auto">
 
       <HeaderMaskFrame>
-        <div className="w-full bg-blue-500 h-52" />
+        <div className="w-full bg-blue-500 h-36 md:h-52" />
         <div
-          className="w-full h-52 absolute top-0 left-0 bg-cover bg-center opacity-20"
+          className="w-full h-36 md:h-52 absolute top-0 left-0 bg-cover bg-center opacity-20"
           style={{
             backgroundImage: account.agents.length > 0
               ? `url(${account.agents[Math.floor(Math.random() * account.agents.length)].images[0].url})`
@@ -44,7 +44,7 @@ export function AccountProfile({ account }: AccountProps) {
 
       <div className="w-full max-w-6xl mx-auto pt-24 relative px-4">
         <div className="flex">
-          <div className="mr-4 size-40 min-w-40 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+          <div className="mr-4 size-20 min-w-20 md:size-40 md:min-w-40 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
             <div
               className="w-full h-full bg-cover bg-top"
               style={{
@@ -65,7 +65,7 @@ export function AccountProfile({ account }: AccountProps) {
           </div>
 
           <div>
-            <h2 className="text-4xl uppercase text-stroke font-bold">{account.name}</h2>
+            <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{account.name}</h2>
             <div className="px-2 py-1 bg-black bg-opacity-60">
               {agentUrl}
             </div>
