@@ -71,20 +71,20 @@ export function AgentRow({ agent, author }: AgentListProps) {
 export function SkeletonAgentRow() {
   return (
     <div className="bg-gray-100 border p-4 text-black">
-    <div className="flex">
-      <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center bg-cover">
-        <div className="h-full w-full bg-gray-300"></div>
-      </div>
-      <div className="min-w-40 text-md capitalize w-full relative">
-        <div className="bg-gray-300 rounded h-6 mb-4 w-3/4"></div>
-        <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
-        <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
-        <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
-        <div className="text-center ml-6 absolute bottom-0 right-0">
-          <div className="bg-gray-300 rounded h-3 w-10" />
+      <div className="flex">
+        <div className="mr-4 size-[160px] min-w-[160px] flex items-center justify-center bg-cover">
+          <div className="h-full w-full bg-gray-300"></div>
+        </div>
+        <div className="min-w-40 text-md capitalize w-full relative">
+          <div className="bg-gray-300 rounded h-6 mb-4 w-3/4"></div>
+          <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
+          <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
+          <div className="bg-gray-300 rounded h-4 mb-2 w-full"></div>
+          <div className="text-center ml-6 absolute bottom-0 right-0">
+            <div className="bg-gray-300 rounded h-3 w-10" />
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 }
