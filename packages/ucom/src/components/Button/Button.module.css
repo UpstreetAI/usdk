@@ -1,0 +1,96 @@
+.ucomButton {
+  background: transparent;
+  border: 2px solid transparent;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  color: #000000;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  min-width: 64px;
+  line-height: 0;
+  padding: 1rem;
+}
+
+.ucomButton.small {
+  padding: 1rem;
+}
+
+.ucomButton.medium {
+  padding: 1.42rem;
+}
+
+.ucomButton.large {
+  padding: 1.66rem;
+}
+
+.ucomButton.shadow {
+  box-shadow: -6px 6px 0px rgba(0, 0, 0, 1);
+}
+
+/* Primary/Default variant styles */
+
+.ucomButton,
+.ucomButton.primary {
+  background: #ffe477;
+  border: 2px solid #FFFFFF;
+}
+
+.ucomButton:hover,
+.ucomButton.primary:hover {
+  background: #FFFFFF;
+  border: 2px solid #FFFFFF;
+}
+
+.ucomButton.active,
+.ucomButton.primary.active {
+  background: #000000;
+  border: 2px solid #000000;
+  color: #FFFFFF;
+}
+
+.ucomButton:disabled,
+.ucomButton.primary:disabled,
+.ucomButton:disabled:hover,
+.ucomButton.primary:disabled:hover {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: #ffe477;
+  border: 2px solid #FFFFFF;
+  color: #000000;
+}
+
+/* Secondary variant styles */
+
+.ucomButton.secondary {
+  background-color: #CFF2FE;
+  border: 2px solid #7CD5F3;
+}
+
+.ucomButton.secondary:hover {
+  background-color: #A2E3F9;
+  border: 2px solid #7CD5F3;
+}
+
+.ucomButton.secondary.active {
+  background-color: #C96AAF;
+  border: 2px solid #7C2E70;
+  color: #FFFFFF;
+}
+
+/* Ghost variant styles */
+
+.ucomButton.ghost {
+  background-color: transparent;
+  border: 2px solid transparent;
+  color: #777777;
+}
+
+.ucomButton.ghost:hover {
+  color: #333333;
+}
+
+.ucomButton.ghost.active {
+  color: #000000;
+}
