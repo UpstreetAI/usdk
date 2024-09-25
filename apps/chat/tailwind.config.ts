@@ -85,5 +85,21 @@ module.exports = {
       },
     }
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography')]
+  plugins: [
+    require('tailwindcss-animate'), 
+    require('@tailwindcss/typography'),
+    function ({ addUtilities } : any) {
+      const newUtilities = {
+        '.text-stroke': {
+          'text-shadow': `
+            -2px -2px 0 black,
+            2px -2px 0 black,
+            -2px 2px 0 black,
+            2px 2px 0 black
+          `,
+        },
+      }
+      addUtilities(newUtilities, ['responsive', 'hover'])
+    },
+  ],
 }
