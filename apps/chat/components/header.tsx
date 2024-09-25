@@ -9,23 +9,26 @@ import { SearchBar } from '@/components/searchbar';
 export function Header() {
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
+      className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-background backdrop-blur-xl">
       <div className="flex items-center h-full">
-        <div className='md:m-w-[200px] md:w-[200px]'>
+        <div className='md:m-w-[160px] md:w-[160px]'>
           <Link href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
-            <IconUpstreetChat className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
-            <IconUpstreetChat className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
+            <IconUpstreetChat className="mr-2 fill-black size-9 w-auto dark:hidden" inverted />
+            <IconUpstreetChat className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
           <Link href="/" rel="nofollow" className='block md:hidden w-10 ml-4'>
-            <IconUpstreet className="mr-2 fill-black size-9 w-auto dark:hidden" inverted/>
-            <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block"/>
+            <IconUpstreet className="mr-2 fill-black size-9 w-auto dark:hidden" inverted />
+            <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </Link>
         </div>
+        <Link href="/agents" rel="nofollow">
+          Agents
+        </Link>
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
-        <React.Suspense fallback={<div className="flex-1 overflow-auto"/>}>
-          <AccountOrLogin/>
-        </React.Suspense>
+      <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
+        <AccountOrLogin />
+      </React.Suspense>
       {/* </div> */}
     </header>
   );

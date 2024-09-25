@@ -19,7 +19,7 @@ export default function Home() {
 
   return (
     <div>
-      <div className="w-full h-full">
+      <div className="w-full h-full z-1">
         <BackgroundSlider
           images={[Hero1, Hero2, Hero3]}
           duration={6}

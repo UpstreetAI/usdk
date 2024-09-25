@@ -58,6 +58,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
           GeistSans.variable,
           GeistMono.variable
         )}
+        style={{
+          backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+        }}
       >
         <Toaster position="top-center" />
         <Providers
