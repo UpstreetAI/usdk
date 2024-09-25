@@ -65,7 +65,41 @@
     --ring: 240 4.9% 83.9%;
   }
 }
- 
+
+/* -- */
+
+@font-face {
+  font-family: 'Aller-Bold';
+  src: url('/fonts/Aller/Aller_Bd.ttf');
+}
+
+@font-face {
+  font-family: 'Aller-Bold-Italic';
+  src: url('/fonts/Aller/Aller_BdIt.ttf');
+}
+
+@font-face {
+  font-family: 'Aller-Italic';
+  src: url('/fonts/Aller/Aller_It.ttf');
+}
+
+@font-face {
+  font-family: 'Aller-Light';
+  src: url('/fonts/Aller/Aller_Lt.ttf');
+}
+
+@font-face {
+  font-family: 'Aller-Light-Italic';
+  src: url('/fonts/Aller/Aller_LtIt.ttf');
+}
+
+@font-face {
+  font-family: 'Aller-Regular';
+  src: url('/fonts/Aller/Aller_Rg.ttf');
+}
+
+/* -- */
+
 @layer base {
   * {
     @apply border-border;

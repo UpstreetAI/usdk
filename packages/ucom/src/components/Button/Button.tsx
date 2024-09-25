@@ -5,7 +5,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: 'primary' | 'secondary' | 'ghost';
   shadow?: boolean;
   active?: boolean;
-  disabled?: boolean; 
+  disabled?: boolean;
 }
 
 const Button: React.FC<ButtonProps> = ({
