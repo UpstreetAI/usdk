@@ -24,7 +24,7 @@
     "supabase:generate-seed": "npx supabase db dump --data-only -f supabase/seed_geo.sql",
     "supabase:push": "npx supabase db push",
     "supabase:pull": "npx supabase db pull",
-    "preinstall": "npm run -w ucom build"
+    "postinstall": "npm run -w ucom build"
   },
   "dependencies": {
     "@ai-sdk/openai": "0.0.9",
@@ -49,7 +49,6 @@
     "@react-three/rapier": "^1.4.0",
     "@supabase/ssr": "0.1.0",
     "@supabase/supabase-js": "2.39.3",
-    "@svgr/cli": "^8.1.0",
     "@tsndr/cloudflare-worker-jwt": "^2.5.3",
     "@types/eventsource": "^1.1.15",
     "@types/three": "^0.167.1",
@@ -98,9 +97,9 @@
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "1.0.7",
     "three": "^0.167.1",
-    "ucom": "file:../../packages/ucom",
     "upstreet-agent": "file:../../packages/usdk/packages/upstreet-agent",
     "usdk": "file:../../packages/usdk",
+    "ucom": "file:../../packages/ucom",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
     "zjs": "file:../../packages/zjs",
