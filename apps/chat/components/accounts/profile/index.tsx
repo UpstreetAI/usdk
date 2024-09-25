@@ -46,7 +46,7 @@ export function AccountProfile({ account }: AccountProps) {
         <div className="flex">
           <div className="mr-4 size-40 min-w-12 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
             <div
-              className="w-full h-full bg-cover bg-center"
+              className="w-full h-full bg-cover bg-top"
               style={{
                 backgroundImage: isValidUrl(account.preview_url)
                   ? `url(${account.preview_url})`
