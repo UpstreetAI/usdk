@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { AgentList } from './AgentList';
 import { useSupabase } from '@/lib/hooks/use-supabase';
-import { Button } from '@/components/ui/button';
+import { Button } from 'ucom';
 
 export interface AgentsProps {
   loadmore: boolean;
@@ -114,11 +114,10 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <AgentList agents={agents} loading={loading} range={range} />
       </div>
-      <div className='text-center'>
+      <div className='text-center pt-8'>
         {agents.length > 0 && showLoadMore && (
           <Button
-            disabled={loadingMore}
-            className='cursor-pointer h-auto mt-10 bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'
+            size='large'
             onClick={handleLoadMore}
           >
             {loadingMore ? 'Loading agents...' : 'Load More'}
