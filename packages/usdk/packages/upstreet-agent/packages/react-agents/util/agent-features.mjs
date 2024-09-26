@@ -82,7 +82,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
-    examples: [{voiceEndpoint: 'elevenlabs:drake:1thOSihlbbWeiCGuN5Nw'},],
+    examples: [{voiceEndpoint: defaultVoices[0].voiceEndpoint},],
     imports: () => [
       'TTS',
     ],
