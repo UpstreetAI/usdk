@@ -3312,12 +3312,11 @@ const main = async () => {
   const templateNames = await getTemplateNames();
 
   // Generate the JSON string dynamically based on the examples in featureSpecs
-  const features = featureSpecs.reduce((acc, feature) => {
+  const featureExamples = featureSpecs.reduce((acc, feature) => {
     acc[feature.name] = feature.examples;
     return acc;
   }, {});
-
-  const featureExamples = Object.entries(features)
+  const featureExamplesString = Object.entries(featureExamples)
     .map(([name, examples]) => {
       const exampleString = examples.map(example => JSON.stringify(example)).join(', ');
       return `"${name}", example using json ${exampleString}`;
@@ -3340,7 +3339,7 @@ const main = async () => {
     )
     .option(
       `-feat, --features <feature...>`,
-      `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamples)}`
+      `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
@@ -3366,7 +3365,7 @@ const main = async () => {
             args.features = { ...parsedJson };
           } catch (error) {
             args.features = opts.features.reduce((acc, feature) => {
-              acc[feature] = features[feature] || null;
+              acc[feature] = featureExamples[feature][0];
               return acc;
             }, {});
           }
