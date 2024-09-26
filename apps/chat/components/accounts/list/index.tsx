@@ -39,7 +39,8 @@ export function Accounts({ loadmore = false, range = 5 }: AgentsProps) {
 
     const { data, error } = await supabase
       .from('accounts')
-      .select('*, agents: assets(*)')
+      .select(`*`)
+      .gt('agent_count', 0)
       .ilike('name', `%${searchTerm}%`)
       .ilike('name', `%${debouncedSearchTerm}%`)
       .range(customRangeFrom, customRangeTo - 1)

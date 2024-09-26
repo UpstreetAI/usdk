@@ -35,7 +35,7 @@ export function AccountRow({ account }: AgentListProps) {
             <div className="font-bold text-lg line-clamp-1">{account.name}</div>
             <div className="line-clamp-3">{account.description}</div>
           </a>
-          <div className="text-center ml-6 absolute bottom-0 right-0">Agents: <span className="text-4xl">{account?.agents.length}</span></div>
+          <div className="text-center ml-6 absolute bottom-0 right-0">Agents: <span className="text-4xl">{account.agents_count}</span></div>
         </div>
       </div>
     </div>
