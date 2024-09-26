@@ -198,15 +198,6 @@ export const featureSpecs = [
       }
       return result;
     },
-    // components: ({
-    //   maxUserMessages,
-    //   maxUserMessagesTime,
-    //   message,
-    // }) => [
-    //   dedent`
-    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
-    //   `,
-    // ],
     components: (storeItems) => {
       return storeItems.map((storeItem) => {
         if (storeItem.type === 'payment') {
