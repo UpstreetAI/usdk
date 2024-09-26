@@ -175,6 +175,46 @@ export const featureSpecs = [
     },
   },
   {
+    name: 'telnyx',
+    description: dedent`\
+      Add a Telnyx phone call/sms support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
+
+      Phone number must be in +E.164 format (e.g. +14151234567).
+    `,
+    schema: z.union([
+      z.object({
+        apiKey: z.string(),
+        phoneNumber: z.string(),
+        message: z.boolean(),
+        voice: z.boolean(),
+      }),
+      z.null(),
+    ]),
+    imports: (telnyx) => {
+      if (telnyx.apiKey && telnyx.phoneNumber && (telnyx.message || telnyx.voice)) {
+        return ['Telnyx'];
+      } else {
+        return [];
+      }
+    },
+    components: (telnyx) => {
+      if (telnyx.apiKey && telnyx.phoneNumber && (telnyx.message || telnyx.voice)) {
+        return [
+          dedent`
+            <Telnyx
+              apiKey=${JSON.stringify(telnyx.apiKey)}
+              phoneNumber=${JSON.stringify(telnyx.phoneNumber)}
+              message={${JSON.stringify(telnyx.message)}}
+              voice={${JSON.stringify(telnyx.voice)}}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
     name: 'storeItems',
     description: dedent`\
       List of items that can be purchased from the agent, with associated prices.
