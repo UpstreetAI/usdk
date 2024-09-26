@@ -8,6 +8,8 @@ interface Props {
 
 export default function IndexPage({params}: Props) {
   return (
-    <Account params={params}/>
+    <div className="relative flex min-h-full bg-zinc-900">
+      <Account params={params}/>
+    </div>
   );
 }
