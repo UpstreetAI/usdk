@@ -60,6 +60,7 @@ import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-a
 import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
+import AgentInterviewFlow from '../packages/upstreet-agent/packages/react-agents/util/agent-interview-flow.mjs';
 
 //
 
@@ -186,89 +187,19 @@ export const create = async (args, opts) => {
   if (jwt) {
     console.log(pc.italic('Generating agent...'));
 
-    // run the interview
-    const interview = async (agentJson) => {
-      const questionLogger = new InterviewLogger(new ReadlineStrategy());
-      const getAnswer = (question) => {
-        return questionLogger.askQuestion(question);
-      };
-      const agentInterview = new AgentInterview({
-        agentJson,
-        prompt,
-        mode: prompt ? 'auto' : 'interactive',
-        jwt,
-      });
-      agentInterview.addEventListener('input', async e => {
-        const {
-          question,
-        } = e.data;
-        const answer = await getAnswer(question);
-        agentInterview.write(answer);
-      });
-      agentInterview.addEventListener('output', async e => {
-        const {
-          text,
-        } = e.data;
-        console.log(text);
-      });
-      agentInterview.addEventListener('change', e => {
-        const {
-          updateObject,
-          agentJson,
-        } = e.data;
-        // console.log('change', updateObject);
-      });
-      const imageLogger = (label) => async (e) => {
-        const {
-          result: blob,
-          signal,
-        } = e.data;
+    const agentInterviewFlow = new AgentInterviewFlow();
+    agentJson = agentJsonString ? JSON.parse(agentJsonString) : {};
 
-        const ab = await blob.arrayBuffer();
-        if (signal.aborted) return;
+    if (!agentJsonString && !source && !yes) {
+      agentJson = await agentInterviewFlow.conductInterview(agentJson, jwt, prompt);
+    }
 
-        const b = Buffer.from(ab);
-        const jimp = await Jimp.read(b);
-        if (signal.aborted) return;
+    agentJson.id = guid;
+    agentJson.ownerId = userPrivate.id;
+    agentJson.stripeConnectAccountId = stripeConnectAccountId;
+    agentJson.address = walletAddress;
+    ensureAgentJsonDefaults(agentJson);
 
-        const imageRenderer = new ImageRenderer();
-        const {
-          text: imageText,
-        } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-        console.log(label);
-        console.log(imageText);
-      };
-      agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
-      agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
-      const result = await agentInterview.waitForFinish();
-      questionLogger.close();
-      return result;
-    };
-    const createAgentJson = async () => {
-      // initialize
-      const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
-      // run the interview, if applicable
-      let agentJson = await (async () => {
-        // if the agent json is complete
-        if (agentJsonString || source || yes) {
-          return agentJsonInit;
-        } else {
-          return await interview(agentJsonInit);
-        }
-      })();
-      // additional properties
-      agentJson.id = guid;
-      agentJson.ownerId = userPrivate.id;
-      agentJson.stripeConnectAccountId = stripeConnectAccountId;
-      agentJson.address = walletAddress;
-      // ensure defaults
-      ensureAgentJsonDefaults(agentJson);
-      // return result
-      return agentJson;
-    };
-
-    // note: this is an assignment
-    agentJson = await createAgentJson();
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);

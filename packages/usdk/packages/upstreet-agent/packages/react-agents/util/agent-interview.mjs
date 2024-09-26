@@ -217,7 +217,7 @@ export class AgentInterview extends EventTarget {
       } */
 
       // initiate the interview
-      this.interactor.write();
+      // this.interactor.write();
     } else if (mode === 'manual') {
       // pump the interview loop
       pumpIo();
