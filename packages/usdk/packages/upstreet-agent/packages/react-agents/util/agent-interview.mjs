@@ -95,6 +95,9 @@ export class AgentInterview extends EventTarget {
           Do not use placeholder values for fields. Instead, make up something appropriate.
           Try to fill out all fields before finishing.
 
+          Use \`bio\` to describe the personality and character traits of the agent.
+          Use \`description\` to explain why other agents or users would want to interact with this agent. Keep it intriguing and concise.
+
           Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
 
