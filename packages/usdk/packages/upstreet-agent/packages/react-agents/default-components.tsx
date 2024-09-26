@@ -1322,6 +1322,7 @@ export const MultimediaSense = () => {
   const authToken = useAuthToken();
   const randomId = useMemo(getRandomId, []);
 
+  // XXX be able to query media other than that from the current conversation
   const attachments = collectAttachments(conversation.messageCache.messages)
     .filter(attachment => {
       const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
