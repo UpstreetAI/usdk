@@ -248,18 +248,18 @@ export const create = async (args, opts) => {
     const createAgentJson = async () => {
       // initialize
       const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+      // Add user specified features to agentJsonInit being passed to the interview process for context
+      if (Object.keys(features).length > 0) {
+        agentJsonInit.features = {
+          ...features,
+        };
+      }
       // run the interview, if applicable
-      let agentJson = await (async () => {
+      const agentJson = await (async () => {
         // if the agent json is complete
         if (agentJsonString || source || yes) {
           return agentJsonInit;
         } else {
-          // Add user specified features to agentJsonInit being passed to the interview process for context
-          if (Object.keys(features).length > 0) {
-            agentJsonInit.features = {
-              ...features,
-            };
-          }
           return await interview(agentJsonInit);
         }
       })();
