@@ -33,6 +33,8 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TelnyxProps,
+  TelnyxArgs,
 } from './types';
 import {
   AppContext,
@@ -2942,6 +2944,30 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(channels),
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
+  ]);
+
+  return null;
+};
+export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
+  const {
+    apiKey,
+    phoneNumbers,
+    message,
+    voice,
+  } = props;
+  const agent = useAgent();
+
+  useEffect(() => {
+    const args: TelnyxArgs = props;
+    const telnyxClient = agent.telnyxManager.addTelnyxClient(args);
+    return () => {
+      agent.telnyxManager.removeTelnyxClient(telnyxClient);
+    };
+  }, [
+    apiKey,
+    JSON.stringify(phoneNumbers),
+    message,
+    voice,
   ]);
 
   return null;

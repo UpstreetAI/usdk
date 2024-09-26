@@ -114,6 +114,16 @@ export type DiscordBotArgs = {
 };
 export type DiscordBotClient = any;
 
+// telnyx
+
+export type TelnyxProps = {
+  apiKey: string;
+  phoneNumbers: string[];
+  message: boolean;
+  voice: boolean;
+};
+export type TelnyxArgs = TelnyxProps;
+
 // actions
 
 export type FormattedAttachment = {
