@@ -15,7 +15,64 @@ import {
   featureSpecs,
 } from './agent-features.mjs';
 
-//
+const processFeatures = (agentJson) => {
+  const userSpecifiedFeatures = new Set(Object.keys(agentJson.features || {}));
+  const validFeatures = new Set(featureSpecs.map(spec => spec.name));
+
+  // Check for invalid user-specified features and throw an error if any are found
+  for (const feature of userSpecifiedFeatures) {
+    if (!validFeatures.has(feature)) {
+      throw new Error(`Invalid features specified: ${feature}`);
+    }
+  }
+
+  // allow the agent interview to possibly utilise all if no features are specified
+  const allowAll = userSpecifiedFeatures.size === 0;
+
+  const result = {};
+  for (const featureSpec of featureSpecs) {
+    const { name, schema } = featureSpec;
+    if (allowAll || userSpecifiedFeatures.has(name)) {
+      result[name] = schema.optional();
+    }
+  }
+
+
+  // console.log('process features', {
+  //   result,
+  //   userSpecifiedFeatures,
+  //   allowAll,
+  // });
+
+  return {
+    result,
+    userSpecifiedFeatures,
+    allowAll,
+  };
+};
+
+// Generate feature prompt
+const generateFeaturePrompt = (featureSpecs, userSpecifiedFeatures, allowAll) => {
+  const prompt =  allowAll ? (
+    dedent`\
+      The available features are:
+    ` + '\n' +
+    featureSpecs.map(({ name, description }) => {
+      return `# ${name}\n${description}`;
+    }).join('\n') + '\n\n'
+  ) : (
+    dedent`\
+      The agent is given the following features:
+    ` + '\n' +
+    Array.from(userSpecifiedFeatures).map(feature => {
+      const spec = featureSpecs.find(spec => spec.name === feature);
+      return spec ? `# ${spec.name}\n${spec.description}` : `# ${feature}\nDescription not available.`;
+    }).join('\n') + '\n\n'
+  );
+
+  // console.log('feature prompt', prompt);
+  return prompt;
+};
 
 export class AgentInterview extends EventTarget {
   constructor(opts) {
@@ -27,6 +84,11 @@ export class AgentInterview extends EventTarget {
       mode, // 'auto' | 'interactive' | 'manual'
       jwt,
     } = opts;
+
+    const { result: featureSchemas, userSpecifiedFeatures, allowAll } = processFeatures(agentJson);
+
+    // generate the feature prompt
+    const featurePrompt = generateFeaturePrompt(featureSpecs, userSpecifiedFeatures, allowAll);
 
     // character image generator
     const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
@@ -101,12 +163,7 @@ export class AgentInterview extends EventTarget {
           Use \`homespaceDescription\` to visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
         ` + '\n\n' +
-        dedent`\
-          The available features are:
-        ` + '\n' +
-        featureSpecs.map(({ name, description }) => {
-          return `# ${name}\n${description}`;
-        }).join('\n') + '\n\n' +
+        featurePrompt +
         (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
       object: agentJson,
       objectFormat: z.object({
@@ -114,17 +171,7 @@ export class AgentInterview extends EventTarget {
         bio: z.string().optional(),
         visualDescription: z.string().optional(),
         homespaceDescription: z.string().optional(),
-        features: z.object((() => {
-          const result = {};
-          for (const featureSpec of featureSpecs) {
-            const {
-              name,
-              schema,
-            } = featureSpec;
-            result[name] = schema.optional();
-          }
-          return result;
-        })()).optional(),
+        features: z.object(featureSchemas).optional(),
       }),
       jwt,
     });
