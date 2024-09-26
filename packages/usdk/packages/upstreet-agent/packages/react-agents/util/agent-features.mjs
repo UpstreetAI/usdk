@@ -190,6 +190,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
+    examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumbers: ['+14151234567'], message: true, voice: true, }],
     imports: (telnyx) => {
       if (telnyx.apiKey && telnyx.phoneNumbers.length > 0 && (telnyx.message || telnyx.voice)) {
         return ['Telnyx'];
