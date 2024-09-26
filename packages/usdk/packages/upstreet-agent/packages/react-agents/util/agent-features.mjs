@@ -184,26 +184,26 @@ export const featureSpecs = [
     schema: z.union([
       z.object({
         apiKey: z.string(),
-        phoneNumber: z.string(),
+        phoneNumbers: z.array(z.string()),
         message: z.boolean(),
         voice: z.boolean(),
       }),
       z.null(),
     ]),
     imports: (telnyx) => {
-      if (telnyx.apiKey && telnyx.phoneNumber && (telnyx.message || telnyx.voice)) {
+      if (telnyx.apiKey && telnyx.phoneNumbers.length > 0 && (telnyx.message || telnyx.voice)) {
         return ['Telnyx'];
       } else {
         return [];
       }
     },
     components: (telnyx) => {
-      if (telnyx.apiKey && telnyx.phoneNumber && (telnyx.message || telnyx.voice)) {
+      if (telnyx.apiKey && telnyx.phoneNumbers.length > 0 && (telnyx.message || telnyx.voice)) {
         return [
           dedent`
             <Telnyx
               apiKey=${JSON.stringify(telnyx.apiKey)}
-              phoneNumber=${JSON.stringify(telnyx.phoneNumber)}
+              phoneNumbers={${JSON.stringify(telnyx.phoneNumbers)}}
               message={${JSON.stringify(telnyx.message)}}
               voice={${JSON.stringify(telnyx.voice)}}
             />
