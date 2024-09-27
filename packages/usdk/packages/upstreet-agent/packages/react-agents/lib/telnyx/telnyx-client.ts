@@ -62,109 +62,90 @@ export class TelnyxClient extends EventTarget {
     })();
     const ws = new WebSocket(u);
     ws.binaryType = 'arraybuffer';
-    const connectPromise = makePromise();
-    const readyPromise = makePromise();
-    ws.onopen = () => {
-      // console.log('opened');
-      connectPromise.resolve();
-    };
-    ws.onmessage = e => {
-      // console.log('got message', e.data);
+    ws.addEventListener('message', (e) => {
+      // console.log('message', e.data);
 
-      if (e.data instanceof ArrayBuffer) {
-        const arrayBuffer = e.data;
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const o = zbdecode(uint8Array);
-        // console.log('got binary message', o);
-        const {
-          method,
-          args,
-        } = o;
-        switch (method) {
-          /* case 'voicedata': {
-            const {
-              // userId,
-              streamId,
-              uint8Array,
-            } = args;
-            this.output.pushStreamUpdate(streamId, uint8Array);
+      const body = JSON.parse(e.data);
+      if (body.data) {
+        // if it's a webhook
+        const { event_type: eventType, payload } = body.data;
+        switch (eventType) {
+          case 'message.received': {
+            const { text, media, from, to } = payload;
+            console.log('got text message', {
+              text,
+              media,
+              from,
+              to,
+            });
             break;
-          } */
+          }
+          case 'call.initiated': {
+            const callControlId = payload.call_control_id;
+            console.log('got call start', {
+              callControlId,
+            });
+            const o = {
+              method: 'answerCall',
+              args: {
+                call_control_id: callControlId,
+              },
+            };
+            console.log('answer call with', o);
+            ws.send(JSON.stringify(o));
+            break;
+          }
+          case 'call.answered':
+          case 'call.hangup': {
+            console.log('got call meta', {
+              eventType,
+              payload,
+            });
+            break;
+          }
           default: {
-            console.warn('unhandled binary method', method);
-            break;
+            console.log('unhandled', eventType);
+            throw new Error('unhandled: ' + eventType);
           }
         }
       } else {
-        const j = JSON.parse(e.data);
-        const {
-          method,
-          args,
-        } = j;
-        switch (method) {
-          /* case 'ready': {
-            readyPromise.resolve();
+        // if it's a stream
+        const { event: eventType } = body;
+        switch (eventType) {
+          case 'media': {
+            const { media } = body;
+            const { chunk, payload, timestamp, track } = media;
+            console.log('got media', payload);
             break;
           }
-          case 'channelconnect': {
-            this.dispatchEvent(new MessageEvent('channelconnect', {
-              data: args,
-            }));
-            break;
-          }
-          case 'dmconnect': {
-            this.dispatchEvent(new MessageEvent('dmconnect', {
-              data: args,
-            }));
-            break;
-          }
-          case 'guildmemberadd': {
-            this.dispatchEvent(new MessageEvent('guildmemberadd', {
-              data: args,
-            }));
-            break;
-          }
-          case 'guildmemberremove': {
-            this.dispatchEvent(new MessageEvent('guildmemberremove', {
-              data: args,
-            }));
-            break;
-          }
-          case 'text': {
-            console.log('text message', args);
-            this.output.pushText(args);
-            break;
-          }
-          case 'voicestart': {
-            console.log('voice start', args);
-            this.output.pushStreamStart(args);
-            break;
-          }
-          case 'voiceend': {
-            console.log('voice end', args);
-            this.output.pushStreamEnd(args);
-            break;
-          }
-          case 'voiceidle': { // feedback that discord is no longer listening
-            console.log('voice idle', args);
-            this.input.cancelStream(args);
-            break;
-          } */
           default: {
-            console.warn('unhandled json method', method);
-            break;
+            console.log('unhandled', eventType);
+            throw new Error('unhandled: ' + eventType);
           }
         }
       }
-    };
-    ws.onerror = err => {
-      console.warn(err);
-      connectPromise.reject(err);
-    };
+    });
+    ws.addEventListener('close', () => {
+      console.log('telnyx ws closed');
+    });
     this.ws = ws;
 
-    await connectPromise;
-    await readyPromise;
+    await new Promise((resolve, reject) => {
+      const handleOpen = () => {
+        resolve(null);
+        cleanup();
+      };
+      const handleClose = () => {
+        reject(new Error('WebSocket connection closed'));
+        cleanup();
+      };
+      const cleanup = () => {
+        ws.removeEventListener('open', handleOpen);
+        ws.removeEventListener('close', handleClose);
+      };
+      ws.addEventListener('open', handleOpen);
+      ws.addEventListener('close', handleClose);
+    });
   }
 
   send(text: string, {
@@ -172,7 +153,29 @@ export class TelnyxClient extends EventTarget {
   }: {
     callId: string,
   }) {
-    // XXX finish this
+    const o = {
+      method: 'message',
+      args: {
+        to: from.phone_number,
+        text: text && `Reply: ${text}`,
+        media_urls: media.map((m) => m.url),
+      },
+    };
+    console.log('reply with', o);
+    this.ws.send(JSON.stringify(o));
+  }
+
+  call(phoneNumber: string) {
+    console.log('call 1');
+    this.ws.send(
+      JSON.stringify({
+        method: 'call',
+        args: {
+          to: phoneNumber,
+        },
+      }),
+    );
+    console.log('call 2');
   }
 
   destroy() {
