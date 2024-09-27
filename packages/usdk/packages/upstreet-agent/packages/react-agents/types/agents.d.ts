@@ -122,7 +122,9 @@ export type TelnyxProps = {
   message: boolean;
   voice: boolean;
 };
-export type TelnyxArgs = TelnyxProps;
+export type TelnyxArgs = TelnyxProps & {
+  agent: ActiveAgentObject;
+};
 
 // actions
 
