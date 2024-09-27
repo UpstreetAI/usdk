@@ -194,7 +194,11 @@ export class TelnyxClient extends EventTarget {
             const {
               call_control_id,
             } = payload;
-            calls.delete(call_control_id);
+            if (calls.has(call_control_id)) {
+              calls.delete(call_control_id);
+            } else {
+              console.warn('no call spec for call_control_id: ' + call_control_id);
+            }
             break;
           }
           default: {
