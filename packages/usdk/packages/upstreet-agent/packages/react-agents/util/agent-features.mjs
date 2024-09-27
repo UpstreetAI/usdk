@@ -192,21 +192,21 @@ export const featureSpecs = [
     ]),
     examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumbers: ['+14151234567'], message: true, voice: true, }],
     imports: (telnyx) => {
-      if (telnyx.apiKey && telnyx.phoneNumbers.length > 0 && (telnyx.message || telnyx.voice)) {
+      if (telnyx.apiKey) {
         return ['Telnyx'];
       } else {
         return [];
       }
     },
     components: (telnyx) => {
-      if (telnyx.apiKey && telnyx.phoneNumbers.length > 0 && (telnyx.message || telnyx.voice)) {
+      if (telnyx.apiKey) {
         return [
           dedent`
             <Telnyx
               apiKey=${JSON.stringify(telnyx.apiKey)}
-              phoneNumbers={${JSON.stringify(telnyx.phoneNumbers)}}
-              message={${JSON.stringify(telnyx.message)}}
-              voice={${JSON.stringify(telnyx.voice)}}
+              ${telnyx.phoneNumbers ? `phoneNumbers={${JSON.stringify(telnyx.phoneNumbers)}}` : ''}
+              ${telnyx.message ? `message` : ''}
+              ${telnyx.voice ? `voice` : ''}
             />
           `,
         ];
