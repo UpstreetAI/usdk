@@ -82,14 +82,14 @@ export class TelnyxClient extends EventTarget {
     }
   }
   async connect({
-    phoneNumbers,
+    phoneNumber,
   }: {
-    phoneNumbers: string[],
-  }) {
+    phoneNumber?: string,
+  } = {}) {
     const u = (() => {
       const u = new URL(telnyxEndpointUrl.replace(/^http/, 'ws'));
       u.searchParams.set('apiKey', this.apiKey);
-      phoneNumbers.length > 0 && u.searchParams.set('phoneNumbers', JSON.stringify(phoneNumbers));
+      phoneNumber && u.searchParams.set('phoneNumber', phoneNumber);
       return u;
     })();
     const ws = new WebSocket(u);
@@ -118,11 +118,13 @@ export class TelnyxClient extends EventTarget {
             //     media_urls: media.map((m) => m.url),
             //   },
             // };
+            const fromPhoneNumber = from.phone_number;
+            const toPhoneNumber = to[0].phone_number;
             this.dispatchEvent(
               new MessageEvent<TelnyxMessageArgs>('message', {
                 data: {
-                  fromPhoneNumber: from.phone_number,
-                  toPhoneNumber: to.phone_number,
+                  fromPhoneNumber,
+                  toPhoneNumber,
                   text,
                   media,
                 },
@@ -213,6 +215,7 @@ export class TelnyxClient extends EventTarget {
         media_urls: mediaUrls?.length > 0 ? mediaUrls : undefined,
       },
     };
+    console.log('send text to ws', o);
     this.ws.send(JSON.stringify(o));
   }
   call({

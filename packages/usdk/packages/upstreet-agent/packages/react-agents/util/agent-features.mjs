@@ -179,18 +179,18 @@ export const featureSpecs = [
     description: dedent`\
       Add Telnyx phone call/SMS support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
 
-      Phone number must be in +E.164 format (e.g. +14151234567).
+      Phone number is optional, but if provided must be in +E.164 format (e.g. +14151234567).
     `,
     schema: z.union([
       z.object({
         apiKey: z.string(),
-        phoneNumbers: z.array(z.string()),
+        phoneNumber: z.string().optional(),
         message: z.boolean(),
         voice: z.boolean(),
       }),
       z.null(),
     ]),
-    examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumbers: ['+14151234567'], message: true, voice: true, }],
+    examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
     imports: (telnyx) => {
       if (telnyx.apiKey) {
         return ['Telnyx'];
@@ -204,7 +204,7 @@ export const featureSpecs = [
           dedent`
             <Telnyx
               apiKey=${JSON.stringify(telnyx.apiKey)}
-              ${telnyx.phoneNumbers ? `phoneNumbers={${JSON.stringify(telnyx.phoneNumbers)}}` : ''}
+              ${telnyx.phoneNumber ? `phoneNumber=${JSON.stringify(telnyx.phoneNumber)}` : ''}
               ${telnyx.message ? `message` : ''}
               ${telnyx.voice ? `voice` : ''}
             />

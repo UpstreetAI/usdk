@@ -118,13 +118,13 @@ export type DiscordBotClient = any;
 
 export type TelnyxProps = {
   apiKey: string;
-  phoneNumbers?: string[];
+  phoneNumber?: string;
   message: boolean;
   voice: boolean;
 };
 export type TelnyxBotArgs = {
   apiKey: string;
-  phoneNumbers: string[];
+  phoneNumber: string;
   message: boolean;
   voice: boolean;
   agent: ActiveAgentObject;
@@ -325,7 +325,7 @@ export type DiscordManager = {
   destroy: () => void;
 };
 export type TelnyxBot = EventTarget & {
-  getPhoneNumbers: () => string[];
+  getPhoneNumber: () => string;
   call: (opts: {
     fromPhoneNumber: string,
     toPhoneNumber: string,

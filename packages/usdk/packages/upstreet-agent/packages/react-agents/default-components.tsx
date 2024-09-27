@@ -1567,8 +1567,7 @@ export const TelnyxDriver = () => {
           const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
           const telnyxBot = telnyxBots[0];
           if (telnyxBot) {
-            const phoneNumbers = telnyxBot.getPhoneNumbers();
-            const fromPhoneNumber = phoneNumbers[0];
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
             if (fromPhoneNumber) {
               await telnyxBot.call({
                 fromPhoneNumber,
@@ -1627,8 +1626,7 @@ export const TelnyxDriver = () => {
           const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
           const telnyxBot = telnyxBots[0];
           if (telnyxBot) {
-            const phoneNumbers = telnyxBot.getPhoneNumbers();
-            const fromPhoneNumber = phoneNumbers[0];
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
             if (fromPhoneNumber) {
               await telnyxBot.text(text, undefined, {
                 fromPhoneNumber,

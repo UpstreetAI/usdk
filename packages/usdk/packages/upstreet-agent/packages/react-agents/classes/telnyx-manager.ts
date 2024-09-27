@@ -56,10 +56,10 @@ const bindOutgoing = ({
   // chat messages
   conversation.addEventListener('remotemessage', async (e: Event) => {
     const e2 = e as ExtendableMessageEvent<ActionMessageEventData>;
-    // console.log('telnyx manager outgoing message', e.data, {
-    //   channelId,
-    //   userId,
-    // });
+    console.log('telnyx manager outgoing message', {
+      fromPhoneNumber,
+      toPhoneNumber,
+    }, e2.data);
     const {
       message,
     } = e2.data;
@@ -71,6 +71,14 @@ const bindOutgoing = ({
       const {
         text,
       } = args as { text: string };
+      console.log('telnyx client text', [
+        text,
+        undefined,
+        {
+          fromPhoneNumber,
+          toPhoneNumber,
+        },
+      ]);
       telnyxClient.text(text, undefined, {
         fromPhoneNumber,
         toPhoneNumber,
@@ -91,7 +99,7 @@ const bindOutgoing = ({
 
 export class TelnyxBot extends EventTarget {
   apiKey: string;
-  phoneNumbers: string[];
+  phoneNumber: string;
   message: boolean;
   voice: boolean;
   agent: ActiveAgentObject;
@@ -102,9 +110,9 @@ export class TelnyxBot extends EventTarget {
     super();
 
     // arguments
-    const {
+    let {
       apiKey,
-      phoneNumbers,
+      phoneNumber,
       message,
       voice,
       agent,
@@ -135,17 +143,24 @@ export class TelnyxBot extends EventTarget {
       if (signal.aborted) return;
 
       console.log('telnyx connect 2', status);
-      let connectablePhoneNumbers = status.phoneNumbers;
-      if (phoneNumbers.length > 0) {
-        connectablePhoneNumbers = connectablePhoneNumbers
-          .filter((pn: string) => phoneNumbers.includes(pn));
+      const connectablePhoneNumbers = status.phoneNumbers;
+      if (phoneNumber) {
+        if (connectablePhoneNumbers.includes(phoneNumber)) {
+          // ok
+        } else {
+          throw new Error('phone number not connectable');
+        }
+      } else {
+        if (connectablePhoneNumbers.length > 0) {
+          phoneNumber = connectablePhoneNumbers[0];
+        } else {
+          throw new Error('no connectable phone numbers');
+        }
       }
-      console.log('telnyx connect 3', {
-        connectablePhoneNumbers,
-      });
-      this.phoneNumbers = connectablePhoneNumbers;
+
+      this.phoneNumber = phoneNumber;
       await telnyxClient.connect({
-        phoneNumbers: connectablePhoneNumbers,
+        phoneNumber,
       });
       console.log('telnyx connect 4');
       if (signal.aborted) return;
@@ -272,40 +287,44 @@ export class TelnyxBot extends EventTarget {
         fromPhoneNumber,
         toPhoneNumber,
       });
-      const conversation = new ConversationObject({
-        agent,
-        getHash: () => hash,
-      });
-      const player = makePlayerFromPhoneNumber(toPhoneNumber);
-      conversation.addAgent(player.playerId, player);
+      let conversation = this.conversations.get(hash);
+      if (!conversation) {
+        conversation = new ConversationObject({
+          agent,
+          getHash: () => hash,
+        });
+        const player = makePlayerFromPhoneNumber(toPhoneNumber);
+        conversation.addAgent(player.playerId, player);
 
-      this.conversations.set(hash, conversation);
+        this.conversations.set(hash, conversation);
 
-      bindConversationToAgent({
-        agent,
-        conversation,
-      });
-      bindOutgoing({
-        conversation,
-        telnyxClient,
-        fromPhoneNumber,
-        toPhoneNumber,
-      });
-
+        bindConversationToAgent({
+          agent,
+          conversation,
+        });
+        bindOutgoing({
+          conversation,
+          telnyxClient,
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
+      }
       return conversation;
     };
     const _bindIncoming = () => {
       // chat messages
       telnyxClient.addEventListener('message', async (e: MessageEvent<TelnyxMessageArgs>) => {
         const {
+          // note: handling of these is reversed because the message is from the other person's perspective
           fromPhoneNumber,
           toPhoneNumber,
           text,
         } = e.data;
+        console.log('handling telnyx message 1', e.data);
 
         const conversation = ensureConversation({
-          fromPhoneNumber,
-          toPhoneNumber,
+          fromPhoneNumber: toPhoneNumber,
+          toPhoneNumber: fromPhoneNumber,
         });
 
         const rawMessage = {
@@ -315,8 +334,8 @@ export class TelnyxBot extends EventTarget {
           },
         };
 
-        const id = getIdFromPhoneNumber(toPhoneNumber);
-        const username = getUsernameFromPhoneNumber(toPhoneNumber);
+        const id = getIdFromPhoneNumber(fromPhoneNumber);
+        const username = getUsernameFromPhoneNumber(fromPhoneNumber);
         const agent = {
           id,
           name: username,
@@ -325,7 +344,9 @@ export class TelnyxBot extends EventTarget {
           agent,
         });
 
+        console.log('handling telnyx message 2', newMessage);
         await conversation.addLocalMessage(newMessage);
+        console.log('handling telnyx message 3');
       });
       // voice data
       telnyxClient.addEventListener('voice', async (e: MessageEvent<TelnyxVoiceArgs>) => {
@@ -356,8 +377,8 @@ export class TelnyxBot extends EventTarget {
       console.warn('telnyx bot error', err);
     });
   }
-  getPhoneNumbers() {
-    return this.phoneNumbers;
+  getPhoneNumber() {
+    return this.phoneNumber;
   }
   async call(opts: {
     fromPhoneNumber: string,
