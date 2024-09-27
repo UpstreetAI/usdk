@@ -177,7 +177,7 @@ export const featureSpecs = [
   {
     name: 'telnyx',
     description: dedent`\
-      Add a Telnyx phone call/sms support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
+      Add Telnyx phone call/SMS support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
 
       Phone number must be in +E.164 format (e.g. +14151234567).
     `,

@@ -197,7 +197,7 @@ export class TelnyxClient extends EventTarget {
       ws.addEventListener('close', handleClose);
     });
   }
-  send(text: string, mediaUrls: string[] = [], {
+  text(text: string | undefined, mediaUrls: string[] | undefined, {
     fromPhoneNumber,
     toPhoneNumber,
   }: {
@@ -210,7 +210,7 @@ export class TelnyxClient extends EventTarget {
         from: fromPhoneNumber,
         to: toPhoneNumber,
         text: text ? text : undefined,
-        media_urls: mediaUrls.length > 0 ? mediaUrls : undefined,
+        media_urls: mediaUrls?.length > 0 ? mediaUrls : undefined,
       },
     };
     this.ws.send(JSON.stringify(o));
