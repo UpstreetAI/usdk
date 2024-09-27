@@ -4,7 +4,6 @@ import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
-import jsAgo from 'js-ago';
 
 import type {
   AppContextValue,
@@ -102,16 +101,13 @@ import {
 import { r2EndpointUrl } from './util/endpoints.mjs';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
+import { timeAgo } from './util/time-util.mjs';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
 
 // utils
 
-const timeAgo = (timestamp: Date) => {
-  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
-  return jsAgo(timestampInSeconds, { format: 'short' });
-};
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 const defaultPriorityOffset = 100;
 const maxDefaultMemoryValues = 8;

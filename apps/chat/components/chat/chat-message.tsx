@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl, timeAgo } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
@@ -7,6 +7,7 @@ import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
+import { timeAgo } from 'react-agents/util/time-util.mjs';
 
 // import type { User } from '@supabase/supabase-js'
 
