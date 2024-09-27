@@ -63,7 +63,7 @@ const bindOutgoing = ({
   // chat messages
   conversation.addEventListener('remotemessage', async (e: Event) => {
     const e2 = e as ExtendableMessageEvent<ActionMessageEventData>;
-    // console.log('discord manager outgoing message', e.data, {
+    // console.log('telnyx manager outgoing message', e.data, {
     //   channelId,
     //   userId,
     // });
@@ -100,7 +100,6 @@ export class TelnyxBot extends EventTarget {
   message: boolean;
   voice: boolean;
   agent: ActiveAgentObject;
-  discordBotClient: TelnyxClient;
   conversations: Map<string, ConversationObject>;
   abortController: AbortController;
   constructor(args: TelnyxArgs) {
@@ -122,18 +121,18 @@ export class TelnyxBot extends EventTarget {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
-    // initialize discord bot client
+    // initialize telnyx client
     const telnyxClient = new TelnyxClient({
       apiKey,
     });
-    // bind discord bot client
+    // bind telnyx client
     signal.addEventListener('abort', () => {
       telnyxClient.destroy();
     });
 
     this.conversations = new Map();
 
-    // connect discord bot client
+    // connect telnyx client
     const _connect = async () => {
       console.log('telnyx connect 1');
       const status = await telnyxClient.status();
