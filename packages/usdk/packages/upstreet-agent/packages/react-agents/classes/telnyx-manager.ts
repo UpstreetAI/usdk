@@ -54,13 +54,11 @@ const getTelnyxCallConversationHash = (callId: string) =>
 const bindOutgoing = ({
   conversation,
   telnyxClient,
-  channelId,
-  userId,
+  callId,
 }: {
   conversation: ConversationObject,
   telnyxClient: TelnyxClient,
-  channelId?: string,
-  userId?: string,
+  callId: string,
 }) => {
   // chat messages
   conversation.addEventListener('remotemessage', async (e: Event) => {
@@ -80,7 +78,9 @@ const bindOutgoing = ({
       const {
         text,
       } = args as { text: string };
-      telnyxClient.send(text);
+      telnyxClient.send(text, {
+        callId,
+      });
     } else {
       // ignore
     }
@@ -180,7 +180,7 @@ export class TelnyxBot extends EventTarget {
           bindOutgoing({
             conversation,
             telnyxClient,
-            channelId: callId,
+            callId,
           });
 
           this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
@@ -323,7 +323,6 @@ export class TelnyxManager {
   addTelnyxBot(args: TelnyxArgs) {
     const telnyxBot = new TelnyxBot(args);
 
-    // route conversation events: discord bot -> discord manager
     telnyxBot.addEventListener('conversationadd', (e: Event) => {
       const e2 = e as MessageEvent<ConversationAddEventData>;
       this.conversationManager.addConversation(e2.data.conversation);
