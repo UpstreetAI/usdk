@@ -40,6 +40,11 @@ export type TelnyxVoiceArgs = {
   toPhoneNumber: string;
   data: Uint8Array;
 };
+type CallSpec = {
+  fromPhoneNumber: string,
+  toPhoneNumber: string,
+  metadata?: any,
+};
 
 //
 
@@ -94,6 +99,7 @@ export class TelnyxClient extends EventTarget {
     })();
     const ws = new WebSocket(u);
     ws.binaryType = 'arraybuffer';
+    const calls = new Map<string, CallSpec>(); // call_control_id -> CallSpec
     ws.addEventListener('message', (e) => {
       // console.log('message', e.data);
 
@@ -163,12 +169,32 @@ export class TelnyxClient extends EventTarget {
             ws.send(JSON.stringify(o));
             break;
           }
-          case 'call.answered':
-          case 'call.hangup': {
-            console.log('got call meta', {
+          case 'call.answered': {
+            console.log('got call.answered', {
               eventType,
               payload,
             });
+            const {
+              call_control_id,
+              client_state,
+            } = payload;
+            const j = JSON.parse(atob(client_state));
+            const callSpec: CallSpec = {
+              fromPhoneNumber: j.from,
+              toPhoneNumber: j.to,
+            };
+            calls.set(call_control_id, callSpec);
+            break;
+          }
+          case 'call.hangup': {
+            console.log('got call.hangup', {
+              eventType,
+              payload,
+            });
+            const {
+              call_control_id,
+            } = payload;
+            calls.delete(call_control_id);
             break;
           }
           default: {
@@ -181,13 +207,59 @@ export class TelnyxClient extends EventTarget {
         const { event: eventType } = body;
         switch (eventType) {
           case 'start': {
-            // nothing
+            console.log('stream start', body);
+            // bind the stream to the call
+            const {
+              start,
+              stream_id,
+            } = body;
+            const {
+              call_control_id,
+            } = start;
+            const callSpec = calls.get(call_control_id);
+            if (callSpec) {
+              callSpec.metadata = {
+                stream_id,
+              };
+            } else {
+              console.warn('no call spec for call_control_id: ' + call_control_id);
+            }
             break;
           }
           case 'media': {
-            const { media } = body;
+            // console.log('media', body);
+            const { stream_id, media } = body;
             const { chunk, payload, timestamp, track } = media;
-            console.log('media', payload);
+
+            // find the matching call spec
+            let callSpec: CallSpec | undefined;
+            for (const cs of calls.values()) {
+              if (cs.metadata?.stream_id === stream_id) {
+                callSpec = cs;
+                break;
+              }
+            }
+            if (callSpec) {
+              const {
+                fromPhoneNumber,
+                toPhoneNumber,
+              } = callSpec;
+              const buffer = Buffer.from(payload, 'base64');
+              const uint8Array = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+              const o = {
+                fromPhoneNumber,
+                toPhoneNumber,
+                data: uint8Array,
+              };
+              console.log('dispatch voice', o);
+              this.dispatchEvent(
+                new MessageEvent<TelnyxVoiceArgs>('voice', {
+                  data: o,
+                })
+              );
+            } else {
+              console.warn('no call spec for stream_id: ' + stream_id);
+            }
             break;
           }
           default: {

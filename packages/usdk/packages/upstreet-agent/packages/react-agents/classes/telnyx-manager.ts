@@ -355,7 +355,7 @@ export class TelnyxBot extends EventTarget {
           toPhoneNumber,
           data,
         } = e.data;
-        console.log('telnyx got voice data', {
+        console.log('voice', {
           fromPhoneNumber,
           toPhoneNumber,
           data,
