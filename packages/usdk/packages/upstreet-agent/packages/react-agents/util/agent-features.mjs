@@ -82,6 +82,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
+    examples: [{voiceEndpoint: defaultVoices[0].voiceEndpoint},],
     imports: () => [
       'TTS',
     ],
@@ -110,6 +111,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
+    examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
     imports: () => [
       'RateLimit',
     ],
@@ -147,6 +149,7 @@ export const featureSpecs = [
       }),
       z.null(),
     ]),
+    examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
     imports: (discordBot) => {
       const channels = formatDiscordBotChannels(discordBot.channels);
       if (discordBot.token && channels.length > 0) {
@@ -181,6 +184,7 @@ export const featureSpecs = [
       z.array(storeItemType),
       z.null(),
     ]),
+    examples: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
     imports: (storeItems) => {
       const isValidStoreItem = (storeItem) =>
         !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;

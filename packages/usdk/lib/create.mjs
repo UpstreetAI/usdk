@@ -122,6 +122,7 @@ export const create = async (args, opts) => {
   const yes = args.yes;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
+  const features = typeof args.features === 'string' ? JSON.parse(args.features) : (args.features || {});
 
   const jwt = opts?.jwt || await getLoginJwt();
   let guid = null;
@@ -247,8 +248,14 @@ export const create = async (args, opts) => {
     const createAgentJson = async () => {
       // initialize
       const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+      // Add user specified features to agentJsonInit being passed to the interview process for context
+      if (Object.keys(features).length > 0) {
+        agentJsonInit.features = {
+          ...features,
+        };
+      }
       // run the interview, if applicable
-      let agentJson = await (async () => {
+      const agentJson = await (async () => {
         // if the agent json is complete
         if (agentJsonString || source || yes) {
           return agentJsonInit;

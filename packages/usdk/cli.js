@@ -115,6 +115,7 @@ import {
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-util.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -3308,6 +3309,19 @@ const main = async () => {
 
   // agents
   const templateNames = await getTemplateNames();
+
+  // Generate the JSON string dynamically based on the examples in featureSpecs
+  const featureExamples = featureSpecs.reduce((acc, feature) => {
+    acc[feature.name] = feature.examples;
+    return acc;
+  }, {});
+  const featureExamplesString = Object.entries(featureExamples)
+    .map(([name, examples]) => {
+      const exampleString = examples.map(example => JSON.stringify(example)).join(', ');
+      return `"${name}", example using json ${exampleString}`;
+    })
+    .join('. ');
+
   program
     .command('create')
     .description('Create a new agent, from either a prompt or template')
@@ -3321,6 +3335,10 @@ const main = async () => {
     .option(
       `-t, --template <string>`,
       `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
+    )
+    .option(
+      `-feat, --features <feature...>`,
+      `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
       await handleError(async () => {
@@ -3337,6 +3355,21 @@ const main = async () => {
             ...opts,
           };
         }
+
+        // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
+        if (opts.features) {
+          try {
+            const featuresString = opts.features.join(' ');
+            const parsedJson = JSON.parse(featuresString);
+            args.features = { ...parsedJson };
+          } catch (error) {
+            args.features = opts.features.reduce((acc, feature) => {
+              acc[feature] = featureExamples[feature][0];
+              return acc;
+            }, {});
+          }
+        }
+        
         await create(args);
       });
     });

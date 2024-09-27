@@ -14,7 +14,7 @@ export function Body( {children}: MainProps) {
   const {isFetchingUser} = useSupabase();
 
   return (
-    <main className="flex flex-col flex-1 bg-muted/50">
+    <main className="flex flex-col flex-1">
       {isFetchingUser ? (
         <Loading />
       ) : children}

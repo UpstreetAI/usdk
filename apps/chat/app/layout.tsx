@@ -54,10 +54,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body
         className={cn(
-          'font-sans antialiased',
+          'font-[Aller-Regular] antialiased',
           GeistSans.variable,
           GeistMono.variable
         )}
+        style={{
+          backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
+          backgroundPosition: 'center',
+          backgroundSize: 'cover',
+        }}
       >
         <Toaster position="top-center" />
         <Providers
