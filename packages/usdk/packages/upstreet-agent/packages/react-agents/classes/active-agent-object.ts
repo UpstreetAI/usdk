@@ -22,6 +22,9 @@ import {
   DiscordManager,
 } from './discord-manager';
 import {
+  TelnyxManager,
+} from './telnyx-manager';
+import {
   TaskManager,
 } from './task-manager';
 import { PingManager } from './ping-manager';
@@ -37,6 +40,7 @@ export class ActiveAgentObject extends AgentObject {
   // state
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  telnyxManager: TelnyxManager;
   taskManager: TaskManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
@@ -71,6 +75,9 @@ export class ActiveAgentObject extends AgentObject {
       chatsSpecification,
     });
     this.discordManager = new DiscordManager({
+      conversationManager,
+    });
+    this.telnyxManager = new TelnyxManager({
       conversationManager,
     });
     this.taskManager = new TaskManager({
@@ -205,11 +212,13 @@ export class ActiveAgentObject extends AgentObject {
   live() {
     this.chatsManager.live();
     this.discordManager.live();
+    this.telnyxManager.live();
     this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
     this.discordManager.destroy();
+    this.telnyxManager.destroy();
     this.pingManager.destroy();
   }
 }
