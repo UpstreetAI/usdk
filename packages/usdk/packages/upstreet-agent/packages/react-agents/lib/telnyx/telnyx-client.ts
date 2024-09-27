@@ -134,12 +134,28 @@ export class TelnyxClient extends EventTarget {
           }
           case 'call.initiated': {
             const callControlId = payload.call_control_id;
+            let from = '';
+            let to = '';
+            if (payload.direction === 'incoming') {
+              from = payload.to;
+              to = payload.from;
+            } else if (payload.direction === 'outgoing') {
+              from = payload.from;
+              to = payload.to;
+            } else {
+              console.warn('unhandled direction: ' + JSON.stringify(payload.direction));
+              throw new Error('unhandled direction: ' + JSON.stringify(payload.direction));
+            }
             console.log('got call start', {
               callControlId,
+              from,
+              to,
             });
             const o = {
               method: 'answerCall',
               args: {
+                from,
+                to,
                 call_control_id: callControlId,
               },
             };
@@ -156,23 +172,27 @@ export class TelnyxClient extends EventTarget {
             break;
           }
           default: {
-            console.log('unhandled', eventType);
-            throw new Error('unhandled: ' + eventType);
+            console.log('unhandled webhook event: ' + JSON.stringify(eventType));
+            throw new Error('unhandled webhook event: ' + JSON.stringify(eventType));
           }
         }
       } else {
         // if it's a stream
         const { event: eventType } = body;
         switch (eventType) {
+          case 'start': {
+            // nothing
+            break;
+          }
           case 'media': {
             const { media } = body;
             const { chunk, payload, timestamp, track } = media;
-            console.log('got media', payload);
+            console.log('media', payload);
             break;
           }
           default: {
-            console.log('unhandled', eventType);
-            throw new Error('unhandled: ' + eventType);
+            console.warn('unhandled stream event: ' + JSON.stringify(eventType));
+            throw new Error('unhandled stream event: ' + JSON.stringify(eventType));
           }
         }
       }
