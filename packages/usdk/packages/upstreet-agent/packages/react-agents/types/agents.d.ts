@@ -118,11 +118,15 @@ export type DiscordBotClient = any;
 
 export type TelnyxProps = {
   apiKey: string;
-  phoneNumbers: string[];
+  phoneNumbers?: string[];
   message: boolean;
   voice: boolean;
 };
-export type TelnyxArgs = TelnyxProps & {
+export type TelnyxBotArgs = {
+  apiKey: string;
+  phoneNumbers: string[];
+  message: boolean;
+  voice: boolean;
   agent: ActiveAgentObject;
 };
 
@@ -314,9 +318,29 @@ export type DiscordBot = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  conversationManager: ConversationManager;
+  // conversationManager: ConversationManager;
   addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
   removeDiscordBot: (client: DiscordBot) => void;
+  live: () => void;
+  destroy: () => void;
+};
+export type TelnyxBot = EventTarget & {
+  getPhoneNumbers: () => string[];
+  call: (opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) => Promise<void>;
+  text: (text: string | undefined, mediaUrls: string[] | undefined, opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) => Promise<void>;
+  destroy: () => void;
+};
+export type TelnyxManager = EventTarget & {
+  // conversationManager: ConversationManager;
+  getTelnyxBots: () => TelnyxBot[];
+  addTelnyxBot: (args: TelnyxBotArgs) => TelnyxBot;
+  removeTelnyxBot: (client: TelnyxBot) => void;
   live: () => void;
   destroy: () => void;
 };
@@ -337,6 +361,7 @@ export type ActiveAgentObject = AgentObject & {
 
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  telnyxManager: TelnyxManager;
   pingManager: PingManager;
   taskManager: TaskManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
