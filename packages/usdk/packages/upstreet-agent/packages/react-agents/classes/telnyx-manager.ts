@@ -1,6 +1,6 @@
 import uuidByString from 'uuid-by-string';
 import {
-  TelnyxArgs,
+  TelnyxBotArgs,
   ConversationAddEventData,
   ConversationRemoveEventData,
   ActiveAgentObject,
@@ -13,7 +13,11 @@ import {
 import {
   Player,
 } from './player';
-import { TelnyxClient } from '../lib/telnyx/telnyx-client';
+import { TelnyxClient, getTelnyxCallConversationHash } from '../lib/telnyx/telnyx-client';
+import type {
+  TelnyxMessageArgs,
+  TelnyxVoiceArgs,
+} from '../lib/telnyx/telnyx-client';
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
@@ -22,19 +26,8 @@ import { ConversationManager } from './conversation-manager';
 
 //
 
-type TelnyxCallType = 'message' | 'voice';
-type TelnyxCall = {
-  id: string;
-  phoneNumber: string;
-  type: TelnyxCallType;
-};
-type TelnyxCallArgs = {
-  call: TelnyxCall,
-};
-
-type TelnyxPhoneNumberArgs = {
-  call: TelnyxCall,
-  phoneNumber: string;
+type BotEventArgs = {
+  bot: TelnyxBot,
 };
 
 //
@@ -49,16 +42,16 @@ const makePlayerFromPhoneNumber = (phoneNumber: string) => {
   });
   return player;
 };
-const getTelnyxCallConversationHash = (callId: string) =>
-  `telnyx:call:${callId}`;
 const bindOutgoing = ({
   conversation,
   telnyxClient,
-  callId,
+  fromPhoneNumber,
+  toPhoneNumber,
 }: {
   conversation: ConversationObject,
   telnyxClient: TelnyxClient,
-  callId: string,
+  fromPhoneNumber: string,
+  toPhoneNumber: string,
 }) => {
   // chat messages
   conversation.addEventListener('remotemessage', async (e: Event) => {
@@ -78,8 +71,9 @@ const bindOutgoing = ({
       const {
         text,
       } = args as { text: string };
-      telnyxClient.send(text, {
-        callId,
+      telnyxClient.text(text, undefined, {
+        fromPhoneNumber,
+        toPhoneNumber,
       });
     } else {
       // ignore
@@ -97,12 +91,14 @@ const bindOutgoing = ({
 
 export class TelnyxBot extends EventTarget {
   apiKey: string;
+  phoneNumbers: string[];
   message: boolean;
   voice: boolean;
   agent: ActiveAgentObject;
-  conversations: Map<string, ConversationObject>;
+  telnyxClient: TelnyxClient;
+  conversations = new Map<string, ConversationObject>;
   abortController: AbortController;
-  constructor(args: TelnyxArgs) {
+  constructor(args: TelnyxBotArgs) {
     super();
 
     // arguments
@@ -129,8 +125,8 @@ export class TelnyxBot extends EventTarget {
     signal.addEventListener('abort', () => {
       telnyxClient.destroy();
     });
-
-    this.conversations = new Map();
+    // latch telnyx client
+    this.telnyxClient = telnyxClient;
 
     // connect telnyx client
     const _connect = async () => {
@@ -138,7 +134,7 @@ export class TelnyxBot extends EventTarget {
       const status = await telnyxClient.status();
       if (signal.aborted) return;
 
-      console.log('telnyx connect 2');
+      console.log('telnyx connect 2', status);
       let connectablePhoneNumbers = status.phoneNumbers;
       if (phoneNumbers.length > 0) {
         connectablePhoneNumbers = connectablePhoneNumbers
@@ -147,49 +143,46 @@ export class TelnyxBot extends EventTarget {
       console.log('telnyx connect 3', {
         connectablePhoneNumbers,
       });
+      this.phoneNumbers = connectablePhoneNumbers;
       await telnyxClient.connect({
-        connectablePhoneNumbers,
+        phoneNumbers: connectablePhoneNumbers,
       });
       console.log('telnyx connect 4');
       if (signal.aborted) return;
       console.log('telnyx connect 5');
     };
-    const _bindCalls = () => {
+    /* const _bindCalls = () => {
       telnyxClient.addEventListener('callconnect', (e: MessageEvent<TelnyxCallArgs>) => {
         const {
-          call,
+          fromPhoneNumber,
+          toPhoneNumber,
         } = e.data;
-        const {
-          id: callId,
-          type,
-        } = call;
-        if (type === 'message' && this.message) {
-          const conversation = new ConversationObject({
-            agent,
-            getHash: () => {
-              return getTelnyxCallConversationHash(callId);
-            },
-          });
-          this.conversations.set(callId, conversation);
+        const hash = getTelnyxCallConversationHash({
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
+        const conversation = new ConversationObject({
+          agent,
+          getHash: () => hash,
+        });
+        this.conversations.set(hash, conversation);
 
-          bindConversationToAgent({
-            agent,
-            conversation,
-          });
-          bindOutgoing({
-            conversation,
-            telnyxClient,
-            callId,
-          });
+        bindConversationToAgent({
+          agent,
+          conversation,
+        });
+        bindOutgoing({
+          conversation,
+          telnyxClient,
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
 
-          this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-            data: {
-              conversation,
-            },
-          }));
-        } else if (type === 'voice' && this.voice) {
-          // nothing
-        }
+        this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
+          data: {
+            conversation,
+          },
+        }));
       });
       telnyxClient.addEventListener('calldisconnect', (e: MessageEvent<TelnyxCallArgs>) => {
         const {
@@ -216,16 +209,21 @@ export class TelnyxBot extends EventTarget {
       });
     };
     const _bindPhoneNumberAdd = () => {
-      telnyxClient.addEventListener('phonenumberadd', (e: MessageEvent<TelnyxPhoneNumberArgs>) => {
-        const { call, phoneNumber } = e.data;
+      telnyxClient.addEventListener('phonenumberadd', (e: MessageEvent<TelnyxPhoneArgs>) => {
         const {
-          id: callId,
-        } = call;
+          fromPhoneNumber,
+          toPhoneNumber,
+        } = e.data;
         // console.log('got phone number add', {
-        //   member,
+        //   fromPhoneNumber,
+        //   toPhoneNumber,
         // });
-        const player = makePlayerFromPhoneNumber(phoneNumber);
-        const conversation = this.conversations.get(callId);
+        const hash = getTelnyxCallConversationHash({
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
+        const conversation = this.conversations.get(hash);
+        const player = makePlayerFromPhoneNumber(toPhoneNumber);
         if (conversation) {
           conversation.addAgent(player.playerId, player);
         } else {
@@ -237,16 +235,21 @@ export class TelnyxBot extends EventTarget {
       });
     };
     const _bindPhoneNumberRemove = () => {
-      telnyxClient.addEventListener('phonenumberremove', (e: MessageEvent<TelnyxPhoneNumberArgs>) => {
-        const { call, phoneNumber } = e.data;
+      telnyxClient.addEventListener('phonenumberremove', (e: MessageEvent<TelnyxPhoneArgs>) => {
         const {
-          id: callId,
-        } = call;
+          fromPhoneNumber,
+          toPhoneNumber,
+        } = e.data;
         // console.log('got phone number remove', {
-        //   member,
+        //  fromPhoneNumber,
+        //  toPhoneNumber,
         // });
-        const playerId = uuidByString(phoneNumber);
-        const conversation = this.conversations.get(callId);
+        const hash = getTelnyxCallConversationHash({
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
+        const conversation = this.conversations.get(hash);
+        const playerId = getIdFromPhoneNumber(toPhoneNumber);
         if (conversation) {
           conversation.removeAgent(playerId);
         } else {
@@ -256,70 +259,139 @@ export class TelnyxBot extends EventTarget {
           });
         }
       });
+    }; */
+    // XXX support conversation expiry (based on timeout?)
+    const ensureConversation = ({
+      fromPhoneNumber,
+      toPhoneNumber,
+    }: {
+      fromPhoneNumber: string,
+      toPhoneNumber: string,
+    }) => {
+      const hash = getTelnyxCallConversationHash({
+        fromPhoneNumber,
+        toPhoneNumber,
+      });
+      const conversation = new ConversationObject({
+        agent,
+        getHash: () => hash,
+      });
+      const player = makePlayerFromPhoneNumber(toPhoneNumber);
+      conversation.addAgent(player.playerId, player);
+
+      this.conversations.set(hash, conversation);
+
+      bindConversationToAgent({
+        agent,
+        conversation,
+      });
+      bindOutgoing({
+        conversation,
+        telnyxClient,
+        fromPhoneNumber,
+        toPhoneNumber,
+      });
+
+      return conversation;
     };
     const _bindIncoming = () => {
       // chat messages
-      telnyxClient.addEventListener('message', async (e: MessageEvent) => {
+      telnyxClient.addEventListener('message', async (e: MessageEvent<TelnyxMessageArgs>) => {
         const {
-          call,
-          phoneNumber,
+          fromPhoneNumber,
+          toPhoneNumber,
           text,
         } = e.data;
-        const {
-          callId,
-        } = call;
 
-        // look up conversation
-        const conversation = this.conversations.get(callId);
-        if (conversation) {
-          const rawMessage = {
-            method: 'say',
-            args: {
-              text,
-            },
-          };
-          const id = getIdFromPhoneNumber(phoneNumber);
-          const username = getUsernameFromPhoneNumber(phoneNumber);
-          const agent = {
-            id,
-            name: username,
-          };
-          const newMessage = formatConversationMessage(rawMessage, {
-            agent,
-          });
-          await conversation.addLocalMessage(newMessage);
-        } else {
-          console.warn('got message for unknown conversation', {
-            data: e.data,
-            conversations: this.conversations,
-          });
-        }
+        const conversation = ensureConversation({
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
+
+        const rawMessage = {
+          method: 'say',
+          args: {
+            text,
+          },
+        };
+
+        const id = getIdFromPhoneNumber(toPhoneNumber);
+        const username = getUsernameFromPhoneNumber(toPhoneNumber);
+        const agent = {
+          id,
+          name: username,
+        };
+        const newMessage = formatConversationMessage(rawMessage, {
+          agent,
+        });
+
+        await conversation.addLocalMessage(newMessage);
+      });
+      // voice data
+      telnyxClient.addEventListener('voice', async (e: MessageEvent<TelnyxVoiceArgs>) => {
+        const {
+          fromPhoneNumber,
+          toPhoneNumber,
+          data,
+        } = e.data;
+        console.log('telnyx got voice data', {
+          fromPhoneNumber,
+          toPhoneNumber,
+          data,
+        });
+        const conversation = ensureConversation({
+          fromPhoneNumber,
+          toPhoneNumber,
+        });
       });
     };
 
     (async () => {
-      _bindCalls();
-      _bindPhoneNumberAdd();
-      _bindPhoneNumberRemove();
+      // _bindCalls();
+      // _bindPhoneNumberAdd();
+      // _bindPhoneNumberRemove();
       _bindIncoming();
       await _connect();
-    })();
+    })().catch(err => {
+      console.warn('telnyx bot error', err);
+    });
+  }
+  getPhoneNumbers() {
+    return this.phoneNumbers;
+  }
+  async call(opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) {
+    this.telnyxClient.call(opts);
+  }
+  async text(text: string | undefined, mediaUrls: string[] | undefined, opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) {
+    this.telnyxClient.text(text, mediaUrls, opts);
   }
   destroy() {
     this.abortController.abort();
     this.abortController = new AbortController();
   }
 }
-export class TelnyxManager {
+export class TelnyxManager extends EventTarget {
   conversationManager: ConversationManager;
+  telnyxBots = new Set<TelnyxBot>;
   constructor({
     conversationManager,
   }: {
     conversationManager: ConversationManager,
   }) {
+    super();
+
     this.conversationManager = conversationManager;
   }
-  addTelnyxBot(args: TelnyxArgs) {
+  getTelnyxBots() {
+    return Array.from(this.telnyxBots);
+  }
+  addTelnyxBot(args: TelnyxBotArgs) {
     const telnyxBot = new TelnyxBot(args);
 
     telnyxBot.addEventListener('conversationadd', (e: Event) => {
@@ -330,11 +402,26 @@ export class TelnyxManager {
       const e2 = e as MessageEvent<ConversationRemoveEventData>;
       this.conversationManager.removeConversation(e2.data.conversation);
     });
+    this.telnyxBots.add(telnyxBot);
+
+    this.dispatchEvent(new MessageEvent<BotEventArgs>('botadd', {
+      data: {
+        bot: telnyxBot,
+      },
+    }));
 
     return telnyxBot;
   }
   removeTelnyxBot(telnyxBot: TelnyxBot) {
     telnyxBot.destroy();
+    
+    this.telnyxBots.delete(telnyxBot);
+
+    this.dispatchEvent(new MessageEvent<BotEventArgs>('botremove', {
+      data: {
+        bot: telnyxBot,
+      },
+    }));
   }
   live() {
     // nothing
