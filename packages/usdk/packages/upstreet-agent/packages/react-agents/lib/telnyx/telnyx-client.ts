@@ -29,6 +29,30 @@ import {
 
 //
 
+export type TelnyxMessageArgs = {
+  fromPhoneNumber: string;
+  toPhoneNumber: string;
+  text: string;
+  media: object[],
+};
+export type TelnyxVoiceArgs = {
+  fromPhoneNumber: string;
+  toPhoneNumber: string;
+  data: Uint8Array;
+};
+
+//
+
+export const getTelnyxCallConversationHash = ({
+  fromPhoneNumber,
+  toPhoneNumber,
+}: {
+  fromPhoneNumber: string,
+  toPhoneNumber: string,
+}) => `telnyx:call:${fromPhoneNumber}:${toPhoneNumber}`;
+
+//
+
 export class TelnyxClient extends EventTarget {
   apiKey: string;
   ws: WebSocket | null = null;
@@ -94,6 +118,16 @@ export class TelnyxClient extends EventTarget {
             //     media_urls: media.map((m) => m.url),
             //   },
             // };
+            this.dispatchEvent(
+              new MessageEvent<TelnyxMessageArgs>('message', {
+                data: {
+                  fromPhoneNumber: from.phone_number,
+                  toPhoneNumber: to.phone_number,
+                  text,
+                  media,
+                },
+              })
+            );
             break;
           }
           case 'call.initiated': {
