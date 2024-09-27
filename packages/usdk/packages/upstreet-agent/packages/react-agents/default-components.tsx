@@ -1535,7 +1535,7 @@ export const TelnyxDriver = () => {
   return telnyxEnabled && (
     <>
       <Action
-        name="callPhoneNumber"
+        name="callPhone"
         description={
           dedent`\
             Start a phone call with a phone number.
@@ -1590,7 +1590,7 @@ export const TelnyxDriver = () => {
         }}
       />
       <Action
-        name="textPhoneNumber"
+        name="textPhone"
         description={
           dedent`\
             Text message (SMS/MMS) a phone number.
