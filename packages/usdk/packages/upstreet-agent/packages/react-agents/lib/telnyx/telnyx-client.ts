@@ -167,6 +167,14 @@ export class TelnyxClient extends EventTarget {
     await readyPromise;
   }
 
+  send(text: string, {
+    callId,
+  }: {
+    callId: string,
+  }) {
+    // XXX finish this
+  }
+
   destroy() {
     this.ws && this.ws.close();
   }
