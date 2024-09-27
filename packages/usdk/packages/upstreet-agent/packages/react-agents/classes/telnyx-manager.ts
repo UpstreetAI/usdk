@@ -164,7 +164,7 @@ export class TelnyxBot extends EventTarget {
           id: callId,
           type,
         } = call;
-        if (type === 'message') {
+        if (type === 'message' && this.message) {
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
@@ -188,8 +188,31 @@ export class TelnyxBot extends EventTarget {
               conversation,
             },
           }));
-        } else if (type === 'voice') {
+        } else if (type === 'voice' && this.voice) {
           // nothing
+        }
+      });
+      telnyxClient.addEventListener('calldisconnect', (e: MessageEvent<TelnyxCallArgs>) => {
+        const {
+          call,
+        } = e.data;
+        const {
+          id: callId,
+          type,
+        } = call;
+        const conversation = this.conversations.get(callId);
+        if (conversation) {
+          this.conversations.delete(callId);
+          this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
+            data: {
+              conversation,
+            },
+          }));
+        } else {
+          console.warn('got call disconnect for unknown conversation', {
+            callId,
+            conversations: this.conversations,
+          });
         }
       });
     };
