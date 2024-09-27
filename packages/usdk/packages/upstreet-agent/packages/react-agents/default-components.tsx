@@ -134,6 +134,7 @@ export const DefaultAgentComponents = () => {
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
+      <DefaultDrivers />
       <RAGMemory />
       <DefaultPrompts />
       {/* <DefaultServers /> */}
@@ -1498,8 +1499,6 @@ export const MultimediaSense = () => {
   )
 };
 export const DefaultSenses = () => {
-  // const agent = useAgent();
-
   return (
     <>
       <Conversation>
@@ -1507,6 +1506,152 @@ export const DefaultSenses = () => {
       </Conversation>
       <WebBrowser />
     </>
+  );
+};
+export const TelnyxDriver = () => {
+  const agent = useAgent();
+  const [telnyxEnabled, setTelnyxEnabled] = useState(false);
+
+  const { telnyxManager } = agent;
+  useEffect(() => {
+    const updateTelnyxEnabled = () => {
+      const telnyxBots = telnyxManager.getTelnyxBots();
+      setTelnyxEnabled(telnyxBots.length > 0);
+    };
+    const botadd = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    const botremove = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    telnyxManager.addEventListener('botadd', botadd);
+    telnyxManager.addEventListener('botremove', botremove);
+    return () => {
+      telnyxManager.removeEventListener('botadd', botadd);
+      telnyxManager.removeEventListener('botremove', botremove);
+    };
+  }, [telnyxManager]);
+
+  return telnyxEnabled && (
+    <>
+      <Action
+        name="callPhoneNumber"
+        description={
+          dedent`\
+            Start a phone call with a phone number.
+            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+          } = args as {
+            phoneNumber: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const phoneNumbers = telnyxBot.getPhoneNumbers();
+            const fromPhoneNumber = phoneNumbers[0];
+            if (fromPhoneNumber) {
+              await telnyxBot.call({
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          } else {
+            console.warn('no telnyx bot found');
+            (e.data.message.args as any).error = `no telnyx bot found`;
+            await e.commit();
+          }
+        }}
+      />
+      <Action
+        name="textPhoneNumber"
+        description={
+          dedent`\
+            Text message (SMS/MMS) a phone number.
+            The phone number must be in +E.164 format.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+            text: `Hey what's up?`
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+            text,
+          } = args as {
+            phoneNumber: string;
+            text: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const phoneNumbers = telnyxBot.getPhoneNumbers();
+            const fromPhoneNumber = phoneNumbers[0];
+            if (fromPhoneNumber) {
+              await telnyxBot.text(text, undefined, {
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          }
+        }}
+      />
+    </>
+  );
+};
+export const DefaultDrivers = () => {
+  return (
+    <TelnyxDriver />
   );
 };
 
@@ -2958,10 +3103,16 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
   const agent = useAgent();
 
   useEffect(() => {
-    const args: TelnyxArgs = props;
-    const telnyxClient = agent.telnyxManager.addTelnyxClient(args);
+    const args: TelnyxArgs = {
+      apiKey,
+      phoneNumbers: phoneNumbers ? (Array.isArray(phoneNumbers) ? phoneNumbers : [phoneNumbers]) : [],
+      message,
+      voice,
+      agent,
+    };
+    const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
     return () => {
-      agent.telnyxManager.removeTelnyxClient(telnyxClient);
+      agent.telnyxManager.removeTelnyxBot(telnyxBot);
     };
   }, [
     apiKey,
