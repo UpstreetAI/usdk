@@ -4,7 +4,7 @@ interface ChatLayoutProps {
 
 export default async function ChatLayout({ children }: ChatLayoutProps) {
   return (
-    <div className="relative flex min-h-full bg-zinc-900">
+    <div className="relative flex min-h-full">
       {children}
     </div>
   );
