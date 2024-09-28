@@ -80,7 +80,7 @@ export function ChatMessage({
             <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
           )}
         </Link>
-        <div className="">
+        <div className="bg-gray-200 text-black px-2 py-1">
           {/* <Link href={agentUrl} className="font-bold mr-2 hover:underline">
             {name}
           </Link> */}
