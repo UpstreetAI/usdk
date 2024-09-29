@@ -150,7 +150,7 @@ async function _generateAgentActionStepFromMessages(
             const parsedMessage = actionSchema.parse(action);
             result.action = action;
           } catch (err) {
-            console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+            console.warn('zod schema action parse error: ' + JSON.stringify(action) + '\n' + JSON.stringify(err.issues));
           }
         }
       } else {
@@ -180,7 +180,7 @@ async function _generateAgentActionStepFromMessages(
               });
               o[method] = args;
             } catch (err) {
-              console.warn('zod schema uniform parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+              console.warn('zod schema uniform parse error: ' + JSON.stringify(args) + '\n' + JSON.stringify(err.issues));
             }
           }
         } else {
