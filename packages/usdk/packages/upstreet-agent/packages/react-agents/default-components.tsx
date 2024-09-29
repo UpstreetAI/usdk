@@ -33,6 +33,8 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TelnyxProps,
+  TelnyxBotArgs,
 } from './types';
 import {
   AppContext,
@@ -132,6 +134,7 @@ export const DefaultAgentComponents = () => {
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
+      <DefaultDrivers />
       <RAGMemory />
       <DefaultPrompts />
       {/* <DefaultServers /> */}
@@ -1323,7 +1326,8 @@ export const MultimediaSense = () => {
   const randomId = useMemo(getRandomId, []);
 
   // XXX be able to query media other than that from the current conversation
-  const attachments = collectAttachments(conversation.messageCache.messages)
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages)
     .filter(attachment => {
       const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
       return supportedMediaPerceptionTypes.includes(typeClean);
@@ -1403,7 +1407,8 @@ export const MultimediaSense = () => {
 
         const attachments = [];
         const attachmentsToMessagesMap = new WeakMap();
-        for (const message of conversation.messageCache.messages) {
+        const messages = conversation.messageCache.getMessages();
+        for (const message of messages) {
           if (message.attachments) {
             for (const attachment of message.attachments) {
               attachments.push(attachment);
@@ -1496,8 +1501,6 @@ export const MultimediaSense = () => {
   )
 };
 export const DefaultSenses = () => {
-  // const agent = useAgent();
-
   return (
     <>
       <Conversation>
@@ -1505,6 +1508,150 @@ export const DefaultSenses = () => {
       </Conversation>
       <WebBrowser />
     </>
+  );
+};
+export const TelnyxDriver = () => {
+  const agent = useAgent();
+  const [telnyxEnabled, setTelnyxEnabled] = useState(false);
+
+  const { telnyxManager } = agent;
+  useEffect(() => {
+    const updateTelnyxEnabled = () => {
+      const telnyxBots = telnyxManager.getTelnyxBots();
+      setTelnyxEnabled(telnyxBots.length > 0);
+    };
+    const botadd = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    const botremove = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    telnyxManager.addEventListener('botadd', botadd);
+    telnyxManager.addEventListener('botremove', botremove);
+    return () => {
+      telnyxManager.removeEventListener('botadd', botadd);
+      telnyxManager.removeEventListener('botremove', botremove);
+    };
+  }, [telnyxManager]);
+
+  return telnyxEnabled && (
+    <>
+      <Action
+        name="callPhone"
+        description={
+          dedent`\
+            Start a phone call with a phone number.
+            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+          } = args as {
+            phoneNumber: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.call({
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          } else {
+            console.warn('no telnyx bot found');
+            (e.data.message.args as any).error = `no telnyx bot found`;
+            await e.commit();
+          }
+        }}
+      />
+      <Action
+        name="textPhone"
+        description={
+          dedent`\
+            Text message (SMS/MMS) a phone number.
+            The phone number must be in +E.164 format.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+            text: `Hey what's up?`
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+            text,
+          } = args as {
+            phoneNumber: string;
+            text: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.text(text, undefined, {
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          }
+        }}
+      />
+    </>
+  );
+};
+export const DefaultDrivers = () => {
+  return (
+    <TelnyxDriver />
   );
 };
 
@@ -2539,7 +2686,8 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
   // XXX come up with a better way to fetch available attachments from all messages, not just the cache
-  const attachments = collectAttachments(conversation.messageCache.messages);
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages);
 
   return (
     <Action
@@ -2942,6 +3090,36 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(channels),
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
+  ]);
+
+  return null;
+};
+export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
+  const {
+    apiKey,
+    phoneNumber,
+    message,
+    voice,
+  } = props;
+  const agent = useAgent();
+
+  useEffect(() => {
+    const args: TelnyxBotArgs = {
+      apiKey,
+      phoneNumber,
+      message,
+      voice,
+      agent,
+    };
+    const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
+    return () => {
+      agent.telnyxManager.removeTelnyxBot(telnyxBot);
+    };
+  }, [
+    apiKey,
+    phoneNumber,
+    message,
+    voice,
   ]);
 
   return null;

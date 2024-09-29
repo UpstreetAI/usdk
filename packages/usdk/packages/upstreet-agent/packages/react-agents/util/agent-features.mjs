@@ -175,6 +175,47 @@ export const featureSpecs = [
     },
   },
   {
+    name: 'telnyx',
+    description: dedent`\
+      Add Telnyx phone call/SMS support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
+
+      Phone number is optional, but if provided must be in +E.164 format (e.g. +14151234567).
+    `,
+    schema: z.union([
+      z.object({
+        apiKey: z.string(),
+        phoneNumber: z.string().optional(),
+        message: z.boolean(),
+        voice: z.boolean(),
+      }),
+      z.null(),
+    ]),
+    examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
+    imports: (telnyx) => {
+      if (telnyx.apiKey) {
+        return ['Telnyx'];
+      } else {
+        return [];
+      }
+    },
+    components: (telnyx) => {
+      if (telnyx.apiKey) {
+        return [
+          dedent`
+            <Telnyx
+              apiKey=${JSON.stringify(telnyx.apiKey)}
+              ${telnyx.phoneNumber ? `phoneNumber=${JSON.stringify(telnyx.phoneNumber)}` : ''}
+              ${telnyx.message ? `message` : ''}
+              ${telnyx.voice ? `voice` : ''}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
     name: 'storeItems',
     description: dedent`\
       List of items that can be purchased from the agent, with associated prices.
@@ -198,15 +239,6 @@ export const featureSpecs = [
       }
       return result;
     },
-    // components: ({
-    //   maxUserMessages,
-    //   maxUserMessagesTime,
-    //   message,
-    // }) => [
-    //   dedent`
-    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
-    //   `,
-    // ],
     components: (storeItems) => {
       return storeItems.map((storeItem) => {
         if (storeItem.type === 'payment') {

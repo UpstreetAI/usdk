@@ -14,7 +14,6 @@ import {
   ActionMessageEvent,
   ActionMessageEventData,
   ConversationObject,
-  MessagesUpdateEventData,
   TaskEventData,
   AgentThinkOptions,
 } from './types';
@@ -383,51 +382,43 @@ export const bindConversationToAgent = ({
   conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
     const { message } = e.data;
     e.waitUntil((async () => {
-      // XXX move debouncing elsewhere
-      // await this.incomingMessageDebouncer.waitForTurn(async () => {
-        try {
-          // wait for re-render, since we just changed the message cache
-          // XXX can this be handled in the message cache?
-          const { hidden } = message;
-          if (!hidden) {
-            const e = new ExtendableMessageEvent<MessagesUpdateEventData>('messagesupdate');
-            agent.dispatchEvent(e);
-            await e.waitForFinish();
-          }
-
-          // handle the perception
-          const {
-            aborted,
-          } = await handleChatPerception(e.data, {
-            agent,
-            conversation,
-          });
-          if (!aborted) {
-            if (!hidden) {
-              // save the perception to the databaase
-              (async () => {
-                const supabase = agent.useSupabase();
-                const jwt = agent.useAuthToken();
-                await saveMessageToDatabase({
-                  supabase,
-                  jwt,
-                  userId: agent.id,
-                  conversationId: conversation.getKey(),
-                  message,
-                });
-              })();
-            }
-          }
-        } catch (err) {
-          console.warn('caught new message error', err);
+      try {
+        // handle the perception
+        const {
+          aborted,
+        } = await handleChatPerception(e.data, {
+          agent,
+          conversation,
+        });
+        const {
+          hidden,
+        } = message;
+        if (!aborted && !hidden) {
+          // save the perception to the databaase
+          (async () => {
+            const supabase = agent.useSupabase();
+            const jwt = agent.useAuthToken();
+            await saveMessageToDatabase({
+              supabase,
+              jwt,
+              userId: agent.id,
+              conversationId: conversation.getKey(),
+              message,
+            });
+          })();
         }
-      // });
+      } catch (err) {
+        console.warn('caught new message error', err);
+      }
     })());
   });
   conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
     const { message } = e.data;
-    // e.waitUntil((async () => {
-      // save to database
+    const {
+      hidden,
+    } = message;
+    if (!hidden) {
+      // save the new message to the database
       (async () => {
         const supabase = agent.useSupabase();
         const jwt = agent.useAuthToken();
@@ -439,7 +430,7 @@ export const bindConversationToAgent = ({
           message,
         });
       })();
-    // })());
+    }
   });
 };
 

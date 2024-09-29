@@ -18,6 +18,7 @@ import {
   TtsArgs,
   Tts,
   StoreItem,
+  MessageCacheUpdateArgs,
 } from './types';
 import {
   AppContext,
@@ -27,13 +28,16 @@ import {
   ConversationContext,
 } from './context';
 // import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
-import {
-  // ConversationObject,
-  CACHED_MESSAGES_LIMIT,
-} from './classes/conversation-object';
-import {
-  loadMessagesFromDatabase,
-} from './util/loadMessagesFromDatabase';
+// import {
+//   ConversationObject,
+// } from './classes/conversation-object';
+// import {
+//   loadMessagesFromDatabase,
+// } from './util/loadMessagesFromDatabase';
+// import {
+//   CACHED_MESSAGES_LIMIT,
+// } from './classes/message-cache'
+import { ExtendableMessageEvent } from './util/extendable-message-event';
 import {
   abortError,
   makePromise,
@@ -118,7 +122,6 @@ export const usePersonality: () => string = () => {
 
 export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
-  const supabase = agent.useSupabase();
   const conversation = useConversation();
   const [cachedMessagesEpoch, setCachedMessagesEpoch] = useState(0);
 
@@ -126,9 +129,23 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     throw new Error('useCachedMessages() can only be used within a conversation context');
   }
 
+  // trigger the load
+  useEffect(() => {
+    (async () => {
+      await conversation.messageCache.waitForLoad();
+    })().catch((err) => {
+      console.warn('message cache wait for load error', err);
+    });
+  }, []);
   // listen for messasge cache updates
-  const update = () => {
+  const update = (e: ExtendableMessageEvent<MessageCacheUpdateArgs>) => {
     setCachedMessagesEpoch(cachedMessagesEpoch => cachedMessagesEpoch + 1);
+
+    // wait for re-render before returning from the handler
+    e.waitUntil((async () => {
+      const renderRegistry = agent.appContextValue.useRegistry();
+      await renderRegistry.waitForUpdate();
+    })());
   };
   useEffect(() => {
     conversation.messageCache.addEventListener('update', update);
@@ -137,19 +154,6 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     };
   }, []);
 
-  if (!conversation.messageCache.loadPromise) {
-    conversation.messageCache.loadPromise = (async () => {
-      const messages = await loadMessagesFromDatabase({
-        supabase,
-        conversationId: conversation.getKey(),
-        agentId: agent.id,
-        limit: CACHED_MESSAGES_LIMIT,
-      });
-      conversation.messageCache.prependMessages(messages);
-      conversation.messageCache.loaded = true;
-    })();
-  }
-  use(conversation.messageCache.loadPromise);
   const messages = conversation.getCachedMessages(opts?.filter);
   return messages;
 };
@@ -159,7 +163,9 @@ export const useNumMessages = () => {
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   // XXX finish this
-  const agent = useAgent();
+  throw new Error('not implemented');
+
+  /* const agent = useAgent();
   const supabase = agent.useSupabase();
   const conversation = useConversation();
   const optsString = JSON.stringify(opts);
@@ -187,8 +193,8 @@ export const useMessageFetch = (opts?: ActionHistoryQuery) => {
       abortController.abort(abortError);
     };
   }, [conversation, optsString]);
-  use(messagesPromise);
-  return messagesPromise;
+  use(messagesPromise); // XXX don't use this
+  return messagesPromise; */
 };
 
 export const useKv = (opts?: KvArgs) => {

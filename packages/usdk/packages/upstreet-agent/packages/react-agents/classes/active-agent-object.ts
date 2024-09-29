@@ -22,6 +22,12 @@ import {
   DiscordManager,
 } from './discord-manager';
 import {
+  TelnyxManager,
+} from './telnyx-manager';
+import {
+  ConversationManager,
+} from './conversation-manager';
+import {
   TaskManager,
 } from './task-manager';
 import { PingManager } from './ping-manager';
@@ -35,8 +41,10 @@ export class ActiveAgentObject extends AgentObject {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
+  conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  telnyxManager: TelnyxManager;
   taskManager: TaskManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
@@ -64,15 +72,14 @@ export class ActiveAgentObject extends AgentObject {
     //
 
     const conversationManager = this.appContextValue.useConversationManager();
+    this.conversationManager = conversationManager;
     const chatsSpecification = this.appContextValue.useChatsSpecification();
     this.chatsManager = new ChatsManager({
       agent: this,
-      conversationManager,
       chatsSpecification,
     });
-    this.discordManager = new DiscordManager({
-      conversationManager,
-    });
+    this.discordManager = new DiscordManager();
+    this.telnyxManager = new TelnyxManager();
     this.taskManager = new TaskManager({
       agent: this,
     });
@@ -205,11 +212,13 @@ export class ActiveAgentObject extends AgentObject {
   live() {
     this.chatsManager.live();
     this.discordManager.live();
+    this.telnyxManager.live();
     this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
     this.discordManager.destroy();
+    this.telnyxManager.destroy();
     this.pingManager.destroy();
   }
 }
