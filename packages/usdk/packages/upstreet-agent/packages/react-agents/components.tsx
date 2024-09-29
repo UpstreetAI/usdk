@@ -218,6 +218,7 @@ export const Conversation = (props: ConversationProps) => {
     );
   });
 };
+// use this to defer rendering until the conversation is actually used
 export const Defer = (props: DeferProps) => {
   const appContextValue = useContext(AppContext);
   const conversationManager = appContextValue.useConversationManager();
