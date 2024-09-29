@@ -53,6 +53,7 @@ import {
   Server,
   Conversation,
   Defer,
+  Uniform,
 } from './components';
 import {
   AbortableActionEvent,
@@ -134,6 +135,7 @@ export const DefaultAgentComponents = () => {
       <DefaultFormatters />
       <DefaultActions />
       <DefaultPerceptions />
+      {/* <DefaultUniforms /> */}
       <DefaultGenerators />
       <DefaultSenses />
       <DefaultDrivers />
@@ -1052,6 +1054,61 @@ export const DefaultPerceptions = () => {
           if (targetUserId === e.data.targetAgent.agent.id) {
             await e.data.targetAgent.think();
           }
+        }}
+      />
+    </>
+  );
+};
+
+// uniforms
+
+export const DefaultUniforms = () => {
+  const timestamp = new Date();
+
+  return (
+    <>
+      <Uniform
+        name="nextActionTime"
+        description={dedent`\
+          Optionally wait before continuing with your next action.
+          Use this to pause the job/conversation until a later time. The delay can be short (like a 1s pause) or long (like a calendar date).
+          Specify a delay time, a Date (ISO 8601) string, or use null to indicate no waiting.
+        `}
+        state={`Current time: ${JSON.stringify(timestamp.toISOString())} (${timeAgo(timestamp)})`}
+        schema={
+          z.union([
+            z.object({
+              delayTime: z.object({
+                unit: z.enum(['seconds', 'minutes', 'hours', 'days']),
+                value: z.number(),
+              }),
+            }),
+            z.object({
+              waitUntilDateISOString: z.string(),
+            }),
+            z.null(),
+          ])
+        }
+        examples={[
+          {
+            delaySeconds: 30,
+          },
+          {
+            waitUntilDateISOString: `2021-01-30T01:23:45.678Z`,
+          },
+          null,
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          // XXX this should not be a PendingActionEvent since it cannot be aborted or committed
+          // XXX it's similar to a modifier
+          const {
+            // agent,
+            message: {
+              args: nextMessageWaitArgs,
+            },
+          } = e.data;
+          // XXX finish this
+          // console.log('Waiting for: ', nextMessageWaitArgs);
         }}
       />
     </>
