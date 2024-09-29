@@ -46,13 +46,13 @@ export class ConversationManager extends EventTarget {
     await e.waitForFinish();
   }
   useDeferRender(conversation: ConversationObject) {
-    const [deferRender, setDeferRender] = useState(() => !!this.loadedConversations.get(conversation));
+    const [doRender, setDoRender] = useState(() => !!this.loadedConversations.get(conversation));
 
     useEffect(() => {
       const conversationload = (e: ExtendableMessageEvent<ConversationLoadData>) => {
         if (e.data.conversation === conversation) {
           e.waitUntil((async () => {
-            setDeferRender(true);
+            setDoRender(true);
             await this.registry.waitForUpdate();
           })());
         }
@@ -64,7 +64,7 @@ export class ConversationManager extends EventTarget {
       };
     }, []);
 
-    return deferRender;
+    return doRender;
   }
   async waitForConversationLoad(conversation: ConversationObject) {
     if (!this.loadedConversations.get(conversation)) {
