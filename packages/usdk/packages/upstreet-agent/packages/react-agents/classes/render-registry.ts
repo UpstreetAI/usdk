@@ -3,8 +3,9 @@ import type {
   // AgentProps,
   // ActionProps,
   // ActionModifierProps,
-  PromptProps,
+  // PromptProps,
   PromptPropsAux,
+  UniformPropsAux,
   FormatterProps,
   DeferProps,
   DeferPropsAux,
@@ -69,6 +70,7 @@ export class AgentRegistry {
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null> = new Map();
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
+  uniformsMap: Map<symbol, UniformPropsAux | null> = new Map();
   formattersMap: Map<symbol, FormatterProps | null> = new Map();
   deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
@@ -94,6 +96,9 @@ export class AgentRegistry {
   }
   get perceptionModifiers() {
     return Array.from(this.perceptionModifiersMap.values()).filter(Boolean);
+  }
+  get uniforms() {
+    return Array.from(this.uniformsMap.values()).filter(Boolean);
   }
   get tasks() {
     return Array.from(this.tasksMap.values()).filter(Boolean);
@@ -159,6 +164,28 @@ export class AgentRegistry {
     } else {
       throw new Error(`Multiple formatters`); 
     }
+  }
+  registerUniform(key: symbol, uniform: ActionPropsAux) {
+    if (!uniform.conversation) {
+      this.uniformsMap.set(key, uniform);
+    } else {
+      const conversationActionExists = Array.from(this.uniformsMap.values())
+        .some((u) => {
+          if (u) {
+            return u.name === uniform.name && u.conversation === uniform.conversation;
+          } else {
+            return false;
+          }
+        });
+      if (!conversationActionExists) {
+        this.uniformsMap.set(key, uniform);
+      } else {
+        throw new Error(`Duplicate action with same name ${JSON.stringify(uniform.name)}`);
+      }
+    }
+  }
+  unregisterUniform(key: symbol) {
+    this.uniformsMap.set(key, null);
   }
   unregisterFormatter(key: symbol) {
     this.formattersMap.set(key, null);
