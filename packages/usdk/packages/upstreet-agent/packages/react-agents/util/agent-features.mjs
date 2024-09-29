@@ -140,7 +140,7 @@ export const featureSpecs = [
       - Get the bot token at https://discord.com/developers/applications/CLIENT_ID/bot
       The token is required and must be provided.
 
-      \`channels\` is a comma-separated list of channel names (text or voice) that the agent should join.
+      \`channels\` is a list of channel names (text or voice) that the agent should join.
     `,
     schema: z.union([
       z.object({
@@ -151,8 +151,7 @@ export const featureSpecs = [
     ]),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
     imports: (discordBot) => {
-      const channels = formatDiscordBotChannels(discordBot.channels);
-      if (discordBot.token && channels.length > 0) {
+      if (discordBot.token) {
         return ['DiscordBot'];
       } else {
         return [];
@@ -165,7 +164,7 @@ export const featureSpecs = [
           dedent`
             <DiscordBot
               token=${JSON.stringify(discordBot.token)}
-              channels={${JSON.stringify(channels)}}
+              ${discordBot.channels ? `channels={${JSON.stringify(channels)}}` : ''}
             />
           `,
         ];
