@@ -72,7 +72,7 @@ export function ChatMessage({
             </Button>
           </div>
         )}
-        <Link href={agentUrl} className="mr-4 size-12 min-w-12 border-2 border-slate-800 flex items-center justify-center">
+        <Link href={agentUrl} className="mr-4 size-12 min-w-12 border border-gray-800 flex items-center justify-center">
           <div
             className="w-full h-full bg-cover bg-top"
             style={{
@@ -91,7 +91,7 @@ export function ChatMessage({
             {!isValidUrl(avatarURL) && name.charAt(0)}
           </div>
         </Link>
-        <div className="bg-slate-200 text-black px-2 py-1">
+        <div className="bg-slate-100 border border-gray-400 text-black px-2 py-1">
           {/* <Link href={agentUrl} className="font-bold mr-2 hover:underline">
             {name}
           </Link> */}
