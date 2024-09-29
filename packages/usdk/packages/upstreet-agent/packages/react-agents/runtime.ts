@@ -24,6 +24,9 @@ import {
   AbortableActionEvent,
 } from './classes/abortable-action-event';
 import {
+  ActionEvent,
+} from './classes/action-event';
+import {
   retry,
 } from './util/util.mjs';
 import {
@@ -354,7 +357,7 @@ export async function executeAgentActionStep(
       if (uniformHandlers.length > 0) {
         const uniformHandler = uniformHandlers[0];
         if (uniformHandler.handler) {
-          const e = new PendingActionEvent({
+          const e = new ActionEvent({
             agent: generativeAgent,
             message: {
               method,
