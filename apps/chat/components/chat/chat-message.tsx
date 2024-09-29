@@ -18,6 +18,7 @@ export interface ChatMessageProps {
   player: any
   room: string
   timestamp: Date
+  isOwnMessage: boolean
   // user: User | null
 }
 
@@ -28,6 +29,7 @@ export function ChatMessage({
   name,
   player,
   timestamp,
+  isOwnMessage
 }: ChatMessageProps) {
   if (!player) {
     throw new Error('Player is required')
@@ -72,29 +74,10 @@ export function ChatMessage({
             </Button>
           </div>
         )}
-        <Link href={agentUrl} className="mr-4 size-12 min-w-12 border border-gray-800 flex items-center justify-center">
-          <div
-            className="w-full h-full bg-cover bg-top"
-            style={{
-              backgroundImage: isValidUrl(avatarURL)
-                ? `url(${avatarURL})`
-                : 'none',
-              backgroundColor: isValidUrl(avatarURL) ? 'transparent' : '#ccc',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '2rem',
-              fontWeight: 'bold',
-              color: '#fff',
-            }}
-          >
-            {!isValidUrl(avatarURL) && name.charAt(0)}
-          </div>
-        </Link>
-        <div className="bg-slate-100 border border-gray-400 text-black px-2 py-1">
-          {/* <Link href={agentUrl} className="font-bold mr-2 hover:underline">
-            {name}
-          </Link> */}
+        
+        <ChatMessageAvatar name={name} avatarURL={avatarURL} />
+
+        <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
           <span
             className="font-bold mr-2 cursor-pointer hover:underline"
             onClick={e => {
@@ -105,9 +88,6 @@ export function ChatMessage({
             }}
           >
             {name}
-          </span>
-          <span className="opacity-75 text-xs font-medium">
-            {timestamp ? timeAgo(timestamp) : null}
           </span>
           <br />
 
@@ -127,9 +107,46 @@ export function ChatMessage({
             return null;
           })()}
           {content && (<div>{content}</div>)}
+          <div className="text-md text-right text-gray-500 dark:text-gray-400">
+            {timeAgo(timestamp)}
+            </div>
         </div>
       </div>
     </div>
+  )
+}
+
+// CHAT MESSAGE AVATAR
+
+export interface ChatMessageAvatarProps {
+  name: string
+  avatarURL: string
+}
+
+export function ChatMessageAvatar({
+  name,
+  avatarURL
+}: ChatMessageAvatarProps) {
+  return (
+    <Link href={`/agents/${name}`}>
+      <div
+        className="w-12 h-12 bg-cover bg-top"
+        style={{
+          backgroundImage: isValidUrl(avatarURL)
+            ? `url(${avatarURL})`
+            : 'none',
+          backgroundColor: isValidUrl(avatarURL) ? 'transparent' : '#ccc',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '2rem',
+          fontWeight: 'bold',
+          color: '#fff',
+        }}
+      >
+        {!isValidUrl(avatarURL) && name.charAt(0)}
+      </div>
+    </Link>
   )
 }
 
