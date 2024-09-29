@@ -12,8 +12,8 @@ import {
   ConversationObject,
 } from './conversation-object';
 import {
-  generateAgentAction,
-  executeAgentAction,
+  generateAgentStep,
+  executeAgentStep,
 } from '../runtime';
 import {
   ActiveAgentObject,
@@ -82,9 +82,9 @@ export class GenerativeAgentObject {
       await this.conversation.typing(async () => {
         // console.log('agent renderer think 2');
         try {
-          const pendingMessage = await generateAgentAction(this, hint, thinkOpts);
+          const step = await generateAgentStep(this, hint, thinkOpts);
           // console.log('agent renderer think 3');
-          await executeAgentAction(this, pendingMessage);
+          await executeAgentStep(this, step);
           // console.log('agent renderer think 4');
         } catch (err) {
           console.warn('think error', err);
@@ -132,19 +132,21 @@ export class GenerativeAgentObject {
       //   text,
       // });
       const timestamp = Date.now();
-      const pendingMessage = {
-        method: 'say',
-        args: {
-          text,
+      const step = {
+        action: {
+          method: 'say',
+          args: {
+            text,
+          },
+          timestamp,
         },
-        timestamp,
       };
-      await executeAgentAction(this, pendingMessage);
+      await executeAgentStep(this, step);
     });
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      const pendingMessage = await generateAgentAction(
+      const step = await generateAgentStep(
         this,
         'Comment on the following:' + '\n' +
           text,
@@ -152,7 +154,7 @@ export class GenerativeAgentObject {
           forceAction: 'say',
         },
       );
-      await executeAgentAction(this, pendingMessage);
+      await executeAgentStep(this, step);
     });
   }
 
