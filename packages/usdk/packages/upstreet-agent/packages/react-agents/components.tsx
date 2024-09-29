@@ -260,7 +260,11 @@ export const Uniform = (props: UniformProps) => {
   ];
 
   useEffect(() => {
-    agentRegistry.registerUniform(symbol, props);
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerUniform(symbol, props2);
     return () => {
       agentRegistry.unregisterUniform(symbol);
     };
