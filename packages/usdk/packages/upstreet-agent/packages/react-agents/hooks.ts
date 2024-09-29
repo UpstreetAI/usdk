@@ -163,7 +163,9 @@ export const useNumMessages = () => {
 };
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   // XXX finish this
-  const agent = useAgent();
+  throw new Error('not implemented');
+
+  /* const agent = useAgent();
   const supabase = agent.useSupabase();
   const conversation = useConversation();
   const optsString = JSON.stringify(opts);
@@ -191,8 +193,8 @@ export const useMessageFetch = (opts?: ActionHistoryQuery) => {
       abortController.abort(abortError);
     };
   }, [conversation, optsString]);
-  use(messagesPromise);
-  return messagesPromise;
+  use(messagesPromise); // XXX don't use this
+  return messagesPromise; */
 };
 
 export const useKv = (opts?: KvArgs) => {
