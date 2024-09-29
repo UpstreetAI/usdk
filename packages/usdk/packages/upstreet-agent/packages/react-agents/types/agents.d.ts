@@ -159,12 +159,10 @@ export type PerceptionMessage = {
   attachments?: Attachment[];
   timestamp: Date;
 };
-export type ActionMessages = Array<ActionMessage>;
 export type AgentActionMessage = {
   agent: AgentObject;
   message: ActionMessage;
 };
-export type AgentActionMessages = Array<AgentActionMessage>;
 
 // memory
 
@@ -374,8 +372,6 @@ export type ActiveAgentObject = AgentObject & {
   useWallets: () => object[];
 
   useEpoch: (deps: any[]) => void;
-
-  // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
 
   //
 

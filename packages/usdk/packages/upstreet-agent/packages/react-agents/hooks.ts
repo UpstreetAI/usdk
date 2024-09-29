@@ -11,7 +11,6 @@ import {
   FormatterProps,
   NameProps,
   PersonalityProps,
-  ActionMessages,
   ActionMessage,
   ActionHistoryQuery,
   ChatArgs,
