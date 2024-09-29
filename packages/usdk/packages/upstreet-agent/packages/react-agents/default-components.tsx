@@ -23,6 +23,7 @@ import type {
   ActiveAgentObject,
   ConversationObject,
   PendingActionEvent,
+  ActionEvent,
   PerceptionEvent,
   ActionMessage,
   PlayableAudioStream,
@@ -1100,9 +1101,7 @@ export const DefaultUniforms = () => {
           },
           null,
         ]}
-        handler={async (e: PendingActionEvent) => {
-          // XXX this should not be a PendingActionEvent since it cannot be aborted or committed
-          // XXX it's similar to a modifier
+        handler={async (e: ActionEvent) => {
           const {
             // agent,
             message: {
