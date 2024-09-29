@@ -964,6 +964,7 @@ export const JsonFormatter = () => {
           const {
             name,
             description,
+            state,
             examples,
           } = action;
 
@@ -985,6 +986,7 @@ export const JsonFormatter = () => {
             ) : ''
           ) +
           (description ? (description + '\n') : '') +
+          (state ? (state + '\n') : '') +
           (examplesJsonString
             ? (
               dedent`

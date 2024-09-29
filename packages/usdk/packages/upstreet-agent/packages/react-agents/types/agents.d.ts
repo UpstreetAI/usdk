@@ -495,6 +495,7 @@ export type ConversationInstanceProps = {
 export type ActionProps = {
   name: string;
   description: string;
+  state?: string;
   schema: ZodTypeAny;
   examples: Array<object>,
   handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
@@ -518,6 +519,7 @@ export type PromptPropsAux = PromptProps & {
 };
 export type PerceptionProps = {
   type: string;
+  state?: string;
   handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
 };
 export type PerceptionPropsAux = PerceptionProps & {
