@@ -223,13 +223,11 @@ export type Debouncer = EventTarget & {
 };
 
 export type MessageCache = EventTarget & {
-  messages: ActionMessage[];
-  loaded: boolean;
-  loadPromise: Promise<void>;
-
-  pushMessage(message: ActionMessage): void;
-  prependMessages(messages: ActionMessage[]): void;
+  getMessages(): ActionMessage[];
+  pushMessage(message: ActionMessage): Promise<void>;
+  // prependMessages(messages: ActionMessage[]): Promise<void>;
   trim(): void;
+  waitForLoad(): Promise<void>;
 };
 export type Player = {
   playerId: string;
@@ -271,12 +269,12 @@ export type ConversationObject = EventTarget & {
   getEmbeddingString: () => string;
 };
 export type ConversationManager = EventTarget & {
-  registry: AgentRegistry;
+  registry: RenderRegistry;
   conversations: Set<ConversationObject>;
   loadedConversations: WeakMap<ConversationObject, boolean>;
   getConversations: () => ConversationObject[];
-  addConversation: (conversation: ConversationObject) => void;
-  removeConversation: (conversation: ConversationObject) => void;
+  addConversation: (conversation: ConversationObject) => Promise<void>;
+  removeConversation: (conversation: ConversationObject) => Promise<void>;
   useDeferRender: (conversation: ConversationObject) => boolean;
   waitForConversationLoad: (conversation: ConversationObject) => Promise<void>;
 };
@@ -300,7 +298,6 @@ export type ChatsSpecification = EventTarget & {
 export type ChatsManager = {
   // members
   agent: ActiveAgentObject;
-  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
@@ -318,7 +315,6 @@ export type DiscordBot = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  // conversationManager: ConversationManager;
   addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
   removeDiscordBot: (client: DiscordBot) => void;
   live: () => void;
@@ -337,7 +333,6 @@ export type TelnyxBot = EventTarget & {
   destroy: () => void;
 };
 export type TelnyxManager = EventTarget & {
-  // conversationManager: ConversationManager;
   getTelnyxBots: () => TelnyxBot[];
   addTelnyxBot: (args: TelnyxBotArgs) => TelnyxBot;
   removeTelnyxBot: (client: TelnyxBot) => void;
@@ -359,6 +354,7 @@ export type ActiveAgentObject = AgentObject & {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 
+  conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
   telnyxManager: TelnyxManager;
@@ -446,18 +442,11 @@ export type ConversationChangeEventData = {
 };
 export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
 
-export type ConversationAddEventData = {
+export type ConversationEventData = {
   conversation: ConversationObject;
 };
-export type ConversationAddEvent = MessageEvent<ConversationAddEventData>;
 
-export type ConversationRemoveEventData = {
-  conversation: ConversationObject;
-};
-export type ConversationRemoveEvent = MessageEvent<ConversationRemoveEventData>;
-
-export type MessagesUpdateEventData = undefined;
-export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
+export type MessageCacheUpdateArgs = null;
 
 export type TaskObject = {
   id: any;
