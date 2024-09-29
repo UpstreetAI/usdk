@@ -34,7 +34,7 @@ import type {
   DiscordBotProps,
   DiscordBotArgs,
   TelnyxProps,
-  TelnyxArgs,
+  TelnyxBotArgs,
 } from './types';
 import {
   AppContext,
@@ -1326,7 +1326,8 @@ export const MultimediaSense = () => {
   const randomId = useMemo(getRandomId, []);
 
   // XXX be able to query media other than that from the current conversation
-  const attachments = collectAttachments(conversation.messageCache.messages)
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages)
     .filter(attachment => {
       const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
       return supportedMediaPerceptionTypes.includes(typeClean);
@@ -1406,7 +1407,8 @@ export const MultimediaSense = () => {
 
         const attachments = [];
         const attachmentsToMessagesMap = new WeakMap();
-        for (const message of conversation.messageCache.messages) {
+        const messages = conversation.messageCache.getMessages();
+        for (const message of messages) {
           if (message.attachments) {
             for (const attachment of message.attachments) {
               attachments.push(attachment);
@@ -2684,7 +2686,8 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
   // XXX come up with a better way to fetch available attachments from all messages, not just the cache
-  const attachments = collectAttachments(conversation.messageCache.messages);
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages);
 
   return (
     <Action
