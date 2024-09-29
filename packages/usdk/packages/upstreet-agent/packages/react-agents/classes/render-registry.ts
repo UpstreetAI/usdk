@@ -169,7 +169,7 @@ export class AgentRegistry {
     if (!uniform.conversation) {
       this.uniformsMap.set(key, uniform);
     } else {
-      const conversationActionExists = Array.from(this.uniformsMap.values())
+      const conversationUniformExists = Array.from(this.uniformsMap.values())
         .some((u) => {
           if (u) {
             return u.name === uniform.name && u.conversation === uniform.conversation;
@@ -177,10 +177,10 @@ export class AgentRegistry {
             return false;
           }
         });
-      if (!conversationActionExists) {
+      if (!conversationUniformExists) {
         this.uniformsMap.set(key, uniform);
       } else {
-        throw new Error(`Duplicate action with same name ${JSON.stringify(uniform.name)}`);
+        throw new Error(`Duplicate uniform with same name ${JSON.stringify(uniform.name)}`);
       }
     }
   }
