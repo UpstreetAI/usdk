@@ -25,6 +25,9 @@ import {
   TelnyxManager,
 } from './telnyx-manager';
 import {
+  ConversationManager,
+} from './conversation-manager';
+import {
   TaskManager,
 } from './task-manager';
 import { PingManager } from './ping-manager';
@@ -38,6 +41,7 @@ export class ActiveAgentObject extends AgentObject {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
+  conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
   telnyxManager: TelnyxManager;
@@ -68,18 +72,14 @@ export class ActiveAgentObject extends AgentObject {
     //
 
     const conversationManager = this.appContextValue.useConversationManager();
+    this.conversationManager = conversationManager;
     const chatsSpecification = this.appContextValue.useChatsSpecification();
     this.chatsManager = new ChatsManager({
       agent: this,
-      conversationManager,
       chatsSpecification,
     });
-    this.discordManager = new DiscordManager({
-      conversationManager,
-    });
-    this.telnyxManager = new TelnyxManager({
-      conversationManager,
-    });
+    this.discordManager = new DiscordManager();
+    this.telnyxManager = new TelnyxManager();
     this.taskManager = new TaskManager({
       agent: this,
     });
