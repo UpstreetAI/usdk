@@ -3370,6 +3370,7 @@ const main = async () => {
             }
             args.features = features;
           } catch (error) {
+            console.warn('Invalid JSON string provided for features. Using default values.', opts.features, error);
             args.features = opts.features.reduce((acc, feature) => {
               acc[feature] = featureExamples[feature][0];
               return acc;
