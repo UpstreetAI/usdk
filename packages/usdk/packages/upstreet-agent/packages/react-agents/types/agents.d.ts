@@ -112,7 +112,6 @@ export type DiscordBotArgs = {
   userWhitelist: string[];
   agent: ActiveAgentObject;
 };
-export type DiscordBotClient = any;
 
 // telnyx
 
