@@ -37,8 +37,8 @@ export function ChatMessage({
   const agentUrl = getAgentUrl(playerSpec);
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
-  const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions(); 
-  
+  const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
+
   return (
     <div>
       <div className={'relative grid grid-cols-message bt-0'}>
@@ -72,15 +72,26 @@ export function ChatMessage({
             </Button>
           </div>
         )}
-        <Link href={agentUrl} className="mr-4 size-12 min-w-12 bg-[rgba(0,0,0,0.1)] overflow-hidden dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
-
-          {avatarURL && isValidUrl(avatarURL) ? (
-            <Image src={avatarURL} alt="" className="s-300" width={48} height={48} />
-          ) : (
-            <div className='uppercase text-lg font-bold'>{name.charAt(0)}</div>
-          )}
+        <Link href={agentUrl} className="mr-4 size-12 min-w-12 border-2 border-slate-800 flex items-center justify-center">
+          <div
+            className="w-full h-full bg-cover bg-top"
+            style={{
+              backgroundImage: isValidUrl(avatarURL)
+                ? `url(${avatarURL})`
+                : 'none',
+              backgroundColor: isValidUrl(avatarURL) ? 'transparent' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#fff',
+            }}
+          >
+            {!isValidUrl(avatarURL) && name.charAt(0)}
+          </div>
         </Link>
-        <div className="bg-gray-200 text-black px-2 py-1">
+        <div className="bg-slate-200 text-black px-2 py-1">
           {/* <Link href={agentUrl} className="font-bold mr-2 hover:underline">
             {name}
           </Link> */}
@@ -158,7 +169,7 @@ export function ChatMessageVideo({
     <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
         <source src={url} type="video/mp4" />
-          Your browser does not support the video tag.
+        Your browser does not support the video tag.
       </video>
     </div>
   )
