@@ -1,7 +1,7 @@
 export class Player {
   playerId: string;
   playerSpec: object;
-  constructor(playerId = '', playerSpec = null) {
+  constructor(playerId: string, playerSpec: object) {
     this.playerId = playerId;
     this.playerSpec = playerSpec;
   }
