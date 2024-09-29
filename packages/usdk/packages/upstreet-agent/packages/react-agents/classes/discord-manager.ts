@@ -4,7 +4,6 @@ import {
   DiscordBotArgs,
   ConversationEventData,
   ActiveAgentObject,
-  AgentSpec,
   ExtendableMessageEvent,
   ActionMessageEventData,
 } from '../types';
@@ -23,6 +22,22 @@ import {
 
 //
 
+const getIdFromUserId = (phoneNumber: string) => uuidByString(phoneNumber);
+const makePlayerFromMember = (member: any) => {
+  const {
+    userId,
+    displayName,
+    displayAvatarURL,
+  } = member;
+  const id = getIdFromUserId(userId);
+  const player = new Player(id, {
+    name: displayName,
+    previewUrl: displayAvatarURL,
+  });
+  return player;
+};
+const getDiscordChannelConversationHash = (channelId: string) =>
+  `discord:channel:${channelId}`;
 const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec) => {
   if (typeof channelSpec === 'string') {
     return channelName.toLowerCase() === channelSpec.toLowerCase();
@@ -31,19 +46,6 @@ const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec)
   } else {
     return false;
   }
-};
-const makePlayerFromMember = (member: any) => {
-  const {
-    userId,
-    displayName,
-    displayAvatarURL,
-  } = member;
-  const id = uuidByString(userId);
-  const player = new Player(id, {
-    name: displayName,
-    previewUrl: displayAvatarURL,
-  });
-  return player;
 };
 const bindOutgoing = ({
   conversation,
@@ -103,18 +105,16 @@ const bindOutgoing = ({
   });
   // conversation.addEventListener('typingend', (e) => {
   // });
-}
+};
 
 //
 
 export class DiscordBot extends EventTarget {
-  id: string;
   token: string;
   channels: DiscordBotRoomSpec[];
   dms: DiscordBotRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
-  discordBotClient: DiscordBotClient;
   channelConversations: Map<string, ConversationObject>; // channelId -> conversation
   dmConversations: Map<string, ConversationObject>; // userId -> conversation
   abortController: AbortController;
@@ -208,7 +208,7 @@ export class DiscordBot extends EventTarget {
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
-              return `discord:channel:${channelId}`;
+              return getDiscordChannelConversationHash(channelId);
             },
           });
 
@@ -284,6 +284,7 @@ export class DiscordBot extends EventTarget {
           conversation.addAgent(player.playerId, player);
         }
 
+        // XXX do not add extra agents to DMs
         const dmConversation = this.dmConversations.get(member.userId);
         if (dmConversation) {
           dmConversation.addAgent(player.playerId, player);
@@ -296,11 +297,12 @@ export class DiscordBot extends EventTarget {
         // console.log('got guild member remove', {
         //   member,
         // });
-        const playerId = uuidByString(member.userId);
+        const playerId = getIdFromUserId(member.userId);
         for (const conversation of this.channelConversations.values()) {
           conversation.removeAgent(playerId);
         }
 
+        // XXX do not remove extra agents from DMs
         const dmConversation = this.dmConversations.get(member.userId);
         if (dmConversation) {
           dmConversation.removeAgent(playerId);
@@ -332,7 +334,7 @@ export class DiscordBot extends EventTarget {
               text,
             },
           };
-          const id = uuidByString(userId);
+          const id = getIdFromUserId(userId);
           const agent = {
             id,
             name: username,
@@ -357,7 +359,9 @@ export class DiscordBot extends EventTarget {
       _bindGuildMemberRemove();
       _bindIncoming();
       await _connect();
-    })();
+    })().catch(err => {
+      console.warn('discord bot error', err);
+    });
   }
   destroy() {
     this.abortController.abort();
