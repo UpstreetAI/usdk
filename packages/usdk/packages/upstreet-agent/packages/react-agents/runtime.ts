@@ -83,7 +83,7 @@ type ActionStep = {
     [key: string]: object,
   },
 };
-export async function generateAgentStep(
+export async function generateAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   hint?: string,
   thinkOpts?: AgentThinkOptions,
@@ -110,9 +110,9 @@ export async function generateAgentStep(
     },
   ];
   // perform inference
-  return await _generateAgentStepFromMessages(generativeAgent, promptMessages, thinkOpts);
+  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
-async function _generateAgentStepFromMessages(
+async function _generateAgentActionStepFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
   thinkOpts?: AgentThinkOptions,
@@ -275,7 +275,7 @@ export const collectPriorityModifiers = <T extends PriorityModifier>(modifiers: 
     .map((entry) => entry[1]);
 };
 
-export async function executeAgentStep(
+export async function executeAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   step: ActionStep,
 ) {

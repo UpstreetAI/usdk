@@ -12,8 +12,8 @@ import {
   ConversationObject,
 } from './conversation-object';
 import {
-  generateAgentStep,
-  executeAgentStep,
+  generateAgentActionStep,
+  executeAgentActionStep,
 } from '../runtime';
 import {
   ActiveAgentObject,
@@ -82,9 +82,9 @@ export class GenerativeAgentObject {
       await this.conversation.typing(async () => {
         // console.log('agent renderer think 2');
         try {
-          const step = await generateAgentStep(this, hint, thinkOpts);
+          const step = await generateAgentActionStep(this, hint, thinkOpts);
           // console.log('agent renderer think 3');
-          await executeAgentStep(this, step);
+          await executeAgentActionStep(this, step);
           // console.log('agent renderer think 4');
         } catch (err) {
           console.warn('think error', err);
@@ -141,12 +141,12 @@ export class GenerativeAgentObject {
           timestamp,
         },
       };
-      await executeAgentStep(this, step);
+      await executeAgentActionStep(this, step);
     });
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      const step = await generateAgentStep(
+      const step = await generateAgentActionStep(
         this,
         'Comment on the following:' + '\n' +
           text,
@@ -154,7 +154,7 @@ export class GenerativeAgentObject {
           forceAction: 'say',
         },
       );
-      await executeAgentStep(this, step);
+      await executeAgentActionStep(this, step);
     });
   }
 
