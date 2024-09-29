@@ -18,7 +18,7 @@ export interface ChatMessageProps {
   player: any
   room: string
   timestamp: Date
-  isOwnMessage: boolean
+  isOwnMessage: any
   // user: User | null
 }
 

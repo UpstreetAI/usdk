@@ -185,16 +185,20 @@ function getMessageComponent(room: string, message: Message, id: string, players
         { message.name } left the room.
       </div>
     )
-    
+  
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
+
+      // Check if the message is from the current user
+      const isOwnMessage = user && user.id === message.userId;
 
       return (
         <ChatMessage
           id={id}
           name={ message.name }
           content={message.args.text}
+          isOwnMessage={isOwnMessage}
           media={media}
           player={player}
           room={room}
