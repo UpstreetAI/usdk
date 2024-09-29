@@ -32,9 +32,6 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
-import {
-  ConversationManager,
-} from './conversation-manager';
 
 //
 
@@ -55,7 +52,6 @@ export const getChatKey = ({
 export class ChatsManager {
   // members
   agent: ActiveAgentObject;
-  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
@@ -65,15 +61,12 @@ export class ChatsManager {
 
   constructor({
     agent,
-    conversationManager,
     chatsSpecification,
   }: {
     agent: ActiveAgentObject,
-    conversationManager: ConversationManager,
     chatsSpecification: ChatsSpecification,
   }) {
     this.agent = agent;
-    this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
   }
 
@@ -102,10 +95,10 @@ export class ChatsManager {
           });
         },
       });
-      this.conversationManager.addConversation(conversation);
+      this.agent.conversationManager.addConversation(conversation);
 
       const cleanup = () => {
-        this.conversationManager.removeConversation(conversation);
+        this.agent.conversationManager.removeConversation(conversation);
   
         this.rooms.delete(key);
       };
@@ -353,7 +346,7 @@ export class ChatsManager {
       const realms = this.rooms.get(key);
       if (realms) {
         const conversation = realms.metadata.conversation;
-        this.conversationManager.removeConversation(conversation);
+        this.agent.conversationManager.removeConversation(conversation);
 
         this.rooms.delete(key);
 
