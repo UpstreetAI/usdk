@@ -410,6 +410,7 @@ export type PendingActionEventData = {
 };
 export type PendingActionEvent = PendingMessageEvent<PendingActionEventData>;
 export type AbortableActionEvent = AbortableMessageEvent<PendingActionEventData>;
+export type ActionEvent = MessageEvent<PendingActionEventData>;
 
 export type AgentEventData = {
   agent: AgentObject;
@@ -529,7 +530,14 @@ export type PerceptionModifierProps = {
 export type PerceptionModifierPropsAux = PerceptionModifierProps & {
   conversation?: ConversationObject;
 };
-export type UniformProps = ActionProps;
+export type UniformProps = {
+  name: string;
+  description: string;
+  state?: string;
+  schema: ZodTypeAny;
+  examples: Array<object>,
+  handler?: ((e: ActionEvent) => void) | ((e: ActionEvent) => Promise<void>);
+};
 export type UniformPropsAux = UniformProps & {
   conversation: ConversationObject;
 };
