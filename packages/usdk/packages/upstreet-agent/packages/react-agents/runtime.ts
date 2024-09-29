@@ -106,6 +106,7 @@ export async function generateAgentAction(
   // perform inference
   return await _generateAgentActionFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
+// XXX handle both actions and uniforms here as a "think step"
 async function _generateAgentActionFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
@@ -115,48 +116,48 @@ async function _generateAgentActionFromMessages(
   const {
     formatters,
     actions,
+    uniforms,
   } = agent.registry;
   const formatter = formatters[0];
-  const actionsSchema = formatter.schemaFn(actions, conversation, thinkOpts);
-  const actionsSchemaResult = z.object({
-    result: actionsSchema,
-  });
-
-  // validation
   if (!formatter) {
-    throw new Error('no formatter found');
+    throw new Error('cannot generate action: no formatter registered');
   }
 
-  const completionMessage = await generativeAgent.completeJson(promptMessages, actionsSchemaResult);
-  if (completionMessage !== null) {
-    let newMessage: PendingActionMessage = null;
-    newMessage = (completionMessage.content as any).result as PendingActionMessage;
+  // resultSchema has { action, uniforms } schema
+  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, thinkOpts);
 
-    const { method } = newMessage;
-    const actionHandlers = actions.filter((action) => action.name === method);
-    if (actionHandlers.length > 0) {
-      const actionHandler = actionHandlers[0];
-      if (actionHandler.schema) {
-        try {
-          const actionSchema = z.object({
-            method: z.string(),
-            args: actionHandler.schema,
-          });
-          const parsedMessage = actionSchema.parse(newMessage);
-        } catch (err) {
-          console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+  const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
+  if (completionMessage) {
+    const nextAction = (completionMessage.content as any).action as PendingActionMessage;
+    if (nextAction) {
+      const { method } = nextAction;
+      const actionHandlers = actions.filter((action) => action.name === method);
+      if (actionHandlers.length > 0) {
+        const actionHandler = actionHandlers[0];
+        if (actionHandler.schema) {
+          try {
+            const actionSchema = z.object({
+              method: z.string(),
+              args: actionHandler.schema,
+            });
+            const parsedMessage = actionSchema.parse(nextAction);
+          } catch (err) {
+            console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+          }
         }
+        // console.warn('generated new message', {
+        //   prompt: promptMessages[0].content,
+        //   newMessage,
+        // });
+        return nextAction;
+      } else {
+        throw new Error('no action handler found for method: ' + method);
       }
-      // console.warn('generated new message', {
-      //   prompt: promptMessages[0].content,
-      //   newMessage,
-      // });
-      return newMessage;
     } else {
-      throw new Error('no action handler found for method: ' + method);
+      return null;
     }
   } else {
-    return null;
+    throw new Error('failed to generate action completion: invalid schema?');
   }
 }
 
