@@ -3360,9 +3360,15 @@ const main = async () => {
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
         if (opts.features) {
           try {
-            const featuresString = opts.features.join(' ');
-            const parsedJson = JSON.parse(featuresString);
-            args.features = { ...parsedJson };
+            let features = {};
+            for (const featuresString of opts.features) {
+              const parsedJson = JSON.parse(featuresString);
+              features = {
+                ...features,
+                ...parsedJson,
+              };
+            }
+            args.features = features;
           } catch (error) {
             args.features = opts.features.reduce((acc, feature) => {
               acc[feature] = featureExamples[feature][0];
