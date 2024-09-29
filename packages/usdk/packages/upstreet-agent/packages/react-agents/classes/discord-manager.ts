@@ -2,8 +2,7 @@ import uuidByString from 'uuid-by-string';
 import {
   DiscordBotRoomSpec,
   DiscordBotArgs,
-  ConversationAddEventData,
-  ConversationRemoveEventData,
+  ConversationEventData,
   ActiveAgentObject,
   AgentSpec,
   ExtendableMessageEvent,
@@ -20,7 +19,7 @@ import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
-import { ConversationManager } from './conversation-manager';
+// import { ConversationManager } from './conversation-manager';
 
 //
 
@@ -212,6 +211,8 @@ export class DiscordBot extends EventTarget {
               return `discord:channel:${channelId}`;
             },
           });
+
+          this.agent.conversationManager.addConversation(conversation);
           this.channelConversations.set(channelId, conversation);
 
           bindConversationToAgent({
@@ -223,12 +224,6 @@ export class DiscordBot extends EventTarget {
             discordBotClient,
             channelId,
           });
-
-          this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-            data: {
-              conversation,
-            },
-          }));
 
           // console.log('write text to channel', {
           //   channelId,
@@ -255,6 +250,8 @@ export class DiscordBot extends EventTarget {
             return `discord:dm:${userId}`;
           },
         });
+
+        this.agent.conversationManager.addConversation(conversation);
         this.dmConversations.set(userId, conversation);
 
         bindConversationToAgent({
@@ -266,12 +263,6 @@ export class DiscordBot extends EventTarget {
           discordBotClient,
           userId,
         });
-
-        this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
-          data: {
-            conversation,
-          },
-        }));
 
         // console.log('write text to user', {
         //   userId,
@@ -374,25 +365,8 @@ export class DiscordBot extends EventTarget {
   }
 }
 export class DiscordManager {
-  conversationManager: ConversationManager;
-  constructor({
-    conversationManager,
-  }: {
-    conversationManager: ConversationManager,
-  }) {
-    this.conversationManager = conversationManager;
-  }
   addDiscordBot(args: DiscordBotArgs) {
     const discordBot = new DiscordBot(args);
-
-    // route conversation events: discord bot -> discord manager
-    discordBot.addEventListener('conversationadd', (e: MessageEvent<ConversationAddEventData>) => {
-      this.conversationManager.addConversation(e.data.conversation);
-    });
-    discordBot.addEventListener('conversationremove', (e: MessageEvent<ConversationRemoveEventData>) => {
-      this.conversationManager.removeConversation(e.data.conversation);
-    });
-
     return discordBot;
   }
   removeDiscordBot(discordBot: DiscordBot) {
