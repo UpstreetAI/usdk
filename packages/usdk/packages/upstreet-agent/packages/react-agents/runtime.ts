@@ -353,10 +353,10 @@ export async function executeAgentActionStep(
     const uniformPromises: Promise<void>[] = [];
     for (const method in uniformsArgs) {
       const args = uniformsArgs[method];
-      const uniformHandlers = agent.registry.uniforms.filter((uniform) => uniform.name === method);
-      if (uniformHandlers.length > 0) {
-        const uniformHandler = uniformHandlers[0];
-        if (uniformHandler.handler) {
+      const uniforms = agent.registry.uniforms.filter((uniform) => uniform.name === method);
+      if (uniforms.length > 0) {
+        const uniform = uniforms[0];
+        if (uniform.handler) {
           const e = new ActionEvent({
             agent: generativeAgent,
             message: {
@@ -364,7 +364,9 @@ export async function executeAgentActionStep(
               args,
             },
           });
-          const p = uniformHandler.handler(e);
+          const p = (async () => {
+            await uniform.handler(e);
+          })();
           uniformPromises.push(p);
         }
       }
