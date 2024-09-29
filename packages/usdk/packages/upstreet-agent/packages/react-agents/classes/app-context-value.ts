@@ -23,13 +23,8 @@ import {
 } from '../util/embedding.mjs';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { fetchImageGeneration } from '../util/generate-image.mjs';
+import { Kv } from './kv';
 import { useAgent } from '../hooks';
-import {
-  uint8ArrayToBase64,
-  makePromise,
-  base64ToUint8Array,
-} from '../util/util.mjs';
-import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
 
 //
 
@@ -97,119 +92,16 @@ export class AppContextValue {
     return this.registry;
   }
 
-  useKv() {
+  useKv<T>() {
     const agent = useAgent();
     const supabase = agent.useSupabase();
+    const [kvEpoch, setKvEpoch] = useState(0);
 
-    const getFullKey = (key: string) => `${agent.id}:${key}`;
-
-    const [kvCache, setKvCache] = useState(() => new Map<string, any>());
-    const kvLoadPromises = useMemo(() => new Map<string, Promise<any>>(), []);
-    const makeLoadPromise = async (key: string, defaultValue?: any) => {
-      const fullKey = getFullKey(key);
-      const result = await supabase
-        .from('keys_values')
-        .select('*')
-        .eq('key', fullKey)
-        .maybeSingle();
-      const { error, data } = result;
-      if (!error) {
-        if (data) {
-          const base64Data = data.data as string;
-          const encodedData = base64ToUint8Array(base64Data);
-          const value = zbdecode(encodedData);
-          return value;
-        } else {
-          return typeof defaultValue === 'function' ? defaultValue() : defaultValue;
-        }
-      } else {
-        throw error;
-      }
-    };
-    const ensureLoadPromise = (key: string, defaultValue?: any) => {
-      let loadPromise = kvLoadPromises.get(key);
-      if (!loadPromise) {
-        loadPromise = makeLoadPromise(key, defaultValue);
-        loadPromise.then((value: any) => {
-          setKvCache((kvCache) => {
-            kvCache.set(key, value);
-            return kvCache;
-          });
-        });
-        kvLoadPromises.set(key, loadPromise);
-      }
-      return loadPromise;
-    };
-
-    const kv = useMemo(() => ({
-      async get<T>(key: string, defaultValue?: T | (() => T)) {
-        const loadPromise = ensureLoadPromise(key, defaultValue);
-        return await loadPromise as T | undefined;
-      },
-      async set<T>(key: string, value: T | ((oldValue: T | undefined) => T)) {
-        const fullKey = getFullKey(key);
-
-        if (typeof value === 'function') {
-          const oldValue = await kv.get<T>(fullKey);
-          const newValue = (value as (oldValue: T | undefined) => T)(oldValue);
-          value = newValue;
-        }
-
-        const newLoadPromise = Promise.resolve(value);
-        const encodedData = zbencode(value);
-        const base64Data = uint8ArrayToBase64(encodedData);
-
-        kvLoadPromises.set(key, newLoadPromise);
-        setKvCache((kvCache) => {
-          kvCache.set(key, value);
-          return kvCache;
-        });
-
-        const result = await supabase
-          .from('keys_values')
-          .upsert({
-            agent_id: agent.id,
-            key: fullKey,
-            value: base64Data,
-          });
-        const { error } = result;
-        if (!error) {
-          // nothing
-        } else {
-          console.error('error setting key value', error);
-          throw new Error('error setting key value: ' + JSON.stringify(error));
-        }
-      },
-      // note: key must be the same across calls, changing it is not allowed!
-      use: <T>(key: string, defaultValue?: T | (() => T)) => {
-        const ensureDefaultValue = (() => {
-          let cachedDefaultValue: T | undefined;
-          return () => {
-            if (cachedDefaultValue === undefined) {
-              cachedDefaultValue = typeof defaultValue === 'function' ? (defaultValue as () => T)() : defaultValue;
-            }
-            return cachedDefaultValue;
-          };
-        })();
-        const [valueEpoch, setValueEpoch] = useState(0);
-        // get the fresh value each render
-        const value = kvCache.get(key) ?? ensureDefaultValue();
-        const setValue2 = async (value: T | ((oldValue: T | undefined) => T)) => {
-          // trigger re-render of the use() hook
-          setValueEpoch((epoch) => epoch + 1);
-          // perform the set
-          return await kv.set<T>(key, value);
-        };
-
-        // trigger the initial load
-        useEffect(() => {
-          ensureLoadPromise(key, ensureDefaultValue);
-        }, []);
-
-        return [value, setValue2] as [
-          T,
-          (value: T | ((oldValue: T | undefined) => T)) => Promise<void>,
-        ];
+    const kv = useMemo(() => new Kv<T>({
+      agent,
+      supabase,
+      updateFn: () => {
+        setKvEpoch(kvEpoch => kvEpoch + 1);
       },
     }), []);
 
