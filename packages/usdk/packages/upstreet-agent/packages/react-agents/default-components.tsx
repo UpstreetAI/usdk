@@ -3097,16 +3097,16 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
 export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
   const {
     apiKey,
-    phoneNumbers,
+    phoneNumber,
     message,
     voice,
   } = props;
   const agent = useAgent();
 
   useEffect(() => {
-    const args: TelnyxArgs = {
+    const args: TelnyxBotArgs = {
       apiKey,
-      phoneNumbers: phoneNumbers ? (Array.isArray(phoneNumbers) ? phoneNumbers : [phoneNumbers]) : [],
+      phoneNumber,
       message,
       voice,
       agent,
@@ -3117,7 +3117,7 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
     };
   }, [
     apiKey,
-    JSON.stringify(phoneNumbers),
+    phoneNumber,
     message,
     voice,
   ]);
