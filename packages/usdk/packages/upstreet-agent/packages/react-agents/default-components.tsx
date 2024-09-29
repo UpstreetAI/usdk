@@ -938,7 +938,9 @@ export const JsonFormatter = () => {
             const o = {};
             for (const uniform of filteredUniforms) {
               o[uniform.name] = uniform.schema;
+              // console.log('set uniform', uniform.name, printNode(zodToTs(uniform.schema).node));
             }
+            return z.object(o);
           } else {
             return null;
           }
