@@ -160,7 +160,7 @@ async function _generateAgentActionStepFromMessages(
 
     const uniformObject = (completionMessage.content as any).uniforms as object;
     if (uniformObject) {
-      const o = {} as {
+      const uniformsResult = {} as {
         [key: string]: object,
       };
       for (const method in uniformObject) {
@@ -178,7 +178,7 @@ async function _generateAgentActionStepFromMessages(
                 method,
                 args,
               });
-              o[method] = args;
+              uniformsResult[method] = args;
             } catch (err) {
               console.warn('zod schema uniform parse error: ' + JSON.stringify(args) + '\n' + JSON.stringify(err.issues));
             }
@@ -187,7 +187,7 @@ async function _generateAgentActionStepFromMessages(
           throw new Error('no uniform handler found for method: ' + method);
         }
       }
-      result.uniforms = o;
+      result.uniforms = uniformsResult;
     }
 
     return result;
