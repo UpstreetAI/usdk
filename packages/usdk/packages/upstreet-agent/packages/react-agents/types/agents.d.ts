@@ -531,9 +531,13 @@ export type PerceptionModifierProps = {
 export type PerceptionModifierPropsAux = PerceptionModifierProps & {
   conversation?: ConversationObject;
 };
+export type UniformProps = ActionProps;
+export type UniformPropsAux = UniformProps & {
+  conversation: ConversationObject;
+};
 export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
+  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject) => string;
 };
 export type DeferProps = {
   children: ReactNode;
@@ -631,11 +635,12 @@ export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
   prompts: PromptPropsAux[];
 
-  actionsMap: Map<symbol, ActionProps | null>;
-  actionModifiersMap: Map<symbol, ActionModifierProps | null>;
+  actionsMap: Map<symbol, ActionPropsAux | null>;
+  actionModifiersMap: Map<symbol, ActionModifierPropsAux | null>;
+  perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
+  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
+  uniformsMap: Map<symbol, UniformPropsAux | null>;
   formattersMap: Map<symbol, FormatterProps | null>;
-  perceptionsMap: Map<symbol, PerceptionProps | null>;
-  perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
@@ -649,6 +654,7 @@ export type AgentRegistry = {
   get actionModifiers(): ActionModifierPropsAux[];
   get perceptions(): PerceptionPropsAux[];
   get perceptionModifiers(): PerceptionModifierPropsAux[];
+  get uniforms(): UniformPropsAux[];
   get formatters(): FormatterProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];

@@ -7,6 +7,7 @@ import {
   ActiveAgentObject,
   ActionProps,
   ActionPropsAux,
+  UniformPropsAux,
   FormatterProps,
   NameProps,
   PersonalityProps,
@@ -101,6 +102,10 @@ export const useAgents: () => Array<AgentObject> = () => {
 export const useActions: () => ActionPropsAux[] = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   return agentRegistryValue.actions;
+};
+export const useUniforms: () => Array<UniformPropsAux> = () => {
+  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
+  return agentRegistryValue.uniforms;
 };
 export const useFormatters: () => Array<FormatterProps> = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;

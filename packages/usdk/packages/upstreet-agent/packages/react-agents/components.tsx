@@ -23,6 +23,7 @@ import type {
   PaymentProps,
   SubscriptionProps,
   ConversationEventData,
+  UniformProps,
 } from './types';
 import {
   AppContext,
@@ -242,6 +243,32 @@ export const Defer = (props: DeferProps) => {
   }, []);
 
   return deferRender && props.children;
+};
+export const Uniform = (props: UniformProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
+
+  const deps = [
+    props.name,
+    props.description,
+    printZodSchema(props.schema),
+    JSON.stringify(props.examples),
+    props.handler?.toString() ?? '',
+    conversation,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerUniform(symbol, props);
+    return () => {
+      agentRegistry.unregisterUniform(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
 };
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);

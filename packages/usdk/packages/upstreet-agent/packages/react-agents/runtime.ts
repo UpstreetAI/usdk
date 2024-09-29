@@ -77,7 +77,13 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   return prompts;
 };
 
-export async function generateAgentAction(
+type ActionStep = {
+  action?: PendingActionMessage,
+  uniforms?: {
+    [key: string]: object,
+  },
+};
+export async function generateAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   hint?: string,
   thinkOpts?: AgentThinkOptions,
@@ -104,9 +110,9 @@ export async function generateAgentAction(
     },
   ];
   // perform inference
-  return await _generateAgentActionFromMessages(generativeAgent, promptMessages, thinkOpts);
+  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts);
 }
-async function _generateAgentActionFromMessages(
+async function _generateAgentActionStepFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
   thinkOpts?: AgentThinkOptions,
@@ -115,48 +121,78 @@ async function _generateAgentActionFromMessages(
   const {
     formatters,
     actions,
+    uniforms,
   } = agent.registry;
   const formatter = formatters[0];
-  const actionsSchema = formatter.schemaFn(actions, conversation, thinkOpts);
-  const actionsSchemaResult = z.object({
-    result: actionsSchema,
-  });
-
-  // validation
   if (!formatter) {
-    throw new Error('no formatter found');
+    throw new Error('cannot generate action: no formatter registered');
   }
 
-  const completionMessage = await generativeAgent.completeJson(promptMessages, actionsSchemaResult);
-  if (completionMessage !== null) {
-    let newMessage: PendingActionMessage = null;
-    newMessage = (completionMessage.content as any).result as PendingActionMessage;
+  // resultSchema has { action, uniforms } schema
+  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, thinkOpts);
 
-    const { method } = newMessage;
-    const actionHandlers = actions.filter((action) => action.name === method);
-    if (actionHandlers.length > 0) {
-      const actionHandler = actionHandlers[0];
-      if (actionHandler.schema) {
-        try {
-          const actionSchema = z.object({
-            method: z.string(),
-            args: actionHandler.schema,
-          });
-          const parsedMessage = actionSchema.parse(newMessage);
-        } catch (err) {
-          console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+  const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
+  if (completionMessage) {
+    const result = {} as ActionStep;
+
+    const action = (completionMessage.content as any).action as PendingActionMessage;
+    if (action) {
+      const { method } = action;
+      const actionHandlers = actions.filter((action) => action.name === method);
+      if (actionHandlers.length > 0) {
+        const actionHandler = actionHandlers[0];
+        if (actionHandler.schema) {
+          try {
+            const actionSchema = z.object({
+              method: z.string(),
+              args: actionHandler.schema,
+            });
+            const parsedMessage = actionSchema.parse(action);
+            result.action = action;
+          } catch (err) {
+            console.warn('zod schema action parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+          }
+        }
+      } else {
+        throw new Error('no action handler found for method: ' + method);
+      }
+    }
+
+    const uniformObject = (completionMessage.content as any).uniforms as object;
+    if (uniformObject) {
+      const o = {} as {
+        [key: string]: object,
+      };
+      for (const method in uniformObject) {
+        const args = uniformObject[method];
+        const uniformHandlers = uniforms.filter((uniform) => uniform.name === method);
+        if (uniformHandlers.length > 0) {
+          const uniformHandler = uniformHandlers[0];
+          if (uniformHandler.schema) {
+            try {
+              const uniformSchema = z.object({
+                method: z.string(),
+                args: uniformHandler.schema,
+              });
+              const parsedMessage = uniformSchema.parse({
+                method,
+                args,
+              });
+              o[method] = args;
+            } catch (err) {
+              console.warn('zod schema uniform parse error: ' + JSON.stringify(newMessage) + '\n' + JSON.stringify(err.issues));
+            }
+          }
+        } else {
+          throw new Error('no uniform handler found for method: ' + method);
         }
       }
-      // console.warn('generated new message', {
-      //   prompt: promptMessages[0].content,
-      //   newMessage,
-      // });
-      return newMessage;
-    } else {
-      throw new Error('no action handler found for method: ' + method);
+      result.uniforms = o;
     }
+
+    return result;
   } else {
-    return null;
+    throw new Error('failed to generate action completion: invalid schema?');
   }
 }
 
@@ -239,9 +275,9 @@ export const collectPriorityModifiers = <T extends PriorityModifier>(modifiers: 
     .map((entry) => entry[1]);
 };
 
-export async function executeAgentAction(
+export async function executeAgentActionStep(
   generativeAgent: GenerativeAgentObject,
-  message: PendingActionMessage,
+  step: ActionStep,
 ) {
   const {
     agent,
@@ -251,56 +287,86 @@ export async function executeAgentAction(
     actions,
     actionModifiers,
   } = agent.registry;
+  const {
+    action: message,
+    uniforms: uniformsArgs,
+  } = step;
 
-  // collect action modifiers
-  const actionModifiersPerPriority = collectPriorityModifiers(actionModifiers)
-    .map((actionModifiers) =>
-      actionModifiers.filter((actionModifier) =>
-        !actionModifier.conversation || actionModifier.conversation === conversation
-      )
-    )
-    .filter((actionModifiers) => actionModifiers.length > 0);
-  // for each priority, run the action modifiers, checking for abort at each step
   let aborted = false;
-  for (const actionModifiers of actionModifiersPerPriority) {
-    const abortableEventPromises = actionModifiers.filter(actionModifier => {
-      return actionModifier.name === message.method;
-    }).map(async (actionModifier) => {
-      const e = new AbortableActionEvent({
-        agent: generativeAgent,
-        message,
-      });
-      await actionModifier.handler(e);
-      return e;
-    });
-    const messageEvents = await Promise.all(abortableEventPromises);
-    aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
-    if (aborted) {
-      break;
-    }
-  }
 
-  if (!aborted) {
-    const actionPromises: Promise<void>[] = [];
-    for (const action of actions) {
-      if (
-        action.name === message.method &&
-        (!action.conversation || action.conversation === conversation)
-      ) {
-        const e = new PendingActionEvent({
+  if (message) {
+    // collect action modifiers
+    const actionModifiersPerPriority = collectPriorityModifiers(actionModifiers)
+      .map((actionModifiers) =>
+        actionModifiers.filter((actionModifier) =>
+          !actionModifier.conversation || actionModifier.conversation === conversation
+        )
+      )
+      .filter((actionModifiers) => actionModifiers.length > 0);
+    // for each priority, run the action modifiers, checking for abort at each step
+    for (const actionModifiers of actionModifiersPerPriority) {
+      const abortableEventPromises = actionModifiers.filter(actionModifier => {
+        return actionModifier.name === message.method;
+      }).map(async (actionModifier) => {
+        const e = new AbortableActionEvent({
           agent: generativeAgent,
           message,
         });
-        const handler =
-          (action.handler as (e: PendingActionEvent) => Promise<void>) ??
-          (async (e: PendingActionEvent) => {
-            await e.commit();
-          });
-        const p = handler(e);
-        actionPromises.push(p);
+        await actionModifier.handler(e);
+        return e;
+      });
+      const messageEvents = await Promise.all(abortableEventPromises);
+      aborted = messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
+      if (aborted) {
+        break;
       }
     }
-    await Promise.all(actionPromises);
+
+    if (!aborted) {
+      const actionPromises: Promise<void>[] = [];
+      for (const action of actions) {
+        if (
+          action.name === message.method &&
+          (!action.conversation || action.conversation === conversation)
+        ) {
+          const e = new PendingActionEvent({
+            agent: generativeAgent,
+            message,
+          });
+          const handler =
+            (action.handler as (e: PendingActionEvent) => Promise<void>) ??
+            (async (e: PendingActionEvent) => {
+              await e.commit();
+            });
+          const p = handler(e);
+          actionPromises.push(p);
+        }
+      }
+      await Promise.all(actionPromises);
+    }
+  }
+
+  if (uniformsArgs) {
+    const uniformPromises: Promise<void>[] = [];
+    for (const method in uniformsArgs) {
+      const args = uniformsArgs[method];
+      const uniformHandlers = agent.registry.uniforms.filter((uniform) => uniform.name === method);
+      if (uniformHandlers.length > 0) {
+        const uniformHandler = uniformHandlers[0];
+        if (uniformHandler.handler) {
+          const e = new PendingActionEvent({
+            agent: generativeAgent,
+            message: {
+              method,
+              args,
+            },
+          });
+          const p = uniformHandler.handler(e);
+          uniformPromises.push(p);
+        }
+      }
+    }
+    await Promise.all(uniformPromises);
   }
 }
 
