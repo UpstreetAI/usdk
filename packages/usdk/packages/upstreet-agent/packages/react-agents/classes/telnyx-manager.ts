@@ -1,8 +1,7 @@
 import uuidByString from 'uuid-by-string';
 import {
   TelnyxBotArgs,
-  ConversationAddEventData,
-  ConversationRemoveEventData,
+  ConversationEventData,
   ActiveAgentObject,
   ExtendableMessageEvent,
   ActionMessageEventData,
@@ -167,7 +166,7 @@ export class TelnyxBot extends EventTarget {
       console.log('telnyx connect 5');
     };
     // XXX support conversation expiry (based on timeout?)
-    const ensureConversation = ({
+    const ensureConversation = async ({
       fromPhoneNumber,
       toPhoneNumber,
     }: {
@@ -187,6 +186,7 @@ export class TelnyxBot extends EventTarget {
         const player = makePlayerFromPhoneNumber(toPhoneNumber);
         conversation.addAgent(player.playerId, player);
 
+        await agent.conversationManager.addConversation(conversation);
         this.conversations.set(hash, conversation);
 
         bindConversationToAgent({
@@ -213,7 +213,7 @@ export class TelnyxBot extends EventTarget {
         } = e.data;
         console.log('handling telnyx message 1', e.data);
 
-        const conversation = ensureConversation({
+        const conversation = await ensureConversation({
           fromPhoneNumber: toPhoneNumber,
           toPhoneNumber: fromPhoneNumber,
         });
@@ -251,7 +251,7 @@ export class TelnyxBot extends EventTarget {
           toPhoneNumber,
           data,
         });
-        const conversation = ensureConversation({
+        const conversation = await ensureConversation({
           fromPhoneNumber,
           toPhoneNumber,
         });
@@ -289,31 +289,12 @@ export class TelnyxBot extends EventTarget {
   }
 }
 export class TelnyxManager extends EventTarget {
-  conversationManager: ConversationManager;
   telnyxBots = new Set<TelnyxBot>;
-  constructor({
-    conversationManager,
-  }: {
-    conversationManager: ConversationManager,
-  }) {
-    super();
-
-    this.conversationManager = conversationManager;
-  }
   getTelnyxBots() {
     return Array.from(this.telnyxBots);
   }
   addTelnyxBot(args: TelnyxBotArgs) {
     const telnyxBot = new TelnyxBot(args);
-
-    telnyxBot.addEventListener('conversationadd', (e: Event) => {
-      const e2 = e as MessageEvent<ConversationAddEventData>;
-      this.conversationManager.addConversation(e2.data.conversation);
-    });
-    telnyxBot.addEventListener('conversationremove', (e: Event) => {
-      const e2 = e as MessageEvent<ConversationRemoveEventData>;
-      this.conversationManager.removeConversation(e2.data.conversation);
-    });
     this.telnyxBots.add(telnyxBot);
 
     this.dispatchEvent(new MessageEvent<BotEventArgs>('botadd', {
