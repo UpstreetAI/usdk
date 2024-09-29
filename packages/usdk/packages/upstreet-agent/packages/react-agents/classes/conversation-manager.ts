@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import type {
-  AgentRegistry,
+  RenderRegistry,
   ConversationObject,
-  ConversationAddEventData,
-  ConversationRemoveEventData,
+  ConversationEventData,
 } from '../types';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
@@ -12,7 +11,7 @@ type ConversationLoadData = {
 };
 
 export class ConversationManager extends EventTarget {
-  registry: AgentRegistry;
+  registry: RenderRegistry;
   conversations = new Set<ConversationObject>();
   loadedConversations = new WeakMap<ConversationObject, boolean>();
   constructor({
@@ -24,21 +23,27 @@ export class ConversationManager extends EventTarget {
   getConversations() {
     return Array.from(this.conversations);
   }
-  addConversation(conversation: ConversationObject) {
+  async addConversation(conversation: ConversationObject) {
     this.conversations.add(conversation);
-    this.dispatchEvent(new MessageEvent<ConversationAddEventData>('conversationadd', {
+
+    const e = new ExtendableMessageEvent<ConversationEventData>('conversationadd', {
       data: {
         conversation,
       },
-    }));
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
-  removeConversation(conversation: ConversationObject) {
+  async removeConversation(conversation: ConversationObject) {
     this.conversations.delete(conversation);
-    this.dispatchEvent(new MessageEvent<ConversationRemoveEventData>('conversationremove', {
-        data: {
+
+    const e = new ExtendableMessageEvent<ConversationEventData>('conversationremove', {
+      data: {
         conversation,
-        },
-    }));
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
   useDeferRender(conversation: ConversationObject) {
     const [deferRender, setDeferRender] = useState(() => !!this.loadedConversations.get(conversation));
