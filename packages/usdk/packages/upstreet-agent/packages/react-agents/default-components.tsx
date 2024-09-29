@@ -11,6 +11,7 @@ import type {
   // AgentProps,
   ActionProps,
   ActionPropsAux,
+  UniformPropsAux,
   // PromptProps,
   FormatterProps,
   // ParserProps,
@@ -65,6 +66,7 @@ import {
   // useAgents,
   // useScene,
   useActions,
+  useUniforms,
   useFormatters,
   useName,
   usePersonality,
@@ -733,6 +735,7 @@ export const CharactersPrompt = () => {
 };
 const ActionsPromptInternal = () => {
   const actions = useActions();
+  const uniforms = useUniforms();
   const formatters = useFormatters();
   const conversation = useConversation();
 
@@ -740,11 +743,10 @@ const ActionsPromptInternal = () => {
   if (actions.length > 0 && formatters.length > 0) {
     const formatter = formatters[0];
     s = dedent`
-      # Actions
-      Here are the actions that your character can take:
+      # Response format
     ` +
     '\n\n' +
-    formatter.formatFn(Array.from(actions.values()), conversation);
+    formatter.formatFn(Array.from(actions.values()), uniforms, conversation);
   }
   return (
     <Prompt>{s}</Prompt>
@@ -893,12 +895,6 @@ export const InstructionsPrompt = () => {
 };
 
 // formatters
-const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
-  return z.object({
-    method: z.literal(method),
-    args,
-  });
-};
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
@@ -916,69 +912,110 @@ export const JsonFormatter = () => {
   return (
     <Formatter
       /* actions to zod schema */
-      schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        const types: ZodTypeAny[] = filteredActions
-          .map(action => {
-            const schema = makeJsonSchema(action.name, action.schema);
-            return schema;
+      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+        const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
+          return z.object({
+            method: z.literal(method),
+            args,
           });
-        if (types.length >= 2) {
-          return z.union(
-            types as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
-          );
-        } else if (types.length === 1) {
-          return types[0];
-        } else {
-          return z.object({});
+        };
+        const makeUnionSchema = (actions: ActionPropsAux[]) => {
+          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, thinkOpts)
+            .map(action => makeActionSchema(action.name, action.schema));
+          if (actionSchemas.length >= 2) {
+            return z.union(
+              actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
+            );
+          } else if (actionSchemas.length === 1) {
+            return actionSchemas[0];
+          } else {
+            return null;
+          }
+        };
+        const makeObjectSchema = (uniforms: ActionPropsAux[]) => {
+          const filteredUniforms = getFilteredActions(uniforms, conversation, thinkOpts);
+          if (filteredUniforms.length > 0) {
+            const o = {};
+            for (const uniform of filteredUniforms) {
+              o[uniform.name] = uniform.schema;
+            }
+          } else {
+            return null;
+          }
+        };
+        const actionSchema = makeUnionSchema(actions);
+        const uniformsSchema = makeObjectSchema(uniforms);
+        const o = {};
+        if (actionSchema) {
+          o['action'] = actionSchema;
         }
+        if (uniformsSchema) {
+          o['uniforms'] = uniformsSchema;
+        }
+        return z.object(o);
       }}
       /* actions to instruction prompt */
-      formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        return filteredActions
-          .map((action) => {
-            const {
-              name,
-              description,
-              examples,
-            } = action;
+      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+        const formatAction = (action: ActionPropsAux) => {
+          const {
+            name,
+            description,
+            examples,
+          } = action;
 
-            const examplesJsonString = (examples ?? []).map((args) => {
-              return JSON.stringify(
-                {
-                  method: name,
-                  args,
-                }
-              );
-            }).join('\n');
-
-            return (
-              name ? (
-                dedent`
-                  * ${name}
-                ` +
-                '\n'
-              ) : ''
-            ) +
-            (description ? (description + '\n') : '') +
-            (examplesJsonString
-              ? (
-                dedent`
-                  Examples:
-                  \`\`\`
-                ` +
-                '\n' +
-                examplesJsonString +
-                '\n' +
-                dedent`
-                  \`\`\`
-                `
-              )
-              : ''
+          const examplesJsonString = (examples ?? []).map((args) => {
+            return JSON.stringify(
+              {
+                method: name,
+                args,
+              }
             );
-          })
+          }).join('\n');
+
+          return (
+            name ? (
+              dedent`
+                * ${name}
+              ` +
+              '\n'
+            ) : ''
+          ) +
+          (description ? (description + '\n') : '') +
+          (examplesJsonString
+            ? (
+              dedent`
+                Examples:
+                \`\`\`
+              ` +
+              '\n' +
+              examplesJsonString +
+              '\n' +
+              dedent`
+                \`\`\`
+              `
+            )
+            : ''
+          );
+        };
+        
+        const actionsString = getFilteredActions(actions, conversation, thinkOpts)
+          .map(formatAction)
           .join('\n\n');
+        const uniformsString = getFilteredActions(uniforms, conversation, thinkOpts)
+          .map(formatAction)
+          .join('\n\n');
+        return [
+          actionsString && (dedent`\
+            ## Actions
+            Here are the available actions you can take:
+          ` + '\n\n' +
+          actionsString),
+          uniformsString && (dedent`\
+            ## Uniforms
+            Each action must also include the following additional keys (uniforms):
+          ` + '\n\n' +
+          uniformsString),
+        ].filter(Boolean).join('\n\n');
       }}
     />
   );
