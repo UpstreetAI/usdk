@@ -66,7 +66,7 @@ as a matter of policy, only the earliest timeout for each thread is considered
 export class LiveManager extends EventTarget {
   agent: ActiveAgentObject;
   #cache: LiveState = makeLiveState();
-  #timeouts: number[] = [];
+  #timeouts: number[] = []; // XXX update this type to include the Conversation/thread that triggered the timeout
   #loadPromise: Promise<void>;
   #loaded = false;
 
