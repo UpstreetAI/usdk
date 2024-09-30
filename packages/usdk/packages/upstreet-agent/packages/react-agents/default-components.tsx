@@ -1062,6 +1062,7 @@ export const DefaultPerceptions = () => {
 // uniforms
 
 export const DefaultUniforms = () => {
+  const conversation = useConversation(); // XXX needs to be under a conversation tag
   const timestamp = new Date();
 
   return (
@@ -1073,6 +1074,7 @@ export const DefaultUniforms = () => {
           Use this to pause the job/conversation until a later time. The delay can be short (like a 1s pause) or long (like a calendar date).
           Specify a delay time, a Date (ISO 8601) string, or use null to indicate no waiting.
         `}
+        // XXX put the current timeouts into the state
         state={`Current time: ${JSON.stringify(timestamp.toISOString())} (${timeAgo(timestamp)})`}
         schema={
           z.union([
@@ -1107,7 +1109,6 @@ export const DefaultUniforms = () => {
               args: nextMessageWaitArgs,
             },
           } = e.data;
-          console.log('Waiting for: ', nextMessageWaitArgs);
           const timeout = (() => {
             if (nextMessageWaitArgs === null) {
               return Date.now();
@@ -1139,8 +1140,13 @@ export const DefaultUniforms = () => {
               throw new Error('Invalid nextMessageWaitArgs: ' + JSON.stringify(nextMessageWaitArgs));
             }
           })();
-          const date = new Date(timeout);
-          agent.agent.liveManager.setTimeout(date);
+          console.log('got next action time: ', nextMessageWaitArgs, timeout - Date.now());
+          const nextAction = async () => {
+            console.log('live action 1');
+            await agent.think();
+            console.log('live action 2');
+          };
+          agent.agent.liveManager.setTimeout(nextAction, conversation, timeout);
         }}
       />
     </>
