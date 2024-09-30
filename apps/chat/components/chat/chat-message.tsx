@@ -46,7 +46,7 @@ export function ChatMessage({
   return (
     <div>
       <div className={'relative grid grid-cols-message bt-0'}>
-        {(popoverMessageId === id) && (
+        {(popoverMessageId === id && !isOwnMessage) && (
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
@@ -76,7 +76,7 @@ export function ChatMessage({
             </Button>
           </div>
         )}
-        
+
         <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
 
         <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
@@ -111,7 +111,7 @@ export function ChatMessage({
           {content && (<div>{content}</div>)}
           <div className="text-md text-right text-gray-500 dark:text-gray-400">
             {timeAgo(timestamp)}
-            </div>
+          </div>
         </div>
       </div>
     </div>
