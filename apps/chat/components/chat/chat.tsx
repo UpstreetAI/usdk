@@ -387,6 +387,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
           player={player}
           room={room}
           timestamp={message.timestamp}
+          isOwnMessage={false} 
+          profileUrl={''}
         />
       )
     }

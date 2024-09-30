@@ -13,7 +13,7 @@ import ReactMarkdown from 'react-markdown'
 
 export interface ChatMessageProps {
   id: string
-  content: string
+  content: any
   media: any
   name: string
   player: any
