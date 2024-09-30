@@ -257,8 +257,8 @@ export function ChatMessageImage({
   timestamp
 }: ChatMessageImageProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
-      <img id={`image-${timestamp}`} className='rounded-[8px] w-full' src={url} alt='' />
+    <div className="bg-[rgba(255,255,255,0.1)] mt-2 mb-2">
+      <img id={`image-${timestamp}`} className='w-full' src={url} alt='' />
     </div>
   )
 }
