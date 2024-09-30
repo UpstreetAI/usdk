@@ -1094,7 +1094,10 @@ export const DefaultUniforms = () => {
         }
         examples={[
           {
-            delaySeconds: 30,
+            delayTime: {
+              unit: 'seconds',
+              value: 10,
+            },
           },
           {
             waitUntilDateISOString: `2021-01-30T01:23:45.678Z`,
