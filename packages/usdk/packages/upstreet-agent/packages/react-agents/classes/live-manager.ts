@@ -33,6 +33,9 @@ export class LiveManager extends EventTarget {
     this.agent = agent;
   }
 
+  getTimeouts(conversation: ConversationObject) {
+    return this.#timeouts.filter((timeout) => timeout.conversation === conversation);
+  }
   setTimeout(updateFn: () => void, conversation: ConversationObject, timestamp: number) {
     const timeout = {
       updateFn,

@@ -333,6 +333,7 @@ export type TelnyxManager = EventTarget & {
   destroy: () => void;
 };
 export type LiveManager = {
+  getTimeouts: (conversation: ConversationObject) => number[];
   setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
   process: () => void;
   getNextTimeout: () => number;
