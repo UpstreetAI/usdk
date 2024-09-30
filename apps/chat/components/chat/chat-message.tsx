@@ -19,6 +19,7 @@ export interface ChatMessageProps {
   room: string
   timestamp: Date
   isOwnMessage: any
+  profileUrl: string
   // user: User | null
 }
 
@@ -29,14 +30,15 @@ export function ChatMessage({
   name,
   player,
   timestamp,
-  isOwnMessage
+  isOwnMessage,
+  profileUrl
 }: ChatMessageProps) {
   if (!player) {
     throw new Error('Player is required')
   }
 
   const playerSpec = player.getPlayerSpec();
-  const agentUrl = getAgentUrl(playerSpec);
+  // const agentUrl = getAgentUrl(playerSpec);
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
   const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
@@ -48,7 +50,7 @@ export function ChatMessage({
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
               className="flex flex-col w-full"
-              href={`/agents/${playerSpec.id}`}
+              href={profileUrl}
               onClick={e => {
                 togglePopoverMessageId('');
               }}
@@ -75,7 +77,7 @@ export function ChatMessage({
           </div>
         )}
         
-        <ChatMessageAvatar name={name} avatarURL={avatarURL} />
+        <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
 
         <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
           <span
@@ -121,14 +123,16 @@ export function ChatMessage({
 export interface ChatMessageAvatarProps {
   name: string
   avatarURL: string
+  profileUrl: string
 }
 
 export function ChatMessageAvatar({
   name,
-  avatarURL
+  avatarURL,
+  profileUrl
 }: ChatMessageAvatarProps) {
   return (
-    <Link href={`/agents/${name}`}>
+    <Link href={profileUrl}>
       <div
         className="w-12 h-12 bg-cover bg-top"
         style={{

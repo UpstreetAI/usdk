@@ -64,6 +64,7 @@ type Message = {
   name: string
   timestamp: Date
   userId: string
+  human: boolean
 }
 
 //
@@ -193,12 +194,16 @@ function getMessageComponent(room: string, message: Message, id: string, players
       // Check if the message is from the current user
       const isOwnMessage = user && user.id === message.userId;
 
+      // Get the profile URL according to the user type
+      const profileUrl = `/${message.human ? 'accounts' : 'agents'}/${message?.userId}`;
+
       return (
         <ChatMessage
           id={id}
           name={ message.name }
           content={message.args.text}
           isOwnMessage={isOwnMessage}
+          profileUrl={profileUrl}
           media={media}
           player={player}
           room={room}
