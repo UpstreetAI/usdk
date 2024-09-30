@@ -1,49 +1,7 @@
-// import { useContext, useEffect } from 'react';
-// import type { Context } from 'react';
-// import { z } from 'zod';
-// import * as Y from 'yjs';
-// import type { ZodTypeAny } from 'zod';
-// import dedent from 'dedent';
-// import {
-//   EpochContext,
-// } from '../context';
-// import {
-//   AgentObject,
-// } from './agent-object';
-// import {
-//   TaskObject,
-//   TaskResult,
-// } from './task-object';
 import type {
-  TaskProps,
   ActiveAgentObject,
-  TaskEventData,
+  ConversationObject,
 } from '../types';
-// import {
-//   ConversationObject,
-// } from './conversation-object';
-// import {
-//   QueueManager,
-// } from '../util/queue-manager.mjs';
-// import {
-//   makePromise,
-//   parseCodeBlock,
-// } from '../util/util.mjs';
-// import { Player } from './player';
-// import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
-// import {
-//   ExtendableMessageEvent,
-// } from '../util/extendable-message-event';
-// import {
-//   retry,
-// } from '../util/util.mjs';
-// import {
-//   GenerativeAgentObject,
-// } from './generative-agent-object';
-// import {
-//   SceneObject,
-// } from './scene-object';
-// import { AgentRegistry } from './render-registry';
 
 //
 
@@ -56,6 +14,11 @@ const makeLiveState = () => ({
   timeouts: [],
 }) as LiveState;
 
+type LiveTimeout = {
+  conversation: ConversationObject;
+  timestamp: number;
+};
+
 //
 
 /*
@@ -66,7 +29,7 @@ as a matter of policy, only the earliest timeout for each thread is considered
 export class LiveManager extends EventTarget {
   agent: ActiveAgentObject;
   #cache: LiveState = makeLiveState();
-  #timeouts: number[] = []; // XXX update this type to include the Conversation/thread that triggered the timeout
+  #timeouts: LiveTimeout[] = []; // XXX update this type to include the Conversation/thread that triggered the timeout
   #loadPromise: Promise<void>;
   #loaded = false;
 
