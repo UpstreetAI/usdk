@@ -176,14 +176,14 @@ function getMessageComponent(room: string, message: Message, id: string, players
     case 'typing': return null;
 
     case 'join': return (
-      <div className="opacity-60">
-        { message.name } joined the room.
+      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mb-2 p-1">
+        <span className='font-bold'>{ message.name }</span> joined the room.
       </div>
     )
 
     case 'leave': return (
-      <div className="opacity-60">
-        { message.name } left the room.
+      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mb-2 p-1">
+        <span className='font-bold'>{ message.name }</span> left the room.
       </div>
     )
   
