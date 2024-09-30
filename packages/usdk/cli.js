@@ -113,6 +113,7 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
@@ -123,7 +124,6 @@ const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
 const wranglerToml = toml.parse(wranglerTomlString);
 const env = wranglerToml.vars;
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
-const timeAgo = (timestamp) => jsAgo.default(+timestamp / 1000, { format: 'short' });
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const shortName = () => uniqueNamesGenerator({
   dictionaries: [adjectives, adjectives, colors, animals],
