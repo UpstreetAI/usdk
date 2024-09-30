@@ -290,7 +290,6 @@ export type ChatsSpecification = EventTarget & {
   join: (opts: RoomSpecification) => Promise<void>;
   leave: (opts: RoomSpecification) => Promise<void>;
   leaveAll: () => Promise<void>;
-  tick: () => Promise<number>;
 };
 export type ChatsManager = {
   // members
@@ -302,9 +301,6 @@ export type ChatsManager = {
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
-  // join: (opts: RoomSpecification) => Promise<void>;
-  // leave: (opts: RoomSpecification) => Promise<void>;
-  tick: () => Promise<number>;
   live: () => void;
   destroy: () => void;
 };
@@ -336,8 +332,11 @@ export type TelnyxManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
-export type TaskManager = {
-  tick: () => Promise<number>;
+export type LiveManager = {
+  setTimeout: (timestamp: Date) => void;
+  process: () => void;
+  getNextTimeout: () => number;
+  waitForLoad: () => Promise<void>;
 };
 export type PingManager = {
   userId: string;
@@ -356,7 +355,7 @@ export type ActiveAgentObject = AgentObject & {
   discordManager: DiscordManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
-  taskManager: TaskManager;
+  liveManager: LiveManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
