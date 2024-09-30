@@ -333,10 +333,9 @@ export type TelnyxManager = EventTarget & {
   destroy: () => void;
 };
 export type LiveManager = {
-  setTimeout: (timestamp: Date) => void;
+  setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
   process: () => void;
   getNextTimeout: () => number;
-  waitForLoad: () => Promise<void>;
 };
 export type PingManager = {
   userId: string;
@@ -410,6 +409,12 @@ export type PendingActionEventData = {
 export type PendingActionEvent = PendingMessageEvent<PendingActionEventData>;
 export type AbortableActionEvent = AbortableMessageEvent<PendingActionEventData>;
 export type ActionEvent = MessageEvent<PendingActionEventData>;
+
+export type LiveTriggerEventData = {
+  agent: AgentObject;
+  conversation: ConversationObject;
+};
+export type LiveTriggerEvent = PendingMessageEvent<LiveTriggerEventData>;
 
 export type AgentEventData = {
   agent: AgentObject;
