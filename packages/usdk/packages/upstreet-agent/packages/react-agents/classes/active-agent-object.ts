@@ -80,7 +80,26 @@ export class ActiveAgentObject extends AgentObject {
     });
     this.discordManager = new DiscordManager();
     this.telnyxManager = new TelnyxManager();
-    this.liveManager = new LiveManager();
+    this.liveManager = new LiveManager({
+      agent: this,
+    });
+    const bindLiveManager = () => {
+      this.liveManager.addEventListener('trigger', (e: MessageEvent) => {
+        // XXX finish this
+      });
+
+      // dispatch up to the registry so the runtime can update its bookkeeping
+      const proxyRegistryEvent = (event: MessageEvent) => {
+        const registry = this.appContextValue.useRegistry();
+        registry.dispatchEvent(new MessageEvent(event.type, {
+          data: null,
+        }));
+      };
+      this.liveManager.addEventListener('updatealarm', (e: MessageEvent) => {
+        proxyRegistryEvent(e);
+      });
+    };
+    bindLiveManager();
     this.pingManager = new PingManager({
       userId: this.id,
       supabase: this.useSupabase(),
