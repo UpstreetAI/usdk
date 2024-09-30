@@ -441,6 +441,9 @@ export class DiscordBotClient extends EventTarget {
       // console.log('opened');
       connectPromise.resolve();
     };
+    ws.onclose = () => {
+      console.warn('discord client closed');
+    };
     ws.onmessage = e => {
       // console.log('got message', e.data);
 

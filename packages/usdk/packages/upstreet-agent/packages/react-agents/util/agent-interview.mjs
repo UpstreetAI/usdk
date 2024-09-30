@@ -113,7 +113,7 @@ export class AgentInterview extends EventTarget {
     }) => {
       const {
         blob,
-      } = await generateBackgroundImage(undefined, homespaceDescription, {
+      } = await generateBackgroundImage(homespaceDescription, undefined , {
         jwt,
       });
       return blob;

@@ -15,13 +15,15 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
-  ConversationManager,
+  // ConversationManager,
   ConversationObject,
   ConversationProps,
   ConversationInstanceProps,
-  MessagesUpdateEvent,
+  // MessagesUpdateEvent,
   PaymentProps,
   SubscriptionProps,
+  ConversationEventData,
+  UniformProps,
 } from './types';
 import {
   AppContext,
@@ -55,10 +57,11 @@ import {
 // import {
 //   SubtleAi,
 // } from './classes/subtle-ai';
-import {
-  RenderLoader,
-  RenderLoaderProvider,
-} from './classes/render-loader';
+// import {
+//   RenderLoader,
+//   RenderLoaderProvider,
+// } from './classes/render-loader';
+import { ExtendableMessageEvent } from './util/extendable-message-event';
 
 // Note: this comment is used to remove imports before running tsdoc
 // END IMPORTS
@@ -110,8 +113,14 @@ export const Agent = forwardRef(({
   }, [agent]);
 
   useEffect(() => {
-    const updateConversations = (e: any) => {
+    const updateConversations = (e: ExtendableMessageEvent<ConversationEventData>) => {
       setConversations(() => conversationManger.getConversations());
+
+      // wait for re-render before returning from the handler
+      e.waitUntil((async () => {
+        const renderRegistry = agent.appContextValue.useRegistry();
+        await renderRegistry.waitForUpdate();
+      })());
     };
     conversationManger.addEventListener('conversationadd', updateConversations);
     conversationManger.addEventListener('conversationremove', updateConversations);
@@ -154,14 +163,14 @@ export const RawAgent = forwardRef((props: RawAgentProps, ref: Ref<ActiveAgentOb
 });
 const ConversationInstance = (props: ConversationInstanceProps) => {
   const {
-    agent,
+    // agent,
     conversation,
   } = props;
-  const renderLoader = useMemo(() => new RenderLoader(), []);
-  const [renderPromises, setRenderPromises] = useState<any[]>([]);
+  // const renderLoader = useMemo(() => new RenderLoader(), []);
+  // const [renderPromises, setRenderPromises] = useState<any[]>([]);
 
   // events
-  const waitForRender = () => {
+  /* const waitForRender = () => {
     const p = makePromise();
     renderLoader.useLoad(p);
     setRenderPromises((renderPromises) => renderPromises.concat([p]));
@@ -184,13 +193,13 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
       }
       setRenderPromises([]);
     }
-  }, [renderPromises.length]);
+  }, [renderPromises.length]); */
 
   return (
     <ConversationContext.Provider value={{conversation}}>
-      <RenderLoaderProvider renderLoader={renderLoader}>
+      {/* <RenderLoaderProvider renderLoader={renderLoader}> */}
         {props.children}
-      </RenderLoaderProvider>
+      {/* </RenderLoaderProvider> */}
     </ConversationContext.Provider>
   );
 };
@@ -210,6 +219,7 @@ export const Conversation = (props: ConversationProps) => {
     );
   });
 };
+// use this to defer rendering until the conversation is actually used
 export const Defer = (props: DeferProps) => {
   const appContextValue = useContext(AppContext);
   const conversationManager = appContextValue.useConversationManager();
@@ -233,6 +243,36 @@ export const Defer = (props: DeferProps) => {
   }, []);
 
   return deferRender && props.children;
+};
+export const Uniform = (props: UniformProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(makeSymbol, []);
+  const conversation = useContext(ConversationContext).conversation;
+
+  const deps = [
+    props.name,
+    props.description,
+    printZodSchema(props.schema),
+    JSON.stringify(props.examples),
+    props.handler?.toString() ?? '',
+    conversation,
+  ];
+
+  useEffect(() => {
+    const props2 = {
+      ...props,
+      conversation,
+    };
+    agentRegistry.registerUniform(symbol, props2);
+    return () => {
+      agentRegistry.unregisterUniform(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
 };
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);

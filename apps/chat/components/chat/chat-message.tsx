@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl, timeAgo } from '@/lib/utils'
+import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
 import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
 import ReactMarkdown from 'react-markdown'
+import { timeAgo } from 'react-agents/util/time-ago.mjs';
 
 // import type { User } from '@supabase/supabase-js'
 

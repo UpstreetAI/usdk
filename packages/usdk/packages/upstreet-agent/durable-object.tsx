@@ -2,18 +2,14 @@ import { headers } from './packages/react-agents/constants.mjs';
 import { makeAnonymousClient } from './packages/react-agents/util/supabase-client.mjs';
 import { AgentRenderer } from './packages/react-agents/classes/agent-renderer.tsx';
 import { ChatsSpecification } from './packages/react-agents/classes/chats-specification.ts';
-import {
-  serverHandler,
-} from './packages/react-agents/routes/server.ts';
-import {
-  multiplayerEndpointUrl,
-} from './packages/react-agents/util/endpoints.mjs';
+import { pingRate } from 'react-agents/classes/ping-manager.ts';
+import { serverHandler } from './packages/react-agents/routes/server.ts';
+import { multiplayerEndpointUrl } from './packages/react-agents/util/endpoints.mjs';
 
 import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
+import { ActiveAgentObject } from 'react-agents/types';
 
 Error.stackTraceLimit = 300;
-
-// const textEncoder = new TextEncoder();
 
 //
 
@@ -49,17 +45,34 @@ export class DurableObject extends EventTarget {
       userId: this.#getId(),
       supabase: this.supabase,
     });
-    // console.log('load 1', {state, stateUserRender: state.userRender, agentTsxUserRender});
     const userRender = state.userRender ?? agentTsxUserRender;
-    // console.log('load 2', {userRender});
     this.agentRenderer = new AgentRenderer({
       env,
       userRender,
       chatsSpecification: this.chatsSpecification,
     });
+    const bindAlarm = () => {
+      const updatealarm = () => {
+        // get the next timeout
+        const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
+        const timeouts = agents.map((agent) =>
+          agent.liveManager.getNextTimeout()
+        );
+        const now = Date.now();
+        const pingTimeout = now + pingRate;
+        timeouts.push(pingTimeout);
+        const minTimeout = Math.min(...timeouts);
+
+        // set the next alarm
+        this.state.storage.setAlarm(minTimeout);
+      };
+      this.agentRenderer.registry.addEventListener('updatealarm', updatealarm);
+    };
+    bindAlarm();
 
     this.loadPromise = this.agentRenderer.waitForRender();
 
+    // initial alarm
     (async () => {
       await this.alarm();
     })();
@@ -414,30 +427,16 @@ export class DurableObject extends EventTarget {
       });
     }
   }
-  async schedule() {
-    const agents = this.agentRenderer.registry.agents;
-    const [
-      taskTimeouts,
-      chatSpecificationTimeout,
-    ] = await Promise.all([
-      Promise.all(agents.map(async (agent) => {
-        return await agent.taskManager.tick();
-      })),
-      this.chatsSpecification.tick(),
-    ]);
-    const timeouts = [
-      ...taskTimeouts,
-      chatSpecificationTimeout,
-    ];
-    const minTimeout = Math.min(...timeouts);
-    if (isFinite(minTimeout)) {
-      // const now = Date.now();
-      // console.log('set new task timeout in ' + (timeout - now) + 'ms');
-      this.state.storage.setAlarm(minTimeout);
-    }
-  }
   async alarm() {
+    // wait for load just in case
     await this.waitForLoad();
-    await this.schedule();
+
+    // process the agent's live managers
+    const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
+    const processPromises = agents.map(async (agent) => {
+      await agent.liveManager.waitForLoad();
+      agent.liveManager.process();
+    });
+    await Promise.all(processPromises);
   }
 }

@@ -4,13 +4,14 @@ import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
-import jsAgo from 'js-ago';
+import { timeAgo } from 'react-agents/util/time-ago.mjs';
 
 import type {
   AppContextValue,
   // AgentProps,
   ActionProps,
   ActionPropsAux,
+  UniformPropsAux,
   // PromptProps,
   FormatterProps,
   // ParserProps,
@@ -22,6 +23,7 @@ import type {
   ActiveAgentObject,
   ConversationObject,
   PendingActionEvent,
+  ActionEvent,
   PerceptionEvent,
   ActionMessage,
   PlayableAudioStream,
@@ -33,6 +35,8 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TelnyxProps,
+  TelnyxBotArgs,
 } from './types';
 import {
   AppContext,
@@ -50,6 +54,7 @@ import {
   Server,
   Conversation,
   Defer,
+  Uniform,
 } from './components';
 import {
   AbortableActionEvent,
@@ -63,6 +68,7 @@ import {
   // useAgents,
   // useScene,
   useActions,
+  useUniforms,
   useFormatters,
   useName,
   usePersonality,
@@ -108,10 +114,6 @@ import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser
 
 // utils
 
-const timeAgo = (timestamp: Date) => {
-  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
-  return jsAgo(timestampInSeconds, { format: 'short' });
-};
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 const defaultPriorityOffset = 100;
 const maxDefaultMemoryValues = 8;
@@ -132,7 +134,9 @@ export const DefaultAgentComponents = () => {
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
+      <DefaultDrivers />
       <RAGMemory />
+      {/* <LiveMode /> */}
       <DefaultPrompts />
       {/* <DefaultServers /> */}
     </>
@@ -730,6 +734,7 @@ export const CharactersPrompt = () => {
 };
 const ActionsPromptInternal = () => {
   const actions = useActions();
+  const uniforms = useUniforms();
   const formatters = useFormatters();
   const conversation = useConversation();
 
@@ -737,11 +742,10 @@ const ActionsPromptInternal = () => {
   if (actions.length > 0 && formatters.length > 0) {
     const formatter = formatters[0];
     s = dedent`
-      # Actions
-      Here are the actions that your character can take:
+      # Response format
     ` +
     '\n\n' +
-    formatter.formatFn(Array.from(actions.values()), conversation);
+    formatter.formatFn(Array.from(actions.values()), uniforms, conversation);
   }
   return (
     <Prompt>{s}</Prompt>
@@ -890,12 +894,6 @@ export const InstructionsPrompt = () => {
 };
 
 // formatters
-const makeJsonSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
-  return z.object({
-    method: z.literal(method),
-    args,
-  });
-};
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
@@ -913,69 +911,114 @@ export const JsonFormatter = () => {
   return (
     <Formatter
       /* actions to zod schema */
-      schemaFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        const types: ZodTypeAny[] = filteredActions
-          .map(action => {
-            const schema = makeJsonSchema(action.name, action.schema);
-            return schema;
+      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+        const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
+          return z.object({
+            method: z.literal(method),
+            args,
           });
-        if (types.length >= 2) {
-          return z.union(
-            types as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
-          );
-        } else if (types.length === 1) {
-          return types[0];
-        } else {
-          return z.object({});
+        };
+        const makeUnionSchema = (actions: ActionPropsAux[]) => {
+          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, thinkOpts)
+            .map(action => makeActionSchema(action.name, action.schema));
+          if (actionSchemas.length >= 2) {
+            return z.union(
+              actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
+            );
+          } else if (actionSchemas.length === 1) {
+            return actionSchemas[0];
+          } else {
+            return null;
+          }
+        };
+        const makeObjectSchema = (uniforms: ActionPropsAux[]) => {
+          const filteredUniforms = getFilteredActions(uniforms, conversation, thinkOpts);
+          if (filteredUniforms.length > 0) {
+            const o = {};
+            for (const uniform of filteredUniforms) {
+              o[uniform.name] = uniform.schema;
+              // console.log('set uniform', uniform.name, printNode(zodToTs(uniform.schema).node));
+            }
+            return z.object(o);
+          } else {
+            return null;
+          }
+        };
+        const actionSchema = makeUnionSchema(actions);
+        const uniformsSchema = makeObjectSchema(uniforms);
+        const o = {};
+        if (actionSchema) {
+          o['action'] = actionSchema;
         }
+        if (uniformsSchema) {
+          o['uniforms'] = uniformsSchema;
+        }
+        return z.object(o);
       }}
       /* actions to instruction prompt */
-      formatFn={(actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-        const filteredActions = getFilteredActions(actions, conversation, thinkOpts);
-        return filteredActions
-          .map((action) => {
-            const {
-              name,
-              description,
-              examples,
-            } = action;
+      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+        const formatAction = (action: ActionPropsAux) => {
+          const {
+            name,
+            description,
+            state,
+            examples,
+          } = action;
 
-            const examplesJsonString = (examples ?? []).map((args) => {
-              return JSON.stringify(
-                {
-                  method: name,
-                  args,
-                }
-              );
-            }).join('\n');
-
-            return (
-              name ? (
-                dedent`
-                  * ${name}
-                ` +
-                '\n'
-              ) : ''
-            ) +
-            (description ? (description + '\n') : '') +
-            (examplesJsonString
-              ? (
-                dedent`
-                  Examples:
-                  \`\`\`
-                ` +
-                '\n' +
-                examplesJsonString +
-                '\n' +
-                dedent`
-                  \`\`\`
-                `
-              )
-              : ''
+          const examplesJsonString = (examples ?? []).map((args) => {
+            return JSON.stringify(
+              {
+                method: name,
+                args,
+              }
             );
-          })
+          }).join('\n');
+
+          return (
+            name ? (
+              dedent`
+                * ${name}
+              ` +
+              '\n'
+            ) : ''
+          ) +
+          (description ? (description + '\n') : '') +
+          (state ? (state + '\n') : '') +
+          (examplesJsonString
+            ? (
+              dedent`
+                Examples:
+                \`\`\`
+              ` +
+              '\n' +
+              examplesJsonString +
+              '\n' +
+              dedent`
+                \`\`\`
+              `
+            )
+            : ''
+          );
+        };
+        
+        const actionsString = getFilteredActions(actions, conversation, thinkOpts)
+          .map(formatAction)
           .join('\n\n');
+        const uniformsString = getFilteredActions(uniforms, conversation, thinkOpts)
+          .map(formatAction)
+          .join('\n\n');
+        return [
+          actionsString && (dedent`\
+            ## Actions
+            Here are the available actions you can take:
+          ` + '\n\n' +
+          actionsString),
+          uniformsString && (dedent`\
+            ## Uniforms
+            Each action must also include the following additional keys (uniforms):
+          ` + '\n\n' +
+          uniformsString),
+        ].filter(Boolean).join('\n\n');
       }}
     />
   );
@@ -1013,6 +1056,119 @@ export const DefaultPerceptions = () => {
         }}
       />
     </>
+  );
+};
+
+// uniforms
+
+export const LiveModeInner = (props) => {
+  const agent = useAgent();
+  const conversation = useConversation();
+  const timeouts = agent.liveManager.useTimeouts(conversation);
+
+  return (
+    <Uniform
+      name="nextActionTime"
+      description={dedent`\
+        Optionally wait before continuing with your next action.
+        Use this to pause the job/conversation until a later time. The delay can be short (e.g. 1 second pause) or long (like a calendar date).
+        Specify a delay time, a Date (ISO 8601) string, or use null to indicate nothing to add.
+      `}
+      state={[
+        dedent`\
+          Next action schedule:
+        ` + '\n' + (
+          timeouts.length > 0 ?
+            timeouts.map((timestamp) => {
+              const date = new Date(timestamp);
+              return dedent`\
+                - ${date.toISOString()} (${timeAgo(date)})
+              `;
+            }).join('\n')
+          :
+            'None'
+        ),
+      ].join('\n')}
+      schema={
+        z.union([
+          z.object({
+            delayTime: z.object({
+              unit: z.enum(['seconds', 'minutes', 'hours', 'days']),
+              value: z.number(),
+            }),
+          }),
+          z.object({
+            waitUntilDateISOString: z.string(),
+          }),
+          z.null(),
+        ])
+      }
+      examples={[
+        {
+          delayTime: {
+            unit: 'seconds',
+            value: 10,
+          },
+        },
+        {
+          waitUntilDateISOString: `2021-01-30T01:23:45.678Z`,
+        },
+        null,
+      ]}
+      handler={async (e: ActionEvent) => {
+        const {
+          agent,
+          message: {
+            args: nextMessageWaitArgs,
+          },
+        } = e.data;
+        const timeout = (() => {
+          if (nextMessageWaitArgs === null) {
+            return Date.now();
+          } else if ('delayTime' in nextMessageWaitArgs) {
+            const { delayTime } = nextMessageWaitArgs as {
+              delayTime: {
+                unit: string,
+                value: number,
+              },
+            };
+            const { unit, value } = delayTime;
+            const delay = (() => {
+              switch (unit) {
+                case 'seconds': return value * 1000;
+                case 'minutes': return value * 1000 * 60;
+                case 'hours': return value * 1000 * 60 * 60;
+                case 'days': return value * 1000 * 60 * 60 * 24;
+                default: return 0;
+              }
+            })();
+            const now = Date.now();
+            return now + delay;
+          } else if ('waitUntilDateISOString' in nextMessageWaitArgs) {
+            const { waitUntilDateISOString } = nextMessageWaitArgs as {
+              waitUntilDateISOString: string,
+            };
+            return Date.parse(waitUntilDateISOString);
+          } else {
+            throw new Error('Invalid nextMessageWaitArgs: ' + JSON.stringify(nextMessageWaitArgs));
+          }
+        })();
+        console.log('got next action time: ', nextMessageWaitArgs, timeout - Date.now());
+        const nextAction = async () => {
+          console.log('live action 1');
+          await agent.think();
+          console.log('live action 2');
+        };
+        agent.agent.liveManager.setTimeout(nextAction, conversation, timeout);
+      }}
+    />
+  );
+};
+export const LiveMode = (props) => {
+  return (
+    <Conversation>
+      <LiveModeInner {...props} />
+    </Conversation>
   );
 };
 
@@ -1323,7 +1479,8 @@ export const MultimediaSense = () => {
   const randomId = useMemo(getRandomId, []);
 
   // XXX be able to query media other than that from the current conversation
-  const attachments = collectAttachments(conversation.messageCache.messages)
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages)
     .filter(attachment => {
       const typeClean = attachment.type.replace(/\+[\s\S]*$/, '');
       return supportedMediaPerceptionTypes.includes(typeClean);
@@ -1403,7 +1560,8 @@ export const MultimediaSense = () => {
 
         const attachments = [];
         const attachmentsToMessagesMap = new WeakMap();
-        for (const message of conversation.messageCache.messages) {
+        const messages = conversation.messageCache.getMessages();
+        for (const message of messages) {
           if (message.attachments) {
             for (const attachment of message.attachments) {
               attachments.push(attachment);
@@ -1496,8 +1654,6 @@ export const MultimediaSense = () => {
   )
 };
 export const DefaultSenses = () => {
-  // const agent = useAgent();
-
   return (
     <>
       <Conversation>
@@ -1505,6 +1661,150 @@ export const DefaultSenses = () => {
       </Conversation>
       <WebBrowser />
     </>
+  );
+};
+export const TelnyxDriver = () => {
+  const agent = useAgent();
+  const [telnyxEnabled, setTelnyxEnabled] = useState(false);
+
+  const { telnyxManager } = agent;
+  useEffect(() => {
+    const updateTelnyxEnabled = () => {
+      const telnyxBots = telnyxManager.getTelnyxBots();
+      setTelnyxEnabled(telnyxBots.length > 0);
+    };
+    const botadd = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    const botremove = (e: any) => {
+      updateTelnyxEnabled();
+    };
+    telnyxManager.addEventListener('botadd', botadd);
+    telnyxManager.addEventListener('botremove', botremove);
+    return () => {
+      telnyxManager.removeEventListener('botadd', botadd);
+      telnyxManager.removeEventListener('botremove', botremove);
+    };
+  }, [telnyxManager]);
+
+  return telnyxEnabled && (
+    <>
+      <Action
+        name="callPhone"
+        description={
+          dedent`\
+            Start a phone call with a phone number.
+            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+          } = args as {
+            phoneNumber: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.call({
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          } else {
+            console.warn('no telnyx bot found');
+            (e.data.message.args as any).error = `no telnyx bot found`;
+            await e.commit();
+          }
+        }}
+      />
+      <Action
+        name="textPhone"
+        description={
+          dedent`\
+            Text message (SMS/MMS) a phone number.
+            The phone number must be in +E.164 format.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+            text: `Hey what's up?`
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+            text,
+          } = args as {
+            phoneNumber: string;
+            text: string;
+          };
+          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          const telnyxBot = telnyxBots[0];
+          if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.text(text, undefined, {
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          }
+        }}
+      />
+    </>
+  );
+};
+export const DefaultDrivers = () => {
+  return (
+    <TelnyxDriver />
   );
 };
 
@@ -2539,7 +2839,8 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
   const randomId = useMemo(() => crypto.randomUUID(), []);
 
   // XXX come up with a better way to fetch available attachments from all messages, not just the cache
-  const attachments = collectAttachments(conversation.messageCache.messages);
+  const messages = conversation.messageCache.getMessages();
+  const attachments = collectAttachments(messages);
 
   return (
     <Action
@@ -2942,6 +3243,36 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(channels),
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
+  ]);
+
+  return null;
+};
+export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
+  const {
+    apiKey,
+    phoneNumber,
+    message,
+    voice,
+  } = props;
+  const agent = useAgent();
+
+  useEffect(() => {
+    const args: TelnyxBotArgs = {
+      apiKey,
+      phoneNumber,
+      message,
+      voice,
+      agent,
+    };
+    const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
+    return () => {
+      agent.telnyxManager.removeTelnyxBot(telnyxBot);
+    };
+  }, [
+    apiKey,
+    phoneNumber,
+    message,
+    voice,
   ]);
 
   return null;

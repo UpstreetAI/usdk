@@ -8,6 +8,7 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
+  LiveTriggerEvent,
 } from '../types';
 import {
   ConversationObject,
@@ -22,8 +23,14 @@ import {
   DiscordManager,
 } from './discord-manager';
 import {
-  TaskManager,
-} from './task-manager';
+  TelnyxManager,
+} from './telnyx-manager';
+import {
+  ConversationManager,
+} from './conversation-manager';
+import {
+  LiveManager,
+} from './live-manager';
 import { PingManager } from './ping-manager';
 import { AgentRegistry } from './render-registry';
 
@@ -35,9 +42,11 @@ export class ActiveAgentObject extends AgentObject {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
+  conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
-  taskManager: TaskManager;
+  telnyxManager: TelnyxManager;
+  liveManager: LiveManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
 
@@ -64,18 +73,30 @@ export class ActiveAgentObject extends AgentObject {
     //
 
     const conversationManager = this.appContextValue.useConversationManager();
+    this.conversationManager = conversationManager;
     const chatsSpecification = this.appContextValue.useChatsSpecification();
     this.chatsManager = new ChatsManager({
       agent: this,
-      conversationManager,
       chatsSpecification,
     });
-    this.discordManager = new DiscordManager({
-      conversationManager,
-    });
-    this.taskManager = new TaskManager({
+    this.discordManager = new DiscordManager();
+    this.telnyxManager = new TelnyxManager();
+    this.liveManager = new LiveManager({
       agent: this,
     });
+    const bindLiveManager = () => {
+      // dispatch up to the registry so the runtime can update its bookkeeping
+      const proxyRegistryEvent = (event: MessageEvent) => {
+        const registry = this.appContextValue.useRegistry();
+        registry.dispatchEvent(new MessageEvent(event.type, {
+          data: null,
+        }));
+      };
+      this.liveManager.addEventListener('updatealarm', (e: MessageEvent) => {
+        proxyRegistryEvent(e);
+      });
+    };
+    bindLiveManager();
     this.pingManager = new PingManager({
       userId: this.id,
       supabase: this.useSupabase(),
@@ -205,11 +226,13 @@ export class ActiveAgentObject extends AgentObject {
   live() {
     this.chatsManager.live();
     this.discordManager.live();
+    this.telnyxManager.live();
     this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
     this.discordManager.destroy();
+    this.telnyxManager.destroy();
     this.pingManager.destroy();
   }
 }

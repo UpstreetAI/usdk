@@ -2,49 +2,18 @@ import {
   // AgentObject,
   ActiveAgentObject,
   ActionMessage,
-  // ActionMessages,
   MessageFilter,
   // PendingActionMessage,
   ActionMessageEventData,
   PlayableAudioStream,
   GetHashFn,
+  MessageCache,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from './player';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
-
-//
-
-export const CACHED_MESSAGES_LIMIT = 50;
-
-//
-
-class MessageCache extends EventTarget {
-  messages: ActionMessage[] = [];
-  loaded: boolean = false;
-  loadPromise: Promise<void> | null = null;
-
-  tickUpdate() {
-    this.dispatchEvent(new MessageEvent('update', {
-      data: null,
-    }));
-  }
-  pushMessage(message: ActionMessage) {
-    this.messages.push(message);
-    this.trim();
-    this.tickUpdate();
-  }
-  prependMessages(messages: ActionMessage[]) {
-    this.messages.unshift(...messages);
-    this.trim();
-    this.tickUpdate();
-  }
-  trim() {
-    if (this.messages.length > CACHED_MESSAGES_LIMIT) {
-      this.messages.splice(0, this.messages.length - CACHED_MESSAGES_LIMIT);
-    }
-  }
-}
+import { MessageCache as MessageCacheConstructor, CACHED_MESSAGES_LIMIT } from './message-cache';
+import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 
 //
 
@@ -52,8 +21,8 @@ export class ConversationObject extends EventTarget {
   agent: ActiveAgentObject;
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
-  getHash: GetHashFn;
-  messageCache = new MessageCache();
+  getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
+  messageCache: MessageCache;
   numTyping: number = 0;
 
   constructor({
@@ -73,6 +42,18 @@ export class ConversationObject extends EventTarget {
     this.agentsMap = agentsMap;
     this.scene = scene;
     this.getHash = getHash;
+    this.messageCache = new MessageCacheConstructor({
+      loader: async () => {
+        const supabase = this.agent.appContextValue.useSupabase();
+        const messages = await loadMessagesFromDatabase({
+          supabase,
+          conversationId: this.getKey(),
+          agentId: this.agent.id,
+          limit: CACHED_MESSAGES_LIMIT,
+        });
+        return messages;
+      },
+    });
   }
 
   //
@@ -132,7 +113,7 @@ export class ConversationObject extends EventTarget {
   }
 
   #getAllMessages() {
-    return this.messageCache.messages;
+    return this.messageCache.getMessages();
   }
   #getAllAgents() {
     const allAgents: object[] = [
@@ -185,8 +166,9 @@ export class ConversationObject extends EventTarget {
         return m.timestamp > after;
       });
     }
-    let messages = this.messageCache.messages.filter(m => filterFns.every(fn => fn(m)));
-    if (typeof limit === 'number') {
+    let messages = this.messageCache.getMessages();
+    messages = messages.filter(m => filterFns.every(fn => fn(m)));
+    if (typeof limit === 'number' && limit > 0) {
       messages = messages.slice(-limit);
     }
     return messages;
@@ -217,9 +199,8 @@ export class ConversationObject extends EventTarget {
     const {
       hidden,
     } = message;
-
     if (!hidden) {
-      this.messageCache.pushMessage(message);
+      await this.messageCache.pushMessage(message);
     }
 
     const { userId } = message;
@@ -243,25 +224,20 @@ export class ConversationObject extends EventTarget {
   }
   // push a message to the network
   async addLocalAndRemoteMessage(message: ActionMessage) {
-    this.messageCache.pushMessage(message);
+    const {
+      hidden,
+    } = message;
+    if (!hidden) {
+      await this.messageCache.pushMessage(message);
+    }
 
-    await Promise.all([
-      (async () => {
-        const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
-          data: {
-            message,
-          },
-        });
-        this.dispatchEvent(e);
-        await e.waitForFinish();
-      })(),
-      (async () => {
-        // wait for re-render before returning from the handler
-        // this must be happening since we just triggered the message cache to update
-        const renderRegistry = this.agent.appContextValue.useRegistry();
-        await renderRegistry.waitForUpdate();
-      })(),
-    ]);
+    const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
+      data: {
+        message,
+      },
+    });
+    this.dispatchEvent(e);
+    await e.waitForFinish();
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {

@@ -140,7 +140,7 @@ export const featureSpecs = [
       - Get the bot token at https://discord.com/developers/applications/CLIENT_ID/bot
       The token is required and must be provided.
 
-      \`channels\` is a comma-separated list of channel names (text or voice) that the agent should join.
+      \`channels\` is a list of channel names (text or voice) that the agent should join.
     `,
     schema: z.union([
       z.object({
@@ -151,8 +151,7 @@ export const featureSpecs = [
     ]),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
     imports: (discordBot) => {
-      const channels = formatDiscordBotChannels(discordBot.channels);
-      if (discordBot.token && channels.length > 0) {
+      if (discordBot.token) {
         return ['DiscordBot'];
       } else {
         return [];
@@ -165,7 +164,48 @@ export const featureSpecs = [
           dedent`
             <DiscordBot
               token=${JSON.stringify(discordBot.token)}
-              channels={${JSON.stringify(channels)}}
+              ${discordBot.channels ? `channels={${JSON.stringify(channels)}}` : ''}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
+    name: 'telnyx',
+    description: dedent`\
+      Add Telnyx phone call/SMS support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
+
+      Phone number is optional, but if provided must be in +E.164 format (e.g. +14151234567).
+    `,
+    schema: z.union([
+      z.object({
+        apiKey: z.string(),
+        phoneNumber: z.string().optional(),
+        message: z.boolean(),
+        voice: z.boolean(),
+      }),
+      z.null(),
+    ]),
+    examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
+    imports: (telnyx) => {
+      if (telnyx.apiKey) {
+        return ['Telnyx'];
+      } else {
+        return [];
+      }
+    },
+    components: (telnyx) => {
+      if (telnyx.apiKey) {
+        return [
+          dedent`
+            <Telnyx
+              apiKey=${JSON.stringify(telnyx.apiKey)}
+              ${telnyx.phoneNumber ? `phoneNumber=${JSON.stringify(telnyx.phoneNumber)}` : ''}
+              ${telnyx.message ? `message` : ''}
+              ${telnyx.voice ? `voice` : ''}
             />
           `,
         ];
@@ -198,15 +238,6 @@ export const featureSpecs = [
       }
       return result;
     },
-    // components: ({
-    //   maxUserMessages,
-    //   maxUserMessagesTime,
-    //   message,
-    // }) => [
-    //   dedent`
-    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
-    //   `,
-    // ],
     components: (storeItems) => {
       return storeItems.map((storeItem) => {
         if (storeItem.type === 'payment') {

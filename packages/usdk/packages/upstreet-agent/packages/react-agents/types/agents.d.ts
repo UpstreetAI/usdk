@@ -112,7 +112,22 @@ export type DiscordBotArgs = {
   userWhitelist: string[];
   agent: ActiveAgentObject;
 };
-export type DiscordBotClient = any;
+
+// telnyx
+
+export type TelnyxProps = {
+  apiKey: string;
+  phoneNumber?: string;
+  message: boolean;
+  voice: boolean;
+};
+export type TelnyxBotArgs = {
+  apiKey: string;
+  phoneNumber: string;
+  message: boolean;
+  voice: boolean;
+  agent: ActiveAgentObject;
+};
 
 // actions
 
@@ -144,12 +159,10 @@ export type PerceptionMessage = {
   attachments?: Attachment[];
   timestamp: Date;
 };
-export type ActionMessages = Array<ActionMessage>;
 export type AgentActionMessage = {
   agent: AgentObject;
   message: ActionMessage;
 };
-export type AgentActionMessages = Array<AgentActionMessage>;
 
 // memory
 
@@ -207,13 +220,11 @@ export type Debouncer = EventTarget & {
 };
 
 export type MessageCache = EventTarget & {
-  messages: ActionMessage[];
-  loaded: boolean;
-  loadPromise: Promise<void>;
-
-  pushMessage(message: ActionMessage): void;
-  prependMessages(messages: ActionMessage[]): void;
+  getMessages(): ActionMessage[];
+  pushMessage(message: ActionMessage): Promise<void>;
+  // prependMessages(messages: ActionMessage[]): Promise<void>;
   trim(): void;
+  waitForLoad(): Promise<void>;
 };
 export type Player = {
   playerId: string;
@@ -255,12 +266,12 @@ export type ConversationObject = EventTarget & {
   getEmbeddingString: () => string;
 };
 export type ConversationManager = EventTarget & {
-  registry: AgentRegistry;
+  registry: RenderRegistry;
   conversations: Set<ConversationObject>;
   loadedConversations: WeakMap<ConversationObject, boolean>;
   getConversations: () => ConversationObject[];
-  addConversation: (conversation: ConversationObject) => void;
-  removeConversation: (conversation: ConversationObject) => void;
+  addConversation: (conversation: ConversationObject) => Promise<void>;
+  removeConversation: (conversation: ConversationObject) => Promise<void>;
   useDeferRender: (conversation: ConversationObject) => boolean;
   waitForConversationLoad: (conversation: ConversationObject) => Promise<void>;
 };
@@ -279,12 +290,10 @@ export type ChatsSpecification = EventTarget & {
   join: (opts: RoomSpecification) => Promise<void>;
   leave: (opts: RoomSpecification) => Promise<void>;
   leaveAll: () => Promise<void>;
-  tick: () => Promise<number>;
 };
 export type ChatsManager = {
   // members
   agent: ActiveAgentObject;
-  conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
@@ -292,9 +301,6 @@ export type ChatsManager = {
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
-  // join: (opts: RoomSpecification) => Promise<void>;
-  // leave: (opts: RoomSpecification) => Promise<void>;
-  tick: () => Promise<number>;
   live: () => void;
   destroy: () => void;
 };
@@ -302,14 +308,36 @@ export type DiscordBot = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  conversationManager: ConversationManager;
   addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
   removeDiscordBot: (client: DiscordBot) => void;
   live: () => void;
   destroy: () => void;
 };
-export type TaskManager = {
-  tick: () => Promise<number>;
+export type TelnyxBot = EventTarget & {
+  getPhoneNumber: () => string;
+  call: (opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) => Promise<void>;
+  text: (text: string | undefined, mediaUrls: string[] | undefined, opts: {
+    fromPhoneNumber: string,
+    toPhoneNumber: string,
+  }) => Promise<void>;
+  destroy: () => void;
+};
+export type TelnyxManager = EventTarget & {
+  getTelnyxBots: () => TelnyxBot[];
+  addTelnyxBot: (args: TelnyxBotArgs) => TelnyxBot;
+  removeTelnyxBot: (client: TelnyxBot) => void;
+  live: () => void;
+  destroy: () => void;
+};
+export type LiveManager = {
+  getTimeouts: (conversation: ConversationObject) => number[];
+  useTimeouts: (conversation: ConversationObject) => number[];
+  setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
+  process: () => void;
+  getNextTimeout: () => number;
 };
 export type PingManager = {
   userId: string;
@@ -323,10 +351,12 @@ export type ActiveAgentObject = AgentObject & {
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 
+  conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  telnyxManager: TelnyxManager;
   pingManager: PingManager;
-  taskManager: TaskManager;
+  liveManager: LiveManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
@@ -342,8 +372,6 @@ export type ActiveAgentObject = AgentObject & {
   useWallets: () => object[];
 
   useEpoch: (deps: any[]) => void;
-
-  // useActionHistory: (query?: ActionHistoryQuery) => ActionMessages;
 
   //
 
@@ -382,6 +410,13 @@ export type PendingActionEventData = {
 };
 export type PendingActionEvent = PendingMessageEvent<PendingActionEventData>;
 export type AbortableActionEvent = AbortableMessageEvent<PendingActionEventData>;
+export type ActionEvent = MessageEvent<PendingActionEventData>;
+
+export type LiveTriggerEventData = {
+  agent: AgentObject;
+  conversation: ConversationObject;
+};
+export type LiveTriggerEvent = PendingMessageEvent<LiveTriggerEventData>;
 
 export type AgentEventData = {
   agent: AgentObject;
@@ -409,18 +444,11 @@ export type ConversationChangeEventData = {
 };
 export type ConversationChangeEvent = ExtendableMessageEvent<ConversationChangeEventData>;
 
-export type ConversationAddEventData = {
+export type ConversationEventData = {
   conversation: ConversationObject;
 };
-export type ConversationAddEvent = MessageEvent<ConversationAddEventData>;
 
-export type ConversationRemoveEventData = {
-  conversation: ConversationObject;
-};
-export type ConversationRemoveEvent = MessageEvent<ConversationRemoveEventData>;
-
-export type MessagesUpdateEventData = undefined;
-export type MessagesUpdateEvent = ExtendableMessageEvent<MessagesUpdateEventData>;
+export type MessageCacheUpdateArgs = null;
 
 export type TaskObject = {
   id: any;
@@ -470,6 +498,7 @@ export type ConversationInstanceProps = {
 export type ActionProps = {
   name: string;
   description: string;
+  state?: string;
   schema: ZodTypeAny;
   examples: Array<object>,
   handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
@@ -493,6 +522,7 @@ export type PromptPropsAux = PromptProps & {
 };
 export type PerceptionProps = {
   type: string;
+  state?: string;
   handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
 };
 export type PerceptionPropsAux = PerceptionProps & {
@@ -506,9 +536,20 @@ export type PerceptionModifierProps = {
 export type PerceptionModifierPropsAux = PerceptionModifierProps & {
   conversation?: ConversationObject;
 };
+export type UniformProps = {
+  name: string;
+  description: string;
+  state?: string;
+  schema: ZodTypeAny;
+  examples: Array<object>,
+  handler?: ((e: ActionEvent) => void) | ((e: ActionEvent) => Promise<void>);
+};
+export type UniformPropsAux = UniformProps & {
+  conversation: ConversationObject;
+};
 export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], conversation?: ConversationObject) => string;
+  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  formatFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject) => string;
 };
 export type DeferProps = {
   children: ReactNode;
@@ -606,11 +647,12 @@ export type InstanceChild = Instance | TextInstance;
 export type AgentRegistry = {
   prompts: PromptPropsAux[];
 
-  actionsMap: Map<symbol, ActionProps | null>;
-  actionModifiersMap: Map<symbol, ActionModifierProps | null>;
+  actionsMap: Map<symbol, ActionPropsAux | null>;
+  actionModifiersMap: Map<symbol, ActionModifierPropsAux | null>;
+  perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
+  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
+  uniformsMap: Map<symbol, UniformPropsAux | null>;
   formattersMap: Map<symbol, FormatterProps | null>;
-  perceptionsMap: Map<symbol, PerceptionProps | null>;
-  perceptionModifiersMap: Map<symbol, PerceptionModifierProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
@@ -624,6 +666,7 @@ export type AgentRegistry = {
   get actionModifiers(): ActionModifierPropsAux[];
   get perceptions(): PerceptionPropsAux[];
   get perceptionModifiers(): PerceptionModifierPropsAux[];
+  get uniforms(): UniformPropsAux[];
   get formatters(): FormatterProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];

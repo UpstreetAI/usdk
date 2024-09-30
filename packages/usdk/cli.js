@@ -15,7 +15,6 @@ import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
-import jsAgo from 'js-ago';
 // import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
@@ -113,6 +112,7 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
@@ -123,7 +123,6 @@ const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
 const wranglerToml = toml.parse(wranglerTomlString);
 const env = wranglerToml.vars;
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
-const timeAgo = (timestamp) => jsAgo.default(+timestamp / 1000, { format: 'short' });
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const shortName = () => uniqueNamesGenerator({
   dictionaries: [adjectives, adjectives, colors, animals],
@@ -3360,10 +3359,17 @@ const main = async () => {
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
         if (opts.features) {
           try {
-            const featuresString = opts.features.join(' ');
-            const parsedJson = JSON.parse(featuresString);
-            args.features = { ...parsedJson };
+            let features = {};
+            for (const featuresString of opts.features) {
+              const parsedJson = JSON.parse(featuresString);
+              features = {
+                ...features,
+                ...parsedJson,
+              };
+            }
+            args.features = features;
           } catch (error) {
+            console.warn('Invalid JSON string provided for features. Using default values.', opts.features, error);
             args.features = opts.features.reduce((acc, feature) => {
               acc[feature] = featureExamples[feature][0];
               return acc;
