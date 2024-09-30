@@ -1102,13 +1102,45 @@ export const DefaultUniforms = () => {
         ]}
         handler={async (e: ActionEvent) => {
           const {
-            // agent,
+            agent,
             message: {
               args: nextMessageWaitArgs,
             },
           } = e.data;
-          // XXX finish this
-          // console.log('Waiting for: ', nextMessageWaitArgs);
+          console.log('Waiting for: ', nextMessageWaitArgs);
+          const timeout = (() => {
+            if (nextMessageWaitArgs === null) {
+              return Date.now();
+            } else if ('delayTime' in nextMessageWaitArgs) {
+              const { delayTime } = nextMessageWaitArgs as {
+                delayTime: {
+                  unit: string,
+                  value: number,
+                },
+              };
+              const { unit, value } = delayTime;
+              const delay = (() => {
+                switch (unit) {
+                  case 'seconds': return value * 1000;
+                  case 'minutes': return value * 1000 * 60;
+                  case 'hours': return value * 1000 * 60 * 60;
+                  case 'days': return value * 1000 * 60 * 60 * 24;
+                  default: return 0;
+                }
+              })();
+              const now = Date.now();
+              return now + delay;
+            } else if ('waitUntilDateISOString' in nextMessageWaitArgs) {
+              const { waitUntilDateISOString } = nextMessageWaitArgs as {
+                waitUntilDateISOString: string,
+              };
+              return Date.parse(waitUntilDateISOString);
+            } else {
+              throw new Error('Invalid nextMessageWaitArgs: ' + JSON.stringify(nextMessageWaitArgs));
+            }
+          })();
+          const date = new Date(timeout);
+          agent.agent.liveManager.setTimeout(date);
         }}
       />
     </>
