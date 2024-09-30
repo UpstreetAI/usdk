@@ -1062,10 +1062,11 @@ export const DefaultPerceptions = () => {
 // uniforms
 
 export const LiveModeInner = (props) => {
+  const agent = useAgent();
   const conversation = useConversation();
   
-  const timeouts = useTimeouts(); // XXX implement this
-  const timestamp = new Date();
+  const timeouts = agent.liveManager.useTimeouts(); // XXX implement this
+  // const timestamp = new Date();
 
   return (
     <Uniform
@@ -1076,9 +1077,9 @@ export const LiveModeInner = (props) => {
         Specify a delay time, a Date (ISO 8601) string, or use null to indicate nothing to add.
       `}
       state={[
-        dedent`\
-          Current time: ${timestamp.toISOString()}
-        `,
+        // dedent`\
+        //   Current time: ${timestamp.toISOString()}
+        // `,
         dedent`\
           Next action schedule:
         ` + '\n' + (
