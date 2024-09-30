@@ -35,7 +35,6 @@ import {
 
 //
 
-const chatAlarmRate = 10000;
 export const getChatKey = ({
   room,
   endpointUrl,
@@ -353,16 +352,6 @@ export class ChatsManager {
         realms.disconnect();
       }
     });
-  }
-
-  // return the next alarm time
-  async tick() {
-    // if we are in a room, kick the timeout to keep ourselves from being evicted
-    if (this.rooms.size > 0) {
-      return Date.now() + chatAlarmRate;
-    } else {
-      return Infinity;
-    }
   }
 
   live() {
