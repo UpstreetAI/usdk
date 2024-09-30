@@ -1066,7 +1066,6 @@ export const LiveModeInner = (props) => {
   const conversation = useConversation();
   
   const timeouts = agent.liveManager.useTimeouts(); // XXX implement this
-  // const timestamp = new Date();
 
   return (
     <Uniform
@@ -1077,9 +1076,6 @@ export const LiveModeInner = (props) => {
         Specify a delay time, a Date (ISO 8601) string, or use null to indicate nothing to add.
       `}
       state={[
-        // dedent`\
-        //   Current time: ${timestamp.toISOString()}
-        // `,
         dedent`\
           Next action schedule:
         ` + '\n' + (
