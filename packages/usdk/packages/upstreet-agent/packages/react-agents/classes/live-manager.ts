@@ -10,10 +10,10 @@
 // import {
 //   AgentObject,
 // } from './agent-object';
-import {
-  TaskObject,
-  TaskResult,
-} from './task-object';
+// import {
+//   TaskObject,
+//   TaskResult,
+// } from './task-object';
 import type {
   TaskProps,
   ActiveAgentObject,
@@ -31,9 +31,9 @@ import type {
 // } from '../util/util.mjs';
 // import { Player } from './player';
 // import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
-import {
-  ExtendableMessageEvent,
-} from '../util/extendable-message-event';
+// import {
+//   ExtendableMessageEvent,
+// } from '../util/extendable-message-event';
 // import {
 //   retry,
 // } from '../util/util.mjs';
@@ -47,134 +47,71 @@ import {
 
 //
 
-const getTaskKey = (props: TaskProps, index: number) => {
-  return [
-    index + '',
-    props.handler.toString(),
-    props.onDone?.toString(),
-  ].join(':');
+type LiveState = {
+  lastTimeout: number;
+  timeouts: number[];
 };
+const makeLiveState = () => ({
+  lastTimeout: 0,
+  timeouts: [],
+}) as LiveState;
 
 //
 
-// tracks an agent's current tasks
-export class TaskManager extends EventTarget {
-  // members
+/*
+the purpose of this class is to support runtime-integrated alarm timeouts
+there is no local storage; this is runtime state only
+as a matter of policy, only the earliest timeout for each thread is considered
+*/
+export class LiveManager extends EventTarget {
   agent: ActiveAgentObject;
-  // state
-  tasks: Map<symbol, TaskObject> = new Map();
+  #cache: LiveState = makeLiveState();
+  #timeouts: number[] = [];
+  #loadPromise: Promise<void>;
+  #loaded = false;
 
   constructor({
     agent,
   }: {
-    agent: ActiveAgentObject,
+    agent: ActiveAgentObject;
   }) {
     super();
 
     this.agent = agent;
+    this.#loadPromise = (async() => {
+      // XXX load the value from the kv
+
+      this.#loaded = true;
+    })();
   }
 
-  // return the next alarm time
-  async tick() {
-    const { agent } = this;
- 
-    const ensureTask = (taskId: any) => {
-      const task = this.tasks.get(taskId);
-      if (task) {
-        return task;
-      } else {
-        const task = new TaskObject({
-          id: taskId,
-        });
-        this.tasks.set(taskId, task);
-        return task;
-      }
-    };
-    const makeTaskEvent = (task: TaskObject) => {
-      return new ExtendableMessageEvent<TaskEventData>('task', {
-        data: {
-          agent,
-          task,
-        },
-      });
-    };
-
-    // initialize and run tasks
-    const now = new Date();
-    const agentRegistry = agent.registry;
-    const agentTasksProps = agentRegistry.tasks;
-
-    // clear out any unseen tasks
-    const seenTasks = new Set<any>();
-    for (let i = 0; i < agentTasksProps.length; i++) {
-      const taskProps = agentTasksProps[i];
-      const taskId = getTaskKey(taskProps, i);
-      if (!seenTasks.has(taskId)) {
-        seenTasks.add(taskId);
-      }
+  // note: the below methods assume we have loaded already,
+  // so, there is a runtime check for it
+  private checkLoaded() {
+    if (!this.#loaded) {
+      throw new Error('LiveManager not loaded');
     }
-    for (const [id, task] of Array.from(this.tasks.entries())) {
-      if (!seenTasks.has(id)) {
-        this.tasks.delete(id);
-      }
-    }
+  }
+  // XXX add args: function and deps array
+  setTimeout(timestamp: Date) {
+    this.checkLoaded();
+    // XXX finish this
+    // XXX use min semantics
+    // XXX dispatch 'updatealarm' event
+  }
+  process() {
+    this.checkLoaded();
+    // XXX if the timeout has passed for anything
+    // XXX dispatch 'trigger' event
+    // XXX finally, if anything was triggered, dispatch 'updatealarm' event
+  }
+  getNextTimeout() {
+    this.checkLoaded();
+    return 0;
+  }
 
-    // add new task
-    await Promise.all(agentTasksProps.map(async (taskProps, i) => {
-      // const { id: taskId } = taskProps;
-      const taskId = getTaskKey(taskProps, i);
-      const task = ensureTask(taskId);
-      if (task.timestamp <= now) {
-        // it's time to run the task
-        const e = makeTaskEvent(task);
-        let taskResult = null;
-        let taskErr = null;
-        let hadError = false;
-        try {
-          // console.log('task handler 1');
-          taskResult = await taskProps.handler(e);
-          // console.log('task handler 2');
-          if (taskResult instanceof TaskResult) {
-            // ok
-          } else {
-            throw new Error('task handler must return a TaskResult');
-          }
-        } catch (err) {
-          taskErr = err;
-          hadError = true;
-        }
-        if (!hadError) {
-          const { type, args } = taskResult;
-          switch (type) {
-            case 'schedule': {
-              const { timestamp } = args;
-              task.timestamp = timestamp;
-              break;
-            }
-            case 'done': {
-              if (taskProps.onDone) {
-                task.timestamp = new Date(Infinity);
-                const e = makeTaskEvent(task);
-                taskProps.onDone && taskProps.onDone(e);
-              }
-              break;
-            }
-            default: {
-              throw new Error('unknown task result type: ' + type);
-            }
-          }
-        } else {
-          console.warn('task error: ' + taskErr);
-        }
-      } else {
-        // else it's not time to run the task yet
-      }
-    }));
-    // compute the earliest timeout
-    const timestamps = Array.from(this.tasks.values()).map((task) => {
-      return +task.timestamp;
-    }).filter(n => !isNaN(n)).concat([Infinity]);
-    const minTimestamp = Math.min(...timestamps);
-    return minTimestamp;
+  // XXX this isn't needed if we aren't using the KV
+  async waitForLoad() {
+    await this.#loadPromise;
   }
 }
