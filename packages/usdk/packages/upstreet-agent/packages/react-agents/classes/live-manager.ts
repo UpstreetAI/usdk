@@ -60,6 +60,7 @@ export class LiveManager extends EventTarget {
       timestamp,
     };
     this.#timeouts.push(timeout);
+    this.#timeouts.sort((a, b) => a.timestamp - b.timestamp);
 
     this.updateAlarm();
   }
