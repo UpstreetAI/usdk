@@ -45,7 +45,7 @@ export function ChatMessage({
 
   return (
     <div>
-      <div className={'relative bt-0'}>
+      <div className={`relative bt-0 mt-2 ${isOwnMessage ? 'pl-14' : 'pr-14'}`}>
         {(popoverMessageId === id && !isOwnMessage) && (
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
@@ -77,12 +77,12 @@ export function ChatMessage({
           </div>
         )}
 
-        <div className={`flex w-full ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           {!isOwnMessage && (
             <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
           )}
 
-          <div className={`bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1 mb-2 ${isOwnMessage ? 'mr-2 bg-emerald-50' : 'ml-2'}`}>
+          <div className={`bg-slate-100 py-2 px-3 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-emerald-50' : 'ml-2'}`}>
             {!isOwnMessage && (
               <span
                 className="font-bold mr-2 cursor-pointer hover:underline"
@@ -112,10 +112,14 @@ export function ChatMessage({
               }
               return null;
             })()}
-            {content && (<div>{content}</div>)}
-            <div className="text-md text-right text-gray-500 dark:text-gray-400">
-              {timeAgo(timestamp)}
-            </div>
+            {content && (
+              <div className="relative">
+                <div className={`float-left mr-2`}>{content}</div>
+                <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
+                  {timeAgo(timestamp)}
+                </div>
+              </div>
+            )}
           </div>
 
           {isOwnMessage && (
