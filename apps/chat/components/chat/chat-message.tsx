@@ -83,7 +83,7 @@ export function ChatMessage({
             <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
           )}
 
-          <div className={`bg-slate-100 py-2 px-3 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-green-50' : 'ml-2'}`}>
+          <div className={`bg-slate-100 py-[11px] px-4 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-green-50' : 'ml-2'}`}>
             {!isOwnMessage && (
               <span
                 className="font-bold mr-2 cursor-pointer hover:underline"
