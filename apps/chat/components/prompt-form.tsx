@@ -111,10 +111,10 @@ export function PromptForm({
         // submitMessage()
       }}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
+      <div className="relative flex max-h-60 w-full grow flex-col px-8 bg-slate-100 sm:border sm:px-12">
         {/* // XXX abstract this out to a component */}
         {mediaPickerOpen && (
-          <div className="absolute left-0 bottom-16 py-2 flex flex-col bg-background border rounded">
+          <div className="absolute left-0 bottom-16 py-2 flex flex-col border rounded">
             <div className="mx-4 my-2 text-xs text-muted-foreground">Add media...</div>
             <Button
               variant="secondary"
@@ -169,7 +169,7 @@ export function PromptForm({
             <Button
               variant="outline"
               size="icon"
-              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full bg-background p-0`, mediaPickerOpen && `bg-secondary/80`)}
+              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0`, mediaPickerOpen && `bg-secondary/80`)}
               onClick={() => {
                 toggleMediaPicker();
               }}
