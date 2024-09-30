@@ -15,7 +15,6 @@ import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
-import jsAgo from 'js-ago';
 // import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
