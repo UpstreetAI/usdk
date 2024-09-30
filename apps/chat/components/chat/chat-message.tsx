@@ -45,7 +45,7 @@ export function ChatMessage({
 
   return (
     <div>
-      <div className={'relative grid grid-cols-message bt-0'}>
+      <div className={'relative bt-0'}>
         {(popoverMessageId === id && !isOwnMessage) && (
           <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
             <Link
@@ -77,42 +77,54 @@ export function ChatMessage({
           </div>
         )}
 
-        <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
+        <div className={`flex w-full ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
 
-        <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
-          <span
-            className="font-bold mr-2 cursor-pointer hover:underline"
-            onClick={e => {
-              e.preventDefault();
-              e.stopPropagation();
+          {!isOwnMessage && (
+            <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
+          )}
 
-              togglePopoverMessageId(id);
-            }}
-          >
-            {name}
-          </span>
-          <br />
+          <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
+            {!isOwnMessage && (
+              <span
+          className="font-bold mr-2 cursor-pointer hover:underline"
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
 
-          {(() => {
-            if (isImageType(media?.type)) {
-              return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
-            }
-            if (isAudioType(media?.type)) {
-              return (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
-            }
-            if (isVideoType(media?.type)) {
-              return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
-            }
-            if (isModelType(media?.type)) {
-              return (<ChatMessageModel url={media.url} timestamp={timestamp} />);
-            }
-            return null;
-          })()}
-          {content && (<div>{content}</div>)}
-          <div className="text-md text-right text-gray-500 dark:text-gray-400">
-            {timeAgo(timestamp)}
+            togglePopoverMessageId(id);
+          }}
+              >
+          {name}
+              </span>
+            )}
+
+            {(() => {
+              if (isImageType(media?.type)) {
+          return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
+              }
+              if (isAudioType(media?.type)) {
+          return (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
+              }
+              if (isVideoType(media?.type)) {
+          return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
+              }
+              if (isModelType(media?.type)) {
+          return (<ChatMessageModel url={media.url} timestamp={timestamp} />);
+              }
+              return null;
+            })()}
+            {content && (<div>{content}</div>)}
+            <div className="text-md text-right text-gray-500 dark:text-gray-400">
+              {timeAgo(timestamp)}
+            </div> 
           </div>
+
+          {isOwnMessage && (
+            <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
+          )}
         </div>
+
+
       </div>
     </div>
   )
