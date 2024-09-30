@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type {
   ActiveAgentObject,
   ConversationObject,
@@ -36,6 +37,22 @@ export class LiveManager extends EventTarget {
   getTimeouts(conversation: ConversationObject) {
     return this.#timeouts.filter((timeout) => timeout.conversation === conversation);
   }
+  useTimeouts(conversation: ConversationObject) {
+    const getTimeouts = () => this.getTimeouts(conversation);
+    const [timeouts, setTimeouts] = useState(getTimeouts);
+
+    useEffect(() => {
+      const updatealarm = () => {
+        setTimeouts(getTimeouts());
+      };
+      this.addEventListener('updatealarm', updatealarm);
+      return () => {
+        this.removeEventListener('updatealarm', updatealarm);
+      };
+    }, []);
+
+    return timeouts;
+  }
   setTimeout(updateFn: () => void, conversation: ConversationObject, timestamp: number) {
     const timeout = {
       updateFn,
@@ -48,9 +65,14 @@ export class LiveManager extends EventTarget {
   }
   process(now = Date.now()) {
     let triggered = false;
+    const seenConversations = new Set<ConversationObject>();
     this.#timeouts = this.#timeouts.filter((timeout) => {
       if (now >= timeout.timestamp) {
-        this.trigger(timeout);
+        // trigger only once per thread, in case of multiple timeouts in one tick
+        if (!seenConversations.has(timeout.conversation)) {
+          seenConversations.add(timeout.conversation);
+          this.trigger(timeout);
+        }
         triggered = true;
         return false;
       } else {

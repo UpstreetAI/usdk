@@ -334,6 +334,7 @@ export type TelnyxManager = EventTarget & {
 };
 export type LiveManager = {
   getTimeouts: (conversation: ConversationObject) => number[];
+  useTimeouts: (conversation: ConversationObject) => number[];
   setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
   process: () => void;
   getNextTimeout: () => number;

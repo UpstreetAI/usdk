@@ -1064,8 +1064,7 @@ export const DefaultPerceptions = () => {
 export const LiveModeInner = (props) => {
   const agent = useAgent();
   const conversation = useConversation();
-  
-  const timeouts = agent.liveManager.useTimeouts(); // XXX implement this
+  const timeouts = agent.liveManager.useTimeouts(conversation);
 
   return (
     <Uniform
@@ -1080,8 +1079,7 @@ export const LiveModeInner = (props) => {
           Next action schedule:
         ` + '\n' + (
           timeouts.length > 0 ?
-            timeouts.map((timeout) => {
-              const { timestamp } = timeout;
+            timeouts.map((timestamp) => {
               const date = new Date(timestamp);
               return dedent`\
                 - ${date.toISOString()} (${timeAgo(date)})
