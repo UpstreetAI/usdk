@@ -14,6 +14,7 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 // import { newChat } from '@/lib/chat/actions'
 import { cn } from '@/lib/utils'
 import { shuffle } from 'react-agents/util/util.mjs';
+import { Icon } from 'ucom'
 
 export function PromptForm({
   input,
@@ -167,21 +168,21 @@ export function PromptForm({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0`, mediaPickerOpen && `bg-secondary/80`)}
+              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0`, mediaPickerOpen && `bg-slate-900 text-slate-100`)}
               onClick={() => {
                 toggleMediaPicker();
               }}
             >
-              <IconPlus />
+              <Icon icon='Plus' />
               <span className="sr-only">Add Media</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
         {typing && (
-          <div className="absolute -top-12 left-0 text-muted-foreground text-sm">{typing}</div>
+          <div className="absolute -top-12 text-slate-900 left-0 text-muted-foreground text-sm">{typing}</div>
         )}
         {canContinue && (
           <div
@@ -212,8 +213,8 @@ export function PromptForm({
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="submit" size="icon" disabled={input === ''}>
-                <IconUpstreet />
+              <Button type="submit" size="icon" className='shadow-none bg-transparent' disabled={input === ''}>
+                <Icon icon="Send" />
                 <span className="sr-only">Send message</span>
               </Button>
             </TooltipTrigger>
