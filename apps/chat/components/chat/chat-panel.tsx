@@ -133,7 +133,7 @@ export function ChatPanel({
             </div>
           ) : null}
 
-          <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-4">
+          <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3">
             <PromptForm input={input} setInput={setInput} />
             {/* <FooterText className="hidden sm:block" /> */}
           </div>
