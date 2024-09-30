@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from 'clsx'
-import jsAgo from 'js-ago';
 import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
@@ -106,9 +105,4 @@ export function isValidUrl(urlString: string) {
     '(\\?[;&a-z\\d%_.~+=-]*)?'+ // validate query string
     '(\\#[-a-z\\d_]*)?$','i'); // validate fragment locator
   return !!urlPattern.test(urlString);
-}
-
-export const timeAgo = (timestamp: Date) => {
-  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
-  return jsAgo(timestampInSeconds, { format: 'short' });
 }
