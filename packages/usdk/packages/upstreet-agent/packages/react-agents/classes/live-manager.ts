@@ -1,20 +1,13 @@
 import type {
   ActiveAgentObject,
   ConversationObject,
+  LiveTriggerEventData,
 } from '../types';
 
 //
 
-type LiveState = {
-  lastTimeout: number;
-  timeouts: number[];
-};
-const makeLiveState = () => ({
-  lastTimeout: 0,
-  timeouts: [],
-}) as LiveState;
-
 type LiveTimeout = {
+  updateFn: () => void;
   conversation: ConversationObject;
   timestamp: number;
 };
@@ -28,10 +21,7 @@ as a matter of policy, only the earliest timeout for each thread is considered
 */
 export class LiveManager extends EventTarget {
   agent: ActiveAgentObject;
-  #cache: LiveState = makeLiveState();
-  #timeouts: LiveTimeout[] = []; // XXX update this type to include the Conversation/thread that triggered the timeout
-  #loadPromise: Promise<void>;
-  #loaded = false;
+  #timeouts: LiveTimeout[] = [];
 
   constructor({
     agent,
@@ -41,40 +31,52 @@ export class LiveManager extends EventTarget {
     super();
 
     this.agent = agent;
-    this.#loadPromise = (async() => {
-      // XXX load the value from the kv
-
-      this.#loaded = true;
-    })();
   }
 
-  // note: the below methods assume we have loaded already,
-  // so, there is a runtime check for it
-  private checkLoaded() {
-    if (!this.#loaded) {
-      throw new Error('LiveManager not loaded');
+  setTimeout(updateFn: () => void, conversation: ConversationObject, timestamp: number) {
+    const timeout = {
+      updateFn,
+      conversation,
+      timestamp,
+    };
+    this.#timeouts.push(timeout);
+
+    this.updateAlarm();
+  }
+  process(now = Date.now()) {
+    let triggered = false;
+    this.#timeouts = this.#timeouts.filter((timeout) => {
+      if (now >= timeout.timestamp) {
+        this.trigger(timeout);
+        triggered = true;
+        return false;
+      } else {
+        return true;
+      }
+    });
+    if (triggered) {
+      this.updateAlarm();
     }
   }
-  // XXX add args: function and deps array
-  setTimeout(timestamp: Date) {
-    this.checkLoaded();
-    // XXX finish this
-    // XXX use min semantics
-    // XXX dispatch 'updatealarm' event
+  private trigger(timeout: LiveTimeout) {
+    this.dispatchEvent(new MessageEvent<LiveTriggerEventData>('trigger', {
+      data: {
+        agent: this.agent,
+        conversation: timeout.conversation,
+      },
+    }));
   }
-  process() {
-    this.checkLoaded();
-    // XXX if the timeout has passed for anything
-    // XXX dispatch 'trigger' event
-    // XXX finally, if anything was triggered, dispatch 'updatealarm' event
+  private updateAlarm() {
+    this.dispatchEvent(new MessageEvent('updatealarm', {
+      data: null,
+    }));
   }
   getNextTimeout() {
-    this.checkLoaded();
-    return 0;
-  }
-
-  // XXX this isn't needed if we aren't using the KV
-  async waitForLoad() {
-    await this.#loadPromise;
+    // get the minimum timeout
+    let minTimeout = Infinity;
+    for (const timeout of this.#timeouts) {
+      minTimeout = Math.min(minTimeout, timeout.timestamp);
+    }
+    return minTimeout;
   }
 }

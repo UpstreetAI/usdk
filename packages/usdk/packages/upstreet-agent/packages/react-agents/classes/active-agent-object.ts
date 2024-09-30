@@ -8,6 +8,7 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
+  LiveTriggerEvent,
 } from '../types';
 import {
   ConversationObject,
