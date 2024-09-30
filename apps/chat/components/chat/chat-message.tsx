@@ -78,52 +78,50 @@ export function ChatMessage({
         )}
 
         <div className={`flex w-full ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-
           {!isOwnMessage && (
             <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
           )}
 
-          <div className="bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1">
+          <div className={`bg-slate-100 w-fit border border-gray-400 text-black px-2 py-1 mb-2 ${isOwnMessage ? 'mr-2 bg-emerald-50' : 'ml-2'}`}>
             {!isOwnMessage && (
               <span
-          className="font-bold mr-2 cursor-pointer hover:underline"
-          onClick={e => {
-            e.preventDefault();
-            e.stopPropagation();
+                className="font-bold mr-2 cursor-pointer hover:underline"
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
 
-            togglePopoverMessageId(id);
-          }}
+                  togglePopoverMessageId(id);
+                }}
               >
-          {name}
+                {name}
               </span>
             )}
 
             {(() => {
               if (isImageType(media?.type)) {
-          return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
+                return (<ChatMessageImage url={media.url} timestamp={timestamp} />);
               }
               if (isAudioType(media?.type)) {
-          return (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
+                return (<ChatMessageAudio url={media.url} timestamp={timestamp} />);
               }
               if (isVideoType(media?.type)) {
-          return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
+                return (<ChatMessageVideo url={media.url} timestamp={timestamp} />);
               }
               if (isModelType(media?.type)) {
-          return (<ChatMessageModel url={media.url} timestamp={timestamp} />);
+                return (<ChatMessageModel url={media.url} timestamp={timestamp} />);
               }
               return null;
             })()}
             {content && (<div>{content}</div>)}
             <div className="text-md text-right text-gray-500 dark:text-gray-400">
               {timeAgo(timestamp)}
-            </div> 
+            </div>
           </div>
 
           {isOwnMessage && (
             <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
           )}
         </div>
-
 
       </div>
     </div>
@@ -146,7 +144,7 @@ export function ChatMessageAvatar({
   return (
     <Link href={profileUrl}>
       <div
-        className="w-12 h-12 bg-cover bg-top"
+        className="w-12 h-12 bg-cover bg-top border border-gray-400"
         style={{
           backgroundImage: isValidUrl(avatarURL)
             ? `url(${avatarURL})`
@@ -178,7 +176,7 @@ export function ChatMessageAudio({
   timestamp
 }: ChatMessageAudioProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <audio id={`audioPlayer-${timestamp}`} controls className="w-full h-10 outline-none">
         <source src={url} type="audio/mpeg" />
         Your browser does not support the audio element.
@@ -199,7 +197,7 @@ export function ChatMessageVideo({
   timestamp
 }: ChatMessageVideoProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <video id={`videoPlayer-${timestamp}`} controls className="w-full rounded-[8px] h-auto outline-none">
         <source src={url} type="video/mp4" />
         Your browser does not support the video tag.
