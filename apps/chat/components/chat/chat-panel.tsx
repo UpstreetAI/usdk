@@ -65,7 +65,7 @@ export function ChatPanel({
         scrollToBottom={scrollToBottom}
       />
 
-      <div className="relative mx-auto border-t sm:px-4">
+      <div className="relative mx-auto border-t bg-gray-300 sm:px-4">
         {room && (<>
           {/*<div className="mb-4 grid grid-cols-2 gap-2 px-4 sm:px-0">
             {messages.length === 0 &&
@@ -104,7 +104,7 @@ export function ChatPanel({
               ))}
           </div>*/}
 
-          {messages?.length >= 2 ? (
+          {/* messages?.length >= 2 ? (
             <div className="flex h-12 items-center justify-center">
               <div className="flex space-x-2">
                 {title ? (
@@ -126,14 +126,14 @@ export function ChatPanel({
                         title,
                         messages: aiState.messages
                       }}
-                    />*/}
+                    />}
                   </>
                 ) : null}
               </div>
             </div>
-          ) : null}
+          ) : null */}
 
-          <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3">
+          <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative">
             <PromptForm input={input} setInput={setInput} />
             {/* <FooterText className="hidden sm:block" /> */}
           </div>
