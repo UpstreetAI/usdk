@@ -4,7 +4,7 @@ import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
-import jsAgo from 'js-ago';
+import { timeAgo } from 'react-agents/util/time-ago.mjs';
 
 import type {
   AppContextValue,
@@ -114,10 +114,6 @@ import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser
 
 // utils
 
-const timeAgo = (timestamp: Date) => {
-  const timestampInSeconds = Math.floor(timestamp.getTime() / 1000); // convert the timestamp to seconds since Unix epoch for better processing
-  return jsAgo(timestampInSeconds, { format: 'short' });
-};
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 const defaultPriorityOffset = 100;
 const maxDefaultMemoryValues = 8;
