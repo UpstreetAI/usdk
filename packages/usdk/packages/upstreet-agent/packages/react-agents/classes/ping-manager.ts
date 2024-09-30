@@ -1,7 +1,8 @@
 import { QueueManager } from '../util/queue-manager.mjs';
 
-const pingRate = 10000; // 10 seconds
+export const pingRate = 10000; // 10 seconds
 
+/* the purpose of this class is to ping the database with liveness beacons */
 export class PingManager {
   // members
   userId: string;

@@ -8,6 +8,7 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
+  LiveTriggerEvent,
 } from '../types';
 import {
   ConversationObject,
@@ -28,8 +29,8 @@ import {
   ConversationManager,
 } from './conversation-manager';
 import {
-  TaskManager,
-} from './task-manager';
+  LiveManager,
+} from './live-manager';
 import { PingManager } from './ping-manager';
 import { AgentRegistry } from './render-registry';
 
@@ -45,7 +46,7 @@ export class ActiveAgentObject extends AgentObject {
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
   telnyxManager: TelnyxManager;
-  taskManager: TaskManager;
+  liveManager: LiveManager;
   pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
 
@@ -80,9 +81,22 @@ export class ActiveAgentObject extends AgentObject {
     });
     this.discordManager = new DiscordManager();
     this.telnyxManager = new TelnyxManager();
-    this.taskManager = new TaskManager({
+    this.liveManager = new LiveManager({
       agent: this,
     });
+    const bindLiveManager = () => {
+      // dispatch up to the registry so the runtime can update its bookkeeping
+      const proxyRegistryEvent = (event: MessageEvent) => {
+        const registry = this.appContextValue.useRegistry();
+        registry.dispatchEvent(new MessageEvent(event.type, {
+          data: null,
+        }));
+      };
+      this.liveManager.addEventListener('updatealarm', (e: MessageEvent) => {
+        proxyRegistryEvent(e);
+      });
+    };
+    bindLiveManager();
     this.pingManager = new PingManager({
       userId: this.id,
       supabase: this.useSupabase(),

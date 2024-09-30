@@ -10,7 +10,6 @@ import {
 
 //
 
-const activeChatsAlarmRate = 10000;
 export const roomsSpecificationEquals = (a: RoomSpecification, b: RoomSpecification) => {
   return a.room === b.room && a.endpointUrl === b.endpointUrl;
 };
@@ -233,15 +232,5 @@ export class ChatsSpecification extends EventTarget {
       _emitLeaveEvents(),
       _deleteAllRows(),
     ]);
-
-  }
-
-  // return the next alarm time
-  async tick() {
-    if (this.roomSpecifications.length > 0) {
-      return Date.now() + activeChatsAlarmRate;
-    } else {
-      return Infinity;
-    }
   }
 }
