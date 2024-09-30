@@ -64,6 +64,7 @@ type Message = {
   name: string
   timestamp: Date
   userId: string
+  human: boolean
 }
 
 //
@@ -123,7 +124,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   
   return (
     <div
-      className={`group w-full duration-300 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
+      className={`group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
       ref={scrollRef}
     >
       <div
@@ -175,26 +176,34 @@ function getMessageComponent(room: string, message: Message, id: string, players
     case 'typing': return null;
 
     case 'join': return (
-      <div className="opacity-60">
-        { message.name } joined the room.
+      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+        <span className='font-bold'>{ message.name }</span> joined the room.
       </div>
     )
 
     case 'leave': return (
-      <div className="opacity-60">
-        { message.name } left the room.
+      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+        <span className='font-bold'>{ message.name }</span> left the room.
       </div>
     )
-    
+  
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
+
+      // Check if the message is from the current user
+      const isOwnMessage = user && user.id === message.userId;
+
+      // Get the profile URL according to the user type
+      const profileUrl = `/${message.human ? 'accounts' : 'agents'}/${message?.userId}`;
 
       return (
         <ChatMessage
           id={id}
           name={ message.name }
           content={message.args.text}
+          isOwnMessage={isOwnMessage}
+          profileUrl={profileUrl}
           media={media}
           player={player}
           room={room}
@@ -378,6 +387,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
           player={player}
           room={room}
           timestamp={message.timestamp}
+          isOwnMessage={false} 
+          profileUrl={''}
         />
       )
     }

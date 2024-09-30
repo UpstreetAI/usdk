@@ -119,4 +119,12 @@
   .markdown p {
     margin-bottom: 16px;
   }
+
+  .chat-markdown > * {
+    all: revert;
+  }
+  .chat-markdown p {
+    margin: 0;
+    padding: 0;
+  }
 }
