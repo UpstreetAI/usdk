@@ -7,12 +7,13 @@ import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
+import ReactMarkdown from 'react-markdown'
 
 // import type { User } from '@supabase/supabase-js'
 
 export interface ChatMessageProps {
   id: string
-  content: React.ReactNode
+  content: string
   media: any
   name: string
   player: any
@@ -82,7 +83,7 @@ export function ChatMessage({
             <ChatMessageAvatar name={name} avatarURL={avatarURL} profileUrl={profileUrl} />
           )}
 
-          <div className={`bg-slate-100 py-2 px-3 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-emerald-50' : 'ml-2'}`}>
+          <div className={`bg-slate-100 py-2 px-3 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-green-50' : 'ml-2'}`}>
             {!isOwnMessage && (
               <span
                 className="font-bold mr-2 cursor-pointer hover:underline"
@@ -114,7 +115,11 @@ export function ChatMessage({
             })()}
             {content && (
               <div className="relative">
-                <div className={`float-left mr-2`}>{content}</div>
+                <div className={`float-left mr-2`}>
+                  <ReactMarkdown className='chat-markdown'>
+                    {content}
+                  </ReactMarkdown>
+                </div>
                 <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
                   {timeAgo(timestamp)}
                 </div>
