@@ -1,14 +1,10 @@
-import { headers } from 'react-agents/constants.mjs';
-import { makeAnonymousClient } from 'react-agents/util/supabase-client.mjs';
-import { AgentRenderer } from 'react-agents/classes/agent-renderer';
-import { ChatsSpecification } from 'react-agents/classes/chats-specification';
-import { pingRate } from 'react-agents/classes/ping-manager';
-import {
-  serverHandler,
-} from 'react-agents/routes/server';
-import {
-  multiplayerEndpointUrl,
-} from 'react-agents/util/endpoints.mjs';
+import { headers } from './packages/react-agents/constants.mjs';
+import { makeAnonymousClient } from './packages/react-agents/util/supabase-client.mjs';
+import { AgentRenderer } from './packages/react-agents/classes/agent-renderer.tsx';
+import { ChatsSpecification } from './packages/react-agents/classes/chats-specification.ts';
+import { pingRate } from 'react-agents/classes/ping-manager.ts';
+import { serverHandler } from './packages/react-agents/routes/server.ts';
+import { multiplayerEndpointUrl } from './packages/react-agents/util/endpoints.mjs';
 
 import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
 import { ActiveAgentObject } from 'react-agents/types';
