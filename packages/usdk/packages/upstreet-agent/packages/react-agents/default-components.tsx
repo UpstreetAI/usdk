@@ -132,11 +132,11 @@ export const DefaultAgentComponents = () => {
       <DefaultFormatters />
       <DefaultActions />
       <DefaultPerceptions />
-      {/* <DefaultUniforms /> */}
       <DefaultGenerators />
       <DefaultSenses />
       <DefaultDrivers />
       <RAGMemory />
+      {/* <LiveMode /> */}
       <DefaultPrompts />
       {/* <DefaultServers /> */}
     </>
@@ -1169,13 +1169,6 @@ export const LiveMode = (props) => {
     <Conversation>
       <LiveModeInner {...props} />
     </Conversation>
-  );
-};
-export const DefaultUniforms = () => {
-  return (
-    <>
-      <LiveMode />
-    </>
   );
 };
 
