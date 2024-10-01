@@ -422,9 +422,17 @@ export class DurableObject extends EventTarget {
     const timeouts = agents.map((agent) =>
       agent.liveManager.getNextTimeout()
     );
-    const now = Date.now();
-    const pingTimeout = now + pingRate;
-    timeouts.push(pingTimeout);
+    {
+      const now = Date.now();
+      const pingTimeout = now + pingRate;
+      timeouts.push(pingTimeout);
+    }
+    {
+      const oldAlarm = this.state.storage.getAlarm();
+      if (oldAlarm !== null) {
+        timeouts.push(oldAlarm);
+      }
+    }
     const minTimeout = Math.min(...timeouts);
 
     // set the next alarm
