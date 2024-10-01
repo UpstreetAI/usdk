@@ -53,18 +53,7 @@ export class DurableObject extends EventTarget {
     });
     const bindAlarm = () => {
       const updatealarm = () => {
-        // get the next timeout
-        const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
-        const timeouts = agents.map((agent) =>
-          agent.liveManager.getNextTimeout()
-        );
-        const now = Date.now();
-        const pingTimeout = now + pingRate;
-        timeouts.push(pingTimeout);
-        const minTimeout = Math.min(...timeouts);
-
-        // set the next alarm
-        this.state.storage.setAlarm(minTimeout);
+        this.updateAlarm();
       };
       this.agentRenderer.registry.addEventListener('updatealarm', updatealarm);
     };
@@ -427,6 +416,20 @@ export class DurableObject extends EventTarget {
       });
     }
   }
+  updateAlarm() {
+    // get the next timeout
+    const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
+    const timeouts = agents.map((agent) =>
+      agent.liveManager.getNextTimeout()
+    );
+    const now = Date.now();
+    const pingTimeout = now + pingRate;
+    timeouts.push(pingTimeout);
+    const minTimeout = Math.min(...timeouts);
+
+    // set the next alarm
+    this.state.storage.setAlarm(minTimeout);
+  }
   async alarm() {
     // wait for load just in case
     await this.waitForLoad();
@@ -434,9 +437,10 @@ export class DurableObject extends EventTarget {
     // process the agent's live managers
     const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
     const processPromises = agents.map(async (agent) => {
-      await agent.liveManager.waitForLoad();
       agent.liveManager.process();
     });
     await Promise.all(processPromises);
+
+    this.updateAlarm();
   }
 }
