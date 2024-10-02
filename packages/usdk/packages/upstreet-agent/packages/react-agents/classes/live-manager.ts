@@ -38,7 +38,7 @@ export class LiveManager extends EventTarget {
     return this.#timeouts.filter((timeout) => timeout.conversation === conversation);
   }
   useTimeouts(conversation: ConversationObject) {
-    const getTimeouts = () => this.getTimeouts(conversation);
+    const getTimeouts = () => this.getTimeouts(conversation).map(t => t.timestamp);
     const [timeouts, setTimeouts] = useState(getTimeouts);
 
     useEffect(() => {
