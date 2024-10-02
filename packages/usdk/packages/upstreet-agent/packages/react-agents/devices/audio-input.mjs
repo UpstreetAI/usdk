@@ -1,27 +1,30 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
 import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
-import vad from '@ricky0123/vad-node';
-import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
+// import vad from '@ricky0123/vad-node';
+// import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
+// import {
+//   InputDevices,
+// } from './input-devices.mjs';
 import {
-  InputDevices,
-} from './input-devices.mjs';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+  transcribeRealtime,
+} from '../util/audio-perception.mjs';
+// import {
+//   QueueManager,
+// } from '../util/queue-manager.mjs';
 
 //
 
-const _disableVadLog = () => {
-  for (const k in vadLog) {
-    vadLog[k] = () => {};
-  }
-};
-_disableVadLog();
+// const _disableVadLog = () => {
+//   for (const k in vadLog) {
+//     vadLog[k] = () => {};
+//   }
+// };
+// _disableVadLog();
 
 //
 
-/* const convertF32I16 = (samples) => {
+const convertF32I16 = (samples) => {
   const buffer = new ArrayBuffer(samples.length * Int16Array.BYTES_PER_ELEMENT);
   const view = new Int16Array(buffer);
   for (let i = 0; i < samples.length; i++) {
@@ -30,7 +33,7 @@ _disableVadLog();
   return view;
 };
 
-class Mp3EncodeStream extends Transform {
+/* class Mp3EncodeStream extends Transform {
   constructor({
     sampleRate = AudioInput.defaultSampleRate,
     bitRate = 128,
@@ -104,63 +107,61 @@ export const encodeMp3 = async (bs, {
 
 //
 
-export class VoiceActivityMicrophoneInput extends EventTarget {
+export class TranscribedVoiceInput extends EventTarget {
+  audioInput;
+  abortController;
   constructor({
-    device,
+    audioInput,
+    jwt,
   }) {
+    if (!jwt) {
+      throw new Error('no jwt');
+    }
+
     super();
+
+    this.audioInput = audioInput;
 
     this.abortController = new AbortController();
     const {
       signal,
     } = this.abortController;
 
-    this.paused = false;
+    // this.paused = false;
 
     (async () => {
-      const vadThreshold = 0.2;
-      const myvad = await vad.NonRealTimeVAD.new({
-        positiveSpeechThreshold: vadThreshold,
-        negativeSpeechThreshold: vadThreshold,
+      const transcription = transcribeRealtime({
+        jwt,
       });
-      if (signal.aborted) return;
-
-      const sampleRate = AudioInput.defaultSampleRate;
-      const numSamples = sampleRate * 0.5; // 0.5 seconds
-      const inputDevices = new InputDevices();
-      const microphoneInput = inputDevices.getAudioInput(device.id, {
-        sampleRate,
-        numSamples,
+      transcription.addEventListener('message', e => {
+        console.log('got transcribe realtime socket message', e.data);
       });
       signal.addEventListener('abort', () => {
-        microphoneInput.close();
-      });
-      this.addEventListener('pause', e => {
-        microphoneInput.pause();
-      });
-      this.addEventListener('resume', e => {
-        microphoneInput.resume();
+        transcription.close();
       });
 
-      const onstart = e => {
-        this.dispatchEvent(new MessageEvent('start', {
-          data: null,
-        }));
-      };
-      microphoneInput.on('start', onstart);
-      signal.addEventListener('abort', () => {
-        microphoneInput.removeListener('start', onstart);
+      const openPromise = new Promise((accept, reject) => {
+        transcription.addEventListener('open', e => {
+          accept(null);
+        });
+        transcription.addEventListener('error', e => {
+          reject(e);
+        });
       });
 
-      const bs = [];
-      let lastDetected = false;
-      this.addEventListener('pause', e => {
-        bs.length = 0;
-        lastDetected = false;
-      });
-      const microphoneQueueManager = new QueueManager();
-      const ondata = async (d) => {
-        await microphoneQueueManager.waitForTurn(async () => {
+      let loggedMicData = false;
+      const ondata = async (f32) => {
+        const i16 = convertF32I16(f32);
+        if (!loggedMicData) {
+          console.log('got mic data (silenced)', i16);
+          loggedMicData = true;
+        }
+
+        await openPromise;
+
+        transcription.write(i16);
+
+        /* await microphoneQueueManager.waitForTurn(async () => {
           if (this.paused) return;
 
           // push the buffer
@@ -198,11 +199,17 @@ export class VoiceActivityMicrophoneInput extends EventTarget {
             }
           }
           lastDetected = detected;
+        }); */
+      };
+      audioInput.on('data', ondata);
+
+      const cleanup = () => {
+        signal.addEventListener('abort', () => {
+          audioInput.removeListener('data', ondata);
         });
       };
-      microphoneInput.on('data', ondata);
       signal.addEventListener('abort', () => {
-        microphoneInput.removeListener('data', ondata);
+        cleanup();
       });
     })();
   }
@@ -212,22 +219,22 @@ export class VoiceActivityMicrophoneInput extends EventTarget {
       data: null,
     }));
   }
-  pause() {
-    if (!this.paused) {
-      this.paused = true;
-      this.dispatchEvent(new MessageEvent('pause', {
-        data: null,
-      }));
-    }
-  }
-  resume() {
-    if (this.paused) {
-      this.paused = false;
-      this.dispatchEvent(new MessageEvent('resume', {
-        data: null,
-      }));
-    }
-  }
+  // pause() {
+  //   if (!this.paused) {
+  //     this.paused = true;
+  //     this.dispatchEvent(new MessageEvent('pause', {
+  //       data: null,
+  //     }));
+  //   }
+  // }
+  // resume() {
+  //   if (this.paused) {
+  //     this.paused = false;
+  //     this.dispatchEvent(new MessageEvent('resume', {
+  //       data: null,
+  //     }));
+  //   }
+  // }
 }
 //
 
