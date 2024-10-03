@@ -120,8 +120,19 @@ export class ChatsSpecification extends EventTarget {
           const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
             .upsert({
-              id: key,
+              // id: key,
+              // the id column needs to be auto-generated as a unique uuid primary key instead of the "key"
+
               user_id: this.userId,
+
+              // XXX wip: restructre chat_specifications table to support multi agent rooms
+              /* 
+              add new roomId text column after making "id" column adjustments
+              to be used for supabase..delete(roomId) inside #leaveInternal
+
+              roomId: key, 
+              */
+              roomId: key,
               data: {
                 room: roomSpecification.room,
                 endpoint_url: roomSpecification.endpointUrl,
@@ -174,7 +185,9 @@ export class ChatsSpecification extends EventTarget {
           const key = getRoomsSpecificationKey(roomSpecification);
           const result = await this.supabase.from('chat_specifications')
             .delete()
-            .eq('id', key);
+            // .eq('id', key);
+            .eq('user_id', this.userId)
+            .eq('roomId', key); // roomId based deletion after restructuring chat_specifications table
           const {
             error,
           } = result;
