@@ -1,3 +1,7 @@
+import wasm from './libopus.wasm';
+
+const location = new URL('http://localhost');
+
 let libopus;
 var Module = typeof Module !== "undefined" ? Module : {};
 Module.onRuntimeInitialized = function() {
@@ -20,14 +24,14 @@ var thisProgram = "./this.program";
 var quit_ = function(status, toThrow) {
     throw toThrow
 };
-var ENVIRONMENT_IS_WEB = false;
+var ENVIRONMENT_IS_WEB = true;
 var ENVIRONMENT_IS_WORKER = false;
 var ENVIRONMENT_IS_NODE = false;
 var ENVIRONMENT_IS_SHELL = false;
-ENVIRONMENT_IS_WEB = typeof window === "object";
-ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
-ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
-ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
+// ENVIRONMENT_IS_WEB = typeof window === "object";
+// ENVIRONMENT_IS_WORKER = typeof importScripts === "function";
+// ENVIRONMENT_IS_NODE = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node === "string";
+// ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIRONMENT_IS_WORKER;
 var scriptDirectory = "";
 
 function locateFile(path) {
@@ -63,9 +67,9 @@ if (ENVIRONMENT_IS_NODE) {
         thisProgram = process.argv[1].replace(/\\/g, "/")
     }
     arguments_ = process.argv.slice(2);
-    if (typeof module !== "undefined") {
-        module.exports = Module
-    }
+    // if (typeof module !== "undefined") {
+    //     module.exports = Module
+    // }
     process.on("uncaughtException", function(ex) {
         if (!(ex instanceof ExitStatus)) {
             throw ex
@@ -110,9 +114,9 @@ if (ENVIRONMENT_IS_NODE) {
     }
 } else if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
     if (ENVIRONMENT_IS_WORKER) {
-        scriptDirectory = self.location.href
-    } else if (document.currentScript) {
-        scriptDirectory = document.currentScript.src
+        scriptDirectory = location.href
+    } else if (globalThis.document?.currentScript) {
+        scriptDirectory = globalThis.document?.currentScript.src
     }
     if (scriptDirectory.indexOf("blob:") !== 0) {
         scriptDirectory = scriptDirectory.substr(0, scriptDirectory.lastIndexOf("/") + 1)
@@ -150,7 +154,7 @@ if (ENVIRONMENT_IS_NODE) {
         }
     }
     setWindowTitle = function(title) {
-        document.title = title
+        globalThis.document && (globalThis.document.title = title);
     }
 } else {}
 var out = Module.print || console.log.bind(console);
@@ -444,10 +448,15 @@ function getBinary() {
     }
 }
 
-function getBinaryPromise() {
-    if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) && typeof fetch === "function" && !isFileURI(wasmBinaryFile)) {
-        return fetch(wasmBinaryFile, {
-            credentials: "same-origin"
+async function getBinaryPromise() {
+    return wasm;
+    /* if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) && typeof fetch === "function" && !isFileURI(wasmBinaryFile)) {
+        console.log('binary promise', {
+            wasmBinaryFile,
+        });
+        const s = new URL(wasmBinaryFile, 'http://localhost');
+        return fetch(s, {
+            // credentials: "same-origin"
         }).then(function(response) {
             if (!response.ok) {
                 throw "failed to load wasm binary file at '" + wasmBinaryFile + "'"
@@ -457,7 +466,7 @@ function getBinaryPromise() {
             return getBinary()
         })
     }
-    return Promise.resolve().then(getBinary)
+    return Promise.resolve().then(getBinary) */
 }
 
 function createWasm() {
@@ -3689,7 +3698,11 @@ Encoder.prototype.input = function(samples) {
 };
 Encoder.prototype.output = function() {
     var ok = Module._Encoder_output(this.enc, this.out);
-    if (ok) return new Uint8Array(Module.HEAPU8.buffer, Module._String_data(this.out), Module._String_size(this.out))
+    if (ok) {
+        return new Uint8Array(Module.HEAPU8.buffer, Module._String_data(this.out), Module._String_size(this.out))
+    } else {
+        throw new Error('not ok');
+    }
 };
 
 function Decoder(channels, samplerate) {
@@ -3709,7 +3722,11 @@ Decoder.prototype.input = function(packet) {
 };
 Decoder.prototype.output = function() {
     var ok = Module._Decoder_output(this.dec, this.out);
-    if (ok) return new Int16Array(Module.HEAPU8.buffer, Module._Int16Array_data(this.out), Module._Int16Array_size(this.out))
+    if (ok) {
+        return new Int16Array(Module.HEAPU8.buffer, Module._Int16Array_data(this.out), Module._Int16Array_size(this.out))
+    } else {
+        throw new Error('not ok');
+    }
 };
 Module.Encoder = Encoder;
 Module.Decoder = Decoder;
