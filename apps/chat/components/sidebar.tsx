@@ -13,14 +13,24 @@ export function Sidebar({ className, position, children }: SidebarProps) {
   return position === 'left' ? (
     <div
       data-state={isLeftSidebarOpen ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(className, 'h-full flex-col boder-r')}
+      style={{
+        backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+      }}
     >
       {children}
     </div>
   ) : (
     <div
       data-state={isRightSidebarOpen ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(className, 'h-full flex-col border-l border-gray-400')}
+      style={{
+        backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+      }}
     >
       {children}
     </div>
