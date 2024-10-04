@@ -140,7 +140,8 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     })().catch((err) => {
       console.warn('message cache wait for load error', err);
     });
-  }, []);
+  }, [conversation]);
+
   // listen for messasge cache updates
   const update = (e: ExtendableMessageEvent<MessageCacheUpdateArgs>) => {
     setCachedMessagesEpoch(cachedMessagesEpoch => cachedMessagesEpoch + 1);
@@ -156,7 +157,7 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
     return () => {
       conversation.messageCache.removeEventListener('update', update);
     };
-  }, []);
+  }, [conversation]);
 
   const messages = conversation.getCachedMessages(opts?.filter);
   return messages;
