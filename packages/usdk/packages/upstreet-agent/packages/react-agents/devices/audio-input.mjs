@@ -169,6 +169,8 @@ export class TranscribedVoiceInput extends EventTarget {
       let b = Buffer.alloc(0);
       const flushSamples = 8 * 1024;
       const ondata = async (f32) => {
+        await openPromise;
+
         const i16 = convertF32I16(f32);
         if (!loggedMicData) {
           console.log('got mic data (silenced)', i16);
@@ -181,69 +183,23 @@ export class TranscribedVoiceInput extends EventTarget {
           Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
         ]);
 
-        if (numSamples >= flushSamples) {
-          await openPromise;
+        while (numSamples >= flushSamples) {
+          const i16_2 = new Int16Array(b.buffer, b.byteOffset, flushSamples);
+          b = b.subarray(flushSamples * Int16Array.BYTES_PER_ELEMENT);
+          numSamples -= flushSamples;
 
-          while (numSamples >= flushSamples) {
-            const i16_2 = new Int16Array(b.buffer, b.byteOffset, flushSamples);
-            b = b.subarray(flushSamples * Int16Array.BYTES_PER_ELEMENT);
-            numSamples -= flushSamples;
-
-            const headerBuffer = waveheader(i16_2.length, {
-              channels: 1,
-              sampleRate,
-              bitDepth: 16,
-            });
-            const wavBuffer = Buffer.concat([
-              headerBuffer,
-              Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
-            ]);
-            console.log('write wav', wavBuffer.byteLength);
-            transcription.write(wavBuffer);
-
-            // transcription.write(i16_2);
-          }
+          const headerBuffer = waveheader(i16_2.length, {
+            channels: 1,
+            sampleRate,
+            bitDepth: 16,
+          });
+          const wavBuffer = Buffer.concat([
+            headerBuffer,
+            Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
+          ]);
+          // console.log('write wav', wavBuffer.byteLength);
+          transcription.write(wavBuffer);
         }
-
-        /* await microphoneQueueManager.waitForTurn(async () => {
-          if (this.paused) return;
-
-          // push the buffer
-          bs.push(d.slice());
-
-          // check for detection in the current buffer
-          const asyncIterator = myvad.run(d, sampleRate);
-          let detected = false;
-          for await (const vadResult of asyncIterator) {
-            if (this.paused) return;
-            detected = true;
-          }
-
-          // reconcile detected change
-          if (detected) {
-            if (!lastDetected) {
-              // voice is start
-              this.dispatchEvent(new MessageEvent('voicestart', {
-                data: null,
-              }));
-            }
-          } else {
-            if (lastDetected) {
-              // voice end
-              this.dispatchEvent(new MessageEvent('voice', {
-                data: {
-                  buffers: bs.slice(),
-                  sampleRate,
-                },
-              }));
-              bs.length = 0;
-            } else {
-              // keep the last buffer
-              bs.splice(0, bs.length - 1);
-            }
-          }
-          lastDetected = detected;
-        }); */
       };
       audioInput.on('data', ondata);
 
