@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
+import waveheader from 'waveheader';
 import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
 // import vad from '@ricky0123/vad-node';
 // import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
