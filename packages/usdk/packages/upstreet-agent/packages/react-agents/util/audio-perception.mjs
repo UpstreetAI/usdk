@@ -49,7 +49,7 @@ export const transcribeRealtime = ({
   });
   
   ws.addEventListener('open', () => {
-    console.log('transcribe ws open');
+    // console.log('transcribe ws open');
     transcription.dispatchEvent(new MessageEvent('open', {
       data: null,
     }));
@@ -153,7 +153,7 @@ export const transcribeRealtime = ({
     }
   });
   ws.addEventListener('close', (e) => {
-    console.log('transcribe ws close');
+    // console.log('transcribe ws close');
     transcription.dispatchEvent(new MessageEvent('close', {
       data: null,
     }));
