@@ -8,24 +8,19 @@ import { multiplayerEndpointUrl } from 'react-agents/util/endpoints.mjs';
 
 import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
 import { ActiveAgentObject } from 'react-agents/types';
-import { AudioInput } from 'react-agents/devices/audio-input.mjs';
 
-// import { AudioEncodeStream } from './packages/react-agents/lib/multiplayer/public/audio/audio-encode.mjs';
-// import {
-//   createOpusDecodeTransformStream,
-//   createMp3ReadableStreamSource,
-// } from './packages/react-agents/lib/multiplayer/public/audio/audio-client.mjs';
+Error.stackTraceLimit = 300;
+
+//
+
+/*
+import { AudioInput } from 'react-agents/devices/audio-input.mjs';
 import {
   OpusAudioEncoder,
   OpusAudioDecoder,
   Mp3AudioEncoder,
   Mp3AudioDecoder,
 } from './packages/react-agents/lib/multiplayer/public/audio/ws-codec-local.mjs';
-
-Error.stackTraceLimit = 300;
-
-//
-
 const makeFakeData = () => {
   const numSamples = 128 * 1024;
   // const numSamples = 1024;
@@ -159,7 +154,7 @@ const _test = async () => {
   } catch (err) {
     console.error(err);
   }
-};
+}; */
 
 //
 
@@ -216,7 +211,7 @@ export class DurableObject extends EventTarget {
       await this.alarm();
     })();
 
-    _test();
+    // _test();
   }
 
   waitForLoad() {
