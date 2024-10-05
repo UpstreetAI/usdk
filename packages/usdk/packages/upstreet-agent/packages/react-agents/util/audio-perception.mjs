@@ -59,48 +59,34 @@ export const transcribeRealtime = ({
       // "event_id": "event_123",
       "type": "session.update",
       "session": {
-        // "modalities": ["text", "audio"],
-        "modalities": ["text"],
-        "instructions": "Do not say anything.",
-        // "voice": "alloy",
-        "input_audio_format": "pcm16",
-        // "output_audio_format": "pcm16",
-        "input_audio_transcription": {
-          "enabled": true,
-          "model": "whisper-1"
+        // modalities: ['text', 'audio'],
+        modalities: ['text'],
+        // modalities: [],
+        instructions: 'Repeat exactly what you hear.',
+        // voice: 'alloy',
+        input_audio_format: 'pcm16',
+        // output_audio_format: 'pcm16',
+        input_audio_transcription: {
+          // enabled: true,
+          model: 'whisper-1',
         },
-        "turn_detection": {
-          "type": "server_vad",
-          "threshold": 0.5,
-          "prefix_padding_ms": 300,
-          "silence_duration_ms": 200
+        turn_detection: {
+          type: 'server_vad',
+          // threshold: 0.5,
+          // prefix_padding_ms: 300,
+          // silence_duration_ms: 200,
         },
-        // "tools": [
-        //     {
-        //         "type": "function",
-        //         "name": "get_weather",
-        //         "description": "Get the current weather for a location.",
-        //         "parameters": {
-        //             "type": "object",
-        //             "properties": {
-        //                 "location": { "type": "string" }
-        //             },
-        //             "required": ["location"]
-        //         }
-        //     }
-        // ],
-        // "tool_choice": "auto",
-        // "temperature": 0.8,
-        "max_output_tokens": 0,
+        // tools: [],
+        // tool_choice: 'auto',
+        // temperature: 0.8,
+        // max_response_output_tokens: 4096,
+        max_response_output_tokens: 1,
       },
     };
     ws.send(JSON.stringify(sessionConfig));
   });
   ws.addEventListener('message', (e) => {
-    console.log('transcribe ws message', e.data);
-    // transcription.dispatchEvent(new MessageEvent('message', {
-    //   data: e.data,
-    // }));
+    // console.log(e.data);
     const message = JSON.parse(e.data);
     const { type } = message;
     switch (type) {
@@ -120,15 +106,39 @@ export const transcribeRealtime = ({
         break;
       }
       case 'input_audio_buffer.speech_started': {
+        const timestamp = message.audio_start_ms;
+        transcription.dispatchEvent(new MessageEvent('speechstart', {
+          data: {
+            timestamp,
+          },
+        }));
         break;
       }
       case 'input_audio_buffer.speech_stopped': {
+        const timestamp = message.audio_end_ms;
+        transcription.dispatchEvent(new MessageEvent('speechstop', {
+          data: {
+            timestamp,
+          },
+        }));
+        transcription.clear();
         break;
       }
       case 'conversation.item.input_audio_transcription.completed': {
+        const {
+          transcript,
+        } = message;
+        if (transcript) {
+          transcription.dispatchEvent(new MessageEvent('transcription', {
+            data: {
+              transcript,
+            },
+          }));
+        }
         break;
       }
       case 'conversation.item.input_audio_transcription.failed': {
+        console.log('transcription failed', message);
         break;
       }
       case 'response.audio_transcript.delta': {
@@ -158,9 +168,15 @@ export const transcribeRealtime = ({
     };
     ws.send(JSON.stringify(m));
   };
-  transcription.commit = async () => {
+  // transcription.commit = async () => {
+  //   const m = {
+  //     type: 'input_audio_buffer.commit',
+  //   };
+  //   ws.send(JSON.stringify(m));
+  // };
+  transcription.clear = async () => {
     const m = {
-      type: 'input_audio_buffer.commit',
+      type: 'input_audio_buffer.clear',
     };
     ws.send(JSON.stringify(m));
   };
