@@ -1358,14 +1358,14 @@ const startMultiplayerListener = ({
             sampleRate,
             jwt,
           });
-          transcribedVoiceInput.addEventListener('voicestart', async (e) => {
-            console.log('voice start', e.data);
+          transcribedVoiceInput.addEventListener('speechstart', async (e) => {
+            console.log('speechstart', e.data);
           });
-          transcribedVoiceInput.addEventListener('voiceend', async (e) => {
-            console.log('voice end', e.data);
+          transcribedVoiceInput.addEventListener('speechstop', async (e) => {
+            console.log('speechstop', e.data);
           });
-          transcribedVoiceInput.addEventListener('voice', async (e) => {
-            console.log('voice', e.data);
+          transcribedVoiceInput.addEventListener('transcription', async (e) => {
+            console.log('transcription', e.data);
             /* const {
               buffers,
               sampleRate,
