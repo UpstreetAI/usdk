@@ -165,6 +165,9 @@ export class TranscribedVoiceInput extends EventTarget {
       });
 
       let loggedMicData = false;
+      let numSamples = 0;
+      let b = Buffer.alloc(0);
+      const flushSamples = 8 * 1024;
       const ondata = async (f32) => {
         const i16 = convertF32I16(f32);
         if (!loggedMicData) {
@@ -172,9 +175,35 @@ export class TranscribedVoiceInput extends EventTarget {
           loggedMicData = true;
         }
 
-        await openPromise;
+        numSamples += i16.length;
+        b = Buffer.concat([
+          b,
+          Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
+        ]);
 
-        transcription.write(i16);
+        if (numSamples >= flushSamples) {
+          await openPromise;
+
+          while (numSamples >= flushSamples) {
+            const i16_2 = new Int16Array(b.buffer, b.byteOffset, flushSamples);
+            b = b.subarray(flushSamples * Int16Array.BYTES_PER_ELEMENT);
+            numSamples -= flushSamples;
+
+            const headerBuffer = waveheader(i16_2.length, {
+              channels: 1,
+              sampleRate,
+              bitDepth: 16,
+            });
+            const wavBuffer = Buffer.concat([
+              headerBuffer,
+              Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
+            ]);
+            console.log('write wav', wavBuffer.byteLength);
+            transcription.write(wavBuffer);
+
+            // transcription.write(i16_2);
+          }
+        }
 
         /* await microphoneQueueManager.waitForTurn(async () => {
           if (this.paused) return;
