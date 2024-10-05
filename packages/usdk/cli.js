@@ -1312,11 +1312,16 @@ const startMultiplayerListener = ({
     const toggleMic = async () => {
       await microphoneQueueManager.waitForTurn(async () => {
         if (!microphoneInput) {
+          const jwt = await getLoginJwt();
+          if (!jwt) {
+            throw new Error('not logged in');
+          }
+
           const inputDevices = new InputDevices();
           const devices = await inputDevices.listDevices();
           const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
           
-          const sampleRate = AudioInput.defaultSampleRate;
+          const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
           microphoneInput = inputDevices.getAudioInput(device.id, {
             sampleRate,
           });
@@ -1350,6 +1355,8 @@ const startMultiplayerListener = ({
 
           transcribedVoiceInput = new TranscribedVoiceInput({
             audioInput: microphoneInput,
+            sampleRate,
+            jwt,
           });
           transcribedVoiceInput.addEventListener('voicestart', async (e) => {
             console.log('voice start', e.data);
@@ -2441,7 +2448,7 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const sampleRate = AudioInput.defaultSampleRate;
+        const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
         const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
           sampleRate,
         });
@@ -2451,33 +2458,17 @@ const capture = async (args) => {
 
         const transcribedVoiceInput = new TranscribedVoiceInput({
           audioInput: microphoneInput,
+          sampleRate,
           jwt,
         });
-        transcribedVoiceInput.addEventListener('voicestart', e => {
+        transcribedVoiceInput.addEventListener('speechstart', e => {
           console.log('capturing...');
         });
-        transcribedVoiceInput.addEventListener('voiceend', e => {
+        transcribedVoiceInput.addEventListener('speechstop', e => {
           console.log('captured');
         });
-        transcribedVoiceInput.addEventListener('voice', async (e) => {
-          console.log('got transcribed voice input', e.data);
-          /* const {
-            buffers,
-            sampleRate,
-          } = e.data;
-          const mp3Buffer = await encodeMp3(buffers, {
-            sampleRate,
-          });
-
-          if (execute) {
-            console.log('transcribing...');
-            const transcription = await transcribe(mp3Buffer, {
-              jwt,
-            });
-            console.log(JSON.stringify(transcription));
-          } else {
-            console.log('got mp3 buffer', mp3Buffer);
-          } */
+        transcribedVoiceInput.addEventListener('transcription', async (e) => {
+          console.log('transcriptionput', e.data);
         });
       }
       
