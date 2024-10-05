@@ -108,10 +108,12 @@ export const encodeMp3 = async (bs, {
 //
 
 export class TranscribedVoiceInput extends EventTarget {
+  static transcribeSampleRate = 24000;
   audioInput;
   abortController;
   constructor({
     audioInput,
+    sampleRate = TranscribedVoiceInput.transcribeSampleRate,
     jwt,
   }) {
     if (!jwt) {
@@ -133,8 +135,20 @@ export class TranscribedVoiceInput extends EventTarget {
       const transcription = transcribeRealtime({
         jwt,
       });
-      transcription.addEventListener('message', e => {
-        console.log('got transcribe realtime socket message', e.data);
+      transcription.addEventListener('speechstart', e => {
+        this.dispatchEvent(new MessageEvent('speechstart', {
+          data: e.data,
+        }));
+      });
+      transcription.addEventListener('speechstop', e => {
+        this.dispatchEvent(new MessageEvent('speechstop', {
+          data: e.data,
+        }));
+      });
+      transcription.addEventListener('transcription', e => {
+        this.dispatchEvent(new MessageEvent('transcription', {
+          data: e.data,
+        }));
       });
       signal.addEventListener('abort', () => {
         transcription.close();
