@@ -46,7 +46,7 @@ const _test = async () => {
       // encode 
       console.log('test 1');
       const sampleRate = AudioInput.defaultSampleRate;
-      const { resolve, reject, promise } = Promise.withResolvers();
+      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers<any[]>();
       const bs = [];
       const opusEncoder = new OpusAudioEncoder({
         sampleRate,
@@ -61,7 +61,7 @@ const _test = async () => {
             // const b = Buffer.concat(bs.map(u => Buffer.from(u)));
             // const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
             // console.log('output done 2', uint8Array);
-            resolve(bs);
+            resolveEncode(bs);
             // console.log('output done 3');
           }
         },
@@ -77,7 +77,7 @@ const _test = async () => {
         data: null,
       });
       console.log('test 3', opusEncoder);
-      const packets = await promise;
+      const packets = await encodedPromise;
       console.log('test 4', packets);
 
       // decode
@@ -98,12 +98,12 @@ const _test = async () => {
       opusDecoder.decode(null);
       console.log('test 7');
     };
-    // await _testOpus();
+    await _testOpus();
 
     const _testMp3 = async () => { 
       console.log('test 1');
       const sampleRate = AudioInput.defaultSampleRate;
-      const { resolve, reject, promise } = Promise.withResolvers();
+      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers();
       const bs = [];
       const mp3Encoder = new Mp3AudioEncoder({
         sampleRate,
@@ -118,7 +118,7 @@ const _test = async () => {
             const b = Buffer.concat(bs.map(u => Buffer.from(u)));
             const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
             // console.log('output done 2', uint8Array);
-            resolve(uint8Array);
+            resolveEncode(uint8Array);
             // console.log('output done 3');
           }
         },
@@ -134,7 +134,7 @@ const _test = async () => {
         data: null,
       });
       console.log('test 3', mp3Encoder);
-      const b = await promise;
+      const b = await encodedPromise;
       console.log('test 4', {
         b,
       });
