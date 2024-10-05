@@ -108,6 +108,66 @@ export const encodeMp3 = async (bs, {
 
 //
 
+class AudioChunker {
+  constructor({ sampleRate, channels = 1, bitDepth = 16, chunkSize = 8 * 1024 }) {
+    this.sampleRate = sampleRate;
+    this.channels = channels;
+    this.bitDepth = bitDepth;
+    this.chunkSize = chunkSize;
+    // this.loggedMicData = false;
+    this.numSamples = 0;
+    this.buffer = Buffer.alloc(0);
+    this.buffers = [];
+  }
+
+  write(f32) {
+    const frames = [];
+    const i16 = convertF32I16(f32);
+
+    // if (!this.loggedMicData) {
+    //   console.log('got mic data (silenced)', i16);
+    //   this.loggedMicData = true;
+    // }
+
+    this.numSamples += i16.length;
+    // this.buffer = Buffer.concat([
+    //   this.buffer,
+    //   Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
+    // ]);
+    this.buffers.push(
+      Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
+    );
+
+    while (this.numSamples >= this.chunkSize) {
+      // merge buffers if needed
+      if (this.buffers.length > 0) {
+        this.buffer = Buffer.concat([
+          this.buffer,
+          ...this.buffers,
+        ]);
+        this.buffers.length = 0;
+      }
+
+      const i16_2 = new Int16Array(this.buffer.buffer, this.buffer.byteOffset, this.chunkSize);
+      this.buffer = this.buffer.subarray(this.chunkSize * Int16Array.BYTES_PER_ELEMENT);
+      this.numSamples -= this.chunkSize;
+
+      const headerBuffer = waveheader(i16_2.length, {
+        channels: this.channels,
+        sampleRate: this.sampleRate,
+        bitDepth: this.bitDepth,
+      });
+      const wavBuffer = Buffer.concat([
+        headerBuffer,
+        Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
+      ]);
+
+      frames.push(wavBuffer);
+    }
+
+    return frames;
+  }
+}
 export class TranscribedVoiceInput extends EventTarget {
   static transcribeSampleRate = 24000;
   audioInput;
@@ -164,41 +224,15 @@ export class TranscribedVoiceInput extends EventTarget {
         });
       });
 
-      let loggedMicData = false;
-      let numSamples = 0;
-      let b = Buffer.alloc(0);
-      const flushSamples = 8 * 1024;
+      const audioChunker = new AudioChunker({
+        sampleRate,
+      });
       const ondata = async (f32) => {
         await openPromise;
 
-        const i16 = convertF32I16(f32);
-        if (!loggedMicData) {
-          console.log('got mic data (silenced)', i16);
-          loggedMicData = true;
-        }
-
-        numSamples += i16.length;
-        b = Buffer.concat([
-          b,
-          Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
-        ]);
-
-        while (numSamples >= flushSamples) {
-          const i16_2 = new Int16Array(b.buffer, b.byteOffset, flushSamples);
-          b = b.subarray(flushSamples * Int16Array.BYTES_PER_ELEMENT);
-          numSamples -= flushSamples;
-
-          const headerBuffer = waveheader(i16_2.length, {
-            channels: 1,
-            sampleRate,
-            bitDepth: 16,
-          });
-          const wavBuffer = Buffer.concat([
-            headerBuffer,
-            Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
-          ]);
-          // console.log('write wav', wavBuffer.byteLength);
-          transcription.write(wavBuffer);
+        const wavFrames = audioChunker.write(f32);
+        for (const wavFrame of wavFrames) {
+          transcription.write(wavFrame);
         }
       };
       audioInput.on('data', ondata);
