@@ -1336,22 +1336,16 @@ const startMultiplayerListener = ({
             }
           };
           speakerMap.addEventListener('playingchange', onplayingchange);
-          microphoneInput.addEventListener('close', e => {
+          microphoneInput.on('close', e => {
             speakerMap.removeEventListener('playingchange', onplayingchange);
           });
 
           await new Promise((accept, reject) => {
-            microphoneInput.addEventListener('start', e => {
+            microphoneInput.on('start', e => {
               accept();
             });
           });
           console.log('* mic enabled *');
-          microphoneInput.addEventListener('voicestart', async (e) => {
-            speakerMap.setLocal(true);
-          });
-          microphoneInput.addEventListener('close', (e) => {
-            speakerMap.setLocal(false);
-          });
 
           transcribedVoiceInput = new TranscribedVoiceInput({
             audioInput: microphoneInput,
@@ -1359,13 +1353,15 @@ const startMultiplayerListener = ({
             jwt,
           });
           transcribedVoiceInput.addEventListener('speechstart', async (e) => {
-            console.log('speechstart', e.data);
+            // console.log('speechstart', e.data);
+            speakerMap.setLocal(true);
           });
           transcribedVoiceInput.addEventListener('speechstop', async (e) => {
-            console.log('speechstop', e.data);
+            // console.log('speechstop', e.data);
+            speakerMap.setLocal(false);
           });
           transcribedVoiceInput.addEventListener('transcription', async (e) => {
-            console.log('transcription', e.data);
+            console.log('transcription: ', e.data.transcript);
             /* const {
               buffers,
               sampleRate,
