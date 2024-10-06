@@ -659,7 +659,7 @@ export default function AgentEditor({
 
   // render
   return (
-    <div className="flex flex-1">
+    <div className="flex flex-1 bg-zinc-900">
       {/* builder */}
       <div className="flex flex-col flex-1 max-h-[calc(100vh_-_64px)]">
         <div className="flex flex-col flex-1 bg-primary/10 overflow-scroll">
