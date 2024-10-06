@@ -1,5 +1,11 @@
 import path from 'path';
+import crypto from 'crypto';
 import * as esbuild from 'esbuild-wasm';
+import { FetchOpts } from './types';
+import {
+  SUPABASE_URL,
+  SUPABASE_PUBLIC_API_KEY,
+} from './secrets.mjs';
 
 const ensureEsbuild = (() => {
   let esBuildPromise: Promise<void> | null = null;
@@ -28,6 +34,8 @@ const defaultFiles = [
     `,
   },
 ];
+
+//
 
 export const buildAgentSrc = async (sourceCode: string, {
   files = defaultFiles,
@@ -123,3 +131,108 @@ export const buildAgentSrc = async (sourceCode: string, {
     throw new Error('Failed to build: ' + JSON.stringify(errors));
   }
 };
+
+//
+
+class FetchableWorker extends Worker {
+  constructor(url: string | URL) {
+    super(url);
+  }
+  async fetch(url: string, opts: FetchOpts) {
+    const requestId = crypto.randomUUID();
+    const {
+      method, headers, body,
+    } = opts;
+    this.postMessage({
+      method: 'request',
+      args: {
+        id: requestId,
+        url,
+        method,
+        headers,
+        body,
+      },
+    }, []);
+    const res = await new Promise<Response>((accept, reject) => {
+      const onmessage = (e: MessageEvent) => {
+        // console.log('got worker message data', e.data);
+        try {
+          const { method } = e.data;
+          switch (method) {
+            case 'response': {
+              const { args } = e.data;
+              const {
+                id: responseId,
+              } = args;
+              if (responseId === requestId) {
+                cleanup();
+
+                const {
+                  error, status, headers, body,
+                } = args;
+                if (!error) {
+                  const res = new Response(body, {
+                    status,
+                    headers,
+                  });
+                  accept(res);
+                } else {
+                  reject(new Error(error));
+                }
+              }
+              break;
+            }
+            default: {
+              console.warn('unhandled worker message method', e.data);
+              break;
+            }
+          }
+        } catch (err) {
+          console.error('failed to handle worker message', err);
+          reject(err);
+        }
+      };
+      this.addEventListener('message', onmessage);
+
+      const cleanup = () => {
+        this.removeEventListener('message', onmessage);
+      };
+    });
+    return res;
+  }
+}
+export class ReactAgentsWorker extends FetchableWorker {
+  constructor({
+    agentJson,
+    agentSrc,
+    apiKey,
+  }: {
+    agentJson: any,
+    agentSrc: string,
+    apiKey: string,
+  }) {
+    super(new URL('react-agents-client/worker.tsx', import.meta.url));
+
+    // const mnemonic = generateMnemonic();
+    const env = {
+      AGENT_JSON: JSON.stringify(agentJson),
+      AGENT_TOKEN: apiKey,
+      // WALLET_MNEMONIC: mnemonic,
+      SUPABASE_URL,
+      SUPABASE_PUBLIC_API_KEY,
+      WORKER_ENV: 'development', // 'production',
+    };
+    console.log('starting worker with env:', env);
+
+    this.postMessage({
+      method: 'initDurableObject',
+      args: {
+        env,
+        agentSrc,
+      },
+    });
+    this.addEventListener('error', e => {
+      console.warn('got error', e);
+    });
+  }
+}
