@@ -133,16 +133,64 @@ export const buildAgentSrc = async (sourceCode: string, {
 
 //
 
-class FetchableWorker extends Worker {
-  constructor(url: string | URL) {
-    super(url);
+export class ReactAgentsWorker {
+  worker: Worker;
+  constructor({
+    agentJson,
+    agentSrc,
+    apiKey,
+    mnemonic,
+  }: {
+    agentJson: any,
+    agentSrc: string,
+    apiKey: string,
+    mnemonic: string,
+  }) {
+    if (
+      !agentJson ||
+      !agentSrc ||
+      !apiKey ||
+      !mnemonic
+    ) {
+      throw new Error('missing required options');
+    }
+
+    console.log('got agent src', agentSrc);
+
+    this.worker = new Worker(new URL('./worker.ts', import.meta.url));
+
+    const env = {
+      AGENT_JSON: JSON.stringify(agentJson),
+      AGENT_TOKEN: apiKey,
+      WALLET_MNEMONIC: mnemonic,
+      SUPABASE_URL,
+      SUPABASE_PUBLIC_API_KEY,
+      WORKER_ENV: 'development', // 'production',
+    };
+    console.log('starting worker with env:', env);
+    this.worker.postMessage({
+      method: 'initDurableObject',
+      args: {
+        env,
+        agentSrc,
+      },
+    });
+    this.worker.addEventListener('error', e => {
+      console.warn('got error', e);
+    });
   }
+  // addEventListener(...args: Parameters<Worker['addEventListener']>) {
+  //   return this.worker.addEventListener(...args);
+  // }
+  // removeEventListener(...args: Parameters<Worker['removeEventListener']>) {
+  //   return this.worker.removeEventListener(...args);
+  // }
   async fetch(url: string, opts: FetchOpts) {
     const requestId = crypto.randomUUID();
     const {
       method, headers, body,
     } = opts;
-    this.postMessage({
+    this.worker.postMessage({
       method: 'request',
       args: {
         id: requestId,
@@ -191,47 +239,12 @@ class FetchableWorker extends Worker {
           reject(err);
         }
       };
-      this.addEventListener('message', onmessage);
+      this.worker.addEventListener('message', onmessage);
 
       const cleanup = () => {
-        this.removeEventListener('message', onmessage);
+        this.worker.removeEventListener('message', onmessage);
       };
     });
     return res;
-  }
-}
-export class ReactAgentsWorker extends FetchableWorker {
-  constructor({
-    agentJson,
-    agentSrc,
-    apiKey,
-  }: {
-    agentJson: any,
-    agentSrc: string,
-    apiKey: string,
-  }) {
-    super(new URL('./worker.tsx', import.meta.url));
-
-    // const mnemonic = generateMnemonic();
-    const env = {
-      AGENT_JSON: JSON.stringify(agentJson),
-      AGENT_TOKEN: apiKey,
-      // WALLET_MNEMONIC: mnemonic,
-      SUPABASE_URL,
-      SUPABASE_PUBLIC_API_KEY,
-      WORKER_ENV: 'development', // 'production',
-    };
-    console.log('starting worker with env:', env);
-
-    this.postMessage({
-      method: 'initDurableObject',
-      args: {
-        env,
-        agentSrc,
-      },
-    });
-    this.addEventListener('error', e => {
-      console.warn('got error', e);
-    });
   }
 }
