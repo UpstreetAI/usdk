@@ -247,4 +247,7 @@ export class ReactAgentsWorker {
     });
     return res;
   }
+  terminate() {
+    this.worker.terminate();
+  }
 }
