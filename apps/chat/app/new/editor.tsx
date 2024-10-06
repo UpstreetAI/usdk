@@ -325,10 +325,12 @@ export default function AgentEditor({
         ensureAgentJsonDefaults(agentJson);
 
         // initialize the agent worker
+        const mnemonic = generateMnemonic();
         const newWorker = new ReactAgentsWorker({
           agentJson,
           agentSrc,
           apiKey: agentToken,
+          mnemonic,
         });
         setWorker(newWorker);
 
