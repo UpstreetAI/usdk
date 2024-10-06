@@ -15,11 +15,11 @@ export function ChatTabs({ user }: TabsProps) {
 
   const [ tab, setTab ] = useHash('members');
 
-  const activeClass = 'text-[#2D4155] bg-[#c3c9d1]';
+  const activeClass = 'bg-[#c3c9d1]';
   const inactiveClass = 'cursor-pointer';
 
   return (
-    <div className='pb-16'>
+    <div className='pb-16 text-[#2D4155]'>
       <div className="mb-4 border-b-2 border-gray-400 max-w-4xl w-full">
 
         <ChatHead />
