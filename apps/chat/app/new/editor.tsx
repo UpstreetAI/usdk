@@ -44,6 +44,7 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
+import type { FetchableWorker } from 'react-agents-client/types';
 import { buildAgentSrc } from 'react-agents-client';
 
 //
@@ -53,15 +54,6 @@ const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
 const rateLimitMessageDefault = '';
 
 //
-
-type FetchOpts = {
-  method?: string;
-  headers?: object | Headers;
-  body?: string | ArrayBuffer;
-};
-type FetchableWorker = Worker & {
-  fetch: (url: string, opts: FetchOpts) => Promise<Response>;
-};
 
 type ChatMessage = {
   role: string;
