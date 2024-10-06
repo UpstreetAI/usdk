@@ -29,10 +29,6 @@ export function ChatHead() {
         </span>
       )}
 
-      {(roomName || roomDescription) && (
-        <hr className="mb-8 mt-4 opacity-70 " />
-      )}
-
       <span className="select-none opacity-70 text-xs font-medium flex justify-between w-full items-center">
         Chat joining link
       </span>
