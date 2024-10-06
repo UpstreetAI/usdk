@@ -13,7 +13,7 @@ const HeaderMaskFrame = ({ children, background }: any) => {
         }} 
       />
       <div className={styles.maskFrameOverlay} />
-      <div className='relative z-2'>{children}</div>
+      <div className={styles.maskFrameContentWrap}>{children}</div>
     </div>
   );
 };

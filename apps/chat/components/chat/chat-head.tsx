@@ -23,7 +23,7 @@ export function ChatHead() {
     >
       <div className="flex flex-col justify-start gap-1 rounded-md border-1 mb-2 p-4 pt-32">
 
-        <span className="select-none font-black text-2xl flex justify-between w-full items-center">
+        <span className="select-none text-gray-100 text-2xl text-stroke flex justify-between w-full items-center">
           {roomName ? roomName : '156th Street'}
         </span>
 
@@ -33,9 +33,6 @@ export function ChatHead() {
           </span>
         )}
 
-        <span className="select-none opacity-70 text-xs font-medium flex justify-between w-full items-center">
-          Chat joining link
-        </span>
         <Tooltip open={showRoomLinkTooltip}>
           <TooltipTrigger>
             <span
@@ -44,12 +41,12 @@ export function ChatHead() {
                 setShowRoomLinkTooltip(true)
                 setTimeout(() => setShowRoomLinkTooltip(false), 1500)
               }}
-              className="text-sm overflow-hidden text-ellipsis line-clamp-1"
+              className="text-sm overflow-hidden text-ellipsis line-clamp-1 bg-gray-800 text-white p-1 rounded-md cursor-pointer"
             >
               {roomLink}
             </span>
           </TooltipTrigger>
-          <TooltipContent className="z-50 bg-gray-800">Copied chat link!</TooltipContent>
+          <TooltipContent className="z-50 bg-gray-200">Copied chat link!</TooltipContent>
         </Tooltip>
       </div>
 
