@@ -5,4 +5,5 @@ export type FetchOpts = {
 };
 export type FetchableWorker = {
   fetch: (url: string, opts: FetchOpts) => Promise<Response>;
+  terminate: () => void;
 };
