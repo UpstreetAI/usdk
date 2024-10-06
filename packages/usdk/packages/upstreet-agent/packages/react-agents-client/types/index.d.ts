@@ -3,6 +3,6 @@ export type FetchOpts = {
   headers?: object | Headers;
   body?: string | ArrayBuffer;
 };
-export type FetchableWorker = Worker & {
+export type FetchableWorker = {
   fetch: (url: string, opts: FetchOpts) => Promise<Response>;
 };
