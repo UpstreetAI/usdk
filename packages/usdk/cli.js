@@ -3504,28 +3504,28 @@ const main = async () => {
   //       await test(args);
   //     });
   //   });
-  program
-    .command('capture')
-    .description('Test display functionality; with no arguments, list available devices')
-    .option('-m, --microphone [id]', 'Enable microphone')
-    .option('-c, --camera [id]', 'Enable camera')
-    .option('-s, --screen [id]', 'Enable screen capture')
-    .option('-w, --width <width>', 'Render width')
-    .option('-h, --height <height>', 'Render height')
-    .option('-r, --rows <rows>', 'Render rows')
-    .option('-l, --cols <cols>', 'Render cols')
-    .option('-x, --execute', 'Execute inference')
-    .option('-q, --query <string>', 'Inference query for video')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await capture(args);
-      });
-    });
+  // program
+  //   .command('capture')
+  //   .description('Test display functionality; with no arguments, list available devices')
+  //   .option('-m, --microphone [id]', 'Enable microphone')
+  //   .option('-c, --camera [id]', 'Enable camera')
+  //   .option('-s, --screen [id]', 'Enable screen capture')
+  //   .option('-w, --width <width>', 'Render width')
+  //   .option('-h, --height <height>', 'Render height')
+  //   .option('-r, --rows <rows>', 'Render rows')
+  //   .option('-l, --cols <cols>', 'Render cols')
+  //   .option('-x, --execute', 'Execute inference')
+  //   .option('-q, --query <string>', 'Inference query for video')
+  //   .action(async (opts = {}) => {
+  //     await handleError(async () => {
+  //       commandExecuted = true;
+  //       const args = {
+  //         _: [],
+  //         ...opts,
+  //       };
+  //       await capture(args);
+  //     });
+  //   });
   program
     .command('deploy')
     .description('Deploy an agent to the network')
