@@ -77,12 +77,13 @@ import {
   InputDevices,
 } from './packages/upstreet-agent/packages/react-agents/devices/input-devices.mjs';
 import {
-  VoiceActivityMicrophoneInput,
-  encodeMp3,
+  AudioInput,
+  TranscribedVoiceInput,
+  // encodeMp3,
 } from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
-import {
-  transcribe,
-} from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
+// import {
+//   transcribe,
+// } from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,
@@ -1289,7 +1290,7 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
-    const ensureJwt = (() => {
+    /* const ensureJwt = (() => {
       let jwtPromise = null;
       return () => {
         if (jwtPromise === null) {
@@ -1297,7 +1298,7 @@ const startMultiplayerListener = ({
         }
         return jwtPromise;
       };
-    })();
+    })(); */
     const getDoc = () => {
       const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
       const { networkedCrdtClient } = headRealm;
@@ -1306,16 +1307,23 @@ const startMultiplayerListener = ({
     };
 
     let microphoneInput = null;
+    let transcribedVoiceInput = null;
     const microphoneQueueManager = new QueueManager();
     const toggleMic = async () => {
       await microphoneQueueManager.waitForTurn(async () => {
         if (!microphoneInput) {
+          const jwt = await getLoginJwt();
+          if (!jwt) {
+            throw new Error('not logged in');
+          }
+
           const inputDevices = new InputDevices();
           const devices = await inputDevices.listDevices();
           const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
-
-          microphoneInput = new VoiceActivityMicrophoneInput({
-            device,
+          
+          const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+          microphoneInput = inputDevices.getAudioInput(device.id, {
+            sampleRate,
           });
 
           const onplayingchange = e => {
@@ -1328,24 +1336,33 @@ const startMultiplayerListener = ({
             }
           };
           speakerMap.addEventListener('playingchange', onplayingchange);
-          microphoneInput.addEventListener('close', e => {
+          microphoneInput.on('close', e => {
             speakerMap.removeEventListener('playingchange', onplayingchange);
           });
 
           await new Promise((accept, reject) => {
-            microphoneInput.addEventListener('start', e => {
+            microphoneInput.on('start', e => {
               accept();
             });
           });
           console.log('* mic enabled *');
-          microphoneInput.addEventListener('voicestart', async (e) => {
+
+          transcribedVoiceInput = new TranscribedVoiceInput({
+            audioInput: microphoneInput,
+            sampleRate,
+            jwt,
+          });
+          transcribedVoiceInput.addEventListener('speechstart', async (e) => {
+            // console.log('speechstart', e.data);
             speakerMap.setLocal(true);
           });
-          microphoneInput.addEventListener('close', (e) => {
+          transcribedVoiceInput.addEventListener('speechstop', async (e) => {
+            // console.log('speechstop', e.data);
             speakerMap.setLocal(false);
           });
-          microphoneInput.addEventListener('voice', async (e) => {
-            const {
+          transcribedVoiceInput.addEventListener('transcription', async (e) => {
+            console.log('transcription: ', e.data.transcript);
+            /* const {
               buffers,
               sampleRate,
             } = e.data;
@@ -1360,11 +1377,14 @@ const startMultiplayerListener = ({
             console.log(transcription);
             sendChatMessage(transcription);
 
-            speakerMap.setLocal(false);
+            speakerMap.setLocal(false); */
           });
           renderPrompt();
         } else {
           microphoneInput.close();
+          microphoneInput = null;
+          transcribedVoiceInput.close();
+          transcribedVoiceInput = null;
           console.log('* mic disabled *');
           renderPrompt();
         }
@@ -2424,33 +2444,27 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const microphoneInput = new VoiceActivityMicrophoneInput({
-          device: microphoneDevice,
+        const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+        const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
+          sampleRate,
         });
-        microphoneInput.addEventListener('start', e => {
+        microphoneInput.on('start', e => {
           console.log('listening...');
         });
-        microphoneInput.addEventListener('voicestart', e => {
+
+        const transcribedVoiceInput = new TranscribedVoiceInput({
+          audioInput: microphoneInput,
+          sampleRate,
+          jwt,
+        });
+        transcribedVoiceInput.addEventListener('speechstart', e => {
           console.log('capturing...');
         });
-        microphoneInput.addEventListener('voice', async (e) => {
-          const {
-            buffers,
-            sampleRate,
-          } = e.data;
-          const mp3Buffer = await encodeMp3(buffers, {
-            sampleRate,
-          });
-
-          if (execute) {
-            console.log('transcribing...');
-            const transcription = await transcribe(mp3Buffer, {
-              jwt,
-            });
-            console.log(JSON.stringify(transcription));
-          } else {
-            console.log('got mp3 buffer', mp3Buffer);
-          }
+        transcribedVoiceInput.addEventListener('speechstop', e => {
+          console.log('captured');
+        });
+        transcribedVoiceInput.addEventListener('transcription', async (e) => {
+          console.log('transcriptionput', e.data);
         });
       }
       
@@ -3490,28 +3504,28 @@ const main = async () => {
   //       await test(args);
   //     });
   //   });
-  // program
-  //   .command('capture')
-  //   .description('Test display functionality; with no arguments, list available devices')
-  //   .option('-m, --microphone [id]', 'Enable microphone')
-  //   .option('-c, --camera [id]', 'Enable camera')
-  //   .option('-s, --screen [id]', 'Enable screen capture')
-  //   .option('-w, --width <width>', 'Render width')
-  //   .option('-h, --height <height>', 'Render height')
-  //   .option('-r, --rows <rows>', 'Render rows')
-  //   .option('-l, --cols <cols>', 'Render cols')
-  //   .option('-x, --execute', 'Execute inference')
-  //   .option('-q, --query <string>', 'Inference query for video')
-  //   .action(async (opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [],
-  //         ...opts,
-  //       };
-  //       await capture(args);
-  //     });
-  //   });
+  program
+    .command('capture')
+    .description('Test display functionality; with no arguments, list available devices')
+    .option('-m, --microphone [id]', 'Enable microphone')
+    .option('-c, --camera [id]', 'Enable camera')
+    .option('-s, --screen [id]', 'Enable screen capture')
+    .option('-w, --width <width>', 'Render width')
+    .option('-h, --height <height>', 'Render height')
+    .option('-r, --rows <rows>', 'Render rows')
+    .option('-l, --cols <cols>', 'Render cols')
+    .option('-x, --execute', 'Execute inference')
+    .option('-q, --query <string>', 'Inference query for video')
+    .action(async (opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [],
+          ...opts,
+        };
+        await capture(args);
+      });
+    });
   program
     .command('deploy')
     .description('Deploy an agent to the network')

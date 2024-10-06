@@ -23,6 +23,7 @@
     "together-ai": "^0.6.0-alpha.4",
     "typescript": "^5.6.2",
     "uuid-by-string": "^4.0.0",
+    "waveheader": "^0.0.2",
     "yjs": "^13.6.18",
     "zod": "^3.23.8",
     "zod-to-ts": "^1.2.0"
