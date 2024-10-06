@@ -1,5 +1,4 @@
 import path from 'path';
-import crypto from 'crypto';
 import * as esbuild from 'esbuild-wasm';
 import { FetchOpts } from './types';
 import {
