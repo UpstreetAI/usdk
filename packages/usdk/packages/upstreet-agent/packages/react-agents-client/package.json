@@ -1,11 +1,8 @@
 {
   "name": "react-agents-client",
-  "version": "0.0.1",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "main": "react-agents-client.ts",
+  "dependencies": {
+    "esbuild-wasm": "^0.24.0",
+    "react-agents": "file:../react-agents"
+  }
 }
