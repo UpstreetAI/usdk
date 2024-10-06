@@ -210,7 +210,7 @@ export class ReactAgentsWorker extends FetchableWorker {
     agentSrc: string,
     apiKey: string,
   }) {
-    super(new URL('react-agents-client/worker.tsx', import.meta.url));
+    super(new URL('./worker.tsx', import.meta.url));
 
     // const mnemonic = generateMnemonic();
     const env = {
