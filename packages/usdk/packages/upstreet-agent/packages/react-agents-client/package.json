@@ -1,0 +1,9 @@
+{
+  "name": "react-agents-client",
+  "main": "react-agents-client.ts",
+  "dependencies": {
+    "esbuild-wasm": "^0.24.0",
+    "upstreet-agent": "file:../..",
+    "react-agents": "file:../react-agents"
+  }
+}

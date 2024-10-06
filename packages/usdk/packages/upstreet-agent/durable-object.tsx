@@ -7,7 +7,7 @@ import { serverHandler } from 'react-agents/routes/server.ts';
 import { multiplayerEndpointUrl } from 'react-agents/util/endpoints.mjs';
 
 import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
-import { ActiveAgentObject } from 'react-agents/types';
+import type { ActiveAgentObject } from 'react-agents/types';
 
 Error.stackTraceLimit = 300;
 

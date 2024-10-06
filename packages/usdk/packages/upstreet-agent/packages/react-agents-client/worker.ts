@@ -1,5 +1,5 @@
-import './packages/react-agents/util/worker-globals.mjs';
-import { DurableObject } from './durable-object.tsx';
+import './util/worker-globals.mjs';
+import { DurableObject } from 'upstreet-agent/durable-object.tsx';
 
 //
 
@@ -30,11 +30,7 @@ globalThis.onmessage = (event: any) => {
 
           const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
           const userRender = agentModule.default;
-          // console.log('got user render', {
-          //   agentSrc,
-          //   agentModule,
-          //   userRender,
-          // });
+          // console.log('got user render', userRender.toString());
 
           let alarmTimestamp: number | null = null;
           const state = {
