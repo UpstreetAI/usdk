@@ -1,4 +1,4 @@
-import 'react-agents/util/worker-globals.mjs';
+import './util/worker-globals.mjs';
 import { DurableObject } from 'upstreet-agent/durable-object.tsx';
 
 //
