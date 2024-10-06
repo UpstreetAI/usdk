@@ -56,6 +56,17 @@ module.exports = {
       replacePlugin(usdkPath, /^react/),
     );
 
+    // config.experiments = {
+    //   ...config.experiments,
+    //   asyncWebAssembly: true, // or syncWebAssembly, but async is preferred
+    //   // syncWebAssembly: true, // or syncWebAssembly, but async is preferred
+    // };
+
+    config.module.rules.push({
+      test: /\.wasm$/,
+      type: 'asset/resource',
+    });
+
     return config;
   },
 }
