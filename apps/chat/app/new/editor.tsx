@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useMemo, useEffect } from 'react';
-import path from 'path';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,12 @@ import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client
 //   defaultModels,
 //   defaultVisionModels,
 // } from 'react-agents/constants.mjs';
+import type {
+  StoreItem,
+  SubscriptionProps,
+  Currency,
+  Interval,
+} from 'react-agents/types';
 import {
   createAgentGuid,
 } from 'react-agents/util/guid-util.mjs';
@@ -39,143 +44,13 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
+import { buildAgentSrc } from 'react-agents-client';
 
 //
 
 const maxUserMessagesDefault = 5;
 const maxUserMessagesTimeDefault = 60 * 60 * 24 * 1000; // 1 day
 const rateLimitMessageDefault = '';
-
-//
-
-import * as esbuild from 'esbuild-wasm';
-import {
-  StoreItem,
-  SubscriptionProps,
-  Currency,
-  Interval,
-} from 'react-agents/types';
-const ensureEsbuild = (() => {
-  let esBuildPromise: Promise<void> | null = null;
-  return () => {
-    if (!esBuildPromise) {
-      esBuildPromise = (async () => {
-        try {
-          const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
-          await esbuild.initialize({
-            worker: true,
-            wasmURL: u.href,
-          });
-        } catch (err) {
-          console.warn('failed to initialize esbuild', err);
-        }
-      })();
-    }
-    return esBuildPromise;
-  };
-})();
-const defaultFiles = [
-  {
-    path: '/example.ts',
-    content: `\
-      export const example = 'This is an example module';
-    `,
-  },
-];
-const buildAgentSrc = async (sourceCode: string, {
-  files = defaultFiles,
-} = {}) => {
-  await ensureEsbuild();
-
-  const fileMap = new Map(files.map(file => [file.path, file.content]));
-  const filesNamespace = 'files';
-  const globalImportMap = new Map(Array.from(Object.entries({
-    'react': 'React',
-    'zod': 'zod',
-    'react-agents': 'ReactAgents',
-  })));
-  const globalNamespace = 'globals';
-
-  const result = await esbuild.build({
-    stdin: {
-      contents: sourceCode,
-      resolveDir: '/', // Optional: helps with resolving imports
-      sourcefile: 'app.tsx', // Optional: helps with error messages
-      loader: 'tsx', // Set the appropriate loader based on the source type
-    },
-    bundle: true,
-    outdir: 'dist',
-    format: 'esm',
-    plugins: [
-      {
-        name: 'globals-plugin',
-        setup(build) {
-          build.onResolve({ filter: /.*/ }, (args) => {
-            const p = args.path;
-            const globalName = globalImportMap.get(p);
-            // console.log('got resolve', {args, p, globalName});
-            if (globalName) {
-              return { path: p, namespace: globalNamespace };
-            }
-            return null; // Continue with the default resolution
-          });
-          build.onLoad({ filter: /.*/, namespace: globalNamespace }, (args) => {
-            const p = args.path;
-            const globalName = globalImportMap.get(p);
-            // console.log('got load', {args, p, globalName});
-            if (globalName) {
-              return {
-                // globalImports is initialized by the worker wrapper
-                contents: `module.exports = globalImports[${JSON.stringify(globalName)}];`,
-                loader: 'js',
-              };
-            }
-            return null; // Continue with the default loading
-          });
-        },
-      },
-      {
-        name: 'files-plugin',
-        setup(build) {
-          build.onResolve({ filter: /.*/ }, (args) => {
-            const p = path.resolve(args.resolveDir, args.path);
-            // console.log('got resolve', {args, p});
-            if (fileMap.has(p)) {
-              return { path: p, namespace: filesNamespace };
-            }
-            return null; // Continue with the default resolution
-          });
-          build.onLoad({ filter: /.*/, namespace: filesNamespace }, (args) => {
-            // console.log('got load', args);
-            const p = args.path;
-            const contents = fileMap.get(p);
-            if (contents) {
-              return { contents, loader: 'tsx' };
-            }
-            return null; // Continue with the default loading
-          });
-        },
-      },
-    ],
-  });
-  const {
-    errors = [],
-    outputFiles = [],
-  } = result;
-  if (errors.length === 0) {
-    const outputFile = outputFiles[0];
-    // console.log('got output file', outputFile);
-    const { contents } = outputFile;
-    const textDecoder = new TextDecoder();
-    const text = textDecoder.decode(contents);
-    // console.log('got contents');
-    // console.log(text);
-    return text;
-  } else {
-    console.warn('build errors: ', errors);
-    throw new Error('Failed to build: ' + JSON.stringify(errors));
-  }
-};
 
 //
 
