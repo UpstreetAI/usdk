@@ -1,5 +1,5 @@
-import './packages/react-agents/util/worker-globals.mjs';
-import { DurableObject } from './durable-object.tsx';
+import 'react-agents/util/worker-globals.mjs';
+import { DurableObject } from 'react-agents/durable-object.tsx';
 
 //
 

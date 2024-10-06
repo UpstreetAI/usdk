@@ -343,7 +343,7 @@ export default function AgentEditor({
         console.log('starting worker with env:', env);
 
         // initialize the agent worker
-        const newWorker = new Worker(new URL('upstreet-agent/worker.tsx', import.meta.url)) as FetchableWorker;
+        const newWorker = new Worker(new URL('react-agents-client/worker.tsx', import.meta.url)) as FetchableWorker;
         newWorker.postMessage({
           method: 'initDurableObject',
           args: {
