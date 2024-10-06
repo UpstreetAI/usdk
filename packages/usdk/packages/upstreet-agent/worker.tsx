@@ -36,11 +36,15 @@ globalThis.onmessage = (event: any) => {
           //   userRender,
           // });
 
+          let alarmTimestamp: number | null = null;
           const state = {
             userRender,
             storage: {
+              getAlarm() {
+                return alarmTimestamp;
+              },
               setAlarm(timestamp: number) {
-                // nothing
+                alarmTimestamp = timestamp;
               },
             },
           };
