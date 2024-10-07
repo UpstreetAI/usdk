@@ -16,16 +16,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 
 export function ChatMembers() {
-  const [showRoomLinkTooltip, setShowRoomLinkTooltip] = React.useState(false)
-
   const { localPlayerSpec, playersMap, getCrdtDoc, agentLeave, room } = useMultiplayerActions()
-
-  const crdt = getCrdtDoc()
-
-  const roomName = crdt?.getText('name').toString()
-  const roomDescription = crdt?.getText('description').toString()
-
-  const roomLink = typeof window !== 'undefined' ? window.location.href : '';
 
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
@@ -46,7 +37,7 @@ export function ChatMembers() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="w-full h-fit px-2 mb-4">
+      <div className="w-full h-fit px-4 mb-4">
         <Input
           name="search-names"
           placeholder={'Search for members...'}
