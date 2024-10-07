@@ -425,7 +425,10 @@ export function createMp3DecodeTransformStream({
   transferBuffers,
 }) {
   if (!sampleRate) {
-    debugger;
+    throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
   }
 
   let controller;
@@ -471,9 +474,13 @@ export function createMp3DecodeTransformStream({
 
 export function createOpusDecodeTransformStream({
   sampleRate,
+  format = 'f32',
 }) {
   if (!sampleRate) {
     throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
   }
 
   let controller;
@@ -506,6 +513,7 @@ export function createOpusDecodeTransformStream({
   }
   const audioDecoder = new OpusAudioDecoder({
     sampleRate,
+    format,
     output: muxAndSend,
     error: onDecoderError,
   });

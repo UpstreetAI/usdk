@@ -182,7 +182,7 @@ export class OpusAudioEncoder {
 }
 
 export class OpusAudioDecoder {
-  constructor({sampleRate, output, error}) {
+  constructor({sampleRate, format, output, error}) {
     // this.worker = new OpusCodecWorker();
     this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
     const fakeAudioData = new FakeAudioData();
@@ -198,6 +198,7 @@ export class OpusAudioDecoder {
     this.worker.postMessage({
       mode: 'decode',
       sampleRate,
+      format,
     });
   }
 
