@@ -90,10 +90,13 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       prompt: dedent`\
           Generate and configure an AI agent character.
-          \`name\`, \`bio\`, and \`visualDescription\` describe the character.
+          \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
 
           Do not use placeholder values for fields. Instead, make up something appropriate.
           Try to fill out all fields before finishing.
+
+          Use \`bio\` to describe the personality and character traits of the agent.
+          Use \`description\` to explain why other agents or users would want to interact with this agent. Keep it intriguing and concise.
 
           Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
           e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
@@ -112,6 +115,7 @@ export class AgentInterview extends EventTarget {
       objectFormat: z.object({
         name: z.string().optional(),
         bio: z.string().optional(),
+        description: z.string().optional(),
         visualDescription: z.string().optional(),
         homespaceDescription: z.string().optional(),
         features: z.object((() => {
