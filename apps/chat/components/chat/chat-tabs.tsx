@@ -11,7 +11,7 @@ export interface TabsProps {
   user: any;
 }
 
-export function ChatTabs({ user }: TabsProps) {
+export function ChatTabs() {
 
   const [ tab, setTab ] = useHash('members');
 
