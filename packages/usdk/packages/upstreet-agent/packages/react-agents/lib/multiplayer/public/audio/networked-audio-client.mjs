@@ -173,6 +173,7 @@ export class NetworkedAudioClient extends EventTarget {
         playerId,
         streamId,
         type,
+        disposition,
       ] = args;
 
       this.dispatchEvent(new MessageEvent('audiostart', {
@@ -180,6 +181,7 @@ export class NetworkedAudioClient extends EventTarget {
           playerId,
           streamId,
           type,
+          disposition,
         },
       }));
     } else if (method === UPDATE_METHODS.AUDIO_END) {
