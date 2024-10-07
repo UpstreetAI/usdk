@@ -1,44 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 27.5.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 800 800" style="enable-background:new 0 0 800 800;" xml:space="preserve">
-<style type="text/css">
-	.st0{clip-path:url(#SVGID_00000070819075853774027990000001686609134912870021_);}
-	.st1{fill-rule:evenodd;clip-rule:evenodd;}
-	.st2{clip-path:url(#SVGID_00000102516556844511465580000010723390178954264458_);}
-	.st3{clip-path:url(#SVGID_00000127008385533653251780000005577004278731909306_);}
-</style>
-<g>
-	<defs>
-		<rect id="SVGID_1_" x="52" y="324.1" width="696" height="152.8"/>
-	</defs>
-	<clipPath id="SVGID_00000010285686234686103710000014893548619052127617_">
-		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
-	</clipPath>
-	<g style="clip-path:url(#SVGID_00000010285686234686103710000014893548619052127617_);">
-		<path class="st1" d="M52,341.1l696-17v152.7L52,442.9V341.1z"/>
-	</g>
-</g>
-<g>
-	<defs>
-		<rect id="SVGID_00000104673080063639068250000012586124394149996942_" x="52" y="131.2" width="696" height="152.8"/>
-	</defs>
-	<clipPath id="SVGID_00000179633867807017629820000011615280538359968933_">
-		<use xlink:href="#SVGID_00000104673080063639068250000012586124394149996942_"  style="overflow:visible;"/>
-	</clipPath>
-	<g style="clip-path:url(#SVGID_00000179633867807017629820000011615280538359968933_);">
-		<path class="st1" d="M748,148.2l-696-17V284L748,250V148.2z"/>
-	</g>
-</g>
-<g>
-	<defs>
-		<rect id="SVGID_00000176725325156272089830000008406458286869935494_" x="52" y="517" width="696" height="152.8"/>
-	</defs>
-	<clipPath id="SVGID_00000100353326292758549320000015292366787482808728_">
-		<use xlink:href="#SVGID_00000176725325156272089830000008406458286869935494_"  style="overflow:visible;"/>
-	</clipPath>
-	<g style="clip-path:url(#SVGID_00000100353326292758549320000015292366787482808728_);">
-		<path class="st1" d="M748,534L52,517v152.7l696-33.9V534z"/>
-	</g>
+<svg width="9" height="33" viewBox="0 0 9 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 431">
+<circle id="Ellipse 1" cx="4.5" cy="28.5" r="4.5" fill="black"/>
+<circle id="Ellipse 2" cx="4.5" cy="16.5" r="4.5" fill="black"/>
+<circle id="Ellipse 3" cx="4.5" cy="4.5" r="4.5" fill="black"/>
 </g>
 </svg>

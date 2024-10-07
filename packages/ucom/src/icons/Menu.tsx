@@ -10,27 +10,17 @@ const SvgMenu = ({
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    xmlSpace="preserve"
-    viewBox="0 0 800 800"
     width="1em"
     height="1em"
+    viewBox="0 0 9 33"
     fill="currentColor"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
-    <defs>
-      <path id="menu_svg__a" d="M52 324.1h696v152.8H52z" />
-    </defs>
-    <path d="m52 341.1 696-17v152.7L52 442.9z" className="menu_svg__st1" />
-    <defs>
-      <path id="menu_svg__b" d="M52 131.2h696V284H52z" />
-    </defs>
-    <path d="m748 148.2-696-17V284l696-34z" className="menu_svg__st1" />
-    <defs>
-      <path id="menu_svg__c" d="M52 517h696v152.8H52z" />
-    </defs>
-    <path d="M748 534 52 517v152.7l696-33.9z" className="menu_svg__st1" />
+    <circle cx={4.5} cy={28.5} r={4.5} />
+    <circle cx={4.5} cy={16.5} r={4.5} />
+    <circle cx={4.5} cy={4.5} r={4.5} />
   </svg>
 )
 export default SvgMenu
