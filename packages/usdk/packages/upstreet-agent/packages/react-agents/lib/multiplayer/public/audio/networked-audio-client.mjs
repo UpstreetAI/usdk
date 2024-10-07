@@ -51,6 +51,7 @@ export class NetworkedAudioClient extends EventTarget {
         this.playerId,
         id,
         type,
+        disposition,
       ],
     }));
 
