@@ -1357,7 +1357,30 @@ const startMultiplayerListener = ({
           });
           console.log('* mic enabled *');
 
-          transcribedVoiceInput = new TranscribedVoiceInput({
+          const audioStream = new ReadableStream({
+            start(controller) {
+              microphoneInput.on('data', (data) => {
+                controller.enqueue(data);
+              });
+              microphoneInput.on('end', (e) => {
+                controller.close();
+              });
+            },
+          });
+          audioStream.id = crypto.randomUUID();
+          audioStream.type = 'audio/pcm-f32';
+          audioStream.disposition = 'text';
+
+          (async () => {
+            console.log('start streaming');
+            const {
+              waitForFinish,
+            } = realms.addAudioSource(audioStream);
+            await waitForFinish();
+            realms.removeAudioSource(audioStream);
+          })();
+
+          /* transcribedVoiceInput = new TranscribedVoiceInput({
             audioInput: microphoneInput,
             sampleRate,
             jwt,
@@ -1372,7 +1395,7 @@ const startMultiplayerListener = ({
           });
           transcribedVoiceInput.addEventListener('transcription', async (e) => {
             console.log('transcription: ', e.data.transcript);
-          });
+          }); */
           renderPrompt();
         } else {
           microphoneInput.close();
