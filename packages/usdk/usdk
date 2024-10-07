@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --no-warnings
+#!/usr/bin/env -S node --no-warnings --experimental-wasm-modules
 
 // import './packages/cli/src/index.js'
 import './cli.js'
