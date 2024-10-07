@@ -170,7 +170,7 @@ export function createOpusMicrophoneSource({
 };
 
 // media stream -> pcm (Float32) audio output
-export function createPcmF32TransformStream({
+export function createPcmF32MicrophoneSource({
   mediaStream,
   audioContext,
 }) {
@@ -525,7 +525,7 @@ export function createOpusDecodeTransformStream({
   return transformStream;
 }
 
-export function createPcmTransformStream({
+export function createPcmF32TransformStream({
   sampleRate,
   format = 'f32',
 }) {

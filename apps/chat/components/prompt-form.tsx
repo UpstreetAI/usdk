@@ -14,9 +14,9 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { cn } from '@/lib/utils'
 import { shuffle } from 'react-agents/util/util.mjs';
 import { Icon } from 'ucom';
-import { createPcmMicrophoneSource } from '@upstreet/multiplayer/public/audio/audio-client.mjs';
+import { createPcmF32MicrophoneSource } from '@upstreet/multiplayer/public/audio/audio-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
-import { consoleImageWidth } from 'react-agents/constants.mjs'
+// import { consoleImageWidth } from 'react-agents/constants.mjs'
 
 export function PromptForm({
   input,
@@ -160,7 +160,7 @@ export function PromptForm({
                     },
                   });
                   console.log('got media stream', mediaStream);
-                  const microphoneSource = createPcmMicrophoneSource({
+                  const microphoneSource = createPcmF32MicrophoneSource({
                     mediaStream,
                     audioContext,
                   });
