@@ -545,10 +545,11 @@ export function createPcmTransformStream({
       controller = c;
     },
     transform: (chunk, controller) => {
-      console.log('decode pcm data', chunk);
+      console.log('decode pcm', chunk);
       // const formatted = formatSamples(output, format, 'i16');
     },
     flush: async controller => {
+      console.log('flush pcm');
       // await donePromise;
     },
   });
