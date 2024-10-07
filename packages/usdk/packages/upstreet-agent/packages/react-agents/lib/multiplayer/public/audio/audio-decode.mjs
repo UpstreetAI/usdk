@@ -1,7 +1,7 @@
 import {
   createMp3DecodeTransformStream,
   createOpusDecodeTransformStream,
-  createPcmTransformStream,
+  createPcmF32TransformStream,
 } from './audio-client.mjs';
 
 export class AudioDecodeStream {
@@ -23,8 +23,8 @@ export class AudioDecodeStream {
           format,
         });
       }
-      case 'audio/pcm': {
-        return createPcmTransformStream({
+      case 'audio/pcm-f32': {
+        return createPcmF32TransformStream({
           sampleRate,
           format,
         });

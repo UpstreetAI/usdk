@@ -169,8 +169,8 @@ export function createOpusMicrophoneSource({
   };
 };
 
-// media stream -> pcm (f32) audio output
-export function createPcmMicrophoneSource({
+// media stream -> pcm (Float32) audio output
+export function createPcmF32TransformStream({
   mediaStream,
   audioContext,
 }) {
