@@ -1,4 +1,8 @@
-import { createMp3DecodeTransformStream } from './audio-client.mjs';
+import {
+  createMp3DecodeTransformStream,
+  createOpusDecodeTransformStream,
+  createPcmTransformStream,
+} from './audio-client.mjs';
 
 export class AudioDecodeStream {
   constructor({
@@ -9,6 +13,18 @@ export class AudioDecodeStream {
     switch (type) {
       case 'audio/mpeg': {
         return createMp3DecodeTransformStream({
+          sampleRate,
+          format,
+        });
+      }
+      case 'audio/opus': {
+        return createOpusDecodeTransformStream({
+          sampleRate,
+          format,
+        });
+      }
+      case 'audio/pcm': {
+        return createPcmTransformStream({
           sampleRate,
           format,
         });
