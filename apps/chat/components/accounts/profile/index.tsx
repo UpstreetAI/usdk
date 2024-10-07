@@ -33,7 +33,7 @@ export function AccountProfile({ account }: AccountProps) {
 
   return (
     <div className="w-full mx-auto">
-      <HeaderMaskFrame background={randomAgentImage}>
+      <HeaderMaskFrame background={randomAgentImage} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
         <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
           <div className="flex">
             <div className="mr-4 size-20 min-w-20 md:size-40 md:min-w-40 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
