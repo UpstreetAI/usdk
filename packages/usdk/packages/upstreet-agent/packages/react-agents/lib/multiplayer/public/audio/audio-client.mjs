@@ -468,6 +468,7 @@ export function createMp3DecodeTransformStream({
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }
@@ -519,6 +520,41 @@ export function createOpusDecodeTransformStream({
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
+
+  return transformStream;
+}
+
+export function createPcmTransformStream({
+  sampleRate,
+  format = 'f32',
+}) {
+  if (!sampleRate) {
+    throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
+  }
+
+  throw new Error('not implemented');
+
+  let controller;
+  // const donePromise = makePromise();
+  const transformStream = new TransformStream({
+    start: c => {
+      controller = c;
+    },
+    transform: (chunk, controller) => {
+      console.log('decode pcm data', chunk);
+      // const formatted = formatSamples(output, format, 'i16');
+    },
+    flush: async controller => {
+      // await donePromise;
+    },
+  });
+
+  transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }
