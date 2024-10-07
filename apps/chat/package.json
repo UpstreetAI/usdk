@@ -52,7 +52,7 @@
     "@types/eventsource": "^1.1.15",
     "@types/three": "^0.167.1",
     "@upstreet/api": "file:../../packages/api",
-    "@upstreet/multiplayer": "file:../../packages/multiplayer",
+    "@upstreet/multiplayer": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents/lib/multiplayer",
     "@vercel/analytics": "1.1.2",
     "@vercel/kv": "1.0.1",
     "@vercel/og": "0.6.2",
