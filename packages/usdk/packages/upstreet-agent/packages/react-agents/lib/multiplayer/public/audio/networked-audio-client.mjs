@@ -26,12 +26,16 @@ export class NetworkedAudioClient extends EventTarget {
       id,
       // output,
       type,
+      disposition,
     } = playableAudioStream;
     if (typeof id !== 'string') {
       throw new Error('audio source id must be a string');
     }
     if (typeof type !== 'string') {
       throw new Error('audio source type must be a string');
+    }
+    if (typeof disposition !== 'string') {
+      throw new Error('audio source disposition must be a string');
     }
 
     // const id = crypto.randomUUID();
