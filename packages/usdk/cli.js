@@ -995,31 +995,34 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         playerId,
         streamId,
         type,
+        disposition,
       } = e.data;
 
-      const outputStream = new SpeakerOutputStream();
-      const { sampleRate } = outputStream;
+      if (disposition === 'audio') {
+        const outputStream = new SpeakerOutputStream();
+        const { sampleRate } = outputStream;
 
-      // decode stream
-      const decodeStream = new AudioDecodeStream({
-        type,
-        sampleRate,
-        format: 'i16',
-      });
-      (async () => {
-        speakerMap.set(playerId, true);
-        try {
-          await decodeStream.readable.pipeTo(outputStream);
-        } finally {
-          speakerMap.set(playerId, false);
-        }
-      })();
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          format: 'i16',
+        });
+        (async () => {
+          speakerMap.set(playerId, true);
+          try {
+            await decodeStream.readable.pipeTo(outputStream);
+          } finally {
+            speakerMap.set(playerId, false);
+          }
+        })();
 
-      const writer = decodeStream.writable.getWriter();
-      writer.metadata = {
-        playerId,
-      };
-      audioStreams.set(streamId, writer);
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
     });
     virtualPlayers.addEventListener('audio', e => {
       const {
@@ -1033,7 +1036,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         stream.write(data);
       } else {
         // throw away unmapped data
-        console.warn('dropping audio data', e.data);
+        // console.warn('dropping audio data', e.data);
       }
     });
     virtualPlayers.addEventListener('audioend', e => {
