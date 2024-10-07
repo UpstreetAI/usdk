@@ -94,18 +94,18 @@ export default function Home() {
               Here are a few of  the latest agents you can talk to, hit them up over DMs:
             </div>
             <div className='mb-12'>
-              <Agents loadmore={false} range={6} />
+              <Agents search={false} loadmore={false} range={6} />
             </div>
             <div className='pt-4'>
-              <a
+              {/* <a
                 onClick={() => {
                   newChat();
                 }}
                 className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
                 New Chat
-              </a>
+              </a> */}
               <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
-                Browse Agents
+                Browse All Agents
               </Link>
             </div>
           </div>
