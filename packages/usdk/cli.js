@@ -1372,22 +1372,6 @@ const startMultiplayerListener = ({
           });
           transcribedVoiceInput.addEventListener('transcription', async (e) => {
             console.log('transcription: ', e.data.transcript);
-            /* const {
-              buffers,
-              sampleRate,
-            } = e.data;
-            const mp3Buffer = await encodeMp3(buffers, {
-              sampleRate,
-            });
-            const jwt = await ensureJwt();
-            const transcription = await transcribe(mp3Buffer, {
-              jwt,
-            });
-            replServer.clearBufferedCommand();
-            console.log(transcription);
-            sendChatMessage(transcription);
-
-            speakerMap.setLocal(false); */
           });
           renderPrompt();
         } else {
