@@ -11,9 +11,9 @@ class WsInputWorklet extends AudioWorkletProcessor {
   process(inputs, outputs, parameters) {
     const channels = inputs[0];
     const firstChannel = channels[0];
-    if (channels.length !== 1) {
-      console.warn('expected 1 channel', channels.length);
-    }
+    // if (channels.length !== 1) {
+    //   console.warn('expected 1 channel', channels.length);
+    // }
     if (firstChannel) {
       for (let i = 0; i < firstChannel.length; i++) {
         this.buffer[this.bufferIndex++] = firstChannel[i];

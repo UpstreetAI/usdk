@@ -1,15 +1,160 @@
-import { headers } from './packages/react-agents/constants.mjs';
-import { makeAnonymousClient } from './packages/react-agents/util/supabase-client.mjs';
-import { AgentRenderer } from './packages/react-agents/classes/agent-renderer.tsx';
-import { ChatsSpecification } from './packages/react-agents/classes/chats-specification.ts';
+import { headers } from 'react-agents/constants.mjs';
+import { makeAnonymousClient } from 'react-agents/util/supabase-client.mjs';
+import { AgentRenderer } from 'react-agents/classes/agent-renderer.tsx';
+import { ChatsSpecification } from 'react-agents/classes/chats-specification.ts';
 import { pingRate } from 'react-agents/classes/ping-manager.ts';
-import { serverHandler } from './packages/react-agents/routes/server.ts';
-import { multiplayerEndpointUrl } from './packages/react-agents/util/endpoints.mjs';
+import { serverHandler } from 'react-agents/routes/server.ts';
+import { multiplayerEndpointUrl } from 'react-agents/util/endpoints.mjs';
 
 import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
-import { ActiveAgentObject } from 'react-agents/types';
+import type { ActiveAgentObject } from 'react-agents/types';
 
 Error.stackTraceLimit = 300;
+
+//
+
+/*
+import { AudioInput } from 'react-agents/devices/audio-input.mjs';
+import {
+  OpusAudioEncoder,
+  OpusAudioDecoder,
+  Mp3AudioEncoder,
+  Mp3AudioDecoder,
+} from './packages/react-agents/lib/multiplayer/public/audio/ws-codec-local.mjs';
+const makeFakeData = () => {
+  const numSamples = 128 * 1024;
+  // const numSamples = 1024;
+  const fakeData = new Float32Array(numSamples);
+  const freq = 440;
+  for (let i = 0; i < numSamples; i++) {
+    const t = i / AudioInput.defaultSampleRate;
+    fakeData[i] = Math.sin(2 * Math.PI * freq * t);
+  }
+  return fakeData;
+};
+const _test = async () => {
+  try {
+    const fakeData = makeFakeData();
+    console.log('got fake data', fakeData);
+
+    const _testOpus = async () => {
+      // encode 
+      console.log('test 1');
+      const sampleRate = AudioInput.defaultSampleRate;
+      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers<any[]>();
+      const bs = [];
+      const opusEncoder = new OpusAudioEncoder({
+        sampleRate,
+        output: (d: any) => {
+          // console.log('output', d.data);
+          if (d.data !== null) {
+            // console.log('case 1');
+            bs.push(d.data);
+          } else {
+            // console.log('case 2');
+            // console.log('output done 1', bs);
+            // const b = Buffer.concat(bs.map(u => Buffer.from(u)));
+            // const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+            // console.log('output done 2', uint8Array);
+            resolveEncode(bs);
+            // console.log('output done 3');
+          }
+        },
+        error: (err: any) => {
+          console.log('error', err);
+        },
+      });
+      console.log('test 2', opusEncoder);
+      opusEncoder.encode({
+        data: fakeData.slice(),
+      });
+      opusEncoder.encode({
+        data: null,
+      });
+      console.log('test 3', opusEncoder);
+      const packets = await encodedPromise;
+      console.log('test 4', packets);
+
+      // decode
+      console.log('test 5');
+      const opusDecoder = new OpusAudioDecoder({
+        sampleRate,
+        output: (d: any) => {
+          console.log('output', d.data);
+        },
+        error: (err: any) => {
+          console.log('error', err);
+        },
+      });
+      console.log('test 6', packets);
+      for (const packet of packets) {
+        opusDecoder.decode(packet);
+      }
+      opusDecoder.decode(null);
+      console.log('test 7');
+    };
+    await _testOpus();
+
+    const _testMp3 = async () => { 
+      console.log('test 1');
+      const sampleRate = AudioInput.defaultSampleRate;
+      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers();
+      const bs = [];
+      const mp3Encoder = new Mp3AudioEncoder({
+        sampleRate,
+        output: (d: any) => {
+          // console.log('output', d.data);
+          if (d.data !== null) {
+            // console.log('case 1');
+            bs.push(d.data);
+          } else {
+            // console.log('case 2');
+            // console.log('output done 1', bs);
+            const b = Buffer.concat(bs.map(u => Buffer.from(u)));
+            const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+            // console.log('output done 2', uint8Array);
+            resolveEncode(uint8Array);
+            // console.log('output done 3');
+          }
+        },
+        error: (err: any) => {
+          console.log('error', err);
+        },
+      });
+      console.log('test 2', mp3Encoder);
+      mp3Encoder.encode({
+        data: fakeData.slice(),
+      });
+      mp3Encoder.encode({
+        data: null,
+      });
+      console.log('test 3', mp3Encoder);
+      const b = await encodedPromise;
+      console.log('test 4', {
+        b,
+      });
+
+      console.log('decoder 1');
+      const mp3Decoder = new Mp3AudioDecoder({
+        sampleRate,
+        output: (d: any) => {
+          console.log('output', d.data);
+        },
+        error: (err: any) => {
+          console.log('error', err);
+        },
+      });
+      console.log('decoder 2');
+      mp3Decoder.decode(b);
+      console.log('decoder 3');
+      mp3Decoder.decode(null);
+      console.log('decoder 4');
+    };
+    await _testMp3();
+  } catch (err) {
+    console.error(err);
+  }
+}; */
 
 //
 
@@ -65,6 +210,8 @@ export class DurableObject extends EventTarget {
     (async () => {
       await this.alarm();
     })();
+
+    // _test();
   }
 
   waitForLoad() {

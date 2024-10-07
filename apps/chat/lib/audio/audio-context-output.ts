@@ -10,7 +10,7 @@ type FlushableAudioWorkletNode = AudioWorkletNode & {
   waitForFlush: () => Promise<void>;
 };
 
-const ensureAudioContext = (() => {
+export const ensureAudioContext = (() => {
   let audioContext: LoadableAudioContext | null = null;
   return () => {
     if (audioContext === null) {

@@ -169,6 +169,54 @@ export function createOpusMicrophoneSource({
   };
 };
 
+// media stream -> pcm (f32) audio output
+export function createPcmMicrophoneSource({
+  mediaStream,
+  audioContext,
+}) {
+  // // const audioContext = await ensureAudioContext();
+  if (!audioContext) {
+    debugger;
+  }
+  // audioContext.resume();
+  if (!mediaStream) {
+    debugger;
+  }
+
+  const output = new AudioOutput();
+
+  const audioReader = new WsMediaStreamAudioReader(mediaStream, {
+    audioContext,
+  });
+  const _readLoop = async () => {
+    for (;;) {
+      const result = await audioReader.read();
+      if (!result.done) {
+        output.write(result.value.data);
+      } else {
+        output.end();
+        break;
+      }
+    }
+  };
+  _readLoop();
+
+  const id = makeId(10);
+
+  return {
+    id,
+    output,
+    mediaStream,
+    audioReader,
+    // audioEncoder,
+    close() {
+      audioReader.cancel();
+      // note: the encoder will close itself on an end packet
+      // audioEncoder.close();
+    },
+  };
+};
+
 // samples readable stream -> encoded opus audio output
 export function createOpusReadableStreamSource({
   readableStream,
