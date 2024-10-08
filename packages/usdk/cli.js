@@ -66,7 +66,6 @@ import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/l
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/audio-decode.mjs';
-import { SpeakerOutputStream } from './packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
@@ -825,6 +824,16 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
   }
 }; */
 const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
+  // dynamic import audio output module
+  const audioOutput = await (async () => {
+    try {
+      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
+    } catch (err) {
+      return null;
+    }
+  })();
+  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
+
   const getUserAsset = async () => {
     if (!anonymous) {
       let user = null;
@@ -1053,7 +1062,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       }
     });
   };
-  if (media) {
+  if (media && SpeakerOutputStream) {
     _trackAudio();
   }
 
