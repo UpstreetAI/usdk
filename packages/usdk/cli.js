@@ -1331,7 +1331,6 @@ const startMultiplayerListener = ({
     };
 
     let microphoneInput = null;
-    let transcribedVoiceInput = null;
     const microphoneQueueManager = new QueueManager();
     const toggleMic = async () => {
       await microphoneQueueManager.waitForTurn(async () => {
@@ -1393,29 +1392,10 @@ const startMultiplayerListener = ({
             await waitForFinish();
             realms.removeAudioSource(audioStream);
           })();
-
-          /* transcribedVoiceInput = new TranscribedVoiceInput({
-            audioInput: microphoneInput,
-            sampleRate,
-            jwt,
-          });
-          transcribedVoiceInput.addEventListener('speechstart', async (e) => {
-            // console.log('speechstart', e.data);
-            speakerMap.setLocal(true);
-          });
-          transcribedVoiceInput.addEventListener('speechstop', async (e) => {
-            // console.log('speechstop', e.data);
-            speakerMap.setLocal(false);
-          });
-          transcribedVoiceInput.addEventListener('transcription', async (e) => {
-            console.log('transcription: ', e.data.transcript);
-          }); */
           renderPrompt();
         } else {
           microphoneInput.close();
           microphoneInput = null;
-          transcribedVoiceInput.close();
-          transcribedVoiceInput = null;
           console.log('* mic disabled *');
           renderPrompt();
         }
