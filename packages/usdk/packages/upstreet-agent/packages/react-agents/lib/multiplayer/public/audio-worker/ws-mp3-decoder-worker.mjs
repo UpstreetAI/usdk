@@ -1,12 +1,11 @@
-import {
-  WsMp3Decoder,
-} from './ws-mp3-decoder.mjs';
+import MPEGDecoder from '../audio-worker/mpg123-decoder/src/MPEGDecoder.js';
+const WsMp3Decoder = makeMp3Decoder(MPEGDecoder);
 
 const codec = new WsMp3Decoder();
 onmessage = e => {
   codec.postMessage(e.data);
 };
-codec.addEventListener('postmessage', e => {
+codec.addEventListener('message', e => {
   const {
     data,
     transferList,

@@ -1,4 +1,4 @@
-import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
+// import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
 // import {channelCount, sampleRate, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
 import { resample, convertFloat32ToInt16 } from './resample.mjs';
 import { QueueManager } from './queue-manager.mjs';
@@ -21,29 +21,30 @@ import { QueueManager } from './queue-manager.mjs';
   return output;
 } */
 
-export class WsMp3Decoder extends EventTarget {
+export const makeMp3Decoder = (MPEGDecoder) =>
+class WsMp3Decoder extends EventTarget {
   constructor() {
     super();
 
     const mp3decoder = new MPEGDecoder();
     const queueManager = new QueueManager();
 
-    this.onmessage = e => {
+    this.handlemessage = e => {
       const {
         sampleRate: globalSampleRate,
         format,
       } = e.data;
-      this.onmessage = async e => {
+      this.handlemessage = async e => {
         await queueManager.waitForTurn(async () => {
-          console.log('wait for decoder ready 1');
+          // console.log('wait for decoder ready 1');
           await mp3decoder.ready;
-          console.log('wait for decoder ready 2');
+          // console.log('wait for decoder ready 2');
 
           if (e.data) {
             const mp3Data = e.data;
-            console.log('decode data 1', mp3Data);
+            // console.log('decode data 1', mp3Data);
             const result = mp3decoder.decode(mp3Data);
-            console.log('decode data 2', result);
+            // console.log('decode data 2', result);
             const {channelData, samplesDecoded, sampleRate: localSampleRate} = result;
             if (samplesDecoded > 0) {
               const firstChannelData = channelData[0];
@@ -68,7 +69,6 @@ export class WsMp3Decoder extends EventTarget {
                   }
                 }
               })();
-              // console.log('formatted', formatted);
               this.dispatchMessage({
                 data: formatted,
                 timestamp: 0, // fake
@@ -96,13 +96,14 @@ export class WsMp3Decoder extends EventTarget {
     };
   }
   postMessage(data, transferList) {
-    this.onmessage({
+    // console.log('mp3 decoder postMessage', data);
+    this.handlemessage({
       data,
       transferList,
     });
   }
   dispatchMessage(data, transferList) {
-    this.dispatchEvent(new MessageEvent('postmessage', {
+    this.dispatchEvent(new MessageEvent('message', {
       data,
       transferList,
     }));

@@ -2,8 +2,8 @@ import WASMAudioDecoderCommon from "@wasm-audio-decoders/common/src/WASMAudioDec
 
 import EmscriptenWASM from "./EmscriptenWasm.js";
 
-import * as wasmAudioDecoderCommon from './wasm-audio-decoder-common.wasm';
-import * as emscriptenWasm from './emscripten-wasm.wasm';
+import wasmAudioDecoderCommon from './wasm-audio-decoder-common.wasm';
+import emscriptenWasm from './emscripten-wasm.wasm';
 
 export default function MPEGDecoder(options = {}) {
   // injects dependencies when running as a web worker
