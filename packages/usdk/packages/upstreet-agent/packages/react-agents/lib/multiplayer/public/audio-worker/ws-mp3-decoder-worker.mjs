@@ -1,4 +1,5 @@
 import MPEGDecoder from '../audio-worker/mpg123-decoder/src/MPEGDecoder.js';
+import { makeMp3Decoder } from '../audio-worker/ws-mp3-decoder.mjs';
 const WsMp3Decoder = makeMp3Decoder(MPEGDecoder);
 
 const codec = new WsMp3Decoder();
