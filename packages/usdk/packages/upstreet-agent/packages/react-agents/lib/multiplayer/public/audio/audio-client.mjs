@@ -152,9 +152,6 @@ export function createPcmF32MicrophoneSource({
   if (!mediaStream) {
     throw new Error('missing media stream');
   }
-  if (!codecs) {
-    throw new Error('missing codecs');
-  }
 
   const output = new AudioOutput();
 
