@@ -14,6 +14,7 @@ import type {
   ActionMessage,
   Attachment,
 } from 'react-agents/types';
+import { useLoading } from '@/lib/client/hooks/use-loading';
 
 //
 
@@ -525,7 +526,8 @@ const makeFakePlayerSpec = () => (
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
-  const router = useRouter()
+  const router = useRouter();
+  const { setIsAgentLoading } = useLoading();
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let connected = false;
@@ -679,14 +681,23 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           guid,
           room,
         });
+
+        // Set loading state to true
+        setIsAgentLoading(true);
+
+        // redirect to the room first
+        if (!/\/rooms\//.test(location.pathname)) {
+          router.push(`/rooms/${room}`);
+        }
+        // wait for the router to complete the navigation
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await join({
           room,
           guid,
         });
-        // redirect to the room, as necessary
-        if (!/\/rooms\//.test(location.pathname)) {
-          router.push(`/rooms/${room}`);
-        }
+
+        // Set loading state to false
+        setIsAgentLoading(false);
       },
       agentLeave: async (guid: string, room: string) => {
         console.log('agent leave', {
