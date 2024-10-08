@@ -1,4 +1,4 @@
-import libopus from './libopusjs/libopus.wasm.js';
+import libopus from './libopusjs/libopus.wasm.fetch.js';
 import {
   makeOpusCodec,
 } from './ws-opus-codec.mjs';
