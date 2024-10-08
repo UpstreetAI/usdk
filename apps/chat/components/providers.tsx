@@ -10,25 +10,28 @@ import { ActionsProvider } from '@/components/ui/actions'
 import { MultiplayerActionsProvider } from '@/components/ui/multiplayer-actions'
 import { DirectMessageActionsProvider } from '@/components/ui/direct-message-actions'
 import { GlobalStateProvider } from '@/contexts/GlobalContext'
+import { LoadingProvider } from '@/lib/client/hooks/use-loading'
 
 
 export function Providers({ children, ...props }: ThemeProviderProps) {
   return (
     <GlobalStateProvider>
       <NextThemesProvider {...props}>
-        <SupabaseProvider>
-          <SidebarProvider>
-            <TooltipProvider>
-              <ActionsProvider>
-                <MultiplayerActionsProvider>
-                  <DirectMessageActionsProvider>
-                    {children}
-                  </DirectMessageActionsProvider>
-                </MultiplayerActionsProvider>
-              </ActionsProvider>
-            </TooltipProvider>
-          </SidebarProvider>
-        </SupabaseProvider>
+        <LoadingProvider>
+          <SupabaseProvider>
+            <SidebarProvider>
+              <TooltipProvider>
+                <ActionsProvider>
+                  <MultiplayerActionsProvider>
+                    <DirectMessageActionsProvider>
+                      {children}
+                    </DirectMessageActionsProvider>
+                  </MultiplayerActionsProvider>
+                </ActionsProvider>
+              </TooltipProvider>
+            </SidebarProvider>
+          </SupabaseProvider>
+        </LoadingProvider>
       </NextThemesProvider>
     </GlobalStateProvider>
   );

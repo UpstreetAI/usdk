@@ -19,11 +19,11 @@ export function useLoading() {
   return context
 }
 
-interface SidebarProviderProps {
+interface LoadingProviderProps {
   children: React.ReactNode
 }
 
-export function SidebarProvider({ children }: SidebarProviderProps) {
+export function LoadingProvider({ children }: LoadingProviderProps) {
 
   const [isAgentLoading, setIsAgentLoading] = React.useState(false)
 
