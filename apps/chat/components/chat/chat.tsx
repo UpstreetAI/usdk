@@ -29,6 +29,7 @@ import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
+import { useLoading } from '@/lib/client/hooks/use-loading';
 
 
 //
@@ -121,6 +122,8 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     useScrollAnchor();
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
+
+  const { isAgentLoading } = useLoading();
   
   return (
     <div
@@ -138,6 +141,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
             null
           )
         ) : <EmptyScreen />}
+        
+        <div className="relative mx-auto max-w-2xl px-4">
+          {isAgentLoading && "Loading agent..."}
+        </div>
 
         <div className="w-full h-px" ref={visibilityRef} />
       </div>
