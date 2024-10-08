@@ -9,12 +9,25 @@ export class AudioDecodeStream {
     type,
     sampleRate,
     format,
+    codecs,
   }) {
+    if (!codecs) {
+      throw new Error('no codecs');
+    }
+
     switch (type) {
       case 'audio/mpeg': {
         return createMp3DecodeTransformStream({
           sampleRate,
           format,
+          codecs,
+        });
+      }
+      case 'audio/opus': {
+        return createOpusDecodeTransformStream({
+          sampleRate,
+          format,
+          codecs,
         });
       }
       case 'audio/opus': {

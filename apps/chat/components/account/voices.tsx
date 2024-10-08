@@ -12,6 +12,7 @@ import { AutoVoiceEndpoint, VoiceEndpointVoicer } from 'react-agents/lib/voice-o
 import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import { aiProxyHost } from '../../utils/const/endpoints';
+import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 
 // const voicesEndpointProxyUrl = `https://${aiProxyHost}/api/ai/voices`;
 const voicesEndpointApiUrl = `https://${aiProxyHost}/api/ai-voice/voices`;
@@ -108,6 +109,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                             type: 'audio/mpeg',
                             sampleRate,
                             format: 'f32',
+                            codecs,
                           }) as any;
                           readableStream
                             .pipeThrough(decodeStream)

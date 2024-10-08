@@ -1,4 +1,4 @@
-import wasm from './libopus.wasm';
+import wasmUrl from './libopus.wasm';
 
 const location = new URL('http://localhost');
 
@@ -450,7 +450,8 @@ function getBinary() {
 }
 
 async function getBinaryPromise() {
-    return wasm;
+    const res = await fetch(wasmUrl);
+    return WebAssembly.compileStreaming(res)
     /* if (!wasmBinary && (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) && typeof fetch === "function" && !isFileURI(wasmBinaryFile)) {
         console.log('binary promise', {
             wasmBinaryFile,

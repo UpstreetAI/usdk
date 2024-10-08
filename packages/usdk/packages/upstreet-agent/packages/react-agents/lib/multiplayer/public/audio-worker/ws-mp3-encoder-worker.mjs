@@ -6,7 +6,7 @@ const codec = new WsMp3Encoder();
 onmessage = e => {
   codec.postMessage(e.data);
 };
-codec.addEventListener('postmessage', e => {
+codec.addEventListener('message', e => {
   const {
     data,
     transferList,

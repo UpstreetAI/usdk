@@ -5,7 +5,7 @@
   "type": "module",
   "main": "module.mjs",
   "bin": {
-    "usdk": "./usdk"
+    "usdk": "./usdk.js"
   },
   "scripts": {
     "prepublishOnly": "rm -Rf sdk/node_modules"
