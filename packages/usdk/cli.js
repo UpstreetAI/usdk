@@ -1008,32 +1008,35 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         playerId,
         streamId,
         type,
+        disposition,
       } = e.data;
 
-      const outputStream = new SpeakerOutputStream();
-      const { sampleRate } = outputStream;
+      if (disposition === 'audio') {
+        const outputStream = new SpeakerOutputStream();
+        const { sampleRate } = outputStream;
 
-      // decode stream
-      const decodeStream = new AudioDecodeStream({
-        type,
-        sampleRate,
-        format: 'i16',
-        codecs,
-      });
-      (async () => {
-        speakerMap.set(playerId, true);
-        try {
-          await decodeStream.readable.pipeTo(outputStream);
-        } finally {
-          speakerMap.set(playerId, false);
-        }
-      })();
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          codecs,
+          format: 'i16',
+        });
+        (async () => {
+          speakerMap.set(playerId, true);
+          try {
+            await decodeStream.readable.pipeTo(outputStream);
+          } finally {
+            speakerMap.set(playerId, false);
+          }
+        })();
 
-      const writer = decodeStream.writable.getWriter();
-      writer.metadata = {
-        playerId,
-      };
-      audioStreams.set(streamId, writer);
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
     });
     virtualPlayers.addEventListener('audio', e => {
       const {
@@ -1047,7 +1050,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         stream.write(data);
       } else {
         // throw away unmapped data
-        console.warn('dropping audio data', e.data);
+        // console.warn('dropping audio data', e.data);
       }
     });
     virtualPlayers.addEventListener('audioend', e => {
@@ -1368,7 +1371,30 @@ const startMultiplayerListener = ({
           });
           console.log('* mic enabled *');
 
-          transcribedVoiceInput = new TranscribedVoiceInput({
+          const audioStream = new ReadableStream({
+            start(controller) {
+              microphoneInput.on('data', (data) => {
+                controller.enqueue(data);
+              });
+              microphoneInput.on('end', (e) => {
+                controller.close();
+              });
+            },
+          });
+          audioStream.id = crypto.randomUUID();
+          audioStream.type = 'audio/pcm-f32';
+          audioStream.disposition = 'text';
+
+          (async () => {
+            console.log('start streaming');
+            const {
+              waitForFinish,
+            } = realms.addAudioSource(audioStream);
+            await waitForFinish();
+            realms.removeAudioSource(audioStream);
+          })();
+
+          /* transcribedVoiceInput = new TranscribedVoiceInput({
             audioInput: microphoneInput,
             sampleRate,
             jwt,
@@ -1383,23 +1409,7 @@ const startMultiplayerListener = ({
           });
           transcribedVoiceInput.addEventListener('transcription', async (e) => {
             console.log('transcription: ', e.data.transcript);
-            /* const {
-              buffers,
-              sampleRate,
-            } = e.data;
-            const mp3Buffer = await encodeMp3(buffers, {
-              sampleRate,
-            });
-            const jwt = await ensureJwt();
-            const transcription = await transcribe(mp3Buffer, {
-              jwt,
-            });
-            replServer.clearBufferedCommand();
-            console.log(transcription);
-            sendChatMessage(transcription);
-
-            speakerMap.setLocal(false); */
-          });
+          }); */
           renderPrompt();
         } else {
           microphoneInput.close();

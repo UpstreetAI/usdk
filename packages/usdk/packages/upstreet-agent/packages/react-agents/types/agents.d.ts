@@ -760,6 +760,7 @@ export type ActionHistoryQuery = {
 
 export type ReadableAudioStream = ReadableStream & {
   type: string;
+  disposition: string;
   waitForLoad: () => Promise<void>;
 };
 export type PlayableAudioStream = ReadableAudioStream & {

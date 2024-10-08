@@ -30,7 +30,7 @@ export class OpusAudioEncoder {
 }
 
 export class OpusAudioDecoder {
-  constructor({sampleRate, codecs, output, error}) {
+  constructor({sampleRate, format, codecs, output, error}) {
     // this.worker = new OpusCodecWorker();
     // this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
     if (!codecs.WsOpusCodec) {
@@ -50,6 +50,7 @@ export class OpusAudioDecoder {
     this.worker.postMessage({
       mode: 'decode',
       sampleRate,
+      format,
     });
   }
 

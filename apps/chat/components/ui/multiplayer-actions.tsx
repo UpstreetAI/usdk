@@ -377,25 +377,28 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         playerId,
         streamId,
         type,
+        disposition,
       } = e.data;
 
-      const outputStream = new AudioContextOutputStream();
-      const { sampleRate } = outputStream;
+      if (disposition === 'audio') {
+        const outputStream = new AudioContextOutputStream();
+        const { sampleRate } = outputStream;
 
-      // decode stream
-      const decodeStream = new AudioDecodeStream({
-        type,
-        sampleRate,
-        format: 'f32',
-        codecs,
-      }) as any;
-      decodeStream.readable.pipeTo(outputStream);
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          format: 'f32',
+          codecs,
+        }) as any;
+        decodeStream.readable.pipeTo(outputStream);
 
-      const writer = decodeStream.writable.getWriter();
-      writer.metadata = {
-        playerId,
-      };
-      audioStreams.set(streamId, writer);
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
     });
     virtualPlayers.addEventListener('audio', (e: any) => {
       const {
@@ -409,7 +412,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         stream.write(data);
       } else {
         // throw away unmapped data
-        console.warn('dropping audio data', e.data);
+        // console.warn('dropping audio data', e.data);
       }
     });
     virtualPlayers.addEventListener('audioend', (e: any) => {

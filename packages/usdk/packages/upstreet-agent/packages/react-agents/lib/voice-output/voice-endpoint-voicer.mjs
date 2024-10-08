@@ -116,6 +116,7 @@ const getVoiceStream = {
     // return stream;
     const stream = throughStream.readable;
     stream.type = 'audio/mpeg';
+    stream.disposition = 'audio';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
@@ -162,6 +163,7 @@ const getVoiceStream = {
     // return stream;
     const stream = throughStream.readable;
     stream.type = 'audio/mpeg';
+    stream.disposition = 'audio';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
@@ -222,6 +224,7 @@ const getVoiceStream = {
     // return stream;
     const stream = throughStream.readable;
     stream.type = 'audio/mpeg';
+    stream.disposition = 'audio';
     stream.waitForLoad = () => loadPromise;
     return stream;
   },
