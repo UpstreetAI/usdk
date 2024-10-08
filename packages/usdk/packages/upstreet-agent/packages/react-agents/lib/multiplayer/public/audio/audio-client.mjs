@@ -145,7 +145,6 @@ export function createOpusMicrophoneSource({
 export function createPcmF32MicrophoneSource({
   mediaStream,
   audioContext,
-  codecs,
 }) {
   if (!audioContext) {
     throw new Error('missing audio context');
@@ -161,7 +160,6 @@ export function createPcmF32MicrophoneSource({
 
   const audioReader = new WsMediaStreamAudioReader(mediaStream, {
     audioContext,
-    codecs,
   });
   const _readLoop = async () => {
     for (;;) {
