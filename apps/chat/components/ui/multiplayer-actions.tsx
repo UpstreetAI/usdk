@@ -13,6 +13,7 @@ import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import type {
   ActionMessage,
   Attachment,
+  PlayableAudioStream,
 } from 'react-agents/types';
 import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 
@@ -88,6 +89,10 @@ interface MultiplayerActionsContextType {
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
+  addAudioSource: (stream: PlayableAudioStream) => {
+    waitForFinish: () => Promise<void>
+  }
+  removeAudioSource: (stream: PlayableAudioStream) => void
   typingMap: TypingMap
   epoch: number
 }
@@ -714,6 +719,22 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           const blob = await res.blob();
         }
       },
+      addAudioSource: (stream: PlayableAudioStream) => {
+        if (realms) {
+          return realms.addAudioSource(stream) as {
+            waitForFinish: () => Promise<void>
+          };
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
+      removeAudioSource: (stream: PlayableAudioStream) => {
+        if (realms) {
+          realms.removeAudioSource(stream);
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
       typingMap,
     };
     return multiplayerState;
@@ -733,6 +754,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
   const agentLeave = multiplayerState.agentLeave;
+  const addAudioSource = multiplayerState.addAudioSource;
+  const removeAudioSource = multiplayerState.removeAudioSource;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -751,6 +774,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendNudgeMessage,
         agentJoin,
         agentLeave,
+        addAudioSource,
+        removeAudioSource,
         typingMap,
         epoch,
       }}
