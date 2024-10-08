@@ -7,7 +7,7 @@ import { Button } from 'ucom';
 
 export interface AgentsProps {
   loadmore: boolean;
-  search: boolean
+  search: boolean;
   range: number;
 }
 
