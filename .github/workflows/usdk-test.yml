@@ -1,5 +1,4 @@
 name: USDK Command Test
-
 on:
   push:
     branches:
@@ -22,7 +21,7 @@ jobs:
         node-version: '20' # Specify the Node.js version you are using
 
     - name: Install dependencies
-      run: npm install
+      run: npm install --no-optional
 
     - name: Run USDK command
       run: node packages/usdk/usdk --version
