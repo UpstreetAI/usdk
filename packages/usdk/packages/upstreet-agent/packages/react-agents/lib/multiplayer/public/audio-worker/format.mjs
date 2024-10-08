@@ -20,7 +20,7 @@ export const formatSamples = (samples, dstFormat, srcFormat) => {
   if (dstFormat === srcFormat) {
     return samples;
   } else {
-    switch (format) {
+    switch (dstFormat) {
       case 'f32': {
         if (srcFormat === 'i16') {
           const i16 = samples;
