@@ -1,115 +1,23 @@
-export class FakeAudioData {
-  constructor() {
-    this.data = null;
-    this.buffer = {
-      getChannelData: n => {
-        return this.data;
-      },
-    };
-  }
-
-  set(data) {
-    this.data = data;
-  }
-}
-class FakeIteratorResult {
-  constructor(value) {
-    this.value = value;
-    this.done = false;
-  }
-
-  setDone(done) {
-    this.done = done;
-  }
-}
-export class WsMediaStreamAudioReader {
-  constructor(mediaStream, {
-    audioContext,
-  }) {
-    if (!audioContext) {
-      console.warn('need audio context');
-      debugger;
-    }
-
-    this.buffers = [];
-    this.cbs = [];
-    this.fakeAudioData = new FakeAudioData();
-    this.fakeIteratorResult = new FakeIteratorResult(this.fakeAudioData);
-    
-    const mediaStreamSourceNode = audioContext.createMediaStreamSource(mediaStream);
-    
-    const audioWorkletNode = new AudioWorkletNode(audioContext, 'ws-input-worklet');
-    audioWorkletNode.onprocessorerror = err => {
-      console.warn('audio worklet error', err);
-    };
-    audioWorkletNode.port.onmessage = e => {
-      this.pushAudioData(e.data);
-    };
-    
-    mediaStreamSourceNode.connect(audioWorkletNode);
-    
-    const close = e => {
-      this.cancel();
-    };
-    mediaStream.addEventListener('close', close);
-    this.cleanup = () => {
-      mediaStream.removeEventListener('close', close);
-    };
-  }
-
-  read() {
-    if (this.buffers.length > 0) {
-      const b = this.buffers.shift();
-      if (b) {
-        this.fakeAudioData.set(b);
-      } else {
-        this.fakeIteratorResult.setDone(true);
-      }
-      return Promise.resolve(this.fakeIteratorResult);
-    } else {
-      let accept;
-      const p = new Promise((a, r) => {
-        accept = a;
-      });
-      this.cbs.push(b => {
-        if (b) {
-          this.fakeAudioData.set(b);
-        } else {
-          this.fakeIteratorResult.setDone(true);
-        }
-        accept(this.fakeIteratorResult);
-      });
-      return p;
-    }
-  }
-
-  cancel() {
-    this.pushAudioData(null);
-    this.cleanup();
-  }
-
-  pushAudioData(b) {
-    if (this.cbs.length > 0) {
-      this.cbs.shift()(b);
-    } else {
-      this.buffers.push(b);
-    }
-  }
-}
-
-export function WsEncodedAudioChunk(o) {
-  return o;
-}
+import {
+  FakeAudioData,
+  FakeIteratorResult,
+  WsMediaStreamAudioReader,
+  WsEncodedAudioChunk,
+} from './ws-codec-util.mjs';
 
 export class OpusAudioEncoder {
-  constructor({sampleRate, output, error}) {
+  constructor({sampleRate, codecs, output, error}) {
     // this.worker = new OpusCodecWorker();
-    this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
+    // this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
+    if (!codecs.WsOpusCodec) {
+      throw new Error('no WsOpusCodec');
+    }
+    this.worker = new codecs.WsOpusCodec();
     // console.log("worker", this.worker)
-    this.worker.onmessage = e => {
+    this.worker.addEventListener('message', e => {
       output(e.data);
-    };
-    this.worker.onerror = error;
+    });
+    this.worker.addEventListener('error', error);
     this.worker.postMessage({
       mode: 'encode',
       sampleRate,
@@ -122,19 +30,23 @@ export class OpusAudioEncoder {
 }
 
 export class OpusAudioDecoder {
-  constructor({sampleRate, output, error}) {
+  constructor({sampleRate, codecs, output, error}) {
     // this.worker = new OpusCodecWorker();
-    this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
+    // this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
+    if (!codecs.WsOpusCodec) {
+      throw new Error('no WsOpusCodec');
+    }
+    this.worker = new codecs.WsOpusCodec();
     const fakeAudioData = new FakeAudioData();
-    this.worker.onmessage = e => {
-      if (e.data) {
-        fakeAudioData.set(e.data);
+    this.worker.addEventListener('message', e => {
+      if (e.data.data) {
+        fakeAudioData.set(e.data.data);
         output(fakeAudioData);
       } else {
         output(null);
       }
-    };
-    this.worker.onerror = error;
+    });
+    this.worker.addEventListener('error', error);
     this.worker.postMessage({
       mode: 'decode',
       sampleRate,
@@ -151,6 +63,7 @@ export class Mp3AudioEncoder {
     sampleRate,
     bitrate = 128,
     transferBuffers = true,
+    codecs,
     output,
     error,
   }) {
@@ -160,9 +73,13 @@ export class Mp3AudioEncoder {
 
     this.transferBuffers = transferBuffers;
 
-    this.worker = new Worker(new URL('../audio-worker/ws-mp3-encoder-worker.mjs', import.meta.url), {
-      type: 'module',
-    });
+    // this.worker = new Worker(new URL('../audio-worker/ws-mp3-encoder-worker.mjs', import.meta.url), {
+    //   type: 'module',
+    // });
+    if (!codecs.WsMp3Encoder) {
+      throw new Error('no WsMp3Encoder');
+    }
+    this.worker = new codecs.Mp3AudioEncoder();
 
     this.worker.onmessage = e => {
       output(e.data);
@@ -184,23 +101,35 @@ export class Mp3AudioDecoder {
     sampleRate,
     format,
     transferBuffers = true,
+    codecs,
     output,
     error,
   }) {
     if (!sampleRate) {
-      debugger;
+      throw new Error('no sample rate');
+    }
+    if (!codecs) {
+      throw new Error('no codecs');
     }
 
     this.transferBuffers = transferBuffers;
 
-    this.worker = new Worker(new URL('../audio-worker/ws-mp3-decoder-worker.mjs', import.meta.url), {
-      type: 'module',
-    });
+    // this.worker = new Worker(new URL('../audio-worker/ws-mp3-decoder-worker.mjs', import.meta.url), {
+    //   type: 'module',
+    // });
+    this.worker = new codecs.WsMp3Decoder();
 
-    this.worker.onmessage = e => {
-      output(e.data);
-    };
-    this.worker.onerror = error;
+    const fakeAudioData = new FakeAudioData();
+    this.worker.addEventListener('message', e => {
+      // console.log('worker got data', e.data);
+      if (e.data.data) {
+        fakeAudioData.set(e.data.data);
+        output(fakeAudioData);
+      } else {
+        output(null);
+      }
+    });
+    this.worker.addEventListener('error', error);
     this.worker.postMessage({
       sampleRate,
       format,

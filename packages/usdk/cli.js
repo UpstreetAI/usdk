@@ -67,6 +67,10 @@ import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/l
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/audio-decode.mjs';
 
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-local.mjs';
+
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
@@ -1014,6 +1018,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         type,
         sampleRate,
         format: 'i16',
+        codecs,
       });
       (async () => {
         speakerMap.set(playerId, true);
@@ -3125,6 +3130,7 @@ const voice = async (args) => {
                     type,
                     sampleRate,
                     format: 'i16',
+                    codecs,
                   });
 
                   console.log('playing...')

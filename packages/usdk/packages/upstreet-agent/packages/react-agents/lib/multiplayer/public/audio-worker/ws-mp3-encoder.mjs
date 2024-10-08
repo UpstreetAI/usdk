@@ -24,14 +24,14 @@ export class WsMp3Encoder extends EventTarget {
   constructor() {
     super();
 
-    this.onmessage = e => {
+    this.handlemessage = e => {
       const {
         sampleRate,
         bitrate,
       } = e.data;
       const mp3encoder = new lamejs.Mp3Encoder(channelCount, sampleRate, bitrate);
 
-      this.onmessage = e => {
+      this.handlemessage = e => {
         if (e.data) {
           const samples = floatTo16Bit(e.data);
           const i8Array = mp3encoder.encodeBuffer(samples);
@@ -64,13 +64,13 @@ export class WsMp3Encoder extends EventTarget {
     }
   }
   postMessage(data, transferList) {
-    this.onmessage({
+    this.handlemessage({
       data,
       transferList,
     });
   }
   dispatchMessage(data, transferList) {
-    this.dispatchEvent(new MessageEvent('postmessage', {
+    this.dispatchEvent(new MessageEvent('message', {
       data,
       transferList,
     }));

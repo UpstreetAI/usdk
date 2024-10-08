@@ -1,4 +1,12 @@
-import wasm from './libopus.wasm';
+import path from 'path';
+import fs from 'fs';
+const loadWasm = p => {
+  const b = fs.readFileSync(p);
+  const m = new WebAssembly.Module(b);
+  return m;
+};
+const dirname = path.dirname(new URL(import.meta.url).pathname);
+const wasm = loadWasm(path.join(dirname, 'libopus.wasm'));
 
 const location = new URL('http://localhost');
 
