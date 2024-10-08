@@ -2455,7 +2455,7 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+        const sampleRate = AudioInput.defaultSampleRate;
         const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
           sampleRate,
         });
@@ -2475,7 +2475,7 @@ const capture = async (args) => {
           console.log('captured');
         });
         transcribedVoiceInput.addEventListener('transcription', async (e) => {
-          console.log('transcriptionput', e.data);
+          console.log('transcription', e.data);
         });
       }
       
