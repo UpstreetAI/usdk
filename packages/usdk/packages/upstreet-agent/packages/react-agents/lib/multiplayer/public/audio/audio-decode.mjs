@@ -27,13 +27,6 @@ export class AudioDecodeStream {
         return createOpusDecodeTransformStream({
           sampleRate,
           format,
-          codecs,
-        });
-      }
-      case 'audio/opus': {
-        return createOpusDecodeTransformStream({
-          sampleRate,
-          format,
         });
       }
       case 'audio/pcm-f32': {
