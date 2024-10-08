@@ -196,6 +196,9 @@ export function PromptForm({
                   } else {
                     console.warn('no audio input device found');
                   }
+                } else {
+                  microphoneSource.close();
+                  setMicrophoneSource(null);
                 }
               }}
             >
