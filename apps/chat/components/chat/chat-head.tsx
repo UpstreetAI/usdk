@@ -8,7 +8,7 @@ import HeaderMaskFrame from '../masks/HeaderMaskFrame';
 export function ChatHead() {
 
   const [showRoomLinkTooltip, setShowRoomLinkTooltip] = useState(false)
-  const { getCrdtDoc } = useMultiplayerActions()
+  const { getCrdtDoc, playersMap } = useMultiplayerActions()
 
   const crdt = getCrdtDoc()
 
@@ -16,6 +16,10 @@ export function ChatHead() {
   const roomDescription = crdt?.getText('description').toString()
 
   const roomLink = typeof window !== 'undefined' ? window.location.href : '';
+  
+  const players = Array.from(playersMap.values()).sort((a, b) => {
+    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+  })
 
   return (
     <HeaderMaskFrame
@@ -23,15 +27,15 @@ export function ChatHead() {
     >
       <div className="flex flex-col justify-start gap-1 rounded-md border-1 mb-2 p-4 pt-32">
 
-        <span className="select-none text-gray-100 text-2xl text-stroke flex justify-between w-full items-center">
+        <div className="absolute left-0 bottom-0 w-full h-full bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+
+        <span className="select-none text-gray-100 font-[Aller-Bold] text-2xl flex justify-between w-full items-center">
           {roomName ? roomName : '156th Street'}
         </span>
 
-        {roomDescription && (
-          <span className="select-none text-sm font-medium flex justify-between w-full items-center">
-            {roomDescription}
-          </span>
-        )}
+        <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex justify-between w-full items-center">
+          {players.length} members
+        </span>
 
         <Tooltip open={showRoomLinkTooltip}>
           <TooltipTrigger>
