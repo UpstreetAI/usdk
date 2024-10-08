@@ -34,7 +34,7 @@ export function ChatHead() {
         </span>
 
         <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex">
-          {players.length} <span className='text-gray-300 ml-2'>members</span>
+          {players.length} <span className='text-gray-300 ml-2 italic'>member{players.length > 1 && "s"}</span>
         </span>
 
         <Tooltip open={showRoomLinkTooltip}>
