@@ -30,6 +30,7 @@ import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { IconButton } from 'ucom';
+import { ChatMenu } from './chat-menu';
 
 
 //
@@ -77,14 +78,24 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   const [input, setInput] = useState('')
-  const { user } = useSupabase()
+  const { user } = useSupabase();
+  
+  const [players, setPlayers] = useState([]);
 
   const {
     connected,
     playersCache,
     messages: rawMessages,
+    playersMap,
     setMultiplayerConnectionParameters,
   } = useMultiplayerActions();
+
+  useEffect(() => {
+    const getPlayers = Array.from(playersMap.values()).sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    })
+    setPlayers(getPlayers);
+  }, []);
 
   useEffect(() => {
     onConnect && onConnect(connected);
@@ -129,12 +140,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       ref={scrollRef}
     >
 
-      <div className={`absolute top-0 left-0 w-full h-20 ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""}`}>
-        <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative flex">
-          <div className='w-full'>Room Name</div>
-          <div><IconButton icon='Menu' variant='ghost' onClick={toggleRightSidebar} /></div>
-        </div>
-      </div>
+      <ChatMenu players={players} toggleRightSidebar={toggleRightSidebar} isLeftSidebarOpen={isLeftSidebarOpen} isRightSidebarOpen={isRightSidebarOpen} />
 
       <div
         className={cn('pb-[200px] pt-4 md:pt-10', className)}
