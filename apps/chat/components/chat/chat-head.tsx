@@ -33,8 +33,8 @@ export function ChatHead() {
           {roomName ? roomName : '156th Street'}
         </span>
 
-        <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex justify-between w-full items-center">
-          {players.length} members
+        <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex">
+          {players.length} <span className='text-gray-300 ml-2'>members</span>
         </span>
 
         <Tooltip open={showRoomLinkTooltip}>
