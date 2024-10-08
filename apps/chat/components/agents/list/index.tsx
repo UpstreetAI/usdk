@@ -7,6 +7,7 @@ import { Button } from 'ucom';
 
 export interface AgentsProps {
   loadmore: boolean;
+  search: boolean
   range: number;
 }
 
@@ -15,14 +16,14 @@ export interface Agent {
   name: string;
 }
 
-export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
+export function Agents({ loadmore = false, search = true, range = 5 }: AgentsProps) {
   const { supabase } = useSupabase();
 
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [rangeFrom, setRangeFrom] = useState(0);
   const [rangeTo, setRangeTo] = useState(range);
-  const [showLoadMore, setShowLoadMore] = useState(loadmore);
+  const [showLoadMore, setShowLoadMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
@@ -32,7 +33,7 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
     customRangeFrom = rangeFrom,
     customRangeTo = rangeTo
   ) => {
-    
+
     if (searchTerm !== '') {
       setLoading(true);
     }
@@ -96,35 +97,38 @@ export function Agents({ loadmore = false, range = 5 }: AgentsProps) {
 
   return (
     <>
-      <div className='flex mb-4'>
-        <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
-          Agents
-        </h1>
-        <input
-          type='text'
-          placeholder='Search agents...'
-          value={searchTerm}
-          className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-          }}
-        />
-      </div>
+      {search && (
+        <div className='flex mb-4'>
+          <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
+            Agents
+          </h1>
+          <input
+            type='text'
+            placeholder='Search agents...'
+            value={searchTerm}
+            className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
+          />
+        </div>
+      )}
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         <AgentList agents={agents} loading={loading} range={range} />
       </div>
-      
-      <div className='text-center pt-8'>
-        {agents.length > 0 && showLoadMore && (
-          <Button
-            size='large'
-            onClick={handleLoadMore}
-          >
-            {loadingMore ? 'Loading agents...' : 'Load More'}
-          </Button>
-        )}
-      </div>
+      {loadmore && (
+        <div className='text-center pt-8'>
+          {agents.length > 0 && showLoadMore && (
+            <Button
+              size='large'
+              onClick={handleLoadMore}
+            >
+              {loadingMore ? 'Loading agents...' : 'Load More'}
+            </Button>
+          )}
+        </div>
+      )}
     </>
   );
 }

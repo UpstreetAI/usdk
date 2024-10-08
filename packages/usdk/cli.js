@@ -131,6 +131,13 @@ const shortName = () => uniqueNamesGenerator({
 });
 const makeName = () => capitalize(shortName());
 const getAgentHost = (guid) => `https://user-agent-${guid}.${workersHost}`;
+const jsonParse = (s) => {
+  try {
+    return JSON.parse(s);
+  } catch (err) {
+    return undefined;
+  }
+};
 
 //
 
@@ -3372,23 +3379,19 @@ const main = async () => {
 
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
         if (opts.features) {
-          try {
-            let features = {};
-            for (const featuresString of opts.features) {
-              const parsedJson = JSON.parse(featuresString);
+          let features = {};
+          for (const featuresString of opts.features) {
+            const parsedJson = jsonParse(featuresString);
+            if (parsedJson !== undefined) {
               features = {
                 ...features,
                 ...parsedJson,
               };
+            } else {
+              features[featuresString] = featureExamples[featuresString][0];
             }
-            args.features = features;
-          } catch (error) {
-            console.warn('Invalid JSON string provided for features. Using default values.', opts.features, error);
-            args.features = opts.features.reduce((acc, feature) => {
-              acc[feature] = featureExamples[feature][0];
-              return acc;
-            }, {});
           }
+          args.features = features;
         }
         
         await create(args);

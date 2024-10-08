@@ -279,6 +279,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Agent generated.'));
     console.log(pc.green('Name:'), agentJson.name);
     console.log(pc.green('Bio:'), agentJson.bio);
+    console.log(pc.green('Description:'), agentJson.description);
     console.log(pc.green('Visual Description:'), agentJson.visualDescription);
     console.log(pc.green('Preview URL:'), agentJson.previewUrl);
     console.log(pc.green('Homespace Description:'), agentJson.homespaceDescription);
