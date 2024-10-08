@@ -14,6 +14,7 @@ import type {
   ActionMessage,
   Attachment,
 } from 'react-agents/types';
+import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 
 //
 
@@ -386,6 +387,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         type,
         sampleRate,
         format: 'f32',
+        codecs,
       }) as any;
       decodeStream.readable.pipeTo(outputStream);
 

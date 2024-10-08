@@ -1,5 +1,3 @@
-import libopus from './libopusjs/libopus.wasm.js';
-
 // import Encoder from './opus-encdec/dist/libopus-encoder.wasm.js';
 // import Decoder from './opus-encdec/dist/libopus-decoder.wasm.js';
 // import { OggOpusEncoder } from './opus-encdec/src/oggOpusEncoder.js';
@@ -28,13 +26,14 @@ function int16ToFloat32(inputArray) {
   return output;
 }
 
-export class WsOpusCodec extends EventTarget {
+export const makeOpusCodec = (libopus) =>
+class WsOpusCodec extends EventTarget {
   constructor() {
     super();
     
     const readyPromise = libopus.waitForReady();
     
-    this.onmessage = e => {
+    this.handlemessage = e => {
       const {
         mode,
         sampleRate,
@@ -48,7 +47,7 @@ export class WsOpusCodec extends EventTarget {
           })();
           const queueManager = new QueueManager();
     
-          this.onmessage = async e => {
+          this.handlemessage = async e => {
             await queueManager.waitForTurn(async () => {
               const enc = await encoderPromise;
     
@@ -86,7 +85,7 @@ export class WsOpusCodec extends EventTarget {
           })();
           const queueManager = new QueueManager();
     
-          this.onmessage = async e => {
+          this.handlemessage = async e => {
             await queueManager.waitForTurn(async () => {
               const dec = await decoderPromise;
     
@@ -111,13 +110,13 @@ export class WsOpusCodec extends EventTarget {
     };
   }
   postMessage(data, transferList) {
-    this.onmessage({
+    this.handlemessage({
       data,
       transferList,
     });
   }
   dispatchMessage(data, transferList) {
-    this.dispatchEvent(new MessageEvent('postmessage', {
+    this.dispatchEvent(new MessageEvent('message', {
       data,
       transferList,
     }));
