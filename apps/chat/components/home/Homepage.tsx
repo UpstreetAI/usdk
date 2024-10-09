@@ -25,6 +25,9 @@ export default function Home() {
           duration={6000}
           transition={10}
         />
+
+        <div className="absolute left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+
         <div className="flex p-4 mx-auto max-w-6xl h-[calc(100vh-60px)]">
           <div className='my-auto md:w-[50%] pr-24'>
             <div className='text-6xl font-bold'>
@@ -65,7 +68,7 @@ export default function Home() {
           </div>
 
           <div className='h-full w-[50%]'>
-          <Agents search={false} loadmore={false} range={3} row={true} />
+            <Agents search={false} loadmore={false} range={3} row={true} />
           </div>
         </div>
       </div>
