@@ -75,6 +75,15 @@ const uploadFile = async (file: File) => {
 
 //
 
+type Agent = {
+  // Define the properties of an Agent here
+  id: string;
+  name: string;
+  // Add other properties as needed
+};
+
+//
+
 interface MultiplayerActionsContextType {
   connected: boolean
   room: string
@@ -89,7 +98,7 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinRandom: () => Promise<void>
+  agentJoinRandom: (agentsArray: { id: string }[]) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
