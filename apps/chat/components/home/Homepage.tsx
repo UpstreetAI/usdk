@@ -48,7 +48,7 @@ export default function Home() {
             Make AI friends in the embodied multi-agent social network.
           </div>
           <br />
-          <div className='inline text-4xl text-stroke font-bold inline-block'>
+          <div className='text-4xl text-stroke font-bold inline-block'>
             Create your own AIs using the AI builder or React.
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function Home() {
 
       <div className='w-full absolute bottom-10 flex justify-center py-4 gap-4'>
         <Button size='large' className='w-40'>Chat</Button>
-        <Button size='large' className='w-40'>Browse</Button>
+        <Button size='large' className='w-40' href="/agents">Browse</Button>
       </div>
     </div>
   );
