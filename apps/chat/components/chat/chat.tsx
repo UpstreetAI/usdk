@@ -86,11 +86,17 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     messages: rawMessages,
     playersMap,
     setMultiplayerConnectionParameters,
+    getCrdtDoc
   } = useMultiplayerActions();
 
+  /// Get players
   const players = Array.from(playersMap.values()).sort((a, b) => {
     return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
   })
+
+  // Get room specs
+  const crdt = getCrdtDoc()
+  const roomName = crdt?.getText('name').toString()
   
   useEffect(() => {
     onConnect && onConnect(connected);
@@ -135,10 +141,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       ref={scrollRef}
     >
 
-      <ChatMenu players={players} />
+      <ChatMenu players={players} roomName={roomName} />
 
       <div
-        className={cn('pb-[200px] pt-4 md:pt-10', className)}
+        className={cn('pb-[200px] pt-4 md:pt-24', className)}
         ref={messagesRef}
       >
         {room ? (
