@@ -40,7 +40,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
                 }}
               />
             </div>
-            <h2 className="text-lg md:text-2xl font-semibold flex mt-4">{roomName ? roomName : '156 Starlight Street'}</h2>
+            <h2 className="text-lg md:text-2xl font-semibold flex mt-4 md:mt-0">{roomName ? roomName : '156 Starlight Street'}</h2>
           </div>
 
           <div className="flex items-center">
