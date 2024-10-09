@@ -90,13 +90,13 @@ export default function Home() {
 
       <div className='w-full absolute bottom-10 flex justify-center py-4 gap-4'>
         { agents.length > 0 && (
-          <Button size='large' className='w-40' onClick={async e => {
+          <Button size='large' className='min-w-40' onClick={async e => {
             e.preventDefault();
             e.stopPropagation();
             await agentJoinRandom(agents);
-          }}>Chat</Button>
+          }}>Random Chat</Button>
         )}
-        <Button size='large' className='w-40' href="/agents">Browse</Button>
+        <Button size='large' className='min-w-40' href="/agents">Browse Agents</Button>
       </div>
     </div>
   );
