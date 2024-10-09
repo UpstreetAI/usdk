@@ -126,6 +126,8 @@ export class ChatsSpecification extends EventTarget {
                 room: roomSpecification.room,
                 endpoint_url: roomSpecification.endpointUrl,
               },
+            }, {
+              onConflict: ['user_id', 'id']
             });
           const {
             error,
@@ -133,7 +135,15 @@ export class ChatsSpecification extends EventTarget {
           if (!error) {
             // nothing
           } else {
-            throw new Error('failed to insert chat specification: ' + JSON.stringify(error));
+            /* 
+              unique row violation error code for when the record already exists
+              occurs when #joinInternal called from loadPromise (roomSpecs already exist in db for the agent)
+            */
+            if (error.code === '23505') {
+              console.log('Record with the same user_id and id already exists.');
+            } else {
+              console.error('Unexpected error occurred:', error);
+            }
           }
         });
       };
