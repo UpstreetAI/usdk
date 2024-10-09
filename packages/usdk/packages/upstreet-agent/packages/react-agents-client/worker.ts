@@ -36,7 +36,7 @@ globalThis.onmessage = (event: any) => {
           const state = {
             userRender,
             storage: {
-              getAlarm() {
+              async getAlarm() {
                 return alarmTimestamp;
               },
               setAlarm(timestamp: number) {
