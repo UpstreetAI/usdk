@@ -182,7 +182,7 @@ export function PromptForm({
                       },
                     }) as PlayableAudioStream;
                     audioStream.id = crypto.randomUUID();
-                    audioStream.type = 'audio/pcm-f32';
+                    audioStream.type = 'audio/pcm-f32-48000';
                     audioStream.disposition = 'text';
           
                     (async () => {

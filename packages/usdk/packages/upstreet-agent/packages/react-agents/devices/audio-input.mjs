@@ -232,10 +232,12 @@ export class TranscribedVoiceInput extends EventTarget {
       });
 
       const audioChunker = new AudioChunker({
-        sampleRate: TranscribedVoiceInput.transcribeSampleRate,
-        chunkSize: 8 * 1024,
+        sampleRate,
+        // chunkSize: 8 * 1024,
       });
+      console.log('listen for data');
       const ondata = async (f32) => {
+        console.log('got data', f32);
         await openPromise;
 
         // resample if needed
@@ -258,7 +260,11 @@ export class TranscribedVoiceInput extends EventTarget {
       signal.addEventListener('abort', () => {
         cleanup();
       });
-    })();
+    })().catch(err => {
+      this.dispatchEvent(new MessageEvent('error', {
+        data: err,
+      }));
+    });
   }
   close() {
     this.abortController.abort();
