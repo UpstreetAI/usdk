@@ -25,7 +25,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
       <div className="space-y-4 px-4 sm:max-w-2xl mx-auto relative flex">
         <div className="flex flex-row p-1 md:p-4 border-b border-gray-300 w-full">
           <div className="flex w-full items-center mb-4 md:mb-0">
-            <div className="hidden md:block mr-4 size-12 min-w-12 md:size-12 md:min-w-12 bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+            <div className="hidden md:flex mr-4 size-12 min-w-12 md:size-12 md:min-w-12 bg-gray-100 p-1 overflow-hidden items-center justify-center border-2 border-gray-900">
               <div
                 className="w-full h-full bg-cover bg-top"
                 style={{
