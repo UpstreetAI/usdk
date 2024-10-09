@@ -66,7 +66,7 @@ export function ChatMenu({ players }: ChatMenuProps) {
                 );
               })}
             </div>
-            <div className="text-lg font-medium whitespace-nowrap">{players?.length} members</div>
+            <div className="text-lg font-medium whitespace-nowrap">{players?.length} member{players.length > 1 && "s"}</div>
           </div>
 
           <div className="flex items-center space-x-4">
