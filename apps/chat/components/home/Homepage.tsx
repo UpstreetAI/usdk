@@ -84,7 +84,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className='mt-8 md:mt-0 md:h-full md:w-[40%] flex items-center'>
+        <div className='mt-8 md:mt-0 h-[42%] overflow-y-scroll md:h-full md:w-[40%] flex md:items-center items-start'>
           <Agents search={false} loadmore={false} range={3} row={true} />
         </div>
       </div>
