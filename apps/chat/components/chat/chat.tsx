@@ -29,6 +29,8 @@ import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
+import { IconButton } from 'ucom';
+import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 
 
@@ -53,7 +55,7 @@ type FormattedAttachment = {
   type: string
   alt?: Alt[]
 }
-type Attachment = FormattedAttachment &{
+type Attachment = FormattedAttachment & {
   url?: string
 }
 type Message = {
@@ -77,15 +79,26 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   const [input, setInput] = useState('')
-  const { user } = useSupabase()
+  const { user } = useSupabase();
 
   const {
     connected,
     playersCache,
     messages: rawMessages,
+    playersMap,
     setMultiplayerConnectionParameters,
+    getCrdtDoc
   } = useMultiplayerActions();
 
+  /// Get players
+  const players = Array.from(playersMap.values()).sort((a, b) => {
+    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+  })
+
+  // Get room specs
+  const crdt = getCrdtDoc()
+  const roomName = crdt?.getText('name').toString()
+  
   useEffect(() => {
     onConnect && onConnect(connected);
   }, [connected]);
@@ -99,7 +112,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       id: index,
       display: getMessageComponent(room, message, index + '', playersCache, user),
     };
-  })as any[];
+  }) as any[];
 
   useEffect(() => {
     if (room && user) {
@@ -127,11 +140,14 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   
   return (
     <div
-      className={`group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
+      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
       ref={scrollRef}
     >
+
+      <ChatMenu players={players} roomName={roomName} />
+
       <div
-        className={cn('pb-[200px] pt-4 md:pt-10', className)}
+        className={cn('pb-[200px] pt-20 md:pt-24', className)}
         ref={messagesRef}
       >
         {room ? (
@@ -184,16 +200,16 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
     case 'join': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
-        <span className='font-bold'>{ message.name }</span> joined the room.
+        <span className='font-bold'>{message.name}</span> joined the room.
       </div>
     )
 
     case 'leave': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
-        <span className='font-bold'>{ message.name }</span> left the room.
+        <span className='font-bold'>{message.name}</span> left the room.
       </div>
     )
-  
+
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
@@ -207,7 +223,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
       return (
         <ChatMessage
           id={id}
-          name={ message.name }
+          name={message.name}
           content={message.args.text}
           isOwnMessage={isOwnMessage}
           profileUrl={profileUrl}
@@ -248,7 +264,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
     case 'browserAction': {
       const player = playersCache.get(message.userId);
       // const media = (message.attachments ?? [])[0] ?? null;
-      
+
       const {
         // agent:,
         // method,
@@ -389,12 +405,12 @@ function getMessageComponent(room: string, message: Message, id: string, players
               <Button onClick={checkout}>Checkout</Button>
             </div>
           }
-          name={ message.name }
-          media={ media }
+          name={message.name}
+          media={media}
           player={player}
           room={room}
           timestamp={message.timestamp}
-          isOwnMessage={false} 
+          isOwnMessage={false}
           profileUrl={''}
         />
       )
