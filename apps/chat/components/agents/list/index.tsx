@@ -9,6 +9,7 @@ export interface AgentsProps {
   loadmore: boolean;
   search: boolean;
   range: number;
+  row: boolean;
 }
 
 export interface Agent {
@@ -16,7 +17,7 @@ export interface Agent {
   name: string;
 }
 
-export function Agents({ loadmore = false, search = true, range = 5 }: AgentsProps) {
+export function Agents({ loadmore = false, search = true, range = 5, row = false }: AgentsProps) {
   const { supabase } = useSupabase();
 
   const [agents, setAgents] = useState<Agent[]>([]);
@@ -114,7 +115,7 @@ export function Agents({ loadmore = false, search = true, range = 5 }: AgentsPro
         </div>
       )}
 
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+      <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
         <AgentList agents={agents} loading={loading} range={range} />
       </div>
       {loadmore && (
