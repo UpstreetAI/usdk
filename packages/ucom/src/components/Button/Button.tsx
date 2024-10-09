@@ -6,6 +6,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   shadow?: boolean;
   active?: boolean;
   disabled?: boolean;
+  className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -14,6 +15,7 @@ const Button: React.FC<ButtonProps> = ({
   shadow = false,
   active = false,
   disabled = false,
+  className,
   ...props 
 }) => {
   return (
@@ -24,7 +26,7 @@ const Button: React.FC<ButtonProps> = ({
          ${variant && styles[variant]}
          ${shadow && variant !== 'ghost' && !active && styles.shadow}
          ${active && styles.active}
-         ${props.className}`
+         ${className}`
       }
       {...props}
     >
