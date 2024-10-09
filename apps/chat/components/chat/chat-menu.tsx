@@ -22,7 +22,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
       className={`fixed z-[100] bg-gray-300 top-18 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
         } ${isRightSidebarOpen ? 'lg:pr-[250px] xl:pr-[300px]' : ''}`}
     >
-      <div className="space-y-4 px-4 sm:max-w-2xl mx-auto relative flex">
+      <div className="space-y-4 px-2 md:px-0 sm:max-w-2xl mx-auto relative flex">
         <div className="flex flex-row p-1 md:p-4 border-b border-gray-300 w-full">
           <div className="flex w-full items-center mb-4 md:mb-0">
             <div className="hidden md:flex mr-4 size-12 min-w-12 md:size-12 md:min-w-12 bg-gray-100 p-1 overflow-hidden items-center justify-center border-2 border-gray-900">
