@@ -1,5 +1,6 @@
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { isValidUrl } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 import { IconButton } from 'ucom';
 
 export interface Player {
@@ -16,6 +17,11 @@ export interface ChatMenuProps {
 
 export function ChatMenu({ players, roomName }: ChatMenuProps) {
   const { toggleRightSidebar, isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
+
+  const pathname = usePathname();
+  if (pathname.startsWith('/new')) {
+    return null;
+  }
 
   return (
     <div
