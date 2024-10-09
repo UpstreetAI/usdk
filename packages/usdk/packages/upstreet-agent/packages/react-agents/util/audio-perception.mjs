@@ -49,7 +49,7 @@ export const transcribeRealtime = ({
   });
   
   ws.addEventListener('open', () => {
-    // console.log('transcribe ws open');
+    console.log('transcribe ws open');
     transcription.dispatchEvent(new MessageEvent('open', {
       data: null,
     }));
@@ -86,7 +86,10 @@ export const transcribeRealtime = ({
     ws.send(JSON.stringify(sessionConfig));
   });
   ws.addEventListener('message', (e) => {
-    // console.log(e.data);
+    console.log(e.data);
+    // transcription.dispatchEvent(new MessageEvent('message', {
+    //   data: e.data,
+    // }));
     const message = JSON.parse(e.data);
     const { type } = message;
     switch (type) {
@@ -106,39 +109,18 @@ export const transcribeRealtime = ({
         break;
       }
       case 'input_audio_buffer.speech_started': {
-        const timestamp = message.audio_start_ms;
-        transcription.dispatchEvent(new MessageEvent('speechstart', {
-          data: {
-            timestamp,
-          },
+        this.dispatchEvent(new MessageEvent('speechstart', {
+          data: null,
         }));
         break;
       }
       case 'input_audio_buffer.speech_stopped': {
-        const timestamp = message.audio_end_ms;
-        transcription.dispatchEvent(new MessageEvent('speechstop', {
-          data: {
-            timestamp,
-          },
-        }));
-        transcription.clear();
         break;
       }
       case 'conversation.item.input_audio_transcription.completed': {
-        const {
-          transcript,
-        } = message;
-        if (transcript) {
-          transcription.dispatchEvent(new MessageEvent('transcription', {
-            data: {
-              transcript,
-            },
-          }));
-        }
         break;
       }
       case 'conversation.item.input_audio_transcription.failed': {
-        console.log('transcription failed', message);
         break;
       }
       case 'response.audio_transcript.delta': {
@@ -153,7 +135,7 @@ export const transcribeRealtime = ({
     }
   });
   ws.addEventListener('close', (e) => {
-    // console.log('transcribe ws close');
+    console.log('transcribe ws close');
     transcription.dispatchEvent(new MessageEvent('close', {
       data: null,
     }));
@@ -168,15 +150,9 @@ export const transcribeRealtime = ({
     };
     ws.send(JSON.stringify(m));
   };
-  // transcription.commit = async () => {
-  //   const m = {
-  //     type: 'input_audio_buffer.commit',
-  //   };
-  //   ws.send(JSON.stringify(m));
-  // };
-  transcription.clear = async () => {
+  transcription.commit = async () => {
     const m = {
-      type: 'input_audio_buffer.clear',
+      type: 'input_audio_buffer.commit',
     };
     ws.send(JSON.stringify(m));
   };
