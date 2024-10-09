@@ -685,8 +685,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         });
       },
       agentJoin: async (guid: string) => {
-        const oldRoom = multiplayerState.getRoom();
-        const room = oldRoom || crypto.randomUUID();
+        const room = crypto.randomUUID();
         console.log('agent join', {
           guid,
           room,
