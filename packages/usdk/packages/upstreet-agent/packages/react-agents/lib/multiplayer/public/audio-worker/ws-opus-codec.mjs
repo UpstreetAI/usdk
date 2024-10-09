@@ -1,4 +1,4 @@
-import {channelCount, /*sampleRate, */ bitrate, frameSize, voiceOptimization} from '../audio/ws-constants.js';
+import {channelCount, /*sampleRate, */ bitrate, frameSize, voiceOptimization} from '../audio-worker/ws-constants.mjs';
 import { QueueManager } from '../../../../util/queue-manager.mjs';
 import { floatTo16Bit, int16ToFloat32 } from './convert.mjs';
 
