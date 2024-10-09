@@ -47,7 +47,7 @@ export function AgentRow({ agent, author }: AgentListProps) {
           </a>
           <div className="flex absolute bottom-0 right-0">
             <IconButton
-              onMouseDown={async e => {
+              onClick={async e => {
                 e.preventDefault();
                 e.stopPropagation();
 
