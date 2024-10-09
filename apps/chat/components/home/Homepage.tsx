@@ -18,7 +18,6 @@ const Hero1 = '/images/backgrounds/homepage-hero.jpg';
 export default function Home() {
 
   return (
-    <div>
       <div className="w-full h-full z-1">
         <BackgroundSlider
           images={[Hero1]}
@@ -26,7 +25,8 @@ export default function Home() {
           transition={10}
         />
 
-        <div className="absolute left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+        { /* Change to fixed to absolute if the homepage is not gonna be full screen */ }
+        <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
         <div className="flex p-4 mx-auto max-w-6xl h-[calc(100vh-60px)]">
           <div className='my-auto md:w-[50%] pr-24'>
@@ -72,7 +72,5 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-    </div>
   );
 }
