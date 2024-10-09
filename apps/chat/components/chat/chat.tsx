@@ -144,7 +144,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       <ChatMenu players={players} roomName={roomName} />
 
       <div
-        className={cn('pb-[200px] pt-4 md:pt-24', className)}
+        className={cn('pb-[200px] pt-20 md:pt-24', className)}
         ref={messagesRef}
       >
         {room ? (
