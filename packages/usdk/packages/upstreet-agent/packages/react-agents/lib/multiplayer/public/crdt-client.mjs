@@ -127,7 +127,9 @@ export class NetworkedCrdtClient extends EventTarget {
           update,
         },
       });
-      ws.send(serializeMessage(m));
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(serializeMessage(m));
+      }
     });
   }
 }
