@@ -11,7 +11,7 @@ export function Header() {
     <header
       className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-background backdrop-blur-xl">
       <div className="flex items-center h-full">
-        <div className='md:m-w-[160px] md:w-[160px]'>
+        <div className='md:m-w-[160px] md:w-[160px] pr-4 md:pr-0'>
           <a href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
             <IconUpstreetChat className="mr-2 fill-black size-9 w-auto dark:hidden" inverted />
             <IconUpstreetChat className="hidden mr-2 fill-white size-9 w-auto dark:block" />
