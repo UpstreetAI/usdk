@@ -52,23 +52,24 @@ export default function Home() {
           <div className='bg-[#000000] text-2xl font-bold inline-block'>
             Create your own AIs using the AI builder or React.
           </div>
-          <div className='w-full pt-12'>
-            <Link href="/agents" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
-              Find an AI
-            </Link>
-            <Dev>
-              <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
-                Create an AI
-              </Link>
-            </Dev>
-
-          </div>
         </div>
 
         <div className='h-full w-[40%] flex items-center'>
           <Agents search={false} loadmore={false} range={3} row={true} />
         </div>
       </div>
+
+      <div className='absolute bottom-0 w-full pt-12 flex justify-center'>
+            <Link href="/agents" className='bg-[#ff38ae] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2 mb-2'>
+              Find an AI
+            </Link>
+            <Dev>
+              <Link href="/new" className='bg-[#9640ff] inline-block hover:opacity-[0.6] text-xl font-bold text-white px-8 py-4 rounded-md mr-2'>
+              Create an AI
+              </Link>
+            </Dev>
+            </div>
+
     </div>
   );
 }
