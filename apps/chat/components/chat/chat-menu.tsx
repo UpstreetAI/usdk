@@ -10,8 +10,8 @@ export function ChatMenu({ players }: ChatMenu) {
   const { toggleRightSidebar, isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   return (
-    <div className={`absolute top-0 left-0 w-full h-20 ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""}`}>
-      <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative flex">
+    <div className={`absolute top-0 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""}`}>
+      <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-2 relative flex">
         <div className="flex p-4 border-b border-gray-300 w-full">
 
           <div className="flex w-full">
@@ -49,11 +49,25 @@ export function ChatMenu({ players }: ChatMenu) {
                 const name = playerSpec.name;
                 const { previewUrl } = playerSpec;
                 return (
-                  <img src={previewUrl} alt="Member 1" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
+                  <div
+                  className="size-10 bg-cover bg-top rounded-full border-2 border-white"
+                  style={{
+                    backgroundImage: isValidUrl(previewUrl) ? `url(${previewUrl})` : 'none',
+                    backgroundColor: isValidUrl(previewUrl) ? 'transparent' : '#ccc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    fontWeight: 'bold',
+                    color: '#fff',
+                  }}
+                >
+                  {!isValidUrl(previewUrl) && name.charAt(0)}
+                </div>
                 );
               })}
             </div>
-            <span className="text-lg font-medium">{players.length} <span className="text-gray-500">members</span></span>
+            <div className="text-lg font-medium whitespace-nowrap">{players.length} members</div>
           </div>
 
           <div className="flex items-center space-x-4">
