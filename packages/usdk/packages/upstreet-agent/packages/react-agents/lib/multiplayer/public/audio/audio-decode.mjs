@@ -29,7 +29,7 @@ export class AudioDecodeStream {
           format,
         });
       }
-      case 'audio/pcm-f32': {
+      case 'audio/pcm-f32-48000': {
         return createPcmF32TransformStream({
           sampleRate,
           format,

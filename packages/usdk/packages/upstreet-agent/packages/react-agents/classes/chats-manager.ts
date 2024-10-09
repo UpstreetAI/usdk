@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import * as Y from 'yjs';
 import type {
   PlayableAudioStream,
@@ -32,6 +33,16 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
+import {
+  TranscribedVoiceInput,
+} from '../devices/audio-transcriber.mjs';
+
+//
+
+type TranscribeStream = {
+  microphoneInput: EventEmitter,
+  transcribedVoiceInput: TranscribedVoiceInput,
+};
 
 //
 
@@ -243,14 +254,62 @@ export class ChatsManager {
             });
 
             // audio streams
+            const transcribeStreams = new Map<string, TranscribeStream>();
             virtualPlayers.addEventListener('audiostart', async (e) => {
-              console.log('got audio start', e.data);
+              const { playerId, streamId, type, disposition } = e.data;
+              console.log('got audio start', {
+                playerId,
+                streamId,
+                type,
+                disposition,
+              });
+
+              if (disposition === 'text') {
+                if (type === 'audio/pcm-f32-48000') {
+                  const microphoneInput = new EventEmitter();
+                  const jwt = agent.appContextValue.useAuthToken();
+                  const transcribedVoiceInput = new TranscribedVoiceInput({
+                    audioInput: microphoneInput,
+                    sampleRate: 48000,
+                    jwt,
+                  });
+                  transcribedVoiceInput.addEventListener('speechstart', e => {
+                    console.log('capturing...');
+                  });
+                  transcribedVoiceInput.addEventListener('speechstop', e => {
+                    console.log('captured');
+                  });
+                  transcribedVoiceInput.addEventListener('transcription', async (e) => {
+                    console.log('transcription', e.data);
+                  });
+
+                  const transcribeStream = {
+                    microphoneInput,
+                    transcribedVoiceInput,
+                  };
+                  transcribeStreams.set(streamId, transcribeStream);
+                } else {
+                  console.warn('unhandled audio type', type);
+                }
+              }
             });
             virtualPlayers.addEventListener('audio', async (e) => {
-              console.log('got audio data', e.data);
+              const { playerId, streamId, data } = e.data;
+              const transcribeStream = transcribeStreams.get(streamId);
+              transcribeStream.microphoneInput.emit('data', data);
+              // let avg = 0;
+              // for (let i = 0; i < data.length; i++) {
+              //   avg += Math.abs(data[i]);
+              // }
+              // avg /= data.length;
+              // console.log('got audio data', avg);
             });
             virtualPlayers.addEventListener('audioend', async (e) => {
-              console.log('got audio end', e.data);
+              const { playerId, streamId } = e.data;
+              const transcribeStream = transcribeStreams.get(streamId);
+              transcribeStream.microphoneInput.emit('end');
+              console.log('got audio end', playerId, streamId);
+              transcribeStreams.delete(streamId);
             });
           };
           const _bindOutgoing = () => {
