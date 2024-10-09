@@ -94,7 +94,7 @@ export default function Home() {
               Here are a few of  the latest agents you can talk to, hit them up over DMs:
             </div>
             <div className='mb-12'>
-              <Agents search={false} loadmore={false} range={6} />
+              <Agents search={false} loadmore={false} range={6} row={false} />
             </div>
             <div className='pt-4'>
               {/* <a
