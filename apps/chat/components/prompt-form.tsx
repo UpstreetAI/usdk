@@ -11,10 +11,13 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
-// import { newChat } from '@/lib/chat/actions'
 import { cn } from '@/lib/utils'
+import type { PlayableAudioStream } from 'react-agents/types';
 import { shuffle } from 'react-agents/util/util.mjs';
-import { Icon } from 'ucom'
+import { Icon } from 'ucom';
+import { createPcmF32MicrophoneSource } from '@upstreet/multiplayer/public/audio/audio-client.mjs';
+import { ensureAudioContext } from '@/lib/audio/audio-context-output';
+// import { consoleImageWidth } from 'react-agents/constants.mjs'
 
 export function PromptForm({
   input,
@@ -25,8 +28,9 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage } = useMultiplayerActions()
+  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
+  const [microphoneSource, setMicrophoneSource] = React.useState<any>(null);
 
   React.useEffect(() => {
     // typing
@@ -76,14 +80,7 @@ export function PromptForm({
     }
   };
   const nudgeContinue = () => {
-    // console.log('continue', {
-    //   botAgents,
-    // });
     const randomBotAgent = shuffle(botAgents.slice())[0];
-    // console.log('continue 2', {
-    //   botAgents,
-    //   randomBotAgent,
-    // });
     sendNudgeMessage(randomBotAgent.id);
   };
 
@@ -143,16 +140,71 @@ export function PromptForm({
               <IconDocument className="mr-2" />
               <div>Document</div>
             </Button> */}
-            {/* <Button
+            <Button
               variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
-              onClick={() => {
-                console.log('click audio');
+              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              onClick={async () => {
+                if (!microphoneSource) {
+                  // console.log('click audio');
+                  const audioContext = await ensureAudioContext();
+
+                  // list the available mics
+                  const devices = await navigator.mediaDevices.enumerateDevices();
+                  // console.log('got devices', devices);
+                  const audioInputDevices = devices.filter((device) => device.kind === 'audioinput');
+                  const micAudioInputDevices = audioInputDevices.filter((device) => /mic/i.test(device.label));
+                  const otherAudioInputDevices = audioInputDevices.filter((device) => !/mic/i.test(device.label));
+                  const audioInputDevice = micAudioInputDevices[0] || otherAudioInputDevices[0] || null;
+                  if (audioInputDevice) {
+                    const mediaStream = await navigator.mediaDevices.getUserMedia({
+                      audio: {
+                        deviceId: audioInputDevice.deviceId,
+                      },
+                    });
+                    // console.log('got media stream', mediaStream);
+                    const microphoneSource = createPcmF32MicrophoneSource({
+                      mediaStream,
+                      audioContext,
+                    });
+                    // microphoneSource.output.addEventListener('data', (e: any) => {
+                    //   console.log('got data', e.data);
+                    // });
+                    setMicrophoneSource(microphoneSource);
+
+                    const audioStream = new ReadableStream({
+                      start(controller) {
+                        microphoneSource.output.addEventListener('data', (e: any) => {
+                          controller.enqueue(e.data);
+                        });
+                        microphoneSource.output.addEventListener('end', (e: any) => {
+                          controller.close();
+                        });
+                      },
+                    }) as PlayableAudioStream;
+                    audioStream.id = crypto.randomUUID();
+                    audioStream.type = 'audio/pcm-f32';
+                    audioStream.disposition = 'text';
+          
+                    (async () => {
+                      console.log('start streaming');
+                      const {
+                        waitForFinish,
+                      } = addAudioSource(audioStream);
+                      await waitForFinish();
+                      removeAudioSource(audioStream);
+                    })();
+                  } else {
+                    console.warn('no audio input device found');
+                  }
+                } else {
+                  microphoneSource.close();
+                  setMicrophoneSource(null);
+                }
               }}
             >
               <IconAudio className="mr-2" />
               <div>Audio</div>
-            </Button> */}
+            </Button>
             {/* <Button
               variant="secondary"
               className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"

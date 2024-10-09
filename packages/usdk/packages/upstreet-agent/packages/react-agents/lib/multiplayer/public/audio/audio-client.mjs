@@ -141,11 +141,10 @@ export function createOpusMicrophoneSource({
   };
 };
 
-// media stream -> pcm (f32) audio output
-export function createPcmMicrophoneSource({
+// media stream -> pcm (Float32) audio output
+export function createPcmF32MicrophoneSource({
   mediaStream,
   audioContext,
-  codecs,
 }) {
   if (!audioContext) {
     throw new Error('missing audio context');
@@ -153,15 +152,11 @@ export function createPcmMicrophoneSource({
   if (!mediaStream) {
     throw new Error('missing media stream');
   }
-  if (!codecs) {
-    throw new Error('missing codecs');
-  }
 
   const output = new AudioOutput();
 
   const audioReader = new WsMediaStreamAudioReader(mediaStream, {
     audioContext,
-    codecs,
   });
   const _readLoop = async () => {
     for (;;) {
@@ -405,6 +400,9 @@ export function createMp3DecodeTransformStream({
   if (!sampleRate) {
     throw new Error('missing sample rate');
   }
+  if (!format) {
+    throw new Error('missing format');
+  }
   if (!codecs) {
     throw new Error('missing codecs');
   }
@@ -447,16 +445,21 @@ export function createMp3DecodeTransformStream({
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }
 
 export function createOpusDecodeTransformStream({
   sampleRate,
+  format = 'f32',
   codecs,
 }) {
   if (!sampleRate) {
     throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
   }
   if (!codecs) {
     throw new Error('missing codecs');
@@ -492,12 +495,49 @@ export function createOpusDecodeTransformStream({
   }
   const audioDecoder = new OpusAudioDecoder({
     sampleRate,
+    format,
     codecs,
     output: muxAndSend,
     error: onDecoderError,
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
+
+  return transformStream;
+}
+
+export function createPcmF32TransformStream({
+  sampleRate,
+  format = 'f32',
+}) {
+  if (!sampleRate) {
+    throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
+  }
+
+  throw new Error('not implemented');
+
+  let controller;
+  // const donePromise = makePromise();
+  const transformStream = new TransformStream({
+    start: c => {
+      controller = c;
+    },
+    transform: (chunk, controller) => {
+      console.log('decode pcm', chunk);
+      // const formatted = formatSamples(output, format, 'i16');
+    },
+    flush: async controller => {
+      console.log('flush pcm');
+      // await donePromise;
+    },
+  });
+
+  transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }

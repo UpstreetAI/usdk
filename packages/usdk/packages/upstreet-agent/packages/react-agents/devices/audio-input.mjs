@@ -13,6 +13,7 @@ import {
 // import {
 //   QueueManager,
 // } from '../util/queue-manager.mjs';
+import { resample } from '../lib/multiplayer/public/audio-worker/resample.mjs';
 
 //
 
@@ -170,20 +171,26 @@ class AudioChunker {
 }
 export class TranscribedVoiceInput extends EventTarget {
   static transcribeSampleRate = 24000;
-  audioInput;
+  // audioInput;
   abortController;
   constructor({
     audioInput,
-    sampleRate = TranscribedVoiceInput.transcribeSampleRate,
+    sampleRate = AudioInput.transcribeSampleRate,
     jwt,
   }) {
+    if (!audioInput) {
+      throw new Error('no audio input');
+    }
+    if (!sampleRate) {
+      throw new Error('no sample rate');
+    }
     if (!jwt) {
       throw new Error('no jwt');
     }
 
     super();
 
-    this.audioInput = audioInput;
+    // this.audioInput = audioInput;
 
     this.abortController = new AbortController();
     const {
@@ -225,10 +232,16 @@ export class TranscribedVoiceInput extends EventTarget {
       });
 
       const audioChunker = new AudioChunker({
-        sampleRate,
+        sampleRate: TranscribedVoiceInput.transcribeSampleRate,
+        chunkSize: 8 * 1024,
       });
       const ondata = async (f32) => {
         await openPromise;
+
+        // resample if needed
+        if (sampleRate !== TranscribedVoiceInput.transcribeSampleRate) {
+          f32 = resample(f32, sampleRate, TranscribedVoiceInput.transcribeSampleRate);
+        }
 
         const wavFrames = audioChunker.write(f32);
         for (const wavFrame of wavFrames) {
