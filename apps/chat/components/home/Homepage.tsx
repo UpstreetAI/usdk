@@ -10,6 +10,9 @@ import Link from 'next/link';
 import { Agents } from '../agents';
 import Dev from '../development';
 import { Button } from 'ucom';
+import { useMultiplayerActions } from '../ui/multiplayer-actions';
+import { useSupabase } from '@/lib/hooks/use-supabase';
+import { useEffect, useState } from 'react';
 
 const HeroImages = [
   '/images/backgrounds/homepage-hero.jpg',
@@ -18,6 +21,33 @@ const HeroImages = [
 ];
 
 export default function Home() {
+
+  const { agentJoinRandom } = useMultiplayerActions();
+  const { supabase } = useSupabase();
+  const [agents, setAgents] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('assets')
+          .select('*, author: accounts ( id, name )')
+          .eq('origin', 'sdk')
+          .limit(30);
+        
+        if (error) {
+          console.log(error);
+        } else {
+          setAgents(data);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchData();
+  }, [supabase]);
+
   return (
     <div className="w-full h-full z-1">
       <BackgroundSlider
@@ -59,7 +89,13 @@ export default function Home() {
       </div>
 
       <div className='w-full absolute bottom-10 flex justify-center py-4 gap-4'>
-        <Button size='large' className='w-40'>Chat</Button>
+        { agents.length > 0 && (
+          <Button size='large' className='w-40' onClick={async e => {
+            e.preventDefault();
+            e.stopPropagation();
+            await agentJoinRandom(agents);
+          }}>Chat</Button>
+        )}
         <Button size='large' className='w-40' href="/agents">Browse</Button>
       </div>
     </div>

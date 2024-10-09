@@ -89,6 +89,7 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
+  agentJoinRandom: () => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -709,6 +710,37 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to false
         setIsAgentLoading(false);
       },
+      agentJoinRandom: async (agentsArray: { id: string }[]) => {
+        const oldRoom = multiplayerState.getRoom();
+        const room = oldRoom || crypto.randomUUID();
+        
+        // Randomly select an agent from the passed array
+        const randomAgent = agentsArray[Math.floor(Math.random() * agentsArray.length)];
+        // Get agent id
+        const guid = randomAgent.id;
+
+        console.log('agent join', {
+          guid,
+          room,
+        });
+
+        // Set loading state to true
+        setIsAgentLoading(true);
+
+        // redirect to the room first
+        if (!/\/rooms\//.test(location.pathname)) {
+          router.push(`/rooms/${room}`);
+        }
+        // wait for the router to complete the navigation
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        await join({
+          room,
+          guid,
+        });
+
+        // Set loading state to false
+        setIsAgentLoading(false);
+      },
       agentLeave: async (guid: string, room: string) => {
         console.log('agent leave', {
           guid,
@@ -764,6 +796,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendMediaMessage = multiplayerState.sendMediaMessage;
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
+  const agentJoinRandom = multiplayerState.agentJoinRandom;
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
@@ -784,6 +817,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendMediaMessage,
         sendNudgeMessage,
         agentJoin,
+        agentJoinRandom,
         agentLeave,
         addAudioSource,
         removeAudioSource,
