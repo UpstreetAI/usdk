@@ -118,6 +118,17 @@ export class ChatsSpecification extends EventTarget {
       const _insertRow = async () => {
         await this.roomsQueueManager.waitForTurn(async () => {
           const key = getRoomsSpecificationKey(roomSpecification);
+          const existing = await this.supabase.from('chat_specifications')
+            .select('*')
+            .eq('id', key)
+            .eq('user_id', this.userId)
+            .single();
+
+          if (existing.data) {
+            console.log('chat specification already exists:', existing.data);
+            return;
+          }
+
           const result = await this.supabase.from('chat_specifications')
             .upsert({
               id: key,
@@ -135,15 +146,7 @@ export class ChatsSpecification extends EventTarget {
           if (!error) {
             // nothing
           } else {
-            /* 
-              unique row violation error code for when the record already exists
-              occurs when #joinInternal called from loadPromise (roomSpecs already exist in db for the agent)
-            */
-            if (error.code === '23505') {
-              console.log('Record with the same user_id and id already exists.');
-            } else {
-              console.error('Unexpected error occurred:', error);
-            }
+            throw new Error('failed to insert chat specification: ' + JSON.stringify(error));
           }
         });
       };
