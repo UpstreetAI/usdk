@@ -1,12 +1,14 @@
 import styles from './Button.module.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  size?: 'small' | 'medium' | 'large'; 
+  size?: 'small' | 'medium' | 'large';
   variant?: 'primary' | 'secondary' | 'ghost';
   shadow?: boolean;
   active?: boolean;
   disabled?: boolean;
   className?: string;
+  href?: string;
+  children: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -16,23 +18,42 @@ const Button: React.FC<ButtonProps> = ({
   active = false,
   disabled = false,
   className,
-  ...props 
+  href,
+  children,
+  ...props
 }) => {
-  return (
-    <button
-      className={
-        `${styles.ucomButton} 
+  return href ?
+    (
+      <a
+        className={
+          `${styles.ucomButton} 
          ${size && styles[size]}
          ${variant && styles[variant]}
          ${shadow && variant !== 'ghost' && !active && styles.shadow}
          ${active && styles.active}
          ${className}`
-      }
-      {...props}
-    >
-      {props.children}
-    </button>
-  );
+        }
+        href={href}
+      >
+        {children}
+      </a>
+    )
+    :
+    (
+      <button
+        className={
+          `${styles.ucomButton} 
+         ${size && styles[size]}
+         ${variant && styles[variant]}
+         ${shadow && variant !== 'ghost' && !active && styles.shadow}
+         ${active && styles.active}
+         ${className}`
+        }
+        {...props}
+      >
+        {children}
+      </button>
+    );
 };
 
 export default Button;
