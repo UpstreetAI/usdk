@@ -1,9 +1,6 @@
-// import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.js';
-// import {channelCount, sampleRate, bitrate, kbps, frameSize, voiceOptimization} from './ws-constants.js';
 import { resample } from './resample.mjs';
 import { formatSamples } from './format.mjs';
 import { QueueManager } from './queue-manager.mjs';
-// import { floatTo16Bit, int16ToFloat32 } from './convert.mjs';
 
 export const makeMp3Decoder = (MPEGDecoder) =>
 class WsMp3Decoder extends EventTarget {
