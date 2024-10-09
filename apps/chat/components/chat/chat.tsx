@@ -24,6 +24,7 @@ import { getJWT } from '@/lib/jwt';
 import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
@@ -78,8 +79,6 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   const [input, setInput] = useState('')
   const { user } = useSupabase();
-  
-  const [players, setPlayers] = useState([]);
 
   const {
     connected,
@@ -89,13 +88,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
     setMultiplayerConnectionParameters,
   } = useMultiplayerActions();
 
-  useEffect(() => {
-    const getPlayers = Array.from(playersMap.values()).sort((a, b) => {
-      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-    })
-    setPlayers(getPlayers);
-  }, []);
-
+  const players = Array.from(playersMap.values()).sort((a, b) => {
+    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+  })
+  
   useEffect(() => {
     onConnect && onConnect(connected);
   }, [connected]);
@@ -130,6 +126,8 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor();
+
+  const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   return (
     <div
