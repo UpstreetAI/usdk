@@ -563,7 +563,7 @@ export class DurableObject extends EventTarget {
       });
     }
   }
-  updateAlarm() {
+  async updateAlarm() {
     // get the next timeout
     const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
     const timeouts = agents.map((agent) =>
@@ -575,7 +575,7 @@ export class DurableObject extends EventTarget {
       timeouts.push(pingTimeout);
     }
     {
-      const oldAlarm = this.state.storage.getAlarm();
+      const oldAlarm = await this.state.storage.getAlarm();
       if (oldAlarm !== null) {
         timeouts.push(oldAlarm);
       }
