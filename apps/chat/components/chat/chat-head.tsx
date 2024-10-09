@@ -30,7 +30,7 @@ export function ChatHead() {
         <div className="absolute left-0 bottom-0 w-full h-full bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
         <span className="select-none text-gray-100 font-[Aller-Bold] text-2xl flex justify-between w-full items-center">
-          {roomName ? roomName : '156th Street'}
+          {roomName ? roomName : '156 Starlight Street'}
         </span>
 
         <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex">
