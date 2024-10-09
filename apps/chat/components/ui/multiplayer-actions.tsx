@@ -13,7 +13,10 @@ import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import type {
   ActionMessage,
   Attachment,
+  PlayableAudioStream,
 } from 'react-agents/types';
+import { useLoading } from '@/lib/client/hooks/use-loading';
+import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 
 //
 
@@ -87,6 +90,10 @@ interface MultiplayerActionsContextType {
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
+  addAudioSource: (stream: PlayableAudioStream) => {
+    waitForFinish: () => Promise<void>
+  }
+  removeAudioSource: (stream: PlayableAudioStream) => void
   typingMap: TypingMap
   epoch: number
 }
@@ -376,24 +383,28 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         playerId,
         streamId,
         type,
+        disposition,
       } = e.data;
 
-      const outputStream = new AudioContextOutputStream();
-      const { sampleRate } = outputStream;
+      if (disposition === 'audio') {
+        const outputStream = new AudioContextOutputStream();
+        const { sampleRate } = outputStream;
 
-      // decode stream
-      const decodeStream = new AudioDecodeStream({
-        type,
-        sampleRate,
-        format: 'f32',
-      }) as any;
-      decodeStream.readable.pipeTo(outputStream);
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          format: 'f32',
+          codecs,
+        }) as any;
+        decodeStream.readable.pipeTo(outputStream);
 
-      const writer = decodeStream.writable.getWriter();
-      writer.metadata = {
-        playerId,
-      };
-      audioStreams.set(streamId, writer);
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
     });
     virtualPlayers.addEventListener('audio', (e: any) => {
       const {
@@ -407,7 +418,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         stream.write(data);
       } else {
         // throw away unmapped data
-        console.warn('dropping audio data', e.data);
+        // console.warn('dropping audio data', e.data);
       }
     });
     virtualPlayers.addEventListener('audioend', (e: any) => {
@@ -525,7 +536,8 @@ const makeFakePlayerSpec = () => (
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
-  const router = useRouter()
+  const router = useRouter();
+  const { setIsAgentLoading } = useLoading();
   const [epoch, setEpoch] = React.useState(0);
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let connected = false;
@@ -679,14 +691,23 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           guid,
           room,
         });
+
+        // Set loading state to true
+        setIsAgentLoading(true);
+
+        // redirect to the room first
+        if (!/\/rooms\//.test(location.pathname)) {
+          router.push(`/rooms/${room}`);
+        }
+        // wait for the router to complete the navigation
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await join({
           room,
           guid,
         });
-        // redirect to the room, as necessary
-        if (!/\/rooms\//.test(location.pathname)) {
-          router.push(`/rooms/${room}`);
-        }
+
+        // Set loading state to false
+        setIsAgentLoading(false);
       },
       agentLeave: async (guid: string, room: string) => {
         console.log('agent leave', {
@@ -709,6 +730,22 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           const blob = await res.blob();
         }
       },
+      addAudioSource: (stream: PlayableAudioStream) => {
+        if (realms) {
+          return realms.addAudioSource(stream) as {
+            waitForFinish: () => Promise<void>
+          };
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
+      removeAudioSource: (stream: PlayableAudioStream) => {
+        if (realms) {
+          realms.removeAudioSource(stream);
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
       typingMap,
     };
     return multiplayerState;
@@ -728,6 +765,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
   const agentLeave = multiplayerState.agentLeave;
+  const addAudioSource = multiplayerState.addAudioSource;
+  const removeAudioSource = multiplayerState.removeAudioSource;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -746,6 +785,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendNudgeMessage,
         agentJoin,
         agentLeave,
+        addAudioSource,
+        removeAudioSource,
         typingMap,
         epoch,
       }}

@@ -66,7 +66,10 @@ import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/l
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/audio-decode.mjs';
-import { SpeakerOutputStream } from './packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs';
+
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-local.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
@@ -825,6 +828,16 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
   }
 }; */
 const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
+  // dynamic import audio output module
+  const audioOutput = await (async () => {
+    try {
+      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
+    } catch (err) {
+      return null;
+    }
+  })();
+  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
+
   const getUserAsset = async () => {
     if (!anonymous) {
       let user = null;
@@ -995,31 +1008,35 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         playerId,
         streamId,
         type,
+        disposition,
       } = e.data;
 
-      const outputStream = new SpeakerOutputStream();
-      const { sampleRate } = outputStream;
+      if (disposition === 'audio') {
+        const outputStream = new SpeakerOutputStream();
+        const { sampleRate } = outputStream;
 
-      // decode stream
-      const decodeStream = new AudioDecodeStream({
-        type,
-        sampleRate,
-        format: 'i16',
-      });
-      (async () => {
-        speakerMap.set(playerId, true);
-        try {
-          await decodeStream.readable.pipeTo(outputStream);
-        } finally {
-          speakerMap.set(playerId, false);
-        }
-      })();
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          codecs,
+          format: 'i16',
+        });
+        (async () => {
+          speakerMap.set(playerId, true);
+          try {
+            await decodeStream.readable.pipeTo(outputStream);
+          } finally {
+            speakerMap.set(playerId, false);
+          }
+        })();
 
-      const writer = decodeStream.writable.getWriter();
-      writer.metadata = {
-        playerId,
-      };
-      audioStreams.set(streamId, writer);
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
     });
     virtualPlayers.addEventListener('audio', e => {
       const {
@@ -1033,7 +1050,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         stream.write(data);
       } else {
         // throw away unmapped data
-        console.warn('dropping audio data', e.data);
+        // console.warn('dropping audio data', e.data);
       }
     });
     virtualPlayers.addEventListener('audioend', e => {
@@ -1053,7 +1070,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       }
     });
   };
-  if (media) {
+  if (media && SpeakerOutputStream) {
     _trackAudio();
   }
 
@@ -1314,7 +1331,6 @@ const startMultiplayerListener = ({
     };
 
     let microphoneInput = null;
-    let transcribedVoiceInput = null;
     const microphoneQueueManager = new QueueManager();
     const toggleMic = async () => {
       await microphoneQueueManager.waitForTurn(async () => {
@@ -1354,44 +1370,32 @@ const startMultiplayerListener = ({
           });
           console.log('* mic enabled *');
 
-          transcribedVoiceInput = new TranscribedVoiceInput({
-            audioInput: microphoneInput,
-            sampleRate,
-            jwt,
+          const audioStream = new ReadableStream({
+            start(controller) {
+              microphoneInput.on('data', (data) => {
+                controller.enqueue(data);
+              });
+              microphoneInput.on('end', (e) => {
+                controller.close();
+              });
+            },
           });
-          transcribedVoiceInput.addEventListener('speechstart', async (e) => {
-            // console.log('speechstart', e.data);
-            speakerMap.setLocal(true);
-          });
-          transcribedVoiceInput.addEventListener('speechstop', async (e) => {
-            // console.log('speechstop', e.data);
-            speakerMap.setLocal(false);
-          });
-          transcribedVoiceInput.addEventListener('transcription', async (e) => {
-            console.log('transcription: ', e.data.transcript);
-            /* const {
-              buffers,
-              sampleRate,
-            } = e.data;
-            const mp3Buffer = await encodeMp3(buffers, {
-              sampleRate,
-            });
-            const jwt = await ensureJwt();
-            const transcription = await transcribe(mp3Buffer, {
-              jwt,
-            });
-            replServer.clearBufferedCommand();
-            console.log(transcription);
-            sendChatMessage(transcription);
+          audioStream.id = crypto.randomUUID();
+          audioStream.type = 'audio/pcm-f32';
+          audioStream.disposition = 'text';
 
-            speakerMap.setLocal(false); */
-          });
+          (async () => {
+            console.log('start streaming');
+            const {
+              waitForFinish,
+            } = realms.addAudioSource(audioStream);
+            await waitForFinish();
+            realms.removeAudioSource(audioStream);
+          })();
           renderPrompt();
         } else {
           microphoneInput.close();
           microphoneInput = null;
-          transcribedVoiceInput.close();
-          transcribedVoiceInput = null;
           console.log('* mic disabled *');
           renderPrompt();
         }
@@ -2451,7 +2455,7 @@ const capture = async (args) => {
           throw new Error('invalid microphone device');
         }
 
-        const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+        const sampleRate = AudioInput.defaultSampleRate;
         const microphoneInput = inputDevices.getAudioInput(microphoneDevice.id, {
           sampleRate,
         });
@@ -2471,7 +2475,7 @@ const capture = async (args) => {
           console.log('captured');
         });
         transcribedVoiceInput.addEventListener('transcription', async (e) => {
-          console.log('transcriptionput', e.data);
+          console.log('transcription', e.data);
         });
       }
       
@@ -3116,6 +3120,7 @@ const voice = async (args) => {
                     type,
                     sampleRate,
                     format: 'i16',
+                    codecs,
                   });
 
                   console.log('playing...')

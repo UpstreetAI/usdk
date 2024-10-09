@@ -2,18 +2,33 @@ import WASMAudioDecoderCommon from "@wasm-audio-decoders/common/src/WASMAudioDec
 
 import EmscriptenWASM from "./EmscriptenWasm.js";
 
-import wasmAudioDecoderCommon from './wasm-audio-decoder-common.wasm';
-import emscriptenWasm from './emscripten-wasm.wasm';
+import wasmAudioDecoderCommonUrl from './wasm-audio-decoder-common.wasm';
+import emscriptenWasmUrl from './emscripten-wasm.wasm';
 
 export default function MPEGDecoder(options = {}) {
   // injects dependencies when running as a web worker
   // async
   this._init = () => {
-    const common = new this._WASMAudioDecoderCommon();
-    this._WASMAudioDecoderCommon.setModule(this._WASMAudioDecoderCommon, wasmAudioDecoderCommon);
-    this._WASMAudioDecoderCommon.setModule(this._EmscriptenWASM, emscriptenWasm);
-    return common
-      .instantiate(this._EmscriptenWASM, this._module)
+    return Promise.resolve(null)
+      .then(async () => {
+        const common = new this._WASMAudioDecoderCommon();
+        const [
+          wasmAudioDecoderCommon,
+          emscriptenWasm,
+        ] = await Promise.all([
+          (async () => {
+            const res = await fetch(wasmAudioDecoderCommonUrl);
+            return await WebAssembly.compileStreaming(res);
+          })(),
+          (async () => {
+            const res = await fetch(emscriptenWasmUrl);
+            return await WebAssembly.compileStreaming(res);
+          })(),
+        ]);
+        this._WASMAudioDecoderCommon.setModule(this._WASMAudioDecoderCommon, wasmAudioDecoderCommon);
+        this._WASMAudioDecoderCommon.setModule(this._EmscriptenWASM, emscriptenWasm);
+        return await common.instantiate(this._EmscriptenWASM, this._module);
+      })
       .then((common) => {
         this._common = common;
 

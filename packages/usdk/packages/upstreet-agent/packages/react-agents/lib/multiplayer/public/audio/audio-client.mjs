@@ -1,53 +1,22 @@
 // import {UPDATE_METHODS} from '../update-types.js';
 // import {zbencode} from '../../../zjs/encoding.mjs';
 // import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
-import {WsMediaStreamAudioReader, OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder, FakeAudioData} from './ws-codec.mjs';
+import {OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder} from './ws-codec.mjs';
+import {WsMediaStreamAudioReader, FakeAudioData} from './ws-codec-util.mjs';
+import {AudioOutput} from './audio-classes.mjs';
 import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './audio-util.mjs';
 import { makeId, makePromise } from '../util.mjs';
-
-
-//
-// AUDIO OUTPUTS
-//
-
-class AudioOutput extends EventTarget {
-  constructor() {
-    super();
-
-    this.live = true;
-  }
-  write(data) {
-    this.dispatchEvent(new MessageEvent('data', {
-      data,
-    }));
-  }
-  end() {
-    this.live = false;
-    this.dispatchEvent(new MessageEvent('end'));
-  }
-  readAll() {
-    return new Promise((accept, reject) => {
-      const bs = [];
-      if (this.live) {
-        this.addEventListener('data', e => {
-          bs.push(e.data);
-        });
-        this.addEventListener('end', () => {
-          accept(bs);
-        });
-      } else {
-        accept(bs);
-      }
-    });
-  }
-}
 
 // opus stream -> decoded output audio node
 export function createOpusAudioOutputStream({
   audioContext,
+  codecs,
 }) {
   if (!audioContext) {
-    debugger;
+    throw new Error('missing audio context');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   const audioWorkletNode = new AudioWorkletNode(
@@ -110,14 +79,16 @@ export function createOpusAudioOutputStream({
 export function createOpusMicrophoneSource({
   mediaStream,
   audioContext,
+  codecs,
 }) {
-  // // const audioContext = await ensureAudioContext();
   if (!audioContext) {
-    debugger;
+    throw new Error('missing audio context');
   }
-  // audioContext.resume();
   if (!mediaStream) {
-    debugger;
+    throw new Error('missing media stream');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   const output = new AudioOutput();
@@ -135,6 +106,7 @@ export function createOpusMicrophoneSource({
   }
   const audioEncoder = new OpusAudioEncoder({
     sampleRate: audioContext.sampleRate,
+    codecs,
     output: muxAndSend,
     error: onEncoderError,
   });
@@ -169,18 +141,16 @@ export function createOpusMicrophoneSource({
   };
 };
 
-// media stream -> pcm (f32) audio output
-export function createPcmMicrophoneSource({
+// media stream -> pcm (Float32) audio output
+export function createPcmF32MicrophoneSource({
   mediaStream,
   audioContext,
 }) {
-  // // const audioContext = await ensureAudioContext();
   if (!audioContext) {
-    debugger;
+    throw new Error('missing audio context');
   }
-  // audioContext.resume();
   if (!mediaStream) {
-    debugger;
+    throw new Error('missing media stream');
   }
 
   const output = new AudioOutput();
@@ -221,14 +191,13 @@ export function createPcmMicrophoneSource({
 export function createOpusReadableStreamSource({
   readableStream,
   // audioContext,
+  codecs,
 }) {
-  // const audioContext = await ensureAudioContext();
-  // if (!audioContext) {
-  //   debugger;
-  // }
-  // audioContext.resume();
   if (!readableStream) {
-    debugger;
+    throw new Error('missing readable stream');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   const {sampleRate} = readableStream;
@@ -253,6 +222,7 @@ export function createOpusReadableStreamSource({
   }
   const audioEncoder = new OpusAudioEncoder({
     sampleRate,
+    codecs,
     output: muxAndSend,
     error: onEncoderError,
   });
@@ -293,14 +263,13 @@ export function createOpusReadableStreamSource({
 export function createMp3ReadableStreamSource({
   readableStream,
   // audioContext,
+  codecs,
 }) {
-  // const audioContext = await ensureAudioContext();
-  // if (!audioContext) {
-  //   debugger;
-  // }
-  // audioContext.resume();
   if (!readableStream) {
-    debugger;
+    throw new Error('missing readable stream');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   const {sampleRate} = readableStream;
@@ -325,6 +294,7 @@ export function createMp3ReadableStreamSource({
   }
   const audioEncoder = new Mp3AudioEncoder({
     sampleRate,
+    codecs,
     output: muxAndSend,
     error: onEncoderError,
   });
@@ -365,6 +335,7 @@ export function createMp3ReadableStreamSource({
 export function createMp3MicrophoneSource({
   mediaStream,
   audioContext,
+  codecs,
 }) {
   const output = new AudioOutput();
 
@@ -387,6 +358,7 @@ export function createMp3MicrophoneSource({
 
   const audioReader = new WsMediaStreamAudioReader(mediaStream, {
     audioContext,
+    codecs,
   });
   async function readAndEncode() {
     const result = await audioReader.read();
@@ -423,9 +395,16 @@ export function createMp3DecodeTransformStream({
   sampleRate,
   format = 'f32',
   transferBuffers,
+  codecs,
 }) {
   if (!sampleRate) {
-    debugger;
+    throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   let controller;
@@ -435,7 +414,7 @@ export function createMp3DecodeTransformStream({
       controller = c;
     },
     transform: (chunk, controller) => {
-      // console.log('decode data 1', chunk);
+      // console.log('decoding data', chunk);
       audioDecoder.decode(chunk);
     },
     flush: async controller => {
@@ -445,8 +424,8 @@ export function createMp3DecodeTransformStream({
   });
 
   const muxAndSend = encodedChunk => {
-    // console.log('decode data', encodedChunk.data);
-    if (encodedChunk.data) {
+    // console.log('decoded data', encodedChunk);
+    if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
       // controller.enqueue(null);
@@ -459,21 +438,31 @@ export function createMp3DecodeTransformStream({
   const audioDecoder = new Mp3AudioDecoder({
     sampleRate,
     format,
+    codecs,
     transferBuffers,
     output: muxAndSend,
     error: onDecoderError,
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }
 
 export function createOpusDecodeTransformStream({
   sampleRate,
+  format = 'f32',
+  codecs,
 }) {
   if (!sampleRate) {
     throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   let controller;
@@ -493,8 +482,8 @@ export function createOpusDecodeTransformStream({
   });
 
   const muxAndSend = encodedChunk => {
-    // console.log('decode data', encodedChunk.data);
-    if (encodedChunk.data) {
+    console.log('decode data', encodedChunk.data);
+    if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
       // controller.enqueue(null);
@@ -506,11 +495,49 @@ export function createOpusDecodeTransformStream({
   }
   const audioDecoder = new OpusAudioDecoder({
     sampleRate,
+    format,
+    codecs,
     output: muxAndSend,
     error: onDecoderError,
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
+
+  return transformStream;
+}
+
+export function createPcmF32TransformStream({
+  sampleRate,
+  format = 'f32',
+}) {
+  if (!sampleRate) {
+    throw new Error('missing sample rate');
+  }
+  if (!format) {
+    throw new Error('missing format');
+  }
+
+  throw new Error('not implemented');
+
+  let controller;
+  // const donePromise = makePromise();
+  const transformStream = new TransformStream({
+    start: c => {
+      controller = c;
+    },
+    transform: (chunk, controller) => {
+      console.log('decode pcm', chunk);
+      // const formatted = formatSamples(output, format, 'i16');
+    },
+    flush: async controller => {
+      console.log('flush pcm');
+      // await donePromise;
+    },
+  });
+
+  transformStream.readable.sampleRate = sampleRate;
+  transformStream.readable.format = format;
 
   return transformStream;
 }
@@ -522,9 +549,13 @@ export function createOpusDecodeTransformStream({
 export function createMp3EncodeTransformStream({
   sampleRate,
   transferBuffers,
+  codecs,
 }) {
   if (!sampleRate) {
-    debugger;
+    throw new Error('missing sample rate');
+  }
+  if (!codecs) {
+    throw new Error('missing codecs');
   }
 
   let controller;
@@ -563,6 +594,7 @@ export function createMp3EncodeTransformStream({
   const audioEncoder = new Mp3AudioEncoder({
     sampleRate,
     transferBuffers,
+    codecs,
     output: muxAndSend,
     error: onEncoderError,
   });

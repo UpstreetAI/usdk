@@ -241,6 +241,17 @@ export class ChatsManager {
               //   console.warn('received own message from realms "chat" event; this should not happen', message);
               }
             });
+
+            // audio streams
+            virtualPlayers.addEventListener('audiostart', async (e) => {
+              console.log('got audio start', e.data);
+            });
+            virtualPlayers.addEventListener('audio', async (e) => {
+              console.log('got audio data', e.data);
+            });
+            virtualPlayers.addEventListener('audioend', async (e) => {
+              console.log('got audio end', e.data);
+            });
           };
           const _bindOutgoing = () => {
             // chat messages

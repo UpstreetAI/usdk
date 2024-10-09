@@ -31,6 +31,7 @@ import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
+import { useLoading } from '@/lib/client/hooks/use-loading';
 
 
 //
@@ -135,6 +136,8 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
+  const { isAgentLoading } = useLoading();
+  
   return (
     <div
       className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
@@ -154,6 +157,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
             null
           )
         ) : <EmptyScreen />}
+        
+        <div className="relative mx-auto max-w-2xl px-4">
+          {isAgentLoading && "Loading agent..."}
+        </div>
 
         <div className="w-full h-px" ref={visibilityRef} />
       </div>

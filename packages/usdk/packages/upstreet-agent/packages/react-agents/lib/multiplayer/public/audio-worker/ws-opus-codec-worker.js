@@ -1,12 +1,15 @@
+import libopus from './libopusjs/libopus.wasm.fetch.js';
 import {
-  WsOpusCodec,
+  makeOpusCodec,
 } from './ws-opus-codec.mjs';
+
+const WsOpusCodec = makeOpusCodec(libopus);
 
 const codec = new WsOpusCodec();
 onmessage = e => {
   codec.postMessage(e.data);
 };
-codec.addEventListener('postmessage', e => {
+codec.addEventListener('message', e => {
   const {
     data,
     transferList,

@@ -1,43 +1,19 @@
-import libopus from './libopusjs/libopus.wasm.js';
-
-// import Encoder from './opus-encdec/dist/libopus-encoder.wasm.js';
-// import Decoder from './opus-encdec/dist/libopus-decoder.wasm.js';
-// import { OggOpusEncoder } from './opus-encdec/src/oggOpusEncoder.js';
-// import { OggOpusDecoder } from './opus-encdec/src/oggOpusDecoder.js';
-
-// import OpusScript from './opusscript/index.js';
-
 import {channelCount, /*sampleRate, */ bitrate, frameSize, voiceOptimization} from '../audio/ws-constants.js';
 import { QueueManager } from '../../../../util/queue-manager.mjs';
+import { floatTo16Bit, int16ToFloat32 } from './convert.mjs';
 
-function floatTo16Bit(inputArray){
-  const output = new Int16Array(inputArray.length);
-  for (let i = 0; i < inputArray.length; i++){
-    const s = Math.max(-1, Math.min(1, inputArray[i]));
-    output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-  }
-  return output;
-}
-function int16ToFloat32(inputArray) {
-  const output = new Float32Array(inputArray.length);
-  for (let i = 0; i < inputArray.length; i++) {
-    const int = inputArray[i];
-    const float = (int >= 0x8000) ? -(0x10000 - int) / 0x8000 : int / 0x7FFF;
-    output[i] = float;
-  }
-  return output;
-}
-
-export class WsOpusCodec extends EventTarget {
+export const makeOpusCodec = (libopus) =>
+class WsOpusCodec extends EventTarget {
   constructor() {
     super();
     
     const readyPromise = libopus.waitForReady();
     
-    this.onmessage = e => {
+    this.handlemessage = e => {
       const {
         mode,
         sampleRate,
+        format,
       } = e.data;
       switch (mode) {
         case 'encode': {
@@ -48,7 +24,7 @@ export class WsOpusCodec extends EventTarget {
           })();
           const queueManager = new QueueManager();
     
-          this.onmessage = async e => {
+          this.handlemessage = async e => {
             await queueManager.waitForTurn(async () => {
               const enc = await encoderPromise;
     
@@ -86,7 +62,7 @@ export class WsOpusCodec extends EventTarget {
           })();
           const queueManager = new QueueManager();
     
-          this.onmessage = async e => {
+          this.handlemessage = async e => {
             await queueManager.waitForTurn(async () => {
               const dec = await decoderPromise;
     
@@ -95,8 +71,8 @@ export class WsOpusCodec extends EventTarget {
     
                 let output;
                 while (output = dec.output()) {
-                  const result2 = int16ToFloat32(output);
-                  this.dispatchMessage(result2, [result2.buffer]);
+                  const formatted = formatSamples(output, format, 'i16');
+                  this.dispatchMessage(formatted, [formatted.buffer]);
                 }
               } else {
                 this.dispatchMessage(null);
@@ -111,13 +87,13 @@ export class WsOpusCodec extends EventTarget {
     };
   }
   postMessage(data, transferList) {
-    this.onmessage({
+    this.handlemessage({
       data,
       transferList,
     });
   }
   dispatchMessage(data, transferList) {
-    this.dispatchEvent(new MessageEvent('postmessage', {
+    this.dispatchEvent(new MessageEvent('message', {
       data,
       transferList,
     }));
