@@ -24,7 +24,6 @@ import { getJWT } from '@/lib/jwt';
 import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
@@ -131,8 +130,6 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor();
-
-  const { toggleRightSidebar, isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   return (
     <div
