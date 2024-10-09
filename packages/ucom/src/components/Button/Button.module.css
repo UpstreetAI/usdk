@@ -13,6 +13,11 @@
   padding: 1rem;
 }
 
+a.ucomButton {
+  text-decoration: none;
+  text-align: center;
+}
+
 .ucomButton.small {
   padding: 1rem;
 }
