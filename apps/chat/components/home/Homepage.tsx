@@ -65,27 +65,12 @@ export default function Home() {
           </div>
 
           <div className='h-full w-[30%]'>
-            <Carousel
-              autoPlay={true}
-              infiniteLoop={true}
-              showArrows={false}
-              showThumbs={false}
-              showIndicators={false}
-              showStatus={false}
-              className='absolute bottom-0 w-[440px]'
-            >
-              <div>
-                <img src="/images/avatar-1.png" />
-              </div>
-              <div>
-                <img src="/images/avatar-2.png" />
-              </div>
-            </Carousel>
+          <Agents search={false} loadmore={false} range={3} row={true} />
           </div>
         </div>
       </div>
 
-      <div className="w-full bg-[#000000] py-20">
+      {/* <div className="w-full bg-[#000000] py-20">
         <div className="p-4 mx-auto max-w-6xl h-full">
           <div className='h-full my-auto'>
             <div className='text-4xl font-bold mb-4'>Lets be friends</div>
@@ -97,13 +82,6 @@ export default function Home() {
               <Agents search={false} loadmore={false} range={6} />
             </div>
             <div className='pt-4'>
-              {/* <a
-                onClick={() => {
-                  newChat();
-                }}
-                className='bg-[#ffe477] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4 mr-2'>
-                New Chat
-              </a> */}
               <Link href="/agents" className='bg-[#67caf8] hover:bg-[#e5e2ee] hover:opacity-[0.6] text-xl font-bold text-black px-8 rounded-md py-4'>
                 Browse All Agents
               </Link>
@@ -136,7 +114,8 @@ export default function Home() {
           </div>
 
         </div>
-      </div>
+      </div> */}
+
     </div>
   );
 }
