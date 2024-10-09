@@ -14,7 +14,7 @@ export async function SidebarDesktopLeft() {
 
 export async function SidebarDesktopRight() {
   return (
-    <Sidebar position="right" className="hidden md:block peer peerRight absolute inset-y-0 z-30 hidden translate-x-full border-r bg-muted duration-300 ease-in-out data-[state=open]:translate-x-0 w-[300px] lg:w-[300px] xl:w-[300px] right-0">
+    <Sidebar position="right" className="hidden md:block peer peerRight absolute inset-y-0 z-[110] hidden translate-x-full border-r bg-muted duration-300 ease-in-out data-[state=open]:translate-x-0 w-[300px] lg:w-[300px] xl:w-[300px] right-0 top-0">
       <RoomUi />
     </Sidebar>
   )
