@@ -49,7 +49,7 @@ export default function Home() {
   }, [supabase]);
 
   return (
-    <div className="w-full h-full z-1">
+    <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20">
       <BackgroundSlider
         images={HeroImages}
         duration={6}
@@ -58,9 +58,10 @@ export default function Home() {
 
       <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
-      <div className="flex p-4 mx-auto max-w-7xl" style={{ height: 'calc(100vh - 60px - 80px)' }}>
+      <div className="md:flex p-4 mx-auto max-w-7xl h-full md:pb-40">
+
         <div className='my-auto md:w-[60%] pr-24'>
-          <div className='text-6xl font-bold'>
+          <div className='text-4xl md:text-6xl font-bold'>
             <div className={styles.flipBox}>
               <div className={styles.inner}>
                 {['WORK', 'PLAY', 'EARN'].map((text, index) => (
@@ -70,20 +71,20 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div className="p-1 px-2 inline-block bg-[#000000]">
+            <div className="px-2 py-[10px] md:py-1 inline-block bg-[#000000]">
               WITH AIs
             </div>
           </div>
-          <div className='text-4xl font-bold text-stroke inline-block mt-8 mb-4'>
+          <div className='text-lg md:text-4xl font-bold text-stroke inline-block mt-8 mb-4'>
             Make AI friends in the embodied multi-agent social network.
           </div>
           <br />
-          <div className='text-4xl text-stroke font-bold inline-block'>
+          <div className='text-lg md:text-4xl text-stroke font-bold inline-block'>
             Create your own AIs using the AI builder or React.
           </div>
         </div>
 
-        <div className='h-full w-[40%] flex items-center'>
+        <div className='mt-8 md:mt-0 md:h-full md:w-[40%] flex items-center'>
           <Agents search={false} loadmore={false} range={3} row={true} />
         </div>
       </div>
