@@ -86,16 +86,28 @@ module.exports = {
     }
   },
   plugins: [
-    require('tailwindcss-animate'), 
+    require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
-    function ({ addUtilities } : any) {
+    function ({ addUtilities }: any) {
       const newUtilities = {
         '.text-stroke': {
           'text-shadow': `
-            -2px -2px 0 black,
-            2px -2px 0 black,
-            -2px 2px 0 black,
-            2px 2px 0 black
+            -1px -1px 0 black,  
+            1px -1px 0 black,
+            -1px  1px 0 black,
+            1px  1px 0 black,
+            -2px  0px 0 black,  
+            2px  0px 0 black,
+            0px -2px 0 black,
+            0px  2px 0 black,
+            -1px -2px 0 black,
+            1px -2px 0 black,
+            -1px  2px 0 black,
+            1px  2px 0 black,
+            -2px -1px 0 black,
+            2px -1px 0 black,
+            -2px  1px 0 black,
+            2px  1px 0 black
           `,
         },
       }
