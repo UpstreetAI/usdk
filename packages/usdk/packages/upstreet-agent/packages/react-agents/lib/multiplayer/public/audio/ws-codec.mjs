@@ -27,6 +27,10 @@ export class OpusAudioEncoder {
   encode(audioData) {
     this.worker.postMessage(audioData.data, audioData.data !== null ? [audioData.data.buffer] : []);
   }
+
+  close() {
+    this.worker.terminate();
+  }
 }
 
 export class OpusAudioDecoder {
@@ -95,6 +99,10 @@ export class Mp3AudioEncoder {
   encode(audioData) {
     this.worker.postMessage(audioData.data, this.transferBuffers && audioData.data !== null ? [audioData.data.buffer] : []);
   }
+
+  close() {
+    this.worker.terminate();
+  }
 }
 
 export class Mp3AudioDecoder {
@@ -139,5 +147,9 @@ export class Mp3AudioDecoder {
 
   decode(data) {
     this.worker.postMessage(data, this.transferBuffers && data !== null ? [data.buffer] : []);
+  }
+
+  close() {
+    this.worker.terminate();
   }
 }
