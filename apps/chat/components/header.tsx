@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { IconUpstreet, IconUpstreetChat } from '@/components/ui/icons';
 import { AccountOrLogin } from '@/components/account-or-login';
 import { SearchBar } from '@/components/searchbar';
+import { IconButton } from 'ucom';
 
 
 export function Header() {
@@ -21,12 +22,11 @@ export function Header() {
             <IconUpstreet className="hidden mr-2 fill-white size-9 w-auto dark:block" />
           </a>
         </div>
-        <a href="/agents" rel="nofollow" className='mr-4'>
-          Agents
-        </a>
-        <a href="/accounts" rel="nofollow">
-          Accounts
-        </a>
+        <div className='flex gap-4'>
+          <IconButton href="/agents" icon="Users" />
+          {/* <IconButton href="/rooms" icon="Room" /> */}
+          <IconButton href="/accounts" icon="Head" />
+        </div>
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
       <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
