@@ -1,4 +1,4 @@
-import * as alawmulaw from 'alawmulaw';
+import { mulaw } from 'alawmulaw';
 import {
   floatTo16Bit,
   int16ToFloat32,
@@ -8,8 +8,6 @@ import { QueueManager } from './queue-manager.mjs';
 import {
   aiHost,
 } from './endpoints.mjs';
-
-const { mulaw } = alawmulaw.default;
 
 const defaultTranscriptionModel = 'whisper-1';
 // const defaultRealtimeModel = 'gpt-4o-realtime-preview-2024-10-01';
