@@ -6,6 +6,7 @@
     "@supabase/supabase-js": "^2.39.8",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/react": "^18.3.3",
+    "alawmulaw": "^6.0.0",
     "browser-util-inspect": "^0.2.0",
     "dedent": "^1.5.3",
     "ethers": "^6.12.0",
