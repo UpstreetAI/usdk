@@ -2466,6 +2466,7 @@ const capture = async (args) => {
         const transcribedVoiceInput = new TranscribedVoiceInput({
           audioInput: microphoneInput,
           sampleRate,
+          codecs,
           jwt,
         });
         transcribedVoiceInput.addEventListener('speechstart', e => {
