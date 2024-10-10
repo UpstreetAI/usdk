@@ -160,7 +160,7 @@ const log = (...args) => {
 
 //
 
-const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost() : getCloudAgentHost(agentSpec.guid);
+const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost(portIndex) : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
@@ -1676,12 +1676,12 @@ const chat = async (args) => {
 
     // wait for agents to join the multiplayer room
     await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
+      agentSpecs.map(async (agentSpec, index) => {
         await join({
           _: [agentSpec.ref, room],
           // dev,
           // debug,
-        });
+        }, index);
       }),
     );
 
@@ -2900,13 +2900,13 @@ const rm = async (args) => {
     process.exit(1);
   }
 };
-const join = async (args) => {
+const join = async (args, index) => {
   const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
-    const _joinAgent = async (agentSpec, room) => {
-      const u = `${getAgentSpecHost(agentSpec)}/join`;
+    const _joinAgent = async (agentSpec, room, portIndex) => {
+      const u = `${getAgentSpecHost(agentSpec, portIndex)}/join`;
       const joinReq = await fetch(u, {
         method: 'POST',
         body: JSON.stringify({
@@ -2927,7 +2927,7 @@ const join = async (args) => {
     };
 
     if (room) {
-      return await _joinAgent(agentSpecs[0], room);
+      return await _joinAgent(agentSpecs[0], room, index);
     } else {
       console.log('no room name provided');
       process.exit(1);
