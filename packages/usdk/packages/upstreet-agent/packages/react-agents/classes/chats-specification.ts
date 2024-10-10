@@ -137,8 +137,6 @@ export class ChatsSpecification extends EventTarget {
                 room: roomSpecification.room,
                 endpoint_url: roomSpecification.endpointUrl,
               },
-            }, {
-              onConflict: ['user_id', 'id']
             });
           const {
             error,
