@@ -1,4 +1,4 @@
-import { mulaw } from 'alawmulaw';
+import { mulaw } from '../lib/alawmulaw/dist/alawmulaw.mjs';
 import {
   floatTo16Bit,
   int16ToFloat32,

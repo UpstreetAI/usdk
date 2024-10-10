@@ -1,7 +1,6 @@
 {
   "main": "index.tsx",
   "dependencies": {
-    "alawmulaw": "file:./packages/alawmulaw",
     "playwright-core": "file:./packages/playwright-core"
   }
 }
