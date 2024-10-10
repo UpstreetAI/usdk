@@ -118,3 +118,15 @@
 .ucomIconButton:hover .iconShadow {
   display: none;
 }
+
+/* Label */
+
+.label {
+  font-size: 12px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  text-transform: uppercase;
+}
