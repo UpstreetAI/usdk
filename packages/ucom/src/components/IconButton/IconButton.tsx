@@ -3,11 +3,12 @@ import styles from './IconButton.module.css';
 
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string;
-  size?: 'small' | 'medium' | 'large'; 
+  size?: 'small' | 'medium' | 'large';
   variant?: 'primary' | 'secondary' | 'ghost';
   shadow?: boolean;
   active?: boolean;
   disabled?: boolean;
+  label?: string;
   href?: string;
 }
 
@@ -18,8 +19,9 @@ const IconButton: React.FC<IconButtonProps> = ({
   shadow = false,
   active = false,
   disabled = false,
+  label,
   href,
-  ...props 
+  ...props
 }) => {
   const className = `
     ${styles.ucomIconButton} 
@@ -32,12 +34,15 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   if (href) {
     return (
-      <a
-        href={href}
-        className={className}
-      >
-        <Icon icon={icon} />
-      </a>
+      <div className='relative'>
+        <a
+          href={href}
+          className={className}
+        >
+          <Icon icon={icon} />
+        </a>
+        {label && <div className={`${styles.label} font-[Aller-Bold]`}>{label}</div>}
+      </div>
     );
   }
 
@@ -48,6 +53,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       {...props}
     >
       <Icon icon={icon} />
+      {label && <div className={`${styles.label} absolute top-full w-full left-0 text-center font-[Aller-Bold]`}>{label}</div>}
     </button>
   );
 };
