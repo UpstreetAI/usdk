@@ -1,9 +1,16 @@
 import {
+  mulaw,
+} from 'alawmulaw';
+import {
+  floatTo16Bit,
+  int16ToFloat32,
+} from '../lib/multiplayer/public/audio-worker/convert.mjs';
+import {
   aiHost,
 } from './endpoints.mjs';
 
 const defaultTranscriptionModel = 'whisper-1';
-const defaultRealtimeModel = 'gpt-4o-realtime-preview-2024-10-01';
+// const defaultRealtimeModel = 'gpt-4o-realtime-preview-2024-10-01';
 
 export const transcribe = async (data, {
   jwt,
@@ -40,8 +47,11 @@ export const transcribeRealtime = ({
     throw new Error('no jwt');
   }
 
-  const u = new URL(`${aiHost.replace(/^http/, 'ws')}/api/ai/realtime`);
-  u.searchParams.set('model', defaultRealtimeModel);
+  // XXX implement a back buffer so we can emit frames
+
+  // const u = new URL(`${aiHost.replace(/^http/, 'ws')}/api/ai/realtime`);
+  // u.searchParams.set('model', defaultRealtimeModel);
+  const u = `https://vad.fly.dev/`;
   const ws = new WebSocket(u, {
     headers: {
       Authorization: `Bearer ${jwt}`,
@@ -54,7 +64,7 @@ export const transcribeRealtime = ({
       data: null,
     }));
 
-    // configure the session
+    /* // configure the session
     const sessionConfig = {
       // "event_id": "event_123",
       "type": "session.update",
@@ -83,14 +93,22 @@ export const transcribeRealtime = ({
         max_response_output_tokens: 1,
       },
     };
-    ws.send(JSON.stringify(sessionConfig));
+    ws.send(JSON.stringify(sessionConfig)); */
   });
   ws.addEventListener('message', (e) => {
     // console.log(e.data);
     const message = JSON.parse(e.data);
-    const { type } = message;
+    const { type, sampleIndex } = message;
     switch (type) {
-      case 'error': {
+      case 'speechstart': {
+        console.log('speech start', sampleIndex);
+        break;
+      }
+      case 'speechstop': {
+        console.log('speech stop', sampleIndex);
+        break;
+      }
+      /* case 'error': {
         break;
       }
       case 'session.created': {
@@ -149,7 +167,7 @@ export const transcribeRealtime = ({
       }
       // case 'response.text.delta': {
       //   break;
-      // }
+      // } */
     }
   });
   ws.addEventListener('close', (e) => {
@@ -160,13 +178,17 @@ export const transcribeRealtime = ({
   });
 
   const transcription = new EventTarget();
-  transcription.write = async (data) => { // Uint8Array
-    const base64 = Buffer.from(data).toString('base64');
-    const m = {
-      type: 'input_audio_buffer.append',
-      audio: base64,
-    };
-    ws.send(JSON.stringify(m));
+  transcription.write = async (f32) => { // Float32Array
+    const i16 = floatTo16Bit(f32);
+    const mulawBuffer = mulaw.encode(i16);
+    ws.send(mulawBuffer);
+
+    // const base64 = Buffer.from(data).toString('base64');
+    // const m = {
+    //   type: 'input_audio_buffer.append',
+    //   audio: base64,
+    // };
+    // ws.send(JSON.stringify(m));
   };
   // transcription.commit = async () => {
   //   const m = {
@@ -174,12 +196,12 @@ export const transcribeRealtime = ({
   //   };
   //   ws.send(JSON.stringify(m));
   // };
-  transcription.clear = async () => {
-    const m = {
-      type: 'input_audio_buffer.clear',
-    };
-    ws.send(JSON.stringify(m));
-  };
+  // transcription.clear = async () => {
+  //   const m = {
+  //     type: 'input_audio_buffer.clear',
+  //   };
+  //   ws.send(JSON.stringify(m));
+  // };
   transcription.close = () => {
     ws.close();
   };
