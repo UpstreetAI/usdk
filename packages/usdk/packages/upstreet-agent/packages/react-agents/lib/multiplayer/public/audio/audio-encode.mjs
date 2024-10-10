@@ -4,14 +4,24 @@ export class AudioEncodeStream {
   constructor({
     type,
     sampleRate,
-    // format,
+    codecs,
     transferBuffers,
   }) {
+    if (!type) {
+      throw new Error('no type');
+    }
+    if (!sampleRate) {
+      throw new Error('no sample rate');
+    }
+    if (!codecs) {
+      throw new Error('no codecs');
+    }
+
     switch (type) {
       case 'audio/mpeg': {
         return createMp3EncodeTransformStream({
           sampleRate,
-          // format,
+          codecs,
           transferBuffers,
         });
       }

@@ -84,12 +84,12 @@ export class Mp3AudioEncoder {
     if (!codecs.WsMp3Encoder) {
       throw new Error('no WsMp3Encoder');
     }
-    this.worker = new codecs.Mp3AudioEncoder();
+    this.worker = new codecs.WsMp3Encoder();
 
-    this.worker.onmessage = e => {
+    this.worker.addEventListener('message', e => {
       output(e.data);
-    };
-    this.worker.onerror = error;
+    });
+    this.worker.addEventListener('error', error);
     this.worker.postMessage({
       sampleRate,
       bitrate,
