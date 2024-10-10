@@ -41,7 +41,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         >
           <Icon icon={icon} />
         </a>
-        {label && <div className={`${styles.label} font-[Aller-Bold]`}>{label}</div>}
+        {label && <div className={`${styles.label} font-[Aller-Bold] text-stroke`}>{label}</div>}
       </div>
     );
   }
