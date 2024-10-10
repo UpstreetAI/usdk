@@ -29,15 +29,6 @@ import {
 
 //
 
-const convertF32I16 = (samples) => {
-  const buffer = new ArrayBuffer(samples.length * Int16Array.BYTES_PER_ELEMENT);
-  const view = new Int16Array(buffer);
-  for (let i = 0; i < samples.length; i++) {
-    view[i] = samples[i] * 0x7fff;
-  }
-  return view;
-};
-
 /* class Mp3EncodeStream extends Transform {
   constructor({
     sampleRate = AudioInput.defaultSampleRate,
@@ -66,9 +57,17 @@ const convertF32I16 = (samples) => {
   }
 } */
 
-export const encodeMp3 = async (bs, {
+/* const encodeMp3 = async (bs, {
   sampleRate,
+  codecs,
 }) => {
+  if (!sampleRate) {
+    throw new Error('no sample rate');
+  }
+  if (!codecs) {
+    throw new Error('no codecs');
+  }
+
   if (Array.isArray(bs)) {
     bs = bs.slice();
   } else {
@@ -96,6 +95,7 @@ export const encodeMp3 = async (bs, {
   const encodeTransformStream = new AudioEncodeStream({
     type: 'audio/mpeg',
     sampleRate,
+    codecs,
     transferBuffers: false,
   });
 
@@ -108,7 +108,7 @@ export const encodeMp3 = async (bs, {
     outputs.push(b);
   }
   return Buffer.concat(outputs);
-};
+}; */
 
 //
 
@@ -118,7 +118,8 @@ export class TranscribedVoiceInput extends EventTarget {
   abortController;
   constructor({
     audioInput,
-    sampleRate = AudioInput.transcribeSampleRate,
+    sampleRate,
+    codecs,
     jwt,
   }) {
     if (!audioInput) {
@@ -126,6 +127,9 @@ export class TranscribedVoiceInput extends EventTarget {
     }
     if (!sampleRate) {
       throw new Error('no sample rate');
+    }
+    if (!codecs) {
+      throw new Error('no codecs');
     }
     if (!jwt) {
       throw new Error('no jwt');
@@ -140,6 +144,8 @@ export class TranscribedVoiceInput extends EventTarget {
 
     (async () => {
       const transcription = transcribeRealtime({
+        sampleRate: TranscribedVoiceInput.transcribeSampleRate,
+        codecs,
         jwt,
       });
       transcription.addEventListener('speechstart', e => {
@@ -182,9 +188,9 @@ export class TranscribedVoiceInput extends EventTarget {
           f32 = resample(f32, sampleRate, TranscribedVoiceInput.transcribeSampleRate);
         }
 
-        const wavFrames = audioChunker.write(f32);
-        for (const wavFrame of wavFrames) {
-          transcription.write(wavFrame);
+        const frames = audioChunker.write(f32);
+        for (const frame of frames) {
+          transcription.write(frame);
         }
       };
       audioInput.on('data', ondata);
