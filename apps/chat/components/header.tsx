@@ -10,7 +10,7 @@ import { IconButton } from 'ucom';
 export function Header() {
   return (
     <header
-      className="sticky top-0 z-50 flex items-center justify-between h-16 border-b shrink-0 bg-background backdrop-blur-xl">
+      className="sticky top-0 z-[100] flex items-center justify-between h-12 pt-6 border-b shrink-0 bg-background">
       <div className="flex items-center h-full">
         <div className='md:m-w-[160px] md:w-[160px] pr-4 md:pr-0'>
           <a href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
@@ -23,9 +23,9 @@ export function Header() {
           </a>
         </div>
         <div className='flex gap-4'>
-          <IconButton href="/agents" icon="Users" />
-          {/* <IconButton href="/rooms" icon="Room" /> */}
-          <IconButton href="/accounts" icon="Head" />
+          <IconButton href="/agents" icon="Users" label="Agents" />
+          {/* <IconButton href="/rooms" icon="Room" label="Rooms" /> */}
+          <IconButton href="/accounts" icon="Head" label="Users" />
         </div>
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
