@@ -7,7 +7,8 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   variant?: 'primary' | 'secondary' | 'ghost';
   shadow?: boolean;
   active?: boolean;
-  disabled?: boolean; 
+  disabled?: boolean;
+  href?: string;
 }
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -17,18 +18,33 @@ const IconButton: React.FC<IconButtonProps> = ({
   shadow = false,
   active = false,
   disabled = false,
+  href,
   ...props 
 }) => {
+  const className = `
+    ${styles.ucomIconButton} 
+    ${size && styles[size]}
+    ${variant && styles[variant]}
+    ${shadow && variant !== 'ghost' && !active && styles.shadow}
+    ${active && styles.active}
+    ${props.className}
+  `;
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={className}
+      >
+        <Icon icon={icon} />
+      </a>
+    );
+  }
+
   return (
     <button
-      className={
-        `${styles.ucomIconButton} 
-         ${size && styles[size]}
-         ${variant && styles[variant]}
-         ${shadow && variant !== 'ghost' && !active && styles.shadow}
-         ${active && styles.active}
-         ${props.className}`
-      }
+      className={className}
+      disabled={disabled}
       {...props}
     >
       <Icon icon={icon} />
