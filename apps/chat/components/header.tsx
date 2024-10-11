@@ -1,13 +1,23 @@
 import * as React from 'react';
-import Link from 'next/link';
 
-import { IconUpstreet, IconUpstreetChat, IconUpstreetChatStroke } from '@/components/ui/icons';
+import { IconUpstreetChatStroke } from '@/components/ui/icons';
 import { AccountOrLogin } from '@/components/account-or-login';
-import { SearchBar } from '@/components/searchbar';
+import { getUserForJwt } from '@/utils/supabase/supabase-client'
+import { getJWT } from '@/utils/supabase/server'
 import { IconButton } from 'ucom';
 
 
-export function Header() {
+export async function Header() {
+
+  const user = await (async () => {
+    const jwt = getJWT();
+    if (jwt) {
+      return getUserForJwt(jwt);
+    } else {
+      return null;
+    }
+  })();
+
   return (
     <header
       className="sticky top-0 z-[100] flex items-center justify-between h-12 pt-6 border-b shrink-0 bg-background">
@@ -30,7 +40,7 @@ export function Header() {
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
       <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
-        <AccountOrLogin />
+        <AccountOrLogin user={user} />
       </React.Suspense>
       {/* </div> */}
     </header>
