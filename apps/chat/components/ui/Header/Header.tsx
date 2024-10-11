@@ -3,7 +3,7 @@ import * as React from 'react';
 import { IconUpstreet, IconUpstreetChatStroke } from '@/components/ui/icons';
 import { AccountOrLogin } from '@/components/ui/Header/account-or-login';
 import { getUserForJwt } from '@/utils/supabase/supabase-client'
-import { getJWT } from '@/utils/supabase/server'
+import { getCredits, getJWT } from '@/utils/supabase/server'
 import { HeaderMenu } from './header-menu';
 
 
@@ -17,6 +17,8 @@ export async function Header() {
       return null;
     }
   })();
+
+  const credits = await getCredits(user.id);
 
   return (
     <header
@@ -36,7 +38,7 @@ export async function Header() {
       </div>
       {/* <div className='md:m-w-[250px] md:w-[250px]'> */}
       <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
-        <AccountOrLogin user={user} />
+        <AccountOrLogin user={user} credits={credits} />
       </React.Suspense>
       {/* </div> */}
     </header>

@@ -1,17 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { IconLogout, IconUser } from '@/components/ui/icons';
 import { routes } from '@/routes';
-import { logout } from '@/lib/logout';
 import { IconPlus } from '@/components/ui/icons';
 import Dev from '../../development';
 import { isValidUrl } from '@/lib/utils';
+import { Icon } from 'ucom';
 
 export interface AccountButtonProps {
   user: any
+  credits: number
 }
-export function AccountButton({ user }: AccountButtonProps) {
+export function AccountButton({ user, credits }: AccountButtonProps) {
   return (
     <div className='flex mr-4'>
 
@@ -19,12 +19,17 @@ export function AccountButton({ user }: AccountButtonProps) {
         <Link
           className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
           href={routes.new}
-        >
+        > 
           <IconPlus className="size-5" />
         </Link>
       </Dev>
+      
+      <div className='mr-6 flex items-center font-bold text-xl'>
+        <Icon icon='Credits' className="size-8" /> {Math.round(credits)}
+      </div>
+
       <Link
-        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer -mt-6"
+        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
         href={routes.account}
       >
         <div className="size-12 min-w-12 bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
