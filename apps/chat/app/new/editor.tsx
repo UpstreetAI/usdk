@@ -450,14 +450,14 @@ export default function AgentEditor({
 
   // render
   return (
-    <div className="flex flex-1 bg-zinc-900">
+    <div className="flex flex-1 h-screen overflow-hidden">
 
       <div className='absolute z-[100] left-2 top-2'>
-        <IconButton size='small' href={document.referrer || "/"} icon={'BackArrow'}  />
+        <IconButton size='small' href={"/"} icon={'BackArrow'}  />
       </div>
 
       {/* builder */}
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col h-screen flex-1 bg-zinc-900">
         <div className="flex flex-col flex-1 bg-primary/10 overflow-scroll pt-14">
           {builderMessages.map((message, index) => (
             <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
@@ -532,7 +532,7 @@ export default function AgentEditor({
         }}
       />
       {/* editor */}
-      <form className="relative flex flex-col flex-1" ref={editorForm} onSubmit={e => {
+      <form className="relative flex flex-col h-screen bg-zinc-900 px-4 flex-1" ref={editorForm} onSubmit={e => {
         e.preventDefault();
 
         // check if the form is validated
