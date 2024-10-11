@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { IconUpstreet, IconUpstreetChatStroke } from '@/components/ui/icons';
+import { IconUpstreetStroke, IconUpstreetChatStroke } from '@/components/ui/icons';
 import { AccountOrLogin } from './account-or-login';
 import { HeaderMenu } from './header-menu';
 import { usePathname } from 'next/navigation';
@@ -27,8 +27,8 @@ export function HeaderNavigation({ user, credits }: HeaderNavigationProps) {
             <IconUpstreetChatStroke className="hidden mr-2 fill-white size-12 w-auto dark:block" />
           </a>
           <a href="/" rel="nofollow" className='block md:hidden w-10 ml-4'>
-            <IconUpstreet className="mr-2 fill-black size-12 w-auto dark:hidden" inverted />
-            <IconUpstreet className="hidden mr-2 fill-white size-12 w-auto dark:block" />
+            <IconUpstreetStroke className="mr-2 fill-black size-12 w-auto dark:hidden" inverted />
+            <IconUpstreetStroke className="hidden mr-2 fill-white size-12 w-auto dark:block" />
           </a>
         </div>
         <HeaderMenu />
