@@ -25,12 +25,12 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
 
   return (
     <div
-      className={`fixed z-[100] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
+      className={`absolute z-[100] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
         } ${isRightSidebarOpen ? 'lg:pr-[250px] xl:pr-[300px]' : ''}`}
     >
 
       <div className='absolute z-[100] left-3 md:left-4 top-1/2 transform -translate-y-1/2 mt-1'>
-        <IconButton href={document.referrer || "/"} icon={'BackArrow'}  />
+        <IconButton href={"/"} icon={'BackArrow'}  />
       </div>
 
       <div className="space-y-4 px-2 md:px-0 sm:max-w-2xl mx-auto relative flex">
