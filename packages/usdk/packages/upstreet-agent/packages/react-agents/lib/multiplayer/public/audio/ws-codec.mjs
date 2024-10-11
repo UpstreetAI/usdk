@@ -27,6 +27,10 @@ export class OpusAudioEncoder {
   encode(audioData) {
     this.worker.postMessage(audioData.data, audioData.data !== null ? [audioData.data.buffer] : []);
   }
+
+  close() {
+    this.worker.terminate();
+  }
 }
 
 export class OpusAudioDecoder {
@@ -80,12 +84,12 @@ export class Mp3AudioEncoder {
     if (!codecs.WsMp3Encoder) {
       throw new Error('no WsMp3Encoder');
     }
-    this.worker = new codecs.Mp3AudioEncoder();
+    this.worker = new codecs.WsMp3Encoder();
 
-    this.worker.onmessage = e => {
+    this.worker.addEventListener('message', e => {
       output(e.data);
-    };
-    this.worker.onerror = error;
+    });
+    this.worker.addEventListener('error', error);
     this.worker.postMessage({
       sampleRate,
       bitrate,
@@ -94,6 +98,10 @@ export class Mp3AudioEncoder {
   
   encode(audioData) {
     this.worker.postMessage(audioData.data, this.transferBuffers && audioData.data !== null ? [audioData.data.buffer] : []);
+  }
+
+  close() {
+    this.worker.terminate();
   }
 }
 
@@ -139,5 +147,9 @@ export class Mp3AudioDecoder {
 
   decode(data) {
     this.worker.postMessage(data, this.transferBuffers && data !== null ? [data.buffer] : []);
+  }
+
+  close() {
+    this.worker.terminate();
   }
 }
