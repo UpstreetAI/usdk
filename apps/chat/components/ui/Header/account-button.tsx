@@ -13,7 +13,7 @@ export interface AccountButtonProps {
 }
 export function AccountButton({ user, credits }: AccountButtonProps) {
   return (
-    <div className='flex mr-4'>
+    <div className='flex mr-4 h-12 -mt-6'>
 
       <Dev>
         <Link
@@ -32,7 +32,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
         href={routes.account}
       >
-        <div className="size-12 min-w-12 bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+        <div className="-mt-2 size-[52px] min-w-[52px] bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
           <div
             className="w-full h-full bg-cover bg-top"
             style={{
@@ -51,7 +51,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         </div>
 
         <div className="flex items-center max-w-16">
-          <div className='bg-gray-100 text-black px-2 py-1 pr-6'>
+          <div className='bg-gray-100 text-black px-2 py-1 pr-6 font-bold'>
           {user.name}
           </div>
         </div>
