@@ -110,6 +110,9 @@ module.exports = {
             2px  1px 0 black
           `,
         },
+        '.font-bold': {
+          'font-family': 'Aller-Bold'
+        }
       }
       addUtilities(newUtilities, ['responsive', 'hover'])
     },
