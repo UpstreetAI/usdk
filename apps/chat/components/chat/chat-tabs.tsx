@@ -24,7 +24,7 @@ export function ChatTabs() {
 
         <ChatHead />
 
-        <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-[2px] text-sm font-medium font-[Aller-Bold] text-center px-4" role="tablist">
+        <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-[2px] text-sm font-medium font-bold text-center px-4" role="tablist">
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('info'); }} className={`inline-block uppercase py-2 px-4 border-2 border-b-0 border-gray-400 ${tab === 'info' ? activeClass : inactiveClass}`}>Info</button>
           </li>

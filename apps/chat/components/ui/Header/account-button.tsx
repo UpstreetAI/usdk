@@ -46,7 +46,7 @@ export function AccountButton({ user }: AccountButtonProps) {
         </div>
 
         <div className="flex items-center max-w-16">
-          <div className='bg-gray-100 text-black px-2 py-1 pr-4'>
+          <div className='bg-gray-100 text-black px-2 py-1 pr-6'>
           {user.name}
           </div>
         </div>

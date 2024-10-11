@@ -44,7 +44,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         >
           <Icon icon={icon} />
         </a>
-        {label && <div className={`${styles.label} font-[Aller-Bold] text-stroke`}>{label}</div>}
+        {label && <div className={`${styles.label} font-bold text-stroke`}>{label}</div>}
       </div>
     );
   }
@@ -56,7 +56,7 @@ const IconButton: React.FC<IconButtonProps> = ({
       {...props}
     >
       <Icon icon={icon} />
-      {label && <div className={`${styles.label} absolute top-full w-full left-0 text-center font-[Aller-Bold]`}>{label}</div>}
+      {label && <div className={`${styles.label} absolute top-full w-full left-0 text-center font-bold`}>{label}</div>}
     </button>
   );
 };
