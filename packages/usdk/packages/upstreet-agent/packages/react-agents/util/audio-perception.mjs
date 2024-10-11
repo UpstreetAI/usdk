@@ -162,9 +162,18 @@ export const transcribeRealtime = ({
       case 'speechstart': {
         console.log('speech start');
         speechStartSampleIndex = sampleIndex;
+
+        this.dispatchEvent(new MessageEvent('speechstart', {
+          data: null,
+        }));
+
         break;
       }
       case 'speechstop': {
+        this.dispatchEvent(new MessageEvent('speechstop', {
+          data: null,
+        }));
+
         const speechEndSampleIndex = sampleIndex;
         const numSpeechSamples = speechEndSampleIndex - speechStartSampleIndex;
         const f32Result = (() => {
@@ -200,7 +209,22 @@ export const transcribeRealtime = ({
             jwt,
           });
           console.log('transcribed', text);
+
+          this.dispatchEvent(new MessageEvent('transcription', {
+            data: {
+              transcript: text,
+            },
+          }));
         });
+
+        break;
+      }
+      case 'speechcancel': {
+        console.log('speech cancel');
+
+        this.dispatchEvent(new MessageEvent('speechcancel', {
+          data: null,
+        }));
 
         break;
       }

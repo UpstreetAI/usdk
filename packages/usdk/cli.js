@@ -2475,6 +2475,9 @@ const capture = async (args) => {
         transcribedVoiceInput.addEventListener('speechstop', e => {
           console.log('captured');
         });
+        transcribedVoiceInput.addEventListener('speechcancel', e => {
+          console.log('cancelled');
+        });
         transcribedVoiceInput.addEventListener('transcription', async (e) => {
           console.log('transcription', e.data);
         });

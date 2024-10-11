@@ -158,6 +158,11 @@ export class TranscribedVoiceInput extends EventTarget {
           data: e.data,
         }));
       });
+      transcription.addEventListener('speechcancel', e => {
+        this.dispatchEvent(new MessageEvent('speechcancel', {
+          data: e.data,
+        }));
+      });
       transcription.addEventListener('transcription', e => {
         this.dispatchEvent(new MessageEvent('transcription', {
           data: e.data,
