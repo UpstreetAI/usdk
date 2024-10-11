@@ -1,3 +1,6 @@
+import {
+  EventEmitter,
+} from 'events';
 import * as Y from 'yjs';
 import type {
   PlayableAudioStream,
@@ -32,6 +35,17 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
+import {
+  TranscribedVoiceInput,
+} from 'react-agents/devices/audio-input.mjs';
+import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
+
+//
+
+type TranscriptionStream = {
+  audioInput: EventEmitter;
+  transcribedVoiceInput: TranscribedVoiceInput;
+};
 
 //
 
@@ -243,14 +257,70 @@ export class ChatsManager {
             });
 
             // audio streams
+            const transcriptionStreams = new Map<string, TranscriptionStream>();
             virtualPlayers.addEventListener('audiostart', async (e) => {
-              console.log('got audio start', e.data);
+              const { playerId, streamId, type, disposition } = e.data;
+              console.log('got audio start', {
+                playerId,
+                streamId,
+                type,
+                disposition,
+              });
+              if (disposition === 'text') {
+                if (type === 'audio/pcm-f32-48000') {
+                  const audioInput = new EventEmitter();
+                  const sampleRate = 48000;
+                  const jwt = agent.useAuthToken();
+                  const transcribedVoiceInput = new TranscribedVoiceInput({
+                    audioInput,
+                    sampleRate,
+                    codecs,
+                    jwt,
+                  });
+                  transcribedVoiceInput.addEventListener('speechstart', e => {
+                    console.log('speech start', e.data);
+                  });
+                  transcribedVoiceInput.addEventListener('speechstop', e => {
+                    console.log('speech stop', e.data);
+                  });
+                  transcribedVoiceInput.addEventListener('speechcancel', e => {
+                    console.log('speech cancel', e.data);
+                  });
+                  transcribedVoiceInput.addEventListener('transcription', e => {
+                    console.log('transcription', e.data);
+                  });
+                  const transcriptionStream = {
+                    audioInput,
+                    transcribedVoiceInput,
+                  };
+                  transcriptionStreams.set(streamId, transcriptionStream);
+                } else {
+                  console.warn('unhandled audio text disposition type', type);
+                }
+              // } else {
+              //   // nothing
+              }
             });
             virtualPlayers.addEventListener('audio', async (e) => {
-              console.log('got audio data', e.data);
+              const { playerId, streamId, data } = e.data;
+              // console.log('got audio data', playerId, streamId);
+              const transcriptionStream = transcriptionStreams.get(streamId);
+              if (transcriptionStream) {
+                transcriptionStream.audioInput.emit('data', data);
+              } else {
+                console.warn('no transcription stream for audio data', e.data);
+              }
             });
             virtualPlayers.addEventListener('audioend', async (e) => {
               console.log('got audio end', e.data);
+              const { playerId, streamId } = e.data;
+              const transcriptionStream = transcriptionStreams.get(streamId);
+              if (transcriptionStream) {
+                transcriptionStream.audioInput.emit('end');
+                transcriptionStreams.delete(streamId);
+              } else {
+                console.warn('no transcription stream for audio end', e.data);
+              }
             });
           };
           const _bindOutgoing = () => {
