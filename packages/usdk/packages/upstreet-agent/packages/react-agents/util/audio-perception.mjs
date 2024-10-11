@@ -163,14 +163,14 @@ export const transcribeRealtime = ({
         console.log('speech start');
         speechStartSampleIndex = sampleIndex;
 
-        this.dispatchEvent(new MessageEvent('speechstart', {
+        transcription.dispatchEvent(new MessageEvent('speechstart', {
           data: null,
         }));
 
         break;
       }
       case 'speechstop': {
-        this.dispatchEvent(new MessageEvent('speechstop', {
+        transcription.dispatchEvent(new MessageEvent('speechstop', {
           data: null,
         }));
 
@@ -210,7 +210,7 @@ export const transcribeRealtime = ({
           });
           console.log('transcribed', text);
 
-          this.dispatchEvent(new MessageEvent('transcription', {
+          transcription.dispatchEvent(new MessageEvent('transcription', {
             data: {
               transcript: text,
             },
@@ -222,7 +222,7 @@ export const transcribeRealtime = ({
       case 'speechcancel': {
         console.log('speech cancel');
 
-        this.dispatchEvent(new MessageEvent('speechcancel', {
+        transcription.dispatchEvent(new MessageEvent('speechcancel', {
           data: null,
         }));
 
