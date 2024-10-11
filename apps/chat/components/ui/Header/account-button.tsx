@@ -6,6 +6,7 @@ import { routes } from '@/routes';
 import { logout } from '@/lib/logout';
 import { IconPlus } from '@/components/ui/icons';
 import Dev from '../../development';
+import { isValidUrl } from '@/lib/utils';
 
 export interface AccountButtonProps {
   user: any
@@ -13,37 +14,43 @@ export interface AccountButtonProps {
 export function AccountButton({ user }: AccountButtonProps) {
   return (
     <div className='flex mr-4'>
+
       <Dev>
         <Link
-          className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
+          className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
           href={routes.new}
         >
           <IconPlus className="size-5" />
         </Link>
       </Dev>
       <Link
-        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
+        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer inline-block -mt-6"
         href={routes.account}
       >
-        <IconUser className="mr-2 size-5" />
-        <div className="hidden md:block max-w-16 truncate ...">
-          {/*<div className="max-w-32 truncate ...">*/}
+        <div className="size-12 min-w-12 bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+          <div
+            className="w-full h-full bg-cover bg-top"
+            style={{
+              backgroundImage: isValidUrl(user.preview_url) ? `url(${user.preview_url})` : 'none',
+              backgroundColor: isValidUrl(user.preview_url) ? 'transparent' : '#ccc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '2rem',
+              fontWeight: 'bold',
+              color: '#fff',
+            }}
+          >
+            {!isValidUrl(user.preview_url) && user.name.charAt(0)}
+          </div>
+        </div>
+
+        <div className="flex items-center max-w-16">
+          <div className='bg-gray-100 text-black px-2 py-1 pr-4'>
           {user.name}
+          </div>
         </div>
       </Link>
-      <a
-        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer hover:bg-primary/10"
-        onClick={() => {
-          if (window.confirm('Are you sure you want to logout?')) {
-        logout();
-          }
-        }}
-      >
-        <IconLogout className="mr-2 size-5" />
-        <div className="hidden md:block">
-          Logout
-        </div>
-      </a>
     </div>
   )
 }
