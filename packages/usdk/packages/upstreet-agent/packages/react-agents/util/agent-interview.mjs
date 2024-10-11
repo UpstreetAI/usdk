@@ -167,7 +167,7 @@ export class AgentInterview extends EventTarget {
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
         ` + '\n\n' +
         featurePrompt +
-        (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
+        (prompt ? ('The user has provided the following prompt:\n' + prompt) : 'No prompt provided by the user, you must await user\'s prompt before generating any agent data.'),
       object: agentJson,
       objectFormat: z.object({
         name: z.string().optional(),
