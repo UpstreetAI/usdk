@@ -1,8 +1,5 @@
 import {
   FakeAudioData,
-  FakeIteratorResult,
-  WsMediaStreamAudioReader,
-  WsEncodedAudioChunk,
 } from './ws-codec-util.mjs';
 
 export class OpusAudioEncoder {

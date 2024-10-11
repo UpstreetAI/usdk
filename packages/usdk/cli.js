@@ -81,12 +81,10 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/devices/input-devices.mjs';
 import {
   AudioInput,
-  TranscribedVoiceInput,
-  // encodeMp3,
 } from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
-// import {
-//   transcribe,
-// } from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
+import {
+  TranscribedVoiceInput,
+} from './packages/upstreet-agent/packages/react-agents/devices/audio-transcriber.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,

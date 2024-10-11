@@ -37,7 +37,7 @@ import {
 } from './chats-specification';
 import {
   TranscribedVoiceInput,
-} from 'react-agents/devices/audio-input.mjs';
+} from 'react-agents/devices/audio-transcriber.mjs';
 import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
 
 //
