@@ -141,7 +141,7 @@ export function createOpusMicrophoneSource({
   };
 };
 
-// media stream -> pcm (Float32) audio output
+// media stream -> pcm (Float32) 48000 audio output
 export function createPcmF32MicrophoneSource({
   mediaStream,
   audioContext,
@@ -157,6 +157,7 @@ export function createPcmF32MicrophoneSource({
 
   const audioReader = new WsMediaStreamAudioReader(mediaStream, {
     audioContext,
+    sampleRate: 48000,
   });
   const _readLoop = async () => {
     for (;;) {
