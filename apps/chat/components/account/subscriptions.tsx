@@ -4,7 +4,7 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
-import { LoginButton } from '../login-button';
+import { LoginButton } from '../ui/Header/login-button';
 import { createSession, cancelPlan } from 'react-agents/util/stripe-utils.mjs';
 
 //
