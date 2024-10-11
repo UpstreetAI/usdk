@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
-import waveheader from 'waveheader';
-import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
+// import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
 // import vad from '@ricky0123/vad-node';
 // import { log as vadLog } from '@ricky0123/vad-node/dist/_common/logging.js';
 // import {
@@ -14,6 +13,10 @@ import {
 //   QueueManager,
 // } from '../util/queue-manager.mjs';
 import { resample } from '../lib/multiplayer/public/audio-worker/resample.mjs';
+import {
+  AudioChunker,
+  // WavAudioChunker,
+} from '../util/audio-chunker.mjs';
 
 //
 
@@ -25,15 +28,6 @@ import { resample } from '../lib/multiplayer/public/audio-worker/resample.mjs';
 // _disableVadLog();
 
 //
-
-const convertF32I16 = (samples) => {
-  const buffer = new ArrayBuffer(samples.length * Int16Array.BYTES_PER_ELEMENT);
-  const view = new Int16Array(buffer);
-  for (let i = 0; i < samples.length; i++) {
-    view[i] = samples[i] * 0x7fff;
-  }
-  return view;
-};
 
 /* class Mp3EncodeStream extends Transform {
   constructor({
@@ -63,9 +57,17 @@ const convertF32I16 = (samples) => {
   }
 } */
 
-export const encodeMp3 = async (bs, {
+/* const encodeMp3 = async (bs, {
   sampleRate,
+  codecs,
 }) => {
+  if (!sampleRate) {
+    throw new Error('no sample rate');
+  }
+  if (!codecs) {
+    throw new Error('no codecs');
+  }
+
   if (Array.isArray(bs)) {
     bs = bs.slice();
   } else {
@@ -93,6 +95,7 @@ export const encodeMp3 = async (bs, {
   const encodeTransformStream = new AudioEncodeStream({
     type: 'audio/mpeg',
     sampleRate,
+    codecs,
     transferBuffers: false,
   });
 
@@ -105,77 +108,18 @@ export const encodeMp3 = async (bs, {
     outputs.push(b);
   }
   return Buffer.concat(outputs);
-};
+}; */
 
 //
 
-class AudioChunker {
-  constructor({ sampleRate, channels = 1, bitDepth = 16, chunkSize = 8 * 1024 }) {
-    this.sampleRate = sampleRate;
-    this.channels = channels;
-    this.bitDepth = bitDepth;
-    this.chunkSize = chunkSize;
-    // this.loggedMicData = false;
-    this.numSamples = 0;
-    this.buffer = Buffer.alloc(0);
-    this.buffers = [];
-  }
-
-  write(f32) {
-    const frames = [];
-    const i16 = convertF32I16(f32);
-
-    // if (!this.loggedMicData) {
-    //   console.log('got mic data (silenced)', i16);
-    //   this.loggedMicData = true;
-    // }
-
-    this.numSamples += i16.length;
-    // this.buffer = Buffer.concat([
-    //   this.buffer,
-    //   Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
-    // ]);
-    this.buffers.push(
-      Buffer.from(i16.buffer, i16.byteOffset, i16.byteLength),
-    );
-
-    while (this.numSamples >= this.chunkSize) {
-      // merge buffers if needed
-      if (this.buffers.length > 0) {
-        this.buffer = Buffer.concat([
-          this.buffer,
-          ...this.buffers,
-        ]);
-        this.buffers.length = 0;
-      }
-
-      const i16_2 = new Int16Array(this.buffer.buffer, this.buffer.byteOffset, this.chunkSize);
-      this.buffer = this.buffer.subarray(this.chunkSize * Int16Array.BYTES_PER_ELEMENT);
-      this.numSamples -= this.chunkSize;
-
-      const headerBuffer = waveheader(i16_2.length, {
-        channels: this.channels,
-        sampleRate: this.sampleRate,
-        bitDepth: this.bitDepth,
-      });
-      const wavBuffer = Buffer.concat([
-        headerBuffer,
-        Buffer.from(i16_2.buffer, i16_2.byteOffset, i16_2.byteLength),
-      ]);
-
-      frames.push(wavBuffer);
-    }
-
-    return frames;
-  }
-}
 export class TranscribedVoiceInput extends EventTarget {
-  static transcribeSampleRate = 24000;
-  // audioInput;
+  // static transcribeSampleRate = 24000;
+  static transcribeSampleRate = 16000;
   abortController;
   constructor({
     audioInput,
-    sampleRate = AudioInput.transcribeSampleRate,
+    sampleRate,
+    codecs,
     jwt,
   }) {
     if (!audioInput) {
@@ -184,23 +128,24 @@ export class TranscribedVoiceInput extends EventTarget {
     if (!sampleRate) {
       throw new Error('no sample rate');
     }
+    if (!codecs) {
+      throw new Error('no codecs');
+    }
     if (!jwt) {
       throw new Error('no jwt');
     }
 
     super();
 
-    // this.audioInput = audioInput;
-
     this.abortController = new AbortController();
     const {
       signal,
     } = this.abortController;
 
-    // this.paused = false;
-
     (async () => {
       const transcription = transcribeRealtime({
+        sampleRate: TranscribedVoiceInput.transcribeSampleRate,
+        codecs,
         jwt,
       });
       transcription.addEventListener('speechstart', e => {
@@ -210,6 +155,11 @@ export class TranscribedVoiceInput extends EventTarget {
       });
       transcription.addEventListener('speechstop', e => {
         this.dispatchEvent(new MessageEvent('speechstop', {
+          data: e.data,
+        }));
+      });
+      transcription.addEventListener('speechcancel', e => {
+        this.dispatchEvent(new MessageEvent('speechcancel', {
           data: e.data,
         }));
       });
@@ -233,7 +183,7 @@ export class TranscribedVoiceInput extends EventTarget {
 
       const audioChunker = new AudioChunker({
         sampleRate: TranscribedVoiceInput.transcribeSampleRate,
-        chunkSize: 8 * 1024,
+        chunkSize: 1536,
       });
       const ondata = async (f32) => {
         await openPromise;
@@ -243,9 +193,9 @@ export class TranscribedVoiceInput extends EventTarget {
           f32 = resample(f32, sampleRate, TranscribedVoiceInput.transcribeSampleRate);
         }
 
-        const wavFrames = audioChunker.write(f32);
-        for (const wavFrame of wavFrames) {
-          transcription.write(wavFrame);
+        const frames = audioChunker.write(f32);
+        for (const frame of frames) {
+          transcription.write(frame);
         }
       };
       audioInput.on('data', ondata);

@@ -1,0 +1,16 @@
+*.log
+*.reapeaks
+*.DS_Store
+
+# Development folders
+.nyc_output/
+docs/
+test/
+
+# Development files
+.gitignore
+.jshintrc
+.npmignore
+.travis.yml
+appveyor.yml
+rollup.config.js

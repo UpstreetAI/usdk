@@ -578,7 +578,7 @@ export function createMp3EncodeTransformStream({
 
   // create encoder
   const muxAndSend = encodedChunk => {
-    // console.log('mux and send', encodedChunk.data);
+    // console.log('mux and send', encodedChunk);
     if (encodedChunk.data) {
       const data = getEncodedAudioChunkBuffer(encodedChunk);
       // output.write(data);
@@ -589,7 +589,7 @@ export function createMp3EncodeTransformStream({
     }
   };
   function onEncoderError(err) {
-    console.warn('encoder error', err);
+    console.warn('mp3 encoder error', err);
   }
   const audioEncoder = new Mp3AudioEncoder({
     sampleRate,
