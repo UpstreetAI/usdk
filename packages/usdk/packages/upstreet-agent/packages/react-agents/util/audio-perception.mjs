@@ -12,6 +12,20 @@ import {
 const defaultTranscriptionModel = 'whisper-1';
 // const defaultRealtimeModel = 'gpt-4o-realtime-preview-2024-10-01';
 
+const mergeUint8Arrays = (arrays) => {
+  let totalLength = 0;
+  for (const array of arrays) {
+    totalLength += array.length;
+  }
+  const result = new Uint8Array(totalLength);
+  let index = 0;
+  for (const array of arrays) {
+    result.set(array, index);
+    index += array.length;
+  }
+  return result;
+};
+
 const encodeMp3 = async (f32, {
   sampleRate,
   codecs,
@@ -57,9 +71,15 @@ const encodeMp3 = async (f32, {
 
   // XXX terminate the encoder
 
-  // console.log('got chunks', chunks);
-  const b = Buffer.concat(chunks);
-  return b;
+  // console.log('got chunks 1', chunks);
+  // try {
+    const uint8Array = mergeUint8Arrays(chunks);
+    // console.log('got chunks 2', uint8Array);
+    return uint8Array;
+  // } catch (error) {
+  //   // console.warn('error encoding mp3', error);
+  //   throw error;
+  // }
 };
 
 export const transcribe = async (data, {
@@ -157,7 +177,7 @@ export const transcribeRealtime = ({
       ws.send(JSON.stringify(sessionConfig)); */
     });
     ws.addEventListener('message', async (e) => {
-      console.log('transcribe message', e.data);
+      // console.log('transcribe message', e.data);
       const message = JSON.parse(e.data);
       const { type, sampleIndex } = message;
       switch (type) {
@@ -205,8 +225,10 @@ export const transcribeRealtime = ({
             sampleRate,
             codecs,
           });
+          // console.log('encoded', mp3Buffer);
 
           await queueManager.waitForTurn(async () => {
+            // console.log('transcribe 1', mp3Buffer);
             const text = await transcribe(mp3Buffer, {
               jwt,
             });
