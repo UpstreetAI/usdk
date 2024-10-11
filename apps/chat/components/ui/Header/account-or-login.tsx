@@ -1,12 +1,10 @@
-'use server'
+'use client'
 
-import { AccountButton } from '@/components/ui/Header/account-button'
 import * as React from 'react'
 import { LoginButton } from '@/components/ui/Header/login-button'
+import { AccountButton } from '@/components/ui/Header/account-button'
 
-
-export async function AccountOrLogin({user, credits = 0}: any) {
-
+export function AccountOrLogin({user, credits = 0}: any) {
   return (
     <>
       {user ? (
