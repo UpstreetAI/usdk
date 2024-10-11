@@ -1344,7 +1344,7 @@ const startMultiplayerListener = ({
           const devices = await inputDevices.listDevices();
           const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
           
-          const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+          const sampleRate = AudioInput.defaultSampleRate;
           microphoneInput = inputDevices.getAudioInput(device.id, {
             sampleRate,
           });
@@ -1381,7 +1381,7 @@ const startMultiplayerListener = ({
             },
           });
           audioStream.id = crypto.randomUUID();
-          audioStream.type = 'audio/pcm-f32';
+          audioStream.type = 'audio/pcm-f32-48000';
           audioStream.disposition = 'text';
 
           (async () => {
