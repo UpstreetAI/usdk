@@ -13,6 +13,7 @@ export function HeaderMenu() {
       <IconButton href="/agents" icon="Users" label="Agents" active={pathname.startsWith('/agents')} />
       {/* <IconButton href="/rooms" icon="Room" label="Rooms" /> */}
       <IconButton href="/accounts" icon="Head" label="Users" active={pathname.startsWith('/accounts')} />
+      <IconButton href="https://docs.upstreet.ai/docs/sdk/intro" target="_blank" icon="Sdk" label="SDK" />
     </div>
   );
 }
