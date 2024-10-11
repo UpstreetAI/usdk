@@ -24,7 +24,7 @@ export function AccountButton({ user }: AccountButtonProps) {
         </Link>
       </Dev>
       <Link
-        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer inline-block -mt-6"
+        className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer -mt-6"
         href={routes.account}
       >
         <div className="size-12 min-w-12 bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
