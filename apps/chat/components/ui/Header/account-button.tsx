@@ -5,7 +5,7 @@ import { IconLogout, IconUser } from '@/components/ui/icons';
 import { routes } from '@/routes';
 import { logout } from '@/lib/logout';
 import { IconPlus } from '@/components/ui/icons';
-import Dev from './development';
+import Dev from '../../development';
 
 export interface AccountButtonProps {
   user: any

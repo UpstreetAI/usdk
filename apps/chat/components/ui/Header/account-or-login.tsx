@@ -1,8 +1,8 @@
 'use server'
 
-import { AccountButton } from '@/components/account-button'
+import { AccountButton } from '@/components/ui/Header/account-button'
 import * as React from 'react'
-import { LoginButton } from '@/components/login-button'
+import { LoginButton } from '@/components/ui/Header/login-button'
 
 
 export async function AccountOrLogin({user}: any) {

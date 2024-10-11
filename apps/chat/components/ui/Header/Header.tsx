@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { IconUpstreetChatStroke } from '@/components/ui/icons';
-import { AccountOrLogin } from '@/components/account-or-login';
+import { AccountOrLogin } from '@/components/ui/Header/account-or-login';
 import { getUserForJwt } from '@/utils/supabase/supabase-client'
 import { getJWT } from '@/utils/supabase/server'
 import { IconButton } from 'ucom';
@@ -32,7 +32,7 @@ export async function Header() {
             <IconUpstreetChatStroke className="hidden mr-2 fill-white size-12 w-auto dark:block" />
           </a>
         </div>
-        <div className='flex gap-4'>
+        <div className='flex gap-4 ml-8'>
           <IconButton href="/agents" icon="Users" label="Agents" />
           {/* <IconButton href="/rooms" icon="Room" label="Rooms" /> */}
           <IconButton href="/accounts" icon="Head" label="Users" />
