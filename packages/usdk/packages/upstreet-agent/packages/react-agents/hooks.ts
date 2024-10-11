@@ -492,3 +492,25 @@ export const usePurchases = () => {
   }).filter((purchase) => purchase !== null);
   return purchases;
 };
+
+export const useMemoryFetch = (fetchFn, deps) => {
+  const [value, setValue] = useState([]);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    fetchFn({ signal: abortController.signal })
+      .then(newValue => {
+        if (!abortController.signal.aborted) {
+          setValue(newValue);
+        }
+      })
+      .catch(error => {
+        if (error.name !== 'AbortError') {
+          console.error(error);
+        }
+      });
+    return () => abortController.abort();
+  }, deps);
+
+  return value;
+};

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useContext, useCallback } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
@@ -79,6 +79,7 @@ import {
   useConversation,
   useCachedMessages,
   useNumMessages,
+  useMemoryFetch,
 } from './hooks';
 import { shuffle, parseCodeBlock } from './util/util.mjs';
 import {
@@ -222,133 +223,84 @@ const StoreActions = () => {
 
 //
 
-type EveryNMessagesOptions = {
-  signal: AbortSignal,
+type EveryNMessagesProps = {
+  n: number;
+  children: ({ signal }: { signal: AbortSignal }) => void;
 };
-const EveryNMessages = ({
-  n,
-  children,
-}: {
-  n: number,
-  children: (opts: EveryNMessagesOptions) => void,
-}) => {
+
+const EveryNMessages = React.memo(({ n, children }: EveryNMessagesProps) => {
   const numMessages = useNumMessages();
   const startNumMessages = useMemo(() => numMessages, []);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const diff = numMessages - startNumMessages;
     if (diff % n === 0) {
-      if (!abortControllerRef.current) {
-        abortControllerRef.current = new AbortController();
-      }
-      const { signal } = abortControllerRef.current;
-
-      const fn = children;
-      fn({
-        signal,
-      });
-
-      return () => {
-        abortControllerRef.current?.abort();
-        abortControllerRef.current = null;
-      };
+      const abortController = new AbortController();
+      children({ signal: abortController.signal });
+      return () => abortController.abort();
     }
-  }, [numMessages, startNumMessages, n]);
+  }, [numMessages, startNumMessages, n, children]);
 
   return null;
-};
+});
 
 //
 
 const DefaultMemoriesInternal = () => {
   const agent = useAgent();
   const conversation = useConversation();
-  const [recentMemoriesValue, setRecentMemoriesValue] = useState<string[]>([]);
-  const [queriedMemoriesValue, setQueriedMemoriesValue] = useState<string[]>([]);
 
-  const refreshRecentMemories = async ({
-    signal,
-  }: {
-    signal: AbortSignal,
-  }) => {
+  const fetchRecentMemories = useCallback(async ({ signal }) => {
     const memories = await agent.getMemories({
       matchCount: maxDefaultMemoryValues,
       signal,
     });
-    // console.log('got new value 1', memories, signal.aborted);
-    if (signal.aborted) return;
+    return memories.map(memory => memory.text);
+  }, [agent]);
 
-    const value = memories.map(memory => memory.text);
-    // console.log('got new value 2', value);
-    setRecentMemoriesValue(value);
-  };
-  const refreshEmbeddedMemories = async ({
-    signal,
-  }: {
-    signal: AbortSignal,
-  }) => {
+  const fetchEmbeddedMemories = useCallback(async ({ signal }) => {
     const embeddingString = conversation.getEmbeddingString();
     const memories = await agent.getMemory(embeddingString, {
       matchCount: maxDefaultMemoryValues,
       signal,
     });
-    // console.log('got new value 3', memories, signal.aborted);
-    if (signal.aborted) return;
+    return memories.map(memory => memory.text);
+  }, [agent, conversation]);
 
-    const value = memories.map(memory => memory.text);
-    // console.log('got new value 4', value);
-    setQueriedMemoriesValue(value);
-  };
+  const recentMemoriesValue = useMemoryFetch(fetchRecentMemories, [fetchRecentMemories]);
+  const queriedMemoriesValue = useMemoryFetch(fetchEmbeddedMemories, [fetchEmbeddedMemories]);
 
-  const allMemoriesValue = [
-    ...recentMemoriesValue,
-    ...queriedMemoriesValue,
-  ];
-  // console.log('render all memories', {
-  //   allMemoriesValue,
-  //   recentMemoriesValue,
-  //   queriedMemoriesValue,
-  // });
+  const allMemoriesValue = useMemo(() => 
+    [...recentMemoriesValue, ...queriedMemoriesValue],
+    [recentMemoriesValue, queriedMemoriesValue]
+  );
+
+  const memoryPrompt = useMemo(() => {
+    if (allMemoriesValue.length === 0) return null;
+    return (
+      <Prompt>
+        {dedent`
+          # Memories
+          Your character remembers the following:
+          \`\`\`
+          ${JSON.stringify(queriedMemoriesValue, null, 2)}
+          \`\`\`
+          Note: to remember more specific memories, use the \`queryMemories\` action.
+        `}
+      </Prompt>
+    );
+  }, [allMemoriesValue, queriedMemoriesValue]);
 
   return (
     <>
-      {allMemoriesValue.length > 0 && (
-        <Prompt>
-          {dedent`\
-            # Memories
-            Your character remembers the following:
-            \`\`\`
-          ` + '\n' +
-          JSON.stringify(queriedMemoriesValue, null, 2) + '\n' +
-          dedent`\
-            \`\`\`
-          ` + '\n' +
-          dedent`\
-            Note: to remember more specific memories, use the \`queryMemories\` action.
-          ` 
-          }
-        </Prompt>
-      )}
+      {memoryPrompt}
       <Defer>
-        <EveryNMessages n={10}>{({
-          signal,
-        }: {
-          signal: AbortSignal,
-        }) => {
-          refreshRecentMemories({
-            signal,
-          });
-        }}</EveryNMessages>
-        <EveryNMessages n={1}>{({
-          signal,
-        }: {
-          signal: AbortSignal,
-        }) => {
-          refreshEmbeddedMemories({
-            signal,
-          });
-        }}</EveryNMessages>
+        <EveryNMessages n={10}>
+          {({ signal }) => fetchRecentMemories({ signal })}
+        </EveryNMessages>
+        <EveryNMessages n={1}>
+          {({ signal }) => fetchEmbeddedMemories({ signal })}
+        </EveryNMessages>
       </Defer>
     </>
   );
