@@ -46,6 +46,7 @@ import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatt
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import type { FetchableWorker } from 'react-agents-client/types';
 import { buildAgentSrc, ReactAgentsWorker } from 'react-agents-client';
+import { IconButton } from 'ucom';
 
 //
 
@@ -450,9 +451,14 @@ export default function AgentEditor({
   // render
   return (
     <div className="flex flex-1 bg-zinc-900">
+
+      <div className='absolute z-[100] left-2 top-2'>
+        <IconButton size='small' href={document.referrer || "/"} icon={'BackArrow'}  />
+      </div>
+
       {/* builder */}
-      <div className="flex flex-col flex-1 max-h-[calc(100vh_-_64px)]">
-        <div className="flex flex-col flex-1 bg-primary/10 overflow-scroll">
+      <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 bg-primary/10 overflow-scroll pt-14">
           {builderMessages.map((message, index) => (
             <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
               {message.content}
