@@ -9,6 +9,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   active?: boolean;
   disabled?: boolean;
   label?: string;
+  target?: string;
   href?: string;
 }
 
@@ -20,6 +21,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   active = false,
   disabled = false,
   label,
+  target,
   href,
   ...props
 }) => {
@@ -38,6 +40,7 @@ const IconButton: React.FC<IconButtonProps> = ({
         <a
           href={href}
           className={className}
+          target={target}
         >
           <Icon icon={icon} />
         </a>
