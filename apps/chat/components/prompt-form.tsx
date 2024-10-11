@@ -166,9 +166,6 @@ export function PromptForm({
                       mediaStream,
                       audioContext,
                     });
-                    // microphoneSource.output.addEventListener('data', (e: any) => {
-                    //   console.log('got data', e.data);
-                    // });
                     setMicrophoneSource(microphoneSource);
 
                     const audioStream = new ReadableStream({
@@ -182,7 +179,7 @@ export function PromptForm({
                       },
                     }) as PlayableAudioStream;
                     audioStream.id = crypto.randomUUID();
-                    audioStream.type = 'audio/pcm-f32';
+                    audioStream.type = 'audio/pcm-f32-48000';
                     audioStream.disposition = 'text';
           
                     (async () => {
