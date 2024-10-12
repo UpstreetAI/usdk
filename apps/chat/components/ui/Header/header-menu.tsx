@@ -4,6 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { IconUpstreetStroke, IconUpstreetChatStroke } from '@/components/ui/icons';
 import { IconButton } from 'ucom';
+import { SidebarMobileLeft } from '@/components/sidebar-mobile';
 
 
 export function HeaderMenu() {
@@ -28,7 +29,9 @@ export function HeaderMenu() {
         <IconButton href="https://docs.upstreet.ai/docs/sdk/intro" target="_blank" icon="Sdk" label="SDK" />
       </div>
       <div className='flex md:hidden gap-4 md:ml-6'>
-        <IconButton variant='ghost' icon="BurgerMenu" />
+        <SidebarMobileLeft>
+          Mobile Sidebar
+        </SidebarMobileLeft>
       </div>
     </div>
   );
