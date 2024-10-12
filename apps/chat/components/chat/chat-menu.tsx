@@ -22,7 +22,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
 
   const pathname = usePathname();
   if (pathname.startsWith('/new')) {
-    return null;
+    //return null;
   }
 
   return (

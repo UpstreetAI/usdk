@@ -457,7 +457,7 @@ export default function AgentEditor({
       </div>
 
       {/* builder */}
-      <div className="flex flex-col h-screen flex-1 bg-zinc-900">
+      <div className="flex flex-col h-screen flex-1 bg-zinc-900 z-[50]">
         <div className="flex flex-col flex-1 bg-primary/10 overflow-scroll pt-14">
           {builderMessages.map((message, index) => (
             <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
@@ -522,7 +522,7 @@ export default function AgentEditor({
             }}
           >Send</Button>
         </form>
-      </div>
+      </div>z
       <Chat
         room={room}
         onConnect={(connected) => {
@@ -532,7 +532,7 @@ export default function AgentEditor({
         }}
       />
       {/* editor */}
-      <form className="relative flex flex-col h-screen bg-zinc-900 px-4 flex-1" ref={editorForm} onSubmit={e => {
+      <form className="relative z-[50] flex flex-col h-screen bg-zinc-900 px-4 flex-1" ref={editorForm} onSubmit={e => {
         e.preventDefault();
 
         // check if the form is validated
