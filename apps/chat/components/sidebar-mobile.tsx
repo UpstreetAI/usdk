@@ -3,11 +3,7 @@
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
 import { Sidebar } from '@/components/sidebar'
-import { Button } from '@/components/ui/button'
-
-import { IconMenu, IconSidebar, IconUsers } from '@/components/ui/icons'
 import { useSupabase } from '@/lib/hooks/use-supabase'
-import { useSidebar } from '@/lib/client/hooks/use-sidebar'
 import { IconButton } from 'ucom'
 
 interface SidebarMobileProps {
@@ -24,9 +20,9 @@ export function SidebarMobileLeft({ children }: SidebarMobileProps) {
       </SheetTrigger>
       <SheetContent
         side="left"
-        className="inset-y-0 flex bg-gray-900 h-auto w-[300px] flex-col p-0"
+        className="inset-y-0 flex h-auto w-[300px] flex-col p-0"
       >
-        <Sidebar position="left" className="flex bg-gray-900">{children}</Sidebar>
+        <Sidebar position="left" className="flex">{children}</Sidebar>
       </SheetContent>
     </Sheet>
   )
