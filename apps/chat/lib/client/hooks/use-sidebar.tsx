@@ -62,13 +62,13 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     })
   }
   const toggleLeftSidebarMobile = () => {
-    setLeftSidebarOpen(value => {
+    setLeftSidebarOpenMobile(value => {
       const newState = !value
       return newState
     })
   }
   const toggleRightSidebarMobile = () => {
-    setRightSidebarOpen(value => {
+    setRightSidebarOpenMobile(value => {
       const newState = !value
       return newState
     })

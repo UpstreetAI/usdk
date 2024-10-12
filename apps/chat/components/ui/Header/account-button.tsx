@@ -21,7 +21,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         </div>
       </Dev>
 
-      <div className='mr-6 flex items-center font-bold text-xl'>
+      <div className='mr-2 md:mr-6 flex items-center font-bold text-xl'>
         <Icon icon='Credits' className="size-8" /> {Math.round(credits)}
       </div>
 
@@ -29,7 +29,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
         href={routes.account}
       >
-        <div className="-mt-2 size-[52px] min-w-[52px] bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+        <div className="-mt-1 size-10 min-w-10 md:size-[52px] md:-mt-2 md:min-w-[52px] bg-gray-100 p-1 overflow-hidden flex items-center justify-center border-2 border-gray-900">
           <div
             className="w-full h-full bg-cover bg-top"
             style={{
@@ -47,7 +47,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
           </div>
         </div>
 
-        <div className="flex items-center max-w-16">
+        <div className="hidden md:flex items-center max-w-16">
           <div className='bg-gray-100 text-black px-2 py-1 pr-6 font-bold'>
             {user.name}
           </div>
