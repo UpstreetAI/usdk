@@ -3,9 +3,26 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { IconUpstreetStroke, IconUpstreetChatStroke } from '@/components/ui/icons';
-import { IconButton } from 'ucom';
+import { Button, IconButton } from 'ucom';
 import { SidebarMobileLeft } from '@/components/sidebar-mobile';
 
+const MenuItems = [
+  {
+    href: '/agents',
+    icon: 'Users',
+    label: 'Agents',
+  },
+  {
+    href: '/accounts',
+    icon: 'Head',
+    label: 'Users',
+  },
+  {
+    href: 'https://docs.upstreet.ai/docs/sdk/intro',
+    icon: 'Sdk',
+    label: 'SDK',
+  },
+];
 
 export function HeaderMenu() {
   const pathname = usePathname();
@@ -23,14 +40,29 @@ export function HeaderMenu() {
         </a>
       </div>
       <div className='hidden md:flex gap-4 ml-6'>
-        <IconButton href="/agents" icon="Users" label="Agents" active={pathname.startsWith('/agents')} />
-        {/* <IconButton href="/rooms" icon="Room" label="Rooms" /> */}
-        <IconButton href="/accounts" icon="Head" label="Users" active={pathname.startsWith('/accounts')} />
-        <IconButton href="https://docs.upstreet.ai/docs/sdk/intro" target="_blank" icon="Sdk" label="SDK" />
+        {MenuItems.map((item) => (
+          <IconButton
+            key={item.href}
+            href={item.href}
+            icon={item.icon}
+            label={item.label}
+            active={pathname.startsWith(item.href)}
+            target={item.href.startsWith('http') ? '_blank' : undefined}
+          />
+        ))}
       </div>
       <div className='flex md:hidden gap-4 md:ml-6'>
         <SidebarMobileLeft>
-          Mobile Sidebar
+        {MenuItems.map((item) => (
+          <Button
+            key={item.href}
+            href={item.href}
+            active={pathname.startsWith(item.href)}
+            target={item.href.startsWith('http') ? '_blank' : undefined}
+          >
+            {item.label}
+            </Button>
+        ))}
         </SidebarMobileLeft>
       </div>
     </div>
