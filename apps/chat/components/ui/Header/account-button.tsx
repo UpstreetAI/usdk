@@ -25,7 +25,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         <Icon icon='Credits' className="size-8" /> {Math.round(credits)}
       </div>
 
-      <Link
+      <a
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
         href={routes.account}
       >
@@ -52,7 +52,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
             {user.name}
           </div>
         </div>
-      </Link>
+      </a>
     </div>
   )
 }
