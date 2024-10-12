@@ -98,7 +98,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   // Get room specs
   const crdt = getCrdtDoc()
   const roomName = crdt?.getText('name').toString()
-  
+
   useEffect(() => {
     onConnect && onConnect(connected);
   }, [connected]);
@@ -137,32 +137,33 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   const { isAgentLoading } = useLoading();
-  
+
   return (
     <div
       className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
 
       <ChatMenu players={players} roomName={roomName} />
-      <div className='h-screen overflow-auto' ref={scrollRef}>
-      <div
-        className={cn('pb-[200px] pt-20 md:pt-24', className)}
-        ref={messagesRef}
-      >
-        {room ? (
-          messages.length ? (
-            <ChatList messages={messages} />
-          ) : (
-            null
-          )
-        ) : <EmptyScreen />}
-        
-        <div className="relative mx-auto max-w-2xl px-4">
-          {isAgentLoading && "Loading agent..."}
-        </div>
 
-        <div className="w-full h-px" ref={visibilityRef} />
-      </div>
+      <div className='h-screen overflow-auto' ref={scrollRef}>
+        <div
+          className={cn('pb-[200px] pt-20 md:pt-24', className)}
+          ref={messagesRef}
+        >
+          {room ? (
+            messages.length ? (
+              <ChatList messages={messages} />
+            ) : (
+              null
+            )
+          ) : <EmptyScreen />}
+
+          <div className="relative mx-auto max-w-2xl px-4">
+            {isAgentLoading && "Loading agent..."}
+          </div>
+
+          <div className="w-full h-px" ref={visibilityRef} />
+        </div>
       </div>
       <ChatPanel
         input={input}

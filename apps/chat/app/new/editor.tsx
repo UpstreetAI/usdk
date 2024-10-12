@@ -522,7 +522,7 @@ export default function AgentEditor({
             }}
           >Send</Button>
         </form>
-      </div>z
+      </div>
       <Chat
         room={room}
         onConnect={(connected) => {
