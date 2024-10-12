@@ -27,7 +27,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
 
   return (
     <div
-      className={`absolute z-[10] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
+      className={`fixed z-[10] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
         } ${isRightSidebarOpen ? 'lg:pr-[250px] xl:pr-[300px]' : ''}`}
     >
 

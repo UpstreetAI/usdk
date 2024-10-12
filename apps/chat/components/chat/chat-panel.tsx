@@ -58,7 +58,7 @@ export function ChatPanel({
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   return (
-    <div className={`absolute inset-x-0 bottom-0 w-full duration-300 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""}`}>
+    <div className={`fixed inset-x-0 bottom-0 w-full duration-300 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""}`}>
       
       <ButtonScrollToBottom
         isAtBottom={isAtBottom}
