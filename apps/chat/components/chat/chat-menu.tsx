@@ -2,6 +2,8 @@ import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { isValidUrl } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { IconButton } from 'ucom';
+import { SidebarMobileRight } from '../sidebar-mobile';
+import { RoomUi } from './room-ui';
 
 export interface Player {
   getPlayerSpec: () => {
@@ -25,12 +27,12 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
 
   return (
     <div
-      className={`absolute z-[100] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
+      className={`absolute z-[10] bg-gray-300 left-0 w-full ease-in-out duration-300 animate-in border-b ${isLeftSidebarOpen ? 'lg:pl-[250px] xl:pl-[300px]' : ''
         } ${isRightSidebarOpen ? 'lg:pr-[250px] xl:pr-[300px]' : ''}`}
     >
 
       <div className='absolute z-[100] left-3 md:left-4 top-1/2 transform -translate-y-1/2 mt-1'>
-        <IconButton href={"/"} icon={'BackArrow'}  />
+        <IconButton href={"/"} icon={'BackArrow'} />
       </div>
 
       <div className="space-y-4 px-2 md:px-0 sm:max-w-2xl mx-auto relative flex">
@@ -79,8 +81,13 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
               })}
             </div>
             <div className="text-lg hidden md:block font-medium whitespace-nowrap">{players?.length} member{players.length > 1 && "s"}</div>
-            <div className="flex items-center space-x-4 ml-2">
+            <div className="hidden md:flex items-center space-x-4 ml-2">
               <IconButton icon={'Menu'} variant='ghost' onClick={toggleRightSidebar} />
+            </div>
+            <div className='md:hidden'>
+              <SidebarMobileRight>
+                <RoomUi />
+              </SidebarMobileRight>
             </div>
           </div>
         </div>

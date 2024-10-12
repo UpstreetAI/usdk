@@ -34,7 +34,7 @@ export function SidebarMobileRight({ children }: SidebarMobileProps) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        {user && <IconButton variant='ghost' icon="BurgerMenu" />}
+        {user && <IconButton icon={'Menu'} variant='ghost' />}
       </SheetTrigger>
       <SheetContent
         side="right"
