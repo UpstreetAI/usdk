@@ -9,6 +9,10 @@ interface SidebarContext {
   toggleLeftSidebar: () => void
   isRightSidebarOpen: boolean
   toggleRightSidebar: () => void
+  toggleLeftSidebarMobile: () => void
+  toggleRightSidebarMobile: () => void
+  isLeftSidebarOpenMobile: boolean
+  isRightSidebarOpenMobile: boolean
   // isLoading: boolean
 }
 
@@ -31,6 +35,8 @@ interface SidebarProviderProps {
 export function SidebarProvider({ children }: SidebarProviderProps) {
   const [isLeftSidebarOpen, setLeftSidebarOpen] = React.useState(false)
   const [isRightSidebarOpen, setRightSidebarOpen] = React.useState(false)
+  const [isLeftSidebarOpenMobile, setLeftSidebarOpenMobile] = React.useState(false)
+  const [isRightSidebarOpenMobile, setRightSidebarOpenMobile] = React.useState(false)
   // const [isLoading, setLoading] = React.useState(true)
 
   /* React.useEffect(() => {
@@ -55,6 +61,18 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
       return newState
     })
   }
+  const toggleLeftSidebarMobile = () => {
+    setLeftSidebarOpen(value => {
+      const newState = !value
+      return newState
+    })
+  }
+  const toggleRightSidebarMobile = () => {
+    setRightSidebarOpen(value => {
+      const newState = !value
+      return newState
+    })
+  }
 
   // if (isLoading) {
   //   return null
@@ -62,7 +80,16 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
 
   return (
     <SidebarContext.Provider
-      value={{ isLeftSidebarOpen, toggleLeftSidebar, isRightSidebarOpen, toggleRightSidebar/*, isLoading*/ }}
+      value={{ 
+        isLeftSidebarOpen, 
+        toggleLeftSidebar, 
+        isRightSidebarOpen, 
+        toggleRightSidebar,
+        toggleLeftSidebarMobile,
+        toggleRightSidebarMobile,
+        isLeftSidebarOpenMobile,
+        isRightSidebarOpenMobile
+      }}
     >
       {children}
     </SidebarContext.Provider>

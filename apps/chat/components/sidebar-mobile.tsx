@@ -16,8 +16,10 @@ interface SidebarMobileProps {
 export function SidebarMobileLeft({ children }: SidebarMobileProps) {
   const { user } = useSupabase();
 
+  const { isLeftSidebarOpenMobile } = useSidebar()
+
   return (
-    <Sheet>
+    <Sheet open={isLeftSidebarOpenMobile}>
       <SheetTrigger asChild>
         {user && <Button
               variant="outline"
@@ -41,8 +43,10 @@ export function SidebarMobileLeft({ children }: SidebarMobileProps) {
 export function SidebarMobileRight({ children }: SidebarMobileProps) {
   const { user } = useSupabase();
 
+  const { isRightSidebarOpenMobile } = useSidebar()
+
   return (
-    <Sheet>
+    <Sheet open={isRightSidebarOpenMobile}>
       <SheetTrigger asChild>
         {user && <Button
               variant="outline"
