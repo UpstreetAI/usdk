@@ -140,12 +140,11 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   
   return (
     <div
-      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
-      ref={scrollRef}
+      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
 
       <ChatMenu players={players} roomName={roomName} />
-
+      <div className='h-screen overflow-auto' ref={scrollRef}>
       <div
         className={cn('pb-[200px] pt-20 md:pt-24', className)}
         ref={messagesRef}
@@ -163,6 +162,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
         </div>
 
         <div className="w-full h-px" ref={visibilityRef} />
+      </div>
       </div>
       <ChatPanel
         input={input}
