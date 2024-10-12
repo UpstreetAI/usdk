@@ -13,7 +13,7 @@ export interface AccountButtonProps {
 }
 export function AccountButton({ user, credits }: AccountButtonProps) {
   return (
-    <div className='flex mr-4 h-12 -mt-6'>
+    <div className='flex mr-2 md:mr-4 h-12 -mt-6'>
 
       <Dev>
         <div className='mt-1 mr-2'>
