@@ -53,6 +53,10 @@ export function HeaderMenu() {
       </div>
       <div className='flex md:hidden gap-4 md:ml-6'>
         <SidebarMobileLeft>
+        <a href="/" rel="nofollow" className='block w-44 mb-4'>
+          <IconUpstreetChatStroke className="mr-2 fill-black size-12 w-auto dark:hidden" inverted />
+          <IconUpstreetChatStroke className="hidden mr-2 fill-white size-12 w-auto dark:block" />
+        </a>
         {MenuItems.map((item) => (
           <Button
             key={item.href}
