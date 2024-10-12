@@ -8,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   disabled?: boolean;
   className?: string;
   href?: string;
+  target?: string; // Add the target prop
   children: React.ReactNode;
 }
 
@@ -19,6 +20,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   className,
   href,
+  target, // Destructure the target prop
   children,
   ...props
 }) => {
@@ -34,6 +36,7 @@ const Button: React.FC<ButtonProps> = ({
          ${className}`
         }
         href={href}
+        target={target} // Use the target prop
       >
         {children}
       </a>
