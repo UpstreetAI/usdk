@@ -8,13 +8,9 @@ export function AccountOrLogin({user, credits = 0}: any) {
   return (
     <>
       {user ? (
-        <>
-          <AccountButton user={user} credits={credits} />
-        </>
+        <AccountButton user={user} credits={credits} />
       ) : (
-        <>
-          <LoginButton className='mr-4' text={"Login"} />
-        </>
+        <LoginButton className='mr-4' text={"Login"} />
       )}
     </>
   );
