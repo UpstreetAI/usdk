@@ -297,10 +297,10 @@ export const create = async (args, opts) => {
   const srcTemplateFilter = (p) => !/^(?:package\.json|agent\.json)$/.test(p);
 
   // copy over files
-  const srcPackageJsonPaths = [
-    path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'package.json'), // upstreet-agent package.json
-    path.join(srcTemplateDir, 'package.json'), // template package.json
-  ];
+  // const srcPackageJsonPaths = [
+  //   path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'package.json'), // upstreet-agent package.json
+  //   path.join(srcTemplateDir, 'package.json'), // template package.json
+  // ];
   const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
   const srcWranglerToml = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
