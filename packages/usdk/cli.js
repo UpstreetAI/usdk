@@ -2335,7 +2335,7 @@ const runJest = async (directory) => {
     },
   });
 };
-const test = async (args) => {
+/* const test = async (args) => {
   const all = !!args.all;
   const dev = true;
   const debug = !!args.debug;
@@ -2408,7 +2408,7 @@ const test = async (args) => {
     console.log('not logged in');
     process.exit(1);
   }
-};
+}; */
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
