@@ -201,22 +201,10 @@ const interview = async (agentJson, {
   questionLogger.close();
   return result;
 };
-const createAgentJson = async (agentAuthSpec, agentEditSpec, {
-  jwt,
+const makeAgentJsonInit = ({
+  agentJsonString,
+  features,
 }) => {
-  const {
-    guid,
-    // agentToken,
-    userPrivate,
-    mnemonic,
-  } = agentAuthSpec;
-  const {
-    agentJsonString,
-    features,
-    prompt,
-    skipInterview,
-  } = agentEditSpec;
-
   // initialize
   const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
   // Add user specified features to agentJsonInit being passed to the interview process for context
@@ -225,6 +213,21 @@ const createAgentJson = async (agentAuthSpec, agentEditSpec, {
       ...features,
     };
   }
+  return agentJsonInit;
+}
+const createAgentJson = async (agentJsonInit, agentAuthSpec, agentEditSpec) => {
+  const {
+    guid,
+    // agentToken,
+    userPrivate,
+    mnemonic,
+  } = agentAuthSpec;
+  const {
+    prompt,
+    skipInterview,
+    jwt,
+  } = agentEditSpec;
+
   // run the interview, if applicable
   const agentJson = await (async () => {
     // if the agent json is complete
@@ -310,15 +313,18 @@ export const create = async (args, opts) => {
 
   // generate the agent
   console.log(pc.italic('Generating agent...'));
+  const agentJsonInit = makeAgentJsonInit({
+    agentJsonString,
+    features,
+  });
   const agentEditSpec = {
     agentJsonString,
     features,
     prompt,
     skipInterview: !!(agentJsonString || source || yes),
-  };
-  const agentJson = await createAgentJson(agentAuthSpec, agentEditSpec, {
     jwt,
-  });
+  };
+  const agentJson = await createAgentJson(agentJsonInit, agentAuthSpec, agentEditSpec);
   console.log(pc.italic('Agent generated.'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
