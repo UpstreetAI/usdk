@@ -1,7 +1,7 @@
 import { mulaw } from '../lib/alawmulaw/dist/alawmulaw.mjs';
 import {
   floatTo16Bit,
-  int16ToFloat32,
+  // int16ToFloat32,
 } from '../lib/multiplayer/public/audio-worker/convert.mjs';
 import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
 import { QueueManager } from './queue-manager.mjs';
@@ -37,49 +37,51 @@ const encodeMp3 = async (f32, {
     throw new Error('no codecs');
   }
 
-  const encodeTransformStream = new AudioEncodeStream({
-    type: 'audio/mpeg',
-    sampleRate,
-    codecs,
-  });
+  console.log('encoding 1');
+  try {
+    const encodeTransformStream = new AudioEncodeStream({
+      type: 'audio/mpeg',
+      sampleRate,
+      codecs,
+    });
+    console.log('encoding 2');
 
-  (async () => {
-    const writer = encodeTransformStream.writable.getWriter();
-    // console.log('write 1');
-    await writer.write(f32);
-    // console.log('write 2');
-    await writer.close();
-    // console.log('write 3');
-  })();
+    (async () => {
+      const writer = encodeTransformStream.writable.getWriter();
+      console.log('write 1');
+      await writer.write(f32);
+      console.log('write 2');
+      await writer.close();
+      console.log('write 3');
+    })();
 
-  // read the encoded mp3 from the readable end of the web stream
-  const reader = encodeTransformStream.readable.getReader();
-  const chunks = [];
-  for (;;) {
-    // console.log('read 1');
-    const { done, value } = await reader.read();
-    // console.log('read 2', {
-    //   done,
-    //   value,
-    // });
-    if (done) {
-      break;
+    // read the encoded mp3 from the readable end of the web stream
+    const reader = encodeTransformStream.readable.getReader();
+    const chunks = [];
+    for (;;) {
+      console.log('read 1');
+      const { done, value } = await reader.read();
+      console.log('read 2', {
+        done,
+        value,
+      });
+      if (done) {
+        break;
+      }
+      chunks.push(value);
     }
-    chunks.push(value);
-  }
-  // console.log('read 3');
+    console.log('read 3');
 
-  // XXX terminate the encoder
+    // XXX terminate the encoder
 
-  // console.log('got chunks 1', chunks);
-  // try {
+    console.log('got chunks 1', chunks);
     const uint8Array = mergeUint8Arrays(chunks);
-    // console.log('got chunks 2', uint8Array);
+    console.log('got chunks 2', uint8Array);
     return uint8Array;
-  // } catch (error) {
-  //   // console.warn('error encoding mp3', error);
-  //   throw error;
-  // }
+  } catch (error) {
+    console.warn('error encoding mp3', error);
+    throw error;
+  }
 };
 
 export const transcribe = async (data, {
@@ -225,7 +227,7 @@ export const transcribeRealtime = ({
             sampleRate,
             codecs,
           });
-          // console.log('encoded', mp3Buffer);
+          console.log('encoded', mp3Buffer);
 
           await queueManager.waitForTurn(async () => {
             // console.log('transcribe 1', mp3Buffer);
