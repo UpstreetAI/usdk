@@ -3349,6 +3349,21 @@ const main = async () => {
       return `"${name}", example using json ${exampleString}`;
     })
     .join('. ');
+  const parseFeatures = (featuresSpec) => {
+    let features = {};
+    for (const featuresString of featuresSpec) {
+      const parsedJson = jsonParse(featuresString);
+      if (parsedJson !== undefined) {
+        features = {
+          ...features,
+          ...parsedJson,
+        };
+      } else {
+        features[featuresString] = featureExamples[featuresString][0];
+      }
+    }
+    return features;
+  };
 
   program
     .command('create')
@@ -3386,22 +3401,10 @@ const main = async () => {
 
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
         if (opts.features) {
-          let features = {};
-          for (const featuresString of opts.features) {
-            const parsedJson = jsonParse(featuresString);
-            if (parsedJson !== undefined) {
-              features = {
-                ...features,
-                ...parsedJson,
-              };
-            } else {
-              features[featuresString] = featureExamples[featuresString][0];
-            }
-          }
-          args.features = features;
+          args.features = parseFeatures(opts.features);
         }
         
-        await create(args);
+        await edit(args);
       });
     });
   program
