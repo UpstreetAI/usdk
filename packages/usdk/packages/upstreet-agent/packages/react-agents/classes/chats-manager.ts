@@ -38,7 +38,6 @@ import {
 import {
   TranscribedVoiceInput,
 } from 'react-agents/devices/audio-transcriber.mjs';
-import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
 
 //
 
@@ -270,6 +269,7 @@ export class ChatsManager {
                 if (type === 'audio/pcm-f32-48000') {
                   const audioInput = new EventEmitter();
                   const sampleRate = 48000;
+                  const codecs = agent.appContextValue.useCodecs();
                   const jwt = agent.useAuthToken();
                   const transcribedVoiceInput = new TranscribedVoiceInput({
                     audioInput,
@@ -278,16 +278,16 @@ export class ChatsManager {
                     jwt,
                   });
                   transcribedVoiceInput.addEventListener('speechstart', e => {
-                    console.log('speech start', e.data);
+                    console.log('chats manager speech start', e.data);
                   });
                   transcribedVoiceInput.addEventListener('speechstop', e => {
-                    console.log('speech stop', e.data);
+                    console.log('chats manager speech stop', e.data);
                   });
                   transcribedVoiceInput.addEventListener('speechcancel', e => {
-                    console.log('speech cancel', e.data);
+                    console.log('chats manager speech cancel', e.data);
                   });
                   transcribedVoiceInput.addEventListener('transcription', e => {
-                    console.log('transcription', e.data);
+                    console.log('chats manager transcription', e.data);
                   });
                   const transcriptionStream = {
                     audioInput,
