@@ -7,11 +7,6 @@ import { pingRate } from 'react-agents/classes/ping-manager.ts';
 import { serverHandler } from 'react-agents/routes/server.ts';
 import { multiplayerEndpointUrl } from 'react-agents/util/endpoints.mjs';
 
-import agentTsxUserRender from '../../agent.tsx'; // note: this will be overwritten by the build process
-import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
-
-Error.stackTraceLimit = 300;
-
 //
 
 /*
@@ -191,7 +186,10 @@ export class DurableObjectImpl extends EventTarget {
       userId: this.#getId(),
       supabase: this.supabase,
     });
-    const userRender = state.userRender ?? agentTsxUserRender;
+    const {
+      userRender,
+      codecs,
+    } = state;
     this.agentRenderer = new AgentRenderer({
       env,
       userRender,
