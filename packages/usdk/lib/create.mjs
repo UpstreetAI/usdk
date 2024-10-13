@@ -184,118 +184,116 @@ export const create = async (args, opts) => {
   // generate the agent if necessary
   let srcTemplateDir;
   let agentJson;
-  if (jwt) {
-    console.log(pc.italic('Generating agent...'));
 
-    // run the interview
-    const interview = async (agentJson) => {
-      const questionLogger = new InterviewLogger(new ReadlineStrategy());
-      const getAnswer = (question) => {
-        return questionLogger.askQuestion(question);
-      };
-      const agentInterview = new AgentInterview({
+  console.log(pc.italic('Generating agent...'));
+
+  // run the interview
+  const interview = async (agentJson) => {
+    const questionLogger = new InterviewLogger(new ReadlineStrategy());
+    const getAnswer = (question) => {
+      return questionLogger.askQuestion(question);
+    };
+    const agentInterview = new AgentInterview({
+      agentJson,
+      prompt,
+      mode: prompt ? 'auto' : 'interactive',
+      jwt,
+    });
+    agentInterview.addEventListener('input', async e => {
+      const {
+        question,
+      } = e.data;
+      const answer = await getAnswer(question);
+      agentInterview.write(answer);
+    });
+    agentInterview.addEventListener('output', async e => {
+      const {
+        text,
+      } = e.data;
+      console.log(text);
+    });
+    agentInterview.addEventListener('change', e => {
+      const {
+        updateObject,
         agentJson,
-        prompt,
-        mode: prompt ? 'auto' : 'interactive',
-        jwt,
-      });
-      agentInterview.addEventListener('input', async e => {
-        const {
-          question,
-        } = e.data;
-        const answer = await getAnswer(question);
-        agentInterview.write(answer);
-      });
-      agentInterview.addEventListener('output', async e => {
-        const {
-          text,
-        } = e.data;
-        console.log(text);
-      });
-      agentInterview.addEventListener('change', e => {
-        const {
-          updateObject,
-          agentJson,
-        } = e.data;
-        // console.log('change', updateObject);
-      });
-      const imageLogger = (label) => async (e) => {
-        const {
-          result: blob,
-          signal,
-        } = e.data;
+      } = e.data;
+      // console.log('change', updateObject);
+    });
+    const imageLogger = (label) => async (e) => {
+      const {
+        result: blob,
+        signal,
+      } = e.data;
 
-        const ab = await blob.arrayBuffer();
-        if (signal.aborted) return;
+      const ab = await blob.arrayBuffer();
+      if (signal.aborted) return;
 
-        const b = Buffer.from(ab);
-        const jimp = await Jimp.read(b);
-        if (signal.aborted) return;
+      const b = Buffer.from(ab);
+      const jimp = await Jimp.read(b);
+      if (signal.aborted) return;
 
-        const imageRenderer = new ImageRenderer();
-        const {
-          text: imageText,
-        } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-        console.log(label);
-        console.log(imageText);
+      const imageRenderer = new ImageRenderer();
+      const {
+        text: imageText,
+      } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+      console.log(label);
+      console.log(imageText);
+    };
+    agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
+    agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
+    const result = await agentInterview.waitForFinish();
+    questionLogger.close();
+    return result;
+  };
+  const createAgentJson = async () => {
+    // initialize
+    const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+    // Add user specified features to agentJsonInit being passed to the interview process for context
+    if (Object.keys(features).length > 0) {
+      agentJsonInit.features = {
+        ...features,
       };
-      agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
-      agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
-      const result = await agentInterview.waitForFinish();
-      questionLogger.close();
-      return result;
-    };
-    const createAgentJson = async () => {
-      // initialize
-      const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
-      // Add user specified features to agentJsonInit being passed to the interview process for context
-      if (Object.keys(features).length > 0) {
-        agentJsonInit.features = {
-          ...features,
-        };
+    }
+    // run the interview, if applicable
+    const agentJson = await (async () => {
+      // if the agent json is complete
+      if (agentJsonString || source || yes) {
+        return agentJsonInit;
+      } else {
+        return await interview(agentJsonInit);
       }
-      // run the interview, if applicable
-      const agentJson = await (async () => {
-        // if the agent json is complete
-        if (agentJsonString || source || yes) {
-          return agentJsonInit;
-        } else {
-          return await interview(agentJsonInit);
-        }
-      })();
-      // additional properties
-      agentJson.id = guid;
-      agentJson.ownerId = userPrivate.id;
-      agentJson.stripeConnectAccountId = stripeConnectAccountId;
-      agentJson.address = walletAddress;
-      // ensure defaults
-      ensureAgentJsonDefaults(agentJson);
-      // return result
-      return agentJson;
-    };
+    })();
+    // additional properties
+    agentJson.id = guid;
+    agentJson.ownerId = userPrivate.id;
+    agentJson.stripeConnectAccountId = stripeConnectAccountId;
+    agentJson.address = walletAddress;
+    // ensure defaults
+    ensureAgentJsonDefaults(agentJson);
+    // return result
+    return agentJson;
+  };
 
-    // note: this is an assignment
-    agentJson = await createAgentJson();
-    console.log(pc.italic('Agent generated.'));
-    console.log(pc.green('Name:'), agentJson.name);
-    console.log(pc.green('Bio:'), agentJson.bio);
-    console.log(pc.green('Description:'), agentJson.description);
-    console.log(pc.green('Visual Description:'), agentJson.visualDescription);
-    console.log(pc.green('Preview URL:'), agentJson.previewUrl);
-    console.log(pc.green('Homespace Description:'), agentJson.homespaceDescription);
-    console.log(pc.green('Homespace URL:'), agentJson.homespaceUrl);
-    const featuresKeys = Object.keys(agentJson.features ?? {});
-    console.log(pc.green('Features:'), featuresKeys.length > 0
-      ? featuresKeys.join(', ')
-      : '*none*'
-    );
+  // note: this is an assignment
+  agentJson = await createAgentJson();
+  console.log(pc.italic('Agent generated.'));
+  console.log(pc.green('Name:'), agentJson.name);
+  console.log(pc.green('Bio:'), agentJson.bio);
+  console.log(pc.green('Description:'), agentJson.description);
+  console.log(pc.green('Visual Description:'), agentJson.visualDescription);
+  console.log(pc.green('Preview URL:'), agentJson.previewUrl);
+  console.log(pc.green('Homespace Description:'), agentJson.homespaceDescription);
+  console.log(pc.green('Homespace URL:'), agentJson.homespaceUrl);
+  const featuresKeys = Object.keys(agentJson.features ?? {});
+  console.log(pc.green('Features:'), featuresKeys.length > 0
+    ? featuresKeys.join(', ')
+    : '*none*'
+  );
 
-    console.log(pc.italic('Building agent...'));
-    srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
-    console.log(pc.italic('Agent built.'));
-  } else {
-    throw new Error('not logged in: cannot generate agent from prompt');
-  }
+  console.log(pc.italic('Building agent...'));
+  srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
+  console.log(pc.italic('Agent built.'));
+
   const srcTemplateFilter = (p) => !/^(?:package\.json|agent\.json)$/.test(p);
 
   // copy over files
