@@ -69,7 +69,7 @@ import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agen
 
 // import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 // import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-local.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-fs.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
