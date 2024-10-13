@@ -32,7 +32,7 @@ const makeFakeData = () => {
   }
   return fakeData;
 };
-const _test = async () => {
+const _testCodecs = async () => {
   try {
     const fakeData = makeFakeData();
     console.log('got fake data', fakeData);
@@ -211,7 +211,7 @@ export class DurableObject extends EventTarget {
       await this.alarm();
     })();
 
-    // _test();
+    // _testCodecs();
   }
 
   waitForLoad() {
