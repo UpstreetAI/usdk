@@ -383,8 +383,8 @@ export const create = async (args, opts) => {
         t = buildWranglerToml(t, {
           name: getAgentName(guid),
           agentJson,
-          mnemonic,
           agentToken,
+          mnemonic,
         });
         return toml.stringify(t);
       }),
