@@ -49,7 +49,7 @@ export class WsMediaStreamAudioReader {
     };
     audioWorkletNode.port.onmessage = e => {
       let f32 = e.data;
-      console.warn('push audio data', f32);
+      // console.warn('push audio data', f32, audioContext.sampleRate, sampleRate);
       if (sampleRate !== undefined) {
         f32 = resample(f32, audioContext.sampleRate, sampleRate);
       }

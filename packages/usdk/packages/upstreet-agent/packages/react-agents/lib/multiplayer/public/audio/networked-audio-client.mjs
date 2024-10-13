@@ -44,6 +44,7 @@ export class NetworkedAudioClient extends EventTarget {
     //   this.playerId,
     //   id,
     //   type,
+    //   disposition,
     // ]);
     this.ws.send(zbencode({
       method: UPDATE_METHODS.AUDIO_START,
