@@ -29,7 +29,7 @@ import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from 'react-agents/util/stripe-utils.mjs';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-import { IconButton } from 'ucom';
+// import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 
