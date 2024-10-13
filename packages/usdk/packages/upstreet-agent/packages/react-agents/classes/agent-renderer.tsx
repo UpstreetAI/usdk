@@ -114,6 +114,7 @@ export class AgentRenderer {
   env: object;
   userRender: UserHandler;
   chatsSpecification: ChatsSpecification;
+  codecs: any;
 
   registry: RenderRegistry;
   conversationManager: ConversationManager;
@@ -131,15 +132,18 @@ export class AgentRenderer {
     env,
     userRender,
     chatsSpecification,
+    codecs,
   }: {
     env: object;
     userRender: UserHandler;
     chatsSpecification: ChatsSpecification;
+    codecs: any;
   }) {
     // latch arguments
     this.env = env;
     this.userRender = userRender;
     this.chatsSpecification = chatsSpecification;
+    this.codecs = codecs;
 
     // create the app context
     this.registry = new RenderRegistry();
@@ -171,6 +175,9 @@ export class AgentRenderer {
     const useChatsSpecification = () => {
       return this.chatsSpecification;
     };
+    const useCodecs = () => {
+      return this.codecs;
+    };
     const useRegistry = () => {
       return this.registry;
     };
@@ -182,6 +189,7 @@ export class AgentRenderer {
       supabase: useSupabase(),
       conversationManager: useConversationManager(),
       chatsSpecification: useChatsSpecification(),
+      codecs: useCodecs(),
       registry: useRegistry(),
     });
 

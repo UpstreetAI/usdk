@@ -1,3 +1,5 @@
+import { resample } from 'react-agents/lib/multiplayer/public/audio-worker/resample.mjs';
+
 export class FakeAudioData {
   constructor() {
     this.data = null;
@@ -25,6 +27,9 @@ export class FakeIteratorResult {
 export class WsMediaStreamAudioReader {
   constructor(mediaStream, {
     audioContext,
+    // if passed, resample audio to this rate
+    // otherwise, use the rate of the audio context
+    sampleRate = undefined,
   }) {
     if (!audioContext) {
       console.warn('need audio context');
@@ -43,7 +48,12 @@ export class WsMediaStreamAudioReader {
       console.warn('audio worklet error', err);
     };
     audioWorkletNode.port.onmessage = e => {
-      this.pushAudioData(e.data);
+      let f32 = e.data;
+      console.warn('push audio data', f32);
+      if (sampleRate !== undefined) {
+        f32 = resample(f32, audioContext.sampleRate, sampleRate);
+      }
+      this.pushAudioData(f32);
     };
     
     mediaStreamSourceNode.connect(audioWorkletNode);

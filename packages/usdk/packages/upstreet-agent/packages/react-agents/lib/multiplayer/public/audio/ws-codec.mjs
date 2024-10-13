@@ -1,8 +1,5 @@
 import {
   FakeAudioData,
-  FakeIteratorResult,
-  WsMediaStreamAudioReader,
-  WsEncodedAudioChunk,
 } from './ws-codec-util.mjs';
 
 export class OpusAudioEncoder {
@@ -82,6 +79,7 @@ export class Mp3AudioEncoder {
     //   type: 'module',
     // });
     if (!codecs.WsMp3Encoder) {
+      console.warn('no WsMp3Encoder', codecs);
       throw new Error('no WsMp3Encoder');
     }
     this.worker = new codecs.WsMp3Encoder();

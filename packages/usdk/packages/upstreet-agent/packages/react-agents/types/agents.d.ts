@@ -714,6 +714,7 @@ export type AppContextValue = {
   useSupabase: () => any;
   useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
+  useCodecs: () => any;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;
