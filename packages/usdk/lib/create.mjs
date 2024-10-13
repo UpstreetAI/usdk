@@ -253,12 +253,6 @@ const createAgentJson = async (agentAuthSpec, agentEditSpec, {
 
 //
 
-
-// _: [agentDirectory],
-// json: jsonString,
-// source: agentTsxPath,
-// yes: true,
-// forceNoConfirm: true,
 export const create = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
