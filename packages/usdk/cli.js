@@ -3204,7 +3204,7 @@ const voice = async (args) => {
   }
 };
 
-const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
+// const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
 const handleError = async (fn) => {
   try {
     return await fn();
@@ -3224,8 +3224,7 @@ const main = async () => {
       }
     });
 
-  program
-  .version(packageJson.version);
+  program.version(packageJson.version);
 
   // misc
   program
@@ -3343,7 +3342,7 @@ const main = async () => {
     });*/
 
   // agents
-  const templateNames = await getTemplateNames();
+  // const templateNames = await getTemplateNames();
 
   // Generate the JSON string dynamically based on the examples in featureSpecs
   const featureExamples = featureSpecs.reduce((acc, feature) => {
