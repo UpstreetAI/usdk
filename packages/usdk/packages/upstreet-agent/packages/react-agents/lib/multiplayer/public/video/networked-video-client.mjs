@@ -1,6 +1,6 @@
 import {UPDATE_METHODS} from '../update-types.mjs';
 import {handlesMethod} from './networked-video-client-utils.mjs';
-import {parseUpdateObject, makeId} from '../util.mjs';
+import {parseUpdateObject, makeId, makePromise} from '../util.mjs';
 import {zbencode} from '../../../zjs/encoding.mjs';
 
 export class NetworkedVideoClient extends EventTarget {
@@ -51,33 +51,30 @@ export class NetworkedVideoClient extends EventTarget {
       ],
     }));
 
-    // pump the reader
-    let live = true;
-    const finishPromise = (async () => {
-      for await (const chunk of playableVideoStream) {
-        if (live) {
-          // console.log('send audio', [
-          //   this.playerId,
-          //   id,
-          //   chunk,
-          // ]);
-          this.ws.send(zbencode({
-            method: UPDATE_METHODS.VIDEO,
-            args: [
-              this.playerId,
-              id,
-              chunk,
-            ],
-          }));
-        } else {
-          break;
-        }
-      }
-    })();
+    const frame = e => {
+      const {frame} = e.data;
+      console.log('send video', [
+        this.playerId,
+        id,
+        frame,
+      ]);
+      this.ws.send(zbencode({
+        method: UPDATE_METHODS.VIDEO,
+        args: [
+          this.playerId,
+          id,
+          frame,
+        ],
+      }));
+    };
+    playableVideoStream.addEventListener('frame', frame);
 
     // add the cleanup fn
+    const finishPromise = makePromise();
     const cleanup = () => {
-      live = false;
+      playableVideoStream.removeEventListener('frame', frame);
+
+      finishPromise.resolve(null);
 
       // console.log('send audio end', [
       //   this.playerId,
