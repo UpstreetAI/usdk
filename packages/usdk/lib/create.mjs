@@ -7,18 +7,6 @@ import pc from 'picocolors';
 import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
-// import {
-//   input,
-//   // select,
-//   // checkbox,
-//   // confirm,
-//   // search,
-//   // password,
-//   // expand,
-//   // editor,
-//   // number,
-//   // rawlist,
-// } from '@inquirer/prompts';
 import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import {
   getAgentToken,
