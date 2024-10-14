@@ -60,7 +60,9 @@ import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-a
 import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
-import { get } from 'http';
+import {
+  cwd,
+} from '../util/directory-utils.mjs';
 
 //
 
