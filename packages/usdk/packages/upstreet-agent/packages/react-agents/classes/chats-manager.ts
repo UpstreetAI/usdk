@@ -329,6 +329,26 @@ export class ChatsManager {
                 console.warn('audio end: no transcription stream', e.data);
               }
             });
+
+            // video streams
+            virtualPlayers.addEventListener('videostart', async (e) => {
+              // console.log('got video start', e.data);
+              conversation.dispatchEvent(new MessageEvent('videostart', {
+                data: e.data,
+              }));
+            });
+            virtualPlayers.addEventListener('video', async (e) => {
+              // console.log('got video data', e.data);
+              conversation.dispatchEvent(new MessageEvent('video', {
+                data: e.data,
+              }));
+            });
+            virtualPlayers.addEventListener('videoend', async (e) => {
+              // console.log('got video end', e.data);
+              conversation.dispatchEvent(new MessageEvent('videoend', {
+                data: e.data,
+              }));
+            });
           };
           const _bindOutgoing = () => {
             // chat messages
