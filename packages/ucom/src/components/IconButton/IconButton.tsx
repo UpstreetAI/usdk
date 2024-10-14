@@ -1,3 +1,4 @@
+import React, { forwardRef } from 'react';
 import Icon from '../Icon';
 import styles from './IconButton.module.css';
 
@@ -13,7 +14,7 @@ export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
   href?: string;
 }
 
-const IconButton: React.FC<IconButtonProps> = ({
+const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, IconButtonProps>(({
   icon = 'Accessories',
   size = 'small',
   variant = 'primary',
@@ -24,7 +25,7 @@ const IconButton: React.FC<IconButtonProps> = ({
   target,
   href,
   ...props
-}) => {
+}, ref) => {
   const className = `
     ${styles.ucomIconButton} 
     ${size && styles[size]}
@@ -51,6 +52,7 @@ const IconButton: React.FC<IconButtonProps> = ({
 
   return (
     <button
+      ref={ref}
       className={className}
       disabled={disabled}
       {...props}
@@ -59,6 +61,6 @@ const IconButton: React.FC<IconButtonProps> = ({
       {label && <div className={`${styles.label} absolute top-full w-full left-0 text-center font-bold`}>{label}</div>}
     </button>
   );
-};
+});
 
 export default IconButton;
