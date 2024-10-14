@@ -158,12 +158,11 @@ export class AgentInterview extends EventTarget {
           \`bio\` describes the personality and character traits of the agent.
           \`description\` explains why other agents or users would want to interact with this agent. Keep it intriguing and concise.
           \`visualDescription\` visually describes the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
-          e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
+          e.g. 'girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
           \`homespacecDescription\` visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
           
-          Do not use placeholder values for fields. Instead, make up something appropriate.
-          Try to fill out all fields before finishing.
+          Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
         ` + '\n\n' +
         featuresAvailablePrompt,
       userPrompt: prompt,
