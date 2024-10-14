@@ -42,6 +42,9 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import {
+  cwd,
+} from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -49,9 +52,9 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import {
-  getAgentToken,
-} from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+// import {
+//   getAgentToken,
+// } from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
   aiHost,
   metamaskHost,
@@ -275,9 +278,6 @@ const makeCorsHeaders = (req) => {
   return headers;
 };
 
-// const webcamPort = 10619;
-const cwd = process.cwd();
-
 const getServerOpts = () => {
   return {
     key: tryReadFile(path.join(certsLocalPath, 'privkey.pem')) || '',
@@ -453,9 +453,15 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async ({ directory = cwd } = {}, portIndex = 0, {
-  debug = false,
-} = {}) => {
+const startDevServer = async (
+  {
+    directory = cwd,
+  } = {},
+  portIndex = 0,
+  {
+    debug = false,
+  } = {},
+) => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBinPath,
