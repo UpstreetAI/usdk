@@ -17,9 +17,6 @@ import {
 import { cleanDir } from '../lib/directory-util.mjs';
 import { npmInstall } from '../lib/npm-util.mjs';
 import {
-  getLoginJwt,
-} from './login.mjs';
-import {
   makeTempDir,
 } from './file.mjs';
 import {
