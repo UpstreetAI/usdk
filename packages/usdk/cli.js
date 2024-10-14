@@ -109,6 +109,7 @@ import {
 } from './lib/locations.mjs';
 import {
   create,
+  edit,
 } from './lib/commands.mjs';
 import {
   makeTempDir,
@@ -3413,6 +3414,46 @@ const main = async () => {
         const jwt = await getLoginJwt();
 
         await create(args, {
+          jwt,
+        });
+      });
+    });
+  program
+    .command('edit')
+    .description('Edit an existing agent')
+    .argument(`[directory]`, `Directory containing the agent to edit`)
+    .option(`-p, --prompt <string>`, `Edit prompt`)
+    .option(
+      `-af, --add-feature <feature...>`,
+      `Add a feature`,
+    )
+    .option(
+      `-rf, --remove-feature <feature...>`,
+      `Remove a feature`,
+    )
+    .action(async (directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [],
+            ...opts,
+          };
+        }
+
+        if (opts.addFeature) {
+          args.addFeature = parseFeatures(opts.addFeature);
+        }
+
+        const jwt = await getLoginJwt();
+
+        await edit(args, {
           jwt,
         });
       });

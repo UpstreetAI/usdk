@@ -201,6 +201,14 @@ const makeAgentJsonInit = ({
   }
   return agentJsonInit;
 };
+const loadAgentJson = (dstDir) => {
+  const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
+  const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
+  const wranglerToml = toml.parse(wranglerTomlString);
+  const agentJsonString = wranglerToml.vars.AGENT_JSON;
+  const agentJson = JSON.parse(agentJsonString);
+  return agentJson;
+};
 const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
   const {
     guid,
@@ -372,4 +380,23 @@ export const create = async (args, opts) => {
   await npmInstall(dstDir);
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+};
+
+export const edit = async (args, opts) => {
+  // args
+  const dstDir = args._[0] ?? cwd;
+  const prompt = args.prompt ?? '';
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to edit an agent.');
+  }
+
+  let agentJson = loadAgentJson(dstDir);
+  console.log('agent json 1', agentJson);
+  agentJson = await interview(agentJson, {
+    prompt,
+    jwt,
+  });
+  console.log('agent json 2', agentJson);
 };
