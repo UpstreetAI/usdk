@@ -382,10 +382,41 @@ export const create = async (args, opts) => {
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
 };
 
+const updateFeatures = (agentJson, {
+  addFeature,
+  removeFeature,
+}) => {
+  agentJson = {
+    ...agentJson,
+  };
+  console.log('add feature remove feature', {
+    addFeature,
+    removeFeature,
+  });
+  
+  if (removeFeature) {
+    for (const feature of removeFeature) {
+      delete agentJson.features[feature];
+    }
+  }
+  
+  if (addFeature) {
+    if (!agentJson.features) {
+      agentJson.features = {};
+    }
+    for (const feature of addFeature) {
+      agentJson.features[feature] = {};
+    }
+  }
+
+  return agentJson;
+};
 export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const addFeature = args.addFeature;
+  const removeFeature = args.removeFeature;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
@@ -393,10 +424,31 @@ export const edit = async (args, opts) => {
   }
 
   let agentJson = loadAgentJson(dstDir);
-  console.log('agent json 1', agentJson);
-  agentJson = await interview(agentJson, {
-    prompt,
-    jwt,
+
+  // update features
+  agentJson = updateFeatures(agentJson, {
+    addFeature,
+    removeFeature,
   });
-  console.log('agent json 2', agentJson);
+
+  // run the interview, if applicable
+  if (!(addFeature || removeFeature)) {
+    agentJson = await interview(agentJson, {
+      prompt,
+      jwt,
+    });
+  }
+
+  const _updateFiles = async () => {
+    const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
+    
+    await copyWithStringTransform(wranglerTomlPath, wranglerTomlPath, (s) => {
+      let t = toml.parse(s);
+      t = buildWranglerToml(t, {
+        agentJson,
+      });
+      return toml.stringify(t);
+    });
+  };
+  await _updateFiles();
 };
