@@ -210,7 +210,7 @@ export class ChatsManager {
             const { playerId, player } = e.data;
             console.log('remote player joined:', playerId);
 
-            const remotePlayer = new Player(playerId);
+            const remotePlayer = new Player(playerId, {});
             conversation.addAgent(playerId, remotePlayer);
 
             // apply initial remote player state
