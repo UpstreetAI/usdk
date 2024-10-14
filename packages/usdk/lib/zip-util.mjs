@@ -8,13 +8,32 @@ import { QueueManager } from './queue-manager.mjs';
 
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
   let files = await recursiveReaddir(dirPath);
-  files = files.filter((p) => !exclude.some((re) => re.test(p)));
+
+  // Custom filter function
+  const filterFile = (filePath) => {
+    const relativePath = path.relative(dirPath, filePath);
+    const parts = relativePath.split(path.sep);
+    
+    // Check if the file is in a public directory
+    const isInPublic = parts.includes('public');
+    
+    // If it's in a public directory, include it
+    if (isInPublic) {
+      return true;
+    }
+    
+    // Otherwise, apply the exclude filters
+    return !exclude.some((re) => re.test(filePath));
+  };
+
+  // Apply the custom filter
+  files = files.filter(filterFile);
 
   const zip = new JSZip();
   for (const p of files) {
-    const basePath = p.slice(dirPath.length + 1);
-    const stream = fs.createReadStream(p);
-    zip.file(basePath, stream);
+    const relativePath = path.relative(dirPath, p);
+    const fileContent = await fs.promises.readFile(p);
+    zip.file(relativePath, fileContent);
   }
 
   const arrayBuffer = await zip.generateAsync({
