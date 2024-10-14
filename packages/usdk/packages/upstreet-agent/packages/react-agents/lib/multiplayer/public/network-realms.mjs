@@ -739,9 +739,23 @@ class VirtualPlayersArray extends EventTarget {
         }));
       };
       networkedVideoClient.addEventListener('video', video);
+      const videostart = e => {
+        this.dispatchEvent(new MessageEvent('videostart', {
+          data: e.data,
+        }));
+      };
+      networkedVideoClient.addEventListener('videostart', videostart);
+      const videoend = e => {
+        this.dispatchEvent(new MessageEvent('videoend', {
+          data: e.data,
+        }));
+      };
+      networkedVideoClient.addEventListener('videoend', videoend);
 
       this.cleanupFns.set(networkedVideoClient, () => {
         networkedAudioClient.removeEventListener('video', video);
+        networkedAudioClient.removeEventListener('videostart', videostart);
+        networkedAudioClient.removeEventListener('videoend', videoend);
       });
     };
     _linkVideo();
@@ -1664,6 +1678,7 @@ export class NetworkRealms extends EventTarget {
 
         // migrate networked audio client
         this.migrateAudioRealm(oldHeadRealm, newHeadRealm);
+        this.migrateVideoRealm(oldHeadRealm, newHeadRealm);
 
         await this.sync();
 
@@ -1736,6 +1751,7 @@ export class NetworkRealms extends EventTarget {
     });
 
     this.audioSources = [];
+    this.videoSources = [];
   }
 
   #updating = false;
@@ -1858,10 +1874,32 @@ export class NetworkRealms extends EventTarget {
     }
   }
 
-  sendVideoFrame(frame) {
+  addVideoSource(videoSource) {
     const headRealm = this.localPlayer.headTracker.getHeadRealm();
     const {networkedVideoClient} = headRealm;
-    networkedVideoClient.sendVideoFrame(frame);
+
+    return networkedVideoClient.addVideoSource(videoSource);
+  }
+  removeVideoSource(videoSource) {
+    const index = this.videoSources.indexOf(videoSource);
+    if (index !== -1) {
+      this.videoSources.splice(index, 1);
+
+      const headRealm = this.localPlayer.headTracker.getHeadRealm();
+      const {networkedVideoClient} = headRealm;
+      networkedVideoClient.removeVideoSource(videoSource);
+    } else {
+      console.warn('video source not found', videoSource);
+    }
+  }
+  // Internal method.
+  migrateVideoRealm(oldRealm, newRealm) {
+    const {networkedVideoClient: oldNetworkedVideoClient} = oldRealm;
+    const {networkedVideoClient: newNetworkedVideoClient} = newRealm;
+    for (const videoSource of this.videoSources) {
+      oldNetworkedVideoClient.removeVideoSource(videoSource);
+      newNetworkedVideoClient.addVideoSource(videoSource);
+    }
   }
 
   isConnected() {

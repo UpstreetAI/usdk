@@ -12,17 +12,97 @@ export class NetworkedVideoClient extends EventTarget {
     this.playerId = playerId;
 
     this.ws = null;
+
+    this.videoSourceCleanups = new Map(); // playerId:streamId -> function
   }
 
-  sendVideoFrame(frame) {
-    const buffer = zbencode({
-      method: UPDATE_METHODS.VIDEO,
+  addVideoSource(playableVideoStream) {
+    // console.log('add video source', new Error().stack);
+
+    const {
+      id,
+      // output,
+      type,
+      disposition,
+    } = playableVideoStream;
+    if (typeof id !== 'string') {
+      throw new Error('video source id must be a string');
+    }
+    if (typeof type !== 'string') {
+      throw new Error('video source type must be a string');
+    }
+    if (typeof disposition !== 'string') {
+      throw new Error('video source disposition must be a string');
+    }
+
+    // console.log('send start', [
+    //   this.playerId,
+    //   id,
+    //   type,
+    //   disposition,
+    // ]);
+    this.ws.send(zbencode({
+      method: UPDATE_METHODS.VIDEO_START,
       args: [
         this.playerId,
-        frame,
+        id,
+        type,
+        disposition,
       ],
-    });
-    this.ws.send(buffer);
+    }));
+
+    // pump the reader
+    let live = true;
+    const finishPromise = (async () => {
+      for await (const chunk of playableVideoStream) {
+        if (live) {
+          // console.log('send audio', [
+          //   this.playerId,
+          //   id,
+          //   chunk,
+          // ]);
+          this.ws.send(zbencode({
+            method: UPDATE_METHODS.VIDEO,
+            args: [
+              this.playerId,
+              id,
+              chunk,
+            ],
+          }));
+        } else {
+          break;
+        }
+      }
+    })();
+
+    // add the cleanup fn
+    const cleanup = () => {
+      live = false;
+
+      // console.log('send audio end', [
+      //   this.playerId,
+      //   id,
+      // ]);
+      this.ws.send(zbencode({
+        method: UPDATE_METHODS.VIDEO_END,
+        args: [
+          this.playerId,
+          id,
+        ],
+      }));
+    };
+    this.videoSourceCleanups.set(id, cleanup);
+
+    return {
+      waitForFinish: () => finishPromise,
+    };
+  }
+
+  removeVideoSource(readableVideoStream) {
+    // console.log('remove video source');
+    const cleanupFn = this.videoSourceCleanups.get(readableVideoStream.id);
+    cleanupFn();
+    this.videoSourceCleanups.delete(readableVideoStream.id);
   }
 
   async connect(ws) {
@@ -67,22 +147,53 @@ export class NetworkedVideoClient extends EventTarget {
   }
   handleUpdateObject(updateObject) {
     const {method, args} = updateObject;
-    // console.log('audio update object', {method, args});
+    // console.log('video update object', {method, args});
     if (method === UPDATE_METHODS.VIDEO) {
-      // console.log('got irc chat', {method, args});
+      // console.log('got video data', {method, args});
       const [
         playerId,
-        frame,
+        streamId,
+        data,
       ] = args;
 
       this.dispatchEvent(new MessageEvent('video', {
         data: {
           playerId,
-          frame,
+          streamId,
+          data,
+        },
+      }));
+    } else if (method === UPDATE_METHODS.VIDEO_START) {
+      const [
+        playerId,
+        streamId,
+        type,
+        disposition,
+      ] = args;
+
+      this.dispatchEvent(new MessageEvent('videostart', {
+        data: {
+          playerId,
+          streamId,
+          type,
+          disposition,
+        },
+      }));
+    } else if (method === UPDATE_METHODS.VIDEO_END) {
+      const [
+        playerId,
+        streamId,
+      ] = args;
+
+      this.dispatchEvent(new MessageEvent('videoend', {
+        data: {
+          playerId,
+          streamId,
         },
       }));
     } else {
       console.warn('unhandled video method', updateObject);
+      debugger;
     }
   }
 }
