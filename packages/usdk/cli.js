@@ -3418,46 +3418,46 @@ const main = async () => {
         });
       });
     });
-  // program
-  //   .command('edit')
-  //   .description('Edit an existing agent')
-  //   .argument(`[directory]`, `Directory containing the agent to edit`)
-  //   .option(`-p, --prompt <string>`, `Edit prompt`)
-  //   .option(
-  //     `-af, --add-feature <feature...>`,
-  //     `Add a feature`,
-  //   )
-  //   .option(
-  //     `-rf, --remove-feature <feature...>`,
-  //     `Remove a feature`,
-  //   )
-  //   .action(async (directory = undefined, opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       if (typeof directory === 'string') {
-  //         args = {
-  //           _: [directory],
-  //           ...opts,
-  //         };
-  //       } else {
-  //         args = {
-  //           _: [],
-  //           ...opts,
-  //         };
-  //       }
+  program
+    .command('edit')
+    .description('Edit an existing agent')
+    .argument(`[directory]`, `Directory containing the agent to edit`)
+    .option(`-p, --prompt <string>`, `Edit prompt`)
+    .option(
+      `-af, --add-feature <feature...>`,
+      `Add a feature`,
+    )
+    .option(
+      `-rf, --remove-feature <feature...>`,
+      `Remove a feature`,
+    )
+    .action(async (directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [],
+            ...opts,
+          };
+        }
 
-  //       if (opts.addFeature) {
-  //         args.addFeature = parseFeatures(opts.addFeature);
-  //       }
+        if (opts.addFeature) {
+          args.addFeature = parseFeatures(opts.addFeature);
+        }
 
-  //       const jwt = await getLoginJwt();
+        const jwt = await getLoginJwt();
 
-  //       await edit(args, {
-  //         jwt,
-  //       });
-  //     });
-  //   });
+        await edit(args, {
+          jwt,
+        });
+      });
+    });
   program
     .command('pull')
     .description('Download source of deployed agent')
