@@ -232,31 +232,6 @@ const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
     stripeConnectAccountId: userPrivate.stripe_connect_account_id,
   };
 };
-const createAgentJson = async (agentJsonInit, agentAuthSpec, agentEditSpec) => {
-  const {
-    prompt,
-    skipInterview,
-    jwt,
-  } = agentEditSpec;
-
-  // run the interview, if applicable
-  const agentJson = await (async () => {
-    // if the agent json is complete
-    if (skipInterview) {
-      return agentJsonInit;
-    } else {
-      return await interview(agentJsonInit, {
-        prompt,
-        jwt,
-      });
-    }
-  })();
-
-  // ensure defaults
-  ensureAgentJsonDefaults(agentJson);
-  // return result
-  return agentJson;
-};
 
 //
 
