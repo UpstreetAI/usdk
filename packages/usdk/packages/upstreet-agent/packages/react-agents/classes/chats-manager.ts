@@ -15,9 +15,9 @@ import {
 import {
   MultiQueueManager,
 } from '../util/queue-manager.mjs';
-import {
-  Debouncer,
-} from '../util/debouncer.mjs';
+// import {
+//   Debouncer,
+// } from '../util/debouncer.mjs';
 import {
   bindConversationToAgent,
 } from '../runtime';
@@ -67,7 +67,7 @@ export class ChatsManager {
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
-  incomingMessageDebouncer = new Debouncer();
+  // incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
 

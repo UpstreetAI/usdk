@@ -297,7 +297,7 @@ export type ChatsManager = {
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
-  incomingMessageDebouncer: Debouncer;
+  // incomingMessageDebouncer: Debouncer;
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
