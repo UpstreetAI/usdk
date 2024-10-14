@@ -205,7 +205,6 @@ const makeAgentJsonInit = ({
   agentJsonString,
   features,
 }) => {
-  // initialize
   const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
   // Add user specified features to agentJsonInit being passed to the interview process for context
   if (Object.keys(features).length > 0) {
@@ -214,14 +213,26 @@ const makeAgentJsonInit = ({
     };
   }
   return agentJsonInit;
-}
-const createAgentJson = async (agentJsonInit, agentAuthSpec, agentEditSpec) => {
+};
+const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
   const {
     guid,
     // agentToken,
     userPrivate,
     mnemonic,
   } = agentAuthSpec;
+
+  const wallet = getWalletFromMnemonic(mnemonic);
+
+  return {
+    ...agentJsonInit,
+    id: guid,
+    ownerId: userPrivate.id,
+    address: wallet.address.toLowerCase(),
+    stripeConnectAccountId: userPrivate.stripe_connect_account_id,
+  };
+};
+const createAgentJson = async (agentJsonInit, agentAuthSpec, agentEditSpec) => {
   const {
     prompt,
     skipInterview,
@@ -241,13 +252,6 @@ const createAgentJson = async (agentJsonInit, agentAuthSpec, agentEditSpec) => {
     }
   })();
 
-  const wallet = getWalletFromMnemonic(mnemonic);
-
-  // additional properties
-  agentJson.id = guid;
-  agentJson.ownerId ??= userPrivate.id;
-  agentJson.address ??= wallet.address.toLowerCase();
-  agentJson.stripeConnectAccountId ??= userPrivate.stripe_connect_account_id;
   // ensure defaults
   ensureAgentJsonDefaults(agentJson);
   // return result
@@ -313,18 +317,19 @@ export const create = async (args, opts) => {
 
   // generate the agent
   console.log(pc.italic('Generating agent...'));
-  const agentJsonInit = makeAgentJsonInit({
+  let agentJson = makeAgentJsonInit({
     agentJsonString,
     features,
   });
-  const agentEditSpec = {
-    agentJsonString,
-    features,
-    prompt,
-    skipInterview: !!(agentJsonString || source || yes),
-    jwt,
-  };
-  const agentJson = await createAgentJson(agentJsonInit, agentAuthSpec, agentEditSpec);
+  // run the interview, if applicable
+  if (!(agentJsonString || source || yes)) {
+    agentJson = await interview(agentJson, {
+      prompt,
+      jwt,
+    });
+  }
+  agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
+  ensureAgentJsonDefaults(agentJson);
   console.log(pc.italic('Agent generated.'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
