@@ -261,7 +261,7 @@ export const create = async (args, opts) => {
     throw new Error('User not found. Please try logging in again.')
   }
   if ((+!!prompt + +!!source) > 1) {
-    throw new Error('multiple mutually exclusive options --prompt, --template and --source');
+    throw new Error('multiple mutually exclusive options --prompt and --source');
   }
   // ensure agent json string is provided when using source file
   // since agentJsonString is required for proper agentJson creation
