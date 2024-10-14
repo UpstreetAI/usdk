@@ -1,4 +1,4 @@
-import { resample } from 'react-agents/lib/multiplayer/public/audio-worker/resample.mjs';
+import { resample } from '../audio-worker/resample.mjs';
 
 export class FakeAudioData {
   constructor() {

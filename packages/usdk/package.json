@@ -49,6 +49,7 @@
     "jimp": "^0.22.12",
     "jszip": "^3.10.1",
     "memoize-one": "^6.0.0",
+    "multiplayer": "file:./packages/upstreet-agent/packages/react-agents/lib/multiplayer",
     "mime": "^4.0.1",
     "mkdirp": "^3.0.1",
     "open": "^10.1.0",
@@ -67,7 +68,8 @@
     "webp-wasm": "^1.0.6",
     "wrangler": "^3.60.2",
     "ws": "^8.17.0",
-    "yjs": "^13.6.18"
+    "yjs": "^13.6.18",
+    "zod-to-ts": "^1.2.0"
   },
   "optionalDependencies": {
     "speaker": "^0.5.5"
