@@ -241,7 +241,7 @@ export const create = async (args, opts) => {
   const prompt = args.prompt ?? '';
   const agentJsonString = args.json;
   const source = args.source;
-  const features = typeof args.features === 'string' ? JSON.parse(args.features) : (args.features || {});
+  const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
   const yes = args.yes;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;

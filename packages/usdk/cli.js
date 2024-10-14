@@ -3368,7 +3368,7 @@ const main = async () => {
   program
     .command('create')
     .description('Create a new agent, from either a prompt or template')
-    .argument(`[directory]`, `The directory to create the project in`)
+    .argument(`[directory]`, `Directory to create the project in`)
     .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
@@ -3380,7 +3380,7 @@ const main = async () => {
     //   `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
     // )
     .option(
-      `-feat, --features <feature...>`,
+      `-feat, --feature <feature...>`,
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
@@ -3400,8 +3400,8 @@ const main = async () => {
         }
 
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
-        if (opts.features) {
-          args.features = parseFeatures(opts.features);
+        if (opts.feature) {
+          args.feature = parseFeatures(opts.feature);
         }
 
         const jwt = await getLoginJwt();
