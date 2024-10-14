@@ -6,17 +6,14 @@ import {handlesMethod} from './networked-audio-client-utils.mjs';
 export class NetworkedAudioClient extends EventTarget {
   constructor({
     playerId = makeId(),
-    // audioManager,
   }) {
     super();
 
     this.playerId = playerId;
-    // this.audioManager = audioManager;
 
     this.ws = null;
 
     this.audioSourceCleanups = new Map(); // playerId:streamId -> function
-    // this.outputAudioStreams = new Map(); // playerId:streamId -> stream
   }
 
   addAudioSource(playableAudioStream) {
@@ -37,8 +34,6 @@ export class NetworkedAudioClient extends EventTarget {
     if (typeof disposition !== 'string') {
       throw new Error('audio source disposition must be a string');
     }
-
-    // const id = crypto.randomUUID();
 
     // console.log('send start', [
     //   this.playerId,
@@ -195,23 +190,6 @@ export class NetworkedAudioClient extends EventTarget {
         data: {
           playerId,
           streamId,
-        },
-      }));
-    } else if (method === UPDATE_METHODS.JOIN) {
-      const [playerId] = args;
-      this.playerIds.push(playerId);
-      this.dispatchEvent(new MessageEvent('join', {
-        data: {
-          playerId,
-        },
-      }));
-    } else if (method === UPDATE_METHODS.LEAVE) {
-      const [playerId] = args;
-      const index = this.playerIds.indexOf(playerId);
-      this.playerIds.splice(index, 1);
-      this.dispatchEvent(new MessageEvent('leave', {
-        data: {
-          playerId,
         },
       }));
     } else {
