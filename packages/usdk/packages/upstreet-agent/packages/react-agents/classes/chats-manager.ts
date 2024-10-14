@@ -273,16 +273,28 @@ export class ChatsManager {
                     jwt,
                   });
                   transcribedVoiceInput.addEventListener('speechstart', e => {
-                    console.log('chats manager speech start', e.data);
+                    // console.log('chats manager speech start', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechstart', {
+                      data: e.data,
+                    }));
                   });
                   transcribedVoiceInput.addEventListener('speechstop', e => {
-                    console.log('chats manager speech stop', e.data);
+                    // console.log('chats manager speech stop', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechstop', {
+                      data: e.data,
+                    }));
                   });
                   transcribedVoiceInput.addEventListener('speechcancel', e => {
-                    console.log('chats manager speech cancel', e.data);
+                    // console.log('chats manager speech cancel', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechcancel', {
+                      data: e.data,
+                    }));
                   });
                   transcribedVoiceInput.addEventListener('transcription', e => {
-                    console.log('chats manager transcription', e.data);
+                    // console.log('chats manager transcription', e.data);
+                    conversation.dispatchEvent(new MessageEvent('transcription', {
+                      data: e.data,
+                    }));
                   });
                   const transcriptionStream = {
                     audioInput,
