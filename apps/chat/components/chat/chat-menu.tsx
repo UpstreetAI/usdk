@@ -21,9 +21,6 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
   const { toggleRightSidebar, isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   const pathname = usePathname();
-  if (pathname.startsWith('/new')) {
-    //return null;
-  }
 
   return (
     <div
@@ -31,7 +28,7 @@ export function ChatMenu({ players, roomName }: ChatMenuProps) {
         } ${isRightSidebarOpen ? 'lg:pr-[250px] xl:pr-[300px]' : ''}`}
     >
 
-      <div className='absolute z-[100] left-3 md:left-4 top-1/2 transform -translate-y-1/2 mt-1'>
+      <div className={`${pathname.startsWith('/new') && 'hidden'} absolute z-[100] left-3 md:left-4 top-1/2 transform -translate-y-1/2 mt-1`}>
         <IconButton href={"/"} icon={'BackArrow'} />
       </div>
 
