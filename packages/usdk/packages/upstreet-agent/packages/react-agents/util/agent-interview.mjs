@@ -213,7 +213,7 @@ export class AgentInterview extends EventTarget {
         // pump i/o
         pumpIo(response);
       } else {
-        sendOutput(response);
+        response && sendOutput(response);
 
         const getPreviewUrl = async (valueUpdater) => {
           const result = await valueUpdater.waitForLoad();
