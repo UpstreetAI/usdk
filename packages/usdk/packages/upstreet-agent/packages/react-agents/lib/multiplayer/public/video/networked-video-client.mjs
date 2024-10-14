@@ -192,8 +192,8 @@ export class NetworkedVideoClient extends EventTarget {
         },
       }));
     } else {
-      console.warn('unhandled video method', updateObject);
-      debugger;
+      console.warn('unhandled video method: ' + method, updateObject);
+      throw new Error('unhandled video method: ' + method);
     }
   }
 }

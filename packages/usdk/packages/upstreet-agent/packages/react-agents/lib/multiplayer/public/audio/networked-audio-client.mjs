@@ -193,8 +193,8 @@ export class NetworkedAudioClient extends EventTarget {
         },
       }));
     } else {
-      console.warn('unhandled irc method', updateObject);
-      debugger;
+      console.warn('unhandled audio method: ' + method, updateObject);
+      throw new Error('unhandled audio method: ' + method);
     }
   }
 }
