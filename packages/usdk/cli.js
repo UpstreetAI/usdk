@@ -691,7 +691,7 @@ const logout = async (args) => {
   await rimraf(loginLocation);
   console.log('Successfully logged out.');
 };
-const authorize = async (args) => {
+/* const authorize = async (args) => {
   const appDirectory = args._[0] ?? cwd;
 
   const wranglerTomlPath = path.join(appDirectory, 'wrangler.toml');
@@ -718,7 +718,7 @@ const authorize = async (args) => {
     console.warn('you are not logged in!');
     process.exit(1);
   }
-};
+}; */
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
