@@ -1,8 +1,7 @@
 import { DurableObjectImpl } from './durable-object-impl.tsx';
 
 import userRender from '../../agent.tsx'; // note: this will be overwritten by the build process
-// import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
-import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
 
 
 Error.stackTraceLimit = 300;
