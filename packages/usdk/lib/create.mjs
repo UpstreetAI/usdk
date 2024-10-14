@@ -404,9 +404,10 @@ const updateFeatures = (agentJson, {
     if (!agentJson.features) {
       agentJson.features = {};
     }
-    for (const feature of addFeature) {
-      agentJson.features[feature] = {};
-    }
+    agentJson.features = {
+      ...agentJson.features,
+      ...addFeature,
+    };
   }
 
   return agentJson;
