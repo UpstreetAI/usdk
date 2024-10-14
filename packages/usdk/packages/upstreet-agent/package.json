@@ -15,6 +15,7 @@
     "jimp": "^0.22.12",
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
+    "multiplayer": "file:./packages/react-agents/lib/multiplayer",
     "openai": "^4.56.0",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-agents": "file:./packages/react-agents",
