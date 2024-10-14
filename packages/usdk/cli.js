@@ -3403,8 +3403,12 @@ const main = async () => {
         if (opts.features) {
           args.features = parseFeatures(opts.features);
         }
-        
-        await edit(args);
+
+        const jwt = await getLoginJwt();
+
+        await create(args, {
+          jwt,
+        });
       });
     });
   program
