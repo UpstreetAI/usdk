@@ -1863,14 +1863,13 @@ export class NetworkRealms extends EventTarget {
       console.warn('audio source not found', audioSource);
     }
   }
-
   // Internal method.
   migrateAudioRealm(oldRealm, newRealm) {
     const {networkedAudioClient: oldNetworkedAudioClient} = oldRealm;
     const {networkedAudioClient: newNetworkedAudioClient} = newRealm;
     for (const audioSource of this.audioSources) {
-      oldNetworkedAudioClient.removeMicrophoneSource(audioSource);
-      newNetworkedAudioClient.addMicrophoneSource(audioSource);
+      oldNetworkedAudioClient.removeAudioSource(audioSource);
+      newNetworkedAudioClient.addAudioSource(audioSource);
     }
   }
 
