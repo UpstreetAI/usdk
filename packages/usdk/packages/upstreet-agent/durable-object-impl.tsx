@@ -248,7 +248,7 @@ export class DurableObjectImpl extends EventTarget {
         const subpath = match[1];
         const guid = this.#getId();
 
-        /* const handleAgentJson = async () => {
+        const handleAgentJson = async () => {
           const agentJson = this.#getAgentJson();
           const s = JSON.stringify(agentJson);
           return new Response(s, {
@@ -257,7 +257,7 @@ export class DurableObjectImpl extends EventTarget {
               'Content-Type': 'application/json',
             },
           });
-        }; */
+        };
         /* const handleWs = async () => {
           // Expect to receive a WebSocket Upgrade request.
           // If there is one, accept the request and return a WebSocket Response.
@@ -531,8 +531,8 @@ export class DurableObjectImpl extends EventTarget {
         };
 
         switch (subpath) {
-          // case 'agent.json':
-          //   return await handleAgentJson();
+          case 'agent.json':
+            return await handleAgentJson();
           // case 'status':
           //   return await handleStatus();
           // case 'ws':
