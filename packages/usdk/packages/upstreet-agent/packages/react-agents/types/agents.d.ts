@@ -768,6 +768,15 @@ export type PlayableAudioStream = ReadableAudioStream & {
   id: string;
 };
 
+export type ReadableVideoStream = ReadableStream & {
+  type: string;
+  disposition: string;
+  waitForLoad: () => Promise<void>;
+};
+export type PlayableVideoStream = ReadableAudioStream & {
+  id: string;
+};
+
 // user handler
 
 export type UserHandler = FC;
