@@ -10,14 +10,14 @@ export const createVideoSource = ({
   // get the video stream
   const video = document.createElement('video');
   video.srcObject = mediaStream;
-  video.style.cssText = `\
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 300px;
-    z-index: 1000;
-  `;
-  document.body.appendChild(video);
+  // video.style.cssText = `\
+  //   position: fixed;
+  //   bottom: 0;
+  //   right: 0;
+  //   width: 300px;
+  //   z-index: 1000;
+  // `;
+  // document.body.appendChild(video);
 
   // use the canvas 2d api to read the media stream and stream out the data and end events
   const canvas = document.createElement('canvas');
