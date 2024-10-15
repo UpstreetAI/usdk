@@ -246,6 +246,11 @@ export class VideoInput extends EventEmitter {
           if (bsLength >= fileSize) {
             const data = new Uint8Array(fileSize);
             data.set(b.slice(0, fileSize));
+
+            // emit raw image
+            this.emit('image', data);
+
+            // emit decoded frame
             await this.queueManager.waitForTurn(async () => {
               let imageData = await encoder.decode(data);
               if (typeof width === 'number' || typeof height === 'number') {
