@@ -6,10 +6,10 @@ import '@/app/globals.css'
 import { cn } from '@/lib/utils'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
-import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/sonner'
 import { Body } from '@/components/body'
-import Footer from '@/components/ui/Footer'
+import Footer from '@/components/ui/Footer';
+import Header from '@/components/ui/Header';
 
 
 export const metadata = {
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           {/*<Suspense fallback={<div>Loading...</div>}>*/}
             <div className="flex flex-col min-h-screen">
               <Body>
-                <Header/>
+                <Header />
                 {children}
               </Body>
             </div>

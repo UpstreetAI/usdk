@@ -92,11 +92,11 @@
 .ucomIconButton.ghost {
   background-color: transparent;
   border: 2px solid transparent;
-  color: #777777;
+  color: #EFEFEF;
 }
 
 .ucomIconButton.ghost:hover {
-  color: #333333;
+  color: #2A7FFF;
 }
 
 .ucomIconButton.ghost.active {
@@ -117,4 +117,16 @@
 
 .ucomIconButton:hover .iconShadow {
   display: none;
+}
+
+/* Label */
+
+.label {
+  font-size: 11px;
+  position: absolute;
+  top: 90%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  text-transform: uppercase;
 }

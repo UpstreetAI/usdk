@@ -87,8 +87,8 @@ export class AgentInterview extends EventTarget {
 
     const { result: featureSchemas, userSpecifiedFeatures, allowAll } = processFeatures(agentJson);
 
-    // generate the feature prompt
-    const featurePrompt = generateFeaturePrompt(featureSpecs, userSpecifiedFeatures, allowAll);
+    // generate the features available prompt
+    const featuresAvailablePrompt = generateFeaturePrompt(featureSpecs, userSpecifiedFeatures, allowAll);
 
     // character image generator
     const visualDescriptionValueUpdater = new ValueUpdater(async (visualDescription, {
@@ -150,24 +150,22 @@ export class AgentInterview extends EventTarget {
 
     // interaction loop
     this.interactor = new Interactor({
-      prompt: dedent`\
-          Generate and configure an AI agent character.
+      systemPrompt:
+        dedent`\
+          Configure an AI agent character.
+          
           \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
-
-          Do not use placeholder values for fields. Instead, make up something appropriate.
-          Try to fill out all fields before finishing.
-
-          Use \`bio\` to describe the personality and character traits of the agent.
-          Use \`description\` to explain why other agents or users would want to interact with this agent. Keep it intriguing and concise.
-
-          Use \`visualDescription\` to visually describe the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
-          e.g. 'teen girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
-
-          Use \`homespaceDescription\` to visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
+          \`bio\` describes the personality and character traits of the agent.
+          \`description\` explains why other agents or users would want to interact with this agent. Keep it intriguing and concise.
+          \`visualDescription\` visually describes the character without referring to their pose or emotion. This is an image prompt to use for an image generator. Update it whenever the character's visual description changes.
+          e.g. 'girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
+          \`homespacecDescription\` visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
+          
+          Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
         ` + '\n\n' +
-        featurePrompt +
-        (prompt ? ('The user has provided the following prompt:\n' + prompt) : ''),
+        featuresAvailablePrompt,
+      userPrompt: prompt,
       object: agentJson,
       objectFormat: z.object({
         name: z.string().optional(),
@@ -215,7 +213,7 @@ export class AgentInterview extends EventTarget {
         // pump i/o
         pumpIo(response);
       } else {
-        sendOutput(response);
+        response && sendOutput(response);
 
         const getPreviewUrl = async (valueUpdater) => {
           const result = await valueUpdater.waitForLoad();

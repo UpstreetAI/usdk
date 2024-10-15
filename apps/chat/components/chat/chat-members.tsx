@@ -75,7 +75,7 @@ export function ChatMembers() {
                 >
                   {!isValidUrl(previewUrl) && name.charAt(0)}
                 </div>
-                <div className="flex-1 text-ellipsis overflow-hidden text-xl font-[Aller-Bold] ml-2">
+                <div className="flex-1 text-ellipsis overflow-hidden text-xl font-bold ml-2">
                   {name}
                 </div>
                 {localPlayerSpec.id !== id && (

@@ -42,6 +42,9 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import {
+  cwd,
+} from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -49,9 +52,9 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import {
-  getAgentToken,
-} from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+// import {
+//   getAgentToken,
+// } from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
   aiHost,
   metamaskHost,
@@ -69,7 +72,7 @@ import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agen
 
 // import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
 // import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-local.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-fs.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
@@ -81,12 +84,10 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/devices/input-devices.mjs';
 import {
   AudioInput,
-  TranscribedVoiceInput,
-  // encodeMp3,
 } from './packages/upstreet-agent/packages/react-agents/devices/audio-input.mjs';
-// import {
-//   transcribe,
-// } from './packages/upstreet-agent/packages/react-agents/util/audio-perception.mjs';
+import {
+  TranscribedVoiceInput,
+} from './packages/upstreet-agent/packages/react-agents/devices/audio-transcriber.mjs';
 import {
   ImageRenderer,
   TerminalVideoRenderer,
@@ -108,6 +109,7 @@ import {
 } from './lib/locations.mjs';
 import {
   create,
+  edit,
 } from './lib/commands.mjs';
 import {
   makeTempDir,
@@ -276,9 +278,6 @@ const makeCorsHeaders = (req) => {
   }
   return headers;
 };
-
-// const webcamPort = 10619;
-const cwd = process.cwd();
 
 const getServerOpts = () => {
   return {
@@ -455,9 +454,15 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async ({ directory = cwd } = {}, portIndex = 0, {
-  debug = false,
-} = {}) => {
+const startDevServer = async (
+  {
+    directory = cwd,
+  } = {},
+  portIndex = 0,
+  {
+    debug = false,
+  } = {},
+) => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBinPath,
@@ -687,7 +692,7 @@ const logout = async (args) => {
   await rimraf(loginLocation);
   console.log('Successfully logged out.');
 };
-const authorize = async (args) => {
+/* const authorize = async (args) => {
   const appDirectory = args._[0] ?? cwd;
 
   const wranglerTomlPath = path.join(appDirectory, 'wrangler.toml');
@@ -714,7 +719,7 @@ const authorize = async (args) => {
     console.warn('you are not logged in!');
     process.exit(1);
   }
-};
+}; */
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
@@ -1344,7 +1349,7 @@ const startMultiplayerListener = ({
           const devices = await inputDevices.listDevices();
           const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
           
-          const sampleRate = TranscribedVoiceInput.transcribeSampleRate;
+          const sampleRate = AudioInput.defaultSampleRate;
           microphoneInput = inputDevices.getAudioInput(device.id, {
             sampleRate,
           });
@@ -1381,7 +1386,7 @@ const startMultiplayerListener = ({
             },
           });
           audioStream.id = crypto.randomUUID();
-          audioStream.type = 'audio/pcm-f32';
+          audioStream.type = 'audio/pcm-f32-48000';
           audioStream.disposition = 'text';
 
           (async () => {
@@ -2337,7 +2342,7 @@ const runJest = async (directory) => {
     },
   });
 };
-const test = async (args) => {
+/* const test = async (args) => {
   const all = !!args.all;
   const dev = true;
   const debug = !!args.debug;
@@ -2410,7 +2415,7 @@ const test = async (args) => {
     console.log('not logged in');
     process.exit(1);
   }
-};
+}; */
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
@@ -3199,7 +3204,7 @@ const voice = async (args) => {
   }
 };
 
-const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
+// const getTemplateNames = async () => await fs.promises.readdir(templatesDirectory);
 const handleError = async (fn) => {
   try {
     return await fn();
@@ -3219,8 +3224,7 @@ const main = async () => {
       }
     });
 
-  program
-  .version(packageJson.version);
+  program.version(packageJson.version);
 
   // misc
   program
@@ -3338,7 +3342,7 @@ const main = async () => {
     });*/
 
   // agents
-  const templateNames = await getTemplateNames();
+  // const templateNames = await getTemplateNames();
 
   // Generate the JSON string dynamically based on the examples in featureSpecs
   const featureExamples = featureSpecs.reduce((acc, feature) => {
@@ -3351,23 +3355,38 @@ const main = async () => {
       return `"${name}", example using json ${exampleString}`;
     })
     .join('. ');
+  const parseFeatures = (featuresSpec) => {
+    let features = {};
+    for (const featuresString of featuresSpec) {
+      const parsedJson = jsonParse(featuresString);
+      if (parsedJson !== undefined) {
+        features = {
+          ...features,
+          ...parsedJson,
+        };
+      } else {
+        features[featuresString] = featureExamples[featuresString][0];
+      }
+    }
+    return features;
+  };
 
   program
     .command('create')
     .description('Create a new agent, from either a prompt or template')
-    .argument(`[directory]`, `The directory to create the project in`)
+    .argument(`[directory]`, `Directory to create the project in`)
     .option(`-p, --prompt <string>`, `Creation prompt`)
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
+    // .option(
+    //   `-t, --template <string>`,
+    //   `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
+    // )
     .option(
-      `-t, --template <string>`,
-      `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    )
-    .option(
-      `-feat, --features <feature...>`,
+      `-feat, --feature <feature...>`,
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
@@ -3387,23 +3406,55 @@ const main = async () => {
         }
 
         // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
-        if (opts.features) {
-          let features = {};
-          for (const featuresString of opts.features) {
-            const parsedJson = jsonParse(featuresString);
-            if (parsedJson !== undefined) {
-              features = {
-                ...features,
-                ...parsedJson,
-              };
-            } else {
-              features[featuresString] = featureExamples[featuresString][0];
-            }
-          }
-          args.features = features;
+        if (opts.feature) {
+          args.feature = parseFeatures(opts.feature);
         }
-        
-        await create(args);
+
+        const jwt = await getLoginJwt();
+
+        await create(args, {
+          jwt,
+        });
+      });
+    });
+  program
+    .command('edit')
+    .description('Edit an existing agent')
+    .argument(`[directory]`, `Directory containing the agent to edit`)
+    .option(`-p, --prompt <string>`, `Edit prompt`)
+    .option(
+      `-af, --add-feature <feature...>`,
+      `Add a feature`,
+    )
+    .option(
+      `-rf, --remove-feature <feature...>`,
+      `Remove a feature`,
+    )
+    .action(async (directory = undefined, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        if (typeof directory === 'string') {
+          args = {
+            _: [directory],
+            ...opts,
+          };
+        } else {
+          args = {
+            _: [],
+            ...opts,
+          };
+        }
+
+        if (opts.addFeature) {
+          args.addFeature = parseFeatures(opts.addFeature);
+        }
+
+        const jwt = await getLoginJwt();
+
+        await edit(args, {
+          jwt,
+        });
       });
     });
   program

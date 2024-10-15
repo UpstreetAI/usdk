@@ -37,6 +37,7 @@ export class AppContextValue {
   supabase: any;
   conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
+  codecs: any;
   registry: RenderRegistry;
 
   constructor({
@@ -47,6 +48,7 @@ export class AppContextValue {
     supabase,
     conversationManager,
     chatsSpecification,
+    codecs,
     registry,
   }: {
     subtleAi: SubtleAi;
@@ -56,6 +58,7 @@ export class AppContextValue {
     supabase: any;
     conversationManager: ConversationManager;
     chatsSpecification: ChatsSpecification;
+    codecs: any;
     registry: RenderRegistry;
   }) {
     this.subtleAi = subtleAi;
@@ -65,6 +68,7 @@ export class AppContextValue {
     this.supabase = supabase;
     this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
+    this.codecs = codecs;
     this.registry = registry;
   }
 
@@ -87,6 +91,9 @@ export class AppContextValue {
   }
   useChatsSpecification() {
     return this.chatsSpecification;
+  }
+  useCodecs() {
+    return this.codecs;
   }
   useRegistry() {
     return this.registry;

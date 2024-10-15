@@ -297,7 +297,7 @@ export type ChatsManager = {
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
-  incomingMessageDebouncer: Debouncer;
+  // incomingMessageDebouncer: Debouncer;
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
@@ -714,6 +714,7 @@ export type AppContextValue = {
   useSupabase: () => any;
   useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
+  useCodecs: () => any;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;

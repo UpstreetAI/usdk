@@ -1,5 +1,6 @@
 import './util/worker-globals.mjs';
-import { DurableObject } from 'upstreet-agent/durable-object.tsx';
+import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+import { DurableObjectImpl } from 'upstreet-agent/durable-object-impl.tsx';
 
 //
 
@@ -14,7 +15,7 @@ const headersToObject = (headers: Headers) => {
 
 //
 
-let durableObjectPromise: Promise<DurableObject> | null = null;
+let durableObjectPromise: Promise<DurableObjectImpl> | null = null;
 globalThis.onmessage = (event: any) => {
   // console.log('got event', event.data);
   const method = event.data?.method;
@@ -35,6 +36,7 @@ globalThis.onmessage = (event: any) => {
           let alarmTimestamp: number | null = null;
           const state = {
             userRender,
+            codecs,
             storage: {
               async getAlarm() {
                 return alarmTimestamp;
@@ -48,7 +50,7 @@ globalThis.onmessage = (event: any) => {
           //   state,
           //   env,
           // });
-          const durableObject = new DurableObject(state, env);
+          const durableObject = new DurableObjectImpl(state, env);
           // console.log('worker init 2', {
           //   durableObject,
           // });

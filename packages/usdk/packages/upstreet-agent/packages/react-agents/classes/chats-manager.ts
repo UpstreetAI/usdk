@@ -1,3 +1,6 @@
+import {
+  EventEmitter,
+} from 'events';
 import * as Y from 'yjs';
 import type {
   PlayableAudioStream,
@@ -12,9 +15,9 @@ import {
 import {
   MultiQueueManager,
 } from '../util/queue-manager.mjs';
-import {
-  Debouncer,
-} from '../util/debouncer.mjs';
+// import {
+//   Debouncer,
+// } from '../util/debouncer.mjs';
 import {
   bindConversationToAgent,
 } from '../runtime';
@@ -32,6 +35,16 @@ import {
 import {
   roomsSpecificationEquals,
 } from './chats-specification';
+import {
+  TranscribedVoiceInput,
+} from 'react-agents/devices/audio-transcriber.mjs';
+
+//
+
+type TranscriptionStream = {
+  audioInput: EventEmitter;
+  transcribedVoiceInput: TranscribedVoiceInput;
+};
 
 //
 
@@ -54,7 +67,7 @@ export class ChatsManager {
   chatsSpecification: ChatsSpecification;
   // state
   rooms = new Map<string, NetworkRealms>();
-  incomingMessageDebouncer = new Debouncer();
+  // incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
 
@@ -197,7 +210,7 @@ export class ChatsManager {
             const { playerId, player } = e.data;
             console.log('remote player joined:', playerId);
 
-            const remotePlayer = new Player(playerId);
+            const remotePlayer = new Player(playerId, {});
             conversation.addAgent(playerId, remotePlayer);
 
             // apply initial remote player state
@@ -243,14 +256,98 @@ export class ChatsManager {
             });
 
             // audio streams
+            const transcriptionStreams = new Map<string, TranscriptionStream>();
             virtualPlayers.addEventListener('audiostart', async (e) => {
               console.log('got audio start', e.data);
+              const { playerId, streamId, type, disposition } = e.data;
+              if (disposition === 'text') {
+                if (type === 'audio/pcm-f32-48000') {
+                  const audioInput = new EventEmitter();
+                  const sampleRate = 48000;
+                  const codecs = agent.appContextValue.useCodecs();
+                  const jwt = agent.useAuthToken();
+                  const transcribedVoiceInput = new TranscribedVoiceInput({
+                    audioInput,
+                    sampleRate,
+                    codecs,
+                    jwt,
+                  });
+                  transcribedVoiceInput.addEventListener('speechstart', e => {
+                    // console.log('chats manager speech start', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechstart', {
+                      data: e.data,
+                    }));
+                  });
+                  transcribedVoiceInput.addEventListener('speechstop', e => {
+                    // console.log('chats manager speech stop', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechstop', {
+                      data: e.data,
+                    }));
+                  });
+                  transcribedVoiceInput.addEventListener('speechcancel', e => {
+                    // console.log('chats manager speech cancel', e.data);
+                    conversation.dispatchEvent(new MessageEvent('speechcancel', {
+                      data: e.data,
+                    }));
+                  });
+                  transcribedVoiceInput.addEventListener('transcription', e => {
+                    // console.log('chats manager transcription', e.data);
+                    conversation.dispatchEvent(new MessageEvent('transcription', {
+                      data: e.data,
+                    }));
+                  });
+                  const transcriptionStream = {
+                    audioInput,
+                    transcribedVoiceInput,
+                  };
+                  transcriptionStreams.set(streamId, transcriptionStream);
+                } else {
+                  console.warn('unhandled audio text disposition type', type);
+                }
+              // } else {
+              //   // nothing
+              }
             });
             virtualPlayers.addEventListener('audio', async (e) => {
-              console.log('got audio data', e.data);
+              const { playerId, streamId, data } = e.data;
+              // console.log('got audio data', playerId, streamId);
+              const transcriptionStream = transcriptionStreams.get(streamId);
+              if (transcriptionStream) {
+                transcriptionStream.audioInput.emit('data', data);
+              } else {
+                console.warn('audio data: no transcription stream', e.data);
+              }
             });
             virtualPlayers.addEventListener('audioend', async (e) => {
               console.log('got audio end', e.data);
+              const { playerId, streamId } = e.data;
+              const transcriptionStream = transcriptionStreams.get(streamId);
+              if (transcriptionStream) {
+                transcriptionStream.audioInput.emit('end');
+                transcriptionStreams.delete(streamId);
+              } else {
+                console.warn('audio end: no transcription stream', e.data);
+              }
+            });
+
+            // video streams
+            virtualPlayers.addEventListener('videostart', async (e) => {
+              // console.log('got video start', e.data);
+              conversation.dispatchEvent(new MessageEvent('videostart', {
+                data: e.data,
+              }));
+            });
+            virtualPlayers.addEventListener('video', async (e) => {
+              // console.log('got video data', e.data);
+              conversation.dispatchEvent(new MessageEvent('video', {
+                data: e.data,
+              }));
+            });
+            virtualPlayers.addEventListener('videoend', async (e) => {
+              // console.log('got video end', e.data);
+              conversation.dispatchEvent(new MessageEvent('videoend', {
+                data: e.data,
+              }));
             });
           };
           const _bindOutgoing = () => {
