@@ -2811,25 +2811,26 @@ const ls = async (args) => {
         //   //   console.warn('skipping agent', agentJson);
         //   }
         
-        const agentJson = agent.metadata;
+        const agentJson = agent.metadata || agent;
+
+        if (!agent.metadata) {
+          console.warn(pc.red(`Metadata not found for agent with ID: ${agent.id}, some fields may be missing and are marked as 'N/A'`));
+        }
+
         const serverUrl = agentHost;
 
         table.push([
           agentJson.id,
           agentJson.name,
           // status?.enabled ?? false,
-          agentJson.address,
-          agentJson.bio,
+          agentJson.address || 'N/A', // Default to 'N/A' if bio is not available
+          agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
           // status?.room ?? '',
           // balance,
           // credits,
           { content: serverUrl, href: serverUrl },
           timeAgo(new Date(agent.created_at)),
         ]);
-
-        // } else {
-        //   console.warn('could not get agent json', agent.start_url);
-        // }
       });
       promises.push(p);
     }
