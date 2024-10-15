@@ -4,7 +4,7 @@ import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button } from '@/components/ui/button'
-import { IconPlus, IconImage, IconDocument, IconAudio, IconCapture, IconTriangleDown, IconTriangleSmallDown, IconUpstreet } from '@/components/ui/icons'
+import { IconPlus, IconImage, IconDocument, IconAudio, IconVideo, IconCapture, IconTriangleDown, IconTriangleSmallDown, IconUpstreet } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
@@ -12,10 +12,14 @@ import {
 } from '@/components/ui/tooltip'
 import { useMultiplayerActions } from '@/components/ui/multiplayer-actions'
 import { cn } from '@/lib/utils'
-import type { PlayableAudioStream } from 'react-agents/types';
+import type {
+  PlayableAudioStream,
+  PlayableVideoStream,
+} from 'react-agents/types';
 import { shuffle } from 'react-agents/util/util.mjs';
 import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from '@upstreet/multiplayer/public/audio/audio-client.mjs';
+import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
 // import { consoleImageWidth } from 'react-agents/constants.mjs'
 
@@ -28,9 +32,11 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource } = useMultiplayerActions()
+  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
   const [microphoneSource, setMicrophoneSource] = React.useState<any>(null);
+  const [cameraSource, setCameraSource] = React.useState<any>(null);
+  const [screenSource, setScreenSource] = React.useState<any>(null);
 
   React.useEffect(() => {
     // typing
@@ -202,16 +208,118 @@ export function PromptForm({
               <IconAudio className="mr-2" />
               <div>Audio</div>
             </Button>
-            {/* <Button
+            <Button
               variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
-              onClick={() => {
-                console.log('click capture');
+              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              onClick={async () => {
+                if (!cameraSource) {
+                  // list the available mics
+                  const devices = await navigator.mediaDevices.enumerateDevices();
+                  // console.log('got devices', devices);
+                  const videoInputDevices = devices.filter((device) => device.kind === 'videoinput');
+                  // const micAudioInputDevices = audioInputDevices.filter((device) => /mic/i.test(device.label));
+                  // const otherAudioInputDevices = audioInputDevices.filter((device) => !/mic/i.test(device.label));
+                  // const audioInputDevice = micAudioInputDevices[0] || otherAudioInputDevices[0] || null;
+                  const videoInputDevice = videoInputDevices[0] || null;
+                  if (videoInputDevice) {
+                    const mediaStream = await navigator.mediaDevices.getUserMedia({
+                      video: {
+                        deviceId: videoInputDevice.deviceId,
+                      },
+                    });
+                    // console.log('got media stream', mediaStream);
+                    const cameraSource = createVideoSource({
+                      mediaStream,
+                    });
+                    setCameraSource(cameraSource);
+
+                    const videoStream = new ReadableStream({
+                      start(controller) {
+                        cameraSource.output.addEventListener('data', (e: any) => {
+                          controller.enqueue(e.data);
+                        });
+                        cameraSource.output.addEventListener('end', (e: any) => {
+                          controller.close();
+                        });
+                      },
+                    }) as PlayableVideoStream;
+                    videoStream.id = crypto.randomUUID();
+                    videoStream.type = 'image/webp';
+                    videoStream.disposition = 'text';
+          
+                    (async () => {
+                      console.log('start streaming');
+                      const {
+                        waitForFinish,
+                      } = addVideoSource(videoStream);
+                      await waitForFinish();
+                      removeVideoSource(videoStream);
+                    })();
+                  } else {
+                    console.warn('no video input device found');
+                  }
+                } else {
+                  cameraSource.close();
+                  setCameraSource(null);
+                }
+              }}
+            >
+              <IconVideo className="mr-2" />
+              <div>Camera</div>
+            </Button>
+            <Button
+              variant="secondary"
+              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              onClick={async () => {
+                if (!screenSource) {
+                  // list the available mics
+                  const devices = await navigator.mediaDevices.enumerateDevices();
+                  // console.log('got devices', devices);
+                  // const videoInputDevices = devices.filter((device) => device.kind === 'videoinput');
+                  const mediaStream = await navigator.mediaDevices.getDisplayMedia({
+                    // video: {
+                    //   cursor: "always", // or "motion" or "never"
+                    // },
+                    video: true,
+                    audio: false, // Set to true if you also want to capture audio
+                  });
+                  // console.log('got media stream', mediaStream);
+                  const screenSource = createVideoSource({
+                    mediaStream,
+                  });
+                  setScreenSource(screenSource);
+
+                  const videoStream = new ReadableStream({
+                    start(controller) {
+                      screenSource.output.addEventListener('data', (e: any) => {
+                        controller.enqueue(e.data);
+                      });
+                      screenSource.output.addEventListener('end', (e: any) => {
+                        controller.close();
+                      });
+                    },
+                  }) as PlayableVideoStream;
+                  videoStream.id = crypto.randomUUID();
+                  videoStream.type = 'image/webp';
+                  videoStream.disposition = 'text';
+        
+                  (async () => {
+                    console.log('start streaming');
+                    const {
+                      waitForFinish,
+                    } = addVideoSource(videoStream);
+                    await waitForFinish();
+                    removeVideoSource(videoStream);
+                  })();
+                } else {
+                  screenSource.close();
+                  setScreenSource(null);
+                }
               }}
             >
               <IconCapture className="mr-2" />
-              <div>Capture</div>
-            </Button> */}
+              <div>Screen</div>
+            </Button>
           </div>
         )}
         <Tooltip>

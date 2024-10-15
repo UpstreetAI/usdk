@@ -332,19 +332,19 @@ export class ChatsManager {
 
             // video streams
             virtualPlayers.addEventListener('videostart', async (e) => {
-              // console.log('got video start', e.data);
+              console.log('got video start', e.data);
               conversation.dispatchEvent(new MessageEvent('videostart', {
                 data: e.data,
               }));
             });
             virtualPlayers.addEventListener('video', async (e) => {
-              // console.log('got video data', e.data);
+              console.log('got video data', e.data);
               conversation.dispatchEvent(new MessageEvent('video', {
                 data: e.data,
               }));
             });
             virtualPlayers.addEventListener('videoend', async (e) => {
-              // console.log('got video end', e.data);
+              console.log('got video end', e.data);
               conversation.dispatchEvent(new MessageEvent('videoend', {
                 data: e.data,
               }));
