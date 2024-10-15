@@ -2725,7 +2725,7 @@ const pull = async (args) => {
   }
 };
 const ls = async (args) => {
-  const network = args.network ?? Object.keys(providers)[0];
+  // const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
   // const dev = !!args.dev;
 
@@ -2757,16 +2757,16 @@ const ls = async (args) => {
       const agent = agentAssets[i];
       const agentHost = getCloudAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
-        const statusPromise = (async () => {
-          const u = `${agentHost}/status`;
-          const proxyRes = await fetch(u);
-          if (proxyRes.ok) {
-            const j = await proxyRes.json();
-            return j;
-          } else {
-            return null;
-          }
-        })();
+        // const statusPromise = (async () => {
+        //   // const u = `${agentHost}/status`;
+        //   // const proxyRes = await fetch(u);
+        //   // if (proxyRes.ok) {
+        //   //   const j = await proxyRes.json();
+        //   //   return j;
+        //   // } else {
+        //   //   return null;
+        //   // }
+        // })();
         // const creditsPromise = (async () => {
         //   const creditsResult = await supabase
         //     .from('credits')
@@ -2783,47 +2783,53 @@ const ls = async (args) => {
         //   }
         // })();
 
-        const res = await fetch(`${agent.start_url}/agent.json`);
-        if (res.ok) {
-          const agentJson = await res.json();
-          if (
-            agentJson.id &&
-            agentJson.name &&
-            agentJson.address &&
-            agentJson.bio
-          ) {
-            // const balancePromise = (async () => {
-            //   const provider = providers[network];
-            //   const balance = await provider.getBalance(agentJson.address);
-            //   const ethBalance = ethers.formatEther(balance);
-            //   return ethBalance;
-            // })();
-            const [status, credits, balance] = await Promise.all([
-              statusPromise,
-              // creditsPromise,
-              // balancePromise,
-            ]);
+        // const res = await fetch(`${agent.start_url}/agent.json`);
+        // if (res.ok) {
+        //   const agentJson = await res.json();
+        //   if (
+        //     agentJson.id &&
+        //     agentJson.name &&
+        //     agentJson.address &&
+        //     agentJson.bio
+        //   ) {
+        //     // const balancePromise = (async () => {
+        //     //   const provider = providers[network];
+        //     //   const balance = await provider.getBalance(agentJson.address);
+        //     //   const ethBalance = ethers.formatEther(balance);
+        //     //   return ethBalance;
+        //     // })();
+        //     const [status, credits, balance] = await Promise.all([
+        //       statusPromise,
+        //       // creditsPromise,
+        //       // balancePromise,
+        //     ]);
 
-            const serverUrl = agentHost;
+        //     const serverUrl = agentHost;
 
-            table.push([
-              agentJson.id,
-              agentJson.name,
-              // status?.enabled ?? false,
-              agentJson.address,
-              agentJson.bio,
-              // status?.room ?? '',
-              // balance,
-              // credits,
-              { content: serverUrl, href: serverUrl },
-              timeAgo(new Date(agent.created_at)),
-            ]);
-          // } else {
-          //   console.warn('skipping agent', agentJson);
-          }
-        } else {
-          console.warn('could not get agent json', agent.start_url);
-        }
+           
+        //   // } else {
+        //   //   console.warn('skipping agent', agentJson);
+        //   }
+        
+        const agentJson = agent.metadata;
+        const serverUrl = agentHost;
+
+        table.push([
+          agentJson.id,
+          agentJson.name,
+          // status?.enabled ?? false,
+          agentJson.address,
+          agentJson.bio,
+          // status?.room ?? '',
+          // balance,
+          // credits,
+          { content: serverUrl, href: serverUrl },
+          timeAgo(new Date(agent.created_at)),
+        ]);
+
+        // } else {
+        //   console.warn('could not get agent json', agent.start_url);
+        // }
       });
       promises.push(p);
     }
