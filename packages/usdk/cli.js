@@ -2333,14 +2333,13 @@ const runJest = async (directory) => {
     },
   });
 };
-/* const test = async (args) => {
-  const all = !!args.all;
-  const dev = true;
+const test = async (args) => {
+  // const all = !!args.all;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    const runAgentTest = async (agentSpec, index) => {
+    /* const runAgentTest = async (agentSpec, index) => {
       // console.log('got chat args', JSON.stringify(args));
 
       // start the dev agents
@@ -2401,12 +2400,12 @@ const runJest = async (directory) => {
         const agentSpec = agentSpecs[i];
         await runAgentTest(agentSpec, i);
       }
-    }
+    } */
   } else {
     console.log('not logged in');
     process.exit(1);
   }
-}; */
+};
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
@@ -3542,22 +3541,21 @@ const main = async () => {
   //       await search(args);
   //     });
   //   });
-  // program
-  //   .command('test')
-  //   .description('Run agent tests')
-  //   .argument(`[directories...]`, `Directories containing the agent projects to test`)
-  //   .option('-a, --all', 'Run all tests')
-  //   .option('-g, --debug', 'Enable debug logging')
-  //   .action(async (directories = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [directories],
-  //         ...opts,
-  //       };
-  //       await test(args);
-  //     });
-  //   });
+  program
+    .command('test')
+    .description('Run agent tests')
+    .argument(`[directories...]`, `Directories containing the agent projects to test`)
+    .option('-g, --debug', 'Enable debug logging')
+    .action(async (directories = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [directories],
+          ...opts,
+        };
+        await test(args);
+      });
+    });
   // program
   //   .command('capture')
   //   .description('Test display functionality; with no arguments, list available devices')
