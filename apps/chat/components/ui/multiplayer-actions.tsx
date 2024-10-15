@@ -14,6 +14,7 @@ import type {
   ActionMessage,
   Attachment,
   PlayableAudioStream,
+  PlayableVideoStream,
 } from 'react-agents/types';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
@@ -104,6 +105,10 @@ interface MultiplayerActionsContextType {
     waitForFinish: () => Promise<void>
   }
   removeAudioSource: (stream: PlayableAudioStream) => void
+  addVideoSource: (stream: PlayableVideoStream) => {
+    waitForFinish: () => Promise<void>
+  }
+  removeVideoSource: (stream: PlayableVideoStream) => void
   typingMap: TypingMap
   epoch: number
 }
@@ -787,6 +792,22 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           throw new Error('realms not connected');
         }
       },
+      addVideoSource: (stream: PlayableVideoStream) => {
+        if (realms) {
+          return realms.addVideoSource(stream) as {
+            waitForFinish: () => Promise<void>
+          };
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
+      removeVideoSource: (stream: PlayableVideoStream) => {
+        if (realms) {
+          realms.removeVideoSource(stream);
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
       typingMap,
     };
     return multiplayerState;
@@ -809,6 +830,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
+  const addVideoSource = multiplayerState.addVideoSource;
+  const removeVideoSource = multiplayerState.removeVideoSource;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -830,6 +853,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         agentLeave,
         addAudioSource,
         removeAudioSource,
+        addVideoSource,
+        removeVideoSource,
         typingMap,
         epoch,
       }}
