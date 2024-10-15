@@ -2736,19 +2736,22 @@ const ls = async (args) => {
   const listAssets = async (supabase, agentAssets) => {
     const table = new Table({
       head: [
-        'id',
-        'name',
+        'ID',
+        'Name',
+        'Address',
         // 'enabled',
-        'address',
         // 'location',
         // 'balance',
         // 'battery',
-        'bio',
-        'server',
-        'created',
+        'Bio',
+        'Server',
+        'Created',
       ],
-      colWidths: [38, 20, 9, 44, 10, 10, 10, /*40,*/ 73, 10],
+      colWidths: [20, 30, 30, 50, 30, 10],
+      wordWrap: true,
+      wrapOnWordBoundary: false,
     });
+
     const promises = [];
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
@@ -2812,7 +2815,7 @@ const ls = async (args) => {
               // status?.room ?? '',
               // balance,
               // credits,
-              serverUrl,
+              { content: serverUrl, href: serverUrl },
               timeAgo(new Date(agent.created_at)),
             ]);
           // } else {
