@@ -1464,6 +1464,66 @@ const startMultiplayerListener = ({
         }
       });
     };
+
+    let screenInput = null;
+    const screenQueueManager = new QueueManager();
+    const toggleScreen = async () => {
+      await screenQueueManager.waitForTurn(async () => {
+        if (!screenInput) {
+          const inputDevices = new InputDevices();
+          const devices = await inputDevices.listDevices();
+          const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
+
+          screenInput = inputDevices.getVideoInput(screenDevice.id, {
+            // width,
+            // height,
+            fps: 5,
+          });
+
+          const videoRenderer = new TerminalVideoRenderer({
+            width: 80,
+            // height: rows,
+            footerHeight: 5,
+          });
+          screenInput.on('frame', (imageData) => {
+            videoRenderer.setImageData(imageData);
+            videoRenderer.render();
+            renderPrompt();
+          });
+          console.log('* screen capture enabled *');
+
+          const screenStream = new ReadableStream({
+            start(controller) {
+              screenInput.on('image', (data) => {
+                controller.enqueue(data);
+              });
+              screenInput.on('close', (e) => {
+                controller.close();
+              });
+            },
+          });
+          screenStream.id = crypto.randomUUID();
+          screenStream.type = 'image/webp';
+          screenStream.disposition = 'text';
+
+          (async () => {
+            console.log('start streaming video');
+            const {
+              waitForFinish,
+            } = realms.addVideoSource(screenStream);
+            await waitForFinish();
+            realms.removeVideoSource(screenStream);
+          })();
+          renderPrompt();
+        } else {
+          screenInput.close();
+          screenInput = null;
+          console.log('* screen capture disabled *');
+          renderPrompt();
+        }
+      });
+    };
+
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
       const name = userAsset.name;
@@ -1527,6 +1587,10 @@ const startMultiplayerListener = ({
                 }
                 case 'cam': {
                   toggleCam();
+                  break;
+                }
+                case 'screen': {
+                  toggleScreen();
                   break;
                 }
                 default: {
