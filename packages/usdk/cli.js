@@ -1658,7 +1658,6 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
 const chat = async (args) => {
   // console.log('got chat args', JSON.stringify(args));
   const agentSpecs = await parseAgentSpecs(args._[0]);
-  // const dev = !!args.dev;
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
 
@@ -1684,8 +1683,6 @@ const chat = async (args) => {
       agentSpecs.map(async (agentSpec, index) => {
         await join({
           _: [agentSpec.ref, room],
-          // dev,
-          // debug,
         }, index);
       }),
     );
