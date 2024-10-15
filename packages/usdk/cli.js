@@ -1420,6 +1420,10 @@ const startMultiplayerListener = ({
             // height,
             fps: 5,
           });
+          cameraInput.id = crypto.randomUUID();
+          cameraInput.type = 'image/webp';
+          cameraInput.disposition = 'text';
+
           const videoRenderer = new TerminalVideoRenderer({
             width: 80,
             // height: rows,
@@ -1431,6 +1435,15 @@ const startMultiplayerListener = ({
             renderPrompt();
           });
           console.log('* cam enabled *');
+
+          (async () => {
+            console.log('start streaming video');
+            const {
+              waitForFinish,
+            } = realms.addVideoSource(cameraInput);
+            await waitForFinish();
+            realms.removeVideoSource(cameraInput);
+          })();
           renderPrompt();
         } else {
           cameraInput.close();
