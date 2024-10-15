@@ -3766,8 +3766,6 @@ const main = async () => {
   //     });
   //   })
   //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
-
-    
   // program
   //   .command('connect')
   //   .description(`Connect to a multiplayer room`)
