@@ -110,6 +110,26 @@ const logError =
 
 //
 
+const serializeError = (error: Error) => {
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+  };
+};
+
+const logDetailedError = (errorType: string, error: Error, containerState) => {
+  const errorInfo = {
+    type: errorType,
+    error: serializeError(error),
+    containerState: containerState,
+    timestamp: new Date().toISOString(),
+  };
+  console.error('[Reconciler Error]:', JSON.stringify(errorInfo, null, 2));
+};
+
+//
+
 export class AgentRenderer {
   env: object;
   userRender: UserHandler;
@@ -302,10 +322,8 @@ export class AgentRenderer {
       env['WORKER_ENV'] === 'development', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
-      logError, // onUncaughtError
-      logError, // onCaughtError
-      logError, // onRecoverableError
-      null, // transitionCallbacks
+      (error: Error) => logDetailedError('Recoverable Error', error, this.container),
+      null // transitionCallbacks
     );
     this.root = root;
     this.renderLoader = new RenderLoader();
@@ -344,7 +362,12 @@ export class AgentRenderer {
       appContextValue,
       topLevelRenderPromise: null,
     };
-    await this.renderProps(props);
+    try {
+      await this.renderProps(props);
+    } catch (error) {
+      logDetailedError('Error during render', error, this.container);
+      throw error;
+    }
   }
 
   // note: needs to be async to wait for React to resolves
