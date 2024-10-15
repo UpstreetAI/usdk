@@ -277,9 +277,10 @@ export function PromptForm({
                   // console.log('got devices', devices);
                   // const videoInputDevices = devices.filter((device) => device.kind === 'videoinput');
                   const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                      cursor: "always", // or "motion" or "never"
-                    },
+                    // video: {
+                    //   cursor: "always", // or "motion" or "never"
+                    // },
+                    video: true,
                     audio: false, // Set to true if you also want to capture audio
                   });
                   // console.log('got media stream', mediaStream);
