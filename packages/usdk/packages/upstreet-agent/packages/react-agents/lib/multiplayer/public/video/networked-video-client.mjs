@@ -51,28 +51,27 @@ export class NetworkedVideoClient extends EventTarget {
       ],
     }));
 
-    const frame = e => {
-      const {frame} = e.data;
+    const image = (data) => {
       console.log('send video', [
         this.playerId,
         id,
-        frame,
+        data,
       ]);
       this.ws.send(zbencode({
         method: UPDATE_METHODS.VIDEO,
         args: [
           this.playerId,
           id,
-          frame,
+          data,
         ],
       }));
     };
-    playableVideoStream.addEventListener('frame', frame);
+    playableVideoStream.on('image', image);
 
     // add the cleanup fn
     const finishPromise = makePromise();
     const cleanup = () => {
-      playableVideoStream.removeEventListener('frame', frame);
+      playableVideoStream.removeListener('image', image);
 
       finishPromise.resolve(null);
 
