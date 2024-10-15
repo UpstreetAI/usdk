@@ -2738,12 +2738,12 @@ const ls = async (args) => {
       head: [
         'id',
         'name',
-        'enabled',
+        // 'enabled',
         'address',
-        'location',
-        'balance',
-        'battery',
-        // 'bio',
+        // 'location',
+        // 'balance',
+        // 'battery',
+        'bio',
         'server',
         'created',
       ],
@@ -2764,21 +2764,21 @@ const ls = async (args) => {
             return null;
           }
         })();
-        const creditsPromise = (async () => {
-          const creditsResult = await supabase
-            .from('credits')
-            .select('credits')
-            .eq('agent_id', agent.id)
-            .maybeSingle();
-          const { error, data } = creditsResult;
-          if (!error) {
-            return data?.credits ?? 0;
-          } else {
-            throw new Error(
-              `could not get credits for agent ${agent.id}: ${error}`,
-            );
-          }
-        })();
+        // const creditsPromise = (async () => {
+        //   const creditsResult = await supabase
+        //     .from('credits')
+        //     .select('credits')
+        //     .eq('agent_id', agent.id)
+        //     .maybeSingle();
+        //   const { error, data } = creditsResult;
+        //   if (!error) {
+        //     return data?.credits ?? 0;
+        //   } else {
+        //     throw new Error(
+        //       `could not get credits for agent ${agent.id}: ${error}`,
+        //     );
+        //   }
+        // })();
 
         const res = await fetch(`${agent.start_url}/agent.json`);
         if (res.ok) {
@@ -2789,16 +2789,16 @@ const ls = async (args) => {
             agentJson.address &&
             agentJson.bio
           ) {
-            const balancePromise = (async () => {
-              const provider = providers[network];
-              const balance = await provider.getBalance(agentJson.address);
-              const ethBalance = ethers.formatEther(balance);
-              return ethBalance;
-            })();
+            // const balancePromise = (async () => {
+            //   const provider = providers[network];
+            //   const balance = await provider.getBalance(agentJson.address);
+            //   const ethBalance = ethers.formatEther(balance);
+            //   return ethBalance;
+            // })();
             const [status, credits, balance] = await Promise.all([
               statusPromise,
-              creditsPromise,
-              balancePromise,
+              // creditsPromise,
+              // balancePromise,
             ]);
 
             const serverUrl = agentHost;
@@ -2806,12 +2806,12 @@ const ls = async (args) => {
             table.push([
               agentJson.id,
               agentJson.name,
-              status?.enabled ?? false,
+              // status?.enabled ?? false,
               agentJson.address,
-              status?.room ?? '',
-              balance,
-              credits,
-              // agentJson.bio,
+              agentJson.bio,
+              // status?.room ?? '',
+              // balance,
+              // credits,
               serverUrl,
               timeAgo(new Date(agent.created_at)),
             ]);
