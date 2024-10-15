@@ -1390,7 +1390,7 @@ const startMultiplayerListener = ({
           audioStream.disposition = 'text';
 
           (async () => {
-            console.log('start streaming');
+            console.log('start streaming audio');
             const {
               waitForFinish,
             } = realms.addAudioSource(audioStream);
