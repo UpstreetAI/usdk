@@ -9,3 +9,17 @@ export const npmInstall = async (dstDir) => {
     stdio: 'inherit',
   });  
 };
+
+const getNpmRoot = async () => {
+  const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
+  return stdout.trim();
+};
+export const ensureNpmRoot = (() => {
+  let npmRootPromise = null;
+  return () => {
+    if (npmRootPromise === null) {
+      npmRootPromise = getNpmRoot();
+    }
+    return npmRootPromise;
+  };
+})();

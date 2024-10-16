@@ -120,7 +120,7 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
-import { npmInstall } from './lib/npm-util.mjs';
+import { npmInstall, ensureNpmRoot } from './lib/npm-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2310,19 +2310,6 @@ const search = async (args) => {
     throw new Error('not logged in');
   }
 };
-const getNpmRoot = async () => {
-  const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
-  return stdout.trim();
-};
-const ensureNpmRoot = (() => {
-  let npmRootPromise = null;
-  return () => {
-    if (npmRootPromise === null) {
-      npmRootPromise = getNpmRoot();
-    }
-    return npmRootPromise;
-  };
-})();
 const runJest = async (directory) => {
   const npmRoot = await ensureNpmRoot();
   await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
