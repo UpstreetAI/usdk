@@ -1,6 +1,6 @@
-import {channelCount, /*sampleRate, */ bitrate, frameSize, voiceOptimization} from './ws-constants.mjs';
-import { QueueManager } from '../../../../util/queue-manager.mjs';
-import { floatTo16Bit, int16ToFloat32 } from './convert.mjs';
+import {channelCount, bitrate, frameSize, voiceOptimization} from './ws-constants.mjs';
+import { QueueManager } from './queue-manager.mjs';
+import { floatTo16Bit } from './convert.mjs';
 
 export const makeOpusCodec = (libopus) =>
 class WsOpusCodec extends EventTarget {
@@ -104,6 +104,3 @@ class WsOpusCodec extends EventTarget {
     }));
   }
 }
-// import libopus from './libopusjs/libopus.wasm.js';
-// import {channelCount, /*sampleRate, */ bitrate, frameSize, voiceOptimization} from './ws-constants.js';
-// import { QueueManager } from '../queue-manager.mjs';
