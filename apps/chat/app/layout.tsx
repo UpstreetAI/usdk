@@ -65,22 +65,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
         }}
       >
         <Toaster position="top-center" />
-        {/* <Providers
+        <Providers
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-            <div className="flex flex-col min-h-screen">
+            {/* <div className="flex flex-col min-h-screen">
               <Body>
                 <Header />
                 {children}
               </Body>
             </div>
-          <TailwindIndicator/>
+          <TailwindIndicator/> */}
           <Footer />
-        </Providers> */}
-        <div>Test</div>
+        </Providers>
       </body>
     </html>
   )
