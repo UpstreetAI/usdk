@@ -1,4 +1,4 @@
-import MPEGDecoder from './mpg123-decoder/src/MPEGDecoder.fetch.js';
+import MPEGDecoder from './packages/mpg123-decoder/src/MPEGDecoder.fetch.js';
 import { makeMp3Decoder } from './ws-mp3-decoder.mjs';
 const WsMp3Decoder = makeMp3Decoder(MPEGDecoder);
 
