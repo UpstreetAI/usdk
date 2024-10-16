@@ -24,4 +24,4 @@ jobs:
       run: npm install --no-optional
 
     - name: Run USDK command
-      run: node packages/usdk/usdk --version
+      run: cd packages/usdk && ./usdk.js --version
