@@ -6,7 +6,7 @@ import stream from 'stream';
 import repl from 'repl';
 
 import { program } from 'commander';
-import WebSocket, { WebSocketServer } from 'ws';
+import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
 import open from 'open';
