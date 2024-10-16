@@ -2326,9 +2326,10 @@ const test = async (args) => {
       const agentSpec = agentSpecs[index];
 
       // start the dev server
+      let cp = null;
       {
         if (agentSpec.directory) {
-          const cp = await startDevServer(agentSpec, index, {
+          cp = await startDevServer(agentSpec, index, {
             debug,
           });
         }
@@ -2344,6 +2345,10 @@ const test = async (args) => {
       // run the tests
       {
         await runJest(agentSpec.directory);
+      }
+
+      if (cp) {
+        cp.kill('SIGTERM');
       }
     }
   } else {
