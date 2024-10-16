@@ -10,7 +10,41 @@ import { Monetization } from './monetization';
 import useHash from '@/lib/hooks/use-hash';
 import HeaderMaskFrame from '../masks/HeaderMaskFrame';
 import { isValidUrl } from '@/lib/utils';
+import { IconButton } from 'ucom';
 
+
+const TabItems = [
+  {
+    href: '/agents',
+    icon: 'Users',
+    label: 'Agents',
+  },
+  {
+    href: '/voices',
+    icon: 'Users',
+    label: 'Voices',
+  },
+  {
+    href: '/profile',
+    icon: 'Users',
+    label: 'Profile',
+  },
+  {
+    href: '/credits',
+    icon: 'Users',
+    label: 'Credits',
+  },
+  {
+    href: '/subscriptions',
+    icon: 'Users',
+    label: 'Subscription',
+  },
+  {
+    href: '/monetization',
+    icon: 'Users',
+    label: 'Monetization',
+  },
+];
 
 export interface TabsProps {
   user: any;
@@ -23,7 +57,7 @@ export interface TabsProps {
 
 export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsageHistory, userIsCurrentUser, userPrivate }: TabsProps) {
 
-  const [ tab, setTab ] = useHash('profile'); // Default to 'profile'
+  const [tab, setTab] = useHash('profile'); // Default to 'profile'
   const [agents, setAgents] = useState(() => agentsInit);
   const [voices, setVoices] = useState(() => voicesInit);
 
@@ -57,6 +91,21 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
             <div>
               <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
               <div className="px-2 py-1 bg-black bg-opacity-60">{'https://'}</div>
+              <div className='flex gap-2 mt-4'>
+
+                {TabItems.map((item) => (
+                  <IconButton
+                    key={item.href}
+                    href={item.href}
+                    icon={item.icon}
+                    label={item.label}
+                    active={false}
+                    target={item.href.startsWith('http') ? '_blank' : undefined}
+                    size='large'
+                  />
+                ))}
+
+              </div>
             </div>
           </div>
         </div>
