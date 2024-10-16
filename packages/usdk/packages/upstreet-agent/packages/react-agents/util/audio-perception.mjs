@@ -3,7 +3,7 @@ import {
   floatTo16Bit,
   // int16ToFloat32,
 } from '../lib/multiplayer/public/audio-worker/convert.mjs';
-import { AudioEncodeStream } from '../lib/multiplayer/public/audio/audio-encode.mjs';
+import { AudioEncodeStream } from '../lib/multiplayer/public/audio-worker/audio-encode.mjs';
 import { QueueManager } from './queue-manager.mjs';
 import {
   aiHost,

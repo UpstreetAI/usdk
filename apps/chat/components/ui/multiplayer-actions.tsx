@@ -8,7 +8,7 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { getAgentEndpointUrl, getAgentHost } from '@/lib/utils'
 import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
+import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio-worker/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import type {
   ActionMessage,
