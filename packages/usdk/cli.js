@@ -105,7 +105,6 @@ import {
   templatesDirectory,
   wranglerBinPath,
   wranglerTomlPath,
-  jestBin,
 } from './lib/locations.mjs';
 import {
   create,

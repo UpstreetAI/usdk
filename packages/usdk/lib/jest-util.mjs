@@ -1,6 +1,9 @@
 import child_process from 'child_process';
 import util from 'util';
 import { ensureNpmRoot } from './npm-util.mjs';
+import {
+  jestBin,
+} from './locations.mjs';
 
 const execFile = util.promisify(child_process.execFile);
 
