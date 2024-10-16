@@ -18,7 +18,7 @@ import type {
 } from 'react-agents/types';
 import { shuffle } from 'react-agents/util/util.mjs';
 import { Icon } from 'ucom';
-import { createPcmF32MicrophoneSource } from '@upstreet/multiplayer/public/audio-worker/audio-client.mjs';
+import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
 

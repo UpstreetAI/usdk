@@ -6,7 +6,7 @@ import stream from 'stream';
 import repl from 'repl';
 
 import { program } from 'commander';
-import WebSocket, { WebSocketServer } from 'ws';
+import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
 import open from 'open';
@@ -68,11 +68,9 @@ import {
 import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/audio-decode.mjs';
+import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/codecs/audio-decode.mjs';
 
-// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-worker.mjs';
-// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-edge.mjs';
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-fs.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/codecs/ws-codec-runtime-fs.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 

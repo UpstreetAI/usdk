@@ -1,0 +1,9 @@
+{
+  "name": "codecs",
+  "type": "module",
+  "dependencies": {
+    "lamejs": "file:./packages/lamejs",
+    "mpg123-decoder": "file:./packages/mpg123-decoder",
+    "libopusjs": "file:./packages/libopusjs"
+  }
+}

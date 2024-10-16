@@ -11,7 +11,7 @@ import {
 import {
   createOpusDecodeTransformStream,
   createMp3ReadableStreamSource,
-} from '../../lib/multiplayer/public/audio-worker/audio-client.mjs';
+} from 'codecs/audio-client.mjs';
 import {
   makePromise,
   makeId,

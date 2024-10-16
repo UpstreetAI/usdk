@@ -1,5 +1,4 @@
-import lamejs from './lamejs/lame.all.js';
-// import lamejs from './lamejs/lame.min.mjs';
+import lamejs from './packages/lamejs/lame.all.js';
 import {channelCount, /*frameSize, voiceOptimization*/} from './ws-constants.mjs';
 import { floatTo16Bit, int16ToFloat32 } from './convert.mjs';
 
