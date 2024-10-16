@@ -8,6 +8,8 @@ import { Credits } from './credits';
 import { AccountSubscriptions } from './subscriptions';
 import { Monetization } from './monetization';
 import useHash from '@/lib/hooks/use-hash';
+import HeaderMaskFrame from '../masks/HeaderMaskFrame';
+import { isValidUrl } from '@/lib/utils';
 
 
 export interface TabsProps {
@@ -31,7 +33,34 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
   const inactiveClass = 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-pointer';
 
   return (
-    <div className='pb-16'>
+    <div className='w-full'>
+      <HeaderMaskFrame background={''} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
+        <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
+          <div className="flex">
+            <div className="mr-4 size-20 min-w-20 md:size-40 md:min-w-40 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+              <div
+                className="w-full h-full bg-cover bg-top"
+                style={{
+                  backgroundImage: isValidUrl(user.preview_url) ? `url(${user.preview_url})` : 'none',
+                  backgroundColor: isValidUrl(user.preview_url) ? 'transparent' : '#ccc',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2rem',
+                  fontWeight: 'bold',
+                  color: '#fff',
+                }}
+              >
+                {!isValidUrl(user.preview_url) && user.name.charAt(0)}
+              </div>
+            </div>
+            <div>
+              <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
+              <div className="px-2 py-1 bg-black bg-opacity-60">{'https://'}</div>
+            </div>
+          </div>
+        </div>
+      </HeaderMaskFrame>
       <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full">
         <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-px text-sm font-medium text-center" role="tablist">
           <li className="me-2" role="presentation">
