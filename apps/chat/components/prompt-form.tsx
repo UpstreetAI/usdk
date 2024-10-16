@@ -272,8 +272,6 @@ export function PromptForm({
               className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
               onClick={async () => {
                 if (!screenSource) {
-                  // list the available mics
-                  const devices = await navigator.mediaDevices.enumerateDevices();
                   // console.log('got devices', devices);
                   // const videoInputDevices = devices.filter((device) => device.kind === 'videoinput');
                   const mediaStream = await navigator.mediaDevices.getDisplayMedia({
