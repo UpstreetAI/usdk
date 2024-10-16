@@ -71,13 +71,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-            {/* <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen">
               <Body>
-                <Header />
-                {children}
+                {/* <Header />
+                {children} */}A
               </Body>
             </div>
-          <TailwindIndicator/> */}
+          <TailwindIndicator/>
           <Footer />
         </Providers>
       </body>
