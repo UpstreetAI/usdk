@@ -65,24 +65,22 @@ export default function RootLayout({ children }: RootLayoutProps) {
         }}
       >
         <Toaster position="top-center" />
-        <Providers
+        {/* <Providers
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {/*<Suspense fallback={<div>Loading...</div>}>*/}
             <div className="flex flex-col min-h-screen">
               <Body>
                 <Header />
                 {children}
               </Body>
             </div>
-          {/*</Suspense>*/}
-
           <TailwindIndicator/>
           <Footer />
-        </Providers>
+        </Providers> */}
+        <div>Test</div>
       </body>
     </html>
   )
