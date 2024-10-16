@@ -2316,7 +2316,7 @@ const runJest = async (directory) => {
     stdio: 'inherit',
     cwd: directory,
     env: {
-      NODE_PATH: npmRoot, // needed to import usdk
+      NODE_PATH: npmRoot, // needed to import modules
     },
   });
 };
