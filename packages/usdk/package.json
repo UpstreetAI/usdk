@@ -50,7 +50,6 @@
     "memoize-one": "^6.0.0",
     "mime": "^4.0.1",
     "mkdirp": "^3.0.1",
-    "multiplayer": "file:./packages/upstreet-agent/packages/react-agents/lib/multiplayer",
     "open": "^10.1.0",
     "openai": "^4.56.0",
     "picocolors": "^1.0.1",
