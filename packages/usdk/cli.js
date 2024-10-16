@@ -2334,73 +2334,39 @@ const runJest = async (directory) => {
   });
 };
 const test = async (args) => {
-  // const all = !!args.all;
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
+    throw new Error('all agent specs must have directories');
+  }
+
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    /* const runAgentTest = async (agentSpec, index) => {
-      // console.log('got chat args', JSON.stringify(args));
+    for (let index = 0; index < agentSpecs.length; index++) {
+      const agentSpec = agentSpecs[index];
 
-      // start the dev agents
-      const cp = await startDevServer(agentSpec, index, {
-        debug,
-      });
+      // start the dev server
+      {
+        if (agentSpec.directory) {
+          const cp = await startDevServer(agentSpec, index, {
+            debug,
+          });
+        }
+      }
 
-      // wait for agents to join the multiplayer room
-      const room = makeRoomName();
-      await join({
-        _: [guidOrDevPathIndex, room],
-        // dev,
-        // debug,
-      });
+      // join
+      {
+        await join({
+          _: [agentSpec.ref, room],
+        }, index);
+      }
 
-      // connect to the chat
-      const {
-        realms,
-      } = await connect({
-        _: [room],
-        browser: false,
-        media: false,
-        repl: false,
-        debug,
-        local: false,
-      });
-
-      // run tests
-      try {
+      // run the tests
+      {
         await runJest(agentSpec.directory);
-      } finally {
-        // clean up
-        realms.disconnect();
-        process.kill(cp.pid, 'SIGTERM');
       }
-    };
-    const testTemplate = async (template) => {
-      console.log('running template test: ' + template);
-
-      // create the template
-      const testDirectory = await makeTempDir();
-      await create({
-        _: [testDirectory],
-        template,
-      });
-
-      await runAgentTest(testDirectory);
-    };
-
-    if (all) {
-      const templateNames = await getTemplateNames();
-      for (const template of templateNames) {
-        await testTemplate(template);
-      }
-    } else {
-      const agentSpecs = await parseAgentSpecs(args._[0]);
-      for (let i = 0; i < agentSpecs.length; i++) {
-        const agentSpec = agentSpecs[i];
-        await runAgentTest(agentSpec, i);
-      }
-    } */
+    }
   } else {
     console.log('not logged in');
     process.exit(1);
