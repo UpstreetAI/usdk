@@ -1,6 +1,6 @@
 export class WsOpusCodec {
   constructor() {
-    this.worker = new Worker(new URL(`../audio-worker/ws-opus-codec-worker.js`, import.meta.url), {
+    this.worker = new Worker(new URL(`./ws-opus-codec-worker.js`, import.meta.url), {
       type: 'module',
     });
   }
@@ -19,7 +19,7 @@ export class WsOpusCodec {
 }
 export class WsMp3Encoder {
   constructor() {
-    this.worker = new Worker(new URL(`../audio-worker/ws-mp3-encoder-worker.mjs`, import.meta.url), {
+    this.worker = new Worker(new URL(`./ws-mp3-encoder-worker.mjs`, import.meta.url), {
       type: 'module',
     });
   }
@@ -39,7 +39,7 @@ export class WsMp3Encoder {
 
 export class WsMp3Decoder {
   constructor() {
-    this.worker = new Worker(new URL(`../audio-worker/ws-mp3-decoder-worker.mjs`, import.meta.url), {
+    this.worker = new Worker(new URL(`./ws-mp3-decoder-worker.mjs`, import.meta.url), {
       type: 'module',
     });
   }
