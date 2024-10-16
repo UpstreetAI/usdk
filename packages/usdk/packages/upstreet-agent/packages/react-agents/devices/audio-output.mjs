@@ -15,13 +15,22 @@ export class SpeakerOutputStream extends WritableStream {
         } else {
           uint8Array = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
         }
-        this.speaker.write(uint8Array);
+        try {
+          this.speaker.write(uint8Array);
+        } catch (err) {
+          console.warn(err);
+        }
       },
       close: async () => {
-        this.speaker.end();
-        await new Promise((accept, reject) => {
-          this.speaker.once('finish', accept);
-        });
+        try {
+          this.speaker.end();
+
+          await new Promise((accept, reject) => {
+            this.speaker.once('finish', accept);
+          });
+        } catch (err) {
+          console.warn(err);
+        }
       },
     });
 
