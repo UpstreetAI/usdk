@@ -1,5 +1,5 @@
-import {OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder} from './ws-codec.mjs';
-import {WsMediaStreamAudioReader, FakeAudioData} from './ws-codec-util.mjs';
+import {OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder} from '../audio-worker/ws-codec.mjs';
+import {WsMediaStreamAudioReader, FakeAudioData} from '../audio-worker/ws-codec-util.mjs';
 import {AudioOutput} from './audio-classes.mjs';
 import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './audio-util.mjs';
 import { makeId, makePromise } from '../util.mjs';
