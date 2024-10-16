@@ -1,6 +1,3 @@
-// import { createMp3DecodeTransformStream } from '../lib/multiplayer/public/audio/audio-client.mjs';
-// import { QueueManager } from '../../utils/queue-manager.mjs';
-
 type LoadableAudioContext = AudioContext & {
   waitForLoad: () => Promise<void>;
 };
