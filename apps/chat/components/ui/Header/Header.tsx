@@ -14,8 +14,9 @@ export async function Header() {
       return null;
     }
   })();
-
-  const credits = await getCredits(user.id);
+  
+  // const credits = await getCredits(user.id);
+  const credits = 0;
 
   return (
     <HeaderNavigation user={user} credits={credits} />
