@@ -5,6 +5,7 @@
     "@aws-sdk/util-format-url": "^3.577.0",
     "@supabase/supabase-js": "^2.39.8",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
+    "@types/jest": "^29.5.13",
     "@types/react": "^18.3.3",
     "browser-util-inspect": "^0.2.0",
     "dedent": "^1.5.3",
@@ -30,10 +31,5 @@
   "overrides": {
     "@supabase/auth-js": "2.62.0",
     "whatwg-url": "14.0.0"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.13",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5"
   }
 }
