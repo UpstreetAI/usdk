@@ -2,7 +2,6 @@ import {DataClient, NetworkedDataClient, DCMap, DCArray} from './data-client.mjs
 import {NetworkedCrdtClient} from './crdt-client.mjs';
 import {NetworkedLockClient} from './lock-client.mjs';
 import {NetworkedIrcClient} from './irc-client.mjs';
-// import {createOpusMicrophoneSource, createOpusReadableStreamSource} from './audio/audio-client.mjs';
 import {NetworkedAudioClient} from './audio/networked-audio-client.mjs';
 import {NetworkedVideoClient} from './video/networked-video-client.mjs';
 import {

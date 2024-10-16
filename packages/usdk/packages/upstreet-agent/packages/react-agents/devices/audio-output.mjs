@@ -1,5 +1,4 @@
 import Speaker from 'speaker';
-// import { createMp3DecodeTransformStream } from '../lib/multiplayer/public/audio/audio-client.mjs';
 
 export class SpeakerOutputStream extends WritableStream {
   static defaultSampleRate = 44100;
