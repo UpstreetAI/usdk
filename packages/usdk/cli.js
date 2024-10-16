@@ -2343,6 +2343,8 @@ const test = async (args) => {
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
+    const room = makeRoomName();
+
     for (let index = 0; index < agentSpecs.length; index++) {
       const agentSpec = agentSpecs[index];
 
