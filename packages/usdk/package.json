@@ -61,7 +61,6 @@
     "shell-escape-tag": "^2.0.2",
     "together-ai": "^0.6.0-alpha.4",
     "toml": "^3.0.0",
-    "ts-jest": "^29.2.5",
     "unique-names-generator": "^4.7.1",
     "vercel": "^34.2.6",
     "web-worker": "1.2.0",
