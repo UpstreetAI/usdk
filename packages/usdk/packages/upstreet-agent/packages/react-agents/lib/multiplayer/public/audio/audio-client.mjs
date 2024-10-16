@@ -1,6 +1,3 @@
-// import {UPDATE_METHODS} from '../update-types.js';
-// import {zbencode} from '../../../zjs/encoding.mjs';
-// import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
 import {OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder} from './ws-codec.mjs';
 import {WsMediaStreamAudioReader, FakeAudioData} from './ws-codec-util.mjs';
 import {AudioOutput} from './audio-classes.mjs';

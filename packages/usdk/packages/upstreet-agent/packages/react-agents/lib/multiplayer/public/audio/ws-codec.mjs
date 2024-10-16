@@ -4,13 +4,11 @@ import {
 
 export class OpusAudioEncoder {
   constructor({sampleRate, codecs, output, error}) {
-    // this.worker = new OpusCodecWorker();
-    // this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
     if (!codecs.WsOpusCodec) {
+      console.warn('no WsOpusCodec', codecs);
       throw new Error('no WsOpusCodec');
     }
     this.worker = new codecs.WsOpusCodec();
-    // console.log("worker", this.worker)
     this.worker.addEventListener('message', e => {
       output(e.data);
     });
@@ -32,9 +30,8 @@ export class OpusAudioEncoder {
 
 export class OpusAudioDecoder {
   constructor({sampleRate, format, codecs, output, error}) {
-    // this.worker = new OpusCodecWorker();
-    // this.worker = new Worker("../../../../util/audio-worker/ws-opus-codec-worker.js");
     if (!codecs.WsOpusCodec) {
+      console.warn('no WsOpusCodec', codecs);
       throw new Error('no WsOpusCodec');
     }
     this.worker = new codecs.WsOpusCodec();
@@ -75,9 +72,6 @@ export class Mp3AudioEncoder {
 
     this.transferBuffers = transferBuffers;
 
-    // this.worker = new Worker(new URL('../audio-worker/ws-mp3-encoder-worker.mjs', import.meta.url), {
-    //   type: 'module',
-    // });
     if (!codecs.WsMp3Encoder) {
       console.warn('no WsMp3Encoder', codecs);
       throw new Error('no WsMp3Encoder');
@@ -121,9 +115,10 @@ export class Mp3AudioDecoder {
 
     this.transferBuffers = transferBuffers;
 
-    // this.worker = new Worker(new URL('../audio-worker/ws-mp3-decoder-worker.mjs', import.meta.url), {
-    //   type: 'module',
-    // });
+    if (!codecs.WsMp3Decoder) {
+      console.warn('no WsMp3Decoder', codecs);
+      throw new Error('no WsMp3Decoder');
+    }
     this.worker = new codecs.WsMp3Decoder();
 
     const fakeAudioData = new FakeAudioData();
