@@ -70,9 +70,9 @@ import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/l
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/audio-decode.mjs';
 
-// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
-// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-edge.mjs';
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio/ws-codec-runtime-fs.mjs';
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-worker.mjs';
+// import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-edge.mjs';
+import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/audio-worker/ws-codec-runtime-fs.mjs';
 
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 

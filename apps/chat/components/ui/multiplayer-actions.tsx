@@ -17,7 +17,7 @@ import type {
   PlayableVideoStream,
 } from 'react-agents/types';
 import { useLoading } from '@/lib/client/hooks/use-loading';
-import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+import * as codecs from '@upstreet/multiplayer/public/audio-worker/ws-codec-runtime-worker.mjs';
 
 //
 

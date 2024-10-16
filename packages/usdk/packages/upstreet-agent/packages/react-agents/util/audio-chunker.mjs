@@ -1,9 +1,3 @@
-// import {
-//   floatTo16Bit,
-//   int16ToFloat32,
-// } from '../lib/multiplayer/public/audio-worker/convert.mjs';
-// import waveheader from 'waveheader';
-
 export class AudioChunker {
   constructor({ sampleRate, chunkSize = 1536 }) {
     this.sampleRate = sampleRate;
