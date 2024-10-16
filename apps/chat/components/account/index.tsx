@@ -41,7 +41,7 @@ export async function AccountForm({
 
     // Redirect if a user isn't found, otherwise check if it's the
     // logged-in user.
-    if (!user) return redirect( routes.home )
+    if (!user) return redirect(routes.home)
     userIsCurrentUser = user?.id === currentUser.id
   } else {
     user = currentUser
@@ -60,32 +60,18 @@ export async function AccountForm({
   const voices = await voicesPromise;
 
   return (
-    <div className="flex w-full flex-col flex-nowrap p-4 mx-auto max-w-4xl">
-      <div className="max-w-6xl px-4 py-8 mx-auto sm:px-6 sm:pt-14 lg:px-8">
-        <div className="sm:align-center sm:flex sm:flex-col">
-          <h1 className="text-4xl font-extrabold text-white sm:text-center sm:text-6xl">
-            Welcome, {user?.name}
-          </h1>
-          <p className="max-w-2xl m-auto mt-5 text-xl text-zinc-200 sm:text-center sm:text-2xl">
-            Credits Available: <span className='text-purple-500'>{Math.round(credits)}</span>
-          </p>
-        </div>
-      </div>
-
-      <Tabs
-        user={user}
-        creditsUsageHistory={creditsUsageHistory}
-        userPrivate={userPrivate}
-        agents={agents}
-        voices={voices}
-        userIsCurrentUser={userIsCurrentUser}
-      />
-
-    </div>
+    <Tabs
+      user={user}
+      creditsUsageHistory={creditsUsageHistory}
+      userPrivate={userPrivate}
+      agents={agents}
+      voices={voices}
+      userIsCurrentUser={userIsCurrentUser}
+    />
   );
 }
 
-export async function Account({ params: { id }}: AccountProps) {
+export async function Account({ params: { id } }: AccountProps) {
   return (
     <>
       <LoginRedirect />
