@@ -1,4 +1,4 @@
-import { resample } from '../audio-worker/resample.mjs';
+import { resample } from './resample.mjs';
 
 export class FakeAudioData {
   constructor() {

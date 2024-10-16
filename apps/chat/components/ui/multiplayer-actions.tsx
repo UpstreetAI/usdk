@@ -8,7 +8,6 @@ import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { getAgentEndpointUrl, getAgentHost } from '@/lib/utils'
 import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio-worker/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import type {
   ActionMessage,
@@ -17,7 +16,8 @@ import type {
   PlayableVideoStream,
 } from 'react-agents/types';
 import { useLoading } from '@/lib/client/hooks/use-loading';
-import * as codecs from '@upstreet/multiplayer/public/audio-worker/ws-codec-runtime-worker.mjs';
+import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
+import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 
 //
 
