@@ -1695,9 +1695,6 @@ const getGuidFromPath = async (p) => {
     }
   }
 };
-/*
-returns: [{ guid: string, directory: string | null }]
-*/
 const parseAgentSpecs = async (agentRefSpecs = []) => {
   if (!Array.isArray(agentRefSpecs)) {
     throw new Error('expected agent ref specs to be an array; got ' + JSON.stringify(agentRefSpecs));
