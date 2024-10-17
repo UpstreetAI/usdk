@@ -102,7 +102,7 @@
     "ucom": "file:./packages/ucom/src",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
-    "zjs": "file:../../packages/zjs",
+    "zjs": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs",
     "zod": "^3.23.8"
   },
   "devDependencies": {
