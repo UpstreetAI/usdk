@@ -762,7 +762,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: !anonymous ? userId : null,
-    audioManager: null,
   });
   const playersMap = new Map(); // Map<string, Player>
   const typingMap = new TypingMap();
