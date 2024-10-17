@@ -1,5 +1,4 @@
 import { zbencode, zbdecode } from '../lib/zjs/encoding.mjs';
-import { makePromise } from '../util/util.mjs';
 
 export class WebPEncoder {
   constructor() {
@@ -47,8 +46,14 @@ export class WebPEncoder {
     });
     this.worker.postMessage(b, [b.buffer]);
 
-    const promise = makePromise();
-    this.promises.push(promise);
+    const {
+      promise,
+      resolve,
+      reject,
+    } = Promise.withResolvers();
+    this.promises.push({
+      resolve,
+    });
 
     return await promise;
   }
@@ -61,8 +66,14 @@ export class WebPEncoder {
     });
     this.worker.postMessage(b, [b.buffer]);
 
-    const promise = makePromise();
-    this.promises.push(promise);
+    const {
+      promise,
+      resolve,
+      reject,
+    } = Promise.withResolvers();
+    this.promises.push({
+      resolve,
+    });
 
     return await promise;
   }
