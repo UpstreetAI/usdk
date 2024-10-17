@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
-import child_process from 'child_process';
 import stream from 'stream';
 import repl from 'repl';
 
@@ -24,7 +23,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 
 import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
-import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
+// import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
