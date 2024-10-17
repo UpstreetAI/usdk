@@ -1,5 +1,5 @@
 import {
-  metamaskHost,
+  authHost,
 } from './endpoints.mjs';
 
 export const isGuid = (guid) => {
@@ -9,7 +9,7 @@ export const isGuid = (guid) => {
 export const createAgentGuid = async ({
   jwt,
 }) => {
-  const res = await fetch(`${metamaskHost}/createAgentGuid`, {
+  const res = await fetch(`${authHost}/createAgentGuid`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
