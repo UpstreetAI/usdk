@@ -13,39 +13,6 @@ import { isValidUrl } from '@/lib/utils';
 import { IconButton } from 'ucom';
 
 
-const TabItems = [
-  {
-    href: '/agents',
-    icon: 'Users',
-    label: 'Agents',
-  },
-  {
-    href: '/voices',
-    icon: 'Users',
-    label: 'Voices',
-  },
-  {
-    href: '/profile',
-    icon: 'Users',
-    label: 'Profile',
-  },
-  {
-    href: '/credits',
-    icon: 'Users',
-    label: 'Credits',
-  },
-  {
-    href: '/subscriptions',
-    icon: 'Users',
-    label: 'Subscription',
-  },
-  {
-    href: '/monetization',
-    icon: 'Users',
-    label: 'Monetization',
-  },
-];
-
 export interface TabsProps {
   user: any;
   agents: object[];
@@ -92,25 +59,60 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
               <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
               <div className="px-2 py-1 bg-black bg-opacity-60">{'https://'}</div>
               <div className='flex gap-2 mt-4'>
-
-                {TabItems.map((item) => (
-                  <IconButton
-                    key={item.href}
-                    href={item.href}
-                    icon={item.icon}
-                    label={item.label}
-                    active={false}
-                    target={item.href.startsWith('http') ? '_blank' : undefined}
-                    size='large'
-                  />
-                ))}
-
+                <IconButton
+                  onClick={() => { setTab('profile'); }}
+                  icon="Head"
+                  label="Account"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
+                <IconButton
+                  href="/agents"
+                  icon="Users"
+                  label="Agents"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
+                <IconButton
+                  href="/voices"
+                  icon="Users"
+                  label="Voices"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
+                <IconButton
+                  href="/credits"
+                  icon="Subscriptions"
+                  label="Credits"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
+                <IconButton
+                  href="/subscriptions"
+                  icon="Subscriptions"
+                  label="Subscription"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
+                <IconButton
+                  href="/monetization"
+                  icon="Users"
+                  label="Monetization"
+                  active={false}
+                  target={undefined}
+                  size="large"
+                />
               </div>
             </div>
           </div>
         </div>
       </HeaderMaskFrame>
-      <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full">
+      <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full mx-auto mt-16">
         <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-px text-sm font-medium text-center" role="tablist">
           <li className="me-2" role="presentation">
             <button onClick={() => { setTab('profile'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'profile' ? activeClass : inactiveClass}`}>Profile</button>
@@ -132,7 +134,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           </li>
         </ul>
       </div>
-      <div className='w-full md:w-4xl max-w-4xl'>
+      <div className='w-full md:w-4xl max-w-4xl mx-auto'>
         <div className={tab === 'profile' ? 'block w-full' : 'hidden'}>
           <Profile user={user} userIsCurrentUser={userIsCurrentUser} />
         </div>
