@@ -59,8 +59,8 @@ const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, Icon
         {...props}
       >
         <Icon icon={icon} />
-        {label && <div className={`${styles.label} font-bold text-stroke`}>{label}</div>}
       </button>
+      {label && <div className={`${styles.label} font-bold text-stroke`}>{label}</div>}
     </div>
   );
 });
