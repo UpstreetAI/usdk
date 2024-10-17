@@ -27,23 +27,7 @@ import {
   ConversationsContext,
   ConversationContext,
 } from './context';
-// import { zbencode, zbdecode } from './lib/zjs/encoding.mjs';
-// import {
-//   ConversationObject,
-// } from './classes/conversation-object';
-// import {
-//   loadMessagesFromDatabase,
-// } from './util/loadMessagesFromDatabase';
-// import {
-//   CACHED_MESSAGES_LIMIT,
-// } from './classes/message-cache'
 import { ExtendableMessageEvent } from './util/extendable-message-event';
-import {
-  abortError,
-  makePromise,
-  uint8ArrayToBase64,
-  base64ToUint8Array,
-} from './util/util.mjs';
 import {
   supabaseSubscribe,
 } from './util/supabase-client.mjs';
