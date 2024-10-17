@@ -41,8 +41,8 @@ import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import type { FetchableWorker } from 'react-agents-client/types';
-import { buildAgentSrc } from 'react-agents-client/builder';
-import { ReactAgentsWorker } from 'react-agents-client/browser-runtime';
+import { buildAgentSrc } from 'react-agents-builder';
+import { ReactAgentsWorker } from 'react-agents-browser';
 import { IconButton } from 'ucom';
 
 //
