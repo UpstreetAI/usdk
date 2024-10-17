@@ -66,10 +66,6 @@ import {
 import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/codecs/audio-decode.mjs';
-
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/codecs/ws-codec-runtime-fs.mjs';
-
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
@@ -91,9 +87,6 @@ import {
 import {
   describe,
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
-import {
-  WebPEncoder,
-} from './packages/upstreet-agent/packages/react-agents/lib/codecs/webp-codec.mjs';
 import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
@@ -116,9 +109,12 @@ import {
 } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
+import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
+import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
+import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
-import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
