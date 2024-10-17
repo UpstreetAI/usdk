@@ -50,9 +50,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-// import {
-//   getAgentToken,
-// } from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { startDevServer } from './packages/upstreet-agent/packages/react-agents-client/local-runtime.mjs';
 import {
   aiHost,
   metamaskHost,
@@ -99,7 +97,6 @@ import {
   loginLocation,
   certsLocalPath,
   templatesDirectory,
-  wranglerBinPath,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
@@ -378,116 +375,6 @@ const getAgentMnemonic = async (supabase, agentId) => {
     throw new Error(error);
   }
 };
-const bindProcess = (cp) => {
-  process.on('exit', () => {
-    // console.log('got exit', cp.pid);
-    try {
-      process.kill(cp.pid, 'SIGINT');
-    } catch (err) {
-      // console.warn(err.stack);
-    }
-  });
-};
-const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
-  const matcherFn = (() => {
-    if (typeof matcher === 'string') {
-      const s = matcher;
-      return (s2) => s2.includes(s);
-    } else if (matcher instanceof RegExp) {
-      const re = matcher;
-      return (s) => re.test(s);
-    } else {
-      throw new Error('invalid matcher');
-    }
-  })();
-  await new Promise((accept, reject) => {
-    const bs = [];
-    const onData = (d) => {
-      bs.push(d);
-      const s = Buffer.concat(bs).toString('utf8');
-      if (matcherFn(s)) {
-        cp.stdout.removeListener('data', onData);
-        cp.stdout.removeListener('end', onEnd);
-        clearTimeout(timeoutId);
-        accept();
-      }
-    };
-    cp.stdout.on('data', onData);
-
-    const bs2 = [];
-    const onData2 = (d) => {
-      bs2.push(d);
-    };
-    cp.stderr.on('data', onData2);
-
-    const getDebugOutput = () =>
-      Buffer.concat(bs).toString('utf8') +
-      '\n' +
-      Buffer.concat(bs2).toString('utf8')
-
-    const onEnd = () => {
-      reject(
-        new Error('process ended without matching output: ' + getDebugOutput()),
-      );
-    };
-    cp.stdout.on('end', onEnd);
-
-    cp.on('exit', (code) => {
-      reject(new Error(`failed to get start process: ${cp.pid}: ${code}`));
-    });
-
-    const timeoutId = setTimeout(() => {
-      reject(
-        new Error(
-          'timeout waiting for process output: ' +
-            JSON.stringify(cp.spawnfile) +
-            ' ' +
-            JSON.stringify(cp.spawnargs) +
-            ' ' +
-            getDebugOutput(),
-        ),
-      );
-    }, timeout);
-  });
-};
-const startDevServer = async ({
-  directory = cwd,
-  portIndex = 0,
-  debug = false,
-} = {}) => {
-  // spawn the wrangler child process
-  const cp = child_process.spawn(
-    wranglerBinPath,
-    ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
-    {
-      stdio: 'pipe',
-      // stdio: 'inherit',
-      cwd: directory,
-    },
-  );
-  bindProcess(cp);
-  await waitForProcessIo(cp, /ready/i);
-  if (debug) {
-    cp.stdout.pipe(process.stdout);
-    cp.stderr.pipe(process.stderr);
-  }
-  return cp;
-};
-/* const startMultiplayerServer = async () => {
-  // spawn the wrangler child process
-  const cp = child_process.spawn(
-    wranglerBin,
-    ['dev', '--env=local', '--ip', '0.0.0.0', '--port', multiplayerPort],
-    {
-      stdio: 'pipe',
-      // stdio: 'inherit',
-      cwd: multiplayerDirectory,
-    },
-  );
-  bindProcess(cp);
-  await waitForProcessIo(cp, /ready/i);
-  return cp;
-}; */
 const getAssetJson = async (supabase, guid) => {
   const assetResult = await supabase
     .from('assets')
