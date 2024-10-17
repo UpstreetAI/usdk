@@ -1844,13 +1844,8 @@ const listen = async (args) => {
         await join({
           _: [agentSpec.ref, room],
           local: args.local,
-          // dev,
           debug,
-        })/* .then(() => {
-          console.log('join promise ok');
-        }).catch((err) => {
-          console.warn('join promise error', err);
-        }); */
+        })
       }),
     );
   }
@@ -2248,25 +2243,6 @@ const setWranglerTomlAgentToken = (
   return t;
 };
 const makeRoomName = () => `room:` + makeId(8);
-/* const dev = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const debug = !!args.debug;
-
-  // start dev servers for the agents
-  const devServerPromises = agentSpecs
-    .map(async (agentSpec, index) => {
-      if (agentSpec.directory) {
-        const cp = await startDevServer(agentSpec, index, {
-          debug,
-        });
-        return cp;
-      } else {
-        return null;
-      }
-    })
-    .filter(Boolean);
-  await Promise.all(devServerPromises);
-}; */
 const search = async (args) => {
   const prompt = args._[0] ?? '';
 
