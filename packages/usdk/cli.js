@@ -106,12 +106,14 @@ import {
   edit,
 } from './lib/commands.mjs';
 import {
-  makeTempDir,
   tryReadFile,
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import {
+  ReactAgentsClient,
+} from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
@@ -2711,22 +2713,14 @@ const join = async (args, index) => {
   if (agentSpecs.length === 1) {
     if (room) {
       const agentSpec = agentSpecs[0];
-      const u = `${getAgentSpecHost(agentSpec, portIndex)}/join`;
-      const joinReq = await fetch(u, {
-        method: 'POST',
-        body: JSON.stringify({
-          room,
+      const u = `${getAgentSpecHost(agentSpec, portIndex)}`;
+      const agent = new ReactAgentsClient(u);
+      try {
+        await agent.join(room, {
           only: true,
-        }),
-      });
-      if (joinReq.ok) {
-        const joinJson = await joinReq.json();
-        // console.log('join json', joinJson);
-      } else {
-        const text = await joinReq.text();
-        console.warn(
-          'failed to join, status code: ' + joinReq.status + ': ' + text,
-        );
+        });
+      } catch (err) {
+        console.warn('join error', err);
         process.exit(1);
       }
     } else {
