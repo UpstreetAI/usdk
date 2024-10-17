@@ -2243,7 +2243,7 @@ const setWranglerTomlAgentToken = (
   return t;
 };
 const makeRoomName = () => `room:` + makeId(8);
-const search = async (args) => {
+/* const search = async (args) => {
   const prompt = args._[0] ?? '';
 
   const jwt = await getLoginJwt();
@@ -2254,14 +2254,12 @@ const search = async (args) => {
       const embedding = await lembed(prompt, {
         jwt,
       });
-      /*
-        call the supabase function:
-        function match_assets(
-          embedding vector(3072),
-          match_threshold float,
-          match_count int
-        )
-      */
+      // call the supabase function:
+      // function match_assets(
+      //   embedding vector(3072),
+      //   match_threshold float,
+      //   match_count int
+      // )
       const result = await supabase.rpc('match_assets', {
         query_embedding: embedding,
         match_threshold: 0.2,
@@ -2283,7 +2281,7 @@ const search = async (args) => {
   } else {
     throw new Error('not logged in');
   }
-};
+}; */
 const test = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
