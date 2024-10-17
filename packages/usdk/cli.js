@@ -52,11 +52,8 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import { startDevServer } from './packages/upstreet-agent/packages/react-agents-client/local-runtime.mjs';
 import {
-  aiHost,
-  metamaskHost,
   deployEndpointUrl,
   multiplayerEndpointUrl,
-  r2EndpointUrl,
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
