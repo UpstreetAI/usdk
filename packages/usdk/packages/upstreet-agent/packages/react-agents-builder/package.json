@@ -1,0 +1,9 @@
+{
+  "name": "react-agents-builder",
+  "main": "builder.ts",
+  "dependencies": {
+    "esbuild-wasm": "^0.24.0",
+    "upstreet-agent": "file:../..",
+    "codecs": "file:../react-agents/lib/codecs"
+  }
+}
