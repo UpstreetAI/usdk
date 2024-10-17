@@ -40,9 +40,9 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-import type { FetchableWorker } from 'react-agents-client/types';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
+import type { FetchableWorker } from 'react-agents-browser/types';
 import { IconButton } from 'ucom';
 
 //
