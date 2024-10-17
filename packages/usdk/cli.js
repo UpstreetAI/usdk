@@ -42,9 +42,7 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-import {
-  cwd,
-} from './util/directory-utils.mjs';
+import { cwd } from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
