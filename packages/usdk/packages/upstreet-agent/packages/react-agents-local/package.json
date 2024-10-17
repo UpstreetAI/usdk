@@ -1,0 +1,7 @@
+{
+  "name": "react-agents-local",
+  "main": "local-runtime.mjs",
+  "dependencies": {
+    "wrangler": "^3.60.2"
+  }
+}
