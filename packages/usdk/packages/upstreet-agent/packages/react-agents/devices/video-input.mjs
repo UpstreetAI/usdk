@@ -1,7 +1,6 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
 import Jimp from 'jimp';
-// import { intToRGBA } from "@jimp/utils";
 const { intToRGBA } = Jimp;
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
