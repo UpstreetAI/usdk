@@ -103,7 +103,6 @@ import {
   templatesDirectory,
   wranglerBinPath,
   wranglerTomlPath,
-  jestBin,
 } from './lib/locations.mjs';
 import {
   create,
@@ -119,6 +118,7 @@ import {
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
+import { runJest } from './lib/jest-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -2308,103 +2308,52 @@ const search = async (args) => {
     throw new Error('not logged in');
   }
 };
-const getNpmRoot = async () => {
-  const { stdout } = await execFile('npm', ['root', '--quiet', '-g']);
-  return stdout.trim();
-};
-const ensureNpmRoot = (() => {
-  let npmRootPromise = null;
-  return () => {
-    if (npmRootPromise === null) {
-      npmRootPromise = getNpmRoot();
-    }
-    return npmRootPromise;
-  };
-})();
-const runJest = async (directory) => {
-  const npmRoot = await ensureNpmRoot();
-  await execFile(process.argv[0], ['--experimental-vm-modules', jestBin], {
-    stdio: 'inherit',
-    cwd: directory,
-    env: {
-      NODE_PATH: npmRoot, // needed to import usdk
-    },
-  });
-};
-/* const test = async (args) => {
-  const all = !!args.all;
-  const dev = true;
+const test = async (args) => {
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
+    throw new Error('all agent specs must have directories');
+  }
+
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
   if (jwt !== null) {
-    const runAgentTest = async (agentSpec, index) => {
-      // console.log('got chat args', JSON.stringify(args));
+    const room = makeRoomName();
 
-      // start the dev agents
-      const cp = await startDevServer(agentSpec, index, {
-        debug,
-      });
+    for (let index = 0; index < agentSpecs.length; index++) {
+      const agentSpec = agentSpecs[index];
 
-      // wait for agents to join the multiplayer room
-      const room = makeRoomName();
-      await join({
-        _: [guidOrDevPathIndex, room],
-        // dev,
-        // debug,
-      });
+      // start the dev server
+      let cp = null;
+      {
+        if (agentSpec.directory) {
+          cp = await startDevServer(agentSpec, index, {
+            debug,
+          });
+        }
+      }
 
-      // connect to the chat
-      const {
-        realms,
-      } = await connect({
-        _: [room],
-        browser: false,
-        media: false,
-        repl: false,
-        debug,
-        local: false,
-      });
+      // join
+      {
+        await join({
+          _: [agentSpec.ref, room],
+        }, index);
+      }
 
-      // run tests
-      try {
+      // run the tests
+      {
         await runJest(agentSpec.directory);
-      } finally {
-        // clean up
-        realms.disconnect();
-        process.kill(cp.pid, 'SIGTERM');
       }
-    };
-    const testTemplate = async (template) => {
-      console.log('running template test: ' + template);
 
-      // create the template
-      const testDirectory = await makeTempDir();
-      await create({
-        _: [testDirectory],
-        template,
-      });
-
-      await runAgentTest(testDirectory);
-    };
-
-    if (all) {
-      const templateNames = await getTemplateNames();
-      for (const template of templateNames) {
-        await testTemplate(template);
-      }
-    } else {
-      const agentSpecs = await parseAgentSpecs(args._[0]);
-      for (let i = 0; i < agentSpecs.length; i++) {
-        const agentSpec = agentSpecs[i];
-        await runAgentTest(agentSpec, i);
+      if (cp) {
+        cp.kill('SIGTERM');
       }
     }
   } else {
     console.log('not logged in');
     process.exit(1);
   }
-}; */
+};
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
@@ -3540,22 +3489,21 @@ const main = async () => {
   //       await search(args);
   //     });
   //   });
-  // program
-  //   .command('test')
-  //   .description('Run agent tests')
-  //   .argument(`[directories...]`, `Directories containing the agent projects to test`)
-  //   .option('-a, --all', 'Run all tests')
-  //   .option('-g, --debug', 'Enable debug logging')
-  //   .action(async (directories = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [directories],
-  //         ...opts,
-  //       };
-  //       await test(args);
-  //     });
-  //   });
+  program
+    .command('test')
+    .description('Run agent tests')
+    .argument(`[directories...]`, `Directories containing the agent projects to test`)
+    .option('-g, --debug', 'Enable debug logging')
+    .action(async (directories = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [directories],
+          ...opts,
+        };
+        await test(args);
+      });
+    });
   // program
   //   .command('capture')
   //   .description('Test display functionality; with no arguments, list available devices')
@@ -3902,7 +3850,7 @@ const main = async () => {
 };
 
 // main module
-const isMainModule = process.argv[1].endsWith('/usdk') || import.meta.url.endsWith(process.argv[1]);
+const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
 if (isMainModule) {
   // handle uncaught exceptions
   const handleGlobalError = (err, err2) => {

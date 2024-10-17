@@ -529,7 +529,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
     await realms.updateRealmsKeys({
       realmsKeys: [room],
       rootRealmKey: room,
-    });
+    } as any); // TODO: fix types
     // console.log('update realms keys 2');
   })().catch(err => {
     console.warn(err);
