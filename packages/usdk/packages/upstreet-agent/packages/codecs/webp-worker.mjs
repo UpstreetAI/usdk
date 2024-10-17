@@ -1,5 +1,5 @@
 import webp from 'webp-wasm';
-import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
+import { zbdecode, zbencode } from 'zjs/encoding.mjs';
 import { QueueManager } from '../util/queue-manager.mjs';
 
 const encodeWebp = async (imageData, opts) => {

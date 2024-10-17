@@ -1,4 +1,4 @@
-import { zbencode, zbdecode } from '../react-agents-client/packages/multiplayer/packages/zjs/encoding.mjs';
+import { zbencode, zbdecode } from 'zjs/encoding.mjs';
 
 export class WebPEncoder {
   constructor() {
