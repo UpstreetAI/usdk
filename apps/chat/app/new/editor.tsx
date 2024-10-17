@@ -7,10 +7,6 @@ import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
-// import {
-//   defaultModels,
-//   defaultVisionModels,
-// } from 'react-agents/constants.mjs';
 import type {
   StoreItem,
   SubscriptionProps,
@@ -44,9 +40,9 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-import type { FetchableWorker } from 'react-agents-client/types';
-import { buildAgentSrc } from 'react-agents-client/builder';
-import { ReactAgentsWorker } from 'react-agents-client/browser-runtime';
+import { buildAgentSrc } from 'react-agents-builder';
+import { ReactAgentsWorker } from 'react-agents-browser';
+import type { FetchableWorker } from 'react-agents-browser/types';
 import { IconButton } from 'ucom';
 
 //

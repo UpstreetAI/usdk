@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
-import child_process from 'child_process';
 import stream from 'stream';
 import repl from 'repl';
 
@@ -24,27 +23,31 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-
 
 import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
-import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
+// import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
-  localPort,
-  callbackPort,
-  devServerPort,
   getAgentName,
   getAgentPublicUrl,
-  getLocalAgentHost,
   getCloudAgentHost,
   ensureAgentJsonDefaults,
 } from './packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
+  localPort,
+  callbackPort,
+} from './util/ports.mjs';
+import {
+  devServerPort,
+} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
+import {
+  getLocalAgentHost,
+} from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-import {
-  cwd,
-} from './util/directory-utils.mjs';
+import { cwd } from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -52,9 +55,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-// import {
-//   getAgentToken,
-// } from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { startDevServer } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
   multiplayerEndpointUrl,
@@ -98,7 +99,6 @@ import {
   loginLocation,
   certsLocalPath,
   templatesDirectory,
-  wranglerBinPath,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
@@ -377,120 +377,6 @@ const getAgentMnemonic = async (supabase, agentId) => {
     throw new Error(error);
   }
 };
-const bindProcess = (cp) => {
-  process.on('exit', () => {
-    // console.log('got exit', cp.pid);
-    try {
-      process.kill(cp.pid, 'SIGINT');
-    } catch (err) {
-      // console.warn(err.stack);
-    }
-  });
-};
-const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
-  const matcherFn = (() => {
-    if (typeof matcher === 'string') {
-      const s = matcher;
-      return (s2) => s2.includes(s);
-    } else if (matcher instanceof RegExp) {
-      const re = matcher;
-      return (s) => re.test(s);
-    } else {
-      throw new Error('invalid matcher');
-    }
-  })();
-  await new Promise((accept, reject) => {
-    const bs = [];
-    const onData = (d) => {
-      bs.push(d);
-      const s = Buffer.concat(bs).toString('utf8');
-      if (matcherFn(s)) {
-        cp.stdout.removeListener('data', onData);
-        cp.stdout.removeListener('end', onEnd);
-        clearTimeout(timeoutId);
-        accept();
-      }
-    };
-    cp.stdout.on('data', onData);
-
-    const bs2 = [];
-    const onData2 = (d) => {
-      bs2.push(d);
-    };
-    cp.stderr.on('data', onData2);
-
-    const getDebugOutput = () =>
-      Buffer.concat(bs).toString('utf8') +
-      '\n' +
-      Buffer.concat(bs2).toString('utf8')
-
-    const onEnd = () => {
-      reject(
-        new Error('process ended without matching output: ' + getDebugOutput()),
-      );
-    };
-    cp.stdout.on('end', onEnd);
-
-    cp.on('exit', (code) => {
-      reject(new Error(`failed to get start process: ${cp.pid}: ${code}`));
-    });
-
-    const timeoutId = setTimeout(() => {
-      reject(
-        new Error(
-          'timeout waiting for process output: ' +
-            JSON.stringify(cp.spawnfile) +
-            ' ' +
-            JSON.stringify(cp.spawnargs) +
-            ' ' +
-            getDebugOutput(),
-        ),
-      );
-    }, timeout);
-  });
-};
-const startDevServer = async (
-  {
-    directory = cwd,
-  } = {},
-  portIndex = 0,
-  {
-    debug = false,
-  } = {},
-) => {
-  // spawn the wrangler child process
-  const cp = child_process.spawn(
-    wranglerBinPath,
-    ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
-    {
-      stdio: 'pipe',
-      // stdio: 'inherit',
-      cwd: directory,
-    },
-  );
-  bindProcess(cp);
-  await waitForProcessIo(cp, /ready/i);
-  if (debug) {
-    cp.stdout.pipe(process.stdout);
-    cp.stderr.pipe(process.stderr);
-  }
-  return cp;
-};
-/* const startMultiplayerServer = async () => {
-  // spawn the wrangler child process
-  const cp = child_process.spawn(
-    wranglerBin,
-    ['dev', '--env=local', '--ip', '0.0.0.0', '--port', multiplayerPort],
-    {
-      stdio: 'pipe',
-      // stdio: 'inherit',
-      cwd: multiplayerDirectory,
-    },
-  );
-  bindProcess(cp);
-  await waitForProcessIo(cp, /ready/i);
-  return cp;
-}; */
 const getAssetJson = async (supabase, guid) => {
   const assetResult = await supabase
     .from('assets')
@@ -1692,9 +1578,6 @@ const getGuidFromPath = async (p) => {
     }
   }
 };
-/*
-returns: [{ guid: string, directory: string | null }]
-*/
 const parseAgentSpecs = async (agentRefSpecs = []) => {
   if (!Array.isArray(agentRefSpecs)) {
     throw new Error('expected agent ref specs to be an array; got ' + JSON.stringify(agentRefSpecs));
@@ -1712,17 +1595,19 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
         ref: directory,
         guid,
         directory,
+        portIndex: 0,
       },
     ];
   } else {
     // treat each agent ref as a guid or directory
-    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec) => {
+    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec, index) => {
       if (isGuid(agentRefSpec)) {
         // if it's a cloud agent
         return {
           ref: agentRefSpec,
           guid: agentRefSpec,
           directory: null,
+          portIndex: index,
         };
       } else {
         // if it's a directory agent
@@ -1732,6 +1617,7 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
           ref: directory,
           guid,
           directory,
+          portIndex: index,
         };
       }
     });
@@ -1748,9 +1634,10 @@ const chat = async (args) => {
   if (jwt !== null) {
     // start dev servers for the agents
     const devServerPromises = agentSpecs
-      .map(async (agentSpec, index) => {
+      .map(async (agentSpec) => {
         if (agentSpec.directory) {
-          const cp = await startDevServer(agentSpec, index, {
+          const cp = await startDevServer({
+            ...agentSpec,
             debug,
           });
           return cp;
@@ -1763,10 +1650,10 @@ const chat = async (args) => {
 
     // wait for agents to join the multiplayer room
     await Promise.all(
-      agentSpecs.map(async (agentSpec, index) => {
+      agentSpecs.map(async (agentSpec) => {
         await join({
           _: [agentSpec.ref, room],
-        }, index);
+        }, agentSpec.portIndex);
       }),
     );
 
@@ -2291,14 +2178,13 @@ const test = async (args) => {
   if (jwt !== null) {
     const room = makeRoomName();
 
-    for (let index = 0; index < agentSpecs.length; index++) {
-      const agentSpec = agentSpecs[index];
-
+    for (const agentSpec of agentSpecs) {
       // start the dev server
       let cp = null;
       {
         if (agentSpec.directory) {
-          cp = await startDevServer(agentSpec, index, {
+          cp = await startDevServer({
+            ...agentSpec,
             debug,
           });
         }
@@ -2308,7 +2194,7 @@ const test = async (args) => {
       {
         await join({
           _: [agentSpec.ref, room],
-        }, index);
+        }, agentSpec.portIndex);
       }
 
       // run the tests
