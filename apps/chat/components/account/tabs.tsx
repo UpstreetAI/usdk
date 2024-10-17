@@ -58,52 +58,52 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
             <div>
               <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
               <div className="px-2 py-1 bg-black bg-opacity-60">{'https://'}</div>
-              <div className='flex gap-2 mt-4'>
+              <div className='flex gap-4 mt-4'>
                 <IconButton
                   onClick={() => { setTab('profile'); }}
                   icon="Head"
                   label="Account"
-                  active={false}
+                  active={tab === 'profile'}
                   target={undefined}
                   size="large"
                 />
                 <IconButton
-                  href="/agents"
+                  onClick={() => { setTab('agents'); }}
                   icon="Users"
                   label="Agents"
-                  active={false}
+                  active={tab === 'agents'}
                   target={undefined}
                   size="large"
                 />
                 <IconButton
-                  href="/voices"
+                  onClick={() => { setTab('voices'); }}
                   icon="Users"
                   label="Voices"
-                  active={false}
+                  active={tab === 'voices'}
                   target={undefined}
                   size="large"
                 />
                 <IconButton
-                  href="/credits"
-                  icon="Subscriptions"
-                  label="Credits"
-                  active={false}
+                  onClick={() => { setTab('credits'); }}
+                  icon="Payments"
+                  label="Payments"
+                  active={tab === 'credits'}
                   target={undefined}
                   size="large"
                 />
                 <IconButton
-                  href="/subscriptions"
+                  onClick={() => { setTab('subscriptions'); }}
                   icon="Subscriptions"
                   label="Subscription"
-                  active={false}
+                  active={tab === 'subscriptions'}
                   target={undefined}
                   size="large"
                 />
                 <IconButton
-                  href="/monetization"
+                  onClick={() => { setTab('monetization'); }}
                   icon="Users"
                   label="Monetization"
-                  active={false}
+                  active={tab === 'monetization'}
                   target={undefined}
                   size="large"
                 />
