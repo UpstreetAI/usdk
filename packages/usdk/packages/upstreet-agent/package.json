@@ -8,7 +8,7 @@
     "@types/jest": "^29.5.13",
     "@types/react": "^18.3.3",
     "browser-util-inspect": "^0.2.0",
-    "codecs": "file:./packages/react-agents/lib/codecs",
+    "codecs": "file:./packages/codecs",
     "dedent": "^1.5.3",
     "ethers": "^6.12.0",
     "format-util": "^1.0.5",
