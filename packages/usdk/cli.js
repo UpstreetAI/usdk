@@ -63,7 +63,7 @@ import {
   workersHost,
   aiProxyHost,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
+import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/codecs/audio-decode.mjs';
@@ -93,7 +93,7 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
 import {
   WebPEncoder,
-} from './packages/upstreet-agent/packages/react-agents/devices/codecs.mjs';
+} from './packages/upstreet-agent/packages/react-agents/lib/codecs/webp-codec.mjs';
 import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
