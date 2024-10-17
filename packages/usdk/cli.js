@@ -2709,7 +2709,8 @@ const join = async (args, index) => {
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
-    const _joinAgent = async (agentSpec, room, portIndex) => {
+    if (room) {
+      const agentSpec = agentSpecs[0];
       const u = `${getAgentSpecHost(agentSpec, portIndex)}/join`;
       const joinReq = await fetch(u, {
         method: 'POST',
@@ -2728,10 +2729,6 @@ const join = async (args, index) => {
         );
         process.exit(1);
       }
-    };
-
-    if (room) {
-      return await _joinAgent(agentSpecs[0], room, index);
     } else {
       console.log('no room name provided');
       process.exit(1);
