@@ -77,7 +77,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                 />
                 <IconButton
                   onClick={() => { setTab('voices'); }}
-                  icon="Users"
+                  icon="Voices"
                   label="Voices"
                   active={tab === 'voices'}
                   target={undefined}
@@ -112,29 +112,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           </div>
         </div>
       </HeaderMaskFrame>
-      <div className="mb-4 border-b border-gray-200 dark:border-gray-700 max-w-4xl w-full mx-auto mt-16">
-        <ul className="flex overflow-x-scroll md:overflow-x-auto md:flex-wrap whitespace-nowrap -mb-px text-sm font-medium text-center" role="tablist">
-          <li className="me-2" role="presentation">
-            <button onClick={() => { setTab('profile'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'profile' ? activeClass : inactiveClass}`}>Profile</button>
-          </li>
-          <li className="me-2" role="presentation">
-            <button onClick={() => { setTab('agents'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'agents' ? activeClass : inactiveClass}`}>Agents</button>
-          </li>
-          <li>
-            <button onClick={() => { setTab('voices'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'voices' ? activeClass : inactiveClass}`}>Voices</button>
-          </li>
-          <li className="me-2" role="presentation">
-            <button onClick={() => { setTab('credits'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'credits' ? activeClass : inactiveClass}`}>Credits</button>
-          </li>
-          <li>
-            <button onClick={() => { setTab('subscriptions'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'subscriptions' ? activeClass : inactiveClass}`}>Subscription</button>
-          </li>
-          <li>
-            <button onClick={() => { setTab('monetization'); }} className={`inline-block p-4 border-b-2 rounded-t-lg ${tab === 'monetization' ? activeClass : inactiveClass}`}>Monetization</button>
-          </li>
-        </ul>
-      </div>
-      <div className='w-full md:w-4xl max-w-4xl mx-auto'>
+      <div className='w-full md:w-4xl max-w-4xl mx-auto mt-20'>
         <div className={tab === 'profile' ? 'block w-full' : 'hidden'}>
           <Profile user={user} userIsCurrentUser={userIsCurrentUser} />
         </div>
