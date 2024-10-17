@@ -51,7 +51,6 @@
     "@tsndr/cloudflare-worker-jwt": "^2.5.3",
     "@types/eventsource": "^1.1.15",
     "@types/three": "^0.167.1",
-    "@upstreet/api": "file:../../packages/api",
     "@upstreet/multiplayer": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer",
     "@vercel/analytics": "1.1.2",
     "@vercel/kv": "1.0.1",
