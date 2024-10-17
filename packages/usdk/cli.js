@@ -452,15 +452,11 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     }, timeout);
   });
 };
-const startDevServer = async (
-  {
-    directory = cwd,
-  } = {},
+const startDevServer = async ({
+  directory = cwd,
   portIndex = 0,
-  {
-    debug = false,
-  } = {},
-) => {
+  debug = false,
+} = {}) => {
   // spawn the wrangler child process
   const cp = child_process.spawn(
     wranglerBinPath,
@@ -1712,17 +1708,19 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
         ref: directory,
         guid,
         directory,
+        portIndex: 0,
       },
     ];
   } else {
     // treat each agent ref as a guid or directory
-    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec) => {
+    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec, index) => {
       if (isGuid(agentRefSpec)) {
         // if it's a cloud agent
         return {
           ref: agentRefSpec,
           guid: agentRefSpec,
           directory: null,
+          portIndex: index,
         };
       } else {
         // if it's a directory agent
@@ -1732,6 +1730,7 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
           ref: directory,
           guid,
           directory,
+          portIndex: index,
         };
       }
     });
@@ -1748,9 +1747,10 @@ const chat = async (args) => {
   if (jwt !== null) {
     // start dev servers for the agents
     const devServerPromises = agentSpecs
-      .map(async (agentSpec, index) => {
+      .map(async (agentSpec) => {
         if (agentSpec.directory) {
-          const cp = await startDevServer(agentSpec, index, {
+          const cp = await startDevServer({
+            ...agentSpec,
             debug,
           });
           return cp;
@@ -1763,10 +1763,10 @@ const chat = async (args) => {
 
     // wait for agents to join the multiplayer room
     await Promise.all(
-      agentSpecs.map(async (agentSpec, index) => {
+      agentSpecs.map(async (agentSpec) => {
         await join({
           _: [agentSpec.ref, room],
-        }, index);
+        }, agentSpec.portIndex);
       }),
     );
 
@@ -2291,14 +2291,13 @@ const test = async (args) => {
   if (jwt !== null) {
     const room = makeRoomName();
 
-    for (let index = 0; index < agentSpecs.length; index++) {
-      const agentSpec = agentSpecs[index];
-
+    for (const agentSpec of agentSpecs) {
       // start the dev server
       let cp = null;
       {
         if (agentSpec.directory) {
-          cp = await startDevServer(agentSpec, index, {
+          cp = await startDevServer({
+            ...agentSpec,
             debug,
           });
         }
@@ -2308,7 +2307,7 @@ const test = async (args) => {
       {
         await join({
           _: [agentSpec.ref, room],
-        }, index);
+        }, agentSpec.portIndex);
       }
 
       // run the tests
