@@ -28,15 +28,21 @@ import { lembed } from './packages/upstreet-agent/packages/react-agents/util/emb
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
-  localPort,
-  callbackPort,
-  devServerPort,
   getAgentName,
   getAgentPublicUrl,
-  getLocalAgentHost,
   getCloudAgentHost,
   ensureAgentJsonDefaults,
 } from './packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
+  localPort,
+  callbackPort,
+} from './util/ports.mjs';
+import {
+  devServerPort,
+} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
+import {
+  getLocalAgentHost,
+} from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
 import {
   makeAnonymousClient,
   getUserIdForJwt,
@@ -50,7 +56,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { startDevServer } from './packages/upstreet-agent/packages/react-agents-client/local-runtime.mjs';
+import { startDevServer } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
   multiplayerEndpointUrl,

@@ -1,8 +1,7 @@
 import child_process from 'child_process';
 import { wranglerBinPath } from './util/locations.mjs';
-import {
-  cwd,
-} from './util/directory-utils.mjs';
+import { cwd } from './util/directory-utils.mjs';
+import { devServerPort } from './util/ports.mjs';
 
 //
 
