@@ -7,10 +7,6 @@ import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
-// import {
-//   defaultModels,
-//   defaultVisionModels,
-// } from 'react-agents/constants.mjs';
 import type {
   StoreItem,
   SubscriptionProps,
