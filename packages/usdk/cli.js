@@ -733,7 +733,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       // try getting the user asset from the login
       const jwt = await getLoginJwt();
       if (jwt !== null) {
-        const supabase = makeSupabase(jwt);
+        // const supabase = makeSupabase(jwt);
         // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
         user = await getUserForJwt(jwt);
       }
