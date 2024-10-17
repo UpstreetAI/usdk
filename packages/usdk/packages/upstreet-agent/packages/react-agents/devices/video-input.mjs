@@ -6,7 +6,7 @@ const { intToRGBA } = Jimp;
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from '../util/queue-manager.mjs';
-import { WebPEncoder } from '../lib/codecs/webp-codec.mjs';
+import { WebPEncoder } from 'codecs/webp-codec.mjs';
 
 //
 
