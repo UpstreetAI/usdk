@@ -56,11 +56,8 @@ import {
 //   getAgentToken,
 // } from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import {
-  aiHost,
-  metamaskHost,
   deployEndpointUrl,
   multiplayerEndpointUrl,
-  r2EndpointUrl,
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
