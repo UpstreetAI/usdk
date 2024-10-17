@@ -1140,15 +1140,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
     speakerMap,
   };
 };
-/* const nudge = async (realms, targetPlayerId) => {
-  const o = {
-    method: 'nudge',
-    args: {
-      targetPlayerId,
-    },
-  };
-  await realms.sendChatMessage(o);
-}; */
 const startMultiplayerListener = ({
   userAsset,
   realms,
