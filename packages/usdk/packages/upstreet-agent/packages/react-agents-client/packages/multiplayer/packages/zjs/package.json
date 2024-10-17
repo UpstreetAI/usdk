@@ -16,7 +16,7 @@
     "url": "https://github.com/webaverse/z/issues"
   },
   "homepage": "https://github.com/webaverse/z#readme",
-  "dependencies": {
+  "devDependencies": {
     "alea": "^1.0.1",
     "mocha": "^9.1.3"
   }
