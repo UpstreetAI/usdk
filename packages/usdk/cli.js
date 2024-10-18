@@ -117,6 +117,7 @@ import { cleanDir } from './lib/directory-util.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
+import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -790,9 +791,8 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           const localPlayer = new Player(userId, {
             id: userId,
             name,
-            capabilities: [
-              'human',
-            ],
+            capabilities: [],
+            playerType: PlayerType.Human,
           });
           const _pushInitialPlayer = () => {
             realms.localPlayer.initializePlayer(

@@ -38,6 +38,7 @@ import type {
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
+import { PlayerType } from './constants.mjs';
 import {
   AppContext,
 } from './context';
@@ -1039,12 +1040,12 @@ export const DefaultPerceptions = () => {
         type="say"
         handler={async (e) => {
           const { message } = e.data;
-          const { playerCapabilities } = message.args as {
-            playerCapabilities: string[],
+          const { localPlayerType } = message.args as {
+            localPlayerType: PlayerType,
           };
         
           // only perform thinking for incoming human player perceptions
-          if (playerCapabilities && playerCapabilities.includes('human')) {
+          if (localPlayerType && localPlayerType === PlayerType.Human) {
             await e.data.targetAgent.think();
           } else {
             // ignore say perception for non-human player

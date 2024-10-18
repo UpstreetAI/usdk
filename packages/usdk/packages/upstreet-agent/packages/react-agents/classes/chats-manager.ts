@@ -9,6 +9,7 @@ import type {
   RoomSpecification,
   ActionMessageEventData,
 } from '../types';
+import { PlayerType } from '../constants.mjs';
 import {
   ConversationObject,
 } from './conversation-object';
@@ -160,9 +161,8 @@ export class ChatsManager {
               const agentJson = getJson();
               const playerSpec = {
                 agent: agentJson,
-                capabilities: [
-                  'agent',
-                ],
+                capabilities: [],
+                playerType: PlayerType.Agent,
               };
               const localPlayer = new Player(agent.id, playerSpec);
 
