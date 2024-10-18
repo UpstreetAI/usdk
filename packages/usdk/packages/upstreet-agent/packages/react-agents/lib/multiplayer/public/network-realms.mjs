@@ -1910,6 +1910,8 @@ export class NetworkRealms extends EventTarget {
   sendChatMessage(message) {
     // const headRealm = this.localPlayer.headTracker.getHeadRealm();
     const headRealm = this.getClosestRealm(this.lastRootRealmKey);
+    const localPlayerCapabilities = this.localPlayer.getKeyValue('playerSpec').capabilities;
+    message.playerCapabilities = localPlayerCapabilities;
     if (headRealm) {
       headRealm.sendChatMessage(message);
     } else {

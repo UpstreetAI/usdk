@@ -158,7 +158,13 @@ export class ChatsManager {
                 };
               };
               const agentJson = getJson();
-              const localPlayer = new Player(agent.id, agentJson);
+              const playerSpec = {
+                agent: agentJson,
+                capabilities: [
+                  'agent',
+                ],
+              };
+              const localPlayer = new Player(agent.id, playerSpec);
 
               const _pushInitialPlayer = () => {
                 realms.localPlayer.initializePlayer(
