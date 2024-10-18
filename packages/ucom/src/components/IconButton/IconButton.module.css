@@ -7,12 +7,12 @@
   color: #000000;
   font-weight: 600;
   padding: 0.66rem;
-  font-size: 1.42rem;
+  font-size: 2rem;
   line-height: 0;
 }
 
 .ucomIconButton.small {
-  padding: 0.42rem;
+  padding: 0.20rem;
 }
 
 .ucomIconButton.medium {
@@ -20,7 +20,8 @@
 }
 
 .ucomIconButton.large {
-  padding: 0.90rem;
+  padding: 0.4rem;
+  font-size: 2.4rem;
 }
 
 .ucomIconButton * {
@@ -92,11 +93,11 @@
 .ucomIconButton.ghost {
   background-color: transparent;
   border: 2px solid transparent;
-  color: #EFEFEF;
+  color: #777777;
 }
 
 .ucomIconButton.ghost:hover {
-  color: #2A7FFF;
+  color: #333333;
 }
 
 .ucomIconButton.ghost.active {
