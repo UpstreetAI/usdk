@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import { aiProxyAPI } from '@upstreet/api';
+import { aiProxyAPI } from '../api.mjs';
 // import { isStringSignatureValid } from './signature-utils.mjs';
 import { aiHost } from '@/utils/const/endpoints';
 
