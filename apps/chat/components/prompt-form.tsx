@@ -18,10 +18,9 @@ import type {
 } from 'react-agents/types';
 import { shuffle } from 'react-agents/util/util.mjs';
 import { Icon } from 'ucom';
-import { createPcmF32MicrophoneSource } from '@upstreet/multiplayer/public/audio/audio-client.mjs';
+import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
-// import { consoleImageWidth } from 'react-agents/constants.mjs'
 
 export function PromptForm({
   input,
@@ -272,8 +271,6 @@ export function PromptForm({
               className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
               onClick={async () => {
                 if (!screenSource) {
-                  // list the available mics
-                  const devices = await navigator.mediaDevices.enumerateDevices();
                   // console.log('got devices', devices);
                   // const videoInputDevices = devices.filter((device) => device.kind === 'videoinput');
                   const mediaStream = await navigator.mediaDevices.getDisplayMedia({

@@ -5,20 +5,13 @@ import {
 import {
   QueueManager,
 } from '../../util/queue-manager.mjs';
-// import {
-//   OpusDecoder,
-// } from 'opus-decoder';
-// import {
-//   whisperTranscribe,
-// } from '../clients/whisper-client.js';
 import {
   transcribe,
 } from '../../util/audio-perception.mjs';
-// import audioBufferToWav from 'audiobuffer-to-wav';
 import {
   createOpusDecodeTransformStream,
   createMp3ReadableStreamSource,
-} from '../../lib/multiplayer/public/audio/audio-client.mjs';
+} from 'codecs/audio-client.mjs';
 import {
   makePromise,
   makeId,

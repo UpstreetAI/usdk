@@ -1,5 +1,5 @@
 import './util/worker-globals.mjs';
-import * as codecs from 'react-agents/lib/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { DurableObjectImpl } from 'upstreet-agent/durable-object-impl.tsx';
 
 //

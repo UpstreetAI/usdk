@@ -320,19 +320,19 @@ export const create = async (args, opts) => {
 
   // copy over files
   const _copyFiles = async () => {
+    const upstreetAgentSrcDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
+    const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
+
     const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
-    const srcWranglerToml = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
+    const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
     const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
-
-    const srcSdkDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
-    const srcDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
 
-    const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
-    const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
+    const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
+    const dstJestPath = dstDir;
 
     // copy over the template files
     console.log(pc.italic('Copying files...'));
@@ -357,7 +357,7 @@ export const create = async (args, opts) => {
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
       // root jest config
-      recursiveCopy(srcJestConfigPath, dstJestConfigPath),
+      recursiveCopy(srcJestPath, dstJestPath),
       // root wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
@@ -369,8 +369,8 @@ export const create = async (args, opts) => {
         });
         return toml.stringify(t);
       }),
-      // sdk directory
-      recursiveCopy(srcSdkDir, srcDstDir),
+      // upstreet-agent directory
+      recursiveCopy(upstreetAgentSrcDir, upstreetAgentDstDir),
     ]);
   };
   await _copyFiles();

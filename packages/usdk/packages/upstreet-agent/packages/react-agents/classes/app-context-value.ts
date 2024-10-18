@@ -16,8 +16,6 @@ import type {
   ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
-// import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
-// import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
 import {
   lembed,
 } from '../util/embedding.mjs';

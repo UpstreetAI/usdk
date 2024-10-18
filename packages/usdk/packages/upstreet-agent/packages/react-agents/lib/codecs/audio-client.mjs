@@ -1,11 +1,7 @@
-// import {UPDATE_METHODS} from '../update-types.js';
-// import {zbencode} from '../../../zjs/encoding.mjs';
-// import {ensureAudioContext, getAudioContext} from './wsrtc/ws-audio-context.js';
 import {OpusAudioEncoder, OpusAudioDecoder, Mp3AudioEncoder, Mp3AudioDecoder} from './ws-codec.mjs';
 import {WsMediaStreamAudioReader, FakeAudioData} from './ws-codec-util.mjs';
 import {AudioOutput} from './audio-classes.mjs';
 import {getEncodedAudioChunkBuffer, getAudioDataBuffer} from './audio-util.mjs';
-import { makeId, makePromise } from '../util.mjs';
 
 // opus stream -> decoded output audio node
 export function createOpusAudioOutputStream({
@@ -125,7 +121,7 @@ export function createOpusMicrophoneSource({
   }
   readAndEncode();
 
-  const id = makeId(10);
+  const id = crypto.randomUUID();
 
   return {
     id,
@@ -172,7 +168,7 @@ export function createPcmF32MicrophoneSource({
   };
   _readLoop();
 
-  const id = makeId(10);
+  const id = crypto.randomUUID();
 
   return {
     id,
@@ -246,7 +242,7 @@ export function createOpusReadableStreamSource({
   })();
 
   // return result
-  const id = makeId(10);
+  const id = crypto.randomUUID();
 
   return {
     id,
@@ -318,7 +314,7 @@ export function createMp3ReadableStreamSource({
   })();
 
   // return result
-  const id = makeId(10);
+  const id = crypto.randomUUID();
 
   return {
     id,
@@ -372,7 +368,7 @@ export function createMp3MicrophoneSource({
   }
   readAndEncode();
 
-  const id = makeId(10);
+  const id = crypto.randomUUID();
 
   return {
     id,
@@ -409,7 +405,11 @@ export function createMp3DecodeTransformStream({
   }
 
   let controller;
-  const donePromise = makePromise();
+  const {
+    promise: donePromise,
+    resolve: doneResolve,
+    reject: doneReject,
+  } = Promise.withResolvers();
   const transformStream = new TransformStream({
     start: c => {
       controller = c;
@@ -430,7 +430,7 @@ export function createMp3DecodeTransformStream({
       controller.enqueue(encodedChunk.data);
     } else {
       // controller.enqueue(null);
-      donePromise.resolve();
+      doneResolve();
     }
   };
   function onDecoderError(err) {
@@ -467,7 +467,11 @@ export function createOpusDecodeTransformStream({
   }
 
   let controller;
-  const donePromise = makePromise();
+  const {
+    promise: donePromise,
+    resolve: doneResolve,
+    reject: doneReject,
+  } = Promise.withResolvers();
   const transformStream = new TransformStream({
     start: c => {
       controller = c;
@@ -488,7 +492,7 @@ export function createOpusDecodeTransformStream({
       controller.enqueue(encodedChunk.data);
     } else {
       // controller.enqueue(null);
-      donePromise.resolve();
+      doneResolve();
     }
   };
   function onDecoderError(err) {
@@ -521,8 +525,7 @@ export function createPcmF32TransformStream({
 
   throw new Error('not implemented');
 
-  let controller;
-  // const donePromise = makePromise();
+  // let controller;
   const transformStream = new TransformStream({
     start: c => {
       controller = c;
@@ -560,7 +563,11 @@ export function createMp3EncodeTransformStream({
   }
 
   let controller;
-  const donePromise = makePromise();
+  const {
+    promise: donePromise,
+    resolve: doneResolve,
+    reject: doneReject,
+  } = Promise.withResolvers();
   const transformStream = new TransformStream({
     start: c => {
       controller = c;
@@ -586,7 +593,7 @@ export function createMp3EncodeTransformStream({
       controller.enqueue(data);
     } else {
       // output.end();
-      donePromise.resolve();
+      doneResolve();
     }
   };
   function onEncoderError(err) {
