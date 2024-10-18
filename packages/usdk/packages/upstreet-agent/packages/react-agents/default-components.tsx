@@ -1032,7 +1032,7 @@ const shouldThink = (e: PerceptionEvent): boolean => {
   const { taggedUserIds } = message.args as { taggedUserIds?: string[] };
 
   if (taggedUserIds && !taggedUserIds.includes(id)) {
-    console.log('\nMessage tagged to a user which is not me, skipping think operation\n');
+    // console.log('\nMessage tagged to a user which is not me, skipping think operation\n');
     return false;
   }
 
