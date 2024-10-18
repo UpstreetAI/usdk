@@ -1029,7 +1029,7 @@ export const JsonFormatter = () => {
 const shouldThink = (e: PerceptionEvent): boolean => {
   const { message } = e.data;
   const { id } = e.data.targetAgent.agent;
-  const { taggedUserIds } = message.args as { taggedUserIds?: string[] };
+  const { taggedUserIds, playerType } = message.args as { taggedUserIds?: string[], playerType?: PlayerType };
 
   if (taggedUserIds && !taggedUserIds.includes(id)) {
     // console.log('\nMessage tagged to a user which is not me, skipping think operation\n');
@@ -1037,9 +1037,10 @@ const shouldThink = (e: PerceptionEvent): boolean => {
   }
 
   // condition for not replying when the perception is from a non-human source
-  // if (playerType && playerType !== PlayerType.Human) {
-  //   return false;
-  // }
+  if (playerType && playerType !== PlayerType.Human) {
+    // console.log('Ignoring say perception for non-human player');
+    return false;
+  }
 
   return true;
 };
@@ -1059,18 +1060,7 @@ export const DefaultPerceptions = () => {
           if (!shouldThink(e)) {
             return;
           }
-          const { message } = e.data;
-          const { playerType } = message.args as {
-            playerType: PlayerType,
-          };
-        
-          // only perform thinking for incoming human player perceptions
-          if (playerType && playerType === PlayerType.Human) {
-            await e.data.targetAgent.think();
-          } else {
-            // ignore say perception for non-human player
-            // console.log('Ignoring say perception for non-human player');
-          }
+          await e.data.targetAgent.think();
         }}
       />
       <Perception
