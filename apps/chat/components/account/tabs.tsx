@@ -11,6 +11,7 @@ import useHash from '@/lib/hooks/use-hash';
 import HeaderMaskFrame from '../masks/HeaderMaskFrame';
 import { isValidUrl } from '@/lib/utils';
 import { IconButton } from 'ucom';
+import Dev from '../development';
 
 
 export interface TabsProps {
@@ -76,14 +77,6 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   size="large"
                 />
                 <IconButton
-                  onClick={() => { setTab('voices'); }}
-                  icon="Voices"
-                  label="Voices"
-                  active={tab === 'voices'}
-                  target={undefined}
-                  size="large"
-                />
-                <IconButton
                   onClick={() => { setTab('credits'); }}
                   icon="Payments"
                   label="Payments"
@@ -92,21 +85,31 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   size="large"
                 />
                 <IconButton
-                  onClick={() => { setTab('subscriptions'); }}
-                  icon="Subscriptions"
-                  label="Subscription"
-                  active={tab === 'subscriptions'}
-                  target={undefined}
-                  size="large"
-                />
-                <IconButton
-                  onClick={() => { setTab('monetization'); }}
-                  icon="Users"
-                  label="Monetization"
-                  active={tab === 'monetization'}
-                  target={undefined}
-                  size="large"
-                />
+                    onClick={() => { setTab('subscriptions'); }}
+                    icon="Subscriptions"
+                    label="Subscription"
+                    active={tab === 'subscriptions'}
+                    target={undefined}
+                    size="large"
+                  />
+                <Dev>
+                  <IconButton
+                    onClick={() => { setTab('voices'); }}
+                    icon="Voices"
+                    label="Voices"
+                    active={tab === 'voices'}
+                    target={undefined}
+                    size="large"
+                  />
+                  <IconButton
+                    onClick={() => { setTab('monetization'); }}
+                    icon="Users"
+                    label="Monetization"
+                    active={tab === 'monetization'}
+                    target={undefined}
+                    size="large"
+                  />
+                </Dev>
               </div>
             </div>
           </div>
