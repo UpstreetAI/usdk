@@ -1635,7 +1635,6 @@ const chat = async (args) => {
     // start dev servers for the agents
     for (const agentSpec of agentSpecs) {
       if (agentSpec.directory) {
-        console.log(`agent ${agentSpec.guid} is running at http://localhost:${devServerPort}`);
         const cp = await startDevServer({
           ...agentSpec,
           debug,
