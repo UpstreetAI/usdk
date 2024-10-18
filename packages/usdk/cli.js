@@ -1404,11 +1404,51 @@ const startMultiplayerListener = ({
         }
       });
     };
+    const getUserByName = (name) => {
+      for (let [id, user] of playersMap) {
+        if (user.playerSpec.name === name) {
+          return user;
+        }
+      }
+      return null;
+    };
+    
+    const extractTaggedUserIds = async (text) => {
+      const tagMatches = text.match(/#([^#]+)#/g);
+      if (tagMatches) {
+        const taggedUserIds = [];
+        for (const tag of tagMatches) {
+          const taggedUserName = tag.replace(/#/g, '').trim();
+          const taggedUser = getUserByName(taggedUserName);
+          if (taggedUser) {
+            taggedUserIds.push(taggedUser.playerSpec.id);
+          }
+        }
+        return taggedUserIds;
+      }
+      return null;
+    };
+    
+    // we can use agent names as is only since they are unique as well
+    // const extractTaggedUserNames = async (text) => {
+    //   const tagMatches = text.match(/#([^#]+)#/g);
+    //   if (tagMatches) {
+    //     const taggedUserNames = [];
+    //     for (const tag of tagMatches) {
+    //       const taggedUserName = tag.replace(/#/g, '').trim();
+    //       console.log('tagged user name', taggedUserName);
+    //       taggedUserNames.push(taggedUserName);
+    //     }
+    //     return taggedUserNames;
+    //   }
+    //   return [];
+    // };
 
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
       const name = userAsset.name;
-      await realms.sendChatMessage({
+      const taggedUserIds = await extractTaggedUserIds(text);
+      const messagePayload = {
         method: 'say',
         userId,
         name,
@@ -1416,7 +1456,11 @@ const startMultiplayerListener = ({
           text,
         },
         timestamp: Date.now(),
-      });
+      };
+      if (taggedUserIds) {
+        messagePayload.args.taggedUserIds = taggedUserIds;
+      }   
+      await realms.sendChatMessage(messagePayload);
     };
 
     replServer = repl.start({

@@ -1025,6 +1025,23 @@ export const JsonFormatter = () => {
 };
 
 // perceptions
+const shouldThink = (e: PerceptionEvent): boolean => {
+  const { message } = e.data;
+  const { id } = e.data.targetAgent.agent;
+  const { taggedUserIds } = message.args as { taggedUserIds?: string[] };
+
+  if (taggedUserIds && !taggedUserIds.includes(id)) {
+    console.log('\nMessage tagged to a user which is not me, skipping think operation\n');
+    return false;
+  }
+
+  // condition for not replying when the perception is from a non-human source
+  // if (playerType && playerType !== PlayerType.Human) {
+  //   return false;
+  // }
+
+  return true;
+};
 
 /**
  * Renders the default perceptions components.
@@ -1038,6 +1055,9 @@ export const DefaultPerceptions = () => {
       <Perception
         type="say"
         handler={async (e) => {
+          if (!shouldThink(e)) {
+            return;
+          }
           await e.data.targetAgent.think();
         }}
       />
