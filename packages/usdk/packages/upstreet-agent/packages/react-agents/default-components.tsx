@@ -1040,12 +1040,12 @@ export const DefaultPerceptions = () => {
         type="say"
         handler={async (e) => {
           const { message } = e.data;
-          const { localPlayerType } = message.args as {
-            localPlayerType: PlayerType,
+          const { playerType } = message.args as {
+            playerType: PlayerType,
           };
         
           // only perform thinking for incoming human player perceptions
-          if (localPlayerType && localPlayerType === PlayerType.Human) {
+          if (playerType && playerType === PlayerType.Human) {
             await e.data.targetAgent.think();
           } else {
             // ignore say perception for non-human player
