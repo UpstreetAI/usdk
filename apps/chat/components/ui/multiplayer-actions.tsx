@@ -18,6 +18,7 @@ import type {
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import { PlayerType } from 'react-agents/constants.mjs';
 
 //
 
@@ -138,6 +139,7 @@ export type PlayerSpec = {
   name: string;
   previewUrl: string;
   capabilities: string[];
+  playerType: string;
 };
 
 export class Player {
@@ -291,6 +293,7 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
         name: '',
         previewUrl: '',
         capabilities: [],
+        playerType: PlayerType.Human,
       });
 
       // helpers
@@ -548,6 +551,7 @@ const makeFakePlayerSpec = () => (
     name: '',
     previewUrl: '',
     capabilities: [],
+    playerType: PlayerType.Human,
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {

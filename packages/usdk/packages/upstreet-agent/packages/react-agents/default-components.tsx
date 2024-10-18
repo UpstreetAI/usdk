@@ -38,6 +38,7 @@ import type {
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
+import { PlayerType } from './constants.mjs';
 import {
   AppContext,
 } from './context';
@@ -1058,7 +1059,18 @@ export const DefaultPerceptions = () => {
           if (!shouldThink(e)) {
             return;
           }
-          await e.data.targetAgent.think();
+          const { message } = e.data;
+          const { playerType } = message.args as {
+            playerType: PlayerType,
+          };
+        
+          // only perform thinking for incoming human player perceptions
+          if (playerType && playerType === PlayerType.Human) {
+            await e.data.targetAgent.think();
+          } else {
+            // ignore say perception for non-human player
+            // console.log('Ignoring say perception for non-human player');
+          }
         }}
       />
       <Perception
