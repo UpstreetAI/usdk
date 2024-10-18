@@ -1043,10 +1043,12 @@ export const DefaultPerceptions = () => {
             playerCapabilities: string[],
           };
         
-          if (playerCapabilities.includes('human')) {
+          // only perform thinking for incoming human player perceptions
+          if (playerCapabilities && playerCapabilities.includes('human')) {
             await e.data.targetAgent.think();
           } else {
-            console.log('Ignoring say perception for non-human player');
+            // ignore say perception for non-human player
+            // console.log('Ignoring say perception for non-human player');
           }
         }}
       />

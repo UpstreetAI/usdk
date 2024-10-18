@@ -1633,20 +1633,15 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const devServerPromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const cp = await startDevServer({
-            ...agentSpec,
-            debug,
-          });
-          return cp;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    await Promise.all(devServerPromises);
+    for (const agentSpec of agentSpecs) {
+      if (agentSpec.directory) {
+        console.log(`agent ${agentSpec.guid} is running at http://localhost:${devServerPort}`);
+        const cp = await startDevServer({
+          ...agentSpec,
+          debug,
+        });
+      }
+    }
 
     // wait for agents to join the multiplayer room
     await Promise.all(
