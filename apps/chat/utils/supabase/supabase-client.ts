@@ -139,7 +139,7 @@ export const getUserForJwt = async (jwt: string, {
   private?: boolean,
 } = {}) => {
   try {
-    const u = new URL(`${aiHost}/${aiProxyAPI.getUser}`);
+    const u = new URL(`${aiProxyAPI.getUser}`);
     _private && u.searchParams.set('private', true + '');
     const res = await fetch(u, {
       headers: {
