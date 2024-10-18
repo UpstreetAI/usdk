@@ -1412,8 +1412,24 @@ const startMultiplayerListener = ({
       }
       return null;
     };
-    
-    const extractTaggedUserIds = async (text) => {
+
+    /**
+     * Extracts user IDs from a given text if the text contains tagged usernames.
+     * 
+     * This function searches for patterns in the text where usernames are tagged 
+     * using the format `#user name#`. It then retrieves the corresponding user IDs 
+     * for these tagged usernames.
+     * 
+     * @param {string} text - A text input.
+     * @returns {Array<string>|null} - An array of user IDs 
+     * if tagged usernames are found, or null if no tagged usernames are present.
+     * 
+     * @example
+     * const text = "Hello #Subhani# and #Luna Carry#!";
+     * const userIds = extractTaggedUserIds(text);
+     * console.log(userIds); // Output might be: ['12345', '67890']
+     */
+    const extractTaggedUserIds = (text) => {
       const tagMatches = text.match(/#([^#]+)#/g);
       if (tagMatches) {
         const taggedUserIds = [];
@@ -1430,7 +1446,7 @@ const startMultiplayerListener = ({
     };
     
     // we can use agent names as is only since they are unique as well
-    // const extractTaggedUserNames = async (text) => {
+    // const extractTaggedUserNames = (text) => {
     //   const tagMatches = text.match(/#([^#]+)#/g);
     //   if (tagMatches) {
     //     const taggedUserNames = [];
@@ -1447,7 +1463,7 @@ const startMultiplayerListener = ({
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
       const name = userAsset.name;
-      const taggedUserIds = await extractTaggedUserIds(text);
+      const taggedUserIds = extractTaggedUserIds(text);
       const messagePayload = {
         method: 'say',
         userId,
