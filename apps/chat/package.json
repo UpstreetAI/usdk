@@ -99,7 +99,7 @@
     "tailwindcss": "3.4.1",
     "tailwindcss-animate": "1.0.7",
     "three": "^0.167.1",
-    "ucom": "file:./packages/ucom/src",
+    "ucom": "file:../../packages/ucom/src",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
     "zjs": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs",
