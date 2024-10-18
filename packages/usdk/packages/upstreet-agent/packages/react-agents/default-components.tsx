@@ -1038,7 +1038,16 @@ export const DefaultPerceptions = () => {
       <Perception
         type="say"
         handler={async (e) => {
-          await e.data.targetAgent.think();
+          const { message } = e.data;
+          const { playerCapabilities } = message.args as {
+            playerCapabilities: string[],
+          };
+        
+          if (playerCapabilities.includes('human')) {
+            await e.data.targetAgent.think();
+          } else {
+            console.log('Ignoring say perception for non-human player');
+          }
         }}
       />
       <Perception
