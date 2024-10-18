@@ -1406,7 +1406,7 @@ const startMultiplayerListener = ({
     };
     const getUserByName = (name) => {
       for (let [id, user] of playersMap) {
-        if (user.playerSpec.name === name) {
+        if (user.playerSpec.name === name || user.playerSpec.agent.name === name) {
           return user;
         }
       }
@@ -1437,7 +1437,7 @@ const startMultiplayerListener = ({
           const taggedUserName = tag.replace(/#/g, '').trim();
           const taggedUser = getUserByName(taggedUserName);
           if (taggedUser) {
-            taggedUserIds.push(taggedUser.playerSpec.id);
+            taggedUserIds.push(taggedUser.playerSpec.id ?? taggedUser.playerSpec.agent.id);
           }
         }
         return taggedUserIds;

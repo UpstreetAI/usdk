@@ -264,7 +264,7 @@ export class ChatsManager {
             // audio streams
             const transcriptionStreams = new Map<string, TranscriptionStream>();
             virtualPlayers.addEventListener('audiostart', async (e) => {
-              console.log('got audio start', e.data);
+              // console.log('got audio start', e.data);
               const { playerId, streamId, type, disposition } = e.data;
               if (disposition === 'text') {
                 if (type === 'audio/pcm-f32-48000') {
@@ -321,18 +321,18 @@ export class ChatsManager {
               if (transcriptionStream) {
                 transcriptionStream.audioInput.emit('data', data);
               } else {
-                console.warn('audio data: no transcription stream', e.data);
+                // console.warn('audio data: no transcription stream', e.data);
               }
             });
             virtualPlayers.addEventListener('audioend', async (e) => {
-              console.log('got audio end', e.data);
+              // console.log('got audio end', e.data);
               const { playerId, streamId } = e.data;
               const transcriptionStream = transcriptionStreams.get(streamId);
               if (transcriptionStream) {
                 transcriptionStream.audioInput.emit('end');
                 transcriptionStreams.delete(streamId);
               } else {
-                console.warn('audio end: no transcription stream', e.data);
+                // console.warn('audio end: no transcription stream', e.data);
               }
             });
 
