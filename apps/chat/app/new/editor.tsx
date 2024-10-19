@@ -22,7 +22,7 @@ import {
 // XXX this is a bad dependency, this should be moved down to the lower layer
 import {
   generateMnemonic,
-} from 'usdk/util/ethereum-utils.mjs';
+} from '../../utils/etherium-utils.mjs';
 import {
   Chat,
 } from '@/components/chat/chat';

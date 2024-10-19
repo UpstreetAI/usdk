@@ -63,13 +63,9 @@ import {
   workersHost,
   aiProxyHost,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
+import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/codecs/audio-decode.mjs';
-
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/codecs/ws-codec-runtime-fs.mjs';
-
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
@@ -91,9 +87,6 @@ import {
 import {
   describe,
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
-import {
-  WebPEncoder,
-} from './packages/upstreet-agent/packages/react-agents/devices/codecs.mjs';
 import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
@@ -106,17 +99,22 @@ import {
   edit,
 } from './lib/commands.mjs';
 import {
-  makeTempDir,
   tryReadFile,
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import {
+  ReactAgentsClient,
+} from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
+import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
+import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
+import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
-import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -731,7 +729,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
       // try getting the user asset from the login
       const jwt = await getLoginJwt();
       if (jwt !== null) {
-        const supabase = makeSupabase(jwt);
+        // const supabase = makeSupabase(jwt);
         // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
         user = await getUserForJwt(jwt);
       }
@@ -760,7 +758,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
     playerId: !anonymous ? userId : null,
-    audioManager: null,
   });
   const playersMap = new Map(); // Map<string, Player>
   const typingMap = new TypingMap();
@@ -1139,15 +1136,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
     speakerMap,
   };
 };
-/* const nudge = async (realms, targetPlayerId) => {
-  const o = {
-    method: 'nudge',
-    args: {
-      targetPlayerId,
-    },
-  };
-  await realms.sendChatMessage(o);
-}; */
 const startMultiplayerListener = ({
   userAsset,
   realms,
@@ -2709,29 +2697,18 @@ const join = async (args, index) => {
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
-    const _joinAgent = async (agentSpec, room, portIndex) => {
-      const u = `${getAgentSpecHost(agentSpec, portIndex)}/join`;
-      const joinReq = await fetch(u, {
-        method: 'POST',
-        body: JSON.stringify({
-          room,
+    if (room) {
+      const agentSpec = agentSpecs[0];
+      const u = `${getAgentSpecHost(agentSpec, portIndex)}`;
+      const agent = new ReactAgentsClient(u);
+      try {
+        await agent.join(room, {
           only: true,
-        }),
-      });
-      if (joinReq.ok) {
-        const joinJson = await joinReq.json();
-        // console.log('join json', joinJson);
-      } else {
-        const text = await joinReq.text();
-        console.warn(
-          'failed to join, status code: ' + joinReq.status + ': ' + text,
-        );
+        });
+      } catch (err) {
+        console.warn('join error', err);
         process.exit(1);
       }
-    };
-
-    if (room) {
-      return await _joinAgent(agentSpecs[0], room, index);
     } else {
       console.log('no room name provided');
       process.exit(1);
