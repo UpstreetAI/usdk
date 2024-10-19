@@ -25,4 +25,34 @@ export class ReactAgentsClient {
       process.exit(1);
     }
   }
+  connect({
+    profile,
+  } = {}) {
+    return new ReactAgentsMultiplayerConnection({
+      url: this.url,
+      profile,
+    });
+  }
+}
+
+export class ReactAgentsMultiplayerConnection extends EventTarget {
+  static logLevels = {
+    error: 0,
+    warn: 1,
+    info: 2,
+    debug: 3,
+  };
+  static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
+  url;
+  // profile;
+  ws;
+  constructor({
+    url,
+    profile,
+  }) {
+    super();
+
+    this.url = url;
+    // this.profile = profile;
+  }
 }

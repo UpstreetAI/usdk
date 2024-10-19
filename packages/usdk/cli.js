@@ -104,9 +104,7 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
-import {
-  ReactAgentsClient,
-} from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
+import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
@@ -707,7 +705,7 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const getUserAsset = async () => {
+const getUserProfile = async () => {
   let user = null;
 
   // try getting the user asset from the login
@@ -731,20 +729,9 @@ const getUserAsset = async () => {
 
   return user;
 };
-const connectMultiplayer = async ({ room, media, debug }) => {
-  // dynamic import audio output module
-  const audioOutput = await (async () => {
-    try {
-      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
-    } catch (err) {
-      return null;
-    }
-  })();
-  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
-
-  const userAsset = await getUserAsset();
-  const userId = userAsset?.id;
-  const name = userAsset?.name;
+const connectMultiplayer = async ({ room, profile, debug }) => {
+  const userId = profile?.id;
+  const name = profile?.name;
 
   // join the room
   const realms = new NetworkRealms({
@@ -801,7 +788,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
           (player) => player.playerSpec,
         );
         log(dedent`\
-          ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
+          ${profile ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
           In the room (${room}):
           ${agentJsons.length > 0 ?
             agentJsons
@@ -859,92 +846,19 @@ const connectMultiplayer = async ({ room, media, debug }) => {
         playersMap.delete(playerId);
       } else {
         log('remote player not found', playerId);
-        debugger;
+        throw new Error('remote player not found');
       }
 
-      // remove dangling audio streams
-      for (const [streamId, stream] of Array.from(audioStreams.entries())) {
-        if (stream.metadata.playerId === playerId) {
-          stream.close();
-          audioStreams.delete(streamId);
-        }
-      }
+      // // remove dangling audio streams
+      // for (const [streamId, stream] of Array.from(audioStreams.entries())) {
+      //   if (stream.metadata.playerId === playerId) {
+      //     stream.close();
+      //     audioStreams.delete(streamId);
+      //   }
+      // }
     });
   };
   _trackRemotePlayers();
-
-  const audioStreams = new Map();
-  const _trackAudio = () => {
-    virtualPlayers.addEventListener('audiostart', e => {
-      const {
-        playerId,
-        streamId,
-        type,
-        disposition,
-      } = e.data;
-
-      if (disposition === 'audio') {
-        const outputStream = new SpeakerOutputStream();
-        const { sampleRate } = outputStream;
-
-        // decode stream
-        const decodeStream = new AudioDecodeStream({
-          type,
-          sampleRate,
-          codecs,
-          format: 'i16',
-        });
-        (async () => {
-          speakerMap.set(playerId, true);
-          try {
-            await decodeStream.readable.pipeTo(outputStream);
-          } finally {
-            speakerMap.set(playerId, false);
-          }
-        })();
-
-        const writer = decodeStream.writable.getWriter();
-        writer.metadata = {
-          playerId,
-        };
-        audioStreams.set(streamId, writer);
-      }
-    });
-    virtualPlayers.addEventListener('audio', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.write(data);
-      } else {
-        // throw away unmapped data
-        // console.warn('dropping audio data', e.data);
-      }
-    });
-    virtualPlayers.addEventListener('audioend', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.close();
-        audioStreams.delete(streamId);
-      } else {
-        // throw away unmapped data
-        console.warn('dropping audioend data', e.data);
-      }
-    });
-  };
-  if (media && SpeakerOutputStream) {
-    _trackAudio();
-  }
 
   const _bindMultiplayerChat = () => {
     const onchat = (e) => {
@@ -1104,21 +1018,20 @@ const connectMultiplayer = async ({ room, media, debug }) => {
   });
 
   return {
-    userAsset,
+    userAsset: profile,
     realms,
     typingMap,
     speakerMap,
   };
 };
-const startMultiplayerListener = ({
-  userAsset,
+const startMultiplayerRepl = ({
+  profile,
   realms,
   typingMap,
   speakerMap,
-  startRepl,
 }) => {
   const getPrompt = () => {
-    const name = userAsset.name;
+    const name = profile.name;
 
     let s = `${name} (you): `;
     
@@ -1158,290 +1071,288 @@ const startMultiplayerListener = ({
     }
   });
 
-  let replServer = null;
-  if (startRepl) {
-    const getDoc = () => {
-      const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-      const { networkedCrdtClient } = headRealm;
-      const doc = networkedCrdtClient.getDoc();
-      return doc;
-    };
+  const getDoc = () => {
+    const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+    const { networkedCrdtClient } = headRealm;
+    const doc = networkedCrdtClient.getDoc();
+    return doc;
+  };
 
-    let microphoneInput = null;
-    const microphoneQueueManager = new QueueManager();
-    const toggleMic = async () => {
-      await microphoneQueueManager.waitForTurn(async () => {
-        if (!microphoneInput) {
-          const jwt = await getLoginJwt();
-          if (!jwt) {
-            throw new Error('not logged in');
+  let microphoneInput = null;
+  const microphoneQueueManager = new QueueManager();
+  const toggleMic = async () => {
+    await microphoneQueueManager.waitForTurn(async () => {
+      if (!microphoneInput) {
+        const jwt = await getLoginJwt();
+        if (!jwt) {
+          throw new Error('not logged in');
+        }
+
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
+        
+        const sampleRate = AudioInput.defaultSampleRate;
+        microphoneInput = inputDevices.getAudioInput(device.id, {
+          sampleRate,
+        });
+
+        const onplayingchange = e => {
+          const playing = e.data;
+          // console.log('playing change', playing);
+          if (playing) {
+            microphoneInput.pause();
+          } else {
+            microphoneInput.resume();
           }
+        };
+        speakerMap.addEventListener('playingchange', onplayingchange);
+        microphoneInput.on('close', e => {
+          speakerMap.removeEventListener('playingchange', onplayingchange);
+        });
 
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
-          
-          const sampleRate = AudioInput.defaultSampleRate;
-          microphoneInput = inputDevices.getAudioInput(device.id, {
-            sampleRate,
+        await new Promise((accept, reject) => {
+          microphoneInput.on('start', e => {
+            accept();
           });
+        });
+        console.log('* mic enabled *');
 
-          const onplayingchange = e => {
-            const playing = e.data;
-            // console.log('playing change', playing);
-            if (playing) {
-              microphoneInput.pause();
-            } else {
-              microphoneInput.resume();
-            }
-          };
-          speakerMap.addEventListener('playingchange', onplayingchange);
-          microphoneInput.on('close', e => {
-            speakerMap.removeEventListener('playingchange', onplayingchange);
-          });
-
-          await new Promise((accept, reject) => {
-            microphoneInput.on('start', e => {
-              accept();
+        const audioStream = new ReadableStream({
+          start(controller) {
+            microphoneInput.on('data', (data) => {
+              controller.enqueue(data);
             });
-          });
-          console.log('* mic enabled *');
+            microphoneInput.on('end', (e) => {
+              controller.close();
+            });
+          },
+        });
+        audioStream.id = crypto.randomUUID();
+        audioStream.type = 'audio/pcm-f32-48000';
+        audioStream.disposition = 'text';
 
-          const audioStream = new ReadableStream({
-            start(controller) {
-              microphoneInput.on('data', (data) => {
-                controller.enqueue(data);
-              });
-              microphoneInput.on('end', (e) => {
-                controller.close();
-              });
-            },
-          });
-          audioStream.id = crypto.randomUUID();
-          audioStream.type = 'audio/pcm-f32-48000';
-          audioStream.disposition = 'text';
-
-          (async () => {
-            console.log('start streaming audio');
-            const {
-              waitForFinish,
-            } = realms.addAudioSource(audioStream);
-            await waitForFinish();
-            realms.removeAudioSource(audioStream);
-          })();
-          renderPrompt();
-        } else {
-          microphoneInput.close();
-          microphoneInput = null;
-          console.log('* mic disabled *');
-          renderPrompt();
-        }
-      });
-    };
-    let cameraInput = null;
-    const cameraQueueManager = new QueueManager();
-    const toggleCam = async () => {
-      await cameraQueueManager.waitForTurn(async () => {
-        if (!cameraInput) {
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
-
-          cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
-            // width,
-            // height,
-            fps: 5,
-          });
-
-          const videoRenderer = new TerminalVideoRenderer({
-            width: 80,
-            // height: rows,
-            footerHeight: 5,
-          });
-          cameraInput.on('frame', (imageData) => {
-            videoRenderer.setImageData(imageData);
-            videoRenderer.render();
-            renderPrompt();
-          });
-          console.log('* cam enabled *');
-
-          const cameraStream = new ReadableStream({
-            start(controller) {
-              cameraInput.on('image', (data) => {
-                controller.enqueue(data);
-              });
-              cameraInput.on('close', (e) => {
-                controller.close();
-              });
-            },
-          });
-          cameraStream.id = crypto.randomUUID();
-          cameraStream.type = 'image/webp';
-          cameraStream.disposition = 'text';
-
-          (async () => {
-            console.log('start streaming video');
-            const {
-              waitForFinish,
-            } = realms.addVideoSource(cameraStream);
-            await waitForFinish();
-            realms.removeVideoSource(cameraStream);
-          })();
-          renderPrompt();
-        } else {
-          cameraInput.close();
-          cameraInput = null;
-          console.log('* cam disabled *');
-          renderPrompt();
-        }
-      });
-    };
-
-    let screenInput = null;
-    const screenQueueManager = new QueueManager();
-    const toggleScreen = async () => {
-      await screenQueueManager.waitForTurn(async () => {
-        if (!screenInput) {
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
-
-          screenInput = inputDevices.getVideoInput(screenDevice.id, {
-            // width,
-            // height,
-            fps: 5,
-          });
-
-          const videoRenderer = new TerminalVideoRenderer({
-            width: 80,
-            // height: rows,
-            footerHeight: 5,
-          });
-          screenInput.on('frame', (imageData) => {
-            videoRenderer.setImageData(imageData);
-            videoRenderer.render();
-            renderPrompt();
-          });
-          console.log('* screen capture enabled *');
-
-          const screenStream = new ReadableStream({
-            start(controller) {
-              screenInput.on('image', (data) => {
-                controller.enqueue(data);
-              });
-              screenInput.on('close', (e) => {
-                controller.close();
-              });
-            },
-          });
-          screenStream.id = crypto.randomUUID();
-          screenStream.type = 'image/webp';
-          screenStream.disposition = 'text';
-
-          (async () => {
-            console.log('start streaming video');
-            const {
-              waitForFinish,
-            } = realms.addVideoSource(screenStream);
-            await waitForFinish();
-            realms.removeVideoSource(screenStream);
-          })();
-          renderPrompt();
-        } else {
-          screenInput.close();
-          screenInput = null;
-          console.log('* screen capture disabled *');
-          renderPrompt();
-        }
-      });
-    };
-
-    const sendChatMessage = async (text) => {
-      const userId = userAsset.id;
-      const name = userAsset.name;
-      await realms.sendChatMessage({
-        method: 'say',
-        userId,
-        name,
-        args: {
-          text,
-        },
-        timestamp: Date.now(),
-      });
-    };
-
-    replServer = repl.start({
-      prompt: getPrompt(),
-      eval: async (cmd, context, filename, callback) => {
-        let error = null;
-        try {
-          cmd = cmd.replace(/;?\s*$/, '');
-
-          if (cmd) {
-            const cmdSplit = cmd.split(/\s+/);
-            const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-            if (commandMatch) {
-              const command = commandMatch ? commandMatch[1] : null;
-              switch (command) {
-                case 'get': {
-                  const key = cmdSplit[1];
-
-                  const doc = getDoc();
-                  if (key) {
-                    const text = doc.getText(key);
-                    const s = text.toString();
-                    console.log(s);
-                  } else {
-                    const j = doc.toJSON();
-                    console.log(j);
-                  }
-                  break;
-                }
-                case 'set': {
-                  const key = cmdSplit[1];
-                  const value = cmdSplit[2];
-
-                  if (key && value) {
-                    const doc = getDoc();
-                    doc.transact(() => {
-                      const text = doc.getText(key);
-                      text.delete(0, text.length);
-                      text.insert(0, value);
-                    });
-                  } else {
-                    throw new Error('expected 2 arguments');
-                  }
-                  break;
-                }
-                case 'mic': {
-                  toggleMic();
-                  break;
-                }
-                case 'cam': {
-                  toggleCam();
-                  break;
-                }
-                case 'screen': {
-                  toggleScreen();
-                  break;
-                }
-                default: {
-                  console.log('unknown command', command);
-                  break;
-                }
-              }
-            } else {
-              await sendChatMessage(cmd);
-            }
-          }
-        } catch (err) {
-          error = err;
-        }
-        callback(error);
-      },
-      ignoreUndefined: true,
+        (async () => {
+          console.log('start streaming audio');
+          const {
+            waitForFinish,
+          } = realms.addAudioSource(audioStream);
+          await waitForFinish();
+          realms.removeAudioSource(audioStream);
+        })();
+        renderPrompt();
+      } else {
+        microphoneInput.close();
+        microphoneInput = null;
+        console.log('* mic disabled *');
+        renderPrompt();
+      }
     });
-  }
+  };
+  let cameraInput = null;
+  const cameraQueueManager = new QueueManager();
+  const toggleCam = async () => {
+    await cameraQueueManager.waitForTurn(async () => {
+      if (!cameraInput) {
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
+
+        cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+          // width,
+          // height,
+          fps: 5,
+        });
+
+        const videoRenderer = new TerminalVideoRenderer({
+          width: 80,
+          // height: rows,
+          footerHeight: 5,
+        });
+        cameraInput.on('frame', (imageData) => {
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
+          renderPrompt();
+        });
+        console.log('* cam enabled *');
+
+        const cameraStream = new ReadableStream({
+          start(controller) {
+            cameraInput.on('image', (data) => {
+              controller.enqueue(data);
+            });
+            cameraInput.on('close', (e) => {
+              controller.close();
+            });
+          },
+        });
+        cameraStream.id = crypto.randomUUID();
+        cameraStream.type = 'image/webp';
+        cameraStream.disposition = 'text';
+
+        (async () => {
+          console.log('start streaming video');
+          const {
+            waitForFinish,
+          } = realms.addVideoSource(cameraStream);
+          await waitForFinish();
+          realms.removeVideoSource(cameraStream);
+        })();
+        renderPrompt();
+      } else {
+        cameraInput.close();
+        cameraInput = null;
+        console.log('* cam disabled *');
+        renderPrompt();
+      }
+    });
+  };
+
+  let screenInput = null;
+  const screenQueueManager = new QueueManager();
+  const toggleScreen = async () => {
+    await screenQueueManager.waitForTurn(async () => {
+      if (!screenInput) {
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
+
+        screenInput = inputDevices.getVideoInput(screenDevice.id, {
+          // width,
+          // height,
+          fps: 5,
+        });
+
+        const videoRenderer = new TerminalVideoRenderer({
+          width: 80,
+          // height: rows,
+          footerHeight: 5,
+        });
+        screenInput.on('frame', (imageData) => {
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
+          renderPrompt();
+        });
+        console.log('* screen capture enabled *');
+
+        const screenStream = new ReadableStream({
+          start(controller) {
+            screenInput.on('image', (data) => {
+              controller.enqueue(data);
+            });
+            screenInput.on('close', (e) => {
+              controller.close();
+            });
+          },
+        });
+        screenStream.id = crypto.randomUUID();
+        screenStream.type = 'image/webp';
+        screenStream.disposition = 'text';
+
+        (async () => {
+          console.log('start streaming video');
+          const {
+            waitForFinish,
+          } = realms.addVideoSource(screenStream);
+          await waitForFinish();
+          realms.removeVideoSource(screenStream);
+        })();
+        renderPrompt();
+      } else {
+        screenInput.close();
+        screenInput = null;
+        console.log('* screen capture disabled *');
+        renderPrompt();
+      }
+    });
+  };
+
+  const sendChatMessage = async (text) => {
+    const userId = profile.id;
+    const name = profile.name;
+    await realms.sendChatMessage({
+      method: 'say',
+      userId,
+      name,
+      args: {
+        text,
+      },
+      timestamp: Date.now(),
+    });
+  };
+
+  const replServer = repl.start({
+    prompt: getPrompt(),
+    eval: async (cmd, context, filename, callback) => {
+      let error = null;
+      try {
+        cmd = cmd.replace(/;?\s*$/, '');
+
+        if (cmd) {
+          const cmdSplit = cmd.split(/\s+/);
+          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+          if (commandMatch) {
+            const command = commandMatch ? commandMatch[1] : null;
+            switch (command) {
+              case 'get': {
+                const key = cmdSplit[1];
+
+                const doc = getDoc();
+                if (key) {
+                  const text = doc.getText(key);
+                  const s = text.toString();
+                  console.log(s);
+                } else {
+                  const j = doc.toJSON();
+                  console.log(j);
+                }
+                break;
+              }
+              case 'set': {
+                const key = cmdSplit[1];
+                const value = cmdSplit[2];
+
+                if (key && value) {
+                  const doc = getDoc();
+                  doc.transact(() => {
+                    const text = doc.getText(key);
+                    text.delete(0, text.length);
+                    text.insert(0, value);
+                  });
+                } else {
+                  throw new Error('expected 2 arguments');
+                }
+                break;
+              }
+              case 'mic': {
+                toggleMic();
+                break;
+              }
+              case 'cam': {
+                toggleCam();
+                break;
+              }
+              case 'screen': {
+                toggleScreen();
+                break;
+              }
+              default: {
+                console.log('unknown command', command);
+                break;
+              }
+            }
+          } else {
+            await sendChatMessage(cmd);
+          }
+        }
+      } catch (err) {
+        error = err;
+      }
+      callback(error);
+    },
+    ignoreUndefined: true,
+  });
+
   const exit = (e) => {
     process.exit(0);
   };
@@ -1460,37 +1371,165 @@ const startMultiplayerListener = ({
   };
   _bindRealmsLogging();
 };
+const connectBrowser = ({
+  room,
+}) => {
+  open(`${chatEndpointUrl}/rooms/${room}`)
+    .catch( console.error );
+};
+const connectRepl = ({
+  profile,
+  realms,
+  typingMap,
+  speakerMap,
+  virtualPlayers,
+}) => {
+  startMultiplayerRepl({
+    profile,
+    realms,
+    typingMap,
+    speakerMap,
+  });
+
+  const _trackAudio = () => {
+    const audioStreams = new Map();
+    virtualPlayers.addEventListener('audiostart', e => {
+      const {
+        playerId,
+        streamId,
+        type,
+        disposition,
+      } = e.data;
+
+      if (disposition === 'audio') {
+        const outputStream = new SpeakerOutputStream();
+        const { sampleRate } = outputStream;
+
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          codecs,
+          format: 'i16',
+        });
+        (async () => {
+          speakerMap.set(playerId, true);
+          try {
+            await decodeStream.readable.pipeTo(outputStream);
+          } finally {
+            speakerMap.set(playerId, false);
+          }
+        })();
+
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
+    });
+    virtualPlayers.addEventListener('audio', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.write(data);
+      } else {
+        // throw away unmapped data
+        // console.warn('dropping audio data', e.data);
+      }
+    });
+    virtualPlayers.addEventListener('audioend', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.close();
+        audioStreams.delete(streamId);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audioend data', e.data);
+      }
+    });
+  };
+  // dynamic import audio output module
+  const audioOutput = await (async () => {
+    try {
+      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
+    } catch (err) {
+      return null;
+    }
+  })();
+  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
+  if (SpeakerOutputStream) {
+    _trackAudio();
+  }
+};
 const connect = async (args) => {
   const room = args._[0] ?? '';
-  const local = !!args.local;
+  const mode = args.mode ?? 'repl';
   const debug = !!args.debug;
-  const browser = !!args.browser;
-  const media = !!args.media;
-  const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
   if (room) {
-    // set up the chat
-    const { userAsset, realms, typingMap, speakerMap } =
-      await connectMultiplayer({
-        room,
-        media,
-        debug,
-      });
-    if (browser) {
-      const _chatEndpointUrl = local
-        ? `http://localhost:3000`
-        : chatEndpointUrl;
-      open(`${_chatEndpointUrl}/rooms/${room}`)
-        .catch( console.error );
+    const profile = await getUserProfile();
+    if (!user) {
+      throw new Error('could not get user profile');
     }
-    if (startRepl) {
-      startMultiplayerListener({
-        userAsset,
-        realms,
-        typingMap,
-        speakerMap,
-        startRepl: true,
-      });
+
+    // set up the chat
+    const u = `${getAgentSpecHost(agentSpec)}`;
+    const agentClient = new ReactAgentsClient(u);
+    const multiplayerConnection = agentClient.connect({
+      profile,
+    });
+    const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+    multiplayerConnection.addEventListener('log', (e) => {
+      const { args, logLevel } = e.data;
+      if (localLogLevel >= logLevel) {
+        process.stdout.write(eraseLine);
+        console.log(...args);
+        if (startRepl) {
+          renderPrompt();
+        }
+      }
+    });
+    await multiplayerConnection.waitForConnect();
+    const { realms, typingMap, speakerMap, virtualPlayers } = multiplayerConnection;
+    // const { userAsset, realms, typingMap, speakerMap } =
+    //   await connectMultiplayer({
+    //     room,
+    //     media,
+    //     debug,
+    //   });
+    switch (mode) {
+      case 'browser': {
+        connectBrowser({
+          room,
+        });
+        break;
+      }
+      case 'repl': {
+        connectRepl({
+          profile,
+          realms,
+          typingMap,
+          speakerMap,
+          virtualPlayers,
+        });
+        break;
+      }
+      default: {
+        // nothing
+        break;
+      }
     }
   } else {
     console.log('no room name provided');
@@ -1602,10 +1641,8 @@ const chat = async (args) => {
     // connect to the chat
     await connect({
       _: [room],
-      browser: args.browser,
-      media: !args.browser,
+      mode: args.browser ? 'browser' : 'repl',
       debug: args.debug,
-      local: args.local,
     });
   } else {
     console.log('not logged in');
@@ -2646,9 +2683,9 @@ const join = async (args) => {
     if (room) {
       const agentSpec = agentSpecs[0];
       const u = `${getAgentSpecHost(agentSpec)}`;
-      const agent = new ReactAgentsClient(u);
+      const agentClient = new ReactAgentsClient(u);
       try {
-        await agent.join(room, {
+        await agentClient.join(room, {
           only: true,
         });
       } catch (err) {
