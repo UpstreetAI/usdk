@@ -10,7 +10,7 @@ export class ReactAgentsClient {
       method: 'POST',
       body: JSON.stringify({
         room,
-        only: true,
+        only,
       }),
     });
     if (joinReq.ok) {
