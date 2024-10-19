@@ -1653,7 +1653,7 @@ const logs = async (args) => {
     process.exit(1);
   }
 };
-const listen = async (args) => {
+/* const listen = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const dev = !!args.dev;
   const debug = !!args.debug;
@@ -1709,7 +1709,7 @@ const listen = async (args) => {
       }
     },
   };
-};
+}; */
 // XXX rename command to charge or refill
 const fund = async (args) => {
   const local = !!args.local;
