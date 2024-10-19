@@ -1125,7 +1125,6 @@ const connectMultiplayer = async ({ room, media, debug }) => {
   return {
     userAsset,
     realms,
-    playersMap,
     typingMap,
     speakerMap,
   };
@@ -1501,7 +1500,7 @@ const connect = async (args) => {
 
   if (room) {
     // set up the chat
-    const { userAsset, realms, playersMap, typingMap, speakerMap } =
+    const { userAsset, realms, typingMap, speakerMap } =
       await connectMultiplayer({
         room,
         media,
@@ -1524,14 +1523,6 @@ const connect = async (args) => {
         startRepl: true,
       });
     }
-
-    // return {
-    //   userAsset,
-    //   realms,
-    //   playersMap,
-    //   typingMap,
-    //   speakerMap,
-    // };
   } else {
     console.log('no room name provided');
     process.exit(1);
