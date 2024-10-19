@@ -155,7 +155,7 @@ const log = (...args) => {
 
 //
 
-const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost(portIndex) : getCloudAgentHost(agentSpec.guid);
+const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
@@ -2646,14 +2646,14 @@ const rm = async (args) => {
     process.exit(1);
   }
 };
-const join = async (args, index) => {
+const join = async (args) => {
   const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
     if (room) {
       const agentSpec = agentSpecs[0];
-      const u = `${getAgentSpecHost(agentSpec, portIndex)}`;
+      const u = `${getAgentSpecHost(agentSpec)}`;
       const agent = new ReactAgentsClient(u);
       try {
         await agent.join(room, {
