@@ -1,11 +1,12 @@
 export class ReactAgentsClient {
-  ref;
-  constructor(ref) {
-    this.ref = ref;
+  url;
+  constructor(url) {
+    this.url = url;
   }
   async join(room, {
     only = false,
   } = {}) {
+    const u = `${this.url}/join`;
     const joinReq = await fetch(u, {
       method: 'POST',
       body: JSON.stringify({
