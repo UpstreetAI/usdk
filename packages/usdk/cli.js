@@ -759,7 +759,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
   const typingMap = new TypingMap();
   const speakerMap = new SpeakerMap();
 
-  const virtualWorld = realms.getVirtualWorld();
+  // const virtualWorld = realms.getVirtualWorld();
   const virtualPlayers = realms.getVirtualPlayers();
   // console.log('got initial players', virtualPlayers.getKeys());
 
@@ -1133,7 +1133,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
 const startMultiplayerListener = ({
   userAsset,
   realms,
-  playersMap,
+  // playersMap,
   typingMap,
   speakerMap,
   // local,
@@ -1518,20 +1518,20 @@ const connect = async (args) => {
       startMultiplayerListener({
         userAsset,
         realms,
-        playersMap,
+        // playersMap,
         typingMap,
         speakerMap,
         startRepl: true,
       });
     }
 
-    return {
-      userAsset,
-      realms,
-      playersMap,
-      typingMap,
-      speakerMap,
-    };
+    // return {
+    //   userAsset,
+    //   realms,
+    //   playersMap,
+    //   typingMap,
+    //   speakerMap,
+    // };
   } else {
     console.log('no room name provided');
     process.exit(1);
