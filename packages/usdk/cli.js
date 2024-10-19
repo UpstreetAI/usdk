@@ -1179,15 +1179,6 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
-    /* const ensureJwt = (() => {
-      let jwtPromise = null;
-      return () => {
-        if (jwtPromise === null) {
-          jwtPromise = getLoginJwt();
-        }
-        return jwtPromise;
-      };
-    })(); */
     const getDoc = () => {
       const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
       const { networkedCrdtClient } = headRealm;
