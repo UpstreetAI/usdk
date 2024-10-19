@@ -1595,7 +1595,7 @@ const chat = async (args) => {
       agentSpecs.map(async (agentSpec) => {
         await join({
           _: [agentSpec.ref, room],
-        }, agentSpec.portIndex);
+        });
       }),
     );
 
@@ -2136,7 +2136,7 @@ const test = async (args) => {
       {
         await join({
           _: [agentSpec.ref, room],
-        }, agentSpec.portIndex);
+        });
       }
 
       // run the tests
