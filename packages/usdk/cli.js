@@ -193,10 +193,6 @@ class SpeakerMap extends EventTarget {
     }));
 
     const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
-    // console.log('current speakers', {
-    //   currentSpeakers,
-    //   lastSpeakers: this.#lastSpeakers,
-    // });
     if (currentSpeakers && !this.#lastSpeakers) {
       this.dispatchEvent(new MessageEvent('playingchange', {
         data: true,
@@ -761,7 +757,6 @@ const connectMultiplayer = async ({ room, media, debug }) => {
 
   // const virtualWorld = realms.getVirtualWorld();
   const virtualPlayers = realms.getVirtualPlayers();
-  // console.log('got initial players', virtualPlayers.getKeys());
 
   // log('waiting for initial connection...');
 
@@ -805,7 +800,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
         const agentJsons = Array.from(playersMap.values()).map(
           (player) => player.playerSpec,
         );
-        log(dedent`
+        log(dedent`\
           ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
           In the room (${room}):
           ${agentJsons.length > 0 ?
@@ -1001,13 +996,8 @@ const connectMultiplayer = async ({ room, media, debug }) => {
         }
         case 'log': {
           if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // renderPrompt();
             const { text } = args;
             log(text);
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
           }
           break;
         }
@@ -1108,12 +1098,10 @@ const connectMultiplayer = async ({ room, media, debug }) => {
   };
   _bindMultiplayerChat();
 
-  // console.log('update realms keys 1');
   await realms.updateRealmsKeys({
     realmsKeys: [room],
     rootRealmKey: room,
   });
-  // console.log('update realms keys 2');
 
   return {
     userAsset,
