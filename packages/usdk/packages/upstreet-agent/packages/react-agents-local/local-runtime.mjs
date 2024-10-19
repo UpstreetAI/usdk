@@ -80,26 +80,41 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 
 //
 
-export const startDevServer = async ({
-  directory = cwd,
-  portIndex = 0,
-  debug = false,
-} = {}) => {
-  // spawn the wrangler child process
-  const cp = child_process.spawn(
-    wranglerBinPath,
-    ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
-    {
-      stdio: 'pipe',
-      // stdio: 'inherit',
-      cwd: directory,
-    },
-  );
-  bindProcess(cp);
-  await waitForProcessIo(cp, /ready/i);
-  if (debug) {
-    cp.stdout.pipe(process.stdout);
-    cp.stderr.pipe(process.stderr);
+export class ReactAgentsLocalRuntime {
+  agentSpec;
+  cp = null;
+  constructor(agentSpec) {
+    this.agentSpec = agentSpec;
   }
-  return cp;
-};
+  async start({
+    debug = false,
+  } = {}) {
+    const {
+      directory,
+      portIndex,
+    } = this.agentSpec;
+
+    // spawn the wrangler child process
+    const cp = child_process.spawn(
+      wranglerBinPath,
+      ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
+      {
+        stdio: 'pipe',
+        // stdio: 'inherit',
+        cwd: directory,
+      },
+    );
+    bindProcess(cp);
+    await waitForProcessIo(cp, /ready/i);
+    if (debug) {
+      cp.stdout.pipe(process.stdout);
+      cp.stderr.pipe(process.stderr);
+    }
+    this.cp = cp;
+  }
+  terminate() {
+    if (this.cp) {
+      this.cp.kill('SIGINT');
+    }
+  }
+}

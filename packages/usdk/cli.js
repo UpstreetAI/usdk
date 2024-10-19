@@ -55,7 +55,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { startDevServer } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
   multiplayerEndpointUrl,
@@ -1575,20 +1575,20 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const devServerPromises = agentSpecs
+    const localRuntimePromises = agentSpecs
       .map(async (agentSpec) => {
         if (agentSpec.directory) {
-          const cp = await startDevServer({
-            ...agentSpec,
+          const runtime = new ReactAgentsLocalRuntime(agentSpec);
+          await runtime.start({
             debug,
           });
-          return cp;
+          return runtime;
         } else {
           return null;
         }
       })
       .filter(Boolean);
-    await Promise.all(devServerPromises);
+    const runtimes = await Promise.all(localRuntimePromises);
 
     // wait for agents to join the multiplayer room
     await Promise.all(
@@ -2121,16 +2121,10 @@ const test = async (args) => {
     const room = makeRoomName();
 
     for (const agentSpec of agentSpecs) {
-      // start the dev server
-      let cp = null;
-      {
-        if (agentSpec.directory) {
-          cp = await startDevServer({
-            ...agentSpec,
-            debug,
-          });
-        }
-      }
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
 
       // join
       {
@@ -2144,9 +2138,7 @@ const test = async (args) => {
         await runJest(agentSpec.directory);
       }
 
-      if (cp) {
-        cp.kill('SIGTERM');
-      }
+      runtime.terminate();
     }
   } else {
     console.log('not logged in');
