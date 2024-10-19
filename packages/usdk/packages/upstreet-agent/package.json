@@ -19,6 +19,7 @@
     "openai": "^4.56.0",
     "react": "^19.0.0-rc-df5f2736-20240712",
     "react-agents": "file:./packages/react-agents",
+    "react-agents-client": "file:./packages/react-agents-client",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "stripe": "^16.10.0",
     "together-ai": "^0.6.0-alpha.4",
