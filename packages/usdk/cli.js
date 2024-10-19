@@ -3493,34 +3493,6 @@ const main = async () => {
   //   })
   //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
   // program
-  //   .command('connect')
-  //   .description(`Connect to a multiplayer room`)
-  //   .argument(`<room>`, `Name of the room to join`)
-  //   .option(
-  //     `-l, --local`,
-  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-  //   )
-  //   .option(
-  //     `-d, --dev`,
-  //     `Use the local development guid instead of your account guid`,
-  //   )
-  //   .option(`-g, --debug`, `Enable debug logging`)
-  //   .action(async (room = '', opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       if (typeof room === 'string') {
-  //         args = {
-  //           _: [room],
-  //           ...opts,
-  //         };
-  //         await connect(args);
-  //       } else {
-  //         console.warn(`invalid arguments: ${room}`);
-  //       }
-  //     });
-  //   });
-  // program
   //   .command('logs')
   //   .description(`Stream an agent's logs`)
   //   .argument(`[guids...]`, `The guids of the agents to listen to`)
