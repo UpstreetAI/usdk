@@ -711,7 +711,7 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
+const connectMultiplayer = async ({ room, media, debug }) => {
   // dynamic import audio output module
   const audioOutput = await (async () => {
     try {
@@ -723,32 +723,28 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
 
   const getUserAsset = async () => {
-    if (!anonymous) {
-      let user = null;
+    let user = null;
 
-      // try getting the user asset from the login
-      const jwt = await getLoginJwt();
-      if (jwt !== null) {
-        // const supabase = makeSupabase(jwt);
-        // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-        user = await getUserForJwt(jwt);
-      }
-
-      // use a default asset spec
-      if (!user) {
-        const userId = crypto.randomUUID();
-        user = {
-          id: userId,
-          name: makeName(),
-          description: '',
-        };
-        // ensureAgentJsonDefaults(userAsset);
-      }
-
-      return user;
-    } else {
-      return null;
+    // try getting the user asset from the login
+    const jwt = await getLoginJwt();
+    if (jwt !== null) {
+      // const supabase = makeSupabase(jwt);
+      // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+      user = await getUserForJwt(jwt);
     }
+
+    // use a default asset spec
+    if (!user) {
+      const userId = crypto.randomUUID();
+      user = {
+        id: userId,
+        name: makeName(),
+        description: '',
+      };
+      // ensureAgentJsonDefaults(userAsset);
+    }
+
+    return user;
   };
   const userAsset = await getUserAsset();
   const userId = userAsset?.id;
@@ -757,7 +753,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   // join the room
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
-    playerId: !anonymous ? userId : null,
+    playerId: userId,
   });
   const playersMap = new Map(); // Map<string, Player>
   const typingMap = new TypingMap();
@@ -782,29 +778,27 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           process.exit(1);
         }
 
-        if (!anonymous) {
-          // Initialize network realms player.
-          const localPlayer = new Player(userId, {
-            id: userId,
-            name,
-            capabilities: [
-              'human',
-            ],
-          });
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.playerSpec,
-            );
-          };
-          _pushInitialPlayer();
-        }
+        // Initialize network realms player.
+        const localPlayer = new Player(userId, {
+          id: userId,
+          name,
+          capabilities: [
+            'human',
+          ],
+        });
+        const _pushInitialPlayer = () => {
+          realms.localPlayer.initializePlayer(
+            {
+              realmKey,
+            },
+            {},
+          );
+          realms.localPlayer.setKeyValue(
+            'playerSpec',
+            localPlayer.playerSpec,
+          );
+        };
+        _pushInitialPlayer();
 
         connected = true;
 
