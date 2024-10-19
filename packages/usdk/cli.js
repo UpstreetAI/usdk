@@ -711,6 +711,30 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
+const getUserAsset = async () => {
+  let user = null;
+
+  // try getting the user asset from the login
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // const supabase = makeSupabase(jwt);
+    // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+    user = await getUserForJwt(jwt);
+  }
+
+  // use a default asset spec
+  if (!user) {
+    const userId = crypto.randomUUID();
+    user = {
+      id: userId,
+      name: makeName(),
+      description: '',
+    };
+    // ensureAgentJsonDefaults(userAsset);
+  }
+
+  return user;
+};
 const connectMultiplayer = async ({ room, media, debug }) => {
   // dynamic import audio output module
   const audioOutput = await (async () => {
@@ -722,30 +746,6 @@ const connectMultiplayer = async ({ room, media, debug }) => {
   })();
   const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
 
-  const getUserAsset = async () => {
-    let user = null;
-
-    // try getting the user asset from the login
-    const jwt = await getLoginJwt();
-    if (jwt !== null) {
-      // const supabase = makeSupabase(jwt);
-      // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-      user = await getUserForJwt(jwt);
-    }
-
-    // use a default asset spec
-    if (!user) {
-      const userId = crypto.randomUUID();
-      user = {
-        id: userId,
-        name: makeName(),
-        description: '',
-      };
-      // ensureAgentJsonDefaults(userAsset);
-    }
-
-    return user;
-  };
   const userAsset = await getUserAsset();
   const userId = userAsset?.id;
   const name = userAsset?.name;
