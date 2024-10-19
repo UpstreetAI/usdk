@@ -1092,14 +1092,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
           break;
         }
         default: {
-          // if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // renderPrompt();
-            log(`${name}: ${JSON.stringify(message)}`);
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
-          // }
+          log(`${name}: ${JSON.stringify(message)}`);
           break;
         }
       }
