@@ -1,9 +1,7 @@
 {
   "name": "react-agents-client",
-  "main": "react-agents-client.ts",
+  "main": "react-agents-client.mjs",
   "dependencies": {
-    "esbuild-wasm": "^0.24.0",
-    "upstreet-agent": "file:../..",
-    "react-agents": "file:../react-agents"
+    "@upstreet/multiplayer": "file:../multiplayer"
   }
 }

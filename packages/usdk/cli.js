@@ -55,7 +55,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { startDevServer } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
   multiplayerEndpointUrl,
@@ -63,13 +63,9 @@ import {
   workersHost,
   aiProxyHost,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents/lib/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
+import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { AudioDecodeStream } from './packages/upstreet-agent/packages/react-agents/lib/codecs/audio-decode.mjs';
-
-import * as codecs from './packages/upstreet-agent/packages/react-agents/lib/codecs/ws-codec-runtime-fs.mjs';
-
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
@@ -91,9 +87,6 @@ import {
 import {
   describe,
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
-import {
-  WebPEncoder,
-} from './packages/upstreet-agent/packages/react-agents/devices/codecs.mjs';
 import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
@@ -106,14 +99,20 @@ import {
   edit,
 } from './lib/commands.mjs';
 import {
-  makeTempDir,
   tryReadFile,
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import {
+  ReactAgentsClient,
+} from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
+import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
+import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
+import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
@@ -158,7 +157,7 @@ const log = (...args) => {
 
 //
 
-const getAgentSpecHost = (agentSpec, portIndex = 0) => !!agentSpec.directory ? getLocalAgentHost(portIndex) : getCloudAgentHost(agentSpec.guid);
+const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
@@ -196,10 +195,6 @@ class SpeakerMap extends EventTarget {
     }));
 
     const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
-    // console.log('current speakers', {
-    //   currentSpeakers,
-    //   lastSpeakers: this.#lastSpeakers,
-    // });
     if (currentSpeakers && !this.#lastSpeakers) {
       this.dispatchEvent(new MessageEvent('playingchange', {
         data: true,
@@ -714,7 +709,31 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
+const getUserAsset = async () => {
+  let user = null;
+
+  // try getting the user asset from the login
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // const supabase = makeSupabase(jwt);
+    // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
+    user = await getUserForJwt(jwt);
+  }
+
+  // use a default asset spec
+  if (!user) {
+    const userId = crypto.randomUUID();
+    user = {
+      id: userId,
+      name: makeName(),
+      description: '',
+    };
+    // ensureAgentJsonDefaults(userAsset);
+  }
+
+  return user;
+};
+const connectMultiplayer = async ({ room, media, debug }) => {
   // dynamic import audio output module
   const audioOutput = await (async () => {
     try {
@@ -725,34 +744,6 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   })();
   const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
 
-  const getUserAsset = async () => {
-    if (!anonymous) {
-      let user = null;
-
-      // try getting the user asset from the login
-      const jwt = await getLoginJwt();
-      if (jwt !== null) {
-        const supabase = makeSupabase(jwt);
-        // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-        user = await getUserForJwt(jwt);
-      }
-
-      // use a default asset spec
-      if (!user) {
-        const userId = crypto.randomUUID();
-        user = {
-          id: userId,
-          name: makeName(),
-          description: '',
-        };
-        // ensureAgentJsonDefaults(userAsset);
-      }
-
-      return user;
-    } else {
-      return null;
-    }
-  };
   const userAsset = await getUserAsset();
   const userId = userAsset?.id;
   const name = userAsset?.name;
@@ -760,16 +751,14 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   // join the room
   const realms = new NetworkRealms({
     endpointUrl: multiplayerEndpointUrl,
-    playerId: !anonymous ? userId : null,
-    audioManager: null,
+    playerId: userId,
   });
   const playersMap = new Map(); // Map<string, Player>
   const typingMap = new TypingMap();
   const speakerMap = new SpeakerMap();
 
-  const virtualWorld = realms.getVirtualWorld();
+  // const virtualWorld = realms.getVirtualWorld();
   const virtualPlayers = realms.getVirtualPlayers();
-  // console.log('got initial players', virtualPlayers.getKeys());
 
   // log('waiting for initial connection...');
 
@@ -814,7 +803,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         const agentJsons = Array.from(playersMap.values()).map(
           (player) => player.playerSpec,
         );
-        log(dedent`
+        log(dedent`\
           ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
           In the room (${room}):
           ${agentJsons.length > 0 ?
@@ -1010,13 +999,8 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
         }
         case 'log': {
           if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // renderPrompt();
             const { text } = args;
             log(text);
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
           }
           break;
         }
@@ -1101,14 +1085,7 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
           break;
         }
         default: {
-          // if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // renderPrompt();
-            log(`${name}: ${JSON.stringify(message)}`);
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
-          // }
+          log(`${name}: ${JSON.stringify(message)}`);
           break;
         }
       }
@@ -1124,37 +1101,23 @@ const connectMultiplayer = async ({ room, anonymous, media, debug }) => {
   };
   _bindMultiplayerChat();
 
-  // console.log('update realms keys 1');
   await realms.updateRealmsKeys({
     realmsKeys: [room],
     rootRealmKey: room,
   });
-  // console.log('update realms keys 2');
 
   return {
     userAsset,
     realms,
-    playersMap,
     typingMap,
     speakerMap,
   };
 };
-/* const nudge = async (realms, targetPlayerId) => {
-  const o = {
-    method: 'nudge',
-    args: {
-      targetPlayerId,
-    },
-  };
-  await realms.sendChatMessage(o);
-}; */
 const startMultiplayerListener = ({
   userAsset,
   realms,
-  playersMap,
   typingMap,
   speakerMap,
-  // local,
   startRepl,
 }) => {
   const getPrompt = () => {
@@ -1200,15 +1163,6 @@ const startMultiplayerListener = ({
 
   let replServer = null;
   if (startRepl) {
-    /* const ensureJwt = (() => {
-      let jwtPromise = null;
-      return () => {
-        if (jwtPromise === null) {
-          jwtPromise = getLoginJwt();
-        }
-        return jwtPromise;
-      };
-    })(); */
     const getDoc = () => {
       const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
       const { networkedCrdtClient } = headRealm;
@@ -1519,7 +1473,7 @@ const connect = async (args) => {
 
   if (room) {
     // set up the chat
-    const { userAsset, realms, playersMap, typingMap, speakerMap } =
+    const { userAsset, realms, typingMap, speakerMap } =
       await connectMultiplayer({
         room,
         media,
@@ -1536,20 +1490,11 @@ const connect = async (args) => {
       startMultiplayerListener({
         userAsset,
         realms,
-        playersMap,
         typingMap,
         speakerMap,
         startRepl: true,
       });
     }
-
-    return {
-      userAsset,
-      realms,
-      playersMap,
-      typingMap,
-      speakerMap,
-    };
   } else {
     console.log('no room name provided');
     process.exit(1);
@@ -1633,21 +1578,27 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    for (const agentSpec of agentSpecs) {
-      if (agentSpec.directory) {
-        const cp = await startDevServer({
-          ...agentSpec,
-          debug,
-        });
-      }
-    }
+    const localRuntimePromises = agentSpecs
+      .map(async (agentSpec) => {
+        if (agentSpec.directory) {
+          const runtime = new ReactAgentsLocalRuntime(agentSpec);
+          await runtime.start({
+            debug,
+          });
+          return runtime;
+        } else {
+          return null;
+        }
+      })
+      .filter(Boolean);
+    const runtimes = await Promise.all(localRuntimePromises);
 
     // wait for agents to join the multiplayer room
     await Promise.all(
       agentSpecs.map(async (agentSpec) => {
         await join({
           _: [agentSpec.ref, room],
-        }, agentSpec.portIndex);
+        });
       }),
     );
 
@@ -1705,7 +1656,7 @@ const logs = async (args) => {
     process.exit(1);
   }
 };
-const listen = async (args) => {
+/* const listen = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const dev = !!args.dev;
   const debug = !!args.debug;
@@ -1761,7 +1712,7 @@ const listen = async (args) => {
       }
     },
   };
-};
+}; */
 // XXX rename command to charge or refill
 const fund = async (args) => {
   const local = !!args.local;
@@ -2173,22 +2124,16 @@ const test = async (args) => {
     const room = makeRoomName();
 
     for (const agentSpec of agentSpecs) {
-      // start the dev server
-      let cp = null;
-      {
-        if (agentSpec.directory) {
-          cp = await startDevServer({
-            ...agentSpec,
-            debug,
-          });
-        }
-      }
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
 
       // join
       {
         await join({
           _: [agentSpec.ref, room],
-        }, agentSpec.portIndex);
+        });
       }
 
       // run the tests
@@ -2196,9 +2141,7 @@ const test = async (args) => {
         await runJest(agentSpec.directory);
       }
 
-      if (cp) {
-        cp.kill('SIGTERM');
-      }
+      runtime.terminate();
     }
   } else {
     console.log('not logged in');
@@ -2698,34 +2641,23 @@ const rm = async (args) => {
     process.exit(1);
   }
 };
-const join = async (args, index) => {
+const join = async (args) => {
   const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
-    const _joinAgent = async (agentSpec, room, portIndex) => {
-      const u = `${getAgentSpecHost(agentSpec, portIndex)}/join`;
-      const joinReq = await fetch(u, {
-        method: 'POST',
-        body: JSON.stringify({
-          room,
+    if (room) {
+      const agentSpec = agentSpecs[0];
+      const u = `${getAgentSpecHost(agentSpec)}`;
+      const agent = new ReactAgentsClient(u);
+      try {
+        await agent.join(room, {
           only: true,
-        }),
-      });
-      if (joinReq.ok) {
-        const joinJson = await joinReq.json();
-        // console.log('join json', joinJson);
-      } else {
-        const text = await joinReq.text();
-        console.warn(
-          'failed to join, status code: ' + joinReq.status + ': ' + text,
-        );
+        });
+      } catch (err) {
+        console.warn('join error', err);
         process.exit(1);
       }
-    };
-
-    if (room) {
-      return await _joinAgent(agentSpecs[0], room, index);
     } else {
       console.log('no room name provided');
       process.exit(1);
@@ -3563,34 +3495,6 @@ const main = async () => {
   //     });
   //   })
   //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
-  // program
-  //   .command('connect')
-  //   .description(`Connect to a multiplayer room`)
-  //   .argument(`<room>`, `Name of the room to join`)
-  //   .option(
-  //     `-l, --local`,
-  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-  //   )
-  //   .option(
-  //     `-d, --dev`,
-  //     `Use the local development guid instead of your account guid`,
-  //   )
-  //   .option(`-g, --debug`, `Enable debug logging`)
-  //   .action(async (room = '', opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       if (typeof room === 'string') {
-  //         args = {
-  //           _: [room],
-  //           ...opts,
-  //         };
-  //         await connect(args);
-  //       } else {
-  //         console.warn(`invalid arguments: ${room}`);
-  //       }
-  //     });
-  //   });
   // program
   //   .command('logs')
   //   .description(`Stream an agent's logs`)

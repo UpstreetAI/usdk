@@ -26,7 +26,7 @@ import {
   makePromise,
 } from '../util/util.mjs';
 import { Player } from './player';
-import { NetworkRealms } from '../lib/multiplayer/public/network-realms.mjs';
+import { NetworkRealms } from 'react-agents-client/packages/multiplayer/public/network-realms.mjs';
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
