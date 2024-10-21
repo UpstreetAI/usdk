@@ -985,7 +985,7 @@ const connectBrowser = ({
   open(`${chatEndpointUrl}/rooms/${room}`)
     .catch( console.error );
 };
-const connectRepl = ({
+const connectRepl = async ({
   profile,
   realms,
   typingMap,
