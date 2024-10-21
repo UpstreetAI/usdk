@@ -117,6 +117,7 @@ import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { completer, extractTaggedUsers } from './lib/tagging.mjs';
+import readline from 'readline';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1165,42 +1166,52 @@ const startMultiplayerListener = ({
   startRepl,
   playersMap,
 }) => {
+  let rl;
+  let currentPrompt = '';
+
   const getPrompt = () => {
     const name = userAsset.name;
-
+  
     let s = `${name} (you): `;
     
     // typing
     const tm = typingMap.getMap();
     const specs = Array.from(tm.values()).filter((spec) => spec.typing);
+
     if (specs.length > 0) {
       const names = specs.map((spec) => spec.name);
       const typingLine = `[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...] `;
-      s = typingLine + s;
+      s = typingLine;
     }
-
+  
     // speaking
     const localSpeaking = speakerMap.getLocal();
     if (localSpeaking) {
       s = `[🎤] ` + s;
     }
 
+    // Use displayStyledMessage to format the prompt
     return s;
   };
   const updatePrompt = () => {
-    replServer.setPrompt(getPrompt());
+    currentPrompt = getPrompt();
+    if (rl) {
+      rl.setPrompt(currentPrompt);
+    }
   };
   const renderPrompt = () => {
-    replServer.displayPrompt(true);
+    if (rl) {
+      rl.prompt(true);
+    }
   };
   typingMap.addEventListener('typingchange', (e) => {
-    if (replServer) {
+    if (rl) {
       updatePrompt();
       renderPrompt();
     }
   });
   speakerMap.addEventListener('localspeakingchange', (e) => {
-    if (replServer) {
+    if (rl) {
       updatePrompt();
       renderPrompt();
     }
@@ -1425,23 +1436,104 @@ const startMultiplayerListener = ({
       await realms.sendChatMessage(messagePayload);
     };
 
-    replServer = repl.start({
-      prompt: getPrompt(),
-      completer: (line) => completer(line, playersMap),
-      eval: async (cmd, context, filename, callback) => {
-        let error = null;
-        try {
-          cmd = cmd.replace(/;?\s*$/, '');
+    
 
-          if (cmd) {
+    const createInterface = () => {
+      rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+        completer: (line) => completer(line, playersMap),
+      });
+    }
+
+    createInterface();
+    // replServer = repl.start({
+    //   // prompt: getPrompt(),
+    //   completer: (line) => completer(line, playersMap),
+    //   eval: async (cmd, context, filename, callback) => {
+    //     let error = null;
+    //     try {
+    //       cmd = cmd.replace(/;?\s*$/, '');
+
+    //       if (cmd) {
+    //         const cmdSplit = cmd.split(/\s+/);
+    //         const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+    //         if (commandMatch) {
+    //           const command = commandMatch ? commandMatch[1] : null;
+    //           switch (command) {
+    //             case 'get': {
+    //               const key = cmdSplit[1];
+
+    //               const doc = getDoc();
+    //               if (key) {
+    //                 const text = doc.getText(key);
+    //                 const s = text.toString();
+    //                 console.log(s);
+    //               } else {
+    //                 const j = doc.toJSON();
+    //                 console.log(j);
+    //               }
+    //               break;
+    //             }
+    //             case 'set': {
+    //               const key = cmdSplit[1];
+    //               const value = cmdSplit[2];
+
+    //               if (key && value) {
+    //                 const doc = getDoc();
+    //                 doc.transact(() => {
+    //                   const text = doc.getText(key);
+    //                   text.delete(0, text.length);
+    //                   text.insert(0, value);
+    //                 });
+    //               } else {
+    //                 throw new Error('expected 2 arguments');
+    //               }
+    //               break;
+    //             }
+    //             case 'mic': {
+    //               toggleMic();
+    //               break;
+    //             }
+    //             case 'cam': {
+    //               toggleCam();
+    //               break;
+    //             }
+    //             case 'screen': {
+    //               toggleScreen();
+    //               break;
+    //             }
+    //             default: {
+    //               console.log('unknown command', command);
+    //               break;
+    //             }
+    //           }
+    //         } else {
+    //           const markdownText = convertToMarkdown(cmd, playersMap);
+    //           const taggedUserIds = extractTaggedUsers(markdownText, playersMap);
+    //           await sendChatMessage(cmd, taggedUserIds);
+    //           displayStyledMessage(userAsset.name, cmd); // Display the styled message
+    //         }
+    //       }
+    //     } catch (err) {
+    //       error = err;
+    //     }
+    //     callback(error);
+    //   },
+    //   ignoreUndefined: true,
+    // });
+    const processInput = () => {
+      updatePrompt();
+      rl.question(currentPrompt, async (cmd) => {
+        if (cmd.trim() !== '') {
+          try {
             const cmdSplit = cmd.split(/\s+/);
             const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
             if (commandMatch) {
-              const command = commandMatch ? commandMatch[1] : null;
+              const command = commandMatch[1];
               switch (command) {
                 case 'get': {
                   const key = cmdSplit[1];
-
                   const doc = getDoc();
                   if (key) {
                     const text = doc.getText(key);
@@ -1456,7 +1548,6 @@ const startMultiplayerListener = ({
                 case 'set': {
                   const key = cmdSplit[1];
                   const value = cmdSplit[2];
-
                   if (key && value) {
                     const doc = getDoc();
                     doc.transact(() => {
@@ -1490,15 +1581,17 @@ const startMultiplayerListener = ({
               const markdownText = convertToMarkdown(cmd, playersMap);
               const taggedUserIds = extractTaggedUsers(markdownText, playersMap);
               await sendChatMessage(cmd, taggedUserIds);
+              displayStyledMessage(userAsset.name, cmd);
             }
+          } catch (err) {
+            console.error(err);
           }
-        } catch (err) {
-          error = err;
         }
-        callback(error);
-      },
-      ignoreUndefined: true,
-    });
+        processInput(); // Continue the input loop
+      });
+    }
+
+    processInput();
   }
   const exit = (e) => {
     process.exit(0);
