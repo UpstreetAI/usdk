@@ -6,7 +6,7 @@ import {
   uint8ArrayToBase64,
   base64ToUint8Array,
 } from '../util/util.mjs';
-import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
+import { zbdecode, zbencode } from 'zjs/encoding.mjs';
 
 export class Kv<T> {
   #agent: ActiveAgentObject;

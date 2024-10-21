@@ -1,9 +1,9 @@
 import {UPDATE_METHODS} from '../update-types.mjs';
-import {handlesMethod} from './networked-video-client-utils.mjs';
-import {parseUpdateObject, makeId, makePromise} from '../util.mjs';
-import {zbencode} from '../../../zjs/encoding.mjs';
+import {parseUpdateObject, makeId} from '../util.mjs';
+import {zbencode} from 'zjs/encoding.mjs';
+import {handlesMethod} from './networked-audio-client-utils.mjs';
 
-export class NetworkedVideoClient extends EventTarget {
+export class NetworkedAudioClient extends EventTarget {
   constructor({
     playerId = makeId(),
   }) {
@@ -13,26 +13,26 @@ export class NetworkedVideoClient extends EventTarget {
 
     this.ws = null;
 
-    this.videoSourceCleanups = new Map(); // playerId:streamId -> function
+    this.audioSourceCleanups = new Map(); // playerId:streamId -> function
   }
 
-  addVideoSource(playableVideoStream) {
-    // console.log('add video source', new Error().stack);
+  addAudioSource(playableAudioStream) {
+    // console.log('add audio source', new Error().stack);
 
     const {
       id,
       // output,
       type,
       disposition,
-    } = playableVideoStream;
+    } = playableAudioStream;
     if (typeof id !== 'string') {
-      throw new Error('video source id must be a string');
+      throw new Error('audio source id must be a string');
     }
     if (typeof type !== 'string') {
-      throw new Error('video source type must be a string');
+      throw new Error('audio source type must be a string');
     }
     if (typeof disposition !== 'string') {
-      throw new Error('video source disposition must be a string');
+      throw new Error('audio source disposition must be a string');
     }
 
     // console.log('send start', [
@@ -42,7 +42,7 @@ export class NetworkedVideoClient extends EventTarget {
     //   disposition,
     // ]);
     this.ws.send(zbencode({
-      method: UPDATE_METHODS.VIDEO_START,
+      method: UPDATE_METHODS.AUDIO_START,
       args: [
         this.playerId,
         id,
@@ -54,19 +54,19 @@ export class NetworkedVideoClient extends EventTarget {
     // pump the reader
     let live = true;
     const finishPromise = (async () => {
-      for await (const data of playableVideoStream) {
+      for await (const chunk of playableAudioStream) {
         if (live) {
-          console.log('send video', [
-            this.playerId,
-            id,
-            data,
-          ]);
+          // console.log('send audio', [
+          //   this.playerId,
+          //   id,
+          //   chunk,
+          // ]);
           this.ws.send(zbencode({
-            method: UPDATE_METHODS.VIDEO,
+            method: UPDATE_METHODS.AUDIO,
             args: [
               this.playerId,
               id,
-              data,
+              chunk,
             ],
           }));
         } else {
@@ -84,25 +84,25 @@ export class NetworkedVideoClient extends EventTarget {
       //   id,
       // ]);
       this.ws.send(zbencode({
-        method: UPDATE_METHODS.VIDEO_END,
+        method: UPDATE_METHODS.AUDIO_END,
         args: [
           this.playerId,
           id,
         ],
       }));
     };
-    this.videoSourceCleanups.set(id, cleanup);
+    this.audioSourceCleanups.set(id, cleanup);
 
     return {
       waitForFinish: () => finishPromise,
     };
   }
 
-  removeVideoSource(readableVideoStream) {
-    // console.log('remove video source');
-    const cleanupFn = this.videoSourceCleanups.get(readableVideoStream.id);
+  removeAudioSource(readableAudioStream) {
+    // console.log('remove audio source');
+    const cleanupFn = this.audioSourceCleanups.get(readableAudioStream.id);
     cleanupFn();
-    this.videoSourceCleanups.delete(readableVideoStream.id);
+    this.audioSourceCleanups.delete(readableAudioStream.id);
   }
 
   async connect(ws) {
@@ -145,25 +145,26 @@ export class NetworkedVideoClient extends EventTarget {
       }
     });
   }
+
   handleUpdateObject(updateObject) {
     const {method, args} = updateObject;
-    // console.log('video update object', {method, args});
-    if (method === UPDATE_METHODS.VIDEO) {
-      // console.log('got video data', {method, args});
+    // console.log('audio update object', {method, args});
+    if (method === UPDATE_METHODS.AUDIO) {
+      // console.log('got irc chat', {method, args});
       const [
         playerId,
         streamId,
         data,
       ] = args;
 
-      this.dispatchEvent(new MessageEvent('video', {
+      this.dispatchEvent(new MessageEvent('audio', {
         data: {
           playerId,
           streamId,
           data,
         },
       }));
-    } else if (method === UPDATE_METHODS.VIDEO_START) {
+    } else if (method === UPDATE_METHODS.AUDIO_START) {
       const [
         playerId,
         streamId,
@@ -171,7 +172,7 @@ export class NetworkedVideoClient extends EventTarget {
         disposition,
       ] = args;
 
-      this.dispatchEvent(new MessageEvent('videostart', {
+      this.dispatchEvent(new MessageEvent('audiostart', {
         data: {
           playerId,
           streamId,
@@ -179,21 +180,21 @@ export class NetworkedVideoClient extends EventTarget {
           disposition,
         },
       }));
-    } else if (method === UPDATE_METHODS.VIDEO_END) {
+    } else if (method === UPDATE_METHODS.AUDIO_END) {
       const [
         playerId,
         streamId,
       ] = args;
 
-      this.dispatchEvent(new MessageEvent('videoend', {
+      this.dispatchEvent(new MessageEvent('audioend', {
         data: {
           playerId,
           streamId,
         },
       }));
     } else {
-      console.warn('unhandled video method: ' + method, updateObject);
-      throw new Error('unhandled video method: ' + method);
+      console.warn('unhandled audio method: ' + method, updateObject);
+      throw new Error('unhandled audio method: ' + method);
     }
   }
 }
