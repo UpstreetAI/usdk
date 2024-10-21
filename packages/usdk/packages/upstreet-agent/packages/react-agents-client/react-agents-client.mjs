@@ -18,6 +18,9 @@ import {
   TypingMap,
   SpeakerMap,
 } from './util/maps.mjs';
+import {
+  Player,
+} from './util/player.mjs';
 
 export class ReactAgentsClient {
   url;
