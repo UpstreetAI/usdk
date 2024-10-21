@@ -1,7 +1,7 @@
 import {
   WHIPClient,
 } from '@eyevinn/whip-web-client';
-import tmi from 'tmi.js';
+// import tmi from 'tmi.js';
 import {
   // discordBotEndpoint,
   twitchWhipEndpoint,
