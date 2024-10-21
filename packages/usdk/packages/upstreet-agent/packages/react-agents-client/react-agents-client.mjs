@@ -18,6 +18,7 @@ import {
   Player,
 } from './util/player.mjs';
 import {
+  PlayersMap,
   TypingMap,
   SpeakerMap,
 } from './util/maps.mjs';
@@ -97,7 +98,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       endpointUrl: multiplayerEndpointUrl,
       playerId: userId,
     });
-    const playersMap = new Map(); // Map<string, Player>
+    const playersMap = new PlayersMap();
     const typingMap = new TypingMap();
     const speakerMap = new SpeakerMap();
   
@@ -113,7 +114,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         (async () => {
           const realmKey = e.data.rootRealmKey;
   
-          const existingAgentIds = Array.from(playersMap.keys());
+          const existingAgentIds = Array.from(playersMap.getMap().keys());
           if (existingAgentIds.includes(userId)) {
             this.log('your character is already in the room! disconnecting.');
             process.exit(1);
@@ -143,7 +144,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   
           connected = true;
   
-          const agentJsons = Array.from(playersMap.values()).map(
+          const agentJsons = Array.from(playersMap.getMap().values()).map(
             (player) => player.playerSpec,
           );
           this.log(dedent`\
@@ -174,7 +175,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }
   
         const remotePlayer = new Player(playerId);
-        playersMap.set(playerId, remotePlayer);
+        playersMap.add(playerId, remotePlayer);
   
         // apply initial remote player state
         {
@@ -202,7 +203,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         // remove remote player
         const remotePlayer = playersMap.get(playerId);
         if (remotePlayer) {
-          playersMap.delete(playerId);
+          playersMap.remove(playerId);
         } else {
           this.log('remote player not found', playerId);
           throw new Error('remote player not found');
