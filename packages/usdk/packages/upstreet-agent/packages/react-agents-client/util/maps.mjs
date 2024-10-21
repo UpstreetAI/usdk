@@ -1,3 +1,43 @@
+export class PlayersMap extends EventTarget {
+  #internalMap = new Map(); // playerId: string -> Player
+  getMap() {
+    return this.#internalMap;
+  }
+  get(playerId) {
+    return this.#internalMap.get(playerId);
+  }
+  add(playerId, player) {
+    this.#internalMap.set(playerId, player);
+    this.dispatchEvent(new MessageEvent('playerjoin', {
+      data: {
+        player,
+      },
+    }));
+  }
+  remove(playerId) {
+    const player = this.#internalMap.get(playerId);
+    if (player) {
+      this.#internalMap.delete(playerId);
+      this.dispatchEvent(new MessageEvent('playerleave', {
+        data: {
+          player,
+        },
+      }));
+    } else {
+      console.error(`Player ${playerId} not found in map`);
+    }
+  }
+  clear() {
+    for (const [playerId, player] of this.#internalMap) {
+      this.dispatchEvent(new MessageEvent('playerleave', {
+        data: {
+          player,
+        },
+      }));
+    }
+    this.#internalMap.clear();
+  }
+}
 export class TypingMap extends EventTarget {
   #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
   getMap() {
