@@ -116,6 +116,7 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { extractTaggedUserIds, completer } from './lib/tagging.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1358,67 +1359,10 @@ const startMultiplayerListener = ({
       });
     };
 
-    const getAllUsernames = () => {
-      if (!playersMap) {
-        return [];
-      }
-      const usernames = [];
-      for (let [_, user] of playersMap) {
-        usernames.push(user.playerSpec.name || user.playerSpec.agent.name);
-      }
-      return usernames;
-    };
-  
-    const completer = (line) => {
-      const lastWord = line.split(' ').pop();
-      if (lastWord.startsWith('@')) {
-        const partialName = lastWord.slice(1).toLowerCase();
-        const usernames = getAllUsernames();
-        const matches = usernames.filter(name => 
-          name.toLowerCase().startsWith(partialName)
-        );
-        
-        const completions = matches.map(name => '@' + name.replace(/\s+/g, ''));
-        return [completions, lastWord];
-      }
-      return [[], line];
-    };
-  
-    const getUserByName = (name) => {
-      for (let [_, user] of playersMap) {
-        const userName = user.playerSpec.name || user.playerSpec.agent.name;
-        if (userName.toLowerCase() === name.toLowerCase()) {
-          return user;
-        }
-      }
-      return null;
-    };
-  
-    const extractTaggedUserIds = (text) => {
-      const tagMatches = text.match(/@(\S+)/g);
-      if (tagMatches) {
-        const taggedUserIds = [];
-        for (const tag of tagMatches) {
-          const taggedUserName = tag.slice(1);
-          const originalName = getAllUsernames().find(name => 
-            name.toLowerCase().replace(/\s+/g, '') === taggedUserName.toLowerCase()
-          );
-          if (originalName) {
-            const taggedUser = getUserByName(originalName);
-            if (taggedUser) {
-              taggedUserIds.push(taggedUser.playerSpec.id ?? taggedUser.playerSpec.agent.id);
-            }
-          }
-        }
-        return taggedUserIds.length > 0 ? taggedUserIds : null;
-      }
-      return null;
-    };
-
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
       const name = userAsset.name;
-      const taggedUserIds = extractTaggedUserIds(text);
+      const taggedUserIds = extractTaggedUserIds(text, playersMap);
       const messagePayload = {
         method: 'say',
         userId,
@@ -1436,7 +1380,7 @@ const startMultiplayerListener = ({
 
     replServer = repl.start({
       prompt: getPrompt(),
-      completer: completer,
+      completer: (line) => completer(line, playersMap),
       eval: async (cmd, context, filename, callback) => {
         let error = null;
         try {
