@@ -113,6 +113,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       endpointUrl: multiplayerEndpointUrl,
       playerId: userId,
     });
+    // XXX make these member variables
     const playersMap = new PlayersMap();
     const typingMap = new TypingMap();
     const speakerMap = new SpeakerMap();
@@ -185,25 +186,18 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     const _trackRemotePlayers = () => {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
+        const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
+          // XXX this should always be true
           this.log('remote player joined:', playerId);
         }
   
-        const remotePlayer = new Player(playerId);
+        const remotePlayer = new Player(playerId, playerSpec);
         playersMap.add(playerId, remotePlayer);
-  
-        // apply initial remote player state
-        {
-          const playerSpec = player.getKeyValue('playerSpec');
-          if (playerSpec) {
-            remotePlayer.setPlayerSpec(playerSpec);
-          }
-        }
   
         // Handle remote player state updates
         player.addEventListener('update', e => {
           const { key, val } = e.data;
-  
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
           }
@@ -212,6 +206,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
+          // XXX this should always be true
           this.log('remote player left:', playerId);
         }
   
@@ -236,6 +231,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     _trackRemotePlayers();
   
     const _bindMultiplayerChat = () => {
+      // XXX break this out externally
       const onchat = (e) => {
         const { message } = e.data;
         const { userId: messageUserId, name, method, args } = message;
