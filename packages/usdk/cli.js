@@ -115,7 +115,6 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
-import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -775,29 +774,27 @@ const connectMultiplayer = async ({ room, media, debug }) => {
           process.exit(1);
         }
 
-        if (!anonymous) {
-          // Initialize network realms player.
-          const localPlayer = new Player(userId, {
-            id: userId,
-            name,
-            capabilities: [],
-            playerType: PlayerType.Human,
-          });
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.playerSpec,
-            );
-          };
-          _pushInitialPlayer();
-        }
-
+        // Initialize network realms player.
+        const localPlayer = new Player(userId, {
+          id: userId,
+          name,
+          capabilities: [],
+          playerType: PlayerType.Human,
+        });
+        const _pushInitialPlayer = () => {
+          realms.localPlayer.initializePlayer(
+            {
+              realmKey,
+            },
+            {},
+          );
+          realms.localPlayer.setKeyValue(
+            'playerSpec',
+            localPlayer.playerSpec,
+          );
+        };
+        _pushInitialPlayer();
+      
         connected = true;
 
         const agentJsons = Array.from(playersMap.values()).map(
