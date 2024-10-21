@@ -1357,61 +1357,63 @@ const startMultiplayerListener = ({
         }
       });
     };
+
+    const getAllUsernames = () => {
+      if (!playersMap) {
+        return [];
+      }
+      const usernames = [];
+      for (let [_, user] of playersMap) {
+        usernames.push(user.playerSpec.name || user.playerSpec.agent.name);
+      }
+      return usernames;
+    };
+  
+    const completer = (line) => {
+      const lastWord = line.split(' ').pop();
+      if (lastWord.startsWith('@')) {
+        const partialName = lastWord.slice(1).toLowerCase();
+        const usernames = getAllUsernames();
+        const matches = usernames.filter(name => 
+          name.toLowerCase().startsWith(partialName)
+        );
+        
+        const completions = matches.map(name => '@' + name.replace(/\s+/g, ''));
+        return [completions, lastWord];
+      }
+      return [[], line];
+    };
+  
     const getUserByName = (name) => {
-      for (let [id, user] of playersMap) {
-        if (user.playerSpec.name === name || user.playerSpec.agent.name === name) {
+      for (let [_, user] of playersMap) {
+        const userName = user.playerSpec.name || user.playerSpec.agent.name;
+        if (userName.toLowerCase() === name.toLowerCase()) {
           return user;
         }
       }
       return null;
     };
-
-    /**
-     * Extracts user IDs from a given text if the text contains tagged usernames.
-     * 
-     * This function searches for patterns in the text where usernames are tagged 
-     * using the format `#user name#`. It then retrieves the corresponding user IDs 
-     * for these tagged usernames.
-     * 
-     * @param {string} text - A text input.
-     * @returns {Array<string>|null} - An array of user IDs 
-     * if tagged usernames are found, or null if no tagged usernames are present.
-     * 
-     * @example
-     * const text = "Hello #Subhani# and #Luna Carry#!";
-     * const userIds = extractTaggedUserIds(text);
-     * console.log(userIds); // Output might be: ['12345', '67890']
-     */
+  
     const extractTaggedUserIds = (text) => {
-      const tagMatches = text.match(/#([^#]+)#/g);
+      const tagMatches = text.match(/@(\S+)/g);
       if (tagMatches) {
         const taggedUserIds = [];
         for (const tag of tagMatches) {
-          const taggedUserName = tag.replace(/#/g, '').trim();
-          const taggedUser = getUserByName(taggedUserName);
-          if (taggedUser) {
-            taggedUserIds.push(taggedUser.playerSpec.id ?? taggedUser.playerSpec.agent.id);
+          const taggedUserName = tag.slice(1);
+          const originalName = getAllUsernames().find(name => 
+            name.toLowerCase().replace(/\s+/g, '') === taggedUserName.toLowerCase()
+          );
+          if (originalName) {
+            const taggedUser = getUserByName(originalName);
+            if (taggedUser) {
+              taggedUserIds.push(taggedUser.playerSpec.id ?? taggedUser.playerSpec.agent.id);
+            }
           }
         }
-        return taggedUserIds;
+        return taggedUserIds.length > 0 ? taggedUserIds : null;
       }
       return null;
     };
-    
-    // we can use agent names as is only since they are unique as well
-    // const extractTaggedUserNames = (text) => {
-    //   const tagMatches = text.match(/#([^#]+)#/g);
-    //   if (tagMatches) {
-    //     const taggedUserNames = [];
-    //     for (const tag of tagMatches) {
-    //       const taggedUserName = tag.replace(/#/g, '').trim();
-    //       console.log('tagged user name', taggedUserName);
-    //       taggedUserNames.push(taggedUserName);
-    //     }
-    //     return taggedUserNames;
-    //   }
-    //   return [];
-    // };
 
     const sendChatMessage = async (text) => {
       const userId = userAsset.id;
@@ -1434,6 +1436,7 @@ const startMultiplayerListener = ({
 
     replServer = repl.start({
       prompt: getPrompt(),
+      completer: completer,
       eval: async (cmd, context, filename, callback) => {
         let error = null;
         try {
@@ -1532,7 +1535,7 @@ const connect = async (args) => {
 
   if (room) {
     // set up the chat
-    const { userAsset, realms, typingMap, speakerMap } =
+    const { userAsset, realms, typingMap, speakerMap, playersMap } =
       await connectMultiplayer({
         room,
         media,
@@ -1552,6 +1555,7 @@ const connect = async (args) => {
         typingMap,
         speakerMap,
         startRepl: true,
+        playersMap,
       });
     }
   } else {
@@ -1637,29 +1641,23 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const localRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(localRuntimePromises);
+    const runtimes = [];
+    for (const agentSpec of agentSpecs) {
+      if (agentSpec.directory) {
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
+      runtimes.push(runtime);
+      }
+    }
 
     // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec, room],
-        });
-      }),
-    );
+    for (const agentSpec of agentSpecs) {
+      await join({
+      _: [agentSpec, room],
+      });
+    }
 
     // connect to the chat
     await connect({
