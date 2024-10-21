@@ -55,13 +55,11 @@ export class ReactAgentsClient {
     profile,
     debug = false,
   } = {}) {
-    const c = new ReactAgentsMultiplayerConnection({
+    return new ReactAgentsMultiplayerConnection({
       room,
       profile,
       debug,
     });
-    c.connect();
-    return c;
   }
 }
 
@@ -76,6 +74,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   room;
   profile;
   debug;
+  connectPromise;
   constructor({
     room,
     profile,
@@ -86,6 +85,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     this.room = room;
     this.profile = profile;
     this.debug = debug;
+
+    this.connectPromise = this.connect();
+    // this.connectPromise.catch(err => {
+    //   this.dispatchEvent(new MessageEvent('error', {
+    //     data: {
+    //       error: err,
+    //     },
+    //   }));
+    // });
   }
   log(...args) {
     this.dispatchEvent(new MessageEvent('log', {
@@ -390,5 +398,8 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     //   typingMap,
     //   speakerMap,
     // };
+  }
+  async waitForConnect() {
+    return await this.connectPromise;
   }
 }

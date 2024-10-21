@@ -1085,7 +1085,9 @@ const connect = async (args) => {
     const u = `${getAgentSpecHost(agentSpec)}`;
     const agentClient = new ReactAgentsClient(u);
     const multiplayerConnection = agentClient.connect({
+      room,
       profile,
+      debug,
     });
     const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
     multiplayerConnection.addEventListener('log', (e) => {
