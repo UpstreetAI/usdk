@@ -12,9 +12,6 @@ import open from 'open';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
-import Jimp from 'jimp';
-import dedent from 'dedent';
-// import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -27,18 +24,13 @@ import { QueueManager } from './packages/upstreet-agent/packages/react-agents/ut
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
-  getAgentName,
   getAgentPublicUrl,
   getCloudAgentHost,
-  ensureAgentJsonDefaults,
 } from './packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   localPort,
   callbackPort,
 } from './util/ports.mjs';
-import {
-  devServerPort,
-} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
 import {
   getLocalAgentHost,
 } from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
@@ -58,15 +50,12 @@ import {
 import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
-  multiplayerEndpointUrl,
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
@@ -101,9 +90,6 @@ import {
 import {
   tryReadFile,
 } from './lib/file.mjs';
-import {
-  consoleImageWidth,
-} from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
@@ -141,91 +127,7 @@ const eraseLine = '\x1b[2K\r';
 
 //
 
-let logFn = (...args) => {
-  console.log(...args);
-};
-const setLogFn = (_logFn) => {
-  logFn = _logFn;
-};
-const log = (...args) => {
-  logFn(...args);
-};
-
-//
-
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
-class TypingMap extends EventTarget {
-  #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
-  getMap() {
-    return this.#internalMap;
-  }
-  set(playerId, spec) {
-    this.#internalMap.set(playerId, spec);
-    this.dispatchEvent(new MessageEvent('typingchange', {
-      data: spec,
-    }));
-  }
-  clear() {
-    for (const [playerId, spec] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('typingchange', {
-        data: spec,
-      }));
-    }
-    this.#internalMap.clear();
-  }
-}
-class SpeakerMap extends EventTarget {
-  #internalMap = new Map(); // playerId: string -> boolean
-  #localSpeaking = false;
-  #lastSpeakers = false;
-  getMap() {
-    return this.#internalMap;
-  }
-  set(playerId, speaking) {
-    this.#internalMap.set(playerId, speaking);
-    this.dispatchEvent(new MessageEvent('speakingchange', {
-      data: {
-        playerId,
-        speaking,
-      },
-    }));
-
-    const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
-    if (currentSpeakers && !this.#lastSpeakers) {
-      this.dispatchEvent(new MessageEvent('playingchange', {
-        data: true,
-      }));
-    } else if (!currentSpeakers && this.#lastSpeakers) {
-      this.dispatchEvent(new MessageEvent('playingchange', {
-        data: false,
-      }));
-    }
-    this.#lastSpeakers = currentSpeakers;
-  }
-  getLocal() {
-    return this.#localSpeaking;
-  }
-  setLocal(speaking) {
-    this.#localSpeaking = speaking;
-    this.dispatchEvent(new MessageEvent('localspeakingchange', {
-      data: {
-        speaking,
-      },
-    }));
-  }
-  clear() {
-    for (const [playerId, speaking] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('speakingchange', {
-        data: {
-          playerId,
-          speaking,
-        },
-      }));
-    }
-    this.#internalMap.clear();
-    this.#lastSpeakers = false;
-  }
-}
 
 const defaultCorsHeaders = [
   // {
