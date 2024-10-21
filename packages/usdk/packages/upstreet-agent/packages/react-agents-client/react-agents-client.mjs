@@ -76,7 +76,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     this.url = url;
     this.profile = profile;
   }
-  this.log(...args) {
+  log(...args) {
     this.dispatchEvent(new MessageEvent('log', {
       data: {
         args,
