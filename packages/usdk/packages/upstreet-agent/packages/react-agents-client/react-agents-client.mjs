@@ -376,11 +376,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       rootRealmKey: room,
     });
   
-    return {
-      userAsset: profile,
-      realms,
-      typingMap,
-      speakerMap,
-    };
+    // return {
+    //   userAsset: profile,
+    //   realms,
+    //   typingMap,
+    //   speakerMap,
+    // };
   }
 }
