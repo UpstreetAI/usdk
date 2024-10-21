@@ -44,7 +44,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   };
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
   url;
-  // profile;
+  profile;
   ws;
   constructor({
     url,
@@ -53,9 +53,18 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     super();
 
     this.url = url;
-    // this.profile = profile;
+    this.profile = profile;
   }
-  async connect({ room, profile, debug }) {
+  this.log(...args) {
+    this.dispatchEvent(new MessageEvent('log', {
+      data: {
+        args,
+        logLevel: ReactAgentsMultiplayerConnection.logLevels.info,
+      },
+    }));
+  }
+  async connect({ room, debug }) {
+    const { profile } = this;
     const userId = profile?.id;
     const name = profile?.name;
   
@@ -71,18 +80,18 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     // const virtualWorld = realms.getVirtualWorld();
     const virtualPlayers = realms.getVirtualPlayers();
   
-    // log('waiting for initial connection...');
+    // this.log('waiting for initial connection...');
   
     let connected = false;
     const onConnect = async (e) => {
-      // log('on connect...');
+      // this.log('on connect...');
       e.waitUntil(
         (async () => {
           const realmKey = e.data.rootRealmKey;
   
           const existingAgentIds = Array.from(playersMap.keys());
           if (existingAgentIds.includes(userId)) {
-            log('your character is already in the room! disconnecting.');
+            this.log('your character is already in the room! disconnecting.');
             process.exit(1);
           }
   
@@ -113,7 +122,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           const agentJsons = Array.from(playersMap.values()).map(
             (player) => player.playerSpec,
           );
-          log(dedent`\
+          this.log(dedent`\
             ${profile ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
             In the room (${room}):
             ${agentJsons.length > 0 ?
@@ -137,7 +146,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
         if (connected) {
-          log('remote player joined:', playerId);
+          this.log('remote player joined:', playerId);
         }
   
         const remotePlayer = new Player(playerId);
@@ -163,7 +172,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
-          log('remote player left:', playerId);
+          this.log('remote player left:', playerId);
         }
   
         // remove remote player
@@ -171,7 +180,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         if (remotePlayer) {
           playersMap.delete(playerId);
         } else {
-          log('remote player not found', playerId);
+          this.log('remote player not found', playerId);
           throw new Error('remote player not found');
         }
   
@@ -206,7 +215,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
                 }
                 s += '\n]';
               }
-              log(s);
+              this.log(s);
   
               // read attachments and print them to the console if we can
               if (attachments) {
@@ -237,7 +246,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           case 'log': {
             if (debug) {
               const { text } = args;
-              log(text);
+              this.log(text);
             }
             break;
           }
@@ -247,15 +256,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             break;
           }
           case 'mediaPerception': {
-            log(`[${name} checked an attachment`);
+            this.log(`[${name} checked an attachment`);
             break;
           }
           case 'addMemory': {
-            log(`[${name} will remember that]`);
+            this.log(`[${name} will remember that]`);
             break;
           }
           case 'queryMemories': {
-            log(`[${name} is trying to remember]`);
+            this.log(`[${name} is trying to remember]`);
             break;
           }
           case 'browserAction': {
@@ -285,9 +294,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
                 result,
                 error,
               };
-              log(`[${webbrowserAction.toText(o)}]`);
+              this.log(`[${webbrowserAction.toText(o)}]`);
             }
-            // log(`[${name} checked an attachment`);
+            // this.log(`[${name} checked an attachment`);
             break;
           }
           case 'paymentRequest': {
@@ -310,9 +319,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
               }
             })();
             const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
-            log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
+            this.log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
             // const { amount, currency, url, productName, productDescription, productQuantity } = args;
-            // log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
+            // this.log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
             break;
           }
           case 'nudge':
@@ -322,7 +331,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             break;
           }
           default: {
-            log(`${name}: ${JSON.stringify(message)}`);
+            this.log(`${name}: ${JSON.stringify(message)}`);
             break;
           }
         }
