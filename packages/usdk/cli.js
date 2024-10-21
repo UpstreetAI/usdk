@@ -774,28 +774,26 @@ const connectMultiplayer = async ({ room, media, debug }) => {
           process.exit(1);
         }
 
-        if (!anonymous) {
-          // Initialize network realms player.
-          const localPlayer = new Player(userId, {
-            id: userId,
-            name,
-            capabilities: [],
-            playerType: PlayerType.Human,
-          });
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.playerSpec,
-            );
-          };
-          _pushInitialPlayer();
-        }
+        // Initialize network realms player.
+        const localPlayer = new Player(userId, {
+          id: userId,
+          name,
+          capabilities: [],
+          playerType: PlayerType.Human,
+        });
+        const _pushInitialPlayer = () => {
+          realms.localPlayer.initializePlayer(
+            {
+              realmKey,
+            },
+            {},
+          );
+          realms.localPlayer.setKeyValue(
+            'playerSpec',
+            localPlayer.playerSpec,
+          );
+        };
+        _pushInitialPlayer();
 
         connected = true;
 
@@ -1658,7 +1656,7 @@ const chat = async (args) => {
     await Promise.all(
       agentSpecs.map(async (agentSpec) => {
         await join({
-          _: [agentSpec.ref, room],
+          _: [agentSpec, room],
         });
       }),
     );
@@ -2703,12 +2701,11 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpec = args._[0];
   const room = args._[1] ?? makeRoomName();
 
-  if (agentSpecs.length === 1) {
+  if (agentSpec) {
     if (room) {
-      const agentSpec = agentSpecs[0];
       const u = `${getAgentSpecHost(agentSpec)}`;
       const agent = new ReactAgentsClient(u);
       try {
@@ -2724,7 +2721,7 @@ const join = async (args) => {
       process.exit(1);
     }
   } else {
-    console.log('expected 1 agent argument');
+    console.log('no agent spec provided');
     process.exit(1);
   }
 };
