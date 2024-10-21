@@ -51,12 +51,17 @@ export class ReactAgentsClient {
     }
   }
   connect({
+    room,
     profile,
+    debug = false,
   } = {}) {
-    return new ReactAgentsMultiplayerConnection({
-      url: this.url,
+    const c = new ReactAgentsMultiplayerConnection({
+      room,
       profile,
+      debug,
     });
+    c.connect();
+    return c;
   }
 }
 
@@ -68,17 +73,19 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     debug: 3,
   };
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
-  url;
+  room;
   profile;
-  ws;
+  debug;
   constructor({
-    url,
+    room,
     profile,
+    debug,
   }) {
     super();
 
-    this.url = url;
+    this.room = room;
     this.profile = profile;
+    this.debug = debug;
   }
   log(...args) {
     this.dispatchEvent(new MessageEvent('log', {
@@ -88,8 +95,8 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       },
     }));
   }
-  async connect({ room, debug }) {
-    const { profile } = this;
+  async connect() {
+    const { profile, debug } = this;
     const userId = profile?.id;
     const name = profile?.name;
   
