@@ -1009,6 +1009,7 @@ const connectRepl = async ({
           format: 'i16',
         });
         (async () => {
+          // XXX move this tracking to the react-agents-client
           speakerMap.set(playerId, true);
           try {
             await decodeStream.readable.pipeTo(outputStream);
