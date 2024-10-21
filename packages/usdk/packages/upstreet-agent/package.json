@@ -3,6 +3,7 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/util-format-url": "^3.577.0",
+    "@eyevinn/whip-web-client": "^1.1.2",
     "@supabase/supabase-js": "^2.39.8",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/jest": "^29.5.13",
