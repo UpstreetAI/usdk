@@ -160,6 +160,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   
           connected = true;
   
+          // XXX this logging should be moved out of this class
           const agentJsons = Array.from(playersMap.getMap().values()).map(
             (player) => player.playerSpec,
           );
