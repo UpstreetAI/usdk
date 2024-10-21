@@ -1110,6 +1110,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
     realms,
     typingMap,
     speakerMap,
+    playersMap,
   };
 };
 const startMultiplayerListener = ({
@@ -1118,6 +1119,7 @@ const startMultiplayerListener = ({
   typingMap,
   speakerMap,
   startRepl,
+  playersMap,
 }) => {
   const getPrompt = () => {
     const name = userAsset.name;
