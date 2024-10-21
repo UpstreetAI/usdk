@@ -301,18 +301,6 @@ const getAssetJson = async (supabase, guid) => {
   }
 };
 
-class Player {
-  playerId;
-  playerSpec;
-  constructor(playerId = '', playerSpec = null) {
-    this.playerId = playerId;
-    this.playerSpec = playerSpec;
-  }
-  setPlayerSpec(playerSpec) {
-    this.playerSpec = playerSpec;
-  }
-}
-
 //
 
 const status = async (args) => {
