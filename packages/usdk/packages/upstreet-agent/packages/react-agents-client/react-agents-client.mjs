@@ -391,13 +391,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       realmsKeys: [room],
       rootRealmKey: room,
     });
-  
-    // return {
-    //   userAsset: profile,
-    //   realms,
-    //   typingMap,
-    //   speakerMap,
-    // };
   }
   async waitForConnect() {
     return await this.connectPromise;
