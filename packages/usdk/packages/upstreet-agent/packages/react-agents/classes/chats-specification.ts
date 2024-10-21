@@ -70,7 +70,7 @@ export class ChatsSpecification extends EventTarget {
             endpointUrl,
           };
         }) as RoomSpecification[];
-        console.log('initial chat specifications', initialChatSpecifications);
+        // console.log('initial chat specifications', initialChatSpecifications);
         await Promise.all(initialChatSpecifications.map(async (chatSpecification) => {
           const result = await this.#joinInternal(chatSpecification);
           return result;
@@ -125,7 +125,7 @@ export class ChatsSpecification extends EventTarget {
             .single();
 
           if (existing.data) {
-            console.log('chat specification already exists:', existing.data);
+            // console.log('chat specification already exists:', existing.data);
             return;
           }
 
