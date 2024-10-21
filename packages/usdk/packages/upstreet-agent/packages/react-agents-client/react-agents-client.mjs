@@ -15,12 +15,12 @@ import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import {
+  Player,
+} from './util/player.mjs';
+import {
   TypingMap,
   SpeakerMap,
 } from './util/maps.mjs';
-import {
-  Player,
-} from './util/player.mjs';
 
 export class ReactAgentsClient {
   url;
