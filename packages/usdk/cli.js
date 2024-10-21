@@ -631,6 +631,7 @@ const getUserProfile = async () => {
 
   return user;
 };
+// XXX break this out into react-agents-local
 const startMultiplayerRepl = ({
   profile,
   realms,
