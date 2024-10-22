@@ -1,15 +1,8 @@
-import Jimp from 'jimp';
 import {
   multiplayerEndpointUrl,
-} from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
-import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
-import {
-  ImageRenderer,
-} from './packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
-import {
-  consoleImageWidth,
-} from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+} from '../react-agents/util/endpoints.mjs';
+import { NetworkRealms } from './packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
+// import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 import {
   Player,
 } from './util/player.mjs';
