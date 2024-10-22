@@ -1085,7 +1085,7 @@ const connect = async (args) => {
 
   if (room) {
     const profile = await getUserProfile();
-    if (!user) {
+    if (!profile) {
       throw new Error('could not get user profile');
     }
 
