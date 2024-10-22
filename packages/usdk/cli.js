@@ -663,16 +663,12 @@ const startMultiplayerRepl = ({
     replServer.displayPrompt(true);
   };
   typingMap.addEventListener('typingchange', (e) => {
-    if (replServer) {
-      updatePrompt();
-      renderPrompt();
-    }
+    updatePrompt();
+    renderPrompt();
   });
   speakerMap.addEventListener('localspeakingchange', (e) => {
-    if (replServer) {
-      updatePrompt();
-      renderPrompt();
-    }
+    updatePrompt();
+    renderPrompt();
   });
 
   const getDoc = () => {
@@ -957,23 +953,20 @@ const startMultiplayerRepl = ({
     ignoreUndefined: true,
   });
 
-  const exit = (e) => {
+  replServer.on('exit', (e) => {
     process.exit(0);
-  };
-  if (replServer) {
-    replServer.on('exit', exit);
-  }
+  });
 
-  const _bindRealmsLogging = () => {
-    setLogFn((...args) => {
-      process.stdout.write(eraseLine);
-      console.log(...args);
-      if (replServer) {
-        renderPrompt();
-      }
-    });
-  };
-  _bindRealmsLogging();
+  // const _bindRealmsLogging = () => {
+  //   setLogFn((...args) => {
+  //     process.stdout.write(eraseLine);
+  //     console.log(...args);
+  //     renderPrompt();
+  //   });
+  // };
+  // _bindRealmsLogging();
+
+  return replServer;
 };
 const connectBrowser = ({
   room,
@@ -982,13 +975,197 @@ const connectBrowser = ({
     .catch( console.error );
 };
 const connectRepl = async ({
-  profile,
-  realms,
-  typingMap,
-  speakerMap,
-  virtualPlayers,
+  room,
+  debug,
 }) => {
-  startMultiplayerRepl({
+  const profile = await getUserProfile();
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
+
+  let replServer = null;
+
+  // set up the chat
+  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
+    room,
+    profile,
+  });
+  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+  const renderPrompt = () => {
+    replServer && replServer.displayPrompt(true);
+  };
+  const mpLog = (...args) => {
+    process.stdout.write(eraseLine);
+    console.log(...args);
+    renderPrompt();
+  };
+  multiplayerConnection.addEventListener('log', (e) => {
+    const { args, logLevel } = e.data;
+    if (localLogLevel >= logLevel) {
+      mpLog(...args);
+    }
+  });
+  multiplayerConnection.addEventListener('chat', (e) => {
+    const { message } = e.data;
+    const { userId: messageUserId, name, method, args } = message;
+    // console.log('got message', message);
+    const attachments = (message.attachments ?? []).filter(a => !!a.url);
+
+    switch (method) {
+      case 'say': {
+        const { text } = args;
+        if (messageUserId !== profile.id) {
+          let s = `${name}: ${text}`;
+          if (attachments.length > 0) {
+            s += '\n[Attachments:';
+            for (const attachment of attachments) {
+              const { type, url } = attachment;
+              s += `\n  [${type}]: ${url}`;
+            }
+            s += '\n]';
+          }
+          mpLog(s);
+
+          // read attachments and print them to the console if we can
+          if (attachments) {
+            for (const attachment of attachments) {
+              if (attachment.type.startsWith('image/')) {
+                (async () => {
+                  const { url } = attachment;
+
+                  const res = await fetch(url);
+                  const ab = await res.arrayBuffer();
+
+                  const b = Buffer.from(ab);
+                  const jimp = await Jimp.read(b);
+
+                  const imageRenderer = new ImageRenderer();
+                  const {
+                    text: imageText,
+                  } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+                  console.log(`${url}:`);
+                  console.log(imageText);
+                })();
+              }
+            }
+          }
+          }
+        break;
+      }
+      case 'log': {
+        if (debug) {
+          const { text } = args;
+          mpLog(text);
+        }
+        break;
+      }
+      case 'typing': {
+        const { typing } = args;
+        typingMap.set(messageUserId, { userId: messageUserId, name, typing });
+        break;
+      }
+      case 'mediaPerception': {
+        mpLog(`[${name} checked an attachment`);
+        break;
+      }
+      case 'addMemory': {
+        mpLog(`[${name} will remember that]`);
+        break;
+      }
+      case 'queryMemories': {
+        mpLog(`[${name} is trying to remember]`);
+        break;
+      }
+      case 'browserAction': {
+        const {
+          method: method2,
+          args: args2,
+          result,
+          error,
+        } = args;
+        const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
+        if (webbrowserAction) {
+          // get the agent from the player spec
+          const player = playersMap.get(messageUserId);
+          // console.log('got player', player);
+          let agent = player?.playerSpec;
+          // console.log('got agent', agent);
+          if (!agent) {
+            console.warn('no agent for browserAction message user id', messageUserId);
+            // debugger;
+            agent = {};
+          }
+          const o = {
+            // get the agent from the local player spec
+            agent,
+            method: method2,
+            args: args2,
+            result,
+            error,
+          };
+          mpLog(`[${webbrowserAction.toText(o)}]`);
+        }
+        // mpLog(`[${name} checked an attachment`);
+        break;
+      }
+      case 'paymentRequest': {
+        const {
+          type,
+          props,
+        } = args;
+        const {
+          amount,
+          currency,
+          interval,
+          intervalCount,
+        } = props;
+        const price = (() => {
+          const v = amount / 100;
+          if (currency === 'usd') {
+            return `$${v}`;
+          } else {
+            return `${v} ${currency.toUpperCase()}`;
+          }
+        })();
+        const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
+        mpLog(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
+        // const { amount, currency, url, productName, productDescription, productQuantity } = args;
+        // mpLog(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
+        break;
+      }
+      case 'nudge':
+      case 'join':
+      case 'leave': {
+        // nothing
+        break;
+      }
+      default: {
+        mpLog(`${name}: ${JSON.stringify(message)}`);
+        break;
+      }
+    }
+  });
+  await multiplayerConnection.waitForConnect();
+  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
+  const agentJsons = Array.from(playersMap.getMap().values()).map(
+    (player) => player.playerSpec,
+  );
+  mpLog(dedent`\
+    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
+    In the room (${room}):
+    ${agentJsons.length > 0 ?
+      agentJsons
+        .map((agent) => {
+          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
+        })
+        .join('\n')
+      :
+        `* no one else is here`
+    }
+    http://local.upstreet.ai:${devServerPort}
+  `);
+
+  replServer = startMultiplayerRepl({
     profile,
     realms,
     typingMap,
@@ -996,6 +1173,7 @@ const connectRepl = async ({
   });
 
   const _trackAudio = () => {
+    const virtualPlayers = realms.getVirtualPlayers();
     const audioStreams = new Map();
     virtualPlayers.addEventListener('audiostart', e => {
       const {
@@ -1084,191 +1262,6 @@ const connect = async (args) => {
   const debug = !!args.debug;
 
   if (room) {
-    const profile = await getUserProfile();
-    if (!profile) {
-      throw new Error('could not get user profile');
-    }
-
-    // set up the chat
-    const u = getAgentSpecHost(agentSpec);
-    const agentClient = new ReactAgentsClient(u);
-    const multiplayerConnection = agentClient.connect({
-      room,
-      profile,
-    });
-    const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
-    const mpLog = (...args) => {
-      process.stdout.write(eraseLine);
-      console.log(...args);
-      if (startRepl) {
-        renderPrompt();
-      }
-    };
-    multiplayerConnection.addEventListener('log', (e) => {
-      const { args, logLevel } = e.data;
-      if (localLogLevel >= logLevel) {
-        mpLog(...args);
-      }
-    });
-    multiplayerConnection.addEventListener('chat', (e) => {
-      const { message } = e.data;
-      const { userId: messageUserId, name, method, args } = message;
-      // console.log('got message', message);
-      const attachments = (message.attachments ?? []).filter(a => !!a.url);
-
-      switch (method) {
-        case 'say': {
-          const { text } = args;
-          if (messageUserId !== userId) {
-            let s = `${name}: ${text}`;
-            if (attachments.length > 0) {
-              s += '\n[Attachments:';
-              for (const attachment of attachments) {
-                const { type, url } = attachment;
-                s += `\n  [${type}]: ${url}`;
-              }
-              s += '\n]';
-            }
-            this.log(s);
-
-            // read attachments and print them to the console if we can
-            if (attachments) {
-              for (const attachment of attachments) {
-                if (attachment.type.startsWith('image/')) {
-                  (async () => {
-                    const { url } = attachment;
-
-                    const res = await fetch(url);
-                    const ab = await res.arrayBuffer();
-
-                    const b = Buffer.from(ab);
-                    const jimp = await Jimp.read(b);
-
-                    const imageRenderer = new ImageRenderer();
-                    const {
-                      text: imageText,
-                    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-                    console.log(`${url}:`);
-                    console.log(imageText);
-                  })();
-                }
-              }
-            }
-            }
-          break;
-        }
-        case 'log': {
-          if (debug) {
-            const { text } = args;
-            this.log(text);
-          }
-          break;
-        }
-        case 'typing': {
-          const { typing } = args;
-          typingMap.set(messageUserId, { userId: messageUserId, name, typing });
-          break;
-        }
-        case 'mediaPerception': {
-          this.log(`[${name} checked an attachment`);
-          break;
-        }
-        case 'addMemory': {
-          this.log(`[${name} will remember that]`);
-          break;
-        }
-        case 'queryMemories': {
-          this.log(`[${name} is trying to remember]`);
-          break;
-        }
-        case 'browserAction': {
-          const {
-            method: method2,
-            args: args2,
-            result,
-            error,
-          } = args;
-          const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
-          if (webbrowserAction) {
-            // get the agent from the player spec
-            const player = playersMap.get(messageUserId);
-            // console.log('got player', player);
-            let agent = player?.playerSpec;
-            // console.log('got agent', agent);
-            if (!agent) {
-              console.warn('no agent for browserAction message user id', messageUserId);
-              // debugger;
-              agent = {};
-            }
-            const o = {
-              // get the agent from the local player spec
-              agent,
-              method: method2,
-              args: args2,
-              result,
-              error,
-            };
-            this.log(`[${webbrowserAction.toText(o)}]`);
-          }
-          // this.log(`[${name} checked an attachment`);
-          break;
-        }
-        case 'paymentRequest': {
-          const {
-            type,
-            props,
-          } = args;
-          const {
-            amount,
-            currency,
-            interval,
-            intervalCount,
-          } = props;
-          const price = (() => {
-            const v = amount / 100;
-            if (currency === 'usd') {
-              return `$${v}`;
-            } else {
-              return `${v} ${currency.toUpperCase()}`;
-            }
-          })();
-          const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
-          this.log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
-          // const { amount, currency, url, productName, productDescription, productQuantity } = args;
-          // this.log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
-          break;
-        }
-        case 'nudge':
-        case 'join':
-        case 'leave': {
-          // nothing
-          break;
-        }
-        default: {
-          this.log(`${name}: ${JSON.stringify(message)}`);
-          break;
-        }
-      }
-    });
-    await multiplayerConnection.waitForConnect();
-    const { realms, typingMap, speakerMap, virtualPlayers } = multiplayerConnection;
-    const agentJsons = Array.from(playersMap.getMap().values()).map(
-      (player) => player.playerSpec,
-    );
-    mpLog(dedent`\
-      ${profile ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
-      In the room (${room}):
-      ${agentJsons.length > 0 ?
-        agentJsons
-          .map((agent) => {
-            return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
-          })
-          .join('\n')
-        :
-          `* no one else is here`
-      }
-      http://local.upstreet.ai:${devServerPort}
-    `);
     switch (mode) {
       case 'browser': {
         connectBrowser({
@@ -1278,11 +1271,8 @@ const connect = async (args) => {
       }
       case 'repl': {
         connectRepl({
-          profile,
-          realms,
-          typingMap,
-          speakerMap,
-          virtualPlayers,
+          room,
+          debug,
         });
         break;
       }
