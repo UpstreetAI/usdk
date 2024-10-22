@@ -91,7 +91,7 @@ export function PromptForm({
   };
 
   const onKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
+    event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>
   ): void => {
     if (event.key === 'Enter' && !event.shiftKey) {
       // formRef.current?.requestSubmit()
@@ -116,7 +116,9 @@ export function PromptForm({
     }));
 
 
-  const renderCustomSuggestion = (entry, search, highlightedDisplay, index, focused) => (
+  
+  const renderCustomSuggestion = (entry: any, search: string, highlightedDisplay: React.ReactNode, index: number, focused: boolean) => (
+
     <div
       className={`flex items-center p-2 cursor-pointer ${
         focused ? 'bg-blue-100' : 'bg-white'
