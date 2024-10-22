@@ -21,6 +21,7 @@ import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
+import { MentionsInput, Mention } from 'react-mentions';
 
 export function PromptForm({
   input,
@@ -31,7 +32,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
+  const { connected, localPlayerSpec, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
   const [microphoneSource, setMicrophoneSource] = React.useState<any>(null);
   const [cameraSource, setCameraSource] = React.useState<any>(null);
@@ -105,6 +106,13 @@ export function PromptForm({
       submitMessage();
     }
   };
+
+  const members = Array.from(playersMap.values())
+    .filter(player => player.playerSpec.id !== localPlayerSpec.id)
+    .map(player => ({
+      id: player.playerSpec.id,
+      display: player.playerSpec.name,
+    }));
 
   return (
     <form
@@ -348,22 +356,28 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
-        <Textarea
-          ref={inputRef}
-          tabIndex={0}
-          onKeyDown={onKeyDown}
+
+       {/* Member mentions input */}
+        <MentionsInput
+          value={input}
+          onChange={(e: any) => setInput(e.target.value)}
+          className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
           placeholder="Send a message"
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
-          // autoFocus
           spellCheck={false}
           autoComplete="off"
           autoCorrect="off"
-          name="message"
-          rows={1}
-          value={input}
-          onChange={e => setInput(e.target.value)}
           disabled={!connected}
-        />
+        >
+          <Mention
+            trigger="@"
+            data={members} // Replace `members` with the list of members you want to suggest
+            renderSuggestion={(suggestion: any) => (
+              <div className="p-2">{suggestion.display}</div>
+            )}
+            className="mention"
+          />
+        </MentionsInput>
+        
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>
