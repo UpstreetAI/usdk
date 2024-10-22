@@ -957,15 +957,6 @@ const startMultiplayerRepl = ({
     process.exit(0);
   });
 
-  // const _bindRealmsLogging = () => {
-  //   setLogFn((...args) => {
-  //     process.stdout.write(eraseLine);
-  //     console.log(...args);
-  //     renderPrompt();
-  //   });
-  // };
-  // _bindRealmsLogging();
-
   return replServer;
 };
 const connectBrowser = ({
