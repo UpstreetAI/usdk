@@ -160,7 +160,7 @@ const log = (...args) => {
 const truncateLoggedLineStr = '\x1b[2K\r';
 
 const getStyledMessage = (sender, message) => {
-  return `${pc.green(sender)}: ${message}`;
+  return `${pc.green(sender)} ${message}`;
 };
 
 const displayStyledMessage = (sender, message) => {
@@ -1177,8 +1177,8 @@ const startMultiplayerListener = ({
 
   const getUserPrompt = () => {
     const name = userAsset.name;
-    let s = '(you): ';
-    return getStyledMessage(name, s);
+    const namePrefix = `${name} (you):`
+    return getStyledMessage(namePrefix, '');
   };
 
   const getSpeakingPrompt = () => {
