@@ -41,9 +41,11 @@ const extractTaggedUsers = (text, playersMap) => {
     const mentionRegex = /@\[([^\]]+)\]\(mention\)/g;
 
     const findUserByName = (username) => {
+        const trimmedUsername = username.trim().toLowerCase();
         for (let player of playersMap.values()) {
-            if (player.playerSpec.agent.name.toLowerCase() === username.toLowerCase() ||
-                player.playerSpec.name?.toLowerCase() === username.toLowerCase()) {
+            const agentName = player.playerSpec.agent.name.trim().replace(/\s+/g, '').toLowerCase();
+            const playerName = player.playerSpec.name?.trim().replace(/\s+/g, '').toLowerCase();
+            if (agentName === trimmedUsername || playerName === trimmedUsername) {
                 return player;
             }
         }
