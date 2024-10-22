@@ -233,32 +233,6 @@ const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
 
         connected = true;
 
-        // log the initial room state
-        // agentIds.push(userId);
-        /* const agentJsons = await Promise.all(
-          agentIds.map(async (agentId) => {
-            // current player
-            if (agentId === userId) {
-              return {
-                id: userId,
-                name,
-              };
-            // development agent
-            } else if (agentId === devAgentId) {
-              return {
-                id: devAgentId,
-                name,
-              };
-            } else {
-              const assetJson = await getAssetJson(supabase, agentId);
-              return {
-                id: agentId,
-                name: assetJson.name,
-              };
-            }
-          }),
-        ); */
-
         const agentJsons = Array.from(playersMap.values()).map(
           (player) => player.playerSpec,
         );
