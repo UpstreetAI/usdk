@@ -157,6 +157,7 @@ const log = (...args) => {
 };
 
 //
+const truncateLoggedLineStr = '\x1b[2K\r';
 
 const getStyledMessage = (sender, message) => {
   return `${pc.green(sender)}: ${message}`;
@@ -164,8 +165,9 @@ const getStyledMessage = (sender, message) => {
 
 const displayStyledMessage = (sender, message) => {
   const styledMessage = styleMarkdown(message);
-  console.log(`\n${pc.green(sender)}: ${styledMessage}`);
+  console.log(`${truncateLoggedLineStr}${pc.green(sender)}: ${styledMessage}`);
 };
+
 
 const markdownRules = [
   {
@@ -1193,7 +1195,7 @@ const startMultiplayerListener = ({
 
     if (specs.length > 0) {
       const names = specs.map((spec) => spec.name);
-      return `\n[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...]`;
+      return `${truncateLoggedLineStr}[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...]`;
     }
     return '';
   };
