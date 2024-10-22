@@ -39,17 +39,6 @@ export class ReactAgentsClient {
       process.exit(1);
     }
   }
-  connect({
-    room,
-    profile,
-    debug = false,
-  } = {}) {
-    return new ReactAgentsMultiplayerConnection({
-      room,
-      profile,
-      debug,
-    });
-  }
 }
 
 export class ReactAgentsMultiplayerConnection extends EventTarget {
@@ -88,6 +77,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   }
   async connect() {
     const {
+      room,
       profile,
       playersMap,
       typingMap,
@@ -161,9 +151,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
           this.log('remote player joined:', playerId);
-        } else {
-          this.log('remote player joined before connection', playerId);
-          throw new Error('remote player joined before connection: ' + playerId);
+        // } else {
+        //   this.log('remote player joined before connection', playerId);
+        //   throw new Error('remote player joined before connection: ' + playerId);
         }
   
         const remotePlayer = new Player(playerId, playerSpec);
@@ -181,9 +171,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const { playerId } = e.data;
         if (connected) {
           this.log('remote player left:', playerId);
-        } else {
-          this.log('remote player left before connection', playerId);
-          throw new Error('remote player left before connection: ' + playerId);
+        // } else {
+        //   this.log('remote player left before connection', playerId);
+        //   throw new Error('remote player left before connection: ' + playerId);
         }
   
         // remove remote player
@@ -194,14 +184,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           this.log('remote player not found', playerId);
           throw new Error('remote player not found');
         }
-  
-        // // remove dangling audio streams
-        // for (const [streamId, stream] of Array.from(audioStreams.entries())) {
-        //   if (stream.metadata.playerId === playerId) {
-        //     stream.close();
-        //     audioStreams.delete(streamId);
-        //   }
-        // }
       });
     };
     _trackRemotePlayers();
