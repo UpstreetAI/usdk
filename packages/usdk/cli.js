@@ -12,6 +12,8 @@ import open from 'open';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import pc from 'picocolors';
+import Jimp from 'jimp';
+import dedent from 'dedent';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -31,6 +33,9 @@ import {
   localPort,
   callbackPort,
 } from './util/ports.mjs';
+import {
+  devServerPort,
+} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
 import {
   getLocalAgentHost,
 } from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
@@ -56,6 +61,7 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
+import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
@@ -80,7 +86,6 @@ import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
   certsLocalPath,
-  templatesDirectory,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
@@ -90,6 +95,9 @@ import {
 import {
   tryReadFile,
 } from './lib/file.mjs';
+import {
+  consoleImageWidth,
+} from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
@@ -1090,24 +1098,178 @@ const connect = async (args) => {
       debug,
     });
     const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+    const mpLog = (...args) => {
+      process.stdout.write(eraseLine);
+      console.log(...args);
+      if (startRepl) {
+        renderPrompt();
+      }
+    };
     multiplayerConnection.addEventListener('log', (e) => {
       const { args, logLevel } = e.data;
       if (localLogLevel >= logLevel) {
-        process.stdout.write(eraseLine);
-        console.log(...args);
-        if (startRepl) {
-          renderPrompt();
+        mpLog(...args);
+      }
+    });
+    multiplayerConnection.addEventListener('chat', (e) => {
+      const { message } = e.data;
+      const { userId: messageUserId, name, method, args } = message;
+      // console.log('got message', message);
+      const attachments = (message.attachments ?? []).filter(a => !!a.url);
+
+      switch (method) {
+        case 'say': {
+          const { text } = args;
+          if (messageUserId !== userId) {
+            let s = `${name}: ${text}`;
+            if (attachments.length > 0) {
+              s += '\n[Attachments:';
+              for (const attachment of attachments) {
+                const { type, url } = attachment;
+                s += `\n  [${type}]: ${url}`;
+              }
+              s += '\n]';
+            }
+            this.log(s);
+
+            // read attachments and print them to the console if we can
+            if (attachments) {
+              for (const attachment of attachments) {
+                if (attachment.type.startsWith('image/')) {
+                  (async () => {
+                    const { url } = attachment;
+
+                    const res = await fetch(url);
+                    const ab = await res.arrayBuffer();
+
+                    const b = Buffer.from(ab);
+                    const jimp = await Jimp.read(b);
+
+                    const imageRenderer = new ImageRenderer();
+                    const {
+                      text: imageText,
+                    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+                    console.log(`${url}:`);
+                    console.log(imageText);
+                  })();
+                }
+              }
+            }
+            }
+          break;
+        }
+        case 'log': {
+          if (debug) {
+            const { text } = args;
+            this.log(text);
+          }
+          break;
+        }
+        case 'typing': {
+          const { typing } = args;
+          typingMap.set(messageUserId, { userId: messageUserId, name, typing });
+          break;
+        }
+        case 'mediaPerception': {
+          this.log(`[${name} checked an attachment`);
+          break;
+        }
+        case 'addMemory': {
+          this.log(`[${name} will remember that]`);
+          break;
+        }
+        case 'queryMemories': {
+          this.log(`[${name} is trying to remember]`);
+          break;
+        }
+        case 'browserAction': {
+          const {
+            method: method2,
+            args: args2,
+            result,
+            error,
+          } = args;
+          const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
+          if (webbrowserAction) {
+            // get the agent from the player spec
+            const player = playersMap.get(messageUserId);
+            // console.log('got player', player);
+            let agent = player?.playerSpec;
+            // console.log('got agent', agent);
+            if (!agent) {
+              console.warn('no agent for browserAction message user id', messageUserId);
+              // debugger;
+              agent = {};
+            }
+            const o = {
+              // get the agent from the local player spec
+              agent,
+              method: method2,
+              args: args2,
+              result,
+              error,
+            };
+            this.log(`[${webbrowserAction.toText(o)}]`);
+          }
+          // this.log(`[${name} checked an attachment`);
+          break;
+        }
+        case 'paymentRequest': {
+          const {
+            type,
+            props,
+          } = args;
+          const {
+            amount,
+            currency,
+            interval,
+            intervalCount,
+          } = props;
+          const price = (() => {
+            const v = amount / 100;
+            if (currency === 'usd') {
+              return `$${v}`;
+            } else {
+              return `${v} ${currency.toUpperCase()}`;
+            }
+          })();
+          const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
+          this.log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
+          // const { amount, currency, url, productName, productDescription, productQuantity } = args;
+          // this.log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
+          break;
+        }
+        case 'nudge':
+        case 'join':
+        case 'leave': {
+          // nothing
+          break;
+        }
+        default: {
+          this.log(`${name}: ${JSON.stringify(message)}`);
+          break;
         }
       }
     });
     await multiplayerConnection.waitForConnect();
     const { realms, typingMap, speakerMap, virtualPlayers } = multiplayerConnection;
-    // const { userAsset, realms, typingMap, speakerMap } =
-    //   await connectMultiplayer({
-    //     room,
-    //     media,
-    //     debug,
-    //   });
+    const agentJsons = Array.from(playersMap.getMap().values()).map(
+      (player) => player.playerSpec,
+    );
+    mpLog(dedent`\
+      ${profile ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
+      In the room (${room}):
+      ${agentJsons.length > 0 ?
+        agentJsons
+          .map((agent) => {
+            return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
+          })
+          .join('\n')
+        :
+          `* no one else is here`
+      }
+      http://local.upstreet.ai:${devServerPort}
+    `);
     switch (mode) {
       case 'browser': {
         connectBrowser({

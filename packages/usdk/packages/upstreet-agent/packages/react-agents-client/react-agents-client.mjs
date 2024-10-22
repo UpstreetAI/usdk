@@ -1,8 +1,4 @@
 import Jimp from 'jimp';
-import dedent from 'dedent';
-import {
-  devServerPort,
-} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
 import {
   multiplayerEndpointUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
@@ -74,6 +70,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   room;
   profile;
   debug;
+  playersMap = new PlayersMap();
+  typingMap = new TypingMap();
+  speakerMap = new SpeakerMap();
+  realms;
   connectPromise;
   constructor({
     room,
@@ -87,13 +87,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     this.debug = debug;
 
     this.connectPromise = this.connect();
-    // this.connectPromise.catch(err => {
-    //   this.dispatchEvent(new MessageEvent('error', {
-    //     data: {
-    //       error: err,
-    //     },
-    //   }));
-    // });
   }
   log(...args) {
     this.dispatchEvent(new MessageEvent('log', {
@@ -104,7 +97,13 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     }));
   }
   async connect() {
-    const { profile, debug } = this;
+    const {
+      profile,
+      debug,
+      playersMap,
+      typingMap,
+      speakerMap,
+    } = this;
     const userId = profile?.id;
     const name = profile?.name;
   
@@ -113,10 +112,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       endpointUrl: multiplayerEndpointUrl,
       playerId: userId,
     });
-    // XXX make these member variables
-    const playersMap = new PlayersMap();
-    const typingMap = new TypingMap();
-    const speakerMap = new SpeakerMap();
+    this.realms = realms;
   
     // const virtualWorld = realms.getVirtualWorld();
     const virtualPlayers = realms.getVirtualPlayers();
@@ -133,17 +129,19 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           const existingAgentIds = Array.from(playersMap.getMap().keys());
           if (existingAgentIds.includes(userId)) {
             this.log('your character is already in the room! disconnecting.');
-            process.exit(1);
+            realms.disconnect();
+            return;
           }
   
           // Initialize network realms player.
-          const localPlayer = new Player(userId, {
+          const playerSpec = {
             id: userId,
             name,
             capabilities: [
               'human',
             ],
-          });
+          };
+          const localPlayer = new Player(userId, playerSpec);
           const _pushInitialPlayer = () => {
             realms.localPlayer.initializePlayer(
               {
@@ -160,25 +158,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   
           connected = true;
   
-          // XXX this logging should be moved out of this class
-          const agentJsons = Array.from(playersMap.getMap().values()).map(
-            (player) => player.playerSpec,
-          );
-          this.log(dedent`\
-            ${profile ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
-            In the room (${room}):
-            ${agentJsons.length > 0 ?
-              agentJsons
-                .map((agent) => {
-                  return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
-                })
-                .join('\n')
-              :
-                `* no one else is here`
-            }
-            http://local.upstreet.ai:${devServerPort}
-          `,
-          );
+          this.dispatchEvent(new MessageEvent('connect', {
+            data: null,
+          }));
         })(),
       );
     };
@@ -189,8 +171,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const { playerId, player } = e.data;
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
-          // XXX this should always be true
           this.log('remote player joined:', playerId);
+        } else {
+          this.log('remote player joined before connection', playerId);
+          throw new Error('remote player joined before connection: ' + playerId);
         }
   
         const remotePlayer = new Player(playerId, playerSpec);
@@ -207,8 +191,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
-          // XXX this should always be true
           this.log('remote player left:', playerId);
+        } else {
+          this.log('remote player left before connection', playerId);
+          throw new Error('remote player left before connection: ' + playerId);
         }
   
         // remove remote player
@@ -232,151 +218,17 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     _trackRemotePlayers();
   
     const _bindMultiplayerChat = () => {
-      // XXX break this out externally
       const onchat = (e) => {
-        const { message } = e.data;
-        const { userId: messageUserId, name, method, args } = message;
-        // console.log('got message', message);
-        const attachments = (message.attachments ?? []).filter(a => !!a.url);
-  
-        switch (method) {
-          case 'say': {
-            const { text } = args;
-            if (messageUserId !== userId) {
-              let s = `${name}: ${text}`;
-              if (attachments.length > 0) {
-                s += '\n[Attachments:';
-                for (const attachment of attachments) {
-                  const { type, url } = attachment;
-                  s += `\n  [${type}]: ${url}`;
-                }
-                s += '\n]';
-              }
-              this.log(s);
-  
-              // read attachments and print them to the console if we can
-              if (attachments) {
-                for (const attachment of attachments) {
-                  if (attachment.type.startsWith('image/')) {
-                    (async () => {
-                      const { url } = attachment;
-  
-                      const res = await fetch(url);
-                      const ab = await res.arrayBuffer();
-  
-                      const b = Buffer.from(ab);
-                      const jimp = await Jimp.read(b);
-  
-                      const imageRenderer = new ImageRenderer();
-                      const {
-                        text: imageText,
-                      } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-                      console.log(`${url}:`);
-                      console.log(imageText);
-                    })();
-                  }
-                }
-              }
-             }
-            break;
-          }
-          case 'log': {
-            if (debug) {
-              const { text } = args;
-              this.log(text);
-            }
-            break;
-          }
-          case 'typing': {
-            const { typing } = args;
-            typingMap.set(messageUserId, { userId: messageUserId, name, typing });
-            break;
-          }
-          case 'mediaPerception': {
-            this.log(`[${name} checked an attachment`);
-            break;
-          }
-          case 'addMemory': {
-            this.log(`[${name} will remember that]`);
-            break;
-          }
-          case 'queryMemories': {
-            this.log(`[${name} is trying to remember]`);
-            break;
-          }
-          case 'browserAction': {
-            const {
-              method: method2,
-              args: args2,
-              result,
-              error,
-            } = args;
-            const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
-            if (webbrowserAction) {
-              // get the agent from the player spec
-              const player = playersMap.get(messageUserId);
-              // console.log('got player', player);
-              let agent = player?.playerSpec;
-              // console.log('got agent', agent);
-              if (!agent) {
-                console.warn('no agent for browserAction message user id', messageUserId);
-                // debugger;
-                agent = {};
-              }
-              const o = {
-                // get the agent from the local player spec
-                agent,
-                method: method2,
-                args: args2,
-                result,
-                error,
-              };
-              this.log(`[${webbrowserAction.toText(o)}]`);
-            }
-            // this.log(`[${name} checked an attachment`);
-            break;
-          }
-          case 'paymentRequest': {
-            const {
-              type,
-              props,
-            } = args;
-            const {
-              amount,
-              currency,
-              interval,
-              intervalCount,
-            } = props;
-            const price = (() => {
-              const v = amount / 100;
-              if (currency === 'usd') {
-                return `$${v}`;
-              } else {
-                return `${v} ${currency.toUpperCase()}`;
-              }
-            })();
-            const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
-            this.log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
-            // const { amount, currency, url, productName, productDescription, productQuantity } = args;
-            // this.log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
-            break;
-          }
-          case 'nudge':
-          case 'join':
-          case 'leave': {
-            // nothing
-            break;
-          }
-          default: {
-            this.log(`${name}: ${JSON.stringify(message)}`);
-            break;
-          }
-        }
+        this.dispatchEvent(new MessageEvent('chat', {
+          data: e.data,
+        }));
       };
       realms.addEventListener('chat', onchat);
       const cleanup = () => {
         realms.removeEventListener('chat', onchat);
+        playersMap.clear();
         typingMap.clear();
+        speakerMap.clear();
       };
       realms.addEventListener('disconnect', () => {
         cleanup();
