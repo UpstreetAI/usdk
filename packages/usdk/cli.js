@@ -1090,12 +1090,11 @@ const connect = async (args) => {
     }
 
     // set up the chat
-    const u = `${getAgentSpecHost(agentSpec)}`;
+    const u = getAgentSpecHost(agentSpec);
     const agentClient = new ReactAgentsClient(u);
     const multiplayerConnection = agentClient.connect({
       room,
       profile,
-      debug,
     });
     const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
     const mpLog = (...args) => {

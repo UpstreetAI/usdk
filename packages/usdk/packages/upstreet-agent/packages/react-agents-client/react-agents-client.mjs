@@ -62,7 +62,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
   room;
   profile;
-  debug;
   playersMap = new PlayersMap();
   typingMap = new TypingMap();
   speakerMap = new SpeakerMap();
@@ -71,13 +70,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   constructor({
     room,
     profile,
-    debug,
   }) {
     super();
 
     this.room = room;
     this.profile = profile;
-    this.debug = debug;
 
     this.connectPromise = this.connect();
   }
@@ -92,7 +89,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   async connect() {
     const {
       profile,
-      debug,
       playersMap,
       typingMap,
       speakerMap,
