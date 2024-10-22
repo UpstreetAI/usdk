@@ -21,6 +21,7 @@ import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
+import { MentionsInput, Mention } from 'react-mentions';
 
 export function PromptForm({
   input,
@@ -31,7 +32,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
+  const { connected, localPlayerSpec, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
   const [microphoneSource, setMicrophoneSource] = React.useState<any>(null);
   const [cameraSource, setCameraSource] = React.useState<any>(null);
@@ -95,17 +96,54 @@ export function PromptForm({
     if (event.key === 'Enter' && !event.shiftKey) {
       // formRef.current?.requestSubmit()
       event.preventDefault();
-  
+
       // Blur focus on mobile
       if (window.innerWidth < 600) {
         const target = event.target as HTMLTextAreaElement;
         target.blur();
       }
-  
+
       submitMessage();
     }
   };
 
+  const members = Array.from(playersMap.values())
+    .filter(player => player.playerSpec.id !== localPlayerSpec.id)
+    .map(player => ({
+      id: player.playerSpec.id,
+      display: player.playerSpec.name,
+      spec: player.playerSpec,
+    }));
+
+
+  const renderCustomSuggestion = (entry, search, highlightedDisplay, index, focused) => (
+    <div
+      className={`flex items-center p-2 cursor-pointer ${
+        focused ? 'bg-blue-100' : 'bg-white'
+      }`}
+    >
+      {/* User Avatar */}
+      <img
+        src={entry.spec.previewUrl}
+        alt={entry.previewUrl}
+        className="w-8 h-8 rounded-full mr-3"
+      />
+      <div className="flex flex-col">
+        {/* Highlighted Display Name */}
+        <span className="font-semibold">{highlightedDisplay}</span>
+        {/* Additional User Info */}
+        {entry.spec.status && (
+          <span className="text-xs text-gray-500">
+            {entry.spec.status === 'online' ? 'Online' : 'Offline'}
+          </span>
+        )}
+        {entry.spec.description && (
+          <span className="text-xs text-gray-400">{entry.spec.description}</span>
+        )}
+      </div>
+    </div>
+  );
+  
   return (
     <form
       // ref={formRef}
@@ -348,6 +386,30 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
+        <MentionsInput
+          value={input}
+          onChange={(e: any) => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          placeholder="Send a message"
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          disabled={!connected}
+          inputRef={inputRef}
+          forceSuggestionsAboveCursor={true}
+          allowSuggestionsAboveCursor={true}
+        >
+          <Mention
+            trigger="@"
+            data={members}
+            renderSuggestion={renderCustomSuggestion}
+            className="bg-blue-500 text-white px-1 rounded"
+            appendSpaceOnAdd={true}
+            displayTransform={(id: any, display: any) => `@${display}`}
+          />
+        </MentionsInput>
+        {/*         
         <Textarea
           ref={inputRef}
           tabIndex={0}
@@ -363,7 +425,7 @@ export function PromptForm({
           value={input}
           onChange={e => setInput(e.target.value)}
           disabled={!connected}
-        />
+        /> */}
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>
