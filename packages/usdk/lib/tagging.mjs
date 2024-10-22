@@ -39,9 +39,19 @@ const getUserByName = (name, playersMap) => {
 const extractTaggedUsers = (text, playersMap) => {
     const taggedUserIds = [];
     const mentionRegex = /@\[([^\]]+)\]\(mention\)/g;
-  
-    const formattedText = text.replace(mentionRegex, (match, username) => {
-        const user = playersMap.get(username.toLowerCase());
+
+    const findUserByName = (username) => {
+        for (let player of playersMap.values()) {
+            if (player.playerSpec.agent.name.toLowerCase() === username.toLowerCase() ||
+                player.playerSpec.name?.toLowerCase() === username.toLowerCase()) {
+                return player;
+            }
+        }
+        return null;
+    };
+
+    text.replace(mentionRegex, (match, username) => {
+        const user = findUserByName(username);
         if (user) {
             const userId = user.playerSpec.id || user.playerSpec.agent.id;
             taggedUserIds.push(userId);
@@ -49,8 +59,8 @@ const extractTaggedUsers = (text, playersMap) => {
         }
         return match;
     });
-  
-    return taggedUserIds.length > 0 ? { taggedUserIds, formattedText } : null;
+
+    return taggedUserIds.length > 0 ? taggedUserIds : null;
 };
 
 

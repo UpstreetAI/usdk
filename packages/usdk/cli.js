@@ -157,17 +157,32 @@ const log = (...args) => {
 };
 
 //
+
+const prefixColors = [pc.green, pc.yellow, pc.blue, pc.magenta, pc.cyan, pc.white, pc.red];
+
 const truncateLoggedLineStr = '\x1b[2K\r';
 
 const getStyledMessage = (sender, message) => {
-  return `${pc.green(sender)} ${message}`;
+  const color = getPlayerColor(sender);
+  return `${pc.bold(color(sender))} ${message}`;
 };
 
 const displayStyledMessage = (sender, message) => {
   const styledMessage = styleMarkdown(message);
-  console.log(`${truncateLoggedLineStr}${pc.green(sender)}: ${styledMessage}`);
+  const color = getPlayerColor(sender);
+  console.log(`${truncateLoggedLineStr}${pc.bold(color(sender))}: ${styledMessage}`);
 };
 
+
+const playerColors = new Map(); // for setting unique colored chat prefix for each player
+
+const getPlayerColor = (playerId) => {
+  if (!playerColors.has(playerId)) {
+    const color = prefixColors[playerColors.size % colors.length];
+    playerColors.set(playerId, color);
+  }
+  return playerColors.get(playerId);
+};
 
 const markdownRules = [
   {
