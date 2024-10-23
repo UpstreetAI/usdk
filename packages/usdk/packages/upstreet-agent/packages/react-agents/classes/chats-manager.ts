@@ -139,7 +139,7 @@ export class ChatsManager {
         },
       });
       const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
-      multiplayerConnection.addEventListener('log', (e) => {
+      multiplayerConnection.addEventListener('log', (e: any) => {
         const { args, logLevel } = e.data;
         if (localLogLevel >= logLevel) {
           console.log(...args);
