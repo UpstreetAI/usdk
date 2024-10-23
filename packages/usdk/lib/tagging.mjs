@@ -43,9 +43,11 @@ const extractTaggedUsers = (text, playersMap) => {
     const findUserByName = (username) => {
         const trimmedUsername = username.trim().toLowerCase();
         for (let player of playersMap.values()) {
-            const agentName = player.playerSpec.agent.name.trim().replace(/\s+/g, '').toLowerCase();
-            const playerName = player.playerSpec.name?.trim().replace(/\s+/g, '').toLowerCase();
-            if (agentName === trimmedUsername || playerName === trimmedUsername) {
+            const { name, agent } = player.playerSpec;
+            const agentName = agent?.name ?? name;
+            const normalizedAgentName = agentName.trim().replace(/\s+/g, '').toLowerCase();
+            const normalizedPlayerName = name?.trim().replace(/\s+/g, '').toLowerCase();
+            if (normalizedAgentName === trimmedUsername || normalizedPlayerName === trimmedUsername) {
                 return player;
             }
         }

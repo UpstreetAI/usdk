@@ -117,7 +117,14 @@ import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { completer, extractTaggedUsers } from './lib/tagging.mjs';
-import readline from 'readline';
+// import { marked } from 'marked';
+// import TerminalRenderer from 'marked-terminal';
+import cliMd from 'cli-markdown';
+
+// marked.setOptions({
+//   // Define custom renderer
+//   renderer: new TerminalRenderer()
+// });
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -169,8 +176,10 @@ const getStyledMessage = (sender, message) => {
 
 const displayStyledMessage = (sender, message) => {
   const styledMessage = styleMarkdown(message);
+  const mdMessage = cliMd(styledMessage);
   const color = getPlayerColor(sender);
-  console.log(`${truncateLoggedLineStr}${pc.bold(color(sender))}: ${styledMessage}`);
+  console.log(`${truncateLoggedLineStr}${pc.bold(color(sender))}: ${mdMessage}`);
+  // console.log(`${truncateLoggedLineStr}${pc.bold(color(sender))}: `, marked(message));
 };
 
 
@@ -864,7 +873,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
         connected = true;
 
         const agentJsons = Array.from(playersMap.values()).map(
-          (player) => player.playerSpec.agent,
+          (player) => player.playerSpec.agent ?? player.playerSpec,
         );
         log(dedent`\
           ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}

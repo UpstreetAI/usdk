@@ -666,6 +666,7 @@ export const DefaultHeaderPrompt = () => {
       {dedent`
         Role-play as a character in a chat given the current state.
         Respond with a JSON object specifying the action method and arguments.
+        Use Markdown wherever it seems best when returning your response.
       `}
     </Prompt>
   );
