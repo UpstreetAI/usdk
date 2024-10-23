@@ -85,7 +85,8 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     } = this;
     const userId = profile?.id;
     const name = profile?.name;
-  
+    const previewUrl = profile?.previewUrl;
+
     // join the room
     const realms = new NetworkRealms({
       endpointUrl: multiplayerEndpointUrl,
@@ -116,6 +117,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           const playerSpec = {
             id: userId,
             name,
+            previewUrl,
             capabilities: [
               'human',
             ],
