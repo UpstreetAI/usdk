@@ -116,9 +116,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         return;
       }
 
-      // Initialize network realms player.
+      // initialize the local player
       const localPlayer = new Player(userId, profile);
-      const _pushInitialPlayer = () => {
+
+      // push the local player to the network
+      {
         const realmKey = e.data.rootRealmKey;
         realms.localPlayer.initializePlayer(
           {
@@ -130,10 +132,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           'playerSpec',
           localPlayer.getPlayerSpec(),
         );
+      }
 
-        playersMap.add(userId, localPlayer);
-      };
-      _pushInitialPlayer();
+      // add the local player to the players map
+      playersMap.add(userId, localPlayer);
 
       connected = true;
 
