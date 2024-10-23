@@ -232,4 +232,16 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   sendChatMessage(message) {
     this.realms.sendChatMessage(message);
   }
+  addAudioSource(audioSource) {
+    this.realms.addAudioSource(audioSource);
+  }
+  removeAudioSource(audioSource) {
+    this.realms.removeAudioSource(audioSource);
+  }
+  addVideoSource(videoSource) {
+    this.realms.addVideoSource(videoSource);
+  }
+  removeVideoSource(videoSource) {
+    this.realms.removeVideoSource(videoSource);
+  }
 }
