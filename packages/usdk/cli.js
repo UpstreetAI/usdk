@@ -3015,10 +3015,6 @@ const main = async () => {
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
     .option(`-r, --room <room>`, `The room name to join`)
-    // .option(
-    //   `-d, --dev`,
-    //   `Chat with a local development agent`,
-    // )
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {
