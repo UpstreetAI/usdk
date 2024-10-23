@@ -6,6 +6,9 @@ export class PlayersMap extends EventTarget {
   get(playerId) {
     return this.#internalMap.get(playerId);
   }
+  has(playerId) {
+    return this.#internalMap.has(playerId);
+  }
   add(playerId, player) {
     this.#internalMap.set(playerId, player);
     this.dispatchEvent(new MessageEvent('playerjoin', {
