@@ -210,8 +210,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         'videoend',
       ].forEach(eventName => {
         virtualPlayers.addEventListener(eventName, e => {
-          playersMap.disp
-          atchEvent(new MessageEvent(eventName, {
+          playersMap.dispatchEvent(new MessageEvent(eventName, {
             data: e.data,
           }));
         });
