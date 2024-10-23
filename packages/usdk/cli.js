@@ -53,6 +53,7 @@ import {
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsElectronRuntime } from './packages/upstreet-agent/packages/react-agents-electron/electron-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -1390,6 +1391,43 @@ const chat = async (args) => {
       mode: args.browser ? 'browser' : 'repl',
       debug: args.debug,
     });
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
+const desktop = async (args) => {
+  // console.log('got desktop args', args);
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  const room = args.room ?? makeRoomName();
+  const debug = !!args.debug;
+
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // start dev servers for the agents
+    const electronRuntimePromises = agentSpecs
+      .map(async (agentSpec) => {
+        if (agentSpec.directory) {
+          const runtime = new ReactAgentsElectronRuntime(agentSpec);
+          await runtime.start({
+            debug,
+          });
+          return runtime;
+        } else {
+          return null;
+        }
+      })
+      .filter(Boolean);
+    const runtimes = await Promise.all(electronRuntimePromises);
+
+    // wait for agents to join the multiplayer room
+    await Promise.all(
+      agentSpecs.map(async (agentSpec) => {
+        await join({
+          _: [agentSpec.ref, room],
+        });
+      }),
+    );
   } else {
     console.log('not logged in');
     process.exit(1);
@@ -3027,7 +3065,23 @@ const main = async () => {
         await chat(args);
       });
     });
-    
+  program
+    .command('desktop')
+    .alias('d')
+    .description(`Run an agent on yuor desktop`)
+    .argument(`[guids...]`, `Guids of the agents to join the room`)
+    .option(`-g, --debug`, `Enable debug logging`)
+    .action(async (guids = [], opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        args = {
+          _: [guids],
+          ...opts,
+        };
+        await desktop(args);
+      });
+    });
   // program
   //   .command('search')
   //   .description(
