@@ -109,8 +109,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     const onConnect = async (e) => {
       // this.log('on connect...');
 
-      const realmKey = e.data.rootRealmKey;
-
       const existingAgentIds = Array.from(playersMap.getMap().keys());
       if (existingAgentIds.includes(userId)) {
         this.log('your character is already in the room! disconnecting.');
@@ -121,6 +119,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       // Initialize network realms player.
       const localPlayer = new Player(userId, profile);
       const _pushInitialPlayer = () => {
+        const realmKey = e.data.rootRealmKey;
         realms.localPlayer.initializePlayer(
           {
             realmKey,
