@@ -241,7 +241,12 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            const profile = newLocalPlayerSpec;
+            const profile = {
+              ...newLocalPlayerSpec,
+              capabilities: [
+                'human',
+              ],
+            };
             const debug = true;
             multiplayerConnection = new ReactAgentsMultiplayerConnection({
               room,
@@ -334,6 +339,39 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             playersMap = multiplayerConnection.playersMap;
             typingMap = multiplayerConnection.typingMap;
 
+            // join + leave messages
+            playersMap.addEventListener('join', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+              const joinMessage = {
+                method: 'join',
+                userId,
+                name,
+                args: {},
+                timestamp: Date.now(),
+              };
+              messages = [...messages, joinMessage];
+
+              refresh();
+            });
+            playersMap.addEventListener('leave', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+              const leaveMessage = {
+                method: 'leave',
+                userId,
+                name,
+                args: {},
+                timestamp: Date.now(),
+              };
+              messages = [...messages, leaveMessage];
+
+              refresh();
+            });
+
+            // typing
             typingMap.addEventListener('typingchange', (e) => {
               refresh();
             });

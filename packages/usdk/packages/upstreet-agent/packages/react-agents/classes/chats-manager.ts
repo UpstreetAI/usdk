@@ -25,7 +25,7 @@ import {
   makePromise,
 } from '../util/util.mjs';
 import { Player } from 'react-agents-client/util/player.mjs';
-import { NetworkRealms } from 'react-agents-client/packages/multiplayer/public/network-realms.mjs';
+import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
@@ -66,7 +66,7 @@ export class ChatsManager {
   agent: ActiveAgentObject;
   chatsSpecification: ChatsSpecification;
   // state
-  rooms = new Map<string, NetworkRealms>();
+  rooms = new Map<string, ReactAgentsMultiplayerConnection>();
   // incomingMessageDebouncer = new Debouncer();
   roomsQueueManager = new MultiQueueManager();
   abortController: AbortController | null = null;
@@ -88,11 +88,6 @@ export class ChatsManager {
       endpointUrl,
     } = roomSpecification;
     const key = getChatKey(roomSpecification);
-    // console.log('chats manager join room', {
-    //   room,
-    //   endpointUrl,
-    //   key,
-    // }, new Error().stack);
     await this.roomsQueueManager.waitForTurn(key, async () => {
       const {
         agent,
@@ -111,329 +106,288 @@ export class ChatsManager {
 
       const cleanup = () => {
         this.agent.conversationManager.removeConversation(conversation);
-  
         this.rooms.delete(key);
       };
 
-      const realmsPromise = (async () => {
-        const realms = new NetworkRealms({
-          endpointUrl,
-          playerId: agent.id,
-          audioManager: null,
-          metadata: {
-            conversation,
-          },
-        });
-        this.rooms.set(key, realms);
-
-        const virtualWorld = realms.getVirtualWorld();
-        const virtualPlayers = realms.getVirtualPlayers();
-
-        // Initiate network realms connection.
-        const connectPromise = makePromise();
-        const onConnect = async (e) => {
-          e.waitUntil(
-            (async () => {
-              const realmKey = e.data.rootRealmKey;
-
-              // Initialize network realms player.
-              const getJson = () => {
-                const {
-                  name,
-                  id,
-                  description,
-                  bio,
-                  previewUrl,
-                  model,
-                  address,
-                } = this.agent;
-                return {
-                  name,
-                  id,
-                  description,
-                  bio,
-                  previewUrl,
-                  model,
-                  address,
-                };
-              };
-              const agentJson = getJson();
-              const localPlayer = new Player(agent.id, agentJson);
-
-              const _pushInitialPlayer = () => {
-                realms.localPlayer.initializePlayer(
-                  {
-                    realmKey,
-                  },
-                  {},
-                );
-                realms.localPlayer.setKeyValue(
-                  'playerSpec',
-                  localPlayer.getPlayerSpec(),
-                );
-              };
-              _pushInitialPlayer();
-
-              const _bindRoomState = () => {
-                const _bindScene = () => {
-                  const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-                  const { networkedCrdtClient } = headRealm;
-        
-                  const doc = networkedCrdtClient.getDoc() as Y.Doc;
-                  const name = doc.getText('name');
-                  const description = doc.getText('description');
-                  const getScene = () => new SceneObject({
-                    name: name.toString(),
-                    description: description.toString(),
-                  });
-                  const _updateScene = () => {
-                    const scene = getScene();
-                    conversation.setScene(scene);
-                  };
-                  _updateScene();
-                  name.observe(_updateScene);
-                  description.observe(_updateScene);
-                };
-                _bindScene();
-              };
-              _bindRoomState();
-
-              connectPromise.resolve();
-            })(),
-          );
+      const getProfile = () => {
+        const {
+          id,
+          name,
+          description,
+          bio,
+          previewUrl,
+          model,
+          address,
+        } = this.agent;
+        return {
+          id,
+          name,
+          description,
+          bio,
+          previewUrl,
+          model,
+          address,
         };
-        realms.addEventListener('connect', onConnect);
+      };
+      const profile = getProfile();
+      const debug = true;
+      const multiplayerConnection = new ReactAgentsMultiplayerConnection({
+        room,
+        profile,
+        metadata: {
+          conversation,
+        },
+      });
+      const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+      multiplayerConnection.addEventListener('log', (e: any) => {
+        const { args, logLevel } = e.data;
+        if (localLogLevel >= logLevel) {
+          console.log(...args);
+        }
+      });
 
-        // console.log('track remote players');
-        const _trackRemotePlayers = () => {
-          virtualPlayers.addEventListener('join', (e) => {
-            const { playerId, player } = e.data;
-            console.log('chats specification: remote player joined:', playerId);
+      this.rooms.set(key, multiplayerConnection);
 
-            const remotePlayer = new Player(playerId, {});
-            conversation.addAgent(playerId, remotePlayer);
+      // Initiate network realms connection.
+      const onConnect = async (e: any) => {
+        const _bindScene = () => {
+          const { realms } = multiplayerConnection;
+          const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+          const { networkedCrdtClient } = headRealm;
 
-            // apply initial remote player state
-            {
-              const playerSpec = player.getKeyValue('playerSpec');
-              if (playerSpec) {
-                remotePlayer.setPlayerSpec(playerSpec);
-              }
+          const doc = networkedCrdtClient.getDoc() as Y.Doc;
+          const name = doc.getText('name');
+          const description = doc.getText('description');
+          const getScene = () => new SceneObject({
+            name: name.toString(),
+            description: description.toString(),
+          });
+          const _updateScene = () => {
+            const scene = getScene();
+            conversation.setScene(scene);
+          };
+          _updateScene();
+          name.observe(_updateScene);
+          description.observe(_updateScene);
+        };
+        _bindScene();
+      };
+      multiplayerConnection.addEventListener('connect', onConnect);
+
+      const { playersMap } = multiplayerConnection;
+      playersMap.addEventListener('join', (e: any) => {
+        const { player } = e.data;
+        const { playerId } = player;
+        console.log('chats specification: remote player joined:', playerId);
+
+        const remotePlayer = new Player(playerId, {});
+        conversation.addAgent(playerId, remotePlayer);
+      });
+      playersMap.addEventListener('leave', async (e: any) => {
+        const { player } = e.data;
+        const { playerId } = player;
+        console.log('chats specification: remote player left:', playerId);
+        conversation.removeAgent(playerId);
+      });
+
+      multiplayerConnection.addEventListener('chat', async (e) => {
+        const { playerId, message } = e.data;
+        if (playerId !== agent.id) {
+          await conversation.addLocalMessage(message);
+        // } else {
+        //   // XXX fix this
+        //   console.warn('received own message from realms "chat" event; this should not happen', message);
+        }
+      });
+
+      const _trackAudio = () => {
+        const transcriptionStreams = new Map<string, TranscriptionStream>();
+        playersMap.addEventListener('audiostart', async (e: any) => {
+          console.log('got audio start', e.data);
+          const { playerId, streamId, type, disposition } = e.data;
+          if (disposition === 'text') {
+            if (type === 'audio/pcm-f32-48000') {
+              const audioInput = new EventEmitter();
+              const sampleRate = 48000;
+              const codecs = agent.appContextValue.useCodecs();
+              const jwt = agent.useAuthToken();
+              const transcribedVoiceInput = new TranscribedVoiceInput({
+                audioInput,
+                sampleRate,
+                codecs,
+                jwt,
+              });
+              transcribedVoiceInput.addEventListener('speechstart', e => {
+                // console.log('chats manager speech start', e.data);
+                conversation.dispatchEvent(new MessageEvent('speechstart', {
+                  data: e.data,
+                }));
+              });
+              transcribedVoiceInput.addEventListener('speechstop', e => {
+                // console.log('chats manager speech stop', e.data);
+                conversation.dispatchEvent(new MessageEvent('speechstop', {
+                  data: e.data,
+                }));
+              });
+              transcribedVoiceInput.addEventListener('speechcancel', e => {
+                // console.log('chats manager speech cancel', e.data);
+                conversation.dispatchEvent(new MessageEvent('speechcancel', {
+                  data: e.data,
+                }));
+              });
+              transcribedVoiceInput.addEventListener('transcription', e => {
+                // console.log('chats manager transcription', e.data);
+                conversation.dispatchEvent(new MessageEvent('transcription', {
+                  data: e.data,
+                }));
+              });
+              const transcriptionStream = {
+                audioInput,
+                transcribedVoiceInput,
+              };
+              transcriptionStreams.set(streamId, transcriptionStream);
+            } else {
+              console.warn('unhandled audio text disposition type', type);
             }
-            // Handle remote player state updates
-            player.addEventListener('update', (e) => {
-              const { key, val } = e.data;
-              if (key === 'playerSpec') {
-                remotePlayer.setPlayerSpec(val);
-              }
-            });
-          });
-          virtualPlayers.addEventListener('leave', async (e) => {
-            const { playerId } = e.data;
-            console.log('chats specification: remote player left:', playerId);
-            // const remotePlayer = conversation.getAgent(playerId);
-            // if (remotePlayer) {
-              conversation.removeAgent(playerId);
-            // } else {
-            //   console.warn('remote player not found', playerId);
-            //   debugger;
-            // }
-          });
-        };
-        _trackRemotePlayers();
-
-        const _bindMultiplayerChat = () => {
-          const _bindIncoming = () => {
-            // chat messages
-            realms.addEventListener('chat', async (e) => {
-              const { playerId, message } = e.data;
-              if (playerId !== agent.id) {
-                await conversation.addLocalMessage(message);
-              // } else {
-              //   // XXX fix this
-              //   console.warn('received own message from realms "chat" event; this should not happen', message);
-              }
-            });
-
-            // audio streams
-            const transcriptionStreams = new Map<string, TranscriptionStream>();
-            virtualPlayers.addEventListener('audiostart', async (e) => {
-              console.log('got audio start', e.data);
-              const { playerId, streamId, type, disposition } = e.data;
-              if (disposition === 'text') {
-                if (type === 'audio/pcm-f32-48000') {
-                  const audioInput = new EventEmitter();
-                  const sampleRate = 48000;
-                  const codecs = agent.appContextValue.useCodecs();
-                  const jwt = agent.useAuthToken();
-                  const transcribedVoiceInput = new TranscribedVoiceInput({
-                    audioInput,
-                    sampleRate,
-                    codecs,
-                    jwt,
-                  });
-                  transcribedVoiceInput.addEventListener('speechstart', e => {
-                    // console.log('chats manager speech start', e.data);
-                    conversation.dispatchEvent(new MessageEvent('speechstart', {
-                      data: e.data,
-                    }));
-                  });
-                  transcribedVoiceInput.addEventListener('speechstop', e => {
-                    // console.log('chats manager speech stop', e.data);
-                    conversation.dispatchEvent(new MessageEvent('speechstop', {
-                      data: e.data,
-                    }));
-                  });
-                  transcribedVoiceInput.addEventListener('speechcancel', e => {
-                    // console.log('chats manager speech cancel', e.data);
-                    conversation.dispatchEvent(new MessageEvent('speechcancel', {
-                      data: e.data,
-                    }));
-                  });
-                  transcribedVoiceInput.addEventListener('transcription', e => {
-                    // console.log('chats manager transcription', e.data);
-                    conversation.dispatchEvent(new MessageEvent('transcription', {
-                      data: e.data,
-                    }));
-                  });
-                  const transcriptionStream = {
-                    audioInput,
-                    transcribedVoiceInput,
-                  };
-                  transcriptionStreams.set(streamId, transcriptionStream);
-                } else {
-                  console.warn('unhandled audio text disposition type', type);
-                }
-              // } else {
-              //   // nothing
-              }
-            });
-            virtualPlayers.addEventListener('audio', async (e) => {
-              const { playerId, streamId, data } = e.data;
-              // console.log('got audio data', playerId, streamId);
-              const transcriptionStream = transcriptionStreams.get(streamId);
-              if (transcriptionStream) {
-                transcriptionStream.audioInput.emit('data', data);
-              } else {
-                console.warn('audio data: no transcription stream', e.data);
-              }
-            });
-            virtualPlayers.addEventListener('audioend', async (e) => {
-              console.log('got audio end', e.data);
-              const { playerId, streamId } = e.data;
-              const transcriptionStream = transcriptionStreams.get(streamId);
-              if (transcriptionStream) {
-                transcriptionStream.audioInput.emit('end');
-                transcriptionStreams.delete(streamId);
-              } else {
-                console.warn('audio end: no transcription stream', e.data);
-              }
-            });
-
-            // video streams
-            virtualPlayers.addEventListener('videostart', async (e) => {
-              console.log('got video start', e.data);
-              conversation.dispatchEvent(new MessageEvent('videostart', {
-                data: e.data,
-              }));
-            });
-            virtualPlayers.addEventListener('video', async (e) => {
-              console.log('got video data', e.data);
-              conversation.dispatchEvent(new MessageEvent('video', {
-                data: e.data,
-              }));
-            });
-            virtualPlayers.addEventListener('videoend', async (e) => {
-              console.log('got video end', e.data);
-              conversation.dispatchEvent(new MessageEvent('videoend', {
-                data: e.data,
-              }));
-            });
-          };
-          const _bindOutgoing = () => {
-            // chat messages
-            conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
-              const { message } = e.data;
-              if (realms.isConnected()) {
-                realms.sendChatMessage(message);
-              }
-            });
-            // audio
-            conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-              const audioStream = e.data.audioStream as PlayableAudioStream;
-              (async () => {
-                const {
-                  waitForFinish,
-                } = realms.addAudioSource(audioStream);
-                await waitForFinish();
-                realms.removeAudioSource(audioStream);
-              })();
-            });
-            // typing
-            const sendTyping = (typing: boolean) => {
-              if (realms.isConnected()) {
-                // try {
-                  realms.sendChatMessage({
-                    method: 'typing',
-                    userId: this.agent.id,
-                    name: this.agent.name,
-                    args: {
-                      typing,
-                    },
-                    hidden: true,
-                  });
-                // } catch (err) {
-                //   console.warn(err);
-                // }
-              }
-            };
-            conversation.addEventListener('typingstart', (e: MessageEvent) => {
-              sendTyping(true);
-            });
-            conversation.addEventListener('typingend', (e: MessageEvent) => {
-              sendTyping(false);
-            });
-          };
-          const _bindAgent = () => {
-            bindConversationToAgent({
-              agent: this.agent,
-              conversation,
-            });
-          };
-          const _bindDisconnect = () => {
-            realms.addEventListener('disconnect', async (e) => {
-              console.log('realms emitted disconnect');
-  
-              cleanup();
-  
-              // try to reconnect, if applicable
-              if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
-                console.log('rejoining room', roomSpecification);
-                await this.#join(roomSpecification);
-                console.log('rejoined room', roomSpecification);
-              }
-            });
-          };
-
-          _bindIncoming();
-          _bindOutgoing();
-          _bindAgent();
-          _bindDisconnect();
-        };
-        _bindMultiplayerChat();
-
-        await realms.updateRealmsKeys({
-          realmsKeys: [room],
-          rootRealmKey: room,
+          // } else {
+          //   // nothing
+          }
         });
+        playersMap.addEventListener('audio', async (e: any) => {
+          const { playerId, streamId, data } = e.data;
+          // console.log('got audio data', playerId, streamId);
+          const transcriptionStream = transcriptionStreams.get(streamId);
+          if (transcriptionStream) {
+            transcriptionStream.audioInput.emit('data', data);
+          } else {
+            console.warn('audio data: no transcription stream', e.data);
+          }
+        });
+        playersMap.addEventListener('audioend', async (e: any) => {
+          console.log('got audio end', e.data);
+          const { playerId, streamId } = e.data;
+          const transcriptionStream = transcriptionStreams.get(streamId);
+          if (transcriptionStream) {
+            transcriptionStream.audioInput.emit('end');
+            transcriptionStreams.delete(streamId);
+          } else {
+            console.warn('audio end: no transcription stream', e.data);
+          }
+        });
+      };
+      const _trackVideo = () => {
+        playersMap.addEventListener('videostart', async (e: any) => {
+          console.log('got video start', e.data);
+          conversation.dispatchEvent(new MessageEvent('videostart', {
+            data: e.data,
+          }));
+        });
+        playersMap.addEventListener('video', async (e: any) => {
+          console.log('got video data', e.data);
+          conversation.dispatchEvent(new MessageEvent('video', {
+            data: e.data,
+          }));
+        });
+        playersMap.addEventListener('videoend', async (e: any) => {
+          console.log('got video end', e.data);
+          conversation.dispatchEvent(new MessageEvent('videoend', {
+            data: e.data,
+          }));
+        });
+      };
+      const _bindOutgoingChat = () => {
+        const remotemessage = async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
+          const { message } = e.data;
+          multiplayerConnection.sendChatMessage(message);
+        };
+        conversation.addEventListener('remotemessage', remotemessage);
 
-        await connectPromise;
-      })();
+        const cleanupOutgoingChat = () => {
+          conversation.removeEventListener('remotemessage', remotemessage);
+        };
+        multiplayerConnection.addEventListener('disconnect', cleanupOutgoingChat);
+      };
+
+      const _bindOutgoingAudio = () => {
+        const audiostream = async (e: MessageEvent) => {
+          const audioStream = e.data.audioStream as PlayableAudioStream;
+          const { waitForFinish } = multiplayerConnection.addAudioSource(audioStream);
+          await waitForFinish();
+          multiplayerConnection.removeAudioSource(audioStream);
+        };
+        conversation.addEventListener('audiostream', audiostream);
+
+        const cleanupOutgoingAudio = () => {
+          conversation.removeEventListener('audiostream', audiostream);
+        };
+        multiplayerConnection.addEventListener('disconnect', cleanupOutgoingAudio);
+      };
+
+      const _bindOutgoingTyping = () => {
+        const sendTyping = (typing: boolean) => {
+          multiplayerConnection.sendChatMessage({
+            method: 'typing',
+            userId: this.agent.id,
+            name: this.agent.name,
+            args: {
+              typing,
+            },
+            hidden: true,
+          });
+        };
+        const typingstart = (e: MessageEvent) => {
+          sendTyping(true);
+        };
+        conversation.addEventListener('typingstart', typingstart);
+
+        const typingend = (e: MessageEvent) => {
+          sendTyping(false);
+        };
+        conversation.addEventListener('typingend', typingend);
+
+        const cleanupOutgoingTyping = () => {
+          conversation.removeEventListener('typingstart', typingstart);
+          conversation.removeEventListener('typingend', typingend);
+        };
+        multiplayerConnection.addEventListener('disconnect', cleanupOutgoingTyping);
+      };
+
+      const _bindAgent = () => {
+        bindConversationToAgent({
+          agent: this.agent,
+          conversation,
+        });
+      };
+      const _bindDisconnect = () => {
+        multiplayerConnection.addEventListener('disconnect', async (e: any) => {
+          console.log('realms emitted disconnect');
+
+          // clean up the old connection
+          cleanup();
+
+          // try to reconnect, if applicable
+          if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
+            console.log('rejoining room', roomSpecification);
+            await this.#join(roomSpecification);
+            console.log('rejoined room', roomSpecification);
+          }
+        });
+      };
+
+      _trackAudio();
+      _trackVideo();
+      _bindOutgoingChat();
+      _bindOutgoingAudio();
+      _bindOutgoingTyping();
+      _bindAgent();
+      _bindDisconnect();
+
       try {
-        await realmsPromise;
+        await multiplayerConnection.waitForConnect();
       } catch (err) {
         console.warn(err);
 
+        // clean up the old connection
         cleanup();
       }
     });

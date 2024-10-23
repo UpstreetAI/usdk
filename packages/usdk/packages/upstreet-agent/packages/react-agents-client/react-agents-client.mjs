@@ -51,6 +51,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
   room;
   profile;
+  metadata;
   playersMap = new PlayersMap();
   typingMap = new TypingMap();
   speakerMap = new SpeakerMap();
@@ -59,11 +60,13 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   constructor({
     room,
     profile,
+    metadata = {},
   }) {
     super();
 
     this.room = room;
     this.profile = profile;
+    this.metadata = metadata;
 
     this.connectPromise = this.connect();
   }
@@ -83,9 +86,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       typingMap,
       speakerMap,
     } = this;
-    const userId = profile?.id;
-    const name = profile?.name;
-    const previewUrl = profile?.previewUrl;
+    const userId = profile.id;
 
     // join the room
     const realms = new NetworkRealms({
@@ -107,48 +108,38 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     } = Promise.withResolvers();
     const onConnect = async (e) => {
       // this.log('on connect...');
-      e.waitUntil(
-        (async () => {
-          const realmKey = e.data.rootRealmKey;
-  
-          const existingAgentIds = Array.from(playersMap.getMap().keys());
-          if (existingAgentIds.includes(userId)) {
-            this.log('your character is already in the room! disconnecting.');
-            realms.disconnect();
-            return;
-          }
-  
-          // Initialize network realms player.
-          const playerSpec = {
-            id: userId,
-            name,
-            previewUrl,
-            capabilities: [
-              'human',
-            ],
-          };
-          const localPlayer = new Player(userId, playerSpec);
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.getPlayerSpec(),
-            );
 
-            playersMap.add(userId, localPlayer);
-          };
-          _pushInitialPlayer();
-  
-          connected = true;
-  
-          realmsConnectResolve();
-        })(),
-      );
+      const existingAgentIds = Array.from(playersMap.getMap().keys());
+      if (existingAgentIds.includes(userId)) {
+        this.log('your character is already in the room! disconnecting.');
+        realms.disconnect();
+        return;
+      }
+
+      // initialize the local player
+      const localPlayer = new Player(userId, profile);
+
+      // push the local player to the network
+      {
+        const realmKey = e.data.rootRealmKey;
+        realms.localPlayer.initializePlayer(
+          {
+            realmKey,
+          },
+          {},
+        );
+        realms.localPlayer.setKeyValue(
+          'playerSpec',
+          localPlayer.getPlayerSpec(),
+        );
+      }
+
+      // add the local player to the players map
+      playersMap.add(userId, localPlayer);
+
+      connected = true;
+
+      realmsConnectResolve();
     };
     realms.addEventListener('connect', onConnect);
   
@@ -256,18 +247,18 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     return await this.connectPromise;
   }
   sendChatMessage(message) {
-    this.realms.sendChatMessage(message);
+    return this.realms.sendChatMessage(message);
   }
   addAudioSource(audioSource) {
-    this.realms.addAudioSource(audioSource);
+    return this.realms.addAudioSource(audioSource);
   }
   removeAudioSource(audioSource) {
-    this.realms.removeAudioSource(audioSource);
+    return this.realms.removeAudioSource(audioSource);
   }
   addVideoSource(videoSource) {
-    this.realms.addVideoSource(videoSource);
+    return this.realms.addVideoSource(videoSource);
   }
   removeVideoSource(videoSource) {
-    this.realms.removeVideoSource(videoSource);
+    return this.realms.removeVideoSource(videoSource);
   }
 }

@@ -969,7 +969,13 @@ const connectRepl = async ({
   room,
   debug,
 }) => {
-  const profile = await getUserProfile();
+  let profile = await getUserProfile();
+  profile = {
+    ...profile,
+    capabilities: [
+      'human',
+    ],
+  };
   if (!profile) {
     throw new Error('could not get user profile');
   }
