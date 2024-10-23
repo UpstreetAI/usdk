@@ -137,8 +137,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             );
             realms.localPlayer.setKeyValue(
               'playerSpec',
-              localPlayer.playerSpec,
+              localPlayer.getPlayerSpec(),
             );
+
+            playersMap.add(userId, localPlayer);
           };
           _pushInitialPlayer();
   
