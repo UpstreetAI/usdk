@@ -232,7 +232,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         typingMap.clear();
         speakerMap.clear();
       };
-      realms.addEventListener('disconnect', () => {
+      realms.addEventListener('disconnect', (e) => {
+        this.dispatchEvent(new MessageEvent('disconnect', {
+          data: e.data,
+        }));
+
         cleanup();
       });
     };
