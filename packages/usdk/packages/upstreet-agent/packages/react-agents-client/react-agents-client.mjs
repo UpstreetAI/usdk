@@ -60,7 +60,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   constructor({
     room,
     profile,
-    metadata,
+    metadata = {},
   }) {
     super();
 
