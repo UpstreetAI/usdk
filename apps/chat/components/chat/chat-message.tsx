@@ -9,6 +9,10 @@ import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/help
 import { Model } from '../model'
 import ReactMarkdown from 'react-markdown'
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
+import remarkGfm from "remark-gfm";
+import MentionRenderer from '../markdown-renderer'
+import React from 'react'
+
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -45,6 +49,7 @@ export function ChatMessage({
 
   const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
 
+  console.log('content', content);
   return (
     <div>
       <div className={`relative bt-0 mt-2 ${isOwnMessage ? 'pl-14' : 'pr-14'}`}>
@@ -117,9 +122,8 @@ export function ChatMessage({
             {content && (
               <div className="relative">
                 <div className={`float-left mr-2`}>
-                  <ReactMarkdown className='chat-markdown'>
-                    {content}
-                  </ReactMarkdown>
+                  {/* <MarkdownRenderer content={content} /> */}
+                  <MentionRenderer content={content} />
                 </div>
                 <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
                   {timeAgo(timestamp)}

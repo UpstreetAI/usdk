@@ -108,7 +108,7 @@ export function PromptForm({
   };
 
   const members = Array.from(playersMap.values())
-    .filter(player => player.playerSpec.id !== localPlayerSpec.id)
+    // .filter(player => player.playerSpec.id !== localPlayerSpec.id)
     .map(player => ({
       id: player.playerSpec.id,
       display: player.playerSpec.name,
