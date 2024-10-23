@@ -27,10 +27,11 @@ export function ChatHistory() {
   const roomDescription = crdt?.getText('description').toString()
 
   const roomLink = typeof window !== 'undefined' ? window.location.href : ''
-  
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   const [memberSearchQuery, setMemberSearchQuery] = React.useState('')
 
