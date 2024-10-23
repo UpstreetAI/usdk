@@ -85,7 +85,8 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     } = this;
     const userId = profile?.id;
     const name = profile?.name;
-  
+    const previewUrl = profile?.previewUrl;
+
     // join the room
     const realms = new NetworkRealms({
       endpointUrl: multiplayerEndpointUrl,
@@ -99,6 +100,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     // this.log('waiting for initial connection...');
   
     let connected = false;
+    const {
+      promise: realmsConnectPromise,
+      resolve: realmsConnectResolve,
+      reject: realmsConnectReject,
+    } = Promise.withResolvers();
     const onConnect = async (e) => {
       // this.log('on connect...');
       e.waitUntil(
@@ -116,6 +122,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           const playerSpec = {
             id: userId,
             name,
+            previewUrl,
             capabilities: [
               'human',
             ],
@@ -130,16 +137,16 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             );
             realms.localPlayer.setKeyValue(
               'playerSpec',
-              localPlayer.playerSpec,
+              localPlayer.getPlayerSpec(),
             );
+
+            playersMap.add(userId, localPlayer);
           };
           _pushInitialPlayer();
   
           connected = true;
   
-          this.dispatchEvent(new MessageEvent('connect', {
-            data: null,
-          }));
+          realmsConnectResolve();
         })(),
       );
     };
@@ -150,27 +157,35 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const { playerId, player } = e.data;
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
-          this.log('remote player joined:', playerId);
+          this.log('react agents client: remote player joined:', playerId);
         // } else {
         //   this.log('remote player joined before connection', playerId);
         //   throw new Error('remote player joined before connection: ' + playerId);
         }
   
         const remotePlayer = new Player(playerId, playerSpec);
-        playersMap.add(playerId, remotePlayer);
-  
+        // do not add the player until it has the playerSpec set
+        // we listen for the 'update' event below to handle this case
+        // this can be implemented more synchronously, but it would require multiplayer server changes to initialize the player spec at join time
+        if (remotePlayer.getPlayerSpec()) {
+          playersMap.add(playerId, remotePlayer);
+        }
+
         // Handle remote player state updates
         player.addEventListener('update', e => {
           const { key, val } = e.data;
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
+            if (!playersMap.has(playerId)) {
+              playersMap.add(playerId, remotePlayer);
+            }
           }
         });
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
-          this.log('remote player left:', playerId);
+          this.log('react agents client: remote player left:', playerId);
         // } else {
         //   this.log('remote player left before connection', playerId);
         //   throw new Error('remote player left before connection: ' + playerId);
@@ -185,6 +200,21 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           throw new Error('remote player not found');
         }
       });
+      // map multimedia events virtualPlayers -> playersMap
+      [
+        'audio',
+        'audiostart',
+        'audioend',
+        'video',
+        'videostart',
+        'videoend',
+      ].forEach(eventName => {
+        virtualPlayers.addEventListener(eventName, e => {
+          playersMap.dispatchEvent(new MessageEvent(eventName, {
+            data: e.data,
+          }));
+        });
+      });
     };
     _trackRemotePlayers();
   
@@ -195,14 +225,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }));
       };
       realms.addEventListener('chat', onchat);
-      const cleanup = () => {
-        realms.removeEventListener('chat', onchat);
+
+      realms.addEventListener('disconnect', (e) => {
+        this.dispatchEvent(new MessageEvent('disconnect', {
+          data: e.data,
+        }));
+
         playersMap.clear();
         typingMap.clear();
         speakerMap.clear();
-      };
-      realms.addEventListener('disconnect', () => {
-        cleanup();
       });
     };
     _bindMultiplayerChat();
@@ -211,8 +242,32 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       realmsKeys: [room],
       rootRealmKey: room,
     });
+
+    await realmsConnectPromise;
+
+    this.dispatchEvent(new MessageEvent('connect', {
+      data: null,
+    }));
+  }
+  disconnect() {
+    this.realms.disconnect();
   }
   async waitForConnect() {
     return await this.connectPromise;
+  }
+  sendChatMessage(message) {
+    this.realms.sendChatMessage(message);
+  }
+  addAudioSource(audioSource) {
+    this.realms.addAudioSource(audioSource);
+  }
+  removeAudioSource(audioSource) {
+    this.realms.removeAudioSource(audioSource);
+  }
+  addVideoSource(videoSource) {
+    this.realms.addVideoSource(videoSource);
+  }
+  removeVideoSource(videoSource) {
+    this.realms.removeVideoSource(videoSource);
   }
 }

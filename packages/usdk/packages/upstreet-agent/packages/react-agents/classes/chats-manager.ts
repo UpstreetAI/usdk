@@ -208,7 +208,7 @@ export class ChatsManager {
         const _trackRemotePlayers = () => {
           virtualPlayers.addEventListener('join', (e) => {
             const { playerId, player } = e.data;
-            console.log('remote player joined:', playerId);
+            console.log('chats specification: remote player joined:', playerId);
 
             const remotePlayer = new Player(playerId, {});
             conversation.addAgent(playerId, remotePlayer);
@@ -230,7 +230,7 @@ export class ChatsManager {
           });
           virtualPlayers.addEventListener('leave', async (e) => {
             const { playerId } = e.data;
-            console.log('remote player left:', playerId);
+            console.log('chats specification: remote player left:', playerId);
             // const remotePlayer = conversation.getAgent(playerId);
             // if (remotePlayer) {
               conversation.removeAgent(playerId);

@@ -91,9 +91,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   } = useMultiplayerActions();
 
   /// Get players
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   // Get room specs
   const crdt = getCrdtDoc()
