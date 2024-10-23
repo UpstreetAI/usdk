@@ -1274,8 +1274,7 @@ const connect = async (args) => {
         break;
       }
       default: {
-        // nothing
-        break;
+        throw new Error(`unknown mode: ${mode}`);
       }
     }
   } else {
