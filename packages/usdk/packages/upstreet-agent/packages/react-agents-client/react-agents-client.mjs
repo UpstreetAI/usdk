@@ -157,7 +157,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const { playerId, player } = e.data;
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
-          this.log('remote player joined:', playerId);
+          this.log('react agents client: remote player joined:', playerId);
         // } else {
         //   this.log('remote player joined before connection', playerId);
         //   throw new Error('remote player joined before connection: ' + playerId);
@@ -177,7 +177,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
-          this.log('remote player left:', playerId);
+          this.log('react agents client: remote player left:', playerId);
         // } else {
         //   this.log('remote player left before connection', playerId);
         //   throw new Error('remote player left before connection: ' + playerId);
