@@ -226,18 +226,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }));
       };
       realms.addEventListener('chat', onchat);
-      const cleanup = () => {
-        realms.removeEventListener('chat', onchat);
-        playersMap.clear();
-        typingMap.clear();
-        speakerMap.clear();
-      };
+
       realms.addEventListener('disconnect', (e) => {
         this.dispatchEvent(new MessageEvent('disconnect', {
           data: e.data,
         }));
 
-        cleanup();
+        playersMap.clear();
+        typingMap.clear();
+        speakerMap.clear();
       });
     };
     _bindMultiplayerChat();
