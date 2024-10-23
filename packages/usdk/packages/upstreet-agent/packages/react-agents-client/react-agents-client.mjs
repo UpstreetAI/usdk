@@ -108,40 +108,37 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     } = Promise.withResolvers();
     const onConnect = async (e) => {
       // this.log('on connect...');
-      e.waitUntil(
-        (async () => {
-          const realmKey = e.data.rootRealmKey;
-  
-          const existingAgentIds = Array.from(playersMap.getMap().keys());
-          if (existingAgentIds.includes(userId)) {
-            this.log('your character is already in the room! disconnecting.');
-            realms.disconnect();
-            return;
-          }
-  
-          // Initialize network realms player.
-          const localPlayer = new Player(userId, profile);
-          const _pushInitialPlayer = () => {
-            realms.localPlayer.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer.setKeyValue(
-              'playerSpec',
-              localPlayer.getPlayerSpec(),
-            );
 
-            playersMap.add(userId, localPlayer);
-          };
-          _pushInitialPlayer();
-  
-          connected = true;
-  
-          realmsConnectResolve();
-        })(),
-      );
+      const realmKey = e.data.rootRealmKey;
+
+      const existingAgentIds = Array.from(playersMap.getMap().keys());
+      if (existingAgentIds.includes(userId)) {
+        this.log('your character is already in the room! disconnecting.');
+        realms.disconnect();
+        return;
+      }
+
+      // Initialize network realms player.
+      const localPlayer = new Player(userId, profile);
+      const _pushInitialPlayer = () => {
+        realms.localPlayer.initializePlayer(
+          {
+            realmKey,
+          },
+          {},
+        );
+        realms.localPlayer.setKeyValue(
+          'playerSpec',
+          localPlayer.getPlayerSpec(),
+        );
+
+        playersMap.add(userId, localPlayer);
+      };
+      _pushInitialPlayer();
+
+      connected = true;
+
+      realmsConnectResolve();
     };
     realms.addEventListener('connect', onConnect);
   
