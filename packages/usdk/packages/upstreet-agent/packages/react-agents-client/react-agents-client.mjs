@@ -229,4 +229,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   async waitForConnect() {
     return await this.connectPromise;
   }
+  sendChatMessage(message) {
+    this.realms.sendChatMessage(message);
+  }
 }
