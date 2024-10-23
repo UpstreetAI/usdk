@@ -223,6 +223,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       data: null,
     }));
   }
+  disconnect() {
+    this.realms.disconnect();
+  }
   async waitForConnect() {
     return await this.connectPromise;
   }
