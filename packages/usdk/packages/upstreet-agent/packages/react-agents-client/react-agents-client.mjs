@@ -200,6 +200,22 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           throw new Error('remote player not found');
         }
       });
+      // map multimedia events virtualPlayers -> playersMap
+      [
+        'audio',
+        'audiostart',
+        'audioend',
+        'video',
+        'videostart',
+        'videoend',
+      ].forEach(eventName => {
+        virtualPlayers.addEventListener(eventName, e => {
+          playersMap.disp
+          atchEvent(new MessageEvent(eventName, {
+            data: e.data,
+          }));
+        });
+      });
     };
     _trackRemotePlayers();
   
