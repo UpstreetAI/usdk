@@ -316,45 +316,24 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               console.log('multiplayer connecting...');
               await multiplayerConnection.waitForConnect();
               console.log('multiplayer connected');
-
-              connected = true;
-              refresh();
             })();
-            // const { realms, speakerMap } = multiplayerConnection;
-            playersMap = multiplayerConnection.playersMap;
-            typingMap = multiplayerConnection.typingMap;
-            
-            /* const agentJsons = Array.from(playersMap.getMap().values()).map(
-              (player) => player.playerSpec,
-            ); */
-            /* realms = connectResult.realms;
-            realms.addEventListener('connect', (e) => {
-              console.log('connect event');
-
+            multiplayerConnection.addEventListener('connect', (e: any) => {
               connected = true;
               refresh();
             });
-            realms.addEventListener('disconnect', (e) => {
-              console.log('disconnect event');
-
+            multiplayerConnection.addEventListener('disconnect', (e: any) => {
               connected = false;
               refresh();
             });
-            realms.addEventListener('chat', (e) => {
-              const { message } = (e as any).data;
+            multiplayerConnection.addEventListener('chat', (e: any) => {
+              const { message } = e.data;
               messages = [...messages, message];
               refresh();
             });
-            realms.addEventListener('playerschange', (e: any) => {
-              // const playersMap = (e as any).data;
 
-              // ensure all players are in the players cache
-              for (const [playerId, player] of playersMap) {
-                playersCache.set(playerId, player);
-              }
+            playersMap = multiplayerConnection.playersMap;
+            typingMap = multiplayerConnection.typingMap;
 
-              refresh();
-            }); */
             typingMap.addEventListener('typingchange', (e) => {
               refresh();
             });
