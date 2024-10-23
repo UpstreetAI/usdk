@@ -1,6 +1,5 @@
 import child_process from 'child_process';
 import { wranglerBinPath } from './util/locations.mjs';
-import { cwd } from './util/directory-utils.mjs';
 import { devServerPort } from './util/ports.mjs';
 
 //
@@ -97,7 +96,12 @@ export class ReactAgentsLocalRuntime {
     // spawn the wrangler child process
     const cp = child_process.spawn(
       wranglerBinPath,
-      ['dev', '--var', 'WORKER_ENV:development', '--ip', '0.0.0.0', '--port', devServerPort + portIndex],
+      [
+        'dev',
+        '--var', 'WORKER_ENV:development',
+        '--ip', '0.0.0.0',
+        '--port', devServerPort + portIndex,
+      ],
       {
         stdio: 'pipe',
         // stdio: 'inherit',
