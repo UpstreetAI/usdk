@@ -164,13 +164,21 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }
   
         const remotePlayer = new Player(playerId, playerSpec);
-        playersMap.add(playerId, remotePlayer);
-  
+        // do not add the player until it has the playerSpec set
+        // we listen for the 'update' event below to handle this case
+        // this can be implemented more synchronously, but it would require multiplayer server changes to initialize the player spec at join time
+        if (remotePlayer.getPlayerSpec()) {
+          playersMap.add(playerId, remotePlayer);
+        }
+
         // Handle remote player state updates
         player.addEventListener('update', e => {
           const { key, val } = e.data;
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
+            if (!playersMap.has(playerId)) {
+              playersMap.add(playerId, remotePlayer);
+            }
           }
         });
       });
