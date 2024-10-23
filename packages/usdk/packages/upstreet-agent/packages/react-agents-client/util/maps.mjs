@@ -11,7 +11,7 @@ export class PlayersMap extends EventTarget {
   }
   add(playerId, player) {
     this.#internalMap.set(playerId, player);
-    this.dispatchEvent(new MessageEvent('playerjoin', {
+    this.dispatchEvent(new MessageEvent('join', {
       data: {
         player,
       },
@@ -21,7 +21,7 @@ export class PlayersMap extends EventTarget {
     const player = this.#internalMap.get(playerId);
     if (player) {
       this.#internalMap.delete(playerId);
-      this.dispatchEvent(new MessageEvent('playerleave', {
+      this.dispatchEvent(new MessageEvent('leave', {
         data: {
           player,
         },
@@ -32,7 +32,7 @@ export class PlayersMap extends EventTarget {
   }
   clear() {
     for (const [playerId, player] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('playerleave', {
+      this.dispatchEvent(new MessageEvent('leave', {
         data: {
           player,
         },
