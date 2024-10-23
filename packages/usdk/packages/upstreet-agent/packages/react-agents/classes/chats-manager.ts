@@ -109,7 +109,27 @@ export class ChatsManager {
         this.rooms.delete(key);
       };
 
-      const profile = agent;
+      const getProfile = () => {
+        const {
+          id,
+          name,
+          description,
+          bio,
+          previewUrl,
+          model,
+          address,
+        } = this.agent;
+        return {
+          id,
+          name,
+          description,
+          bio,
+          previewUrl,
+          model,
+          address,
+        };
+      };
+      const profile = getProfile();
       const debug = true;
       const multiplayerConnection = new ReactAgentsMultiplayerConnection({
         room,
