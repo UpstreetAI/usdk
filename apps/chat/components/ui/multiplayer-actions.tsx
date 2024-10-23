@@ -241,7 +241,12 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            const profile = newLocalPlayerSpec;
+            const profile = {
+              ...newLocalPlayerSpec,
+              capabilities: [
+                'human',
+              ],
+            };
             const debug = true;
             multiplayerConnection = new ReactAgentsMultiplayerConnection({
               room,

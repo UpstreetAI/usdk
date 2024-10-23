@@ -120,13 +120,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           }
   
           // Initialize network realms player.
-          const playerSpec = {
-            ...profile,
-            capabilities: [
-              'human',
-            ],
-          };
-          const localPlayer = new Player(userId, playerSpec);
+          const localPlayer = new Player(userId, profile);
           const _pushInitialPlayer = () => {
             realms.localPlayer.initializePlayer(
               {
