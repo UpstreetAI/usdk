@@ -100,6 +100,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     // this.log('waiting for initial connection...');
   
     let connected = false;
+    const {
+      promise: realmsConnectPromise,
+      resolve: realmsConnectResolve,
+      reject: realmsConnectReject,
+    } = Promise.withResolvers();
     const onConnect = async (e) => {
       // this.log('on connect...');
       e.waitUntil(
@@ -139,9 +144,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   
           connected = true;
   
-          this.dispatchEvent(new MessageEvent('connect', {
-            data: null,
-          }));
+          realmsConnectResolve();
         })(),
       );
     };
@@ -213,6 +216,12 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       realmsKeys: [room],
       rootRealmKey: room,
     });
+
+    await realmsConnectPromise;
+
+    this.dispatchEvent(new MessageEvent('connect', {
+      data: null,
+    }));
   }
   async waitForConnect() {
     return await this.connectPromise;
