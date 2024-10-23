@@ -1352,7 +1352,7 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
   }
 };
 const chat = async (args) => {
-  // console.log('got chat args', JSON.stringify(args));
+  // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
