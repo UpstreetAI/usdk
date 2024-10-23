@@ -255,18 +255,18 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     return await this.connectPromise;
   }
   sendChatMessage(message) {
-    this.realms.sendChatMessage(message);
+    return this.realms.sendChatMessage(message);
   }
   addAudioSource(audioSource) {
-    this.realms.addAudioSource(audioSource);
+    return this.realms.addAudioSource(audioSource);
   }
   removeAudioSource(audioSource) {
-    this.realms.removeAudioSource(audioSource);
+    return this.realms.removeAudioSource(audioSource);
   }
   addVideoSource(videoSource) {
-    this.realms.addVideoSource(videoSource);
+    return this.realms.addVideoSource(videoSource);
   }
   removeVideoSource(videoSource) {
-    this.realms.removeVideoSource(videoSource);
+    return this.realms.removeVideoSource(videoSource);
   }
 }
