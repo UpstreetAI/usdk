@@ -109,7 +109,7 @@ export class ReactAgentsLocalRuntime {
       },
     );
     bindProcess(cp);
-    await waitForProcessIo(cp, /ready/i);
+    await waitForProcessIo(cp, /ready on /i);
     if (debug) {
       cp.stdout.pipe(process.stdout);
       cp.stderr.pipe(process.stderr);
