@@ -966,6 +966,20 @@ const connectBrowser = ({
   open(`${chatEndpointUrl}/rooms/${room}`)
     .catch( console.error );
 };
+const connectElectron = async ({
+  room,
+  jwt,
+  debug,
+}) => {
+  const runtime = new ReactAgentsElectronRuntime({
+    room,
+    jwt,
+  });
+  await runtime.start({
+    debug,
+  });
+  return runtime;
+};
 const connectRepl = async ({
   room,
   debug,
@@ -1257,6 +1271,7 @@ const connectRepl = async ({
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
+  const jwt = args.jwt;
   const debug = !!args.debug;
 
   if (room) {
@@ -1264,6 +1279,14 @@ const connect = async (args) => {
       case 'browser': {
         connectBrowser({
           room,
+        });
+        break;
+      }
+      case 'desktop': {
+        await connectElectron({
+          room,
+          jwt,
+          debug,
         });
         break;
       }
@@ -1366,22 +1389,11 @@ const chat = async (args) => {
     const localRuntimePromises = agentSpecs
       .map(async (agentSpec) => {
         if (agentSpec.directory) {
-          if (!desktop) {
-            const runtime = new ReactAgentsLocalRuntime(agentSpec);
-            await runtime.start({
-              debug,
-            });
-            return runtime;
-          } else {
-            const runtime = new ReactAgentsElectronRuntime(agentSpec, {
-              room,
-              jwt,
-            });
-            await runtime.start({
-              debug,
-            });
-            return runtime;
-          }
+          const runtime = new ReactAgentsLocalRuntime(agentSpec);
+          await runtime.start({
+            debug,
+          });
+          return runtime;
         } else {
           return null;
         }
@@ -1399,13 +1411,21 @@ const chat = async (args) => {
     );
 
     // connect to the chat
-    if (!desktop) {
-      await connect({
-        _: [room],
-        mode: browser ? 'browser' : 'repl',
-        debug,
-      });
-    }
+    const mode = (() => {
+      if (browser) {
+        return 'browser';
+      } else if (desktop) {
+        return 'desktop';
+      } else {
+        return 'repl';
+      }
+    })();
+    await connect({
+      _: [room],
+      mode,
+      jwt,
+      debug,
+    });
   } else {
     console.log('not logged in');
     process.exit(1);
