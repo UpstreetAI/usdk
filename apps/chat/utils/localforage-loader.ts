@@ -1,7 +1,5 @@
 import localforage from 'localforage';
-import {
-  QueueManager,
-} from '@/utils/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 
 export class LocalforageLoader<T> {
   key: string;
