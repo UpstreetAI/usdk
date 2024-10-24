@@ -1,9 +1,7 @@
 import type {
   RoomSpecification,
 } from '../types';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';

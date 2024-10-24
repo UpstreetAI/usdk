@@ -18,9 +18,7 @@ import {
 import {
   ActiveAgentObject,
 } from './active-agent-object';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';

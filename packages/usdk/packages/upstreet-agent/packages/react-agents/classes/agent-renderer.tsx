@@ -17,7 +17,7 @@ import type {
 // import inspect from 'browser-util-inspect';
 
 import { RenderLoader } from './render-loader';
-import { QueueManager } from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { makeAnonymousClient } from '../util/supabase-client.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';
