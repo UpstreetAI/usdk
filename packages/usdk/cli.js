@@ -1356,6 +1356,8 @@ const chat = async (args) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
+  const browser = !!args.browser;
+  const desktop = !!args.desktop;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
@@ -1364,11 +1366,22 @@ const chat = async (args) => {
     const localRuntimePromises = agentSpecs
       .map(async (agentSpec) => {
         if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
+          if (!desktop) {
+            const runtime = new ReactAgentsLocalRuntime(agentSpec);
+            await runtime.start({
+              debug,
+            });
+            return runtime;
+          } else {
+            const runtime = new ReactAgentsElectronRuntime(agentSpec, {
+              room,
+              jwt,
+            });
+            await runtime.start({
+              debug,
+            });
+            return runtime;
+          }
         } else {
           return null;
         }
@@ -1386,11 +1399,13 @@ const chat = async (args) => {
     );
 
     // connect to the chat
-    await connect({
-      _: [room],
-      mode: args.browser ? 'browser' : 'repl',
-      debug: args.debug,
-    });
+    if (!desktop) {
+      await connect({
+        _: [room],
+        mode: browser ? 'browser' : 'repl',
+        debug,
+      });
+    }
   } else {
     console.log('not logged in');
     process.exit(1);
@@ -3052,6 +3067,7 @@ const main = async () => {
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
+    .option(`-d, --desktop`, `Open the chat room on the desktop, using Electron`)
     .option(`-r, --room <room>`, `The room name to join`)
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
@@ -3063,23 +3079,6 @@ const main = async () => {
           ...opts,
         };
         await chat(args);
-      });
-    });
-  program
-    .command('desktop')
-    .alias('d')
-    .description(`Run an agent on yuor desktop`)
-    .argument(`[guids...]`, `Guids of the agents to join the room`)
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        args = {
-          _: [guids],
-          ...opts,
-        };
-        await desktop(args);
       });
     });
   // program
