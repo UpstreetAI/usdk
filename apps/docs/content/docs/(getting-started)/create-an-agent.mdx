@@ -1,0 +1,41 @@
+---
+title: Create an Agent
+description: Agents are autonomous digital beings which you can customize to your content. Read more about the [concept behind agents](/docs/learn).
+full: false
+---
+ 
+import Wrapper from '../../../components/preview/wrapper';
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+ 
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+ 
+<Accordions>
+  <Accordion title="🟢 Prerequisites">
+    - You must be [logged in](/docs/install#log-into-the-sdk) to the SDK
+  </Accordion>
+</Accordions>
+
+This command will generate a folder with the name xyz where you ran the command.
+
+<Wrapper>
+<Files>
+  <Folder name='agent6' defaultOpen>
+    <Folder name="wrangler" />
+    <Folder name="node_modules" disabled />
+    <Folder name="packages" />
+    <Folder name="codecs" />
+    <Folder name="tests" />
+    <File name="agent.tsx" />
+    <File name="jest.config.mjs" />
+    <File name="jest.setup.mjs" />
+    <File name="package-lock.json" />
+    <File name="package.json" />
+    <File name="tsconfig.json" />
+    <File name="wrangler.toml" />
+  </Folder>
+</Files>
+</Wrapper>
+
+<Callout>
+  While it's good to use a version control system like **GitHub** to keep your Agent saved, we **do not recommend** keeping your repository public, as this could reveal secret keys.
+</Callout>

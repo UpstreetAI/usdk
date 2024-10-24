@@ -1,0 +1,30 @@
+---
+title: Home
+description: Best documentation ever
+full: false
+---
+ 
+import Image from 'next/image';
+
+{/* import { HomeIcon } from 'lucide-react'; */}
+<div className="opacity-60">
+Coming from any of the following?
+</div>
+
+<Cards className="sm:grid-cols-3">
+  <Card className="flex flex-col items-start" href="/">
+    <Image src="/images/upstreetai-competitors/langchain.png" width={100} height={30} className='h-8 mb-2 w-auto object-contain' />
+    LangChain
+    {/* Go back to home */}
+  </Card>
+  <Card className="flex flex-col items-start" href="/">
+    <Image src="/images/upstreetai-competitors/crew_ai.png" width={100} height={30} className='h-8 mb-2 w-auto object-contain' />
+    Crew.ai
+    {/* Go back to home */}
+  </Card>
+  <Card className="flex flex-col items-start" href="/">
+    <Image src="/images/upstreetai-competitors/fetch_ai.png" width={100} height={30} className='h-8 mb-2 w-auto object-contain' />
+    Fetch.ai
+    {/* Go back to home */}
+  </Card>
+</Cards>

@@ -1,0 +1,82 @@
+---
+title: The Agents SDK in-depth
+description: Best document ever
+full: false
+---
+ 
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
+
+<InlineTOC items={toc} />
+
+## Architecture
+
+We've built the Agents SDK on React, using the [React Reconciler API](https://github.com/facebook/react/blob/main/packages/react-reconciler/README.md). This design choice enables us to not only run the Agents on the server, but also prepares us for a future where Agents are capable of running multi-platform and on edge (maybe in your browser too!).
+
+To learn how the React Reconciler works, we recommend reading the [React documentation on Reconciliation](https://react.dev/learn/preserving-and-resetting-state).
+
+## Available Commands
+
+These commands are also visible in the Terminal if you run `usdk --help`.
+
+<TypeTable
+  type={{
+    '-V, --version': {
+      description: 'Output the version number',
+      type: 'command',
+    },
+    '-h, --help': {
+      description: 'Display help for command',
+      type: 'command',
+    },
+    'version': {
+      description: 'Print the version of the SDK',
+      type: 'command',
+    },
+    'login': {
+      description: 'Log in to the SDK',
+      type: 'command',
+    },
+    'logout': {
+      description: 'Log out of the SDK',
+      type: 'command',
+    },
+    'status': {
+      description: 'Print the current login status of the SDK',
+      type: 'command',
+    },
+    'create [options] [directory]': {
+      description: 'Create a new agent, from either a prompt or template',
+      type: 'command',
+    },
+    'edit [options] [directory]': {
+      description: 'Edit an existing agent',
+      type: 'command',
+    },
+    'pull [options] <guid> [directory]': {
+      description: 'Download source of deployed agent',
+      type: 'command',
+    },
+    'chat [options] [guids...]': {
+      description: 'Chat with agents in a multiplayer room',
+      type: 'command',
+    },
+    'test [options] [directories...]': {
+      description: 'Run agent tests',
+      type: 'command',
+    },
+    'deploy [guids...]': {
+      description: 'Deploy an agent to the network',
+      type: 'command',
+    },
+    'rm [guids...]': {
+      description: 'Remove a deployed agent from the network',
+      type: 'command',
+    },
+    'help [command]': {
+      description: 'Display help for a command',
+      type: 'command',
+    },
+  }}
+/>

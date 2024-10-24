@@ -1,0 +1,5 @@
+{
+    "title": "Documentation",
+    "pages": ["(getting-started)", "examples", "agents-sdk-in-depth", "migration-guides", "pricing"],
+    "defaultOpen": true
+}
