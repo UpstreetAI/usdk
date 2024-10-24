@@ -3,7 +3,7 @@ const getAllUsernames = (playersMap) => {
       return [];
     }
     const usernames = [];
-    for (let [_, user] of playersMap) {
+    for (let [_, user] of playersMap.getMap()) {
       usernames.push(user.playerSpec.name);
     }
     return usernames;
@@ -27,7 +27,7 @@ const completer = (line, playersMap) => {
 };
 
 const getUserByName = (name, playersMap) => {
-    for (let [_, user] of playersMap) {
+    for (let [_, user] of playersMap.getMap()) {
         const userName = user.playerSpec.name;
         if (userName.toLowerCase() === name.toLowerCase()) {
         return user;
@@ -42,7 +42,7 @@ const extractTaggedUsers = (text, playersMap) => {
 
     const findUserByName = (username) => {
         const trimmedUsername = username.trim().toLowerCase();
-        for (let player of playersMap.values()) {
+        for (let player of playersMap.getMap().values()) {
             const playerName = player.playerSpec.name?.trim().replace(/\s+/g, '').toLowerCase();
             if (playerName === trimmedUsername) {
                 return player;

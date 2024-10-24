@@ -651,12 +651,13 @@ const startMultiplayerRepl = ({
   realms,
   typingMap,
   speakerMap,
+  playersMap,
 }) => {
   // let rl;
   // let currentPrompt = '';
 
   const getUserPrompt = () => {
-    const name = userAsset.name;
+    const name = profile.name;
     const namePrefix = `${name} (you):`
     return getStyledMessage(namePrefix, '');
   };
@@ -919,8 +920,8 @@ const startMultiplayerRepl = ({
       text,
       taggedUserIds,
     ) => {
-      const userId = userAsset.id;
-      const name = userAsset.name;
+      const userId = profile.id;
+      const name = profile.name;
       const messagePayload = {
         method: 'say',
         userId,
@@ -1076,7 +1077,8 @@ const connectRepl = async ({
             }
             s += '\n]';
           }
-          mpLog(s);
+          // mpLog(s);
+          displayStyledMarkdownMessage(name, s);
 
           // read attachments and print them to the console if we can
           if (attachments) {
@@ -1222,6 +1224,7 @@ const connectRepl = async ({
     realms,
     typingMap,
     speakerMap,
+    playersMap,
   });
 
   const _trackAudio = () => {
