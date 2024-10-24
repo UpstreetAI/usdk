@@ -85,6 +85,7 @@ export function PromptForm({
     }
   };
   const nudgeContinue = () => {
+    // XXX make this support calling next() on the audio stream
     const randomBotAgent = shuffle(botAgents.slice())[0];
     sendNudgeMessage(randomBotAgent.id);
   };
