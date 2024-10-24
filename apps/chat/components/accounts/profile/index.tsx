@@ -29,7 +29,7 @@ interface AccountProps {
 export function AccountProfile({ account }: AccountProps) {
   const origin = window.location.origin;
   const agentUrl = `${origin}/accounts/${account.id}`;
-  const randomAgentImage = account.agents[Math.floor(Math.random() * account.agents.length)].images[0].url;
+  const randomAgentImage = account.agents[Math.floor(Math.random() * account.agents.length)]?.images[0].url;
 
   return (
     <div className="w-full mx-auto">

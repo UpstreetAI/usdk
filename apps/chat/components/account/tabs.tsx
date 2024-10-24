@@ -34,9 +34,11 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
   const origin = window.location.origin;
   const accountUrl = `${origin}/accounts/${user.id}`;
 
+  const randomAgentImage = agents[Math.floor(Math.random() * agents.length)]?.images[0].url;
+
   return (
     <div className='w-full'>
-      <HeaderMaskFrame background={''} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
+      <HeaderMaskFrame background={randomAgentImage} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
         <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
           <div className="flex">
             <div className="mr-4 size-18 min-w-18 md:size-36 md:min-w-36 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
@@ -57,7 +59,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
               </div>
             </div>
             <div>
-                <div className='flex items-center'>
+              <div className='flex items-center'>
                 <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
                 <IconButton
                   onClick={() => { setTab('profile'); }}
@@ -66,7 +68,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   target={'_blank'}
                   className='ml-4'
                 />
-                </div>
+              </div>
               <div className="px-2 py-1 bg-black bg-opacity-60">{accountUrl}</div>
               <div className='flex gap-4 mt-4'>
                 <IconButton
@@ -94,13 +96,13 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   size="large"
                 />
                 <IconButton
-                    onClick={() => { setTab('subscriptions'); }}
-                    icon="Subscriptions"
-                    label="Subscription"
-                    active={tab === 'subscriptions'}
-                    target={undefined}
-                    size="large"
-                  />
+                  onClick={() => { setTab('subscriptions'); }}
+                  icon="Subscriptions"
+                  label="Subscription"
+                  active={tab === 'subscriptions'}
+                  target={undefined}
+                  size="large"
+                />
                 <Dev>
                   <IconButton
                     onClick={() => { setTab('voices'); }}
