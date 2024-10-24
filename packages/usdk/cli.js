@@ -141,18 +141,6 @@ const truncateLine = '\x1b[2K\r';
 
 //
 
-let logFn = (...args) => {
-  console.log(...args);
-};
-const setLogFn = (_logFn) => {
-  logFn = _logFn;
-};
-const log = (...args) => {
-  logFn(...args);
-};
-
-//
-
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 
 const defaultCorsHeaders = [
