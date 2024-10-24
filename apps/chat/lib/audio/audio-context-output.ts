@@ -53,10 +53,9 @@ const ensureAudioWorklet = async (
       });
     }
   };
-  audioWorkletNode.port.addEventListener('message', (e) => {
+  audioWorkletNode.port.onmessage = (e) => {
     const {
       method,
-      // args,
     } = e.data;
     switch (method) {
       case 'flush': {
@@ -74,7 +73,7 @@ const ensureAudioWorklet = async (
         console.warn('unhandled audio worklet node message method', e.data);
       }
     }
-  });
+  };
 
   if (!signal.aborted) {
     audioWorkletNode.connect(audioContext.destination);
