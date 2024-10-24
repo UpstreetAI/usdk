@@ -117,7 +117,9 @@ import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { completer, extractTaggedUsers } from './lib/tagging.mjs';
-import readline from 'readline';
+import { getStyledMessage } from './util/chat/color-utils.mjs';
+import { convertToMarkdown, displayStyledMarkdownMessage } from './util/chat/markdown-utils.mjs';
+
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -143,6 +145,7 @@ const jsonParse = (s) => {
 //
 
 const eraseLine = '\x1b[2K\r';
+const truncateLine = '\x1b[2K\r';
 
 //
 
@@ -155,70 +158,6 @@ const setLogFn = (_logFn) => {
 const log = (...args) => {
   logFn(...args);
 };
-
-//
-
-const prefixColors = [pc.green, pc.yellow, pc.blue, pc.magenta, pc.cyan, pc.white, pc.red];
-
-const truncateLoggedLineStr = '\x1b[2K\r';
-
-const getStyledMessage = (sender, message) => {
-  const color = getPlayerColor(sender);
-  return `${pc.bold(color(sender))} ${message}`;
-};
-
-const displayStyledMessage = (sender, message) => {
-  const styledMessage = styleMarkdown(message);
-  const color = getPlayerColor(sender);
-  console.log(`${truncateLoggedLineStr}${pc.bold(color(sender))}: ${styledMessage}`);
-};
-
-
-const playerColors = new Map(); // for setting unique colored chat prefix for each player
-
-const getPlayerColor = (playerId) => {
-  if (!playerColors.has(playerId)) {
-    const color = prefixColors[playerColors.size % colors.length];
-    playerColors.set(playerId, color);
-  }
-  return playerColors.get(playerId);
-};
-
-const markdownRules = [
-  {
-    // @mentions
-    pattern: /@(\S+)/g,
-    replace: (match, username) => `@[${username}](mention)`,
-    style: (text) => pc.bold(pc.cyan(text)),
-  },
-  // Add more rules here for other Markdown elements
-  // Example:
-  // {
-  //   // Bold text
-  //   pattern: /\*\*(.*?)\*\*/g,
-  //   replace: (match, text) => `**${text}**`,
-  //   style: (text) => pc.bold(text)
-  // },
-];
-
-const convertToMarkdown = (text, playersMap) => {
-  let result = text;
-  markdownRules.forEach(rule => {
-    result = result.replace(rule.pattern, rule.replace);
-  });
-  return result;
-};
-
-const styleMarkdown = (text) => {
-  let result = text;
-  markdownRules.forEach(rule => {
-    result = result.replace(rule.pattern, (match, ...args) => {
-      return rule.style(match);
-    });
-  });
-  return result;
-};
-
 
 //
 
@@ -1034,7 +973,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
             }
 
             // log(s);
-            displayStyledMessage(name, text);
+            displayStyledMarkdownMessage(name, text);
 
             // read attachments and print them to the console if we can
             if (attachments) {
@@ -1210,7 +1149,7 @@ const startMultiplayerListener = ({
 
     if (specs.length > 0) {
       const names = specs.map((spec) => spec.name);
-      return `${truncateLoggedLineStr}[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...]`;
+      return `${truncateLine}[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...]`;
     }
     return '';
   };
