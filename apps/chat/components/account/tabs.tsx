@@ -31,8 +31,8 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
 
   creditsUsageHistory = creditsUsageHistory ?? [];
 
-  const activeClass = 'text-purple-600 hover:text-purple-600 dark:text-purple-500 dark:hover:text-purple-500 border-purple-600 dark:border-purple-500';
-  const inactiveClass = 'hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300 cursor-pointer';
+  const origin = window.location.origin;
+  const accountUrl = `${origin}/accounts/${user.id}`;
 
   return (
     <div className='w-full'>
@@ -57,8 +57,17 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
               </div>
             </div>
             <div>
-              <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
-              <div className="px-2 py-1 bg-black bg-opacity-60">{'https://'}</div>
+                <div className='flex items-center'>
+                <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
+                <IconButton
+                  onClick={() => { setTab('profile'); }}
+                  variant='ghost'
+                  icon="Logout"
+                  target={'_blank'}
+                  className='ml-4'
+                />
+                </div>
+              <div className="px-2 py-1 bg-black bg-opacity-60">{accountUrl}</div>
               <div className='flex gap-4 mt-4'>
                 <IconButton
                   onClick={() => { setTab('profile'); }}
