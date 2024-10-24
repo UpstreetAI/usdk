@@ -119,14 +119,6 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
 
   return (
     <div className="m-auto w-full max-w-4xl">
-      <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
-        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
-          Agents
-        </h1>
-        <p className="max-w-2xl m-auto md:mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
-          Deployed agents: <span className="text-purple-500 font-bold">{agents.length}</span>
-        </p>
-      </div>
       <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
         <div className="px-5 py-4">
           <div className="w-full">
