@@ -1,5 +1,6 @@
 import child_process from 'child_process';
 import { electronBinPath, electronStartScriptPath } from './util/locations.mjs';
+import { cwd } from './util/directory-utils.mjs';
 
 //
 
@@ -79,37 +80,29 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 //
 
 export class ReactAgentsElectronRuntime {
-  agentSpec;
   room;
   jwt;
   cp = null;
-  constructor(agentSpec, {
+  constructor({
     room,
     jwt,
   }) {
-    if (!agentSpec || !room || !jwt) {
+    if (!room || !jwt) {
       throw new Error('invalid args');
     }
 
-    this.agentSpec = agentSpec;
     this.room = room;
     this.jwt = jwt;
   }
   async start({
     debug = false,
   } = {}) {
-    const {
-      directory,
-      portIndex,
-    } = this.agentSpec;
-
     // spawn the wrangler child process
     const cp = child_process.spawn(
       electronBinPath,
       [
         electronStartScriptPath,
       ]
-        .concat([JSON.stringify(this.agentSpec)])
         .concat([this.room])
         .concat([this.jwt])
         .concat([
@@ -117,8 +110,7 @@ export class ReactAgentsElectronRuntime {
         ]),
       {
         stdio: 'pipe',
-        // stdio: 'inherit',
-        cwd: directory,
+        cwd,
       },
     );
     bindProcess(cp);
