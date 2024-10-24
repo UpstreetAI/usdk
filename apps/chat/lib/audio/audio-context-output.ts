@@ -97,28 +97,18 @@ export class AudioContextOutputStream extends WritableStream {
     // const queueManager = new QueueManager();
 
     super({
-      write: async (chunk, controller) => {
-        // (async () => {
-          // await queueManager.waitForTurn(async () => {
-            const audioWorkletNode = await audioWorkletNodePromise;
-
-            // console.log('write chunk', chunk);
-            // debugger;
-
-            // const buffer = getAudioDataBuffer(data);
-            // audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
-            audioWorkletNode.write(chunk);
-          // });
-        // })();
+      write: async (chunk) => {
+        const audioWorkletNode = await audioWorkletNodePromise;
+        audioWorkletNode.write(chunk);
       },
       close: async () => {
-        console.log('closed 1');
         const audioWorkletNode = await audioWorkletNodePromise;
-        console.log('closed 2');
         await audioWorkletNode.waitForFlush();
-        console.log('closed 3');
-        abortController.abort();
+        abortController.abort(new Error('close() called'));
       },
+      abort(reason) {
+        abortController.abort(reason);
+      }
     });
 
     // create the output
