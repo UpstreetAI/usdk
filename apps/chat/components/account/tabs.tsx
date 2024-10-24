@@ -43,6 +43,9 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
   return (
     <div className='w-full'>
       <HeaderMaskFrame background={randomAgentImage} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
+        <div className='absolute z-[100] left-8 top-8'>
+          <IconButton href={"/"} icon={'BackArrow'} />
+        </div>
         <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
           <div className="flex">
             <div className="mr-4 size-18 min-w-18 md:size-36 md:min-w-36 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
