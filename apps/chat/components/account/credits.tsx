@@ -75,7 +75,7 @@ export function Credits({ creditsUsageHistory }: AgentsProps) {
         <div className="px-5 py-4">
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-400">
               <thead className="text-xs text-gray-50 uppercase bg-border">
                 <tr>
                   <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Service</th>

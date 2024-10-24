@@ -132,7 +132,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
           <div className="w-full">
             {/* Desktop View */}
             <div className="hidden md:block relative shadow-md sm:rounded-lg">
-              <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <table className="w-full text-sm text-left text-gray-400">
                 <thead className="text-xs text-gray-50 uppercase bg-border">
                   <tr>
                     <th scope="col" className="px-6 w-[60px] py-3 text-[rgba(255,255,255,0.6)]">PFP</th>
@@ -174,7 +174,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                         key={i}
                       >
                         <td className="px-2 md:px-6 w-[60px] pr-0 py-4 text-md capitalize align-top">
-                          <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center overflow-hidden">
+                          <div className="mr-4 mb-4 size-[60px] min-w-12 bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center overflow-hidden">
                             {preview_url && isValidUrl(preview_url) ? (
                               <Image
                                 className="flex h-full"
@@ -259,7 +259,7 @@ export function Agents({ agents: agentsInit, userIsCurrentUser }: AgentsProps) {
                     <div className="flex items-center">
                       <div className="flex-1">
                         <div className='flex'>
-                          <div className="mr-4 mb-4 size-[48px] min-w-[48px] bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
+                          <div className="mr-4 mb-4 size-[48px] min-w-[48px] bg-[rgba(255,255,255,0.1)] rounded-[8px] flex items-center justify-center">
                             {preview_url && isValidUrl(preview_url) ? (
                               <Image
                                 className="flex"

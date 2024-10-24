@@ -53,6 +53,7 @@ const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, Icon
   return (
     <div className='relative'>
       <button
+        {...props}
         ref={ref}
         className={className}
         disabled={disabled}
