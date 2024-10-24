@@ -12,6 +12,7 @@ import HeaderMaskFrame from '../masks/HeaderMaskFrame';
 import { isValidUrl } from '@/lib/utils';
 import { IconButton } from 'ucom';
 import Dev from '../development';
+import { logout } from '@/lib/logout';
 
 
 interface Agent {
@@ -65,7 +66,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
               <div className='flex items-center'>
                 <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
                 <IconButton
-                  onClick={() => { setTab('profile'); }}
+                  onClick={logout}
                   variant='ghost'
                   icon="Logout"
                   target={'_blank'}
@@ -129,8 +130,11 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           </div>
         </div>
       </HeaderMaskFrame>
-      <div className='w-full md:w-4xl max-w-4xl mx-auto mt-20'>
+      <div className='w-full md:w-4xl max-w-6xl px-4 mx-auto mt-14'>
         <div className={tab === 'profile' ? 'block w-full' : 'hidden'}>
+          <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b">
+            Account Information
+          </h1>
           <Profile user={user} userIsCurrentUser={userIsCurrentUser} />
         </div>
         <div className={tab === 'agents' ? 'block w-full' : 'hidden'}>
