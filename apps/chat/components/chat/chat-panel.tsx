@@ -33,27 +33,6 @@ export function ChatPanel({
   messages,
   // sendChatMessage,
 }: ChatPanelProps) {
-  // const [aiState] = useAIState()
-  // const [messages, setMessages] = useUIState<typeof AI>()
-  // const { submitUserMessage } = useActions()
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-
-  // function joinRoom() {
-  //   location.href = `/rooms/${crypto.randomUUID()}`;
-  // }
-
-  /*const exampleMessages = [
-    {
-      heading: 'Hi there!',
-      subheading: 'What is your name?',
-      message: `Hi there! What is your name?`
-    },
-    {
-      heading: 'Can you help me',
-      subheading: `find some friends?`,
-      message: `Can you help me find some friends?`
-    }
-  ]*/
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
