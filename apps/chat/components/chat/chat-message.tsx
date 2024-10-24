@@ -7,11 +7,9 @@ import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
-import ReactMarkdown from 'react-markdown'
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import remarkGfm from "remark-gfm";
-import MentionRenderer from '../markdown-renderer'
 import React from 'react'
+import MarkdownRenderer from '../markdown-renderer'
 
 
 // import type { User } from '@supabase/supabase-js'
@@ -121,7 +119,7 @@ export function ChatMessage({
             {content && (
               <div className="relative">
                 <div className={`float-left mr-2`}>
-                  <MentionRenderer content={content} />
+                  <MarkdownRenderer content={content} />
                 </div>
                 <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
                   {timeAgo(timestamp)}

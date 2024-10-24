@@ -2,7 +2,7 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const MentionRenderer: React.FC<{ content: string }> = ({ content }) => {
+const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
   const components = {
     p: ({ children }: { children: React.ReactNode }) => {
       return <p>{renderMentions(children)}</p>;
@@ -59,4 +59,4 @@ const MentionRenderer: React.FC<{ content: string }> = ({ content }) => {
   );
 };
 
-export default MentionRenderer;
+export default MarkdownRenderer;
