@@ -936,7 +936,7 @@ const startMultiplayerRepl = ({
       await realms.sendChatMessage(messagePayload);
     };
 
-    replServer = repl.start({
+    const replServer = repl.start({
       prompt: getUserPrompt(),
       completer: (line) => completer(line, playersMap),
       eval: async (cmd, context, filename, callback) => {
@@ -1008,12 +1008,12 @@ const startMultiplayerRepl = ({
       },
       ignoreUndefined: true,
     });
-  }
-  const exit = (e) => {
-    process.exit(0);
-  });
-
-  return replServer;
+  
+    replServer.on('exit', (e) => {
+      process.exit(0);
+    });
+  
+    return replServer;  
 };
 const connectBrowser = ({
   room,
