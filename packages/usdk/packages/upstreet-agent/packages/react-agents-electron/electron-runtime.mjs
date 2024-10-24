@@ -80,9 +80,20 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 
 export class ReactAgentsElectronRuntime {
   agentSpec;
+  room;
+  jwt;
   cp = null;
-  constructor(agentSpec) {
+  constructor(agentSpec, {
+    room,
+    jwt,
+  }) {
+    if (!agentSpec || !room || !jwt) {
+      throw new Error('invalid args');
+    }
+
     this.agentSpec = agentSpec;
+    this.room = room;
+    this.jwt = jwt;
   }
   async start({
     debug = false,
@@ -98,7 +109,9 @@ export class ReactAgentsElectronRuntime {
       [
         electronStartScriptPath,
       ]
-        .concat(JSON.stringify(this.agentSpec))
+        .concat([JSON.stringify(this.agentSpec)])
+        .concat([this.room])
+        .concat([this.jwt])
         .concat([
           debug ? '1' : '0',
         ]),
