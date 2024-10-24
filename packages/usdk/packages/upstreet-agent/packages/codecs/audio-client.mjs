@@ -429,7 +429,6 @@ export function createMp3DecodeTransformStream({
     if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
-      // controller.enqueue(null);
       doneResolve();
     }
   };
@@ -496,7 +495,6 @@ export function createOpusDecodeTransformStream({
     if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
-      // controller.enqueue(null);
       doneResolve();
     }
   };
