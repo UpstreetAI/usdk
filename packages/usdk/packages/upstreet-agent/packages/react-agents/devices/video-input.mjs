@@ -4,7 +4,7 @@ import Jimp from 'jimp';
 const { intToRGBA } = Jimp;
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
-import { QueueManager } from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { WebPEncoder } from 'codecs/webp-codec.mjs';
 
 //

@@ -21,7 +21,7 @@ import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
+import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';

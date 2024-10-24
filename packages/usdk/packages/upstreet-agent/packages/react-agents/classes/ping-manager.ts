@@ -1,4 +1,4 @@
-import { QueueManager } from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 
 export const pingRate = 10000; // 10 seconds
 
