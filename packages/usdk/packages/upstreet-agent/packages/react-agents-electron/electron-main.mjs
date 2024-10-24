@@ -1,6 +1,5 @@
 import { app, screen, session, BrowserWindow, desktopCapturer } from 'electron';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
-import { ReactAgentsLocalRuntime } from '../react-agents-local/local-runtime.mjs';
 
 console.log('electron start script!');
 
