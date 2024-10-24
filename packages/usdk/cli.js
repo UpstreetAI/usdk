@@ -1411,43 +1411,6 @@ const chat = async (args) => {
     process.exit(1);
   }
 };
-const desktop = async (args) => {
-  // console.log('got desktop args', args);
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args.room ?? makeRoomName();
-  const debug = !!args.debug;
-
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    // start dev servers for the agents
-    const electronRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsElectronRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(electronRuntimePromises);
-
-    // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }),
-    );
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
 const logs = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
 
