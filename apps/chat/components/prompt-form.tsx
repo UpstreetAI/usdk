@@ -23,6 +23,48 @@ import { createVideoSource } from '@upstreet/multiplayer/public/video/video-clie
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
 import { MentionsInput, Mention } from 'react-mentions';
 
+const mentionsInputStyle = {
+  control: {
+    backgroundColor: 'transparent',
+    fontSize: '0.875rem',
+    lineHeight: '1.25rem',
+    minHeight: '60px',
+    border: 'none',
+    outline: 'none',
+  },
+  input: {
+    margin: 0,
+    padding: '1.3rem 1rem',
+    overflow: 'auto',
+    height: '100%',
+    border: 'none',
+    outline: 'none',
+    '&:focus': {
+      outline: 'none',
+    },
+  },
+  highlighter: {
+    padding: '1.3rem 1rem',
+    boxSizing: 'border-box' as const,
+    height: '100%',
+    overflow: 'hidden',
+  },
+  suggestions: {
+    list: {
+      backgroundColor: 'white',
+      border: '1px solid rgba(0,0,0,0.15)',
+      fontSize: 14,
+    },
+    item: {
+      padding: '5px 15px',
+      borderBottom: '1px solid rgba(0,0,0,0.15)',
+      '&focused': {
+        backgroundColor: '#e0e4ef',
+      },
+    },
+  },
+};
+
 export function PromptForm({
   input,
   setInput
@@ -392,7 +434,7 @@ export function PromptForm({
           value={input}
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          style={mentionsInputStyle}
           placeholder="Send a message"
           spellCheck={false}
           autoComplete="off"
@@ -406,7 +448,10 @@ export function PromptForm({
             trigger="@"
             data={members}
             renderSuggestion={renderCustomSuggestion}
-            className="bg-blue-500 text-white px-1 rounded"
+            style={{
+              backgroundColor: '#e0e4ef',
+              color: 'transparent',
+            }}
             appendSpaceOnAdd={true}
             displayTransform={(id: any, display: any) => `@${display}`}
           />
