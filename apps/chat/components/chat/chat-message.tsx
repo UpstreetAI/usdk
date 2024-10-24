@@ -122,7 +122,6 @@ export function ChatMessage({
             {content && (
               <div className="relative">
                 <div className={`float-left mr-2`}>
-                  {/* <MarkdownRenderer content={content} /> */}
                   <MentionRenderer content={content} />
                 </div>
                 <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">

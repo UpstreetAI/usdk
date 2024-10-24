@@ -2,45 +2,43 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const MentionRenderer = ({ content }) => {
+const MentionRenderer: React.FC<{ content: string }> = ({ content }) => {
   const components = {
-    p({node, children, ...props}) {
-      const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)/g;
-      const parts = children.reduce((acc, child) => {
-        console.log('child', child);
-        if (typeof child === 'string') {
-          let lastIndex = 0;
-          const elements = [];
-          let match;
-    
-          while ((match = mentionRegex.exec(child)) !== null) {
-            console.log('match', match);
-            if (match.index > lastIndex) {
-              elements.push(child.slice(lastIndex, match.index));
-            }
-            elements.push(
-              <span
-                key={`mention-${match[1]}`}
-                className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 cursor-pointer"
-                data-mention-id={match[2]}
-              >
-                @{match[1]}
-              </span>
-            );
-            lastIndex = mentionRegex.lastIndex;
-          }
-    
-          if (lastIndex < child.length) {
-            elements.push(child.slice(lastIndex));
-          }
-    
-          return acc.concat(elements);
+    p: ({ children }: { children: React.ReactNode }) => {
+      return <p>{renderMentions(children)}</p>;
+    },
+  };
+
+  /*
+    The renderMentions method parses mentions in the “@Name” format from react-mentions.
+    Combining the ‘@’ symbol and subsequent anchor element into a single, styled span for compatibility with react-markdown.
+  */
+  const renderMentions = (children: React.ReactNode): React.ReactNode => {
+    return React.Children.map(children, (child, index) => {
+      if (typeof child === 'string' && child === '@') {
+        const nextChild = Array.isArray(children) ? children[index + 1] : null;
+        if (React.isValidElement(nextChild) && nextChild.type === 'a') {
+          const { href, children: mentionChildren } = nextChild.props as React.AnchorHTMLAttributes<HTMLAnchorElement>;
+          const mentionName = React.Children.toArray(mentionChildren)[0];
+          
+          return (
+            <span
+              key={`mention-${href}`}
+              className="inline-flex items-center bg-[#e0e4ef] text-[#4751c4] font-bold rounded px-1 cursor-pointer hover:bg-slate-300"
+              data-mention-id={href}
+            >
+              @{mentionName}
+            </span>
+          );
         }
-        return acc.concat(child);
-      }, []);
-    
-      return <p {...props}>{parts}</p>;
-    }
+        return child;
+      }
+      if (React.isValidElement(child) && child.type === 'a') {
+        // Skip this child as it will be handled with the '@' symbol
+        return null;
+      }
+      return child;
+    });
   };
 
   return (
