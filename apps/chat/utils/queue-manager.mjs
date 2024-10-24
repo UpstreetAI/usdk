@@ -1,3 +1,14 @@
+class Entry {
+  fn;
+  abortController;
+  constructor(fn, abortController = new AbortController()) {
+    this.fn = fn;
+    this.abortController = abortController;
+  }
+}
+
+const abortError = new Error('abort');
+
 export class QueueManager extends EventTarget {
   constructor({
     parallelism = 1,
@@ -6,16 +17,33 @@ export class QueueManager extends EventTarget {
 
     this.parallelism = parallelism;
 
-    this.numRunning = 0;
+    this.runningEntries = [];
     this.queue = [];
   }
   isIdle() {
-    return this.numRunning === 0;
+    return this.runningEntries.length === 0;
+  }
+  next(n = 1) {
+    let i;
+    for (i = 0; i < n; i++) {
+      const entry = this.runningEntries.shift();
+      if (entry) {
+        entry.abortController.abort(abortError);
+        continue;
+      }
+    }
+    // return whether we were able to abort all the entries
+    return i === n;
   }
   async waitForTurn(fn) {
-    if (this.numRunning < this.parallelism) {
-      this.numRunning++;
-      if (this.numRunning === 1) {
+    const entry = new Entry(fn);
+    return await this.#waitForTurnEntry(entry);
+  }
+  async #waitForTurnEntry(entry) {
+    if (this.runningEntries.length < this.parallelism) {
+      this.runningEntries.push(entry);
+
+      if (this.runningEntries.length === 1) {
         this.dispatchEvent(new MessageEvent('idlechange', {
           data: {
             idle: false,
@@ -25,17 +53,22 @@ export class QueueManager extends EventTarget {
 
       let result, error;
       try {
-        result = await fn();
+        const { fn, abortController } = entry;
+        const { signal } = abortController;
+        result = await fn({
+          signal,
+        });
       } catch(err) {
         error = err;
       }
 
-      this.numRunning--;
+      const index = this.runningEntries.indexOf(entry);
+      this.runningEntries.splice(index, 1);
       if (this.queue.length > 0) {
-        const fn2 = this.queue.shift();
-        this.waitForTurn(fn2);
+        const entry = this.queue.shift();
+        this.#waitForTurnEntry(entry);
       } else {
-        if (this.numRunning === 0) {
+        if (this.runningEntries.length === 0) {
           this.dispatchEvent(new MessageEvent('idlechange', {
             data: {
               idle: true,
@@ -44,33 +77,36 @@ export class QueueManager extends EventTarget {
         }
       }
 
-      if (!error) {
+      if (error === undefined || error === abortError) {
         return result;
       } else {
         throw error;
       }
     } else {
+      const { fn, abortController } = entry;
       const {
         promise,
         resolve,
         reject,
       } = Promise.withResolvers();
-      this.queue.push(async () => {
+      const fn2 = async (...args) => {
         let result, error;
         try {
-          result = await fn();
+          result = await fn(...args);
         } catch(err) {
           error = err;
         }
 
-        if (!error) {
+        if (error === undefined || error === abortError) {
           resolve(result);
           return result;
         } else {
           reject(error);
           throw error;
         }
-      });
+      };
+      const entry2 = new Entry(fn2, abortController);
+      this.queue.push(entry2);
       const result = await promise;
       return result;
     }
