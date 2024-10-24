@@ -106,8 +106,8 @@ export function PromptForm({
   }, [typingMap]);
 
   // can continue if there is a non-human agent who is not typing
-  const botAgents = Array.from(playersMap.values())
-    .map((player) => player.playerSpec)
+  const botAgents = Array.from(playersMap.getMap().values())
+    .map((player) => player.getPlayerSpec())
     .filter((playerSpec) => !playerSpec.capabilities?.includes('human'));
   const nonTypingBotAgents = botAgents.filter((player) => !typingMap.getMap().get(player.id)?.typing);
   const canContinue = nonTypingBotAgents.length > 0;

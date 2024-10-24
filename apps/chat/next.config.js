@@ -41,6 +41,7 @@ module.exports = {
     const upstreetAgentPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent');
     const reactAgentsPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent/packages/react-agents');
     const reactAgentsClientPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent/packages/react-agents-client');
+    const reactAgentsBrowserPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent/packages/react-agents-browser');
     const replacePlugin = (scopePath, moduleRegexp) => {
       return new webpack.NormalModuleReplacementPlugin(moduleRegexp, (resource) => {
         if (resource.context.includes(scopePath)) {
@@ -54,6 +55,7 @@ module.exports = {
     config.plugins.push(
       replacePlugin(reactAgentsPath, /^react/),
       replacePlugin(reactAgentsClientPath, /^react/),
+      replacePlugin(reactAgentsBrowserPath, /^react/),
       replacePlugin(upstreetAgentPath, /^react/),
       replacePlugin(usdkPath, /^react/),
     );

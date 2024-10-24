@@ -14,7 +14,6 @@ import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
-// import { doc } from 'tsdoc-extractor';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -27,10 +26,8 @@ import { QueueManager } from './packages/upstreet-agent/packages/react-agents/ut
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
 import {
-  getAgentName,
   getAgentPublicUrl,
   getCloudAgentHost,
-  ensureAgentJsonDefaults,
 } from './packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   localPort,
@@ -58,12 +55,10 @@ import {
 import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
 import {
   deployEndpointUrl,
-  multiplayerEndpointUrl,
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
 import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
@@ -91,7 +86,6 @@ import { getLoginJwt } from './lib/login.mjs';
 import {
   loginLocation,
   certsLocalPath,
-  templatesDirectory,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
@@ -104,9 +98,7 @@ import {
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
-import {
-  ReactAgentsClient,
-} from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
+import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { cleanDir } from './lib/directory-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
@@ -162,78 +154,6 @@ const log = (...args) => {
 //
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
-class TypingMap extends EventTarget {
-  #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
-  getMap() {
-    return this.#internalMap;
-  }
-  set(playerId, spec) {
-    this.#internalMap.set(playerId, spec);
-    this.dispatchEvent(new MessageEvent('typingchange', {
-      data: spec,
-    }));
-  }
-  clear() {
-    for (const [playerId, spec] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('typingchange', {
-        data: spec,
-      }));
-    }
-    this.#internalMap.clear();
-  }
-}
-class SpeakerMap extends EventTarget {
-  #internalMap = new Map(); // playerId: string -> boolean
-  #localSpeaking = false;
-  #lastSpeakers = false;
-  getMap() {
-    return this.#internalMap;
-  }
-  set(playerId, speaking) {
-    this.#internalMap.set(playerId, speaking);
-    this.dispatchEvent(new MessageEvent('speakingchange', {
-      data: {
-        playerId,
-        speaking,
-      },
-    }));
-
-    const currentSpeakers = Array.from(this.#internalMap.values()).some(Boolean);
-    if (currentSpeakers && !this.#lastSpeakers) {
-      this.dispatchEvent(new MessageEvent('playingchange', {
-        data: true,
-      }));
-    } else if (!currentSpeakers && this.#lastSpeakers) {
-      this.dispatchEvent(new MessageEvent('playingchange', {
-        data: false,
-      }));
-    }
-    this.#lastSpeakers = currentSpeakers;
-  }
-  getLocal() {
-    return this.#localSpeaking;
-  }
-  setLocal(speaking) {
-    this.#localSpeaking = speaking;
-    this.dispatchEvent(new MessageEvent('localspeakingchange', {
-      data: {
-        speaking,
-      },
-    }));
-  }
-  clear() {
-    for (const [playerId, speaking] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('speakingchange', {
-        data: {
-          playerId,
-          speaking,
-        },
-      }));
-    }
-    this.#internalMap.clear();
-    this.#lastSpeakers = false;
-  }
-}
 
 const defaultCorsHeaders = [
   // {
@@ -406,18 +326,6 @@ const getAssetJson = async (supabase, guid) => {
     );
   }
 };
-
-class Player {
-  playerId;
-  playerSpec;
-  constructor(playerId = '', playerSpec = null) {
-    this.playerId = playerId;
-    this.playerSpec = playerSpec;
-  }
-  setPlayerSpec(playerSpec) {
-    this.playerSpec = playerSpec;
-  }
-}
 
 //
 
@@ -713,7 +621,7 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const getUserAsset = async () => {
+const getUserProfile = async () => {
   let user = null;
 
   // try getting the user asset from the login
@@ -737,394 +645,12 @@ const getUserAsset = async () => {
 
   return user;
 };
-const connectMultiplayer = async ({ room, media, debug }) => {
-  // dynamic import audio output module
-  const audioOutput = await (async () => {
-    try {
-      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
-    } catch (err) {
-      return null;
-    }
-  })();
-  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
-
-  const userAsset = await getUserAsset();
-  const userId = userAsset?.id;
-  const name = userAsset?.name;
-
-  // join the room
-  const realms = new NetworkRealms({
-    endpointUrl: multiplayerEndpointUrl,
-    playerId: userId,
-  });
-  const playersMap = new Map(); // Map<string, Player>
-  const typingMap = new TypingMap();
-  const speakerMap = new SpeakerMap();
-
-  // const virtualWorld = realms.getVirtualWorld();
-  const virtualPlayers = realms.getVirtualPlayers();
-
-  // log('waiting for initial connection...');
-
-  let connected = false;
-  const onConnect = async (e) => {
-    // log('on connect...');
-    e.waitUntil(
-      (async () => {
-        const realmKey = e.data.rootRealmKey;
-
-        const existingAgentIds = Array.from(playersMap.keys());
-        if (existingAgentIds.includes(userId)) {
-          log('your character is already in the room! disconnecting.');
-          process.exit(1);
-        }
-
-        // Initialize network realms player.
-        const localPlayer = new Player(userId, {
-          id: userId,
-          name,
-          capabilities: [],
-          playerType: PlayerType.Human,
-        });
-        const _pushInitialPlayer = () => {
-          realms.localPlayer.initializePlayer(
-            {
-              realmKey,
-            },
-            {},
-          );
-          realms.localPlayer.setKeyValue(
-            'playerSpec',
-            localPlayer.playerSpec,
-          );
-        };
-        _pushInitialPlayer();
-
-        connected = true;
-
-        const agentJsons = Array.from(playersMap.values()).map(
-          (player) => player.playerSpec,
-        );
-        log(dedent`\
-          ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
-          In the room (${room}):
-          ${agentJsons.length > 0 ?
-            agentJsons
-              .map((agent) => {
-                return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
-              })
-              .join('\n')
-            :
-              `* no one else is here`
-          }
-          http://local.upstreet.ai:${devServerPort}
-        `,
-        );
-      })(),
-    );
-  };
-  realms.addEventListener('connect', onConnect);
-
-  const _trackRemotePlayers = () => {
-    virtualPlayers.addEventListener('join', (e) => {
-      const { playerId, player } = e.data;
-      if (connected) {
-        log('remote player joined:', playerId);
-      }
-
-      const remotePlayer = new Player(playerId);
-      playersMap.set(playerId, remotePlayer);
-
-      // apply initial remote player state
-      {
-        const playerSpec = player.getKeyValue('playerSpec');
-        if (playerSpec) {
-          remotePlayer.setPlayerSpec(playerSpec);
-        }
-      }
-
-      // Handle remote player state updates
-      player.addEventListener('update', e => {
-        const { key, val } = e.data;
-
-        if (key === 'playerSpec') {
-          remotePlayer.setPlayerSpec(val);
-        }
-      });
-    });
-    virtualPlayers.addEventListener('leave', e => {
-      const { playerId } = e.data;
-      if (connected) {
-        log('remote player left:', playerId);
-      }
-
-      // remove remote player
-      const remotePlayer = playersMap.get(playerId);
-      if (remotePlayer) {
-        playersMap.delete(playerId);
-      } else {
-        log('remote player not found', playerId);
-        debugger;
-      }
-
-      // remove dangling audio streams
-      for (const [streamId, stream] of Array.from(audioStreams.entries())) {
-        if (stream.metadata.playerId === playerId) {
-          stream.close();
-          audioStreams.delete(streamId);
-        }
-      }
-    });
-  };
-  _trackRemotePlayers();
-
-  const audioStreams = new Map();
-  const _trackAudio = () => {
-    virtualPlayers.addEventListener('audiostart', e => {
-      const {
-        playerId,
-        streamId,
-        type,
-        disposition,
-      } = e.data;
-
-      if (disposition === 'audio') {
-        const outputStream = new SpeakerOutputStream();
-        const { sampleRate } = outputStream;
-
-        // decode stream
-        const decodeStream = new AudioDecodeStream({
-          type,
-          sampleRate,
-          codecs,
-          format: 'i16',
-        });
-        (async () => {
-          speakerMap.set(playerId, true);
-          try {
-            await decodeStream.readable.pipeTo(outputStream);
-          } finally {
-            speakerMap.set(playerId, false);
-          }
-        })();
-
-        const writer = decodeStream.writable.getWriter();
-        writer.metadata = {
-          playerId,
-        };
-        audioStreams.set(streamId, writer);
-      }
-    });
-    virtualPlayers.addEventListener('audio', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.write(data);
-      } else {
-        // throw away unmapped data
-        // console.warn('dropping audio data', e.data);
-      }
-    });
-    virtualPlayers.addEventListener('audioend', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.close();
-        audioStreams.delete(streamId);
-      } else {
-        // throw away unmapped data
-        console.warn('dropping audioend data', e.data);
-      }
-    });
-  };
-  if (media && SpeakerOutputStream) {
-    _trackAudio();
-  }
-
-  const _bindMultiplayerChat = () => {
-    const onchat = (e) => {
-      const { message } = e.data;
-      const { userId: messageUserId, name, method, args } = message;
-      // console.log('got message', message);
-      const attachments = (message.attachments ?? []).filter(a => !!a.url);
-
-      switch (method) {
-        case 'say': {
-          const { text } = args;
-          if (messageUserId !== userId) {
-            let s = `${name}: ${text}`;
-            if (attachments.length > 0) {
-              s += '\n[Attachments:';
-              for (const attachment of attachments) {
-                const { type, url } = attachment;
-                s += `\n  [${type}]: ${url}`;
-              }
-              s += '\n]';
-            }
-
-            // log(s);
-            displayStyledMarkdownMessage(name, text);
-
-            // read attachments and print them to the console if we can
-            if (attachments) {
-              for (const attachment of attachments) {
-                if (attachment.type.startsWith('image/')) {
-                  (async () => {
-                    const { url } = attachment;
-
-                    const res = await fetch(url);
-                    const ab = await res.arrayBuffer();
-
-                    const b = Buffer.from(ab);
-                    const jimp = await Jimp.read(b);
-
-                    const imageRenderer = new ImageRenderer();
-                    const {
-                      text: imageText,
-                    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-                    console.log(`${url}:`);
-                    console.log(imageText);
-                  })();
-                }
-              }
-            }
-           }
-          break;
-        }
-        case 'log': {
-          if (debug) {
-            const { text } = args;
-            log(text);
-          }
-          break;
-        }
-        case 'typing': {
-          const { typing } = args;
-          typingMap.set(messageUserId, { userId: messageUserId, name, typing });
-          break;
-        }
-        case 'mediaPerception': {
-          log(`[${name} checked an attachment`);
-          break;
-        }
-        case 'addMemory': {
-          log(`[${name} will remember that]`);
-          break;
-        }
-        case 'queryMemories': {
-          log(`[${name} is trying to remember]`);
-          break;
-        }
-        case 'browserAction': {
-          const {
-            method: method2,
-            args: args2,
-            result,
-            error,
-          } = args;
-          const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
-          if (webbrowserAction) {
-            // get the agent from the player spec
-            const player = playersMap.get(messageUserId);
-            // console.log('got player', player);
-            let agent = player?.playerSpec;
-            // console.log('got agent', agent);
-            if (!agent) {
-              console.warn('no agent for browserAction message user id', messageUserId);
-              // debugger;
-              agent = {};
-            }
-            const o = {
-              // get the agent from the local player spec
-              agent,
-              method: method2,
-              args: args2,
-              result,
-              error,
-            };
-            log(`[${webbrowserAction.toText(o)}]`);
-          }
-          // log(`[${name} checked an attachment`);
-          break;
-        }
-        case 'paymentRequest': {
-          const {
-            type,
-            props,
-          } = args;
-          const {
-            amount,
-            currency,
-            interval,
-            intervalCount,
-          } = props;
-          const price = (() => {
-            const v = amount / 100;
-            if (currency === 'usd') {
-              return `$${v}`;
-            } else {
-              return `${v} ${currency.toUpperCase()}`;
-            }
-          })();
-          const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
-          log(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
-          // const { amount, currency, url, productName, productDescription, productQuantity } = args;
-          // log(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
-          break;
-        }
-        case 'nudge':
-        case 'join':
-        case 'leave': {
-          // nothing
-          break;
-        }
-        default: {
-          log(`${name}: ${JSON.stringify(message)}`);
-          break;
-        }
-      }
-    };
-    realms.addEventListener('chat', onchat);
-    const cleanup = () => {
-      realms.removeEventListener('chat', onchat);
-      typingMap.clear();
-    };
-    realms.addEventListener('disconnect', () => {
-      cleanup();
-    });
-  };
-  _bindMultiplayerChat();
-
-  await realms.updateRealmsKeys({
-    realmsKeys: [room],
-    rootRealmKey: room,
-  });
-
-  return {
-    userAsset,
-    realms,
-    typingMap,
-    speakerMap,
-    playersMap,
-  };
-};
-const startMultiplayerListener = ({
-  userAsset,
+// XXX break this out into react-agents-local
+const startMultiplayerRepl = ({
+  profile,
   realms,
   typingMap,
   speakerMap,
-  startRepl,
-  playersMap,
 }) => {
   // let rl;
   // let currentPrompt = '';
@@ -1193,203 +719,201 @@ const startMultiplayerListener = ({
     }
   });
 
-  let replServer = null;
-  if (startRepl) {
-    const getDoc = () => {
-      const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-      const { networkedCrdtClient } = headRealm;
-      const doc = networkedCrdtClient.getDoc();
-      return doc;
-    };
+  const getDoc = () => {
+    const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
+    const { networkedCrdtClient } = headRealm;
+    const doc = networkedCrdtClient.getDoc();
+    return doc;
+  };
 
-    let microphoneInput = null;
-    const microphoneQueueManager = new QueueManager();
-    const toggleMic = async () => {
-      await microphoneQueueManager.waitForTurn(async () => {
-        if (!microphoneInput) {
-          const jwt = await getLoginJwt();
-          if (!jwt) {
-            throw new Error('not logged in');
+  let microphoneInput = null;
+  const microphoneQueueManager = new QueueManager();
+  const toggleMic = async () => {
+    await microphoneQueueManager.waitForTurn(async () => {
+      if (!microphoneInput) {
+        const jwt = await getLoginJwt();
+        if (!jwt) {
+          throw new Error('not logged in');
+        }
+
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
+        
+        const sampleRate = AudioInput.defaultSampleRate;
+        microphoneInput = inputDevices.getAudioInput(device.id, {
+          sampleRate,
+        });
+
+        const onplayingchange = e => {
+          const playing = e.data;
+          // console.log('playing change', playing);
+          if (playing) {
+            microphoneInput.pause();
+          } else {
+            microphoneInput.resume();
           }
+        };
+        speakerMap.addEventListener('playingchange', onplayingchange);
+        microphoneInput.on('close', e => {
+          speakerMap.removeEventListener('playingchange', onplayingchange);
+        });
 
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
-          
-          const sampleRate = AudioInput.defaultSampleRate;
-          microphoneInput = inputDevices.getAudioInput(device.id, {
-            sampleRate,
+        await new Promise((accept, reject) => {
+          microphoneInput.on('start', e => {
+            accept();
           });
+        });
+        console.log('* mic enabled *');
 
-          const onplayingchange = e => {
-            const playing = e.data;
-            // console.log('playing change', playing);
-            if (playing) {
-              microphoneInput.pause();
-            } else {
-              microphoneInput.resume();
-            }
-          };
-          speakerMap.addEventListener('playingchange', onplayingchange);
-          microphoneInput.on('close', e => {
-            speakerMap.removeEventListener('playingchange', onplayingchange);
-          });
-
-          await new Promise((accept, reject) => {
-            microphoneInput.on('start', e => {
-              accept();
+        const audioStream = new ReadableStream({
+          start(controller) {
+            microphoneInput.on('data', (data) => {
+              controller.enqueue(data);
             });
-          });
-          console.log('* mic enabled *');
+            microphoneInput.on('end', (e) => {
+              controller.close();
+            });
+          },
+        });
+        audioStream.id = crypto.randomUUID();
+        audioStream.type = 'audio/pcm-f32-48000';
+        audioStream.disposition = 'text';
 
-          const audioStream = new ReadableStream({
-            start(controller) {
-              microphoneInput.on('data', (data) => {
-                controller.enqueue(data);
-              });
-              microphoneInput.on('end', (e) => {
-                controller.close();
-              });
-            },
-          });
-          audioStream.id = crypto.randomUUID();
-          audioStream.type = 'audio/pcm-f32-48000';
-          audioStream.disposition = 'text';
+        (async () => {
+          console.log('start streaming audio');
+          const {
+            waitForFinish,
+          } = realms.addAudioSource(audioStream);
+          await waitForFinish();
+          realms.removeAudioSource(audioStream);
+        })();
+        renderPrompt();
+      } else {
+        microphoneInput.close();
+        microphoneInput = null;
+        console.log('* mic disabled *');
+        renderPrompt();
+      }
+    });
+  };
+  let cameraInput = null;
+  const cameraQueueManager = new QueueManager();
+  const toggleCam = async () => {
+    await cameraQueueManager.waitForTurn(async () => {
+      if (!cameraInput) {
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
 
-          (async () => {
-            console.log('start streaming audio');
-            const {
-              waitForFinish,
-            } = realms.addAudioSource(audioStream);
-            await waitForFinish();
-            realms.removeAudioSource(audioStream);
-          })();
+        cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
+          // width,
+          // height,
+          fps: 5,
+        });
+
+        const videoRenderer = new TerminalVideoRenderer({
+          width: 80,
+          // height: rows,
+          footerHeight: 5,
+        });
+        cameraInput.on('frame', (imageData) => {
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
           renderPrompt();
-        } else {
-          microphoneInput.close();
-          microphoneInput = null;
-          console.log('* mic disabled *');
+        });
+        console.log('* cam enabled *');
+
+        const cameraStream = new ReadableStream({
+          start(controller) {
+            cameraInput.on('image', (data) => {
+              controller.enqueue(data);
+            });
+            cameraInput.on('close', (e) => {
+              controller.close();
+            });
+          },
+        });
+        cameraStream.id = crypto.randomUUID();
+        cameraStream.type = 'image/webp';
+        cameraStream.disposition = 'text';
+
+        (async () => {
+          console.log('start streaming video');
+          const {
+            waitForFinish,
+          } = realms.addVideoSource(cameraStream);
+          await waitForFinish();
+          realms.removeVideoSource(cameraStream);
+        })();
+        renderPrompt();
+      } else {
+        cameraInput.close();
+        cameraInput = null;
+        console.log('* cam disabled *');
+        renderPrompt();
+      }
+    });
+  };
+
+  let screenInput = null;
+  const screenQueueManager = new QueueManager();
+  const toggleScreen = async () => {
+    await screenQueueManager.waitForTurn(async () => {
+      if (!screenInput) {
+        const inputDevices = new InputDevices();
+        const devices = await inputDevices.listDevices();
+        const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
+
+        screenInput = inputDevices.getVideoInput(screenDevice.id, {
+          // width,
+          // height,
+          fps: 5,
+        });
+
+        const videoRenderer = new TerminalVideoRenderer({
+          width: 80,
+          // height: rows,
+          footerHeight: 5,
+        });
+        screenInput.on('frame', (imageData) => {
+          videoRenderer.setImageData(imageData);
+          videoRenderer.render();
           renderPrompt();
-        }
-      });
-    };
-    let cameraInput = null;
-    const cameraQueueManager = new QueueManager();
-    const toggleCam = async () => {
-      await cameraQueueManager.waitForTurn(async () => {
-        if (!cameraInput) {
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
+        });
+        console.log('* screen capture enabled *');
 
-          cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
-            // width,
-            // height,
-            fps: 5,
-          });
+        const screenStream = new ReadableStream({
+          start(controller) {
+            screenInput.on('image', (data) => {
+              controller.enqueue(data);
+            });
+            screenInput.on('close', (e) => {
+              controller.close();
+            });
+          },
+        });
+        screenStream.id = crypto.randomUUID();
+        screenStream.type = 'image/webp';
+        screenStream.disposition = 'text';
 
-          const videoRenderer = new TerminalVideoRenderer({
-            width: 80,
-            // height: rows,
-            footerHeight: 5,
-          });
-          cameraInput.on('frame', (imageData) => {
-            videoRenderer.setImageData(imageData);
-            videoRenderer.render();
-            renderPrompt();
-          });
-          console.log('* cam enabled *');
-
-          const cameraStream = new ReadableStream({
-            start(controller) {
-              cameraInput.on('image', (data) => {
-                controller.enqueue(data);
-              });
-              cameraInput.on('close', (e) => {
-                controller.close();
-              });
-            },
-          });
-          cameraStream.id = crypto.randomUUID();
-          cameraStream.type = 'image/webp';
-          cameraStream.disposition = 'text';
-
-          (async () => {
-            console.log('start streaming video');
-            const {
-              waitForFinish,
-            } = realms.addVideoSource(cameraStream);
-            await waitForFinish();
-            realms.removeVideoSource(cameraStream);
-          })();
-          renderPrompt();
-        } else {
-          cameraInput.close();
-          cameraInput = null;
-          console.log('* cam disabled *');
-          renderPrompt();
-        }
-      });
-    };
-
-    let screenInput = null;
-    const screenQueueManager = new QueueManager();
-    const toggleScreen = async () => {
-      await screenQueueManager.waitForTurn(async () => {
-        if (!screenInput) {
-          const inputDevices = new InputDevices();
-          const devices = await inputDevices.listDevices();
-          const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
-
-          screenInput = inputDevices.getVideoInput(screenDevice.id, {
-            // width,
-            // height,
-            fps: 5,
-          });
-
-          const videoRenderer = new TerminalVideoRenderer({
-            width: 80,
-            // height: rows,
-            footerHeight: 5,
-          });
-          screenInput.on('frame', (imageData) => {
-            videoRenderer.setImageData(imageData);
-            videoRenderer.render();
-            renderPrompt();
-          });
-          console.log('* screen capture enabled *');
-
-          const screenStream = new ReadableStream({
-            start(controller) {
-              screenInput.on('image', (data) => {
-                controller.enqueue(data);
-              });
-              screenInput.on('close', (e) => {
-                controller.close();
-              });
-            },
-          });
-          screenStream.id = crypto.randomUUID();
-          screenStream.type = 'image/webp';
-          screenStream.disposition = 'text';
-
-          (async () => {
-            console.log('start streaming video');
-            const {
-              waitForFinish,
-            } = realms.addVideoSource(screenStream);
-            await waitForFinish();
-            realms.removeVideoSource(screenStream);
-          })();
-          renderPrompt();
-        } else {
-          screenInput.close();
-          screenInput = null;
-          console.log('* screen capture disabled *');
-          renderPrompt();
-        }
-      });
-    };
+        (async () => {
+          console.log('start streaming video');
+          const {
+            waitForFinish,
+          } = realms.addVideoSource(screenStream);
+          await waitForFinish();
+          realms.removeVideoSource(screenStream);
+        })();
+        renderPrompt();
+      } else {
+        screenInput.close();
+        screenInput = null;
+        console.log('* screen capture disabled *');
+        renderPrompt();
+      }
+    });
+  };
 
     const sendChatMessage = async (
       text,
@@ -1487,54 +1011,327 @@ const startMultiplayerListener = ({
   }
   const exit = (e) => {
     process.exit(0);
+  });
+
+  return replServer;
+};
+const connectBrowser = ({
+  room,
+}) => {
+  open(`${chatEndpointUrl}/rooms/${room}`)
+    .catch( console.error );
+};
+const connectRepl = async ({
+  room,
+  debug,
+}) => {
+  let profile = await getUserProfile();
+  profile = {
+    ...profile,
+    capabilities: [
+      'human',
+    ],
   };
-  if (replServer) {
-    replServer.on('exit', exit);
+  if (!profile) {
+    throw new Error('could not get user profile');
   }
 
-  const _bindRealmsLogging = () => {
-    setLogFn((...args) => {
-      process.stdout.write(eraseLine);
-      console.log(...args);
-      if (replServer) {
-        renderPrompt();
+  let replServer = null;
+
+  // set up the chat
+  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
+    room,
+    profile,
+  });
+  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+  const renderPrompt = () => {
+    replServer && replServer.displayPrompt(true);
+  };
+  const mpLog = (...args) => {
+    process.stdout.write(eraseLine);
+    console.log(...args);
+    renderPrompt();
+  };
+  multiplayerConnection.addEventListener('log', (e) => {
+    const { args, logLevel } = e.data;
+    if (localLogLevel >= logLevel) {
+      mpLog(...args);
+    }
+  });
+  multiplayerConnection.addEventListener('chat', (e) => {
+    const { message } = e.data;
+    const { userId: messageUserId, name, method, args } = message;
+    // console.log('got message', message);
+    const attachments = (message.attachments ?? []).filter(a => !!a.url);
+
+    switch (method) {
+      case 'say': {
+        const { text } = args;
+        if (messageUserId !== profile.id) {
+          let s = `${name}: ${text}`;
+          if (attachments.length > 0) {
+            s += '\n[Attachments:';
+            for (const attachment of attachments) {
+              const { type, url } = attachment;
+              s += `\n  [${type}]: ${url}`;
+            }
+            s += '\n]';
+          }
+          mpLog(s);
+
+          // read attachments and print them to the console if we can
+          if (attachments) {
+            for (const attachment of attachments) {
+              if (attachment.type.startsWith('image/')) {
+                (async () => {
+                  const { url } = attachment;
+
+                  const res = await fetch(url);
+                  const ab = await res.arrayBuffer();
+
+                  const b = Buffer.from(ab);
+                  const jimp = await Jimp.read(b);
+
+                  const imageRenderer = new ImageRenderer();
+                  const {
+                    text: imageText,
+                  } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+                  console.log(`${url}:`);
+                  console.log(imageText);
+                })();
+              }
+            }
+          }
+          }
+        break;
+      }
+      case 'log': {
+        if (debug) {
+          const { text } = args;
+          mpLog(text);
+        }
+        break;
+      }
+      case 'typing': {
+        const { typing } = args;
+        typingMap.set(messageUserId, { userId: messageUserId, name, typing });
+        break;
+      }
+      case 'mediaPerception': {
+        mpLog(`[${name} checked an attachment`);
+        break;
+      }
+      case 'addMemory': {
+        mpLog(`[${name} will remember that]`);
+        break;
+      }
+      case 'queryMemories': {
+        mpLog(`[${name} is trying to remember]`);
+        break;
+      }
+      case 'browserAction': {
+        const {
+          method: method2,
+          args: args2,
+          result,
+          error,
+        } = args;
+        const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
+        if (webbrowserAction) {
+          // get the agent from the player spec
+          const player = playersMap.get(messageUserId);
+          // console.log('got player', player);
+          let agent = player?.playerSpec;
+          // console.log('got agent', agent);
+          if (!agent) {
+            console.warn('no agent for browserAction message user id', messageUserId);
+            // debugger;
+            agent = {};
+          }
+          const o = {
+            // get the agent from the local player spec
+            agent,
+            method: method2,
+            args: args2,
+            result,
+            error,
+          };
+          mpLog(`[${webbrowserAction.toText(o)}]`);
+        }
+        // mpLog(`[${name} checked an attachment`);
+        break;
+      }
+      case 'paymentRequest': {
+        const {
+          type,
+          props,
+        } = args;
+        const {
+          amount,
+          currency,
+          interval,
+          intervalCount,
+        } = props;
+        const price = (() => {
+          const v = amount / 100;
+          if (currency === 'usd') {
+            return `$${v}`;
+          } else {
+            return `${v} ${currency.toUpperCase()}`;
+          }
+        })();
+        const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
+        mpLog(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
+        // const { amount, currency, url, productName, productDescription, productQuantity } = args;
+        // mpLog(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
+        break;
+      }
+      case 'nudge':
+      case 'join':
+      case 'leave': {
+        // nothing
+        break;
+      }
+      default: {
+        mpLog(`${name}: ${JSON.stringify(message)}`);
+        break;
+      }
+    }
+  });
+  await multiplayerConnection.waitForConnect();
+  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
+  const agentJsons = Array.from(playersMap.getMap().values()).map(
+    (player) => player.playerSpec,
+  );
+  mpLog(dedent`\
+    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
+    In the room (${room}):
+    ${agentJsons.length > 0 ?
+      agentJsons
+        .map((agent) => {
+          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
+        })
+        .join('\n')
+      :
+        `* no one else is here`
+    }
+    http://local.upstreet.ai:${devServerPort}
+  `);
+
+  replServer = startMultiplayerRepl({
+    profile,
+    realms,
+    typingMap,
+    speakerMap,
+  });
+
+  const _trackAudio = () => {
+    const virtualPlayers = realms.getVirtualPlayers();
+    const audioStreams = new Map();
+    virtualPlayers.addEventListener('audiostart', e => {
+      const {
+        playerId,
+        streamId,
+        type,
+        disposition,
+      } = e.data;
+
+      if (disposition === 'audio') {
+        const outputStream = new SpeakerOutputStream();
+        const { sampleRate } = outputStream;
+
+        // decode stream
+        const decodeStream = new AudioDecodeStream({
+          type,
+          sampleRate,
+          codecs,
+          format: 'i16',
+        });
+        (async () => {
+          // XXX move this tracking to the react-agents-client
+          speakerMap.set(playerId, true);
+          try {
+            await decodeStream.readable.pipeTo(outputStream);
+          } finally {
+            speakerMap.set(playerId, false);
+          }
+        })();
+
+        const writer = decodeStream.writable.getWriter();
+        writer.metadata = {
+          playerId,
+        };
+        audioStreams.set(streamId, writer);
+      }
+    });
+    virtualPlayers.addEventListener('audio', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.write(data);
+      } else {
+        // throw away unmapped data
+        // console.warn('dropping audio data', e.data);
+      }
+    });
+    virtualPlayers.addEventListener('audioend', e => {
+      const {
+        playerId,
+        streamId,
+        data,
+      } = e.data;
+
+      const stream = audioStreams.get(streamId);
+      if (stream) {
+        stream.close();
+        audioStreams.delete(streamId);
+      } else {
+        // throw away unmapped data
+        console.warn('dropping audioend data', e.data);
       }
     });
   };
-  _bindRealmsLogging();
+  // dynamic import audio output module
+  const audioOutput = await (async () => {
+    try {
+      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
+    } catch (err) {
+      return null;
+    }
+  })();
+  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
+  if (SpeakerOutputStream) {
+    _trackAudio();
+  }
 };
 const connect = async (args) => {
   const room = args._[0] ?? '';
-  const local = !!args.local;
+  const mode = args.mode ?? 'repl';
   const debug = !!args.debug;
-  const browser = !!args.browser;
-  const media = !!args.media;
-  const startRepl = typeof args.repl === 'boolean' ? args.repl : !browser;
 
   if (room) {
-    // set up the chat
-    const { userAsset, realms, typingMap, speakerMap, playersMap } =
-      await connectMultiplayer({
-        room,
-        media,
-        debug,
-      });
-    if (browser) {
-      const _chatEndpointUrl = local
-        ? `http://localhost:3000`
-        : chatEndpointUrl;
-      open(`${_chatEndpointUrl}/rooms/${room}`)
-        .catch( console.error );
-    }
-    if (startRepl) {
-      startMultiplayerListener({
-        userAsset,
-        realms,
-        typingMap,
-        speakerMap,
-        startRepl: true,
-        playersMap,
-      });
+    switch (mode) {
+      case 'browser': {
+        connectBrowser({
+          room,
+        });
+        break;
+      }
+      case 'repl': {
+        connectRepl({
+          room,
+          debug,
+        });
+        break;
+      }
+      default: {
+        throw new Error(`unknown mode: ${mode}`);
+      }
     }
   } else {
     console.log('no room name provided');
@@ -1611,7 +1408,7 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
   }
 };
 const chat = async (args) => {
-  // console.log('got chat args', JSON.stringify(args));
+  // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
   const debug = !!args.debug;
@@ -1640,10 +1437,8 @@ const chat = async (args) => {
     // connect to the chat
     await connect({
       _: [room],
-      browser: args.browser,
-      media: !args.browser,
+      mode: args.browser ? 'browser' : 'repl',
       debug: args.debug,
-      local: args.local,
     });
   } else {
     console.log('not logged in');
@@ -2683,9 +2478,9 @@ const join = async (args) => {
   if (agentSpec) {
     if (room) {
       const u = `${getAgentSpecHost(agentSpec)}`;
-      const agent = new ReactAgentsClient(u);
+      const agentClient = new ReactAgentsClient(u);
       try {
-        await agent.join(room, {
+        await agentClient.join(room, {
           only: true,
         });
       } catch (err) {
@@ -3264,14 +3059,11 @@ const main = async () => {
     }); */
   program
     .command('chat')
+    .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
     .option(`-r, --room <room>`, `The room name to join`)
-    // .option(
-    //   `-d, --dev`,
-    //   `Chat with a local development agent`,
-    // )
     .option(`-g, --debug`, `Enable debug logging`)
     .action(async (guids = [], opts = {}) => {
       await handleError(async () => {

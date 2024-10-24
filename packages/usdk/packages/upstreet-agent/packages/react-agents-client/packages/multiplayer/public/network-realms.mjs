@@ -1537,7 +1537,7 @@ export class NetworkRealms extends EventTarget {
     endpointUrl,
     playerId,
     // audioManager,
-    metadata = null,
+    // metadata = null,
   }) {
     super();
 
@@ -1553,7 +1553,7 @@ export class NetworkRealms extends EventTarget {
     this.endpointUrl = endpointUrl;
     this.playerId = playerId;
     // this.audioManager = audioManager;
-    this.metadata = metadata;
+    // this.metadata = metadata;
 
     // this.lastKey = '';
     // this.lastPosition = [NaN, NaN, NaN];
