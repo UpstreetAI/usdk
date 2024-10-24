@@ -14,7 +14,7 @@ import {
 } from './conversation-object';
 import {
   MultiQueueManager,
-} from '../util/queue-manager.mjs';
+} from 'queue-manager';
 // import {
 //   Debouncer,
 // } from '../util/debouncer.mjs';

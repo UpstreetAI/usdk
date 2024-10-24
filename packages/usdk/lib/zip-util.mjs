@@ -4,7 +4,7 @@ import recursiveReaddir from 'recursive-readdir';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
-import { QueueManager } from './queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
   let files = await recursiveReaddir(dirPath);

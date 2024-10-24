@@ -33,7 +33,7 @@ import {
 } from './util/supabase-client.mjs';
 import {
   QueueManager,
-} from './util/queue-manager.mjs';
+} from 'queue-manager';
 import {
   aiProxyHost,
 } from './util/endpoints.mjs';

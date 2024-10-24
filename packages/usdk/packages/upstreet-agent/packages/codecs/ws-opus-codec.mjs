@@ -1,5 +1,5 @@
 import {channelCount, bitrate, frameSize, voiceOptimization} from './ws-constants.mjs';
-import { QueueManager } from './queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { floatTo16Bit } from './convert.mjs';
 
 export const makeOpusCodec = (libopus) =>

@@ -4,7 +4,7 @@ import {
 } from 'zjs/encoding.mjs';
 import {
   QueueManager,
-} from '../../util/queue-manager.mjs';
+} from 'queue-manager';
 import {
   transcribe,
 } from '../../util/audio-perception.mjs';
