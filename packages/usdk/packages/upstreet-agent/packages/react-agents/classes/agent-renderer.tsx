@@ -289,6 +289,9 @@ export class AgentRenderer {
       unhideTextInstance: (textInstance: TextInstance) => {
         textInstance.visible = true;
       },
+      detachDeletedInstance: (instance: Instance) => {
+        // console.log('detach deleted instance', [instance]);
+      },
       appendChild: (container: Instance, child: InstanceChild) => {
         container.children.push(child);
       },
