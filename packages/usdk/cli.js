@@ -1028,9 +1028,8 @@ const connectRepl = async ({
   let profile = await getUserProfile();
   profile = {
     ...profile,
-    capabilities: [
-      'human',
-    ],
+    capabilities: [],
+    playerType: PlayerType.Human,
   };
   if (!profile) {
     throw new Error('could not get user profile');

@@ -156,6 +156,7 @@ const makeFakePlayerSpec = () => (
     name: '',
     previewUrl: '',
     capabilities: [],
+    playerType: '',
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
@@ -245,9 +246,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
             const profile = {
               ...newLocalPlayerSpec,
-              capabilities: [
-                'human',
-              ],
+              capabilities: [],
+              playerType: PlayerType.Human,
             };
             const debug = true;
             multiplayerConnection = new ReactAgentsMultiplayerConnection({
