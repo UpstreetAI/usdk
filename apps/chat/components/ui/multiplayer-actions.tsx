@@ -20,6 +20,7 @@ import type {
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import { QueueManager } from 'queue-manager';
 
 //
 
@@ -396,6 +397,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             };
             _trackPlayersCache();
 
+            const audioQueueManger = new QueueManager();
+
             const audioStreams = new Map();
             const _trackAudio = () => {
               playersMap.addEventListener('audiostart', (e: any) => {
@@ -417,13 +420,29 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                     format: 'f32',
                     codecs,
                   }) as any;
-                  decodeStream.readable.pipeTo(outputStream);
 
                   const writer = decodeStream.writable.getWriter();
                   writer.metadata = {
                     playerId,
                   };
                   audioStreams.set(streamId, writer);
+
+                  (async () => {
+                    await audioQueueManger.waitForTurn(async ({
+                      signal,
+                    }: {
+                      signal: AbortSignal,
+                    }) => {
+                      signal.addEventListener('abort', (e: any) => {
+                        decodeStream.abort(e.reason);
+                        outputStream.abort(e.reason);
+                      });
+
+                      await decodeStream.readable.pipeTo(outputStream);
+                    });
+                  })().catch((e) => {
+                    console.error('error in audio pipeline', e);
+                  });
                 }
               });
               playersMap.addEventListener('audio', (e: any) => {
