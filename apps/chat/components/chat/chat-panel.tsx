@@ -1,13 +1,7 @@
 import * as React from 'react';
-// import { type KeyboardEvent } from 'react';
-
-// import { shareChat } from '@/app/actions';
-import { Button } from '@/components/ui/button';
 import { PromptForm } from '@/components/prompt-form';
 import { DirectMessages } from '@/components/direct-message-form';
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
-import { IconShare } from '@/components/ui/icons';
-// import { FooterText } from '@/components/footer';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 
 export interface ChatPanelProps {
