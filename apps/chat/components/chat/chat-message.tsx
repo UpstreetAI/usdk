@@ -48,8 +48,7 @@ export function ChatMessage({
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
   const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
-
-  console.log('content', content);
+  
   return (
     <div>
       <div className={`relative bt-0 mt-2 ${isOwnMessage ? 'pl-14' : 'pr-14'}`}>
