@@ -94,6 +94,7 @@
   background-color: transparent;
   border: 2px solid transparent;
   color: #EFEFEF;
+  padding: 0.10rem !important;
 }
 
 .ucomIconButton.ghost:hover {

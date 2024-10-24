@@ -56,7 +56,6 @@ const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, Icon
         ref={ref}
         className={className}
         disabled={disabled}
-        {...props}
       >
         <Icon icon={icon} />
       </button>
