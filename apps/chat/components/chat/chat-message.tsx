@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import React from 'react'
 import MarkdownRenderer from '../markdown-renderer'
 
 

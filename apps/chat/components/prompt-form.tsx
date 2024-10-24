@@ -175,12 +175,6 @@ export function PromptForm({
       <div className="flex flex-col">
         {/* Highlighted Display Name */}
         <span className="font-semibold">{highlightedDisplay}</span>
-        {/* Additional User Info */}
-        {entry.spec.status && (
-          <span className="text-xs text-gray-500">
-            {entry.spec.status === 'online' ? 'Online' : 'Offline'}
-          </span>
-        )}
         {entry.spec.description && (
           <span className="text-xs text-gray-400">{entry.spec.description}</span>
         )}
