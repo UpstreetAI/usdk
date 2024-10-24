@@ -1,7 +1,7 @@
 .ucomIconButton {
   background: transparent;
   border: 2px solid transparent;
-  display: inline-block;
+  display: inline-block !important;
   position: relative;
   cursor: pointer;
   color: #000000;
@@ -123,11 +123,15 @@
 /* Label */
 
 .label {
-  font-size: 11px;
+  font-size: 10px;
   position: absolute;
   top: 90%;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
   text-transform: uppercase;
+}
+
+.label.buttonLabel {
+  top: 105%;
 }

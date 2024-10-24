@@ -60,7 +60,8 @@ const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, Icon
       >
         <Icon icon={icon} />
       </button>
-      {label && <div className={`${styles.label} font-bold text-stroke`}>{label}</div>}
+      { /* TODO: Figure out why the <button> and the <a> tag show different height, therefore label top: is not the same */ }
+      {label && <div className={`${styles.label} ${styles.buttonLabel} font-bold text-stroke`}>{label}</div>}
     </div>
   );
 });
