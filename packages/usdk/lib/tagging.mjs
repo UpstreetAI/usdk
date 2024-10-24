@@ -4,7 +4,7 @@ const getAllUsernames = (playersMap) => {
     }
     const usernames = [];
     for (let [_, user] of playersMap) {
-      usernames.push(user.playerSpec.name || user.playerSpec.agent.name);
+      usernames.push(user.playerSpec.name);
     }
     return usernames;
 };
@@ -28,7 +28,7 @@ const completer = (line, playersMap) => {
 
 const getUserByName = (name, playersMap) => {
     for (let [_, user] of playersMap) {
-        const userName = user.playerSpec.name || user.playerSpec.agent.name;
+        const userName = user.playerSpec.name;
         if (userName.toLowerCase() === name.toLowerCase()) {
         return user;
         }
@@ -43,9 +43,8 @@ const extractTaggedUsers = (text, playersMap) => {
     const findUserByName = (username) => {
         const trimmedUsername = username.trim().toLowerCase();
         for (let player of playersMap.values()) {
-            const agentName = player.playerSpec.agent.name.trim().replace(/\s+/g, '').toLowerCase();
             const playerName = player.playerSpec.name?.trim().replace(/\s+/g, '').toLowerCase();
-            if (agentName === trimmedUsername || playerName === trimmedUsername) {
+            if (playerName === trimmedUsername) {
                 return player;
             }
         }
@@ -55,7 +54,7 @@ const extractTaggedUsers = (text, playersMap) => {
     text.replace(mentionRegex, (match, username) => {
         const user = findUserByName(username);
         if (user) {
-            const userId = user.playerSpec.id || user.playerSpec.agent.id;
+            const userId = user.playerSpec.id || user.playerSpec.id;
             taggedUserIds.push(userId);
             return `@${username}`;
         }

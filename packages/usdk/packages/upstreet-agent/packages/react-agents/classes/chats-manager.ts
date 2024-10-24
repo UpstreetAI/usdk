@@ -159,11 +159,11 @@ export class ChatsManager {
                 };
               };
               const agentJson = getJson();
-              const playerSpec = {
-                agent: agentJson,
-                capabilities: [],
-                playerType: PlayerType.Agent,
-              };
+                const playerSpec = {
+                  ...agentJson,
+                  capabilities: [],
+                  playerType: PlayerType.Agent,
+                };
               const localPlayer = new Player(agent.id, playerSpec);
 
               const _pushInitialPlayer = () => {

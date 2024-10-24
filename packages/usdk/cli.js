@@ -864,7 +864,7 @@ const connectMultiplayer = async ({ room, media, debug }) => {
         connected = true;
 
         const agentJsons = Array.from(playersMap.values()).map(
-          (player) => player.playerSpec.agent,
+          (player) => player.playerSpec,
         );
         log(dedent`\
           ${userAsset ? `You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.` : ''}
