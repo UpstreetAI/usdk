@@ -14,9 +14,13 @@ import { IconButton } from 'ucom';
 import Dev from '../development';
 
 
+interface Agent {
+  images: { url: string }[];
+}
+
 export interface TabsProps {
   user: any;
-  agents: object[];
+  agents: Agent[];
   voices: object[];
   creditsUsageHistory: object[] | null;
   userIsCurrentUser: boolean;
@@ -33,7 +37,6 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
 
   const origin = window.location.origin;
   const accountUrl = `${origin}/accounts/${user.id}`;
-
   const randomAgentImage = agents[Math.floor(Math.random() * agents.length)]?.images[0].url;
 
   return (
