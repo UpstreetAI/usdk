@@ -13,33 +13,40 @@ const MentionRenderer: React.FC<{ content: string }> = ({ content }) => {
     The renderMentions method parses mentions in the “@Name” format from react-mentions.
     Combining the ‘@’ symbol and subsequent anchor element into a single, styled span for compatibility with react-markdown.
   */
-  const renderMentions = (children: React.ReactNode): React.ReactNode => {
-    return React.Children.map(children, (child, index) => {
-      if (typeof child === 'string' && child === '@') {
-        const nextChild = Array.isArray(children) ? children[index + 1] : null;
-        if (React.isValidElement(nextChild) && nextChild.type === 'a') {
-          const { href, children: mentionChildren } = nextChild.props as React.AnchorHTMLAttributes<HTMLAnchorElement>;
-          const mentionName = React.Children.toArray(mentionChildren)[0];
-          
-          return (
-            <span
-              key={`mention-${href}`}
-              className="inline-flex items-center bg-[#e0e4ef] text-[#4751c4] font-bold rounded px-1 cursor-pointer hover:bg-slate-300"
-              data-mention-id={href}
-            >
-              @{mentionName}
-            </span>
-          );
+    const renderMentions = (children: React.ReactNode): React.ReactNode => {
+      return React.Children.toArray(children).reduce((acc: React.ReactNode[], child, index, array) => {
+        if (typeof child === 'string') {
+          const parts = child.split('@');
+          parts.forEach((part, partIndex) => {
+            if (partIndex > 0) {
+              const nextChild = array[index + 1];
+              if (React.isValidElement(nextChild) && nextChild.type === 'a') {
+                const { href, children: mentionChildren } = nextChild.props as React.AnchorHTMLAttributes<HTMLAnchorElement>;
+                const mentionName = React.Children.toArray(mentionChildren)[0];
+                
+                acc.push(
+                  <span
+                    key={`mention-${href}-${index}-${partIndex}`}
+                    className="inline-flex items-center bg-[#e0e4ef] text-[#4751c4] font-bold rounded px-1 cursor-pointer hover:bg-slate-300"
+                    data-mention-id={href}
+                  >
+                    @{mentionName}
+                  </span>
+                );
+                array[index + 1] = <React.Fragment />; // Mark the next child as processed
+              } else {
+                acc.push('@' + part);
+              }
+            } else if (part) {
+              acc.push(part);
+            }
+          });
+        } else if (child !== null) {
+          acc.push(child);
         }
-        return child;
-      }
-      if (React.isValidElement(child) && child.type === 'a') {
-        // Skip this child as it will be handled with the '@' symbol
-        return null;
-      }
-      return child;
-    });
-  };
+        return acc;
+      }, []);
+    };    
 
   return (
     <ReactMarkdown
