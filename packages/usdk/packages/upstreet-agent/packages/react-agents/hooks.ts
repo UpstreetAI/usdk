@@ -37,9 +37,7 @@ import {
 import {
   aiProxyHost,
 } from './util/endpoints.mjs';
-import {
-  devSuffix,
-} from './util/stripe-utils.mjs';
+import { getStripeDevSuffix } from 'react-agents/util/stripe-utils.mjs';
 import {
   FetchHttpClient,
 } from './util/stripe/net/FetchHttpClient';
@@ -204,6 +202,7 @@ export const useTts: (opts?: TtsArgs) => Tts = (opts) => {
 
 export const useStripe = () => {
   const { stripeConnectAccountId } = useAgent();
+  const environment = useEnvironment();
   const authToken = useAuthToken();
 
   const customFetchFn = async (url: string, options: any) => {
@@ -211,7 +210,8 @@ export const useStripe = () => {
     // redirect to the ai proxy host
     u.host = aiProxyHost;
     // prefix the path with /api/stripe
-    u.pathname = `/api/stripe${devSuffix}${u.pathname}`;
+    const stripeDevSuffix = getStripeDevSuffix(environment);
+    u.pathname = `/api/stripe${stripeDevSuffix}${u.pathname}`;
     return fetch(u.toString(), {
       ...options,
       headers: {

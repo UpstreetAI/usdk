@@ -5,10 +5,9 @@ import { aiHost } from '@/utils/const/endpoints';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { environment } from '@/lib/env';
+import { getStripeDevSuffix } from 'react-agents/util/stripe-utils.mjs';
 
-//
-
-const stripeDevSuffix = environment === 'production' ? '' : `_test`;
+const stripeDevSuffix = getStripeDevSuffix(environment);
 
 //
 
