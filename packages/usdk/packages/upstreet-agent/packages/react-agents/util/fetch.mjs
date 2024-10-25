@@ -17,77 +17,107 @@ export type ChatMessage = {
     },
   },
 };
-const fetchChatCompletionFns = new Map<
+type FetchArgs = {
+  model: string
+  messages: ChatMessage[],
+  format?: z.ZodTypeAny,
+  stream?: boolean,
+  max_completion_tokens?: number,
+  signal?: AbortSignal,
+};
+type FetchOpts = {
+  jwt: string,
+};
+type FetchFn = (args: FetchArgs, opts: FetchOpts) => Promise<any>;
+
+//
+
+const fetchers = new Map<
   string,
-  (args: any, opts: any) => Promise<string>
+  FetchFn
 >(Object.entries({
   openai: async ({
     model,
     messages,
+    format,
     stream,
+    max_completion_tokens,
     signal,
-  }: {
-    model: string
-    messages: ChatMessage[],
-    stream?: boolean,
-    signal?: AbortSignal,
-  }, {
+  }: FetchArgs, {
     jwt,
-  }: {
-    jwt: string,
-  }) => {
+  }: FetchOpts) => {
     if (!jwt) {
       throw new Error('no jwt');
     }
-    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-      method: 'POST',
+    
+    if (!format) {
+      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json',
-        // 'OpenAI-Beta': 'assistants=v1',
-        Authorization: `Bearer ${jwt}`,
-      },
+        headers: {
+          'Content-Type': 'application/json',
+          // 'OpenAI-Beta': 'assistants=v1',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-      body: JSON.stringify({
-        model,
-        messages,
-
-        // stop: ['\n'],
-
-        // response_format: {
-        //   type: 'json_object',
-        // },
-        stream,
-      }),
-      signal,
-    });
-    if (res.ok) {
-      const j = await res.json();
-      const content = j.choices[0].message.content as string;
-      return content;
+        body: JSON.stringify({
+          model,
+          messages,
+          stream,
+          max_completion_tokens,
+        }),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const content = j.choices[0].message.content as string;
+        return content;
+      } else {
+        const text = await res.text();
+        throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+      }
     } else {
-      const text = await res.text();
-      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json',
+          // 'OpenAI-Beta': 'assistants=v1',
+          Authorization: `Bearer ${jwt}`,
+        },
+
+        body: JSON.stringify({
+          model,
+          messages,
+
+          response_format: zodResponseFormat(format, 'result'),
+
+          stream,
+        }),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const s = j.choices[0].message.content as string;
+        const o = JSON.parse(s) as object;
+        return o;
+      } else {
+        const text = await res.text();
+        throw new Error('invalid status code: ' + res.status + ': ' + text);
+      }
     }
   },
   anthropic: async ({
     model,
-    max_tokens,
     messages,
+    format,
     stream,
+    max_completion_tokens,
     signal,
-  }: {
-    model: string,
-    max_tokens: number,
-    messages: ChatMessage[],
-    stream?: boolean,
-    signal?: AbortSignal,
-  }, {
+  }: FetchArgs, {
     jwt,
-  }: {
-    jwt: string,
-  }) => {
-    const res = await fetch(`https://${aiProxyHost}/api/claude/messages`, {
+  }: FetchOpts) => {
+    const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
       method: 'POST',
 
       headers: {
@@ -97,7 +127,7 @@ const fetchChatCompletionFns = new Map<
 
       body: JSON.stringify({
         model,
-        max_tokens,
+        max_tokens: max_completion_tokens,
         messages,
         stream,
       }),
@@ -111,6 +141,27 @@ const fetchChatCompletionFns = new Map<
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
+  },
+  together: async ({
+  }, {
+    jwt,
+  }: FetchOpts) => {
+    // XXX finish this
+    return '';
+  },
+  lambda: async ({
+  }, {
+    jwt,
+  }: FetchOpts) => {
+    // XXX finish this
+    return '';
+  },
+  ollama: async ({
+  }: FetchArgs, {
+    jwt,
+  }: FetchOpts) => {
+    // XXX finish this
+    return '';
   },
 }));
 export const fetchChatCompletion = async ({
@@ -132,7 +183,7 @@ export const fetchChatCompletion = async ({
   if (match) {
     const modelType = match[1];
     const modelName = model.slice(match[0].length);
-    const fn = fetchChatCompletionFns.get(modelType);
+    const fn = fetchers.get(modelType);
     if (fn) {
       const content = await fn({
         model: modelName,
@@ -152,14 +203,16 @@ export const fetchChatCompletion = async ({
 };
 
 export const fetchJsonCompletion = async ({
-  model = defaultModel, // XXX support multiple models here
+  model = defaultModel,
   messages,
   stream,
+  max_completion_tokens,
   signal,
 }: {
   model?: string,
   messages: ChatMessage[],
   stream?: boolean,
+  max_completion_tokens?: number,
   signal?: AbortSignal,
 }, format: z.ZodTypeAny, {
   jwt,
@@ -170,36 +223,19 @@ export const fetchJsonCompletion = async ({
   if (match) {
     const modelType = match[1];
     const modelName = model.slice(match[0].length);
-    
-    if (modelType === 'openai') {
-      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json',
-          // 'OpenAI-Beta': 'assistants=v1',
-          Authorization: `Bearer ${jwt}`,
-        },
-
-        body: JSON.stringify({
-          model: modelName,
-          messages,
-
-          response_format: zodResponseFormat(format, 'result'),
-
-          stream,
-        }),
+    const fn = fetchers.get(modelType);
+    if (fn) {
+      const content = await fn({
+        model: modelName,
+        messages,
+        format,
+        stream,
+        max_completion_tokens,
         signal,
+      }, {
+        jwt,
       });
-      if (res.ok) {
-        const j = await res.json();
-        const s = j.choices[0].message.content as string;
-        const o = JSON.parse(s) as object;
-        return o;
-      } else {
-        const text = await res.text();
-        throw new Error('invalid status code: ' + res.status + ': ' + text);
-      }
+      return content;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
