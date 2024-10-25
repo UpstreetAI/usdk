@@ -709,6 +709,7 @@ export type AppContextValue = {
   subtleAi: SubtleAi;
 
   useAgentJson: () => object;
+  useEnvironment: () => string;
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
@@ -735,10 +736,6 @@ export type AppContextValue = {
     opts: SubtleAiImageOpts,
   ) => Promise<Blob>;
 };
-/* export type ConfigurationContextValue = {
-  get: (key: string) => any;
-  set: (key: string, value: any) => void;
-}; */
 
 // messages
 

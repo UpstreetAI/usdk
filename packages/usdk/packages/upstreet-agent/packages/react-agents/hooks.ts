@@ -1,4 +1,4 @@
-import { useState, useMemo, useContext, useEffect, use } from 'react';
+import { useState, useMemo, useContext, useEffect } from 'react';
 import Stripe from 'stripe';
 import memoizeOne from 'memoize-one';
 import {
@@ -46,6 +46,10 @@ import {
 
 //
 
+export const useEnvironment: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useEnvironment();
+};
 export const useAuthToken: () => string = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useAuthToken();
