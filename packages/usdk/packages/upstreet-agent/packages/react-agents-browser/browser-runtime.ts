@@ -25,7 +25,12 @@ export class ReactAgentsWorker {
       !apiKey ||
       !mnemonic
     ) {
-      throw new Error('missing required options');
+      throw new Error('missing required options: ' + JSON.stringify({
+        agentJson,
+        agentSrc,
+        apiKey,
+        mnemonic,
+      }));
     }
 
     console.log('got agent src', agentSrc);
