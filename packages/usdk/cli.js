@@ -1170,8 +1170,9 @@ const connectRepl = async ({
   });
 
   const _trackAudio = () => {
-    const virtualPlayers = realms.getVirtualPlayers();
     const audioStreams = new Map();
+    const audioQueueManger = new QueueManager();
+    const virtualPlayers = realms.getVirtualPlayers();
     virtualPlayers.addEventListener('audiostart', e => {
       const {
         playerId,
@@ -1191,15 +1192,26 @@ const connectRepl = async ({
           codecs,
           format: 'i16',
         });
+
         (async () => {
-          // XXX move this tracking to the react-agents-client
-          speakerMap.set(playerId, true);
-          try {
-            await decodeStream.readable.pipeTo(outputStream);
-          } finally {
-            speakerMap.set(playerId, false);
-          }
-        })();
+          await audioQueueManger.waitForTurn(async ({
+            signal,
+          }) => {
+            signal.addEventListener('abort', (e) => {
+              decodeStream.abort(e.reason);
+              outputStream.abort(e.reason);
+            });
+
+            try {
+              speakerMap.addRemote(playerId);
+              await decodeStream.readable.pipeTo(outputStream);
+            } finally {
+              speakerMap.removeRemote(playerId);
+            }
+          });
+        })().catch((e) => {
+          console.error('error in audio pipeline', e);
+        });
 
         const writer = decodeStream.writable.getWriter();
         writer.metadata = {
