@@ -463,34 +463,6 @@ const logout = async (args) => {
   await rimraf(loginLocation);
   console.log('Successfully logged out.');
 };
-/* const authorize = async (args) => {
-  const appDirectory = args._[0] ?? cwd;
-
-  const wranglerTomlPath = path.join(appDirectory, 'wrangler.toml');
-  let s = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    let t = toml.parse(s);
-
-    const guid = t.vars.GUID;
-    const agentToken = await getAgentToken(jwt, guid);
-    if (agentToken) {
-      t = setWranglerTomlAgentToken(t, { agentToken });
-      s = toml.stringify(t);
-
-      await fs.promises.writeFile(wranglerTomlPath, s);
-
-      console.log('agent authorized');
-    } else {
-      console.warn('could not get agent token');
-      process.exit(1);
-    }
-  } else {
-    console.warn('you are not logged in!');
-    process.exit(1);
-  }
-}; */
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
@@ -1856,13 +1828,6 @@ const getCodeGenContext = async () => {
     agentJson,
   };
 }; */
-const setWranglerTomlAgentToken = (
-  t,
-  { agentToken },
-) => {
-  t.vars.AGENT_TOKEN = agentToken;
-  return t;
-};
 const makeRoomName = () => `room:` + makeId(8);
 /* const search = async (args) => {
   const prompt = args._[0] ?? '';
@@ -2769,20 +2734,6 @@ const main = async () => {
         await login(args);
       });
     });
-  // program
-  //   .command('authorize')
-  //   .description('Authorize an agent of the SDK')
-  //   .argument(`[directory]`, `The directory to create the project in`)
-  //   .action(async (directory = '',opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [directory],
-  //         ...opts,
-  //       };
-  //       await authorize(args);
-  //     });
-  //   });
   program
     .command('logout')
     .description('Log out of the SDK')
