@@ -1,19 +1,43 @@
+import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import Together from 'together-ai';
-import { aiProxyHost } from './endpoints.mjs';
-import { getAiFetch } from './ai-util.mjs';
-import { defaultModel } from '../defaults.mjs';
+import { aiProxyHost } from './const/endpoints.js';
+import { defaultModel, defaultOpenAIModel } from 'react-agents/defaults.mjs';
 
-const fetchChatCompletionFns = {
-  openai: async ({ model, messages, stream, signal }, {
+export type ChatMessage = {
+  role: string,
+  content: string | {
+    type: 'text',
+    text: string,
+  } | {
+    type: 'image_url',
+    image_url: {
+      url: string,
+    },
+  },
+};
+const fetchChatCompletionFns = new Map<
+  string,
+  (args: any, opts: any) => Promise<string>
+>(Object.entries({
+  openai: async ({
+    model,
+    messages,
+    stream,
+    signal,
+  }: {
+    model: string
+    messages: ChatMessage[],
+    stream?: boolean,
+    signal?: AbortSignal,
+  }, {
     jwt,
+  }: {
+    jwt: string,
   }) => {
     if (!jwt) {
       throw new Error('no jwt');
     }
-
-    const aiFetch = getAiFetch();
-    const res = await aiFetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
       method: 'POST',
 
       headers: {
@@ -37,21 +61,31 @@ const fetchChatCompletionFns = {
     });
     if (res.ok) {
       const j = await res.json();
-      const content = j.choices[0].message.content;
+      const content = j.choices[0].message.content as string;
       return content;
     } else {
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  anthropic: async ({ model, max_tokens, messages, stream, signal }, {
+  anthropic: async ({
+    model,
+    max_tokens,
+    messages,
+    stream,
+    signal,
+  }: {
+    model: string,
+    max_tokens: number,
+    messages: ChatMessage[],
+    stream?: boolean,
+    signal?: AbortSignal,
+  }, {
     jwt,
+  }: {
+    jwt: string,
   }) => {
-    if (!jwt) {
-      throw new Error('no jwt');
-    }
-
-    const res = await aiFetch(`https://${aiProxyHost}/api/claude/messages`, {
+    const res = await fetch(`https://${aiProxyHost}/api/claude/messages`, {
       method: 'POST',
 
       headers: {
@@ -69,234 +103,36 @@ const fetchChatCompletionFns = {
     });
     if (res.ok) {
       const j = await res.json();
-      const text = j.content[0].text;
+      const text = j.content[0].text as string;
       return text;
     } else {
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  together: async ({ model, messages, stream, signal }, {
-    jwt,
-  }) => {
-    if (!jwt) {
-      throw new Error('no jwt');
-    }
-
-    const together = new Together({
-      baseURL: `https://api.together.xyz/v1`,
-      apiKey: jwt,
-    });
-    throw new Error('not implemented');
-    // XXX
-    // const systemMessages = messages.filter(m => m.role === 'system');
-    // const userMessages = messages.filter(m => m.role === 'user');
-    // const assistantMessages = messages.filter(m => m.role === 'assistant');
-    const prMessages = [];
-    for (let i = 0; i < messages.length; i++) {
-      let prompt = '';
-      while (
-        i < messages.length &&
-        ['system', 'user'].includes(messages[i].role)
-      ) {
-        if (prompt) {
-          prompt += '\n';
-        }
-        prompt += messages[i].content;
-        i++;
-      }
-
-      const nextMessage = messages[i];
-      if (nextMessage?.role === 'assistant') {
-        const response = nextMessage.content;
-        prMessages.push({
-          prompt,
-          response,
-        });
-      } else {
-        prMessages.push({
-          prompt,
-          response: null,
-        });
-      }
-    }
-    // console.log('pr messages', {messages, prMessages});
-
-    const promptSpec = (() => {
-      // 'mistralai/Mistral-7B-Instruct-v0.1',
-      // 'NousResearch/Nous-Hermes-Llama2-13b',
-      // 'Open-Orca/Mistral-7B-OpenOrca',
-      // 'teknium/OpenHermes-2-Mistral-7B',
-      // 'Gryphe/MythoMax-L2-13b',
-
-      const formatMessagesInst = (messages) =>
-        messages
-          .filter((m) => m.prompt && m.response)
-          .map(
-            (message) =>
-              `<s>[INST] ${message.prompt} [/INST] ${message.response}`
-          )
-          .join('') +
-        messages
-          .filter((m) => m.prompt && !m.response)
-          .map((message) => `<s>[INST] ${message.prompt} [/INST] `)
-          .join('');
-      const formatMessagesInstruction = (messages) =>
-        messages
-          .filter((m) => m.prompt && m.response)
-          .map(
-            (message) =>
-              `### Instruction:
-${message.prompt}
-
-### Response:
-${message.response}
-`
-          )
-          .join('') +
-        messages
-          .filter((m) => m.prompt && !m.response)
-          .map(
-            (message) =>
-              `### Instruction:
-${message.prompt}
-
-### Response:
-`
-          )
-          .join('');
-      const formatMessagesIm = (messages) =>
-        messages
-          .filter((m) => m.prompt && m.response)
-          .map(
-            (message) =>
-              `<|im_start|>user
-${message.prompt}
-<|im_end|>
-<|im_start|>assistant
-${message.response}
-`
-          )
-          .join('') +
-        messages
-          .filter((m) => m.prompt && !m.response)
-          .map(
-            (message) =>
-              `<|im_start|>user
-${message.prompt}
-<|im_end|>
-<|im_start|>assistant
-`
-          )
-          .join('');
-
-      let prompt2;
-      let stop;
-      switch (model) {
-        case 'meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo': {
-          prompt2 = formatMessagesInst(prMessages);
-          stop = ['[/INST]', '</s>'];
-          break;
-        }
-        case 'mistralai/Mixtral-8x7B-Instruct-v0.1': {
-          prompt2 = formatMessagesInst(prMessages);
-          stop = ['[/INST]', '</s>'];
-          break;
-        }
-        case 'mistralai/Mistral-7B-Instruct-v0.1': {
-          prompt2 = formatMessagesInst(prMessages);
-          stop = ['[/INST]', '</s>'];
-          break;
-        }
-        case 'mistralai/Mistral-7B-Instruct-v0.2': {
-          prompt2 = formatMessagesInst(prMessages);
-          stop = ['[/INST]', '</s>'];
-          break;
-        }
-        case 'NousResearch/Nous-Hermes-Llama2-13b': {
-          prompt2 = formatMessagesInstruction(prMessages);
-          stop = ['###', '</s>'];
-          break;
-        }
-        case 'Open-Orca/Mistral-7B-OpenOrca': {
-          prompt2 = formatMessagesIm(prMessages);
-          stop = ['<|im_end|>'];
-          // stop = ['<|im_end|>', '<|im_start|>'];
-          break;
-        }
-        case 'teknium/OpenHermes-2p5-Mistral-7B': {
-          prompt2 = formatMessagesIm(prMessages);
-          stop = ['<|im_end|>', '<|im_start|>'];
-          break;
-        }
-        case 'Gryphe/MythoMax-L2-13b': {
-          prompt2 = formatMessagesInstruction(prMessages);
-          stop = ['</s>'];
-          break;
-        }
-        case 'NousResearch/Nous-Hermes-2-Yi-34B': {
-          prompt2 = formatMessagesInstruction(prMessages);
-          stop = ['###', '</s>'];
-          break;
-        }
-        default: {
-          throw new Error('unknown model: ' + JSON.stringify(model));
-        }
-      }
-
-      return {
-        prompt2,
-        stop,
-      };
-    })();
-
-    const togetherAiTemperature = 0.7;
-    const togetherAiMaxTokens = 1024;
-    const aiFetch = getAiFetch();
-    const res = await aiFetch(`https://${aiProxyHost}/api/togetherAi/inference`, {
-      method: 'POST',
-
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
-      },
-
-      body: JSON.stringify({
-        model,
-        prompt: promptSpec.prompt2,
-        max_tokens: togetherAiMaxTokens,
-        stop: promptSpec.stop,
-        temperature: togetherAiTemperature,
-        // "temperature":0.7,
-        // "top_p":0.7,
-        // "top_k":50,
-        // "repetition_penalty": 1,
-        stream_tokens: stream,
-      }),
-      signal,
-    });
-    return res;
-  },
-};
+}));
 export const fetchChatCompletion = async ({
   model = defaultModel,
   messages,
-  stream = undefined,
-  signal = undefined,
+  stream,
+  signal,
+}: {
+  model?: string,
+  messages: ChatMessage[],
+  stream?: boolean,
+  signal?: AbortSignal,
 }, {
   jwt,
-} = {}) => {
-  if (!jwt) {
-    throw new Error('no jwt');
-  }
-
+}: {
+  jwt: string,
+}) => {
   const match = model.match(/^(.+?):/);
   if (match) {
     const modelType = match[1];
     const modelName = model.slice(match[0].length);
-    const fn = fetchChatCompletionFns[modelType];
+    const fn = fetchChatCompletionFns.get(modelType);
     if (fn) {
-      const res = await fn({
+      const content = await fn({
         model: modelName,
         messages,
         stream,
@@ -304,7 +140,7 @@ export const fetchChatCompletion = async ({
       }, {
         jwt,
       });
-      return res;
+      return content;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
@@ -312,52 +148,60 @@ export const fetchChatCompletion = async ({
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
 };
-export const fetchJsonCompletion = async ({
-  model = defaultModel,
-  messages,
-  stream = undefined,
-  signal = undefined,
-}, format, {
-  jwt,
-} = {}) => {
-  if (!jwt) {
-    throw new Error('no jwt');
-  }
 
+export const fetchJsonCompletion = async ({
+  model = defaultModel, // XXX support multiple models here
+  messages,
+  stream,
+  signal,
+}: {
+  model?: string,
+  messages: ChatMessage[],
+  stream?: boolean,
+  signal?: AbortSignal,
+}, format: z.ZodTypeAny, {
+  jwt,
+}: {
+  jwt: string,
+}) => {
   const match = model.match(/^(.+?):/);
   if (match) {
-    // XXX support different model types; for now openai is assumed
-    // const modelType = match[1];
+    const modelType = match[1];
     const modelName = model.slice(match[0].length);
-    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-      method: 'POST',
+    
+    if (modelType === 'openai') {
+      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json',
-        // 'OpenAI-Beta': 'assistants=v1',
-        Authorization: `Bearer ${jwt}`,
-      },
+        headers: {
+          'Content-Type': 'application/json',
+          // 'OpenAI-Beta': 'assistants=v1',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-      body: JSON.stringify({
-        model: modelName,
-        messages,
+        body: JSON.stringify({
+          model: modelName,
+          messages,
 
-        response_format: zodResponseFormat(format, 'result'),
+          response_format: zodResponseFormat(format, 'result'),
 
-        stream,
-      }),
-      signal,
-    });
-    if (res.ok) {
-      const j = await res.json();
-      const s = j.choices[0].message.content;
-      const o = JSON.parse(s);
-      return o;
+          stream,
+        }),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const s = j.choices[0].message.content as string;
+        const o = JSON.parse(s) as object;
+        return o;
+      } else {
+        const text = await res.text();
+        throw new Error('invalid status code: ' + res.status + ': ' + text);
+      }
     } else {
-      const text = await res.text();
-      throw new Error('invalid status code: ' + res.status + ': ' + text);
+      throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
   } else {
     throw new Error('invalid model: ' + JSON.stringify(model));
   }
-};
+}
