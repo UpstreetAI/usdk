@@ -1377,6 +1377,52 @@ const chat = async (args) => {
     process.exit(1);
   }
 };
+const llm = async (args) => {
+  const model = args._[0] ?? models[0];
+  const match = model.match(/^(.*):(.*)$/);
+  if (match) {
+    
+  } else {
+    throw new Error('invalid model: ' + model);
+  }
+
+  // console.log('got chat args', args);
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  const room = args.room ?? makeRoomName();
+  const debug = !!args.debug;
+
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // start dev servers for the agents
+    const runtimes = [];
+    for (const agentSpec of agentSpecs) {
+      if (agentSpec.directory) {
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
+      runtimes.push(runtime);
+      }
+    }
+
+    // wait for agents to join the multiplayer room
+    for (const agentSpec of agentSpecs) {
+      await join({
+      _: [agentSpec.ref, room, agentSpec.portIndex],
+      });
+    }
+
+    // connect to the chat
+    await connect({
+      _: [room],
+      mode: args.browser ? 'browser' : 'repl',
+      debug: args.debug,
+    });
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
 const logs = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
 
@@ -2898,7 +2944,21 @@ const main = async () => {
         await chat(args);
       });
     });
-    
+  program
+    .command('llm')
+    .description(`Test llm streaming`)
+    .argument(`modelType`, `The model type to test`)
+    .action(async (modelType = '', opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        args = {
+          _: [modelType],
+          ...opts,
+        };
+        await llm(args);
+      });
+    });
   // program
   //   .command('search')
   //   .description(
