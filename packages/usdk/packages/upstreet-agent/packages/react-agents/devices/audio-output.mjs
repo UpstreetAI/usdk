@@ -15,22 +15,34 @@ export class SpeakerOutputStream extends WritableStream {
         } else {
           uint8Array = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
         }
-        try {
+        // try {
           this.speaker.write(uint8Array);
-        } catch (err) {
-          console.warn(err);
-        }
+        // } catch (err) {
+        //   console.warn(err);
+        // }
       },
       close: async () => {
-        try {
+        console.log('speaker close 1');
+        // try {
           this.speaker.end();
 
+          console.log('speaker close 2');
+
           await new Promise((accept, reject) => {
-            this.speaker.once('finish', accept);
+            this.speaker.once('close', accept);
           });
-        } catch (err) {
-          console.warn(err);
-        }
+
+          console.log('speaker close 3');
+        // } catch (err) {
+        //   console.warn(err);
+        // }
+      },
+      abort: (reason) => {
+        // try {
+          this.speaker.end();
+        // } catch (err) {
+        //   console.warn(err);
+        // }
       },
     });
 
