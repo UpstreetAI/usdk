@@ -1388,13 +1388,10 @@ const chat = async (args) => {
     const runtimes = await Promise.all(localRuntimePromises);
 
     // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }),
-    );
+    const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+    await join({
+      _: [agentRefs, room],
+    });
 
     // connect to the chat
     await connect({
@@ -1922,16 +1919,12 @@ const test = async (args) => {
       });
 
       // join
-      {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }
+      await join({
+        _: [[agentSpec.ref], room],
+      });
 
       // run the tests
-      {
-        await runJest(agentSpec.directory);
-      }
+      await runJest(agentSpec.directory);
 
       runtime.terminate();
     }
@@ -2434,7 +2427,7 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
@@ -2460,7 +2453,7 @@ const join = async (args) => {
   }
 };
 const leave = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? '';
 
   if (agentSpecs.length === 1) {
@@ -3175,7 +3168,7 @@ const main = async () => {
   //         _: [],
   //         ...opts,
   //       };
-  //       await rm(args);
+  //       await join(args);
   //     });
   //   });
   // program
