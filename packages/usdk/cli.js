@@ -2738,7 +2738,6 @@ const ls = async (args) => {
       head: [
         'ID',
         'Name',
-        'Address',
         // 'enabled',
         // 'location',
         // 'balance',
@@ -2746,8 +2745,10 @@ const ls = async (args) => {
         'Bio',
         'Server',
         'Created',
+        'Active Room IDs',
+        'Last Active',
       ],
-      colWidths: [20, 30, 30, 50, 30, 10],
+      colWidths: [20, 30, 40, 30, 10, 30, 20],
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
@@ -2757,6 +2758,30 @@ const ls = async (args) => {
       const agent = agentAssets[i];
       const agentHost = getCloudAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
+        const pingTimestampPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('pings')
+          .select('timestamp')
+          .eq('user_id', agent.id)
+          .order('timestamp', { ascending: false })
+          .limit(1);
+          return data[0];
+        })();
+
+        const roomsPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('chat_specifications')
+          .select('data')
+          .eq('user_id', agent.id)
+          .order('created_at', { ascending: false });
+
+          // extract room identifiers only
+          const rooms = data.map((d) => {
+            return d.data.room;
+          });
+
+          return rooms;
+        })();
         // const statusPromise = (async () => {
         //   // const u = `${agentHost}/status`;
         //   // const proxyRes = await fetch(u);
@@ -2811,6 +2836,14 @@ const ls = async (args) => {
         //   //   console.warn('skipping agent', agentJson);
         //   }
         
+        const [
+          latestTimestamp,
+          rooms,
+        ] = await Promise.all([
+          pingTimestampPromise,
+          roomsPromise,
+        ]);
+
         const agentJson = agent.metadata || agent;
 
         if (!agent.metadata) {
@@ -2823,13 +2856,14 @@ const ls = async (args) => {
           agentJson.id,
           agentJson.name,
           // status?.enabled ?? false,
-          agentJson.address || 'N/A', // Default to 'N/A' if bio is not available
           agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
           // status?.room ?? '',
           // balance,
           // credits,
           { content: serverUrl, href: serverUrl },
           timeAgo(new Date(agent.created_at)),
+          rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
+          timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
         ]);
       });
       promises.push(p);
