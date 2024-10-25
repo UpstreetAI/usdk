@@ -2781,10 +2781,6 @@ const main = async () => {
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
-    // .option(
-    //   `-t, --template <string>`,
-    //   `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    // )
     .option(
       `-feat, --feature <feature...>`,
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
