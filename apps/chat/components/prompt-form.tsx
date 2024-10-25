@@ -21,49 +21,7 @@ import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
-import { MentionsInput, Mention } from 'react-mentions';
-
-const mentionsInputStyle = {
-  control: {
-    backgroundColor: 'transparent',
-    fontSize: '0.875rem',
-    lineHeight: '1.25rem',
-    minHeight: '60px',
-    border: 'none',
-    outline: 'none',
-  },
-  input: {
-    margin: 0,
-    padding: '1.3rem 1rem',
-    overflow: 'auto',
-    height: '100%',
-    border: 'none',
-    outline: 'none',
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-  highlighter: {
-    padding: '1.3rem 1rem',
-    boxSizing: 'border-box' as const,
-    height: '100%',
-    overflow: 'hidden',
-  },
-  suggestions: {
-    list: {
-      backgroundColor: 'white',
-      border: '1px solid rgba(0,0,0,0.15)',
-      fontSize: 14,
-    },
-    item: {
-      padding: '5px 15px',
-      borderBottom: '1px solid rgba(0,0,0,0.15)',
-      '&focused': {
-        backgroundColor: '#e0e4ef',
-      },
-    },
-  },
-};
+import CustomMentionsInput from './custom-mention-input'
 
 export function PromptForm({
   input,
@@ -424,32 +382,15 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
-        <MentionsInput
+        <CustomMentionsInput
           value={input}
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={onKeyDown}
-          style={mentionsInputStyle}
           placeholder="Send a message"
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
           disabled={!connected}
           inputRef={inputRef}
-          forceSuggestionsAboveCursor={true}
-          allowSuggestionsAboveCursor={true}
-        >
-          <Mention
-            trigger="@"
-            data={members}
-            renderSuggestion={renderCustomSuggestion}
-            style={{
-              backgroundColor: '#e0e4ef',
-              color: 'transparent',
-            }}
-            appendSpaceOnAdd={true}
-            displayTransform={(id: any, display: any) => `@${display}`}
-          />
-        </MentionsInput>
+          members={members}
+        />
         {/*         
         <Textarea
           ref={inputRef}

@@ -33,16 +33,16 @@ const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
                     @{mentionName}
                   </span>
                 );
-                array[index + 1] = <React.Fragment />; // Mark the next child as processed
+                array[index + 1] = <React.Fragment key={`fragment-${index}-${partIndex}`} />; // Mark the next child as processed
               } else {
-                acc.push('@' + part);
+                acc.push(<React.Fragment key={`text-${index}-${partIndex}`}>@{part}</React.Fragment>);
               }
             } else if (part) {
-              acc.push(part);
+              acc.push(<React.Fragment key={`text-${index}-${partIndex}`}>{part}</React.Fragment>);
             }
           });
         } else if (child !== null) {
-          acc.push(child);
+          acc.push(<React.Fragment key={`child-${index}`}>{child}</React.Fragment>);
         }
         return acc;
       }, []);
