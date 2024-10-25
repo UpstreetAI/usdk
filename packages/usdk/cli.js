@@ -21,7 +21,7 @@ import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import { QueueManager } from './packages/upstreet-agent/packages/react-agents/util/queue-manager.mjs';
+import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
@@ -735,7 +735,7 @@ const startMultiplayerRepl = ({
         });
 
         const onplayingchange = e => {
-          const playing = e.data;
+          const { playing } = e.data;
           // console.log('playing change', playing);
           if (playing) {
             microphoneInput.pause();
@@ -1216,8 +1216,9 @@ const connectRepl = async ({
   });
 
   const _trackAudio = () => {
-    const virtualPlayers = realms.getVirtualPlayers();
     const audioStreams = new Map();
+    const audioQueueManger = new QueueManager();
+    const virtualPlayers = realms.getVirtualPlayers();
     virtualPlayers.addEventListener('audiostart', e => {
       const {
         playerId,
@@ -1237,15 +1238,26 @@ const connectRepl = async ({
           codecs,
           format: 'i16',
         });
+
         (async () => {
-          // XXX move this tracking to the react-agents-client
-          speakerMap.set(playerId, true);
-          try {
-            await decodeStream.readable.pipeTo(outputStream);
-          } finally {
-            speakerMap.set(playerId, false);
-          }
-        })();
+          await audioQueueManger.waitForTurn(async ({
+            signal,
+          }) => {
+            signal.addEventListener('abort', (e) => {
+              decodeStream.abort(e.reason);
+              outputStream.abort(e.reason);
+            });
+
+            try {
+              speakerMap.addRemote(playerId);
+              await decodeStream.readable.pipeTo(outputStream);
+            } finally {
+              speakerMap.removeRemote(playerId);
+            }
+          });
+        })().catch((e) => {
+          console.error('error in audio pipeline', e);
+        });
 
         const writer = decodeStream.writable.getWriter();
         writer.metadata = {

@@ -6,6 +6,7 @@ import { IconPlus } from '@/components/ui/icons';
 import Dev from '../../development';
 import { isValidUrl } from '@/lib/utils';
 import { Icon, IconButton } from 'ucom';
+import { logout } from '@/lib/logout';
 
 export interface AccountButtonProps {
   user: any
@@ -53,6 +54,9 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
           </div>
         </div>
       </a>
+      
+      <IconButton onClick={logout} icon="Logout" variant='ghost' size='small' />
+
     </div>
   )
 }
