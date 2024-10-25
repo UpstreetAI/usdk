@@ -4,6 +4,11 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
+import { env } from '@/lib/env';
+
+//
+
+const stripeDevSuffix = env.NEXT_PUBLIC_ENVIRONMENT === 'production' ? '' : `_test`;
 
 //
 
@@ -12,8 +17,6 @@ export interface MonetizationProps {
 }
 
 //
-
-const devSuffix = `_test`;
 
 const StripeConnect = ({
   userPrivate,
@@ -43,7 +46,7 @@ const StripeConnect = ({
                   console.log('stripe connect');
 
                   const jwt = await getJWT();
-                  const res = await fetch(`${aiHost}/stripe${devSuffix}/account`, {
+                  const res = await fetch(`${aiHost}/stripe${stripeDevSuffix}/account`, {
                     method: 'POST',
                     headers: {
                       Authorization: `Bearer ${jwt}`,
@@ -53,12 +56,12 @@ const StripeConnect = ({
                     const j = await res.json();
                     console.log('created account', j);
 
-                    const return_url = new URL(`${aiHost}/stripe${devSuffix}/account/redirect`);
+                    const return_url = new URL(`${aiHost}/stripe${stripeDevSuffix}/account/redirect`);
                     return_url.searchParams.set('stripe_connect_account_id', j.account);
                     return_url.searchParams.set('redirect_url', window.location.href);
                     const refresh_url = return_url;
                     
-                    const res2 = await fetch(`${aiHost}/stripe${devSuffix}/account_link`, {
+                    const res2 = await fetch(`${aiHost}/stripe${stripeDevSuffix}/account_link`, {
                       method: "POST",
                       headers: {
                         'Content-Type': 'application/json',
@@ -109,7 +112,7 @@ const StripeConnect = ({
                   console.log('stripe disconnect');
 
                   const jwt = await getJWT();
-                  const res = await fetch(`${aiHost}/stripe${devSuffix}/account`, {
+                  const res = await fetch(`${aiHost}/stripe${stripeDevSuffix}/account`, {
                     method: 'DELETE',
                     headers: {
                       Authorization: `Bearer ${jwt}`,
