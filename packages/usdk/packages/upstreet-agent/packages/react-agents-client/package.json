@@ -2,6 +2,6 @@
   "name": "react-agents-client",
   "main": "react-agents-client.mjs",
   "dependencies": {
-    "@upstreet/multiplayer": "file:../multiplayer"
+    "@upstreet/multiplayer": "file:./packages/multiplayer"
   }
 }
