@@ -1,8 +1,8 @@
-import { env } from '@/lib/env';
+import { env, environment } from '@/lib/env';
 
 export default function VersionPage() {
   const version = {
-    environment: env?.NEXT_PUBLIC_ENVIRONMENT ?? null,
+    environment,
     commitRef: env?.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF ?? null,
     commitSha: env?.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? null,
     commitPreviousSha: env?.NEXT_PUBLIC_VERCEL_GIT_PREVIOUS_SHA ?? null,
