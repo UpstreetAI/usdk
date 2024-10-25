@@ -8,6 +8,7 @@ class Entry {
 }
 
 const abortError = new Error('abort');
+abortError.isAbortError = true;
 
 export class QueueManager extends EventTarget {
   constructor({

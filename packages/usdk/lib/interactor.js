@@ -7,7 +7,7 @@ import { QueueManager } from 'queue-manager';
 //
 
 const makeCleanObjectFromSchema = (object, schema) => {
-  if (schema instanceof z.ZodObject) {
+  if (schema && typeof schema === 'object' && schema._def && schema._def.typeName === 'ZodObject') {
     const shape = schema.shape;
     const result = {};
     for (const key in shape) {

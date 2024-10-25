@@ -411,14 +411,14 @@ export function createMp3DecodeTransformStream({
     reject: doneReject,
   } = Promise.withResolvers();
   const transformStream = new TransformStream({
-    start: c => {
+    start: (c) => {
       controller = c;
     },
-    transform: (chunk, controller) => {
+    transform: (chunk) => {
       // console.log('decoding data', chunk);
       audioDecoder.decode(chunk);
     },
-    flush: async controller => {
+    flush: async () => {
       audioDecoder.decode(null);
       await donePromise;
     },
@@ -429,7 +429,6 @@ export function createMp3DecodeTransformStream({
     if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
-      // controller.enqueue(null);
       doneResolve();
     }
   };
@@ -447,6 +446,11 @@ export function createMp3DecodeTransformStream({
 
   transformStream.readable.sampleRate = sampleRate;
   transformStream.readable.format = format;
+  transformStream.abort = (reason) => {
+    transformStream.readable.cancel(reason);
+    transformStream.writable.abort(reason);
+    audioDecoder.close();
+  };
 
   return transformStream;
 }
@@ -473,14 +477,14 @@ export function createOpusDecodeTransformStream({
     reject: doneReject,
   } = Promise.withResolvers();
   const transformStream = new TransformStream({
-    start: c => {
+    start: (c) => {
       controller = c;
     },
-    transform: (chunk, controller) => {
+    transform: (chunk) => {
       // console.log('decode data 1', chunk);
       audioDecoder.decode(chunk);
     },
-    flush: async controller => {
+    flush: async () => {
       audioDecoder.decode(null);
       await donePromise;
     },
@@ -491,7 +495,6 @@ export function createOpusDecodeTransformStream({
     if (encodedChunk) {
       controller.enqueue(encodedChunk.data);
     } else {
-      // controller.enqueue(null);
       doneResolve();
     }
   };
@@ -508,6 +511,11 @@ export function createOpusDecodeTransformStream({
 
   transformStream.readable.sampleRate = sampleRate;
   transformStream.readable.format = format;
+  transformStream.abort = (reason) => {
+    transformStream.readable.cancel(reason);
+    transformStream.writable.abort(reason);
+    audioDecoder.close();
+  };
 
   return transformStream;
 }
@@ -542,6 +550,10 @@ export function createPcmF32TransformStream({
 
   transformStream.readable.sampleRate = sampleRate;
   transformStream.readable.format = format;
+  transformStream.abort = (reason) => {
+    transformStream.readable.cancel(reason);
+    transformStream.writable.abort(reason);
+  };
 
   return transformStream;
 }
@@ -569,10 +581,10 @@ export function createMp3EncodeTransformStream({
     reject: doneReject,
   } = Promise.withResolvers();
   const transformStream = new TransformStream({
-    start: c => {
+    start: (c) => {
       controller = c;
     },
-    transform: (chunk, controller) => {
+    transform: (chunk) => {
       const audioData = new FakeAudioData();
       audioData.data = new Float32Array(chunk.buffer, chunk.byteOffset, chunk.byteLength / Float32Array.BYTES_PER_ELEMENT);
       audioEncoder.encode(audioData);
@@ -608,6 +620,11 @@ export function createMp3EncodeTransformStream({
   });
 
   transformStream.readable.sampleRate = sampleRate;
+  transformStream.abort = (reason) => {
+    transformStream.readable.cancel(reason);
+    transformStream.writable.abort(reason);
+    audioEncoder.close();
+  };
 
   return transformStream;
 }

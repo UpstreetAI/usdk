@@ -463,34 +463,6 @@ const logout = async (args) => {
   await rimraf(loginLocation);
   console.log('Successfully logged out.');
 };
-/* const authorize = async (args) => {
-  const appDirectory = args._[0] ?? cwd;
-
-  const wranglerTomlPath = path.join(appDirectory, 'wrangler.toml');
-  let s = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    let t = toml.parse(s);
-
-    const guid = t.vars.GUID;
-    const agentToken = await getAgentToken(jwt, guid);
-    if (agentToken) {
-      t = setWranglerTomlAgentToken(t, { agentToken });
-      s = toml.stringify(t);
-
-      await fs.promises.writeFile(wranglerTomlPath, s);
-
-      console.log('agent authorized');
-    } else {
-      console.warn('could not get agent token');
-      process.exit(1);
-    }
-  } else {
-    console.warn('you are not logged in!');
-    process.exit(1);
-  }
-}; */
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
@@ -649,7 +621,7 @@ const startMultiplayerRepl = ({
     }
 
     // speaking
-    const localSpeaking = speakerMap.getLocal();
+    const localSpeaking = speakerMap.getLocal() > 0;
     if (localSpeaking) {
       s = `[🎤] ` + s;
     }
@@ -698,7 +670,7 @@ const startMultiplayerRepl = ({
         });
 
         const onplayingchange = e => {
-          const playing = e.data;
+          const { playing } = e.data;
           // console.log('playing change', playing);
           if (playing) {
             microphoneInput.pause();
@@ -1170,8 +1142,9 @@ const connectRepl = async ({
   });
 
   const _trackAudio = () => {
-    const virtualPlayers = realms.getVirtualPlayers();
     const audioStreams = new Map();
+    const audioQueueManger = new QueueManager();
+    const virtualPlayers = realms.getVirtualPlayers();
     virtualPlayers.addEventListener('audiostart', e => {
       const {
         playerId,
@@ -1191,15 +1164,26 @@ const connectRepl = async ({
           codecs,
           format: 'i16',
         });
+
         (async () => {
-          // XXX move this tracking to the react-agents-client
-          speakerMap.set(playerId, true);
-          try {
-            await decodeStream.readable.pipeTo(outputStream);
-          } finally {
-            speakerMap.set(playerId, false);
-          }
-        })();
+          await audioQueueManger.waitForTurn(async ({
+            signal,
+          }) => {
+            signal.addEventListener('abort', (e) => {
+              decodeStream.abort(e.reason);
+              outputStream.abort(e.reason);
+            });
+
+            try {
+              speakerMap.addRemote(playerId);
+              await decodeStream.readable.pipeTo(outputStream);
+            } finally {
+              speakerMap.removeRemote(playerId);
+            }
+          });
+        })().catch((e) => {
+          console.error('error in audio pipeline', e);
+        });
 
         const writer = decodeStream.writable.getWriter();
         writer.metadata = {
@@ -1283,7 +1267,7 @@ const connect = async (args) => {
   }
 };
 const getGuidFromPath = async (p) => {
-  const makeEnoent = () => new Error('not in an agent directory');
+  const makeEnoent = () => new Error('not an agent directory: ' + p);
 
   const wranglerTomlPath = path.join(p, 'wrangler.toml');
   try {
@@ -1376,13 +1360,10 @@ const chat = async (args) => {
     const runtimes = await Promise.all(localRuntimePromises);
 
     // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }),
-    );
+    const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+    await join({
+      _: [agentRefs, room],
+    });
 
     // connect to the chat
     await connect({
@@ -1436,63 +1417,6 @@ const logs = async (args) => {
     process.exit(1);
   }
 };
-/* const listen = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const dev = !!args.dev;
-  const debug = !!args.debug;
-
-  const localAgentSpecs = agentSpecs.filter((agentSpec) => !!agentSpec.directory);
-  const cloudAgentSpecs = agentSpecs.filter((agentSpec) => !agentSpec.directory);
-
-  let webSockets = [];
-  if (dev) {
-    // wait for agents to join the multiplayer 
-    const room = makeRoomName();
-    await Promise.all(
-      localAgentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-          local: args.local,
-          debug,
-        })
-      }),
-    );
-  }
-
-  const connectEventSource = (src) => {
-    const eventSource = new EventSource(src);
-    eventSource.addEventListener('message', (e) => {
-      const j = JSON.parse(e.data);
-      console.log('event source', j);
-    });
-    eventSource.addEventListener('error', (e) => {
-      console.warn('error', e);
-    });
-    eventSource.addEventListener('close', (e) => {
-      process.exit(0);
-    });
-    return eventSource;
-  }
-
-  const eventsPath = `/events`;
-  const eventSources = localAgentSpecs.map((agentSpec, index) =>
-    connectEventSource(`${getLocalAgentHost(index)}${eventsPath}`)
-  ).concat(cloudAgentSpecs.map((agentSpec) =>
-    connectEventSource(`${getCloudAgentHost(agentSpec.guid)}${eventsPath}`)
-  ));
-
-  return {
-    // ws: webSockets[0],
-    close: () => {
-      for (const ws of webSockets) {
-        ws.close();
-      }
-      for (const eventSource of eventSources) {
-        eventSource.close();
-      }
-    },
-  };
-}; */
 // XXX rename command to charge or refill
 const fund = async (args) => {
   const local = !!args.local;
@@ -1844,13 +1768,6 @@ const getCodeGenContext = async () => {
     agentJson,
   };
 }; */
-const setWranglerTomlAgentToken = (
-  t,
-  { agentToken },
-) => {
-  t.vars.AGENT_TOKEN = agentToken;
-  return t;
-};
 const makeRoomName = () => `room:` + makeId(8);
 /* const search = async (args) => {
   const prompt = args._[0] ?? '';
@@ -1910,16 +1827,12 @@ const test = async (args) => {
       });
 
       // join
-      {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }
+      await join({
+        _: [[agentSpec.ref], room],
+      });
 
       // run the tests
-      {
-        await runJest(agentSpec.directory);
-      }
+      await runJest(agentSpec.directory);
 
       runtime.terminate();
     }
@@ -2422,7 +2335,7 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
@@ -2448,7 +2361,7 @@ const join = async (args) => {
   }
 };
 const leave = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? '';
 
   if (agentSpecs.length === 1) {
@@ -2757,20 +2670,6 @@ const main = async () => {
         await login(args);
       });
     });
-  // program
-  //   .command('authorize')
-  //   .description('Authorize an agent of the SDK')
-  //   .argument(`[directory]`, `The directory to create the project in`)
-  //   .action(async (directory = '',opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [directory],
-  //         ...opts,
-  //       };
-  //       await authorize(args);
-  //     });
-  //   });
   program
     .command('logout')
     .description('Log out of the SDK')
@@ -2882,10 +2781,6 @@ const main = async () => {
     .option(`-f, --force`, `Overwrite existing files`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
-    // .option(
-    //   `-t, --template <string>`,
-    //   `The template to use for the new project; one of: ${JSON.stringify(templateNames)} (default: ${JSON.stringify(templateNames[0])})`,
-    // )
     .option(
       `-feat, --feature <feature...>`,
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
@@ -2983,31 +2878,6 @@ const main = async () => {
         await pull(args);
       });
     });
-  /* const devSubcommands = [
-    'chat',
-    // 'simulate',
-    // 'listen',
-    // 'ls',
-    // 'fund',
-    // 'deposit',
-  ]; */
-  /* program
-    .command('dev')
-    .description(
-      'Start a dev server for the agent in the current directory, and optionally run a subcommand',
-    )
-    .argument(`[guids...]`, `Guids of the agents to connect to`)
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [guids],
-          ...opts,
-        };
-        await dev(args);
-      });
-    }); */
   program
     .command('chat')
     .alias('c')
@@ -3163,7 +3033,7 @@ const main = async () => {
   //         _: [],
   //         ...opts,
   //       };
-  //       await rm(args);
+  //       await join(args);
   //     });
   //   });
   // program
