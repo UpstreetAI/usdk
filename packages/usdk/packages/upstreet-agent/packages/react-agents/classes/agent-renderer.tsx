@@ -326,7 +326,7 @@ export class AgentRenderer {
       this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
-      env['WORKER_ENV'] === 'development', // isStrictMode
+      env['WORKER_ENV'] !== 'production', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
       (error: Error) => logDetailedError('Recoverable Error', error, this.container),
