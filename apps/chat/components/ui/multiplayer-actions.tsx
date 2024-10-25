@@ -396,11 +396,10 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               });
             };
             _trackPlayersCache();
-
-            const audioQueueManger = new QueueManager();
-
-            const audioStreams = new Map();
+            
             const _trackAudio = () => {
+              const audioStreams = new Map();
+              const audioQueueManger = new QueueManager();
               playersMap.addEventListener('audiostart', (e: any) => {
                 const {
                   playerId,
