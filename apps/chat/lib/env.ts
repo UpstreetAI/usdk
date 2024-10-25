@@ -11,3 +11,4 @@ export function getEnv() {
   };
 }
 export const env = getEnv();
+export const environment = env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'main' ? 'production' : 'development';
