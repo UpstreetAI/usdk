@@ -651,7 +651,7 @@ const startMultiplayerRepl = ({
   };
 
   const getSpeakingPrompt = () => {
-    const localSpeaking = speakerMap.getLocal();
+    const localSpeaking = speakerMap.getLocal() > 0;
     if (localSpeaking) {
       return `[🎤] `;
     }
