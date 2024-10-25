@@ -1,5 +1,6 @@
-export const defaultOpenAIModel = 'gpt-4o-2024-08-06';
-export const defaultModel = `openai:${defaultOpenAIModel}`;
+import { models } from './util/models.mjs';
+
+export const defaultModel = models[0];
 
 export const defaultUserPreviewUrl = `/images/user-small.png`;
 

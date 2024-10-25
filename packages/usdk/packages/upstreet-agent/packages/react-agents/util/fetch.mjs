@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { aiProxyHost } from './const/endpoints.js';
-import { defaultModel, defaultOpenAIModel } from 'react-agents/defaults.mjs';
+import { defaultModel } from 'react-agents/defaults.mjs';
+
+//
 
 export type ChatMessage = {
   role: string,
