@@ -1345,29 +1345,23 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const localRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(localRuntimePromises);
+    const runtimes = [];
+    for (const agentSpec of agentSpecs) {
+      if (agentSpec.directory) {
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
+      runtimes.push(runtime);
+      }
+    }
 
     // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room, agentSpec.portIndex],
-        });
-      }),
-    );
+    for (const agentSpec of agentSpecs) {
+      await join({
+      _: [agentSpec.ref, room, agentSpec.portIndex],
+      });
+    }
 
     // connect to the chat
     await connect({
