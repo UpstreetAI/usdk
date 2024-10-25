@@ -649,7 +649,7 @@ const startMultiplayerRepl = ({
     }
 
     // speaking
-    const localSpeaking = speakerMap.getLocal();
+    const localSpeaking = speakerMap.getLocal() > 0;
     if (localSpeaking) {
       s = `[🎤] ` + s;
     }
@@ -698,7 +698,7 @@ const startMultiplayerRepl = ({
         });
 
         const onplayingchange = e => {
-          const playing = e.data;
+          const { playing } = e.data;
           // console.log('playing change', playing);
           if (playing) {
             microphoneInput.pause();
