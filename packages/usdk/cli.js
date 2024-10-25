@@ -1317,7 +1317,7 @@ const getGuidFromPath = async (p) => {
     }
   }
 };
-const parseAgentSpecs = async (agentRefSpecs = []) => {
+const parseAgentSpecs = async (agentRefSpecs = [], providedPortIndex) => {
   if (!Array.isArray(agentRefSpecs)) {
     throw new Error('expected agent ref specs to be an array; got ' + JSON.stringify(agentRefSpecs));
   }
@@ -1334,19 +1334,20 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
         ref: directory,
         guid,
         directory,
-        portIndex: 0,
+        portIndex: providedPortIndex ?? 0,
       },
     ];
   } else {
     // treat each agent ref as a guid or directory
     const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec, index) => {
+      const portIndex = providedPortIndex !== undefined ? providedPortIndex : index;
       if (isGuid(agentRefSpec)) {
         // if it's a cloud agent
         return {
           ref: agentRefSpec,
           guid: agentRefSpec,
           directory: null,
-          portIndex: index,
+          portIndex,
         };
       } else {
         // if it's a directory agent
@@ -1356,7 +1357,7 @@ const parseAgentSpecs = async (agentRefSpecs = []) => {
           ref: directory,
           guid,
           directory,
-          portIndex: index,
+          portIndex,
         };
       }
     });
@@ -1391,7 +1392,7 @@ const chat = async (args) => {
     await Promise.all(
       agentSpecs.map(async (agentSpec) => {
         await join({
-          _: [agentSpec.ref, room],
+          _: [agentSpec.ref, room, agentSpec.portIndex],
         });
       }),
     );
@@ -2434,7 +2435,8 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const portIndex = args._[2]; // optional port index
+  const agentSpecs = await parseAgentSpecs([args._[0] ?? ''], portIndex); // first arg is assumed to be a string
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
