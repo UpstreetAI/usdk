@@ -210,8 +210,8 @@ export const useStripe = () => {
     // redirect to the ai proxy host
     u.host = aiProxyHost;
     // prefix the path with /api/stripe
-    const devSuffix = getStripeDevSuffix(environment);
-    u.pathname = `/api/stripe${devSuffix}${u.pathname}`;
+    const stripeDevSuffix = getStripeDevSuffix(environment);
+    u.pathname = `/api/stripe${stripeDevSuffix}${u.pathname}`;
     return fetch(u.toString(), {
       ...options,
       headers: {
