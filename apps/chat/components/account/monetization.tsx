@@ -4,11 +4,11 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { aiHost } from '@/utils/const/endpoints';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
-import { env } from '@/lib/env';
+import { environment } from '@/lib/env';
 
 //
 
-const stripeDevSuffix = env.NEXT_PUBLIC_ENVIRONMENT === 'production' ? '' : `_test`;
+const stripeDevSuffix = environment === 'production' ? '' : `_test`;
 
 //
 
