@@ -1360,13 +1360,10 @@ const chat = async (args) => {
     const runtimes = await Promise.all(localRuntimePromises);
 
     // wait for agents to join the multiplayer room
-    await Promise.all(
-      agentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }),
-    );
+    const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+    await join({
+      _: [agentRefs, room],
+    });
 
     // connect to the chat
     await connect({
@@ -1420,63 +1417,6 @@ const logs = async (args) => {
     process.exit(1);
   }
 };
-/* const listen = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const dev = !!args.dev;
-  const debug = !!args.debug;
-
-  const localAgentSpecs = agentSpecs.filter((agentSpec) => !!agentSpec.directory);
-  const cloudAgentSpecs = agentSpecs.filter((agentSpec) => !agentSpec.directory);
-
-  let webSockets = [];
-  if (dev) {
-    // wait for agents to join the multiplayer 
-    const room = makeRoomName();
-    await Promise.all(
-      localAgentSpecs.map(async (agentSpec) => {
-        await join({
-          _: [agentSpec.ref, room],
-          local: args.local,
-          debug,
-        })
-      }),
-    );
-  }
-
-  const connectEventSource = (src) => {
-    const eventSource = new EventSource(src);
-    eventSource.addEventListener('message', (e) => {
-      const j = JSON.parse(e.data);
-      console.log('event source', j);
-    });
-    eventSource.addEventListener('error', (e) => {
-      console.warn('error', e);
-    });
-    eventSource.addEventListener('close', (e) => {
-      process.exit(0);
-    });
-    return eventSource;
-  }
-
-  const eventsPath = `/events`;
-  const eventSources = localAgentSpecs.map((agentSpec, index) =>
-    connectEventSource(`${getLocalAgentHost(index)}${eventsPath}`)
-  ).concat(cloudAgentSpecs.map((agentSpec) =>
-    connectEventSource(`${getCloudAgentHost(agentSpec.guid)}${eventsPath}`)
-  ));
-
-  return {
-    // ws: webSockets[0],
-    close: () => {
-      for (const ws of webSockets) {
-        ws.close();
-      }
-      for (const eventSource of eventSources) {
-        eventSource.close();
-      }
-    },
-  };
-}; */
 // XXX rename command to charge or refill
 const fund = async (args) => {
   const local = !!args.local;
@@ -1887,16 +1827,12 @@ const test = async (args) => {
       });
 
       // join
-      {
-        await join({
-          _: [agentSpec.ref, room],
-        });
-      }
+      await join({
+        _: [[agentSpec.ref], room],
+      });
 
       // run the tests
-      {
-        await runJest(agentSpec.directory);
-      }
+      await runJest(agentSpec.directory);
 
       runtime.terminate();
     }
@@ -2399,7 +2335,7 @@ const rm = async (args) => {
   }
 };
 const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
   if (agentSpecs.length === 1) {
@@ -2425,7 +2361,7 @@ const join = async (args) => {
   }
 };
 const leave = async (args) => {
-  const agentSpecs = await parseAgentSpecs([args._[0] ?? '']); // first arg is assumed to be a string
+  const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? '';
 
   if (agentSpecs.length === 1) {
@@ -3126,7 +3062,7 @@ const main = async () => {
   //         _: [],
   //         ...opts,
   //       };
-  //       await rm(args);
+  //       await join(args);
   //     });
   //   });
   // program
