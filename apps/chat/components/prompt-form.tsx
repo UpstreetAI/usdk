@@ -21,7 +21,7 @@ import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
-import CustomMentionsInput from './custom-mention-input'
+import CustomMentionsInput from './custom-mention-input/custom-mention-input'
 
 export function PromptForm({
   input,

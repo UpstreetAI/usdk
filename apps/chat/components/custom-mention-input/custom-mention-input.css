@@ -1,0 +1,28 @@
+.mentions-input__input {
+    @apply m-0 p-5 overflow-auto h-full border-none outline-none;
+  }
+  
+  .mentions-input__input:focus {
+    @apply outline-none;
+  }
+  
+  .mentions-input__highlighter {
+    @apply p-5 box-border h-full overflow-hidden;
+  }
+  
+  .mentions-input__suggestions {
+    @apply bg-white border border-gray-200 text-sm;
+  }
+  
+  .mentions-input__suggestions__list {
+    @apply bg-white border border-gray-200 text-sm;
+  }
+  
+  .mentions-input__suggestions__item {
+    @apply py-1 px-4 border-b border-gray-200;
+  }
+  
+  .mentions-input__suggestions__item--focused {
+    @apply bg-blue-100;
+  }
+  

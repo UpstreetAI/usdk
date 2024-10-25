@@ -1,47 +1,6 @@
 import * as React from 'react';
 import { MentionsInput, Mention } from 'react-mentions';
-
-const mentionsInputStyle = {
-  control: {
-    backgroundColor: 'transparent',
-    fontSize: '0.875rem',
-    lineHeight: '1.25rem',
-    minHeight: '60px',
-    border: 'none',
-    outline: 'none',
-  },
-  input: {
-    margin: 0,
-    padding: '1.3rem 1rem',
-    overflow: 'auto',
-    height: '100%',
-    border: 'none',
-    outline: 'none',
-    '&:focus': {
-      outline: 'none',
-    },
-  },
-  highlighter: {
-    padding: '1.3rem 1rem',
-    boxSizing: 'border-box' as const,
-    height: '100%',
-    overflow: 'hidden',
-  },
-  suggestions: {
-    list: {
-      backgroundColor: 'white',
-      border: '1px solid rgba(0,0,0,0.15)',
-      fontSize: 14,
-    },
-    item: {
-      padding: '5px 15px',
-      borderBottom: '1px solid rgba(0,0,0,0.15)',
-      '&focused': {
-        backgroundColor: '#e0e4ef',
-      },
-    },
-  },
-};
+import './custom-mention-input.css';
 
 const renderCustomSuggestion = (entry: any, search: string, highlightedDisplay: React.ReactNode, index: number, focused: boolean) => (
   <div
@@ -87,7 +46,7 @@ const CustomMentionsInput: React.FC<CustomMentionsInputProps> = ({
       value={value}
       onChange={onChange}
       onKeyDown={onKeyDown}
-      style={mentionsInputStyle}
+      className="mentions-input bg-transparent text-sm leading-5 min-h-[60px] border-none outline-none"
       placeholder={placeholder}
       spellCheck={false}
       autoComplete="off"
