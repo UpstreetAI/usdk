@@ -1267,7 +1267,7 @@ const connect = async (args) => {
   }
 };
 const getGuidFromPath = async (p) => {
-  const makeEnoent = () => new Error('not in an agent directory');
+  const makeEnoent = () => new Error('not an agent directory: ' + p);
 
   const wranglerTomlPath = path.join(p, 'wrangler.toml');
   try {
