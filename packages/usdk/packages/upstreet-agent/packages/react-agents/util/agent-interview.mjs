@@ -183,8 +183,15 @@ export class AgentInterview extends EventTarget {
         response,
         updateObject,
         done,
-        object,
       } = o;
+      let { object } = o;
+
+      // remove null values from features
+      if (object.features){
+        object.features = Object.fromEntries(
+          Object.entries(object.features).filter(([_, value]) => value !== null)
+        );
+      }
 
       // external handling
       agentJson = object;
@@ -242,13 +249,6 @@ export class AgentInterview extends EventTarget {
           getPreviewUrl(visualDescriptionValueUpdater),
           getPreviewUrl(homespaceDescriptionValueUpdater),
         ]);
-
-        // remove features with null values (not added to agent) from agentJson on interview completion
-        if (agentJson.features) {
-          agentJson.features = Object.fromEntries(
-            Object.entries(agentJson.features).filter(([_, value]) => value !== null)
-          );
-        }
 
         this.loadPromise.resolve(agentJson);
       }
