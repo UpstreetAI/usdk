@@ -2882,31 +2882,6 @@ const main = async () => {
         await pull(args);
       });
     });
-  /* const devSubcommands = [
-    'chat',
-    // 'simulate',
-    // 'listen',
-    // 'ls',
-    // 'fund',
-    // 'deposit',
-  ]; */
-  /* program
-    .command('dev')
-    .description(
-      'Start a dev server for the agent in the current directory, and optionally run a subcommand',
-    )
-    .argument(`[guids...]`, `Guids of the agents to connect to`)
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [guids],
-          ...opts,
-        };
-        await dev(args);
-      });
-    }); */
   program
     .command('chat')
     .alias('c')
