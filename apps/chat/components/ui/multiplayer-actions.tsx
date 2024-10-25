@@ -10,7 +10,7 @@ import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
 import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
-import { PlayersMap, TypingMap, SpeakerMap } from 'react-agents-client/util/maps.mjs';
+import { PlayersMap, TypingMap } from 'react-agents-client/util/maps.mjs';
 import type {
   ActionMessage,
   Attachment,
