@@ -174,7 +174,7 @@ export const fetchJsonCompletion = async ({
     },
 
     body: JSON.stringify({
-      model: defaultOpenAIModel,
+      model,
       messages,
 
       response_format: zodResponseFormat(format, 'result'),
