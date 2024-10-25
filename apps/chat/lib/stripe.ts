@@ -1,7 +1,7 @@
-import { aiHost } from './endpoints.mjs';
-import { getStripeProxyUrl } from 'react-agents/util/stripe-utils.mjs';
+import { aiHost } from 'react-agents/util/endpoints.mjs';
+import { getStripeDevSuffix } from 'react-agents/util/stripe-utils.mjs';
 
-export const createSession = async (opts, {
+export const createSession = async (opts: any, {
   environment,
   jwt,
 }: {
@@ -15,8 +15,8 @@ export const createSession = async (opts, {
     throw new Error('no jwt');
   }
 
-  const u = getStripeProxyUrl(environment);
-  const res = await fetch(`${u}/checkout/session`, {
+  const stripeDevSuffix = getStripeDevSuffix(environment);
+  const res = await fetch(`${aiHost}/stripe${stripeDevSuffix}/checkout/session`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export const cancelPlan = async ({
     throw new Error('no jwt');
   }
 
-  const u = getStripeProxyUrl(environment);
+  const stripeDevSuffix = getStripeDevSuffix(environment);
   const res = await fetch(`${aiHost}/plans${stripeDevSuffix}`, {
     method: 'DELETE',
     headers: {
