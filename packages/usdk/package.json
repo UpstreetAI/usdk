@@ -67,7 +67,8 @@
     "webp-wasm": "^1.0.6",
     "ws": "^8.17.0",
     "yjs": "^13.6.18",
-    "zod-to-ts": "^1.2.0"
+    "zod-to-ts": "^1.2.0",
+    "zjs": "file:./packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs"
   },
   "optionalDependencies": {
     "speaker": "^0.5.5"
