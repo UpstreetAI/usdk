@@ -5,7 +5,7 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import { Client as TwitterClient } from "twitter-api-sdk";
+import { Client as TwitterClient } from 'twitter-api-sdk';
 
 import type {
   AppContextValue,
