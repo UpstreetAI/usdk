@@ -7,8 +7,9 @@ import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
-import ReactMarkdown from 'react-markdown'
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
+import MarkdownRenderer from '../markdown-renderer'
+
 
 // import type { User } from '@supabase/supabase-js'
 
@@ -44,7 +45,7 @@ export function ChatMessage({
   const avatarURL = getAgentPreviewImageUrl(playerSpec);
 
   const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
-
+  
   return (
     <div>
       <div className={`relative bt-0 mt-2 ${isOwnMessage ? 'pl-14' : 'pr-14'}`}>
@@ -117,9 +118,7 @@ export function ChatMessage({
             {content && (
               <div className="relative">
                 <div className={`float-left mr-2`}>
-                  <ReactMarkdown className='chat-markdown'>
-                    {content}
-                  </ReactMarkdown>
+                  <MarkdownRenderer content={content} />
                 </div>
                 <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
                   {timeAgo(timestamp)}

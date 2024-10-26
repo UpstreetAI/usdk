@@ -21,6 +21,7 @@ import { Icon } from 'ucom';
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs';
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs';
 import { ensureAudioContext } from '@/lib/audio/audio-context-output';
+import CustomMentionsInput from './custom-mention-input/custom-mention-input'
 
 export function PromptForm({
   input,
@@ -31,7 +32,7 @@ export function PromptForm({
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const { connected, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
+  const { connected, localPlayerSpec, playersMap, typingMap, sendNudgeMessage, sendChatMessage, sendMediaMessage, addAudioSource, removeAudioSource, addVideoSource, removeVideoSource } = useMultiplayerActions()
   const [typing, setTyping] = React.useState('');
   const [microphoneSource, setMicrophoneSource] = React.useState<any>(null);
   const [cameraSource, setCameraSource] = React.useState<any>(null);
@@ -91,22 +92,55 @@ export function PromptForm({
   };
 
   const onKeyDown = (
-    event: React.KeyboardEvent<HTMLTextAreaElement>
+    event: React.KeyboardEvent<HTMLTextAreaElement | HTMLInputElement>
   ): void => {
     if (event.key === 'Enter' && !event.shiftKey) {
       // formRef.current?.requestSubmit()
       event.preventDefault();
-  
+
       // Blur focus on mobile
       if (window.innerWidth < 600) {
         const target = event.target as HTMLTextAreaElement;
         target.blur();
       }
-  
+
       submitMessage();
     }
   };
 
+  const members = Array.from(playersMap.getMap().values())
+    // .filter(player => player.playerSpec.id !== localPlayerSpec.id)
+    .map(player => ({
+      id: player.playerSpec.id,
+      display: player.playerSpec.name,
+      spec: player.playerSpec,
+    }));
+
+
+  
+  const renderCustomSuggestion = (entry: any, search: string, highlightedDisplay: React.ReactNode, index: number, focused: boolean) => (
+
+    <div
+      className={`flex items-center p-2 cursor-pointer ${
+        focused ? 'bg-blue-100' : 'bg-white'
+      }`}
+    >
+      {/* User Avatar */}
+      <img
+        src={entry.spec.previewUrl}
+        alt={entry.previewUrl}
+        className="w-8 h-8 rounded-full mr-3"
+      />
+      <div className="flex flex-col">
+        {/* Highlighted Display Name */}
+        <span className="font-semibold">{highlightedDisplay}</span>
+        {entry.spec.description && (
+          <span className="text-xs text-gray-400">{entry.spec.description}</span>
+        )}
+      </div>
+    </div>
+  );
+  
   return (
     <form
       // ref={formRef}
@@ -349,6 +383,16 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
+        <CustomMentionsInput
+          value={input}
+          onChange={(e: any) => setInput(e.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder="Send a message"
+          disabled={!connected}
+          inputRef={inputRef}
+          members={members}
+        />
+        {/*         
         <Textarea
           ref={inputRef}
           tabIndex={0}
@@ -364,7 +408,7 @@ export function PromptForm({
           value={input}
           onChange={e => setInput(e.target.value)}
           disabled={!connected}
-        />
+        /> */}
         <div className="absolute right-0 top-[13px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>

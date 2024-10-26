@@ -107,6 +107,11 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import { PlayerType } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { completer, extractTaggedUsers } from './lib/tagging.mjs';
+import { getStyledMessage } from './util/chat/color-utils.mjs';
+import { convertToMarkdown, displayStyledMarkdownMessage } from './util/chat/markdown-utils.mjs';
+
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -132,6 +137,7 @@ const jsonParse = (s) => {
 //
 
 const eraseLine = '\x1b[2K\r';
+const truncateLine = '\x1b[2K\r';
 
 //
 
@@ -605,42 +611,73 @@ const startMultiplayerRepl = ({
   realms,
   typingMap,
   speakerMap,
+  playersMap,
 }) => {
-  const getPrompt = () => {
+  // let rl;
+  // let currentPrompt = '';
+
+  const getUserPrompt = () => {
     const name = profile.name;
+    const namePrefix = `${name} (you):`
+    return getStyledMessage(namePrefix, '');
+  };
 
-    let s = `${name} (you): `;
-    
-    // typing
-    const tm = typingMap.getMap();
-    const specs = Array.from(tm.values()).filter((spec) => spec.typing);
-    if (specs.length > 0) {
-      const names = specs.map((spec) => spec.name);
-      const typingLine = `[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...] `;
-      s = typingLine + s;
-    }
-
-    // speaking
+  const getSpeakingPrompt = () => {
     const localSpeaking = speakerMap.getLocal() > 0;
     if (localSpeaking) {
-      s = `[🎤] ` + s;
+      return `[🎤] `;
     }
+    return '';
+  };
 
-    return s;
+  const getTypingIndicator = () => {
+    const tm = typingMap.getMap();
+    const specs = Array.from(tm.values()).filter((spec) => spec.typing);
+
+    if (specs.length > 0) {
+      const names = specs.map((spec) => spec.name);
+      return `${truncateLine}[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...]`;
+    }
+    return '';
   };
-  const updatePrompt = () => {
-    replServer.setPrompt(getPrompt());
+
+  const updateUserPrompt = () => {
+    if (replServer) {
+      replServer.setPrompt(getUserPrompt());
+      replServer.prompt();
+    }
   };
+
+  const updateSpeakingPrompt = () => {
+    const speakingPrompt = getSpeakingPrompt();
+    if (speakingPrompt) {
+      console.log(speakingPrompt);
+    }
+  };
+
+  const updateTypingIndicator = () => {
+    const typingIndicator = getTypingIndicator();
+    if (typingIndicator) {
+      console.log(typingIndicator);
+    }
+  };
+
   const renderPrompt = () => {
-    replServer.displayPrompt(true);
+    if (replServer) {
+      replServer.prompt();
+    }
   };
   typingMap.addEventListener('typingchange', (e) => {
-    updatePrompt();
-    renderPrompt();
+    if (replServer) {
+      updateTypingIndicator();
+      updateUserPrompt();
+    }
   });
   speakerMap.addEventListener('localspeakingchange', (e) => {
-    updatePrompt();
-    renderPrompt();
+    if (replServer) {
+      updateSpeakingPrompt();
+      updateUserPrompt();
+    }
   });
 
   const getDoc = () => {
@@ -839,97 +876,105 @@ const startMultiplayerRepl = ({
     });
   };
 
-  const sendChatMessage = async (text) => {
-    const userId = profile.id;
-    const name = profile.name;
-    await realms.sendChatMessage({
-      method: 'say',
-      userId,
-      name,
-      args: {
-        text,
-      },
-      timestamp: Date.now(),
-    });
-  };
+    const sendChatMessage = async (
+      text,
+      taggedUserIds,
+    ) => {
+      const userId = profile.id;
+      const name = profile.name;
+      const messagePayload = {
+        method: 'say',
+        userId,
+        name,
+        args: {
+          text,
+        },
+        timestamp: Date.now(),
+      };
+      if (taggedUserIds) {
+        messagePayload.args.taggedUserIds = taggedUserIds;
+      }   
+      await realms.sendChatMessage(messagePayload);
+    };
 
-  const replServer = repl.start({
-    prompt: getPrompt(),
-    eval: async (cmd, context, filename, callback) => {
-      let error = null;
-      try {
-        cmd = cmd.replace(/;?\s*$/, '');
+    const replServer = repl.start({
+      prompt: getUserPrompt(),
+      completer: (line) => completer(line, playersMap),
+      eval: async (cmd, context, filename, callback) => {
+        let error = null;
+        try {
+          cmd = cmd.replace(/;?\s*$/, '');
 
-        if (cmd) {
-          const cmdSplit = cmd.split(/\s+/);
-          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-          if (commandMatch) {
-            const command = commandMatch ? commandMatch[1] : null;
-            switch (command) {
-              case 'get': {
-                const key = cmdSplit[1];
-
-                const doc = getDoc();
-                if (key) {
-                  const text = doc.getText(key);
-                  const s = text.toString();
-                  console.log(s);
-                } else {
-                  const j = doc.toJSON();
-                  console.log(j);
-                }
-                break;
-              }
-              case 'set': {
-                const key = cmdSplit[1];
-                const value = cmdSplit[2];
-
-                if (key && value) {
+          if (cmd) {
+            const cmdSplit = cmd.split(/\s+/);
+            const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
+            if (commandMatch) {
+              const command = commandMatch ? commandMatch[1] : null;
+              switch (command) {
+                case 'get': {
+                  const key = cmdSplit[1];
                   const doc = getDoc();
-                  doc.transact(() => {
+                  if (key) {
                     const text = doc.getText(key);
-                    text.delete(0, text.length);
-                    text.insert(0, value);
-                  });
-                } else {
-                  throw new Error('expected 2 arguments');
+                    const s = text.toString();
+                    console.log(s);
+                  } else {
+                    const j = doc.toJSON();
+                    console.log(j);
+                  }
+                  break;
                 }
-                break;
+                case 'set': {
+                  const key = cmdSplit[1];
+                  const value = cmdSplit[2];
+                  if (key && value) {
+                    const doc = getDoc();
+                    doc.transact(() => {
+                      const text = doc.getText(key);
+                      text.delete(0, text.length);
+                      text.insert(0, value);
+                    });
+                  } else {
+                    throw new Error('expected 2 arguments');
+                  }
+                  break;
+                }
+                case 'mic': {
+                  toggleMic();
+                  break;
+                }
+                case 'cam': {
+                  toggleCam();
+                  break;
+                }
+                case 'screen': {
+                  toggleScreen();
+                  break;
+                }
+                default: {
+                  console.log('unknown command', command);
+                  break;
+                }
               }
-              case 'mic': {
-                toggleMic();
-                break;
-              }
-              case 'cam': {
-                toggleCam();
-                break;
-              }
-              case 'screen': {
-                toggleScreen();
-                break;
-              }
-              default: {
-                console.log('unknown command', command);
-                break;
-              }
+            } else {
+              const markdownText = convertToMarkdown(cmd, playersMap);
+              const taggedUserIds = extractTaggedUsers(markdownText, playersMap);
+              await sendChatMessage(cmd, taggedUserIds);
             }
-          } else {
-            await sendChatMessage(cmd);
           }
+        } catch (err) {
+          error = err;
         }
-      } catch (err) {
-        error = err;
-      }
-      callback(error);
-    },
-    ignoreUndefined: true,
-  });
-
-  replServer.on('exit', (e) => {
-    process.exit(0);
-  });
-
-  return replServer;
+        callback(error, undefined);
+      },
+      ignoreUndefined: true,
+    });
+  
+    replServer.on('exit', (e) => {
+      process.exit(0);
+    });
+  
+    return replServer;  
 };
 const connectBrowser = ({
   room,
@@ -944,9 +989,8 @@ const connectRepl = async ({
   let profile = await getUserProfile();
   profile = {
     ...profile,
-    capabilities: [
-      'human',
-    ],
+    capabilities: [],
+    playerType: PlayerType.Human,
   };
   if (!profile) {
     throw new Error('could not get user profile');
@@ -993,7 +1037,8 @@ const connectRepl = async ({
             }
             s += '\n]';
           }
-          mpLog(s);
+          // mpLog(s);
+          displayStyledMarkdownMessage(name, s);
 
           // read attachments and print them to the console if we can
           if (attachments) {
@@ -1139,6 +1184,7 @@ const connectRepl = async ({
     realms,
     typingMap,
     speakerMap,
+    playersMap,
   });
 
   const _trackAudio = () => {

@@ -20,6 +20,7 @@ import type {
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import { PlayerType } from 'react-agents/constants.mjs';
 import { QueueManager } from 'queue-manager';
 
 //
@@ -132,6 +133,7 @@ export type PlayerSpec = {
   name: string;
   previewUrl: string;
   capabilities: string[];
+  playerType: string;
 };
 
 export class Player {
@@ -155,6 +157,7 @@ const makeFakePlayerSpec = () => (
     name: '',
     previewUrl: '',
     capabilities: [],
+    playerType: '',
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
@@ -177,16 +180,15 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
     const sendMessage = (method: string, args: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
       if (multiplayerConnection) {
-        const { id: userId, name } = localPlayerSpec;
+        const { id: userId, name, playerType } = localPlayerSpec;
 
         const timestamp = new Date();
         const message: ActionMessage = {
           method,
           userId,
           name,
-          args,
+          args: { ...args, playerType },
           attachments,
-          human: typeof opts?.human === 'boolean' ? opts.human : true,
           hidden: !!opts?.hidden,
           timestamp,
         };
@@ -244,9 +246,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
             const profile = {
               ...newLocalPlayerSpec,
-              capabilities: [
-                'human',
-              ],
+              capabilities: [],
+              playerType: PlayerType.Human,
             };
             const debug = true;
             multiplayerConnection = new ReactAgentsMultiplayerConnection({

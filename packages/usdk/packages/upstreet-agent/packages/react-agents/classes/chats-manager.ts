@@ -9,6 +9,7 @@ import type {
   RoomSpecification,
   ActionMessageEventData,
 } from '../types';
+import { PlayerType } from '../constants.mjs';
 import {
   ConversationObject,
 } from './conversation-object';
@@ -398,11 +399,11 @@ export class ChatsManager {
       endpointUrl,
     } = roomSpecification;
     const key = getChatKey(roomSpecification);
-    console.log('chats manager leave room', {
-      room,
-      endpointUrl,
-      key,
-    });
+    // console.log('chats manager leave room', {
+    //   room,
+    //   endpointUrl,
+    //   key,
+    // });
     await this.roomsQueueManager.waitForTurn(key, async () => {
       const realms = this.rooms.get(key);
       if (realms) {
