@@ -13,7 +13,7 @@
     "fumadocs-core": "^14.0.2",
     "fumadocs-mdx": "11.0.0",
     "fumadocs-ui": "14.0.2",
-    "next": "14.2.14",
+    "next": "15.0.1",
     "tailwind-merge": "^2.5.4",
     "usdk": "file:../../packages/usdk"
   },
