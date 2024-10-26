@@ -22,6 +22,23 @@ export default async function Page(props: {
       footer={{
         enabled: page.url === '/docs' ? false : true,
       }}
+      // editOnGithub={{
+      //   owner: 'UpstreetAI',
+      //   // path: `docs-upstreet/${page.url.replace('/docs/', '')}.mdx`,
+      //   path: '',
+      //   repo: 'monorepo',
+      // }}
+      breadcrumb={{
+        enabled: true,
+        full: true,
+        includeSeparator: true,        
+      }}
+      tableOfContent={{
+        style: 'clerk',
+      }}
+      tableOfContentPopover={{
+        style: 'clerk'
+      }}
     >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>

@@ -17,7 +17,7 @@ function Card({
       <div
         className={cn(
           "group w-full cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl mx-auto flex flex-col justify-end p-4 border border-transparent dark:border-neutral-800",
-          "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-black hover:after:opacity-50",
+          "hover:after:content-[''] hover:after:absolute hover:after:inset-0 hover:after:bg-fd-card-foreground dark:hover:after:bg-fd-background hover:after:opacity-50",
           "transition-all duration-500",
           "bg-opacity-50"
         )}
@@ -36,7 +36,7 @@ function Card({
         }}
       >
         {/* Dark overlay for initial background */}
-        <div className="absolute inset-0 bg-black opacity-50 z-10"></div>
+        <div className="absolute inset-0 bg-fd-card-foreground dark:bg-fd-background opacity-50 z-10"></div>
 
         <div className="text relative z-50">
           <h1 className="font-bold text-xl md:text-3xl text-gray-50 relative">

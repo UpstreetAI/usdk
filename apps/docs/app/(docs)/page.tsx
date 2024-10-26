@@ -13,7 +13,9 @@ import Link from 'next/link';
     return (
         <div className='w-full h-full pt-12 flex flex-col justify-center items-center min-w-0 max-w-[var(--fd-page-width)] md:transition-[max-width]'>
             <DocsTitle className='mb-6'>
-                Build AI Agents with <pre>{"<React />"}</pre>.
+                <span className='flex justify-center items-center gap-2'>
+                    Build AI Agents with <pre className="font-mono px-1 bg-fd-primary-foreground rounded-md">{"<React />"}</pre>.
+                </span>
             </DocsTitle>
 
             <DocsDescription className='max-w-2xl text-center'>
