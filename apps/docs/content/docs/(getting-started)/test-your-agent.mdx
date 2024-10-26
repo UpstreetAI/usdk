@@ -1,7 +1,26 @@
 ---
 title: Test your agent
-description: Best document ever
+description: You can run and test your Upstreet Agent before going live.
 full: false
 ---
  
-## Login to the SDK
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+ 
+
+<Accordions>
+  <Accordion title="🟢 Prerequisites">
+    - A [created Agent](/create-an-agent)
+  </Accordion>
+</Accordions>
+
+To run and test your Agent, run:
+```bash
+usdk chat [agent-dir]
+```
+This will launch an interactive REPL-like chat in your terminal.
+
+<Callout>
+Your AI inferences will not run locally. The Upstreet Agent may consume credits during testing.*
+</Callout>
+
+Prompt the Agent to perform the specific action you want to test, or use your own testing process to verify its functionality. Additionally, you can write tests using [Jest](https://jestjs.io/) to automate and ensure the reliability of your Agent's features.

@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <html lang="en" className={myFont.variable} suppressHydrationWarning>
       <body className="flex flex-col min-h-screen">
         <RootProvider>
-          <Banner>The Upstreet Agent SDK is now in public beta 🎉&nbsp;<Link className='underline font-bold' href="https://upstreet.ai/docs/install">Get started →</Link></Banner>
+          <Banner>The Upstreet Agent SDK is now in public beta 🎉&nbsp;<Link className='underline font-bold' href="https://docs.upstreet.ai/install">Get started →</Link></Banner>
           {children}
         </RootProvider>
       </body>

@@ -23,9 +23,9 @@ import Link from 'next/link';
             </DocsDescription>
 
             <div className='flex flex-col md:flex-row justify-center items-center gap-3 mb-6'>
-                <Link href={'/docs/install'}><LargeCard src={'/images/general/894c2410-6478-434e-b3a0-12cd3ecb4792.webp'} title={"Genesis"} description='Create your first AI Agent. Complete with its own backstory, and motives.'/></Link>
-                <Link href={'/docs/examples'}><LargeCard src={'/images/general/eb708406-76c3-464c-93f3-eb87db218354.webp'} title={"Examples"} description='Learn from our examples. See real agents in action.'/></Link>
-                <Link href={'/docs/knowledge'}><LargeCard src={'/images/general/13fcd802-3d0c-4482-bb30-9708722c6f39.webp'} title={"Learn"} description='What are agents? Learn from our research-backend knowledge base.'/></Link>
+                <Link href={'/install'}><LargeCard src={'/images/general/894c2410-6478-434e-b3a0-12cd3ecb4792.webp'} title={"Genesis"} description='Create your first AI Agent. Complete with its own backstory, and motives.'/></Link>
+                <Link href={'/examples'}><LargeCard src={'/images/general/eb708406-76c3-464c-93f3-eb87db218354.webp'} title={"Examples"} description='Learn from our examples. See real agents in action.'/></Link>
+                <Link href={'/knowledge'}><LargeCard src={'/images/general/13fcd802-3d0c-4482-bb30-9708722c6f39.webp'} title={"Learn"} description='What are agents? Learn from our research-backend knowledge base.'/></Link>
             </div>
 
             <DocsBody className="items-center w-full max-w-xl">
@@ -35,15 +35,15 @@ import Link from 'next/link';
 
                 <Cards className="sm:grid-cols-3 w-full px-6">
                     {/* Ask fumadocs to make title optional. */}
-                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/langchain">
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/migration-guides/langchain">
                         <Image alt="Upstreet Competitor 0" src="/images/upstreetai-competitors/langchain.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">LangChain</span>
                     </Card>
-                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/crew-ai">
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/migration-guides/crew-ai">
                         <Image alt="Upstreet Competitor 1" src="/images/upstreetai-competitors/crew_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">Crew.ai</span>
                     </Card>
-                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/fetch-ai">
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/migration-guides/fetch-ai">
                         <Image alt="Upstreet Competitor 2" src="/images/upstreetai-competitors/fetch_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">Fetch.ai</span>
                     </Card>

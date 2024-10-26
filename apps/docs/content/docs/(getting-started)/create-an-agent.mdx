@@ -1,6 +1,6 @@
 ---
 title: Create an Agent
-description: Agents are autonomous digital beings which you can customize to your content. Read more about the [concept behind agents](/docs/learn).
+description: Build AI Agents in minutes with the Upstreet Agents SDK. Follow this guide to seamlessly spin up an agent using the usdk CLI and configure it for your unique needs.
 full: false
 ---
  
@@ -9,17 +9,54 @@ import { File, Folder, Files } from 'fumadocs-ui/components/files';
  
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
  
+
 <Accordions>
   <Accordion title="🟢 Prerequisites">
-    - You must be [logged in](/docs/install#log-into-the-sdk) to the SDK
+    - [Upstreet SDK](https://www.upstreet.ai/sdk) installed on your computer
+    - You must be [logged in](/install#log-into-the-sdk) to the SDK
   </Accordion>
 </Accordions>
 
-This command will generate a folder with the name xyz where you ran the command.
+Upstreet AI Agents are autonomous, customizable digital entities that handle tasks, communicate, and interact based on configurations you set.
+
+**Not sure what Agents are?** Learn more about Agentic AI, and the concepts behind it, in our [Concepts](/learn).
+
+## Quickstart: Creating an Agent
+With Upstreet, getting started is easy. Here’s how to set up your first Agent.
+
+### Step 1: Running the command
+
+1. **Set up your project directory**  
+   First, create an empty directory where you’d like to set up your Agent.
+   
+2. **Run the Command in your terminal**
+   ```bash
+   usdk create
+   ```
+   Run the above command in your terminal within your new directory. This will launch a guided interview, where you’ll define essential properties of your Agent.
+
+   You can see more options by running `usdk create --help`.
+
+### Step 2: Complete the Agent Interview
+
+The `usdk create` command initiates an interactive “interview” process with the **Interviewer**. Here’s what to expect:
+
+1. **Interactive Prompts**  
+   The SDK will prompt you with questions, helping you define your Agent's personality, environment, and other key settings.
+
+2. **Simulated Chat with Your Agent**  
+   You’ll be able to “converse” with the **Interviewer**, defining the Agent's Homespace (its natural habitat) and personality traits through chat-based interactions.
+
+3. **Completion**  
+   Once all required fields are captured, the interview concludes, setting up all the Agent features and initialising the necessary files in your directory.
+
+### File Structure
+
+Let’s say you named your project directory “my-agent”. After running `usdk create`, here’s what your setup will look like:
 
 <Wrapper>
-<Files>
-  <Folder name='agent6' defaultOpen>
+<Files className='max-w-lg w-full'>
+  <Folder name='my-agent' defaultOpen>
     <Folder name="wrangler" />
     <Folder name="node_modules" disabled />
     <Folder name="packages" />
@@ -37,5 +74,12 @@ This command will generate a folder with the name xyz where you ran the command.
 </Wrapper>
 
 <Callout>
-  While it's good to use a version control system like **GitHub** to keep your Agent saved, we **do not recommend** keeping your repository public, as this could reveal secret keys.
+Remember to keep your Agent’s configuration secure. Avoid making this repository public on platforms like GitHub, as sensitive keys could be exposed.
 </Callout>
+
+
+## What's next?
+
+Now that you've set up your base Agent, you can choose to dive deeper into Agent customization and potential capabilities by [writing code in React](/customize-your-agent).
+
+If you wish to skip customization and directly launch your Agent on our Platform, you can check out [Testing your Agent](/test-your-agent) and [Deploying your Agent](/deploy-your-agent).

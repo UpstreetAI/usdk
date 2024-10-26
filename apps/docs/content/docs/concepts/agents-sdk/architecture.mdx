@@ -1,7 +1,7 @@
 ---
-title: The Agents SDK in-depth
-description: Best document ever
-full: false
+title: Under the hood
+description: The Upstreet Agents SDK is the first React-based SDK for building and deploying headless AI agents, locally and in the cloud.
+full: true
 ---
  
 import { TypeTable } from 'fumadocs-ui/components/type-table';
@@ -12,9 +12,15 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 ## Architecture
 
-We've built the Agents SDK on React, using the [React Reconciler API](https://github.com/facebook/react/blob/main/packages/react-reconciler/README.md). This design choice enables us to not only run the Agents on the server, but also prepares us for a future where Agents are capable of running multi-platform and on edge (maybe in your browser too!).
+We've built the Agents SDK on [React](https://react.dev), using the [React Reconciler API](https://github.com/facebook/react/blob/main/packages/react-reconciler/README.md). This design choice enables us to not only run the Agents on the server, but also prepares us for a future where Agents are capable of running multi-platform and on edge (maybe in your browser too!).
 
 To learn how the React Reconciler works, we recommend reading the [React documentation on Reconciliation](https://react.dev/learn/preserving-and-resetting-state).
+
+## What are Upstreet Agents?
+
+To learn more about basic concepts of Agents, read our general [Agents Concepts Guide](/concepts/agents).
+
+Agents are intelligent entities implemented as a React renderer, allowing them to perceive events and perform actions. React components allow for easy composition, customization, and sharing of every part of the stack, while retaining the full flexibility of Typescript to dig down to a lower level.
 
 ## Available Commands
 

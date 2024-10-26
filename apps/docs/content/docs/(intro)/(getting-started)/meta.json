@@ -1,5 +1,0 @@
-{
-    "title": "Getting Started",
-    "pages": ["create-an-agent", "customizing-your-agent", "deploy-your-agent", "install-the-upstreet-agents-sdk", "login-to-the-sdk", "testing-your-agent"],
-    "defaultOpen": true
-}

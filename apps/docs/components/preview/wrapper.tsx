@@ -9,6 +9,7 @@ function Wrapper(
       {...props}
       className={cn(
         'rounded-xl bg-gradient-to-br from-pink-500 to-blue-500 p-4 prose-no-margin',
+        'flex flex-col items-center justify-center',
         props.className,
       )}
     >
