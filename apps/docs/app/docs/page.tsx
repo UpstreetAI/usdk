@@ -13,7 +13,7 @@ import Link from 'next/link';
     return (
         <div className='w-full h-full pt-12 flex flex-col justify-center items-center min-w-0 max-w-[var(--fd-page-width)] md:transition-[max-width]'>
             <DocsTitle className='mb-6'>
-                Build AI Agents with React.
+                Build AI Agents with <pre>{"<React />"}</pre>.
             </DocsTitle>
 
             <DocsDescription className='max-w-2xl text-center'>
@@ -32,16 +32,17 @@ import Link from 'next/link';
                 </div>
 
                 <Cards className="sm:grid-cols-3 w-full px-6">
-                    <Card className="flex flex-col items-start gap-2" href="/docs/migration-guides/langchain">
-                        <Image src="/images/upstreetai-competitors/langchain.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
+                    {/* Ask fumadocs to make title optional. */}
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/langchain">
+                        <Image alt="Upstreet Competitor 0" src="/images/upstreetai-competitors/langchain.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">LangChain</span>
                     </Card>
-                    <Card className="flex flex-col items-start gap-2" href="/docs/migration-guides/crew-ai">
-                        <Image src="/images/upstreetai-competitors/crew_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/crew-ai">
+                        <Image alt="Upstreet Competitor 1" src="/images/upstreetai-competitors/crew_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">Crew.ai</span>
                     </Card>
-                    <Card className="flex flex-col items-start gap-2" href="/docs/migration-guides/fetch-ai">
-                        <Image src="/images/upstreetai-competitors/fetch_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
+                    <Card title={""} className="flex flex-col items-start gap-2" href="/docs/migration-guides/fetch-ai">
+                        <Image alt="Upstreet Competitor 2" src="/images/upstreetai-competitors/fetch_ai.png" width={100} height={30} className='h-8 mb-4 w-auto object-contain' />
                         <span className="mt-2">Fetch.ai</span>
                     </Card>
                 </Cards>
