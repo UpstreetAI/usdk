@@ -16,7 +16,9 @@ export const createSession = async (opts: any, {
   }
 
   const stripeDevSuffix = getStripeDevSuffix(environment);
-  const res = await fetch(`${aiHost}/stripe${stripeDevSuffix}/checkout/session`, {
+  const u = `${aiHost}/stripe${stripeDevSuffix}/checkout/session`;
+  debugger; // XXX debugging
+  const res = await fetch(u, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -48,7 +50,9 @@ export const cancelPlan = async ({
   }
 
   const stripeDevSuffix = getStripeDevSuffix(environment);
-  const res = await fetch(`${aiHost}/plans${stripeDevSuffix}`, {
+  const u = `${aiHost}/plans${stripeDevSuffix}`;
+  debugger; // XXX debugging
+  const res = await fetch(u, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
