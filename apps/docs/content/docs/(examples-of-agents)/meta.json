@@ -1,5 +1,0 @@
-{
-    "title": "Examples of Agents",
-    "pages": ["discord-agent", "game-npc-agent", "hello-world-scilly", "talking-agent", "zapier-integration"],
-    "defaultOpen": false
-}
