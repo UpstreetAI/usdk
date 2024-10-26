@@ -1,0 +1,5 @@
+{
+    "title": "📖 Migration Guides",
+    "pages": ["langchain", "crew-ai", "fetch-ai", "previous-versions"],
+    "defaultOpen": false
+}

@@ -176,6 +176,9 @@ export class AgentRenderer {
       const agentJson = JSON.parse(agentJsonString);
       return agentJson;
     };
+    const useEnvironment = () => {
+      return (env as any).WORKER_ENV as string;
+    };
     const useWallets = () => {
       const mnemonic = (env as any).WALLET_MNEMONIC as string;
       const wallets = getConnectedWalletsFromMnemonic(mnemonic);
@@ -204,6 +207,7 @@ export class AgentRenderer {
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
+      environment: useEnvironment(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
@@ -322,7 +326,7 @@ export class AgentRenderer {
       this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
-      env['WORKER_ENV'] === 'development', // isStrictMode
+      env['WORKER_ENV'] !== 'production', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
       (error: Error) => logDetailedError('Recoverable Error', error, this.container),

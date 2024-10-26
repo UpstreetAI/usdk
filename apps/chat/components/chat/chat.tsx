@@ -26,12 +26,13 @@ import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multi
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
-import { createSession } from 'react-agents/util/stripe-utils.mjs';
+import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 // import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
+import { environment } from '@/lib/env';
 
 
 //
@@ -373,6 +374,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
             stripe_connect_account_id,
           };
           const j = await createSession(opts, {
+            environment,
             jwt,
           });
           const {

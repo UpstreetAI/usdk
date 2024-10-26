@@ -5,7 +5,8 @@ import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
 import { LoginButton } from '../ui/Header/login-button';
-import { createSession, cancelPlan } from 'react-agents/util/stripe-utils.mjs';
+import { createSession, cancelPlan } from '@/lib/stripe';
+import { environment } from '@/lib/env';
 
 //
 
@@ -111,6 +112,7 @@ const SubscriptionPlans = ({
                           success_url,
                         },
                       }, {
+                        environment,
                         jwt,
                       });
                       const {
@@ -128,6 +130,7 @@ const SubscriptionPlans = ({
                     onClick={async (e) => {
                       const jwt = await getJWT();
                       await cancelPlan({
+                        environment,
                         jwt,
                       });
                       setUserPrivate((userPrivate: object) => {
