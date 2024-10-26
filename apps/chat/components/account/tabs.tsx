@@ -14,14 +14,9 @@ import { IconButton } from 'ucom';
 import Dev from '../development';
 import { logout } from '@/lib/logout';
 
-
-interface Agent {
-  images: { url: string }[];
-}
-
 export interface TabsProps {
   user: any;
-  agents: Agent[];
+  agents: any;
   voices: object[];
   creditsUsageHistory: object[] | null;
   userIsCurrentUser: boolean;
