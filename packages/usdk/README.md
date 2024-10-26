@@ -1,9 +1,14 @@
 # Upstreet SDK (USDK)
 
-🌆 Welcome to Upstreet, where innovation meets capability 🤖
+🤖 Build Upstreet AI Agents with personalities.
 
 [![npm version](https://badge.fury.io/js/usdk.svg)](https://badge.fury.io/js/usdk)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![Documentation](https://img.shields.io/badge/docs-upstreet.ai-blue)](https://docs.upstreet.ai/)
+[![Join our Discord](https://img.shields.io/discord/123456789012345678.svg?label=Join%20our%20Discord&logo=discord&colorB=7289DA)](https://discord.gg/GXpn4Adh)
+[![GitHub](https://img.shields.io/badge/GitHub-UpstreetAI-181717?style=flat&logo=github)](https://github.com/UpstreetAI)
+[![Twitter Follow](https://img.shields.io/twitter/follow/upstreetai?style=social)](https://x.com/upstreetai)
+
 
 ## Table of Contents
 - [Overview](#overview)
@@ -18,9 +23,9 @@
 
 ## Overview
 
-Welcome to Upstreet SDK (USDK), your powerful command-line interface to Upstreet.
+Upstreet SDK (USDK) is a simple yet powerful command-line interface to build, test and deploy Upstreet AI Agents at scale.
 
-USDK is crafted to transform your interaction with our platform, allowing effortless creation, management, and communication with autonomous Upstreet AI Agents.
+USDK is crafted to give you the freedom to build Agents independently, yet also make your interaction with Upstreet's platform easier, allowing effortless creation, management, and communication with autonomous Upstreet AI Agents.
 
 ## Quick Install
 
