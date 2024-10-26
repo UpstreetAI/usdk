@@ -38,6 +38,9 @@ import {
 import {
   TranscribedVoiceInput,
 } from 'react-agents/devices/audio-transcriber.mjs';
+import {
+  PlayerType,
+} from 'react-agents/constants.mjs';
 
 //
 
@@ -127,6 +130,7 @@ export class ChatsManager {
           previewUrl,
           model,
           address,
+          playerType: PlayerType.Agent,
         };
       };
       const profile = getProfile();

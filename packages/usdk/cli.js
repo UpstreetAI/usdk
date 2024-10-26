@@ -97,6 +97,7 @@ import {
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
+  PlayerType,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
@@ -842,12 +843,14 @@ const startMultiplayerRepl = ({
   const sendChatMessage = async (text) => {
     const userId = profile.id;
     const name = profile.name;
+    const playerType = profile.playerType;
     await realms.sendChatMessage({
       method: 'say',
       userId,
       name,
       args: {
         text,
+        playerType,
       },
       timestamp: Date.now(),
     });
@@ -944,9 +947,8 @@ const connectRepl = async ({
   let profile = await getUserProfile();
   profile = {
     ...profile,
-    capabilities: [
-      'human',
-    ],
+    capabilities: [],
+    playerType: PlayerType.Human,
   };
   if (!profile) {
     throw new Error('could not get user profile');
