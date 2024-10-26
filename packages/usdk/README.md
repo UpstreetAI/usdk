@@ -1,6 +1,6 @@
 # Upstreet SDK (USDK)
 
-🤖 Build Upstreet AI Agents with personalities.
+🤖 Build Upstreet AI Agents with fully customizable capabilities and unique personalities.
 
 [![npm version](https://badge.fury.io/js/usdk.svg)](https://badge.fury.io/js/usdk)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
