@@ -5,6 +5,7 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
+import { Client as TwitterClient } from "twitter-api-sdk";
 
 import type {
   AppContextValue,
@@ -35,6 +36,7 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TwitterBotProps,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -3244,6 +3246,24 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
   ]);
+
+  return null;
+};
+// https://github.com/xdevplatform/twitter-api-typescript-sdk
+export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) => {
+  const {
+    token,
+  } = props;
+  const agent = useAgent();
+
+  useEffect(() => {
+    (async () => {
+      if (token) {
+        const client = new TwitterClient(token);
+        console.log('initialize twitter client', client);
+      }
+    })();
+  }, [token]);
 
   return null;
 };
