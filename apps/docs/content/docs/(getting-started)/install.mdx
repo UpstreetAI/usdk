@@ -1,0 +1,62 @@
+---
+title: Setup the SDK
+description: With the Upstreet Agents SDK, you can start building Agents for yourself.
+full: false
+---
+
+import Wrapper from '../../../components/preview/wrapper';
+import { Pre, CodeBlock } from 'fumadocs-ui/components/codeblock';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import pkgJson from 'usdk/package.json';
+
+To get started with Upstreet and building AI Agents, you need to set up the Upstreet Agents SDK (`usdk`). Dive deeper into how the Agents SDK works in our [Concepts](/concepts/agents-sdk) guide.
+
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/en/download/package-manager/current) (version 22.1.0 and above)
+
+## Install from NPM
+
+You can install the `usdk` command-line tool by running the following command in your Terminal:
+
+<Tabs items={["npm",]}>
+ 
+```bash tab="npm"
+npm install -g usdk
+```
+
+</Tabs>
+
+{/* This assumes you have [NodeJS](https://nodejs.org/en/learn/getting-started/how-to-install-nodejs) installed in your computer.  */}
+
+### Verify your installation (optional)
+
+You can run the following command to see your currently installed version:
+
+<Wrapper>
+<div className="bg-transparent prose-no-margin px-20 w-full">
+
+<div className="bg-fd-background rounded-lg">
+```bash title="Terminal"
+$ usdk version
+```
+<CodeBlock className='-mt-8' icon={"bash"} keepBackground allowCopy={false}>
+        <Pre>{pkgJson.version}</Pre>
+</CodeBlock>
+</div>
+
+</div>
+</Wrapper>
+
+You can see all versions of `usdk` on [NPM](https://www.npmjs.com/package/usdk?activeTab=versions).
+
+<Callout>While you can also run `usdk` directly using `npx usdk@latest <subcommand>`, we recommend tying yourself to a specific version of the SDK while building your agent.</Callout>
+
+## Log into the SDK
+You must be logged into the SDK to carry out certain actions. You can log in by running: 
+```bash
+usdk login
+```
+
+This will open a browser where you can **Log In** to Upstreet using your preferred Authentication Provider.
