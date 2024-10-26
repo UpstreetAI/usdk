@@ -3263,6 +3263,16 @@ export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) =>
       if (token) {
         const client = new TwitterClient(token);
         console.log('initialize twitter client', client);
+
+        try {
+          const response = await client.tweets.createTweet({
+            text: 'Test tweet',
+          });
+
+          console.log('Tweet sent successfully:', response);
+        } catch (error) {
+          console.error('Error sending tweet:', error);
+        }
       }
     })();
   }, [token]);
