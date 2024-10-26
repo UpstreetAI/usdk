@@ -3250,6 +3250,8 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
   return null;
 };
 // https://github.com/xdevplatform/twitter-api-typescript-sdk
+// twurl authorize --consumer-key XXX --consumer-secret XXX
+// less ~/.twurlrc
 export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) => {
   const {
     token,
