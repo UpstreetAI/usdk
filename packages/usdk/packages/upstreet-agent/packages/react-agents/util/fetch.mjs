@@ -5,37 +5,7 @@ import { defaultModel } from 'react-agents/defaults.mjs';
 
 //
 
-export type ChatMessage = {
-  role: string,
-  content: string | {
-    type: 'text',
-    text: string,
-  } | {
-    type: 'image_url',
-    image_url: {
-      url: string,
-    },
-  },
-};
-type FetchArgs = {
-  model: string
-  messages: ChatMessage[],
-  format?: z.ZodTypeAny,
-  stream?: boolean,
-  max_completion_tokens?: number,
-  signal?: AbortSignal,
-};
-type FetchOpts = {
-  jwt: string,
-};
-type FetchFn = (args: FetchArgs, opts: FetchOpts) => Promise<any>;
-
-//
-
-const fetchers = new Map<
-  string,
-  FetchFn
->(Object.entries({
+const fetchers = new Map(Object.entries({
   openai: async ({
     model,
     messages,
@@ -43,9 +13,9 @@ const fetchers = new Map<
     stream,
     max_completion_tokens,
     signal,
-  }: FetchArgs, {
+  }, {
     jwt,
-  }: FetchOpts) => {
+  }) => {
     if (!jwt) {
       throw new Error('no jwt');
     }
@@ -70,7 +40,7 @@ const fetchers = new Map<
       });
       if (res.ok) {
         const j = await res.json();
-        const content = j.choices[0].message.content as string;
+        const content = j.choices[0].message.content;
         return content;
       } else {
         const text = await res.text();
@@ -98,8 +68,8 @@ const fetchers = new Map<
       });
       if (res.ok) {
         const j = await res.json();
-        const s = j.choices[0].message.content as string;
-        const o = JSON.parse(s) as object;
+        const s = j.choices[0].message.content;
+        const o = JSON.parse(s);
         return o;
       } else {
         const text = await res.text();
@@ -114,9 +84,9 @@ const fetchers = new Map<
     stream,
     max_completion_tokens,
     signal,
-  }: FetchArgs, {
+  }, {
     jwt,
-  }: FetchOpts) => {
+  }) => {
     const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
       method: 'POST',
 
@@ -135,7 +105,7 @@ const fetchers = new Map<
     });
     if (res.ok) {
       const j = await res.json();
-      const text = j.content[0].text as string;
+      const text = j.content[0].text;
       return text;
     } else {
       const text = await res.text();
@@ -145,21 +115,21 @@ const fetchers = new Map<
   together: async ({
   }, {
     jwt,
-  }: FetchOpts) => {
+  }) => {
     // XXX finish this
     return '';
   },
   lambda: async ({
   }, {
     jwt,
-  }: FetchOpts) => {
+  }) => {
     // XXX finish this
     return '';
   },
   ollama: async ({
-  }: FetchArgs, {
+  }, {
     jwt,
-  }: FetchOpts) => {
+  }) => {
     // XXX finish this
     return '';
   },
@@ -169,15 +139,8 @@ export const fetchChatCompletion = async ({
   messages,
   stream,
   signal,
-}: {
-  model?: string,
-  messages: ChatMessage[],
-  stream?: boolean,
-  signal?: AbortSignal,
 }, {
   jwt,
-}: {
-  jwt: string,
 }) => {
   const match = model.match(/^(.+?):/);
   if (match) {
@@ -208,16 +171,8 @@ export const fetchJsonCompletion = async ({
   stream,
   max_completion_tokens,
   signal,
-}: {
-  model?: string,
-  messages: ChatMessage[],
-  stream?: boolean,
-  max_completion_tokens?: number,
-  signal?: AbortSignal,
-}, format: z.ZodTypeAny, {
+}, format, {
   jwt,
-}: {
-  jwt: string,
 }) => {
   const match = model.match(/^(.+?):/);
   if (match) {
