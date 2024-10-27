@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation'
 import React, { Suspense, useEffect, useRef, useState, useMemo, forwardRef, use } from 'react'
 import { z } from 'zod';
 // import { zodResponseFormat } from 'openai/helpers/zod';
+import type {
+  ChatMessage,
+} from 'react-agents/types';
 import { Canvas, useThree, useFrame } from '@react-three/fiber'
 // import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { OrbitControls, KeyboardControls, Text, GradientTexture, MapControls, KeyboardControlsEntry, useKeyboardControls } from '@react-three/drei'
@@ -49,9 +52,8 @@ import { Button } from '@/components/ui/button';
 // } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
-import { fetchJsonCompletion } from '@/utils/fetch';
+import { fetchJsonCompletion } from 'react-agents/util/fetch.mjs';
 import { fetchImageGeneration } from 'react-agents/util/generate-image.mjs';
-import { ChatMessage } from '@/utils/fetch';
 import { useTextureLoaderUrl } from '@/utils/texture-utils';
 
 //
