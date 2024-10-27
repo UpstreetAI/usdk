@@ -5,7 +5,7 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import TelegramClient from 'node-telegram-bot-api';
+import TelegramClient from 'node-telegram-bot-api'; // XXX can use https://www.npmjs.com/package/telegraf
 
 import type {
   AppContextValue,
