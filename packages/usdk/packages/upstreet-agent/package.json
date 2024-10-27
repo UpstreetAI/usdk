@@ -24,6 +24,7 @@
     "react-agents-client": "file:./packages/react-agents-client",
     "react-reconciler": "^0.31.0-rc-df5f2736-20240712",
     "stripe": "^16.10.0",
+    "telegraf": "^4.16.3",
     "together-ai": "^0.6.0-alpha.4",
     "ts-jest": "^29.2.5",
     "typescript": "^5.6.2",
