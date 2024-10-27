@@ -1,5 +1,5 @@
 ---
-title: Deploy your agent
+title: Deploy your Agent
 description: Get your Agent live and see it used across the Internet.
 full: false
 ---
@@ -8,9 +8,9 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
 <Accordions>
   <Accordion title="🟢 Prerequisites">
-    - [Upstreet SDK](https://www.upstreet.ai/sdk) installed on your computer
-    - You must be [logged in](/install#log-into-the-sdk) to the SDK
-    - A [created Agent](/create-an-agent)
+    - Upstreet SDK installed. [Get the SDK here](/install)
+    - Logged into the SDK. Follow the steps to [log in here](/install#log-into-the-sdk)
+    - A configured Upstreet Agent. [Create an Agent](/create-an-agent)
     - Sufficient credits on Upstreet's Platform
   </Accordion>
 </Accordions>
@@ -23,12 +23,12 @@ Ready to unleash your Agent into the world? Simply run:
 usdk deploy <your-agent-directory>
 ```
 
-Your Agent will be live and accessible via the provided URL obtained after a successful deployment.
+This command uploads your Agent to the Upstreet platform, making it accessible via a unique URL provided after a successful deployment.
 
-This will consume credits. To learn more about pricing, head over to our [pricing section](/pricing).
+<Callout> Deployment consumes Upstreet credits. For more information, see our [pricing section](/pricing). </Callout>
 
 ## Self-hosting
 
-You can also run your Agent locally and use Cloudflare tunnels to make it accessible to the Internet. This, however, may still consume AI credits if you choose to use our AI services.
+Prefer to run your Agent locally? You can use a Cloudflare tunnel to make it internet-accessible. Note that even with self-hosting, using Upstreet’s AI services may still consume credits.
 
-See pricing models for self-hosting on our [Pricing](/pricing) page.
+For more on pricing models for both deployment options, visit our [Pricing](/pricing) page.
