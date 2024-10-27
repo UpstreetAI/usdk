@@ -5,6 +5,7 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
+import TelegramClient from 'node-telegram-bot-api';
 
 import type {
   AppContextValue,
@@ -35,6 +36,7 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TelegramBotProps,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -3244,6 +3246,51 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
   ]);
+
+  return null;
+};
+export const TelegramBot: React.FC<TelegramBotProps> = (props: TelegramBotProps) => {
+  const {
+    token,
+  } = props;
+  const agent = useAgent();
+  const botRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!botRef.current) {
+      botRef.current = true;
+
+      // Create a bot that uses 'polling' to fetch new updates
+      const bot = new TelegramClient(token, {polling: true});
+
+      // Matches "/echo [whatever]"
+      bot.onText(/\/echo (.+)/, async (msg, match) => {
+        console.log('got telegram message', {
+          msg,
+          match,
+        });
+
+        // 'msg' is the received Message from Telegram
+        // 'match' is the result of executing the regexp above on the text content
+        // of the message
+
+        const chatId = msg.chat.id;
+        const resp = match[1]; // the captured "whatever"
+
+        // send back the matched "whatever" to the chat
+        console.log('send message 1', {
+          chatId,
+          resp,
+        });
+        await bot.sendMessage(chatId, resp);
+        console.log('send message 2');
+
+        console.log('close bot 1');
+        await bot.close();
+        console.log('close bot 2');
+      });
+    }
+  }, []);
 
   return null;
 };
