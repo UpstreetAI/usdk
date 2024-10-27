@@ -16,6 +16,7 @@
     "jimp": "^0.22.12",
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
+    "node-telegram-bot-api": "^0.66.0",
     "openai": "^4.56.0",
     "queue-manager": "file:./packages/queue-manager",
     "react": "^19.0.0-rc-df5f2736-20240712",
