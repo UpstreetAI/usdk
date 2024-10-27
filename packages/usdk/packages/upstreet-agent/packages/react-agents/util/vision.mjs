@@ -4,12 +4,6 @@ import dedent from 'dedent';
 import {
   aiProxyHost,
 } from './endpoints.mjs';
-// import {
-//   defaultOpenaiModel,
-// } from '../defaults.mjs';
-// import {
-//   defaultOpenAIModel,
-// } from 'react-agents/util/models.mjs';
 import { blobToDataUrl } from './base64.mjs';
 
 const makeDataUrl = async blob => typeof blob === 'string' ? blob : await blobToDataUrl(blob);
