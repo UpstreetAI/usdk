@@ -1,6 +1,5 @@
-import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
-import { aiProxyHost } from './const/endpoints.js';
+import { aiProxyHost } from './endpoints.mjs';
 import { defaultModel } from 'react-agents/defaults.mjs';
 
 //
