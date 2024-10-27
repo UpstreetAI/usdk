@@ -72,6 +72,9 @@ type FeaturesObject = {
     token: string;
     channels: string;
   } | null;
+  telegramBot: {
+    token: string;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -116,6 +119,7 @@ export default function AgentEditor({
     rateLimit: null,
     storeItems: null,
     discordBot: null,
+    telegramBot: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -214,6 +218,9 @@ export default function AgentEditor({
   const makeDefaultDiscordBot = () => ({
     token: '',
     channels: '',
+  });
+  const makeDefaultTelegramBot = () => ({
+    token: '',
   });
   const makeEmptyStoreItems = () => [
     makeEmptyStoreItem(),
@@ -893,6 +900,32 @@ export default function AgentEditor({
                     },
                   }));
                 }} placeholder="text, voice" required />
+              </label>
+            </div>}
+          </div>
+          {/* telegram bot */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.telegramBot} onChange={e => {
+                setFeatures({
+                  ...features,
+                  telegramBot: e.target.checked ? makeDefaultTelegramBot() : null,
+                });
+              }} />
+              <div className="px-2">Twitter bot</div>
+            </label>
+            {features.telegramBot && <div className="flex flex-col">
+              {/* token */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Token</div>
+                <input type="text" value={features.telegramBot.token} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    telegramBot: {
+                      token: e.target.value,
+                    },
+                  }));
+                }} placeholder="<bot token>" required />
               </label>
             </div>}
           </div>
