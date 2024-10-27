@@ -2385,26 +2385,17 @@ const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
-  if (agentSpecs.length === 1) {
-    if (room) {
-      const agentSpec = agentSpecs[0];
-      const u = `${getAgentSpecHost(agentSpec)}`;
-      const agentClient = new ReactAgentsClient(u);
-      try {
-        await agentClient.join(room, {
-          only: true,
-        });
-      } catch (err) {
-        console.warn('join error', err);
-        process.exit(1);
-      }
-    } else {
-      console.log('no room name provided');
+  for (const agentSpec of agentSpecs) {
+    const u = `${getAgentSpecHost(agentSpec)}`;
+    const agentClient = new ReactAgentsClient(u);
+    try {
+      await agentClient.join(room, {
+        only: true,
+      });
+    } catch (err) {
+      console.warn('join error', err);
       process.exit(1);
     }
-  } else {
-    console.log('expected 1 agent argument');
-    process.exit(1);
   }
 };
 const leave = async (args) => {
