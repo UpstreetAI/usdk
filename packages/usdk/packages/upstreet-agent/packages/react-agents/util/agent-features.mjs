@@ -174,6 +174,43 @@ export const featureSpecs = [
     },
   },
   {
+    name: 'telegramBot',
+    description: dedent`\
+      Add a Telegram bot to the agent.
+
+      Token is required.
+
+      Instruct the user ask @BotFather (https://telegram.me/BotFather) on Telegram for a token. The command to use is /newbot.
+    `,
+    schema: z.union([
+      z.object({
+        token: z.string(),
+      }),
+      z.null(),
+    ]),
+    examples: [{ token: 'YOUR_TELEGRAM_BOT_TOKEN', }],
+    imports: (telegramBot) => {
+      if (telegramBot.token) {
+        return ['TelegramBot'];
+      } else {
+        return [];
+      }
+    },
+    components: (telegramBot) => {
+      if (telegramBot.token) {
+        return [
+          dedent`
+            <TelegramBot
+              token=${JSON.stringify(discordBot.token)}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
     name: 'telnyx',
     description: dedent`\
       Add Telnyx phone call/SMS support to the agent. Add this feature only when the user explicitly requests it and provides an api key.
