@@ -8,10 +8,10 @@ const fetchers = new Map(Object.entries({
   openai: async ({
     model,
     messages,
-    format,
-    stream,
-    max_completion_tokens,
-    signal,
+    format = undefined,
+    stream = undefined,
+    max_completion_tokens = undefined,
+    signal = undefined,
   }, {
     jwt,
   }) => {
