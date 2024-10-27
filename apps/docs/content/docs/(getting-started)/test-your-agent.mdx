@@ -4,6 +4,8 @@ description: You can run and test your Upstreet Agent before going live.
 full: false
 ---
  
+import Wrapper from 'components/preview/wrapper';
+import Image from 'next/image';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
  
 
@@ -20,7 +22,11 @@ usdk chat [agent-dir]
 This will launch an interactive REPL-like chat in your terminal.
 
 <Callout>
-Your AI inferences will not run locally. The Upstreet Agent may consume credits during testing.*
+Your AI inferences will not run locally. The Upstreet Agent may consume credits during testing.
 </Callout>
+
+<Wrapper>
+<Image src="/images/general/usdk-dev-chat.png" width={740} height={300} className='rounded-md'/>
+</Wrapper>
 
 Prompt the Agent to perform the specific action you want to test, or use your own testing process to verify its functionality. Additionally, you can write tests using [Jest](https://jestjs.io/) to automate and ensure the reliability of your Agent's features.
