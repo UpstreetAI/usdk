@@ -3,6 +3,7 @@ import fs from 'fs';
 import https from 'https';
 import stream from 'stream';
 import repl from 'repl';
+import readline from 'readline';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
@@ -376,6 +377,7 @@ const login = async (args) => {
 
   // if (!anonymous) {
     await new Promise((accept, reject) => {
+      let rl = null;
       const serverOpts = getServerOpts();
       const server = https.createServer(serverOpts, (req, res) => {
         // console.log('got login response 1', {
@@ -408,6 +410,12 @@ const login = async (args) => {
 
             // close the server
             server.close();
+
+            // terminate the rl if it's still active
+            if (rl) {
+              console.log('*ok*');
+              rl.close();
+            }
 
             const b = Buffer.concat(bs);
             const s = b.toString('utf8');
@@ -443,7 +451,19 @@ const login = async (args) => {
           const p = u + '';
           console.log(`Waiting for login:`);
           console.log(`  ${p}`);
+
           open(p);
+
+          rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+          });
+          rl.question('Paste login code: ', (input) => {
+            const loginCode = input.trim(); // Remove any surrounding whitespace or newline characters
+            // console.log(`Received login code: ${loginCode}`);
+            rl.close();
+            rl = null;
+          });
         }
       });
     });
