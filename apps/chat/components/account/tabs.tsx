@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Voices } from './voices';
 import { Profile } from './profile';
-import { Credits } from './credits';
+import { CreditsUsageHistory } from './credits-usage-history';
 import { AccountSubscriptions } from './subscriptions';
 import { Monetization } from './monetization';
 import useHash from '@/lib/hooks/use-hash';
@@ -13,6 +13,7 @@ import { IconButton } from 'ucom';
 import Dev from '../development';
 import { logout } from '@/lib/logout';
 import { UserAgents } from '../agents/list';
+import { Credits } from '../credits';
 
 export interface TabsProps {
   user: any;
@@ -70,6 +71,9 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   target={'_blank'}
                   className='ml-4'
                 />
+                <div className=''>
+                  <Credits user={user} />
+                </div>
               </div>
               <div className="px-2 py-1 bg-black bg-opacity-60">{accountUrl}</div>
               <div className='flex gap-4 mt-4'>
@@ -145,7 +149,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <Voices voices={voices} userIsCurrentUser={userIsCurrentUser} />
         </div>
         <div className={tab === 'credits' ? 'block w-full' : 'hidden'}>
-          <Credits creditsUsageHistory={creditsUsageHistory} />
+          <CreditsUsageHistory creditsUsageHistory={creditsUsageHistory} />
         </div>
         <div className={tab === 'subscriptions' ? 'block w-full' : 'hidden'}>
           <AccountSubscriptions user={user} userPrivate={userPrivate} />
