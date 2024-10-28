@@ -63,6 +63,8 @@ const SubscriptionPlans = ({
   } = userPrivate;
   const [selectedPlan, setSelectedPlan] = useState(() => currentPlan);
 
+  console.log(currentPlan)
+
   return (
     <div>
       <div className="mt-4 md:mt-8 space-y-4 sm:mt-8 sm:space-y-0 md:flex md:flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
@@ -73,6 +75,9 @@ const SubscriptionPlans = ({
             value,
             interval
           } = plan;
+
+          const isFreePlan = !selectedPlan && name === 'free';
+          
           return (
             <div
               key={i}
@@ -93,6 +98,17 @@ const SubscriptionPlans = ({
                 <p className="mt-4 flex items-center justify-center text-zinc-800 font-bold text-4xl">
                   <Icon icon='Credits' className="size-12 text-[#00C0FF]" /> {value ? (value * creditUnit) : 5000}
                 </p>
+                {isFreePlan ? (<>
+                  <Button
+                    className='w-full mt-8'
+                    disabled={true}
+                    variant='ghost'
+                  >
+                    Active
+                  </Button>
+                </>) : (
+                  
+                <>
                 {value > 0 ?
                   <Button
                     className='w-full mt-8'
@@ -139,6 +155,8 @@ const SubscriptionPlans = ({
                     Cancel
                   </Button>)
                 }
+                </>
+              )}
                 <p className="mt-8">
                   <span className="text-5xl font-extrabold">
                     {value > 0 ? `${currency}${value}` : '$0'}
