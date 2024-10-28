@@ -441,7 +441,8 @@ const login = async (args) => {
           const u = new URL(`${host}/logintool`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
-          console.log(`Waiting for login from ${p}`);
+          console.log(`Waiting for login:`);
+          console.log(`  ${p}`);
           open(p);
         }
       });
