@@ -2010,6 +2010,8 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
+      console.log(pc.italic('Deploying agent...'));
+
       const uint8Array = await packZip(directory, {
         exclude: [/\/node_modules\//],
       });

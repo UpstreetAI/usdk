@@ -5,28 +5,75 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
 import { QueueManager } from 'queue-manager';
+import { promisify } from 'util';
+import os from 'os';
+
+const readFile = promisify(fs.readFile);
 
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
-  let files = await recursiveReaddir(dirPath);
-  files = files.filter((p) => !exclude.some((re) => re.test(p)));
+  const platform = os.platform();
 
-  const zip = new JSZip();
-  for (const p of files) {
-    const basePath = p.slice(dirPath.length + 1);
-    const stream = fs.createReadStream(p);
-    zip.file(basePath, stream);
+  if (platform === 'win32') {
+    return packZipForWindows(dirPath, { exclude });
+  } else {
+    return packZipForUnix(dirPath, { exclude });
   }
-
-  const arrayBuffer = await zip.generateAsync({
-    type: 'arraybuffer',
-    compression: 'DEFLATE',
-    compressionOptions: {
-      level: 9,
-    },
-  });
-  const uint8Array = new Uint8Array(arrayBuffer);
-  return uint8Array;
 };
+
+// Windows zipping strategy (file content read into memory)
+const packZipForWindows = async (dirPath, { exclude }) => {
+  try {
+    let files = await recursiveReaddir(dirPath);
+    files = files.filter((p) => !exclude.some((re) => re.test(p)));
+
+    const zip = new JSZip();
+    for (const filePath of files) {
+      const basePath = path.relative(dirPath, filePath);
+      const fileContent = await readFile(filePath); // Read file content directly
+      zip.file(basePath, fileContent); // Add it to the zip
+    }
+
+    const arrayBuffer = await zip.generateAsync({
+      type: 'arraybuffer',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 9,
+      },
+    });
+
+    return new Uint8Array(arrayBuffer);
+  } catch (error) {
+    console.error('Error during Windows zipping:', error);
+  }
+};
+
+// Unix-based zipping strategy (using streams)
+const packZipForUnix = async (dirPath, { exclude }) => {
+  try {
+    let files = await recursiveReaddir(dirPath);
+    files = files.filter((p) => !exclude.some((re) => re.test(p)));
+
+    const zip = new JSZip();
+    for (const filePath of files) {
+      const basePath = path.relative(dirPath, filePath);
+      const stream = fs.createReadStream(filePath); // Use stream on Unix-based systems
+      zip.file(basePath, stream);
+    }
+
+    const arrayBuffer = await zip.generateAsync({
+      type: 'arraybuffer',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 9,
+      },
+    });
+
+    return new Uint8Array(arrayBuffer);
+  } catch (error) {
+    console.error('Error during Unix zipping:', error);
+  }
+};
+
 export const extractZip = async (zipBuffer, tempPath) => {
   const cleanup = async () => {
     await rimraf(tempPath);
