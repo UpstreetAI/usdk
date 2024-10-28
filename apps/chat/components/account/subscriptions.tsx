@@ -53,8 +53,6 @@ const SubscriptionPlans = ({
   const { plan: currentPlan }: { plan: string } = userPrivate;
   const [selectedPlan, setSelectedPlan] = useState(() => currentPlan);
 
-  console.log(currentPlan);
-
   return (
     <div>
       <div className="mt-4 md:mt-8 space-y-4 sm:mt-8 sm:space-y-0 md:flex md:flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
