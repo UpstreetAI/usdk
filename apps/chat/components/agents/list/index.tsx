@@ -156,23 +156,6 @@ export function UserAgents({ agents = [], loadmore = false, search = true, range
 
   return (
     <>
-      {search && (
-        <div className='flex mb-4'>
-          <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
-            Agents
-          </h1>
-          <input
-            type='text'
-            placeholder='Search agents...'
-            value={searchTerm}
-            className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-            }}
-          />
-        </div>
-      )}
-
       <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
         <AgentList agents={userAgents} loading={loading} range={range} />
       </div>

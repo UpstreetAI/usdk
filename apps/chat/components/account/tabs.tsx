@@ -137,7 +137,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <Profile user={user} userIsCurrentUser={userIsCurrentUser} />
         </div>
         <div className={tab === 'agents' ? 'block w-full' : 'hidden'}>
-          <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b">
+          <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8">
             My Agents <span className="text-gray-700">{agents.length}</span>
           </h1>
           <UserAgents agents={agents} loadmore={false} search range={12} row={false} />
