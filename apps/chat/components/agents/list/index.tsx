@@ -124,7 +124,7 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
         </div>
       )}
 
-      <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+      <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-4`}>
         <AgentList agents={agents} loading={loading} range={range} user={null} />
       </div>
       {loadmore && (
