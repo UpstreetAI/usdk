@@ -461,11 +461,16 @@ const login = async (args) => {
             input: process.stdin,
             output: process.stdout
           });
-          rl.question('Paste login code: ', (input) => {
-            const loginCode = input.trim(); // Remove any surrounding whitespace or newline characters
-            // console.log(`Received login code: ${loginCode}`);
-            rl.close();
-            rl = null;
+          rl.question('Paste login code: ', async (input) => {
+            try {
+              // loginCode is a base64 encoded json string
+              const loginCode = input.trim();
+              const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
+              const j = JSON.parse(decoded);
+              await handleLogin(j);
+            } catch (e) {
+              console.log('invalid login code');
+            }
           });
         }
       });
