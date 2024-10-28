@@ -11,9 +11,8 @@ import { Credits } from '@/components/credits';
 
 export interface AccountButtonProps {
   user: any
-  credits: number
 }
-export function AccountButton({ user, credits }: AccountButtonProps) {
+export function AccountButton({ user }: AccountButtonProps) {
   return (
     <div className='flex mr-2 md:mr-4 h-12 -mt-6'>
 
