@@ -5,7 +5,7 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import { Client as TwitterClient } from 'twitter-api-sdk';
+import { TwitterApi } from 'twitter-api-v2';
 
 import type {
   AppContextValue,
@@ -3256,20 +3256,29 @@ export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) =>
   const {
     token,
   } = props;
-  const agent = useAgent();
+  // const agent = useAgent();
 
   useEffect(() => {
     (async () => {
       if (token) {
-        const client = new TwitterClient(token);
-        console.log('initialize twitter client', client);
+        console.log('twitter client 1', token);
+        const twitterClient = new TwitterApi(token); // XXX
+
+        // Tell typescript it's a readonly app
+        const readOnlyClient = twitterClient.readOnly;
+
+        // Play with the built in methods
+        const user = await readOnlyClient.v2.userByUsername('plhery');
+        await twitterClient.v2.tweet('Hello, this is a test.');
+        // You can upload media easily!
+        // await twitterClient.v1.uploadMedia('./big-buck-bunny.mp4');
+
+        console.log('twitter client 2', twitterClient);
 
         try {
-          const response = await client.tweets.createTweet({
-            text: 'Test tweet',
-          });
+          await twitterClient.v2.tweet('Hello, this is a test.');
 
-          console.log('Tweet sent successfully:', response);
+          console.log('Tweet sent successfully');
         } catch (error) {
           console.error('Error sending tweet:', error);
         }
