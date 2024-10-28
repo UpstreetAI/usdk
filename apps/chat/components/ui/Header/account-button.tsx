@@ -7,6 +7,7 @@ import Dev from '../../development';
 import { isValidUrl } from '@/lib/utils';
 import { Icon, IconButton } from 'ucom';
 import { logout } from '@/lib/logout';
+import { Credits } from '@/components/credits';
 
 export interface AccountButtonProps {
   user: any
@@ -22,9 +23,7 @@ export function AccountButton({ user, credits }: AccountButtonProps) {
         </div>
       </Dev>
 
-      <div className='mr-2 md:mr-6 flex items-center font-bold text-xl'>
-        <Icon icon='Credits' className="size-8" /> {Math.round(credits)}
-      </div>
+      <Credits user={user} />
 
       <a
         className="flex flex-row items-right p-2 h-full rounded text-sm cursor-pointer"
