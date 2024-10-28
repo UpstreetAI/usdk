@@ -1,12 +1,12 @@
 'use client';
 
-import { Button, type ButtonProps } from '@/components/ui/button';
 import React, { useState } from 'react'
 import { getJWT } from '@/lib/jwt';
 import { cn } from '@/lib/utils'
 import { LoginButton } from '../ui/Header/login-button';
 import { createSession, cancelPlan } from '@/lib/stripe';
 import { environment } from '@/lib/env';
+import { Button, Icon } from 'ucom';
 
 //
 
@@ -77,27 +77,21 @@ const SubscriptionPlans = ({
             <div
               key={i}
               className={cn(
-                'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-900 border rounded-md border-zinc-700',
+                'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-100 border border-[2px] border-zinc-800',
                 {
-                  'border border-pink-500': name === selectedPlan || !selectedPlan && name === 'free',
+                  // 'border border-pink-500': name === selectedPlan || !selectedPlan && name === 'free',
                 },
                 'flex-1',
                 'basis-1/6',
                 'md:max-w-xs'
               )}
             >
-              <div className="p-6">
-                <h2 className="text-2xl font-semibold leading-6 text-white capitalize">
+              <div className="p-6 text-center text-zinc-800">
+                <h2 className="text-2xl font-semibold leading-6 capitalize">
                   {name}
                 </h2>
-                <p className="mt-4 text-zinc-300">{value ? (value * creditUnit) + ' Credits' : '5000 Credits'}</p>
-                <p className="mt-8">
-                  <span className="text-5xl font-extrabold white">
-                    {value > 0 ? `${currency}${value}` : '$0'}
-                  </span>
-                  <span className="text-base font-medium text-zinc-100">
-                    {value > 0 ? `/${interval}` : '/mo'}
-                  </span>
+                <p className="mt-4 flex items-center justify-center text-zinc-800 font-bold text-4xl">
+                  <Icon icon='Credits' className="size-12 text-[#00C0FF]" /> {value ? (value * creditUnit) : 5000}
                 </p>
                 {value > 0 ?
                   <Button
@@ -122,7 +116,7 @@ const SubscriptionPlans = ({
                       location.href = url;
                     }}
                   >
-                    {currentPlan !== name ? 'Subscribe' : 'Current'}
+                    {currentPlan !== name ? 'Choose' : 'Current'}
                   </Button>
                   :
                   (currentPlan && <Button
@@ -145,6 +139,14 @@ const SubscriptionPlans = ({
                     Cancel
                   </Button>)
                 }
+                <p className="mt-8">
+                  <span className="text-5xl font-extrabold">
+                    {value > 0 ? `${currency}${value}` : '$0'}
+                  </span>
+                  <span className="text-base font-medium">
+                    {value > 0 ? `/${interval}` : '/mo'}
+                  </span>
+                </p>
               </div>
             </div>
           );
