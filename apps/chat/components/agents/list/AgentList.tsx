@@ -20,5 +20,5 @@ export function AgentList({ agents, loading, range }: AgentListProps) {
 
   if (!agents.length) return 'No agents found.';
 
-  return agents.map((agent: any, index: number) => <AgentRow agent={agent} key={index} author={agent?.author.name} />);
+  return agents.map((agent: any, index: number) => <AgentRow agent={agent} key={index} author={agent?.author?.name} />);
 }

@@ -5,6 +5,11 @@ import { AgentList } from './AgentList';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { Button } from 'ucom';
 
+export interface Agent {
+  id: number;
+  name: string;
+}
+
 export interface AgentsProps {
   loadmore: boolean;
   search: boolean;
@@ -12,9 +17,12 @@ export interface AgentsProps {
   row: boolean;
 }
 
-export interface Agent {
-  id: number;
-  name: string;
+export interface UserAgentsProps {
+  loadmore: boolean;
+  search: boolean;
+  range: number;
+  row: boolean;
+  agents: Agent[];
 }
 
 export function Agents({ loadmore = false, search = true, range = 5, row = false }: AgentsProps) {
@@ -130,6 +138,44 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
           )}
         </div>
       )}
+    </>
+  );
+}
+
+export function UserAgents({ agents = [], loadmore = false, search = true, range = 5, row = false }: UserAgentsProps) {
+  const { supabase } = useSupabase();
+
+  const [userAgents, setUserAgents] = useState<Agent[]>(agents);
+  const [loading, setLoading] = useState(false);
+  const [rangeFrom, setRangeFrom] = useState(0);
+  const [rangeTo, setRangeTo] = useState(range);
+  const [showLoadMore, setShowLoadMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
+  return (
+    <>
+      {search && (
+        <div className='flex mb-4'>
+          <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
+            Agents
+          </h1>
+          <input
+            type='text'
+            placeholder='Search agents...'
+            value={searchTerm}
+            className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+            }}
+          />
+        </div>
+      )}
+
+      <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+        <AgentList agents={userAgents} loading={loading} range={range} />
+      </div>
     </>
   );
 }

@@ -13,6 +13,7 @@ import { isValidUrl } from '@/lib/utils';
 import { IconButton } from 'ucom';
 import Dev from '../development';
 import { logout } from '@/lib/logout';
+import { UserAgents } from '../agents/list';
 
 export interface TabsProps {
   user: any;
@@ -139,6 +140,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b">
             My Agents <span className="text-gray-700">{agents.length}</span>
           </h1>
+          <UserAgents agents={agents} loadmore={false} search range={12} row={false} />
           <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
         </div>
         <div className={tab === 'voices' ? 'block w-full' : 'hidden'}>
