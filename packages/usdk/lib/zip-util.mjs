@@ -5,10 +5,8 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
 import { QueueManager } from 'queue-manager';
-import { promisify } from 'util';
 import os from 'os';
-
-const readFile = promisify(fs.readFile);
+import archiver from 'archiver';
 
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
   const platform = os.platform();
@@ -20,30 +18,56 @@ export const packZip = async (dirPath, { exclude = [] } = {}) => {
   }
 };
 
-// Windows zipping strategy (file content read into memory)
-const packZipForWindows = async (dirPath, { exclude }) => {
-  try {
-    let files = await recursiveReaddir(dirPath);
-    files = files.filter((p) => !exclude.some((re) => re.test(p)));
+// Helper function to filter files with regular expressions
+const filterFiles = (files, excludePatterns) => {
+  return files.filter((file) =>
+    !excludePatterns.some((pattern) => pattern.test(file))
+  );
+};
 
-    const zip = new JSZip();
-    for (const filePath of files) {
-      const basePath = path.relative(dirPath, filePath);
-      const fileContent = await readFile(filePath); // Read file content directly
-      zip.file(basePath, fileContent); // Add it to the zip
-    }
+const packZipWithArchiver = async (dirPath, { exclude }) => {
+  const outputPath = path.join(dirPath, 'output.zip');
+  const output = fs.createWriteStream(outputPath);
+  const archive = archiver('zip', {
+    zlib: { level: 9 }, // Set compression level
+  });
 
-    const arrayBuffer = await zip.generateAsync({
-      type: 'arraybuffer',
-      compression: 'DEFLATE',
-      compressionOptions: {
-        level: 9,
-      },
+  return new Promise((resolve, reject) => {
+    archive.pipe(output);
+
+    archive.on('error', (err) => {
+      reject(err);
     });
 
-    return new Uint8Array(arrayBuffer);
+    output.on('close', () => {
+      const data = fs.readFileSync(outputPath);
+      const uary = new Uint8Array(data)
+      fs.unlinkSync(outputPath); // Remove the temporary zip file after reading it
+      resolve(uary);
+    });
+
+    // Filter files and add to archive
+    recursiveReaddir(dirPath)
+      .then((files) => {
+        const filteredFiles = filterFiles(files, exclude);
+
+        filteredFiles.forEach((file) => {
+          const relativePath = path.relative(dirPath, file);
+          archive.file(file, { name: relativePath });
+        });
+        
+        // Finalize the archive once all files are appended
+        archive.finalize().catch((err) => reject(err));
+      })
+      .catch((err) => reject(err));
+  });
+};
+
+const packZipForWindows = async (dirPath, { exclude }) => {
+  try {
+    return await packZipWithArchiver(dirPath, { exclude });
   } catch (error) {
-    console.error('Error during Windows zipping:', error);
+    console.error('Error during Windows zipping with normalization:', error);
   }
 };
 

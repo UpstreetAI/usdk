@@ -2013,7 +2013,7 @@ const deploy = async (args) => {
       console.log(pc.italic('Deploying agent...'));
 
       const uint8Array = await packZip(directory, {
-        exclude: [/\/node_modules\//],
+        exclude: process.platform === 'win32' ? [/node_modules[\\/]/] : [/\/node_modules\//],
       });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
