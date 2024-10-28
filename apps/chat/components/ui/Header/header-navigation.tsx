@@ -7,10 +7,9 @@ import { usePathname } from 'next/navigation';
 
 export interface HeaderNavigationProps {
   user: any
-  credits: number
 }
 
-export function HeaderNavigation({ user, credits }: HeaderNavigationProps) {
+export function HeaderNavigation({ user }: HeaderNavigationProps) {
 
   const pathname = usePathname();
   // HIDE NAVIGATION WHEN USER IS ON FOLLOWING PAGES
@@ -20,7 +19,7 @@ export function HeaderNavigation({ user, credits }: HeaderNavigationProps) {
     <header className="sticky top-0 z-[10] flex items-center justify-between h-12 pt-6 border-b shrink-0 bg-background">
       <HeaderMenu />
       <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
-        <AccountOrLogin user={user} credits={credits} />
+        <AccountOrLogin user={user} />
       </React.Suspense>
     </header>
   )
