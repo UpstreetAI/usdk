@@ -33,12 +33,12 @@ export function AgentDelete({ agent }: AgentDeleteProps) {
           if (res.ok) {
             await res.blob();
 
-            setAgents((agents: object[]) => {
-              return agents.filter(
-                (agent: any) =>
-                  agent.id !== id
-              );
-            });
+            // setAgents((agents: object[]) => {
+            //   return agents.filter(
+            //     (agent: any) =>
+            //       agent.id !== id
+            //   );
+            // });
           } else {
             console.warn(
               `invalid status code: ${res.status}`

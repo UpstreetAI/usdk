@@ -3,13 +3,15 @@
 import { isValidUrl } from "@/utils/helpers/urls";
 import { IconUser } from "@/components/ui/icons";
 import { AgentJoin } from "@/components/cta";
+import { AgentDelete } from "@/components/cta/AgentDelete";
 
 export interface AgentListProps {
   agent: any
+  user: any
   author: string
 }
 
-export function AgentRow({ agent, author }: AgentListProps) {
+export function AgentRow({ agent, user, author }: AgentListProps) {
 
   return (
     <div className="bg-gray-100 border p-4 text-black">
@@ -41,7 +43,14 @@ export function AgentRow({ agent, author }: AgentListProps) {
           <div className="flex absolute bottom-0 right-0">
             <AgentJoin agent={agent} />
           </div>
-          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
+
+          {user && (
+            <div className="flex absolute top-0 right-0">
+              <AgentDelete agent={agent} />
+            </div>
+          )}
+
+          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author} {user && '(ME)'}</div>
         </div>
       </div>
     </div>
