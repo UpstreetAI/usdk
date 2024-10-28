@@ -96,12 +96,13 @@ const SubscriptionPlans = ({
             <div
               key={i}
               className={cn(
-                'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-100 border border-[2px] border-zinc-800',
+                'flex flex-col shadow-sm divide-y divide-zinc-600 bg-zinc-100 border border-[2px] border-zinc-800 relative',
                 'flex-1',
                 'basis-1/6',
                 'md:max-w-xs'
               )}
             >
+              <div style={{ backgroundImage: "url('/images/backgrounds/accounts/pattern-tile.png')", backgroundSize: "auto 100%" }} className='z-0 w-full h-full absolute top-0 left-0' />
               <div className="p-6 text-center text-zinc-800">
                 <h2 className="text-2xl font-semibold leading-6 capitalize">
                   {name}
