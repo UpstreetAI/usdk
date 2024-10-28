@@ -6,6 +6,7 @@ import Image from "next/image";
 import { IconUser } from "@/components/ui/icons";
 import { useState } from "react";
 import { IconButton } from "ucom";
+import { AgentJoin } from "@/components/cta";
 
 export interface AgentListProps {
   agent: any
@@ -13,11 +14,7 @@ export interface AgentListProps {
 }
 
 export function AgentRow({ agent, author }: AgentListProps) {
-
-  const { agentJoin } = useMultiplayerActions();
-
-  const [loadingChat, setLoadingChat] = useState(false);
-
+  
   return (
     <div className="bg-gray-100 border p-4 text-black">
       <div className="flex">
@@ -46,18 +43,7 @@ export function AgentRow({ agent, author }: AgentListProps) {
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex absolute bottom-0 right-0">
-            <IconButton
-              onClick={async e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                setLoadingChat(true);
-
-                await agentJoin(agent.id);
-              }}
-              icon="Chat"
-              size="small"
-              variant="primary" />
+            <AgentJoin agent={agent} />
           </div>
 
           <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
