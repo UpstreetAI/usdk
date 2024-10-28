@@ -56,7 +56,8 @@ const SubscriptionPlans = ({
   return (
     <div>
       <div className="mt-4 md:mt-8 space-y-4 sm:mt-8 sm:space-y-0 md:flex md:flex-wrap justify-center gap-6 lg:mx-auto xl:max-w-none xl:mx-0">
-        {currentPlan && (
+        
+        {currentPlan ? (
           <Button
             className="w-full mt-8"
             onClick={async (e) => {
@@ -75,7 +76,16 @@ const SubscriptionPlans = ({
             }}
           >
             Cancel
-          </Button>)}
+          </Button>) : (
+            <div className='w-full text-center text-xl text-zinc-800 bg-[#E4E8EF] p-4 opacity-[0.6]'>
+              You don’t have any active subscription
+            </div>
+          )}
+
+
+          <div className='w-full text-center text-xl text-zinc-800 font-bold'>
+            Choose Your Subscription Plan
+          </div>
 
         {plans.map((plan, i) => {
           const { name, currency, value, interval } = plan;
