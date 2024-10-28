@@ -107,6 +107,9 @@
   body {
     @apply bg-background text-foreground min-h-screen;
   }
+  .markdown {
+    color: #000000;
+  }
   .markdown h2 {
     font-size: 28px;
     margin-bottom: 16px;
