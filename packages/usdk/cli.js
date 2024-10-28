@@ -467,14 +467,16 @@ const login = async (args) => {
             output: process.stdout
           });
           rl.question('Paste login code: ', async (input) => {
-            try {
-              // loginCode is a base64 encoded json string
-              const loginCode = input.trim();
-              const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
-              const j = JSON.parse(decoded);
-              await handleLogin(j);
-            } catch (e) {
-              console.log('invalid login code');
+            // loginCode is a base64 encoded json string
+            const loginCode = input.trim();
+            if (loginCode) {
+              try {
+                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
+                const j = JSON.parse(decoded);
+                await handleLogin(j);
+              } catch (e) {
+                console.log('invalid login code');
+              }
             }
           });
         }
