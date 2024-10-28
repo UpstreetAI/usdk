@@ -23,6 +23,7 @@ export interface UserAgentsProps {
   range: number;
   row: boolean;
   agents: Agent[];
+  user: any;
 }
 
 export function Agents({ loadmore = false, search = true, range = 5, row = false }: AgentsProps) {
@@ -142,22 +143,15 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
   );
 }
 
-export function UserAgents({ agents = [], loadmore = false, search = true, range = 5, row = false }: UserAgentsProps) {
-  const { supabase } = useSupabase();
-
+export function UserAgents({ agents = [], user, range = 5, row = false }: UserAgentsProps) {
   const [userAgents, setUserAgents] = useState<Agent[]>(agents);
   const [loading, setLoading] = useState(false);
-  const [rangeFrom, setRangeFrom] = useState(0);
-  const [rangeTo, setRangeTo] = useState(range);
-  const [showLoadMore, setShowLoadMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
   return (
     <>
       <div className={`grid ${row ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
-        <AgentList agents={userAgents} loading={loading} range={range} />
+        <AgentList agents={userAgents} loading={loading} range={range} user={user} />
       </div>
     </>
   );

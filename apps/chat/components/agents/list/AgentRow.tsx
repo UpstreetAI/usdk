@@ -41,7 +41,6 @@ export function AgentRow({ agent, author }: AgentListProps) {
           <div className="flex absolute bottom-0 right-0">
             <AgentJoin agent={agent} />
           </div>
-
           <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
         </div>
       </div>

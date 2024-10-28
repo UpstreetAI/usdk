@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Agents } from './agents';
 import { Voices } from './voices';
 import { Profile } from './profile';
 import { Credits } from './credits';
@@ -140,8 +139,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8">
             My Agents <span className="text-gray-700">{agents.length}</span>
           </h1>
-          <UserAgents agents={agents} loadmore={false} search range={12} row={false} />
-          <Agents agents={agents} userIsCurrentUser={userIsCurrentUser} />
+          <UserAgents agents={agents} loadmore={false} search range={12} row={false} user={user} />
         </div>
         <div className={tab === 'voices' ? 'block w-full' : 'hidden'}>
           <Voices voices={voices} userIsCurrentUser={userIsCurrentUser} />
