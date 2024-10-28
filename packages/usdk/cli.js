@@ -367,7 +367,7 @@ const login = async (args) => {
   const handleLogin = async (j) => {
     // close the server if it's still active
     if (server) {
-      server.close();
+      await server.close();
       server = null;
     }
     // terminate the rl if it's still active
