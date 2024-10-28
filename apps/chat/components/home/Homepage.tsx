@@ -58,7 +58,7 @@ export default function Home() {
 
       <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
-      <div className="md:flex p-4 mx-auto max-w-7xl h-full md:pb-40">
+      <div className="md:flex p-4 mx-auto max-w-7xl h-full md:pb-40 relative">
 
         {/* <div className='my-auto md:w-[60%] pr-24'>
           <div className='text-4xl md:text-6xl font-bold'>
@@ -84,7 +84,7 @@ export default function Home() {
           </div>
         </div> */}
 
-        <div className='mt-8 md:mt-0 h-[42%] overflow-y-scroll md:h-full md:w-[100%] flex items-start'>
+        <div className='absolute bottom-40 h-[60%] overflow-y-scroll md:h-auto md:w-[100%] flex items-start'>
           <Agents search={false} loadmore={false} range={3} row={false} />
         </div>
       </div>
