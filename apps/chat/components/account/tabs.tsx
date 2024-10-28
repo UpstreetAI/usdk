@@ -44,7 +44,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
         </div>
         <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
           <div className="flex">
-            <div className="mr-4 size-18 min-w-18 md:size-36 md:min-w-36 bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+            <div className="mr-4 size-18 min-w-18 md:size-[150px] md:min-w-[150px] bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
               <div
                 className="w-full h-full bg-cover bg-top"
                 style={{
@@ -61,8 +61,8 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                 {!isValidUrl(user.preview_url) && user.name.charAt(0)}
               </div>
             </div>
-            <div>
-              <div className='flex items-center'>
+            <div className='w-full'>
+              <div className='flex items-center relative w-full mb-1'>
                 <h2 className="text-lg md:text-4xl uppercase text-stroke font-bold">{user.name}</h2>
                 <IconButton
                   onClick={logout}
@@ -71,11 +71,11 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   target={'_blank'}
                   className='ml-4'
                 />
-                <div className=''>
+                <div className='absolute right-0'>
                   <Credits user={user} />
                 </div>
               </div>
-              <div className="px-2 py-1 bg-black bg-opacity-60">{accountUrl}</div>
+              <div className="px-2 py-1 bg-black bg-opacity-60 inline-block">{accountUrl}</div>
               <div className='flex gap-4 mt-4'>
                 <IconButton
                   onClick={() => { setTab('profile'); }}

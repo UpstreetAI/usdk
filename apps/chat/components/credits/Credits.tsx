@@ -36,7 +36,7 @@ export function Credits({ user }: AccountButtonProps) {
   }, []);
 
   return (
-    <div className='mr-2 md:mr-6 flex items-center font-bold text-xl'>
+    <div className='mr-2 md:mr-6 flex items-center font-bold text-2xl'>
       <Icon icon='Credits' className="size-8" /> {loading ? "loading..." : Math.round(credits)}
     </div>
   )
