@@ -60,7 +60,7 @@ export default function Home() {
 
       <div className="md:flex p-4 mx-auto max-w-7xl h-full md:pb-40">
 
-        <div className='my-auto md:w-[60%] pr-24'>
+        {/* <div className='my-auto md:w-[60%] pr-24'>
           <div className='text-4xl md:text-6xl font-bold'>
             <div className={styles.flipBox}>
               <div className={styles.inner}>
@@ -82,10 +82,10 @@ export default function Home() {
           <div className='text-lg md:text-4xl text-stroke font-bold inline-block'>
             Create your own AIs using the AI builder or React.
           </div>
-        </div>
+        </div> */}
 
-        <div className='mt-8 md:mt-0 h-[42%] overflow-y-scroll md:h-full md:w-[40%] flex items-start'>
-          <Agents search={false} loadmore={false} range={3} row={true} />
+        <div className='mt-8 md:mt-0 h-[42%] overflow-y-scroll md:h-full md:w-[100%] flex items-start'>
+          <Agents search={false} loadmore={false} range={3} row={false} />
         </div>
       </div>
 
