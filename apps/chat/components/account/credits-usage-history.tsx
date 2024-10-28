@@ -7,7 +7,7 @@ export interface AgentsProps {
   creditsUsageHistory: any;
 }
 
-export function Credits({ creditsUsageHistory }: AgentsProps) {
+export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('paginated'); // 'paginated' or 'infinite'
   const itemsPerPage = 10;
