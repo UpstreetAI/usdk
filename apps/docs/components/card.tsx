@@ -36,9 +36,9 @@ function Card({
         }}
       >
         {/* Dark overlay for initial background */}
-        <div className="absolute inset-0 bg-fd-card-foreground dark:bg-fd-background opacity-60 z-[1]"></div>
+        <div className="absolute inset-0 bg-fd-card-foreground dark:bg-fd-background opacity-60 z-0"></div>
 
-        <div className="text relative z-0">
+        <div className="text relative z-[1]">
           <h1 className="font-bold text-xl md:text-3xl text-gray-50 relative">
             {title}
           </h1>
