@@ -1,11 +1,7 @@
 'use client';
 
 import { isValidUrl } from "@/utils/helpers/urls";
-import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
-import Image from "next/image";
 import { IconUser } from "@/components/ui/icons";
-import { useState } from "react";
-import { IconButton } from "ucom";
 import { AgentJoin } from "@/components/cta";
 
 export interface AgentListProps {
@@ -14,7 +10,7 @@ export interface AgentListProps {
 }
 
 export function AgentRow({ agent, author }: AgentListProps) {
-  
+
   return (
     <div className="bg-gray-100 border p-4 text-black">
       <div className="flex">
