@@ -363,6 +363,17 @@ const login = async (args) => {
   const local = !!args.local;
 
   const handleLogin = async (j) => {
+    // close the server if it's still active
+    if (server) {
+      server.close();
+      server = null;
+    }
+    // terminate the rl if it's still active
+    if (rl) {
+      console.log('*ok*');
+      rl.close();
+    }
+
     const {
       id,
       jwt,
@@ -379,7 +390,7 @@ const login = async (args) => {
     await new Promise((accept, reject) => {
       let rl = null;
       const serverOpts = getServerOpts();
-      const server = https.createServer(serverOpts, (req, res) => {
+      let server = https.createServer(serverOpts, (req, res) => {
         // console.log('got login response 1', {
         //   method: req.method,
         //   url: req.url,
@@ -407,15 +418,6 @@ const login = async (args) => {
           req.on('end', async () => {
             // respond to the page
             res.end();
-
-            // close the server
-            server.close();
-
-            // terminate the rl if it's still active
-            if (rl) {
-              console.log('*ok*');
-              rl.close();
-            }
 
             const b = Buffer.concat(bs);
             const s = b.toString('utf8');
