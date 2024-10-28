@@ -4,14 +4,21 @@ import EmscriptenWASM from "./EmscriptenWasm.js";
 
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+
 const loadWasm = p => {
   const b = fs.readFileSync(p);
   const m = new WebAssembly.Module(b);
   return m;
 };
 const dirname = path.dirname(new URL(import.meta.url).pathname);
-const wasmAudioDecoderCommon = loadWasm(path.join(dirname, 'wasm-audio-decoder-common.wasm'));
-const emscriptenWasm = loadWasm(path.join(dirname, 'emscripten-wasm.wasm'));
+let normalizedDirname = dirname;
+if (os.platform() === 'win32') {
+    normalizedDirname = path.normalize(dirname.startsWith('/') ? dirname.slice(1) : dirname);
+}
+
+const wasmAudioDecoderCommon = loadWasm(path.join(normalizedDirname, 'wasm-audio-decoder-common.wasm'));
+const emscriptenWasm = loadWasm(path.join(normalizedDirname, 'emscripten-wasm.wasm'));
 
 export default function MPEGDecoder(options = {}) {
   // injects dependencies when running as a web worker

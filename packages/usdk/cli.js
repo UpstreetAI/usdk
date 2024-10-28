@@ -3253,8 +3253,20 @@ const main = async () => {
   await program.parseAsync();
 };
 
+import os from 'os';
+
 // main module
-const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
+let isMainModule = false;
+const isWindows = os.platform() === 'win32';
+const isMainModuleRegex = /\/usdk(?:\.js)?$/;
+const isMainModuleWindowsRegex = /\\usdk(?:\.js)?$/;
+
+if (isWindows) {
+  isMainModule = isMainModuleRegex.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]) || isMainModuleWindowsRegex.test(process.argv[1]);
+} else {
+  isMainModule = isMainModuleRegex.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
+}
+
 if (isMainModule) {
   // handle uncaught exceptions
   const handleGlobalError = (err, err2) => {
