@@ -95,8 +95,8 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                 />
                 <IconButton
                   onClick={() => { setTab('credits'); }}
-                  icon="Payments"
-                  label="Payments"
+                  icon="Credits"
+                  label="Credits"
                   active={tab === 'credits'}
                   target={undefined}
                   size="large"
@@ -120,7 +120,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
                   />
                   <IconButton
                     onClick={() => { setTab('monetization'); }}
-                    icon="Users"
+                    icon="Payments"
                     label="Monetization"
                     active={tab === 'monetization'}
                     target={undefined}
