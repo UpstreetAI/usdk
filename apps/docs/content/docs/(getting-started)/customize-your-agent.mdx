@@ -9,35 +9,90 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
 <Accordions>
   <Accordion title="🟢 Prerequisites">
-    - A [created Agent](/create-an-agent)
+    - Upstreet SDK installed on your computer. [Install SDK](/install)
+    - Logged in to SDK. Follow instructions to [log in here](/install#log-into-the-sdk).
+    - An Upstreet Agent. [Create an Agent](/create-an-agent)
+    - Some preliminary knowledge of [React](https://react.dev)
   </Accordion>
 </Accordions>
 
-{/* Give overview first, describing on a high level how agent works -> input (perception), process (think), output (actuation) */}
+Learn how to extend an Agent’s functionality using [React](https://react.dev) components and intuitive primitives to build dynamic, intelligent agents with Upstreet. This guide will walk you through customizing your Agent step-by-step, with examples and tips to inspire you.
 
-If you're familiar with [React](https://react.dev), the UI library, the structure of an agent should look vaguely familiar:
+## Overview: How an Agent Works
+
+Agents follow a simple but powerful cycle: they **perceive** inputs, **process** them to generate insights or decisions, and **act** on their environment based on these decisions. This perception-think-act model is broken down into components that work together to define your Agent’s functionality.
+
+Read our [*What Are Agents?*](/concepts/what-are-agents) guide to get familiar with Agent basics.
+
+Explore [Upstreet’s Agent Architecture](/concepts/agents-sdk/architecture) to learn more about how Agents operate behind the scenes.
+
+## Agent Structure at a Glance
+
+If you’re familiar with [React](https://react.dev), the structure of an Agent will look familiar. Here’s a basic example to get you started:
 
 ```tsx
 const MyAgent = () => (
   <Agent>
-    <Prompt>This assistant is developed by MultiCorital Example Technologies. Refer the user to the help pages on https://multicortical.example.com/</Prompt>
+    <Prompt>
+      This assistant is developed by MultiCortical Example Technologies. For support, refer users to our help pages at https://multicortical.example.com/
+    </Prompt>
   </Agent>
 );
 export default MyAgent;
 ```
 
-At the most basic level, `react-agents` lets you manage the prompts for your agent. More generally, `react-agents` breaks down the problem of agent development into four primitive components:
+The example above shows the basic setup, where a simple prompt is added to guide the Agent’s interactions. The `react-agents` library, however, allows much more flexibility through four core components.
+## Key Components of an Agent
 
-| Component | Description |
-| :-------- | :------- |
-| ```<Prompt />```  | Specifies a prompt that will be used in agent inference.    |
-| ```<Action />```  | Enables agents to perform actions using LLM tool-calling facilities.    |
-| ```<Perception />```  | Allows agents to perceive real-world events.    |
-| ```<Task />```  | Lets agents schedule their runtime and run as asynchronous processes.   |
+Using the `react-agents` library, Agent customization is broken down into four core components:
 
-You can import them from our SDK package as follows:
+| Component      | Purpose                                                        |
+| -------------- | -------------------------------------------------------------- |
+| `<Prompt />`   | Sets initial instructions and context for the Agent’s behavior. |
+| `<Action />`   | Defines actions the Agent can perform, utilizing LLM tool-calling facilities. |
+| `<Perception />` | Allows the Agent to perceive and react to real-world events.    |
+| `<Task />`     | Schedules tasks for the Agent, enabling it to manage asynchronous processes.  |
+
+Import these components from the SDK package:
+
 ```tsx
-import { Prompt, Actions, Perceptions, Tasks } from 'react-agents';
+import { Prompt, Action, Perception, Task } from 'react-agents';
 ```
 
-An agent consists of a collection of components implementing these primitives.
+Each component adds specific functionality, enabling you to build intelligent, responsive Agents. Let’s dive into each one in more detail.
+
+An Agent consists of a collection of components implementing these primitives.
+
+
+## Bringing It All Together
+
+Here’s a sample setup that combines these components:
+
+```tsx
+const MyAgent = () => (
+  <Agent>
+    <Prompt>I'm here to help you with information about our services and products.</Prompt>
+    <Action name="fetchProductInfo">Retrieve the latest product details based on user query.</Action>
+    <Perception trigger="userInactive">Remind user of inactivity after 5 minutes.</Perception>
+    <Task schedule="every day at 9am">Send daily summary report.</Task>
+  </Agent>
+);
+```
+
+This setup provides a well-rounded Agent equipped to respond, perceive, act, and manage scheduled tasks effectively.
+
+## Custom Logic and Advanced Patterns
+
+With `react-agents`, you can introduce custom logic within components, such as conditional rendering, state management, and data manipulation, using native React hooks and patterns.
+
+To explore advanced customization:
+- Refer to our [Concepts guide](/concepts/agents-sdk/agent-structure).
+- See our [examples](/examples) for different applications and use cases.
+
+---
+
+## Ready for More?
+
+With these foundational components, you can customize your Agent to fit various tasks, from customer support to data processing. Next steps:
+- **[Test your Agent](/test-your-agent)**: See how it responds and make adjustments.
+- **[Deploy your Agent](/deploy-your-agent)**: Launch your Agent on Upstreet’s platform for real-world interactions.
