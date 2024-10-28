@@ -152,6 +152,9 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <CreditsUsageHistory creditsUsageHistory={creditsUsageHistory} />
         </div>
         <div className={tab === 'subscriptions' ? 'block w-full' : 'hidden'}>
+          <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b">
+            Manage Subscriptions
+          </h1>
           <AccountSubscriptions user={user} userPrivate={userPrivate} />
         </div>
         <div className={tab === 'monetization' ? 'block w-full' : 'hidden'}>
