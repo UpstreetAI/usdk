@@ -20,7 +20,13 @@ export const packZip = async (dirPath, { exclude = [] } = {}) => {
   }
 };
 
-// Windows zipping strategy (file content read into memory)
+const normalizeLineEndings = (content) => {
+  if (typeof content === 'string') {
+    return content.replace(/\r\n/g, '\n'); // Normalize to Unix line endings
+  }
+  return content;
+};
+
 const packZipForWindows = async (dirPath, { exclude }) => {
   try {
     let files = await recursiveReaddir(dirPath);
@@ -29,8 +35,9 @@ const packZipForWindows = async (dirPath, { exclude }) => {
     const zip = new JSZip();
     for (const filePath of files) {
       const basePath = path.relative(dirPath, filePath);
-      const fileContent = await readFile(filePath); // Read file content directly
-      zip.file(basePath, fileContent); // Add it to the zip
+      let fileContent = await readFile(filePath, 'binary'); // Ensure binary mode
+      fileContent = normalizeLineEndings(fileContent); // Normalize line endings
+      zip.file(basePath, fileContent);
     }
 
     const arrayBuffer = await zip.generateAsync({
@@ -43,7 +50,7 @@ const packZipForWindows = async (dirPath, { exclude }) => {
 
     return new Uint8Array(arrayBuffer);
   } catch (error) {
-    console.error('Error during Windows zipping:', error);
+    console.error('Error during Windows zipping with normalization:', error);
   }
 };
 
