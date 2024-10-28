@@ -63,7 +63,7 @@ export function AccountProfile({ account }: AccountProps) {
       <div className="w-full max-w-6xl mx-auto relative px-4 mt-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-8">
           {account.agents.map((agent) => (
-            <AgentRow key={agent.id} agent={agent} author={account.name} />
+            <AgentRow key={agent.id} agent={agent} author={account.name} user={null} />
           ))}
         </div>
       </div>
