@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { API_V1_1_PREFIX, API_V1_1_UPLOAD_PREFIX } from '../globals';
 import { hasMultipleItems } from '../helpers';
 import {

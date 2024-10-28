@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import { safeDeprecationWarning } from '../helpers';
 import type { TUploadableMedia, TUploadTypeV1 } from '../types';
 import { EUploadMimeType } from '../types';
