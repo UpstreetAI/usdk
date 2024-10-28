@@ -1,4 +1,4 @@
-import child_process from 'child_process';
+import crossSpawn from 'cross-spawn';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
 
@@ -93,9 +93,14 @@ export class ReactAgentsLocalRuntime {
       portIndex,
     } = this.agentSpec;
 
+    let wranglerExecutable = wranglerBinPath;
+    if (process.platform === 'win32') {
+      wranglerExecutable = `${wranglerBinPath}.cmd`;
+    }
+
     // spawn the wrangler child process
-    const cp = child_process.spawn(
-      wranglerBinPath,
+    const cp = crossSpawn(
+      wranglerExecutable,
       [
         'dev',
         '--var', 'WORKER_ENV:development',
