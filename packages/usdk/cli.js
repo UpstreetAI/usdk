@@ -362,6 +362,8 @@ const status = async (args) => {
 const login = async (args) => {
   const local = !!args.local;
 
+  let server = null;
+  let rl = null;
   const handleLogin = async (j) => {
     // close the server if it's still active
     if (server) {
@@ -388,9 +390,8 @@ const login = async (args) => {
 
   // if (!anonymous) {
     await new Promise((accept, reject) => {
-      let rl = null;
       const serverOpts = getServerOpts();
-      let server = https.createServer(serverOpts, (req, res) => {
+      server = https.createServer(serverOpts, (req, res) => {
         // console.log('got login response 1', {
         //   method: req.method,
         //   url: req.url,
