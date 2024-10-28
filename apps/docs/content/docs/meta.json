@@ -1,0 +1,5 @@
+{
+    "title": "Documentation",
+    "pages": ["(getting-started)", "examples", "concepts", "migration-guides", "pricing"],
+    "defaultOpen": true
+}
