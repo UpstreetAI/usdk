@@ -4,11 +4,11 @@ import * as React from 'react'
 import { LoginButton } from '@/components/ui/Header/login-button'
 import { AccountButton } from '@/components/ui/Header/account-button'
 
-export function AccountOrLogin({user, credits = 0}: any) {
+export function AccountOrLogin({user}: any) {
   return (
     <>
       {user ? (
-        <AccountButton user={user} credits={credits} />
+        <AccountButton user={user} />
       ) : (
         <LoginButton className='mr-4' text={"Login"} />
       )}

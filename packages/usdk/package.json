@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.59",
+  "version": "0.0.65",
   "author": "Upstreet",
   "type": "module",
   "keywords": [
@@ -12,6 +12,9 @@
     "agent-framework",
     "agentic-ai"
   ],
+  "engines": {
+    "node": ">=22.9.0"
+  },
   "homepage": "https://upstreet.ai",
   "description": "AI Agents SDK in TypeScript and React.",
   "main": "module.mjs",
