@@ -5,7 +5,8 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import { TwitterApi } from 'twitter-api-v2';
+// import { Client as TwitterClient } from 'twitter-api-sdk';
+// console.log('twitter client', TwitterClient);
 
 import type {
   AppContextValue,
@@ -3261,10 +3262,16 @@ export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) =>
   useEffect(() => {
     (async () => {
       if (token) {
-        console.log('twitter client 1', token);
-        const twitterClient = new TwitterApi(token); // XXX
+        // console.log('twitter client 1', token);
+        // const client = new TwitterClient(token, {
+        //   endpoint: `https://ai.upstreet.ai/api/twitter`,
+        // });
+        // console.log('twitter client 2', client);
 
-        // Tell typescript it's a readonly app
+        // const tweet = await client.tweets.findTweetById('20');
+        // console.log('tweet', tweet);
+
+        /* // Tell typescript it's a readonly app
         const readOnlyClient = twitterClient.readOnly;
 
         // Play with the built in methods
@@ -3281,7 +3288,7 @@ export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) =>
           console.log('Tweet sent successfully');
         } catch (error) {
           console.error('Error sending tweet:', error);
-        }
+        } */
       }
     })();
   }, [token]);
