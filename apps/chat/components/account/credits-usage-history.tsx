@@ -60,14 +60,14 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
 
   return (
     <div className="m-auto w-full">
-      <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
+      {/* <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
         <button
           className="ml-auto px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded hover:bg-gray-900"
           onClick={() => setViewMode(viewMode === 'paginated' ? 'infinite' : 'paginated')}
         >
           Switch to {viewMode === 'paginated' ? 'Infinite Scroll' : 'Paginated View'}
         </button>
-      </div>
+      </div> */}
       <div className="w-full m-auto my-4">
         <div>
           {/* Desktop View */}
