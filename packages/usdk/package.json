@@ -1,8 +1,22 @@
 {
   "name": "usdk",
   "version": "0.0.65",
-  "description": "",
+  "author": "Upstreet",
   "type": "module",
+  "keywords": [
+    "ai",
+    "ai-agents",
+    "agents",
+    "artificial-intelligence",
+    "llm",
+    "agent-framework",
+    "agentic-ai"
+  ],
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "homepage": "https://upstreet.ai",
+  "description": "AI Agents SDK in TypeScript and React.",
   "main": "module.mjs",
   "bin": {
     "usdk": "./usdk.js"
@@ -10,7 +24,6 @@
   "scripts": {
     "prepublishOnly": "rm -Rf sdk/node_modules"
   },
-  "author": "",
   "license": "ISC",
   "files": [
     "certs-local",
