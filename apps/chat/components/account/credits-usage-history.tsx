@@ -3,6 +3,7 @@
 import { isValidUrl } from '@/lib/utils';
 import { formatDateStringMoment } from '@/utils/helpers/dates';
 import React, { useEffect, useState } from 'react';
+import { Icon } from 'ucom';
 
 export interface AgentsProps {
   creditsUsageHistory: any;
@@ -113,7 +114,9 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
                       {agent?.id}
                     </td>
                     <td key={'t-5'} className="px-6 py-4 min-w-80 text-right text-2xl font-bold capitalize align-middle">
-                        {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0).toFixed(2)}
+                      <div className='flex justify-end items-center'>
+                        <span className='text-[#00C0FF]'><Icon icon='Credits' className="size-8" /></span> {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0).toFixed(2)}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -173,7 +176,7 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
             ))}
           </div>
 
-          {viewMode === 'paginated' && (
+          {/* {viewMode === 'paginated' && (
             <div className="flex justify-center mt-4">
               <button
                 className="px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-l hover:bg-gray-900"
@@ -200,7 +203,7 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
                 Next
               </button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
