@@ -71,8 +71,8 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
           Switch to {viewMode === 'paginated' ? 'Infinite Scroll' : 'Paginated View'}
         </button>
       </div>
-      <div className="w-full m-auto my-4 border rounded-md p border-zinc-700">
-        <div className="px-5 py-4">
+      <div className="w-full m-auto my-4">
+        <div>
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-400">
