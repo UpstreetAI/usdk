@@ -57,8 +57,6 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
     }
   }, [viewMode]);
 
-  console.log(agents)
-
   return (
     <div className="m-auto w-full">
       {/* <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
