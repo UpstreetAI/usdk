@@ -58,12 +58,6 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
   return (
     <div className="m-auto w-full">
       <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
-        <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
-          Credits
-        </h1>
-        <p className="max-w-2xl m-auto md:mt-4 text-lg text-zinc-200 sm:text-center sm:text-xl">
-          Overall credits usage history.
-        </p>
         <button
           className="ml-auto px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded hover:bg-gray-900"
           onClick={() => setViewMode(viewMode === 'paginated' ? 'infinite' : 'paginated')}
