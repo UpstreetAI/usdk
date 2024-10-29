@@ -86,11 +86,11 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
               <tbody>
                 {agents?.map((agent: any, i: number) => (
                   <tr className="hover:bg-[rgba(0,0,0,0.1)] text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
-                    <td key={'t-1'} className="px-6 py-4 text-md capitalize align-top">
+                    <td key={'t-1'} className="px-6 py-4 text-md capitalize align-middle">
                       {i + 1}
                     </td>
-                    <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
-                      <div className="mr-4 size-[60px] bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+                    <td key={'t-2'} className="px-6 py-4 text-md capitalize align-middle">
+                      <div className="size-[60px] bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-900">
                         <div
                           className="w-full h-full bg-cover bg-top"
                           style={{
@@ -108,13 +108,13 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
                         </div>
                       </div>
                     </td>
-                    <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
+                    <td key={'t-3'} className="px-6 py-4 text-2xl font-bold capitalize align-middle">
                       {agent?.name}
                     </td>
-                    <td key={'t-4'} className="px-6 py-4 text-md align-top">
+                    <td key={'t-4'} className="px-6 py-4 text-md align-middle">
                       {agent?.id}
                     </td>
-                    <td key={'t-5'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
+                    <td key={'t-5'} className="px-6 py-4 min-w-80 text-right text-2xl font-bold capitalize align-middle">
                         {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0).toFixed(2)}
                     </td>
                   </tr>
