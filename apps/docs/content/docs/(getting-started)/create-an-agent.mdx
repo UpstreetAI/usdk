@@ -11,15 +11,15 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
  
 
 <Accordions>
-  <Accordion title="🟢 Prerequisites">
-    - [Upstreet SDK](https://www.upstreet.ai/sdk) installed on your computer
-    - You must be [logged in](/install#log-into-the-sdk) to the SDK
+  <Accordion title="🟢 Prerequisites" defaultOpen>
+    - Upstreet SDK installed on your computer. [Install SDK](/install)
+    - Logged in to SDK. Follow instructions to [log in here](/install#log-into-the-sdk).
   </Accordion>
 </Accordions>
 
-Upstreet AI Agents are autonomous, customizable digital entities that handle tasks, communicate, and interact based on configurations you set.
+Upstreet AI Agents are fully customizable digital entities that autonomously handle tasks, communicate, and interact according to your configuration.
 
-**Not sure what Agents are?** Learn more about Agentic AI, and the concepts behind it, in our [Concepts](/learn).
+**New to designing Agents?** Explore how to define effective Agent objectives and strategies in our [Agent Design Concepts](/concepts/defining-agent-objectives).
 
 ## Quickstart: Creating an Agent
 With Upstreet, getting started is easy. Here’s how to set up your first Agent.
@@ -52,7 +52,7 @@ The `usdk create` command initiates an interactive “interview” process with 
 
 ### File Structure
 
-Let’s say you named your project directory “my-agent”. After running `usdk create`, here’s what your setup will look like:
+Assuming you’ve named your project directory “my-agent,” here’s the structure you’ll see post-setup:
 
 <Wrapper>
 <Files className='max-w-lg w-full'>
@@ -69,9 +69,12 @@ Let’s say you named your project directory “my-agent”. After running `usdk
     <File name="package.json" />
     <File name="tsconfig.json" />
     <File name="wrangler.toml" />
+    <File name="README.md" />
   </Folder>
 </Files>
 </Wrapper>
+
+For a breakdown of these files, see our [Agent Structure guide]((/concepts/agents-sdk/agent-structure)).
 
 <Callout>
 Remember to keep your Agent’s configuration secure. Avoid making this repository public on platforms like GitHub, as sensitive keys could be exposed.

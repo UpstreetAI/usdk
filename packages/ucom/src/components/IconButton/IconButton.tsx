@@ -51,15 +51,18 @@ const IconButton: React.FC<IconButtonProps> = forwardRef<HTMLButtonElement, Icon
   }
 
   return (
-    <button
-      ref={ref}
-      className={className}
-      disabled={disabled}
-      {...props}
-    >
-      <Icon icon={icon} />
-      {label && <div className={`${styles.label} absolute top-full w-full left-0 text-center font-bold`}>{label}</div>}
-    </button>
+    <div className='relative'>
+      <button
+        {...props}
+        ref={ref}
+        className={className}
+        disabled={disabled}
+      >
+        <Icon icon={icon} />
+      </button>
+      { /* TODO: Figure out why the <button> and the <a> tag show different height, therefore label top: is not the same */ }
+      {label && <div className={`${styles.label} ${styles.buttonLabel} font-bold text-stroke`}>{label}</div>}
+    </div>
   );
 });
 

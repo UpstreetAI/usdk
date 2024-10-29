@@ -1,8 +1,22 @@
 {
   "name": "usdk",
-  "version": "0.0.59",
-  "description": "",
+  "description": "AI Agents SDK in TypeScript and React.",
+  "version": "0.0.68",
+  "author": "Upstreet",
   "type": "module",
+  "keywords": [
+    "ai",
+    "ai-agents",
+    "agents",
+    "artificial-intelligence",
+    "llm",
+    "agent-framework",
+    "agentic-ai"
+  ],
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "homepage": "https://upstreet.ai",
   "main": "module.mjs",
   "bin": {
     "usdk": "./usdk.js"
@@ -10,7 +24,6 @@
   "scripts": {
     "prepublishOnly": "rm -Rf sdk/node_modules"
   },
-  "author": "",
   "license": "ISC",
   "files": [
     "certs-local",
@@ -36,6 +49,13 @@
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.4",
     "codecs": "file:./packages/upstreet-agent/packages/codecs",
+    "lamejs": "file:./packages/upstreet-agent/packages/codecs/packages/lamejs",
+    "libopusjs": "file:./packages/upstreet-agent/packages/codecs/packages/libopusjs",
+    "mpg123-decoder": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder",
+    "@wasm-audio-decoders/common": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common",
+    "wrangler": "^3.60.2",
+    "@eshaz/web-worker": "1.2.2",
+    "simple-yenc": "^1.0.4",
     "commander": "^12.0.0",
     "cookie": "^0.6.0",
     "dedent": "^1.5.3",

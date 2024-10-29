@@ -477,9 +477,9 @@ export class DurableObjectImpl extends EventTarget {
             only = false,
           } = body ?? {};
           if (typeof room === 'string') {
-            if (only) {
-              await this.chatsSpecification.leaveAll();
-            }
+            // if (only) {
+            //   await this.chatsSpecification.leaveAll();
+            // }
 
             await this.chatsSpecification.join({
               room,
