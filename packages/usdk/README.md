@@ -39,7 +39,7 @@ npm install -g usdk
 
 USDK integrates smoothly with various development environments:
 
-- Node.js (version 22.1.0 and above)
+- Node.js (version 22.9.0 and above)
 - Windows, macOS, and Linux compatible
 
 ## What is Upstreet SDK and How Does It Help?
