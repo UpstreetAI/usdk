@@ -39,6 +39,7 @@
     "lamejs": "file:./packages/upstreet-agent/packages/codecs/packages/lamejs",
     "libopusjs": "file:./packages/upstreet-agent/packages/codecs/packages/libopusjs",
     "mpg123-decoder": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder",
+    "@wasm-audio-decoders/common": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common",
     "commander": "^12.0.0",
     "cookie": "^0.6.0",
     "dedent": "^1.5.3",
