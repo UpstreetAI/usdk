@@ -1,6 +1,6 @@
 {
   "name": "usdk",
-  "version": "0.0.66",
+  "version": "0.0.67",
   "description": "",
   "type": "module",
   "main": "module.mjs",
