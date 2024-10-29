@@ -1,5 +1,6 @@
 'use client';
 
+import { isValidUrl } from '@/lib/utils';
 import { formatDateStringMoment } from '@/utils/helpers/dates';
 import React, { useEffect, useState } from 'react';
 
@@ -73,7 +74,7 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-400">
-                <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
+              <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
                 <tr>
                   <th key={'num'} scope="col" className="p-6">#</th>
                   <th key={'image'} scope="col" className="p-6"></th>
@@ -84,12 +85,28 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
               </thead>
               <tbody>
                 {agents?.map((agent: any, i: number) => (
-                  <tr className="hover:bg-border text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
+                  <tr className="hover:bg-[rgba(0,0,0,0.1)] text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
                     <td key={'t-1'} className="px-6 py-4 text-md capitalize align-top">
-                      {i+1}
+                      {i + 1}
                     </td>
                     <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
-                      IMAGE
+                      <div className="mr-4 size-[60px] bg-gray-100 overflow-hidden flex items-center justify-center border-2 border-gray-900">
+                        <div
+                          className="w-full h-full bg-cover bg-top"
+                          style={{
+                            backgroundImage: isValidUrl(agent.preview_url) ? `url(${agent.preview_url})` : 'none',
+                            backgroundColor: isValidUrl(agent.preview_url) ? 'transparent' : '#ccc',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '2rem',
+                            fontWeight: 'bold',
+                            color: '#fff',
+                          }}
+                        >
+                          {!isValidUrl(agent.preview_url) && agent.name.charAt(0)}
+                        </div>
+                      </div>
                     </td>
                     <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
                       {agent?.name}
@@ -98,7 +115,7 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
                       {agent?.id}
                     </td>
                     <td key={'t-5'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
-                      {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0)}
+                        {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}
@@ -170,9 +187,8 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
               {getPageNumbers().map((pageNumber) => (
                 <button
                   key={pageNumber}
-                  className={`px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 ${
-                    pageNumber === currentPage ? 'bg-gray-700' : ''
-                  }`}
+                  className={`px-4 py-2 text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 ${pageNumber === currentPage ? 'bg-gray-700' : ''
+                    }`}
                   onClick={() => paginate(pageNumber)}
                 >
                   {pageNumber}
