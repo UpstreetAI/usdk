@@ -75,25 +75,29 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
             <table className="w-full text-sm text-left text-gray-400">
                 <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
                 <tr>
-                  <th key={'info'} scope="col" className="p-6">#</th>
-                  <th key={'creds'} scope="col" className="p-6">Credits Used</th>
-                  <th key={'agent_id'} scope="col" className="p-6">Agent ID</th>
-                  <th key={'preview'} scope="col" className="p-6 text-right">Date</th>
+                  <th key={'num'} scope="col" className="p-6">#</th>
+                  <th key={'image'} scope="col" className="p-6"></th>
+                  <th key={'an'} scope="col" className="p-6">Agent Name</th>
+                  <th key={'aid'} scope="col" className="p-6">Agent ID</th>
+                  <th key={'ta'} scope="col" className="p-6 text-right">Total Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {agents?.map((agent: any, i: number) => (
                   <tr className="hover:bg-border text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
+                    <td key={'t-1'} className="px-6 py-4 text-md capitalize align-top">
+                      {i+1}
+                    </td>
                     <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
-                      {agent?.id}
+                      IMAGE
                     </td>
                     <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
                       {agent?.name}
                     </td>
                     <td key={'t-4'} className="px-6 py-4 text-md align-top">
-                      {agent?.description}
+                      {agent?.id}
                     </td>
-                    <td key={'t-1'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
+                    <td key={'t-5'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
                       {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0)}
                     </td>
                   </tr>
