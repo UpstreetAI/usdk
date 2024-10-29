@@ -56,7 +56,7 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
   }, [viewMode]);
 
   return (
-    <div className="m-auto w-full max-w-4xl">
+    <div className="m-auto w-full">
       <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
         <h1 className="text-2xl font-extrabold text-white sm:text-center sm:text-4xl">
           Credits
