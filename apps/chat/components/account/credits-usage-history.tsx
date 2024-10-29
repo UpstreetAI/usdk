@@ -85,7 +85,7 @@ export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps
               </thead>
               <tbody>
                 {agents?.map((agent: any, i: number) => (
-                  <tr className="hover:bg-[rgba(0,0,0,0.1)] text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
+                  <tr className="hover:bg-[rgba(0,0,0,0.1)] text-[rgba(0,0,0,0.8)] mt-1" key={i}>
                     <td key={'t-1'} className="px-6 py-4 text-md capitalize align-middle">
                       {i + 1}
                     </td>
