@@ -76,12 +76,12 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-400">
-              <thead className="text-xs text-gray-50 uppercase bg-border">
+                <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
                 <tr>
-                  <th key={'info'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Service</th>
-                  <th key={'creds'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Credits Used</th>
-                  <th key={'agent_id'} scope="col" className="px-6 py-3 text-[rgba(255,255,255,0.6)]">Agent ID</th>
-                  <th key={'preview'} scope="col" className="px-6 text-right py-3 text-[rgba(255,255,255,0.6)]">Date</th>
+                  <th key={'info'} scope="col" className="px-6 py-3">Service</th>
+                  <th key={'creds'} scope="col" className="px-6 py-3">Credits Used</th>
+                  <th key={'agent_id'} scope="col" className="px-6 py-3">Agent ID</th>
+                  <th key={'preview'} scope="col" className="px-6 text-right py-3">Date</th>
                 </tr>
               </thead>
               <tbody>
