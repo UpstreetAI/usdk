@@ -5,9 +5,10 @@ import React, { useEffect, useState } from 'react';
 
 export interface AgentsProps {
   creditsUsageHistory: any;
+  agents: any
 }
 
-export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
+export function CreditsUsageHistory({ creditsUsageHistory, agents }: AgentsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState('paginated'); // 'paginated' or 'infinite'
   const itemsPerPage = 10;
@@ -55,6 +56,8 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
     }
   }, [viewMode]);
 
+  console.log(agents)
+
   return (
     <div className="m-auto w-full">
       <div className="sm:flex sm:flex-col sm:align-center py-2 md:py-4">
@@ -70,6 +73,36 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-scroll md:overflow-x-auto">
             <table className="w-full text-sm text-left text-gray-400">
+                <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
+                <tr>
+                  <th key={'info'} scope="col" className="p-6">#</th>
+                  <th key={'creds'} scope="col" className="p-6">Credits Used</th>
+                  <th key={'agent_id'} scope="col" className="p-6">Agent ID</th>
+                  <th key={'preview'} scope="col" className="p-6 text-right">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {agents?.map((agent: any, i: number) => (
+                  <tr className="hover:bg-border text-white text-[rgba(0,0,0,0.8)] mt-1" key={i}>
+                    <td key={'t-2'} className="px-6 py-4 text-md capitalize align-top">
+                      {agent?.id}
+                    </td>
+                    <td key={'t-3'} className="px-6 py-4 text-md capitalize align-top">
+                      {agent?.name}
+                    </td>
+                    <td key={'t-4'} className="px-6 py-4 text-md align-top">
+                      {agent?.description}
+                    </td>
+                    <td key={'t-1'} className="px-6 py-4 min-w-80 text-right text-md capitalize align-top">
+                      {agent?.credits_usage?.reduce((sum: number, usage: any) => sum + usage.amount, 0)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* <table className="w-full text-sm text-left text-gray-400">
                 <thead className="text-xs text-[rgba(0,0,0,0.6)] uppercase" style={{ backgroundColor: 'rgba(86, 154, 212, 0.2)' }}>
                 <tr>
                   <th key={'info'} scope="col" className="p-6">Service</th>
@@ -97,7 +130,7 @@ export function CreditsUsageHistory({ creditsUsageHistory }: AgentsProps) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </div> */}
 
           {/* Mobile View */}
           <div className="md:hidden block space-y-4">

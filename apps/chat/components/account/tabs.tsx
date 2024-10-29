@@ -152,7 +152,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8">
             Credits Expanditure
           </h1>
-          <CreditsUsageHistory creditsUsageHistory={creditsUsageHistory} />
+          <CreditsUsageHistory creditsUsageHistory={creditsUsageHistory} agents={agents} />
         </div>
         <div className={tab === 'subscriptions' ? 'block w-full' : 'hidden'}>
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b">
