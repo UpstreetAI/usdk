@@ -16,11 +16,12 @@ export async function generateMetadata({
   const supabase = makeAnonymousClient(env);
   const agentId = decodeURIComponent(params.id)
 
-  const { data: accountData } = await supabase
+  const result = await supabase
     .from('accounts')
     .select('*')
     .eq('id', agentId)
     .single();
+  const accountData = result.data as any;
 
   const meta = {
     title: accountData?.name ?? 'Agent not found!',
