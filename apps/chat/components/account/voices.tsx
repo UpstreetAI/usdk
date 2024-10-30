@@ -73,7 +73,8 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                     // .eq('user_id', userId)
                     .eq('type', 'voice')
                     .maybeSingle();
-                  const { error, data } = result;
+                  const error = result.error as any;
+                  const data = result.data as any;
                   if (!error) {
                     // console.log(JSON.stringify(data, null, 2));
                     if (data) {
