@@ -1,19 +1,14 @@
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
+
 const loadWasm = p => {
   const b = fs.readFileSync(p);
   const m = new WebAssembly.Module(b);
   return m;
 };
-const dirname = path.dirname(new URL(import.meta.url).pathname);
-let normalizedDirname = dirname;
-if (os.platform() === 'win32') {
-    normalizedDirname = path.normalize(dirname.startsWith('/') ? dirname.slice(1) : dirname);
-}
 
-const libopusPath = path.join(normalizedDirname, 'libopus.wasm');
-const wasm = loadWasm(libopusPath);
+let dirname = import.meta.dirname;
+const wasm = loadWasm(path.join(dirname, '/libopus.wasm'));
 
 const location = new URL('http://localhost');
 
