@@ -8,15 +8,31 @@ import { QueueManager } from 'queue-manager';
 import os from 'os';
 import archiver from 'archiver';
 
+/**
+ * Packs the specified directory into a zip file.
+ * The `node_modules` folder is excluded by default.
+ * 
+ * @param {string} dirPath - The path of the directory to pack.
+ * @param {Object} options - Options for packing.
+ * @param {Array} [options.exclude=[]] - Additional patterns to exclude.
+ * @returns {Promise} - A promise that resolves when packing is complete.
+ */
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
   const platform = os.platform();
 
-  if (platform === 'win32') {
-    return packZipForWindows(dirPath, { exclude });
-  } else {
-    return packZipForUnix(dirPath, { exclude });
-  }
+  // Combine the default exclusion for node_modules with any user-defined exclusions
+  const finalExclude = [
+    ...(platform === 'win32' ? [/node_modules[\\/]/] : [/\/node_modules\//]),
+    ...exclude
+  ];
+
+  // Choose the packing function based on the platform
+  const packFunction = platform === 'win32' ? packZipForWindows : packZipForUnix;
+
+  // Execute the appropriate packing function
+  return packFunction(dirPath, { exclude: finalExclude });
 };
+
 
 // Helper function to filter files with regular expressions
 const filterFiles = (files, excludePatterns) => {
