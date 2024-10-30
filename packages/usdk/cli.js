@@ -2666,7 +2666,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-const main = async () => {
+export const main = async () => {
   let commandExecuted = false;
   program
     .name('usdk')
@@ -3289,34 +3289,3 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-
-// main module
-let isMainModule = false;
-const isWindows = os.platform() === 'win32';
-const isMainModuleRegex = /\/usdk(?:\.js)?$/;
-const isMainModuleWindowsRegex = /\\usdk(?:\.js)?$/;
-
-if (isWindows) {
-  isMainModule = isMainModuleRegex.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]) || isMainModuleWindowsRegex.test(process.argv[1]);
-} else {
-  isMainModule = isMainModuleRegex.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
-}
-
-if (isMainModule) {
-  // handle uncaught exceptions
-  const handleGlobalError = (err, err2) => {
-    console.log('cli uncaught exception', err, err2);
-    process.exit(1);
-  };
-  process.on('uncaughtException', handleGlobalError);
-  process.on('unhandledRejection', handleGlobalError);
-
-  // run main
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.warn(err.stack);
-    }
-  })();
-}
