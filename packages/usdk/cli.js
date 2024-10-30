@@ -108,6 +108,8 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import os from 'os';
+
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -3288,8 +3290,6 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-
-import os from 'os';
 
 // main module
 let isMainModule = false;
