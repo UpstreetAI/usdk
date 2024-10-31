@@ -2,7 +2,7 @@
 import { main } from './cli.js';
 
 // Set up global error handling
-['uncaughtException', 'unhandledRejection'].forEach(event => 
+['uncaughtException', 'unhandledRejection'].forEach(event =>
   process.on(event, (err, err2) => {
     console.log('cli uncaught exception', err, err2);
     process.exit(1);
