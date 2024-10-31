@@ -2,11 +2,7 @@
   "name": "twitter-api-sdk",
   "version": "1.2.1",
   "description": "A TypeScript SDK for the Twitter API",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "/dist"
-  ],
+  "main": "src/index.ts",
   "scripts": {
     "build": "tsc",
     "prebuild": "yarn clean",
