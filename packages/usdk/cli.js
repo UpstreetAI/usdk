@@ -59,6 +59,7 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
+  discordUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
@@ -1265,12 +1266,11 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
-      console.warn(pc.yellow(`
+      console.warn(pc.yellow(`\
 ⚠️  Could not run the speaker module. You may not be able to hear your Agent.
 To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/usdk/help/speaker-module
 
-For further assistance, please contact support or ask for help in our Discord community:
-https://discord.gg/5THYT5uX
+For further assistance, please contact support or ask for help in our Discord community: ${discordUrl}
         `));
       return null;
     }
