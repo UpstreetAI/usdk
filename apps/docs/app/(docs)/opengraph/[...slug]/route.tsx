@@ -8,8 +8,6 @@ const size = {
     height: 630,
 }
 
-export const contentType = 'image/png'
-
 export async function GET(
     _request: Request,
     { params }: { params: Promise<{ slug: string }> }
