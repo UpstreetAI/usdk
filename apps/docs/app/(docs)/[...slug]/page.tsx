@@ -60,9 +60,30 @@ export async function generateMetadata(props: {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
+  
+  const title = page.data.title;
+  const description = page.data.description;
+
+  const ogImage = {
+    type: "image/png",
+    width: 1200,
+    height: 630,
+    url: `/opengraph/${params.slug?.join("/") ?? ''}`,
+  }
 
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title,
+    description,
+    openGraph: {
+      images: [
+        ogImage
+      ],
+    },
+    twitter: {
+      card: "summary_large_image", 
+      images: [
+        ogImage
+      ],
+    }
   };
 }
