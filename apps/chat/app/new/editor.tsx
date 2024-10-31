@@ -19,7 +19,6 @@ import {
 import {
   getAgentToken,
 } from 'react-agents/util/jwt-utils.mjs';
-// XXX this is a bad dependency, this should be moved down to the lower layer
 import {
   generateMnemonic,
 } from '../../utils/etherium-utils.mjs';
