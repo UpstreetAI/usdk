@@ -1266,6 +1266,14 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
+      console.warn(pc.yellow(`
+⚠️  WARNING: No audio output support detected in the current environment.
+To enable audio support, please follow the instructions in the documentation:
+https://docs.upstreet.ai/install
+
+For further assistance, please contact support or ask for help in our Discord community:
+https://discord.gg/5THYT5uX
+        `));
       return null;
     }
   })();
