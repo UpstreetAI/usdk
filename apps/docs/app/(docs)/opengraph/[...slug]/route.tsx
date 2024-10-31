@@ -2,7 +2,8 @@ import { source } from '@/lib/source'
 import { ImageResponse } from 'next/og'
  
 const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? 'http://localhost:3000'
-export const size = {
+
+const size = {
     width: 1200,
     height: 630,
 }
