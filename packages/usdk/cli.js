@@ -2824,6 +2824,17 @@ const main = async () => {
     )
     .action(async (directory = undefined, opts = {}) => {
       logUpstreetBanner();
+      console.log(`
+
+Welcome to USDK's Agent Creation process.
+
+${pc.cyan(`v${packageJson.version}`)}
+
+To exit, press CTRL+C (CMD+C on macOS).
+
+For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+`);
       await handleError(async () => {
         commandExecuted = true;
         let args;
@@ -2918,7 +2929,7 @@ const main = async () => {
     });
   program
     .command('chat')
-    .alias('c')
+    // .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
