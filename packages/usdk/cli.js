@@ -1387,20 +1387,16 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const localRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(localRuntimePromises);
+    
+    const startPromises = agentSpecs.map(async (agentSpec) => {
+      if (agentSpec.directory) {
+        const runtime = new ReactAgentsLocalRuntime(agentSpec);
+        await runtime.start({
+          debug,
+        });
+      }
+    });
+    await Promise.all(startPromises);
 
     // wait for agents to join the multiplayer room
     const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
@@ -2385,25 +2381,17 @@ const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
-  if (agentSpecs.length === 1) {
-    if (room) {
-      const agentSpec = agentSpecs[0];
+  try {
+    const joinPromises = agentSpecs.map(async (agentSpec) => {
       const u = `${getAgentSpecHost(agentSpec)}`;
       const agentClient = new ReactAgentsClient(u);
-      try {
-        await agentClient.join(room, {
-          only: true,
-        });
-      } catch (err) {
-        console.warn('join error', err);
-        process.exit(1);
-      }
-    } else {
-      console.log('no room name provided');
-      process.exit(1);
-    }
-  } else {
-    console.log('expected 1 agent argument');
+      await agentClient.join(room, {
+        only: true,
+      });
+    });
+    await Promise.all(joinPromises);
+  } catch (err) {
+    console.warn('join error', err);
     process.exit(1);
   }
 };
