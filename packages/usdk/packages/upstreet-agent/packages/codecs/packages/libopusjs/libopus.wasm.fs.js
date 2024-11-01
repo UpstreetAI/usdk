@@ -1,12 +1,15 @@
 import path from 'path';
 import fs from 'fs';
+import { getCurrentDirname } from '../../../react-agents/util/path-util.mjs';
+
 const loadWasm = p => {
   const b = fs.readFileSync(p);
   const m = new WebAssembly.Module(b);
   return m;
 };
-const dirname = path.dirname(new URL(import.meta.url).pathname);
-const wasm = loadWasm(path.join(dirname, 'libopus.wasm'));
+
+let dirname = getCurrentDirname(import.meta);
+const wasm = loadWasm(path.join(dirname, '/libopus.wasm'));
 
 const location = new URL('http://localhost');
 

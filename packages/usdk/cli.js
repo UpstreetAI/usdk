@@ -59,6 +59,7 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
+  discordUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
@@ -1266,6 +1267,12 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
+      console.warn(pc.yellow(`\
+⚠️  Could not run the speaker module. You may not be able to hear your Agent.
+To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/usdk/help/speaker-module
+
+For further assistance, please contact support or ask for help in our Discord community: ${discordUrl}
+        `));
       return null;
     }
   })();
@@ -2047,8 +2054,12 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
+      console.log(pc.italic('Deploying agent...'));
+
       const uint8Array = await packZip(directory, {
-        exclude: [/\/node_modules\//],
+        exclude: [
+          /[\/\\]node_modules[\/\\]/, // linux and windows
+        ],
       });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
@@ -2664,7 +2675,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-const main = async () => {
+export const main = async () => {
   let commandExecuted = false;
   program
     .name('usdk')
@@ -3299,24 +3310,3 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
     });*/
   await program.parseAsync();
 };
-
-// main module
-const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
-if (isMainModule) {
-  // handle uncaught exceptions
-  const handleGlobalError = (err, err2) => {
-    console.log('cli uncaught exception', err, err2);
-    process.exit(1);
-  };
-  process.on('uncaughtException', handleGlobalError);
-  process.on('unhandledRejection', handleGlobalError);
-
-  // run main
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.warn(err.stack);
-    }
-  })();
-}
