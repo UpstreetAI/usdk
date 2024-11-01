@@ -61,7 +61,7 @@ export async function generateMetadata(props: {
   const page = source.getPage(params.slug);
   if (!page) notFound();
   
-  const title = page.data.title;
+  const title = `${page?.data?.title} - Upstreet Documentation`;
   const description = page.data.description;
 
   const ogImage = {
