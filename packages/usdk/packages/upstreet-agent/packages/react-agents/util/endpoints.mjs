@@ -8,4 +8,4 @@ export const chatEndpointUrl = `https://chat.upstreet.ai`;
 export const discordBotEndpointUrl = `https://discord-bot-upstreet.fly.dev`;
 export const telnyxEndpointUrl = 'https://telnyx.isekaichat.workers.dev';
 export const workersHost = `isekaichat.workers.dev`;
-export const discordUrl = `https://upstreet.ai/usdk-discord`;
+export const usdkDiscordUrl = `https://upstreet.ai/usdk-discord`;
