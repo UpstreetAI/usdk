@@ -4,6 +4,7 @@
   "version": "0.0.71",
   "author": "Upstreet",
   "type": "module",
+  "main": "module.mjs",
   "keywords": [
     "ai",
     "ai-agents",
@@ -28,6 +29,7 @@
     "util",
     "examples/**",
     "cli.js",
+    "module.mjs",
     "tsconfig.json"
   ],
   "dependencies": {
