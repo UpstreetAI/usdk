@@ -4,35 +4,10 @@ import recursiveReaddir from 'recursive-readdir';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
+import archiver from 'archiver';
 import { QueueManager } from 'queue-manager';
 import os from 'os';
 import archiver from 'archiver';
-
-/**
- * Packs the specified directory into a zip file.
- * The `node_modules` folder is excluded by default.
- * 
- * @param {string} dirPath - The path of the directory to pack.
- * @param {Object} options - Options for packing.
- * @param {Array} [options.exclude=[]] - Additional patterns to exclude.
- * @returns {Promise} - A promise that resolves when packing is complete.
- */
-export const packZip = async (dirPath, { exclude = [] } = {}) => {
-  const platform = os.platform();
-
-  // Combine the default exclusion for node_modules with any user-defined exclusions
-  const finalExclude = [
-    ...(platform === 'win32' ? [/node_modules[\\/]/] : [/\/node_modules\//]),
-    ...exclude
-  ];
-
-  // Choose the packing function based on the platform
-  const packFunction = platform === 'win32' ? packZipForWindows : packZipForUnix;
-
-  // Execute the appropriate packing function
-  return packFunction(dirPath, { exclude: finalExclude });
-};
-
 
 // Helper function to filter files with regular expressions
 const filterFiles = (files, excludePatterns) => {
@@ -41,7 +16,7 @@ const filterFiles = (files, excludePatterns) => {
   );
 };
 
-const packZipWithArchiver = async (dirPath, { exclude }) => {
+export const packZip = async (dirPath, { exclude = [] } = {}) => {
   const outputPath = path.join(dirPath, 'output.zip');
   const output = fs.createWriteStream(outputPath);
   const archive = archiver('zip', {
@@ -71,49 +46,33 @@ const packZipWithArchiver = async (dirPath, { exclude }) => {
           const relativePath = path.relative(dirPath, file);
           archive.file(file, { name: relativePath });
         });
-        
+
         // Finalize the archive once all files are appended
         archive.finalize().catch((err) => reject(err));
       })
       .catch((err) => reject(err));
   });
 };
+/* export const packZip = async (dirPath, { exclude = [] } = {}) => {
+  let files = await recursiveReaddir(dirPath);
+  files = files.filter((p) => !exclude.some((re) => re.test(p)));
 
-const packZipForWindows = async (dirPath, { exclude }) => {
-  try {
-    return await packZipWithArchiver(dirPath, { exclude });
-  } catch (error) {
-    console.error('Error during Windows zipping with normalization:', error);
-  }
-};
+  // Combine the default exclusion for node_modules with any user-defined exclusions
+  const finalExclude = [
+    ...(platform === 'win32' ? [/node_modules[\\/]/] : [/\/node_modules\//]),
+    ...exclude
+  ];
 
-// Unix-based zipping strategy (using streams)
-const packZipForUnix = async (dirPath, { exclude }) => {
-  try {
-    let files = await recursiveReaddir(dirPath);
-    files = files.filter((p) => !exclude.some((re) => re.test(p)));
-
-    const zip = new JSZip();
-    for (const filePath of files) {
-      const basePath = path.relative(dirPath, filePath);
-      const stream = fs.createReadStream(filePath); // Use stream on Unix-based systems
-      zip.file(basePath, stream);
-    }
-
-    const arrayBuffer = await zip.generateAsync({
-      type: 'arraybuffer',
-      compression: 'DEFLATE',
-      compressionOptions: {
-        level: 9,
-      },
-    });
-
-    return new Uint8Array(arrayBuffer);
-  } catch (error) {
-    console.error('Error during Unix zipping:', error);
-  }
-};
-
+  const arrayBuffer = await zip.generateAsync({
+    type: 'arraybuffer',
+    compression: 'DEFLATE',
+    compressionOptions: {
+      level: 9,
+    },
+  });
+  const uint8Array = new Uint8Array(arrayBuffer);
+  return uint8Array;
+}; */
 export const extractZip = async (zipBuffer, tempPath) => {
   const cleanup = async () => {
     await rimraf(tempPath);

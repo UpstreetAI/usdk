@@ -2056,8 +2056,11 @@ const deploy = async (args) => {
 
       console.log(pc.italic('Deploying agent...'));
 
-      const uint8Array = await packZip(directory);
-      
+      const uint8Array = await packZip(directory, {
+        exclude: [
+          /[\/\\]node_modules[\/\\]/, // linux and windows
+        ],
+      });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
       const req = https.request(u, {
