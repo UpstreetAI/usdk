@@ -59,6 +59,7 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
+  usdkDiscordUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
@@ -108,6 +109,7 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1265,6 +1267,11 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
+      console.warn(pc.yellow(`\
+⚠️  Could not run the speaker module. You may not be able to hear your Agent.
+To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/errors#could-not-run-the-speaker-module
+For further assistance, please contact support or ask for help in our Discord community: ${usdkDiscordUrl}
+        `));
       return null;
     }
   })();
@@ -1380,20 +1387,16 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const localRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(localRuntimePromises);
+    
+    const startPromises = agentSpecs.map(async (agentSpec) => {
+      if (agentSpec.directory) {
+        const runtime = new ReactAgentsLocalRuntime(agentSpec);
+        await runtime.start({
+          debug,
+        });
+      }
+    });
+    await Promise.all(startPromises);
 
     // wait for agents to join the multiplayer room
     const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
@@ -2046,8 +2049,12 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
+      console.log(pc.italic('Deploying agent...'));
+
       const uint8Array = await packZip(directory, {
-        exclude: [/\/node_modules\//],
+        exclude: [
+          /[\/\\]node_modules[\/\\]/, // linux and windows
+        ],
       });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
@@ -2374,25 +2381,17 @@ const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
-  if (agentSpecs.length === 1) {
-    if (room) {
-      const agentSpec = agentSpecs[0];
+  try {
+    const joinPromises = agentSpecs.map(async (agentSpec) => {
       const u = `${getAgentSpecHost(agentSpec)}`;
       const agentClient = new ReactAgentsClient(u);
-      try {
-        await agentClient.join(room, {
-          only: true,
-        });
-      } catch (err) {
-        console.warn('join error', err);
-        process.exit(1);
-      }
-    } else {
-      console.log('no room name provided');
-      process.exit(1);
-    }
-  } else {
-    console.log('expected 1 agent argument');
+      await agentClient.join(room, {
+        only: true,
+      });
+    });
+    await Promise.all(joinPromises);
+  } catch (err) {
+    console.warn('join error', err);
     process.exit(1);
   }
 };
@@ -2663,7 +2662,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-const main = async () => {
+export const main = async () => {
   let commandExecuted = false;
   program
     .name('usdk')
@@ -2822,6 +2821,18 @@ const main = async () => {
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
+      logUpstreetBanner();
+      console.log(`
+
+Welcome to USDK's Agent Creation process.
+
+${pc.cyan(`v${packageJson.version}`)}
+
+To exit, press CTRL+C (CMD+C on macOS).
+
+For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+`);
       await handleError(async () => {
         commandExecuted = true;
         let args;
@@ -2916,7 +2927,7 @@ const main = async () => {
     });
   program
     .command('chat')
-    .alias('c')
+    // .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
@@ -3286,24 +3297,3 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-
-// main module
-const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
-if (isMainModule) {
-  // handle uncaught exceptions
-  const handleGlobalError = (err, err2) => {
-    console.log('cli uncaught exception', err, err2);
-    process.exit(1);
-  };
-  process.on('uncaughtException', handleGlobalError);
-  process.on('unhandledRejection', handleGlobalError);
-
-  // run main
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.warn(err.stack);
-    }
-  })();
-}

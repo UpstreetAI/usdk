@@ -1,0 +1,23 @@
+---
+title: Error List
+description: When interacting with Upstreet Agents Platform and CLI, you may face an error. This page contains as many errors as we have documented so far.
+full: false
+---
+
+**Found an issue** which isn't documented? Head over to [our public Discord Community](https://upstreet.ai/usdk-discord) to log the issue.
+For more in-depth help, you can reach out to us at [support@upstreet.ai](mailto:support@upstreet.ai).
+
+---
+
+## Could not run the speaker module
+
+This may occur when running `usdk chat` locally. The CLI uses audio output backends based on your operating system, in order to play audio in the CLI. To resolve this, you may need to install **optional dependencies** in your Agent, which involve the `speaker` module.
+
+```bash
+npm install --only=optional
+```
+
+You may need to install build tools on your system in order for this to work, as of yet.
+
+1. macOS: XCode command line tools
+2. Windows: Visual Studio build tools
