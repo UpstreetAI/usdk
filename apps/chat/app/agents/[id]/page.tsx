@@ -25,11 +25,12 @@ export async function generateMetadata({
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id)
 
-  const { data: agentData } = await supabase
+  const result = await supabase
     .from('assets')
     .select('*')
     .eq('id', agentId)
     .single();
+  const agentData = result.data as any;
 
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
@@ -80,7 +81,7 @@ export default async function AgentProfilePage({ params }: Params) {
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id);
 
-  const { data: agentData } = await supabase
+  const result = await supabase
     .from('assets')
     .select(`
       *,
@@ -88,6 +89,7 @@ export default async function AgentProfilePage({ params }: Params) {
     `)
     .eq('id', agentId)
     .single();
+  const agentData = result.data as any;
 
   if (!agentData?.id) return <div className="w-full max-w-2xl mx-auto p-8 text-center">Agent Not Found</div>;
 

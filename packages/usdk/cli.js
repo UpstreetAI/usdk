@@ -3,6 +3,7 @@ import fs from 'fs';
 import https from 'https';
 import stream from 'stream';
 import repl from 'repl';
+import readline from 'readline';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
@@ -58,6 +59,7 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
+  discordUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
@@ -107,6 +109,7 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -361,65 +364,80 @@ const status = async (args) => {
 const login = async (args) => {
   const local = !!args.local;
 
-  const handleLogin = async (j) => {
-    const {
-      id,
-      jwt,
-    } = j;
-    await mkdirp(path.dirname(loginLocation));
-    await fs.promises.writeFile(loginLocation, JSON.stringify({
-      id,
-      jwt,
-    }));
-    console.log('Successfully logged in.');
-  };
-
   // if (!anonymous) {
     await new Promise((accept, reject) => {
+      let server = null;
+      let rl = null;
+      const handleLogin = async (j) => {
+        // close the server if it's still active
+        if (server) {
+          server.close();
+          server = null;
+        }
+        // terminate the rl if it's still active
+        if (rl) {
+          console.log('*ok*');
+          rl.close();
+        }
+    
+        const {
+          id,
+          jwt,
+        } = j;
+        await mkdirp(path.dirname(loginLocation));
+        await fs.promises.writeFile(loginLocation, JSON.stringify({
+          id,
+          jwt,
+        }));
+        console.log('Successfully logged in.');
+      };
+
       const serverOpts = getServerOpts();
-      const server = https.createServer(serverOpts, (req, res) => {
-        // console.log('got login response 1', {
-        //   method: req.method,
-        //   url: req.url,
-        // });
+      const requestQueueManager = new QueueManager();
+      server = https.createServer(serverOpts, (req, res) => {
+        requestQueueManager.waitForTurn(async () => {
+          if (server) {
+            // console.log('got login response 1', {
+            //   method: req.method,
+            //   url: req.url,
+            // });
 
-        // set cors
-        const corsHeaders = makeCorsHeaders(req);
-        for (const { key, value } of corsHeaders) {
-          res.setHeader(key, value);
-        }
+            // set cors
+            const corsHeaders = makeCorsHeaders(req);
+            for (const { key, value } of corsHeaders) {
+              res.setHeader(key, value);
+            }
 
-        // console.log('got login response 2', {
-        //   method: req.method,
-        //   url: req.url,
-        // });
+            // console.log('got login response 2', {
+            //   method: req.method,
+            //   url: req.url,
+            // });
 
-        // handle methods
-        if (req.method === 'OPTIONS') {
-          res.end();
-        } else if (req.method === 'POST') {
-          const bs = [];
-          req.on('data', (d) => {
-            bs.push(d);
-          });
-          req.on('end', async () => {
-            // respond to the page
-            res.end();
+            // handle methods
+            if (req.method === 'OPTIONS') {
+              res.end();
+            } else if (req.method === 'POST') {
+              const bs = [];
+              req.on('data', (d) => {
+                bs.push(d);
+              });
+              req.on('end', async () => {
+                // respond to the page
+                res.end();
 
-            // close the server
-            server.close();
+                const b = Buffer.concat(bs);
+                const s = b.toString('utf8');
+                const j = JSON.parse(s);
+                await handleLogin(j);
 
-            const b = Buffer.concat(bs);
-            const s = b.toString('utf8');
-            const j = JSON.parse(s);
-            await handleLogin(j);
-
-            accept();
-          });
-        } else {
-          res.statusCode = 405;
-          res.end();
-        }
+                accept();
+              });
+            } else {
+              res.statusCode = 405;
+              res.end();
+            }
+          }
+        });
       });
       // console.log('starting callback server on port', {
       //   callbackPort,
@@ -441,8 +459,28 @@ const login = async (args) => {
           const u = new URL(`${host}/logintool`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
-          console.log(`Waiting for login from ${p}`);
+          console.log(`Waiting for login:`);
+          console.log(`  ${p}`);
+
           open(p);
+
+          rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+          });
+          rl.question('Paste login code: ', async (input) => {
+            // loginCode is a base64 encoded json string
+            const loginCode = input.trim();
+            if (loginCode) {
+              try {
+                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
+                const j = JSON.parse(decoded);
+                await handleLogin(j);
+              } catch (e) {
+                console.log('invalid login code');
+              }
+            }
+          });
         }
       });
     });
@@ -1229,6 +1267,12 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
+      console.warn(pc.yellow(`\
+⚠️  Could not run the speaker module. You may not be able to hear your Agent.
+To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/usdk/help/speaker-module
+
+For further assistance, please contact support or ask for help in our Discord community: ${discordUrl}
+        `));
       return null;
     }
   })();
@@ -2010,8 +2054,12 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
+      console.log(pc.italic('Deploying agent...'));
+
       const uint8Array = await packZip(directory, {
-        exclude: [/\/node_modules\//],
+        exclude: [
+          /[\/\\]node_modules[\/\\]/, // linux and windows
+        ],
       });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
@@ -2627,7 +2675,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-const main = async () => {
+export const main = async () => {
   let commandExecuted = false;
   program
     .name('usdk')
@@ -2786,6 +2834,18 @@ const main = async () => {
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
+      logUpstreetBanner();
+      console.log(`
+
+Welcome to USDK's Agent Creation process.
+
+${pc.cyan(`v${packageJson.version}`)}
+
+To exit, press CTRL+C (CMD+C on macOS).
+
+For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+`);
       await handleError(async () => {
         commandExecuted = true;
         let args;
@@ -2880,7 +2940,7 @@ const main = async () => {
     });
   program
     .command('chat')
-    .alias('c')
+    // .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
@@ -3250,24 +3310,3 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-
-// main module
-const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
-if (isMainModule) {
-  // handle uncaught exceptions
-  const handleGlobalError = (err, err2) => {
-    console.log('cli uncaught exception', err, err2);
-    process.exit(1);
-  };
-  process.on('uncaughtException', handleGlobalError);
-  process.on('unhandledRejection', handleGlobalError);
-
-  // run main
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.warn(err.stack);
-    }
-  })();
-}

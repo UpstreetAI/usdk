@@ -18,7 +18,7 @@ const MenuItems = [
     label: 'Users',
   },
   {
-    href: 'https://docs.upstreet.ai/docs/sdk/intro',
+    href: 'https://docs.upstreet.ai/',
     icon: 'Sdk',
     label: 'SDK',
   },
