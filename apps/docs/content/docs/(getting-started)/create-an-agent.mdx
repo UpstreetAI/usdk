@@ -8,8 +8,9 @@ import Wrapper from '../../../components/preview/wrapper';
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
  
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { formatNodeVersion } from '../../../lib/utils';
+import pkgJson from 'usdk/package.json';
  
-
 <Accordions>
   <Accordion title="🟢 Prerequisites" defaultOpen>
     - Ensure your Node version is {formatNodeVersion(pkgJson.engines?.node || '>=22.9.0').toLocaleLowerCase()}. [Install Node](/install#prerequisites)
