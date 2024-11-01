@@ -1269,8 +1269,7 @@ const connectRepl = async ({
     } catch (err) {
       console.warn(pc.yellow(`\
 ⚠️  Could not run the speaker module. You may not be able to hear your Agent.
-To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/usdk/help/speaker-module
-
+To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/errors#could-not-run-the-speaker-module
 For further assistance, please contact support or ask for help in our Discord community: ${discordUrl}
         `));
       return null;
