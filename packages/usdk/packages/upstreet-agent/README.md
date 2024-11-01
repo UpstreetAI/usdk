@@ -64,7 +64,8 @@ import {
 export default function MyAgent() {
   return (
     <Agent>
-      <TTS          voiceEndpoint="elevenlabs:scillia:kNBPK9DILaezWWUSHpF9" 
+      <TTS
+        voiceEndpoint="elevenlabs:scillia:kNBPK9DILaezWWUSHpF9" 
       />
       {/* Add more features here */}
     </Agent>
@@ -95,9 +96,14 @@ These components form the foundation of your Agent's capabilities. You can modif
 
 To run and test your Agent, run:
 ```bash
-usdk chat [agent-dir]
+usdk chat <your-agent-directory>
 ```
-This will launch an interactive REPL-like chat in your terminal.
+
+Where `<your-agent-directory>` is the **relative path** to the directory containing all your Agent's code. [How to create an Agent](/create-an-agent#file-structure)
+
+This command launches an interactive chat session (REPL-like) with your Agent, where you can input prompts and review responses in real-time.
+
+To exit the chat, type `.exit` in the chat and press the Enter key. Or, you can use the shortcut CTRL+C (macOS users: CMD+C) twice.
 
 *Note: Your AI inferences will not run locally. The Upstreet Agent may consume credits during testing.*
 
@@ -116,7 +122,7 @@ Your Agent will be live and accessible via the provided URL obtained after a suc
 ## Need Help?
 
 - Check out our [documentation](https://docs.upstreet.ai)
-- Join our [Discord community](https://upstreet.ai/discord)
-- Reach out to our support team at support@upstreet.ai (XXX does support@upstreet.ai exist?)
+- Join our [Discord community](https://upstreet.ai/usdk-discord)
+- Reach out to our support team at [support@upstreet.ai](mailto:support@upstreet.ai)
 
 Happy Agent building! 🤖✨
