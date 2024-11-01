@@ -1388,14 +1388,15 @@ const chat = async (args) => {
   if (jwt !== null) {
     // start dev servers for the agents
     
-    for (const agentSpec of agentSpecs) {
+    const startPromises = agentSpecs.map(async (agentSpec) => {
       if (agentSpec.directory) {
         const runtime = new ReactAgentsLocalRuntime(agentSpec);
         await runtime.start({
           debug,
         });
       }
-    }
+    });
+    await Promise.all(startPromises);
 
     // wait for agents to join the multiplayer room
     const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
@@ -2380,17 +2381,18 @@ const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
-  for (const agentSpec of agentSpecs) {
-    const u = `${getAgentSpecHost(agentSpec)}`;
-    const agentClient = new ReactAgentsClient(u);
-    try {
+  try {
+    const joinPromises = agentSpecs.map(async (agentSpec) => {
+      const u = `${getAgentSpecHost(agentSpec)}`;
+      const agentClient = new ReactAgentsClient(u);
       await agentClient.join(room, {
         only: true,
       });
-    } catch (err) {
-      console.warn('join error', err);
-      process.exit(1);
-    }
+    });
+    await Promise.all(joinPromises);
+  } catch (err) {
+    console.warn('join error', err);
+    process.exit(1);
   }
 };
 const leave = async (args) => {
