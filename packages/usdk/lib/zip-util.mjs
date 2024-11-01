@@ -6,6 +6,7 @@ import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
 import archiver from 'archiver';
 import { QueueManager } from 'queue-manager';
+import archiver from 'archiver';
 
 // Helper function to filter files with regular expressions
 const filterFiles = (files, excludePatterns) => {
