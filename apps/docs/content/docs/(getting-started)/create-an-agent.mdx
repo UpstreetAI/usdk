@@ -8,10 +8,12 @@ import Wrapper from '../../../components/preview/wrapper';
 import { File, Folder, Files } from 'fumadocs-ui/components/files';
  
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { formatNodeVersion } from '../../../lib/utils';
+import pkgJson from 'usdk/package.json';
  
-
 <Accordions>
   <Accordion title="🟢 Prerequisites" defaultOpen>
+    - Ensure your Node version is {formatNodeVersion(pkgJson.engines?.node || '>=22.9.0').toLocaleLowerCase()}. [Install Node](/install#prerequisites)
     - Upstreet SDK installed on your computer. [Install SDK](/install)
     - Logged in to SDK. Follow instructions to [log in here](/install#log-into-the-sdk).
   </Accordion>
@@ -74,7 +76,7 @@ Assuming you’ve named your project directory “my-agent,” here’s the stru
 </Files>
 </Wrapper>
 
-For a breakdown of these files, see our [Agent Structure guide]((/concepts/agents-sdk/agent-structure)).
+For a breakdown of these files, see our [Agent Structure guide](/concepts/agents-sdk/agent-structure).
 
 <Callout>
 Remember to keep your Agent’s configuration secure. Avoid making this repository public on platforms like GitHub, as sensitive keys could be exposed.

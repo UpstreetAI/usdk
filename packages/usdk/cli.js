@@ -109,6 +109,7 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -2833,6 +2834,18 @@ export const main = async () => {
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
+      logUpstreetBanner();
+      console.log(`
+
+Welcome to USDK's Agent Creation process.
+
+${pc.cyan(`v${packageJson.version}`)}
+
+To exit, press CTRL+C (CMD+C on macOS).
+
+For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+`);
       await handleError(async () => {
         commandExecuted = true;
         let args;
@@ -2927,7 +2940,7 @@ export const main = async () => {
     });
   program
     .command('chat')
-    .alias('c')
+    // .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)

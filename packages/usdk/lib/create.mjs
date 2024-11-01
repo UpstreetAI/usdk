@@ -42,7 +42,7 @@ import {
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import {
@@ -178,12 +178,12 @@ const interview = async (agentJson, {
     const imageRenderer = new ImageRenderer();
     const {
       text: imageText,
-    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
+    } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
     console.log(label);
     console.log(imageText);
   };
-  agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
-  agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
+  agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
+  agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
   return result;
@@ -286,17 +286,20 @@ export const create = async (args, opts) => {
   await _prepareDirectory();
 
   // generate the agent
-  console.log(pc.italic('Generating agent...'));
   let agentJson = makeAgentJsonInit({
     agentJsonString,
     features,
   });
   // run the interview, if applicable
   if (!(agentJsonString || source || yes)) {
+    console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
       jwt,
     });
+  }
+  else {
+    console.log(pc.italic('Generating agent...'));
   }
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
   ensureAgentJsonDefaults(agentJson);
