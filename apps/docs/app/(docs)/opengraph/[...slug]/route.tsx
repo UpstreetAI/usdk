@@ -36,7 +36,7 @@ export async function GET(
           fontFamily: '"Aller", sans-serif'
         }}
       >
-        <img alt="background image" src={withHttps(`${baseUrl}/images/general/upstreet-docs-opengraph-image-bg-only.webp`)} height={630} width={1200} style={{
+        <img alt="background image" src={withHttps(`${baseUrl}/images/general/upstreet-docs-opengraph-image-bg-only.jpg`)} height={630} width={1200} style={{
             objectFit: 'cover',
             height: '100%',
             width: '100%'
