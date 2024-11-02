@@ -3,18 +3,16 @@ import fs from 'fs';
 import https from 'https';
 import stream from 'stream';
 import repl from 'repl';
-import readline from 'readline';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
 import open from 'open';
-import { mkdirp } from 'mkdirp';
-import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
+import { mkdirp } from 'mkdirp';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -84,19 +82,17 @@ import {
 import {
   describe,
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
-import { getLoginJwt } from './lib/login.mjs';
+import { getLoginJwt } from './util/login-util.mjs';
 import {
   loginLocation,
-  certsLocalPath,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
+  login,
+  logout,
   create,
   edit,
 } from './lib/commands.mjs';
-import {
-  tryReadFile,
-} from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
@@ -110,6 +106,7 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
+import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -140,51 +137,6 @@ const eraseLine = '\x1b[2K\r';
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 
-const defaultCorsHeaders = [
-  // {
-  //   "key": "Access-Control-Allow-Origin",
-  //   "value": "*"
-  // },
-  {
-    key: 'Access-Control-Allow-Methods',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Headers',
-    value: ['content-type'].join(', '),
-  },
-  {
-    key: 'Access-Control-Expose-Headers',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Private-Network',
-    value: 'true',
-  },
-  {
-    key: 'Access-Control-Allow-Credentials',
-    value: 'true',
-  },
-];
-const makeCorsHeaders = (req) => {
-  const headers = [...defaultCorsHeaders];
-  // set Access-Control-Allow-Origin to the origin of the request
-  const origin = req.headers['origin'];
-  if (origin) {
-    headers.push({
-      key: 'Access-Control-Allow-Origin',
-      value: origin,
-    });
-  }
-  return headers;
-};
-
-const getServerOpts = () => {
-  return {
-    key: tryReadFile(path.join(certsLocalPath, 'privkey.pem')) || '',
-    cert: tryReadFile(path.join(certsLocalPath, 'fullchain.pem')) || '',
-  };
-};
 /* const putFile = async (pathname, file) => {
   const u = `https://r2.upstreet.ai/${pathname}`;
   const headers = {};
@@ -360,146 +312,6 @@ const status = async (args) => {
 
   // const localGuid = await ensureLocalGuid();
   // console.log(`local guid is ${localGuid}`);
-};
-const login = async (args) => {
-  const local = !!args.local;
-
-  // if (!anonymous) {
-    await new Promise((accept, reject) => {
-      let server = null;
-      let rl = null;
-      const handleLogin = async (j) => {
-        // close the server if it's still active
-        if (server) {
-          server.close();
-          server = null;
-        }
-        // terminate the rl if it's still active
-        if (rl) {
-          console.log('*ok*');
-          rl.close();
-        }
-    
-        const {
-          id,
-          jwt,
-        } = j;
-        await mkdirp(path.dirname(loginLocation));
-        await fs.promises.writeFile(loginLocation, JSON.stringify({
-          id,
-          jwt,
-        }));
-        console.log('Successfully logged in.');
-      };
-
-      const serverOpts = getServerOpts();
-      const requestQueueManager = new QueueManager();
-      server = https.createServer(serverOpts, (req, res) => {
-        requestQueueManager.waitForTurn(async () => {
-          if (server) {
-            // console.log('got login response 1', {
-            //   method: req.method,
-            //   url: req.url,
-            // });
-
-            // set cors
-            const corsHeaders = makeCorsHeaders(req);
-            for (const { key, value } of corsHeaders) {
-              res.setHeader(key, value);
-            }
-
-            // console.log('got login response 2', {
-            //   method: req.method,
-            //   url: req.url,
-            // });
-
-            // handle methods
-            if (req.method === 'OPTIONS') {
-              res.end();
-            } else if (req.method === 'POST') {
-              const bs = [];
-              req.on('data', (d) => {
-                bs.push(d);
-              });
-              req.on('end', async () => {
-                // respond to the page
-                res.end();
-
-                const b = Buffer.concat(bs);
-                const s = b.toString('utf8');
-                const j = JSON.parse(s);
-                await handleLogin(j);
-
-                accept();
-              });
-            } else {
-              res.statusCode = 405;
-              res.end();
-            }
-          }
-        });
-      });
-      // console.log('starting callback server on port', {
-      //   callbackPort,
-      // });
-      server.on('error', (err) => {
-        console.warn('callback server error', err);
-      });
-      // server.on('close', () => {
-      //   console.log('callback server closed');
-      // });
-      server.listen(callbackPort, '0.0.0.0', (err) => {
-        // console.log('callback server listening on port', {
-        //   callbackPort,
-        // });
-        if (err) {
-          console.warn(err);
-        } else {
-          const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
-          const u = new URL(`${host}/logintool`);
-          u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
-          const p = u + '';
-          console.log(`Waiting for login:`);
-          console.log(`  ${p}`);
-
-          open(p);
-
-          rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-          });
-          rl.question('Paste login code: ', async (input) => {
-            // loginCode is a base64 encoded json string
-            const loginCode = input.trim();
-            if (loginCode) {
-              try {
-                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
-                const j = JSON.parse(decoded);
-                await handleLogin(j);
-              } catch (e) {
-                console.log('invalid login code');
-              }
-            }
-          });
-        }
-      });
-    });
-  // } else {
-  //   const j = await getAnonUser();
-  //   await handleLogin(j);
-  // }
-};
-const logout = async (args) => {
-
-  const jwt = await getLoginJwt();
-
-  if (!jwt){
-    console.log("No user logged in");
-    return;
-  }
-
-  await rimraf(loginLocation);
-  console.log('Successfully logged out.');
 };
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
@@ -2702,7 +2514,9 @@ export const main = async () => {
           _: [],
           ...opts,
         };
-        await login(args);
+        const loginJson = await login(args);
+        await mkdirp(path.dirname(loginLocation));
+        await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
       });
     });
   program
