@@ -19,8 +19,6 @@ import {
 //
 
 export const login = async (args) => {
-  const local = !!args.local;
-
   await new Promise((accept, reject) => {
     let server = null;
     let rl = null;
@@ -111,7 +109,7 @@ export const login = async (args) => {
       if (err) {
         console.warn(err);
       } else {
-        const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
+        const host = `https://login.upstreet.ai`;
         const u = new URL(`${host}/logintool`);
         u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
         const p = u + '';
@@ -142,7 +140,6 @@ export const login = async (args) => {
   });
 };
 export const logout = async (args) => {
-
   const jwt = await getLoginJwt();
 
   if (!jwt){
