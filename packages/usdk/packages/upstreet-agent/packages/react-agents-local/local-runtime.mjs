@@ -1,4 +1,4 @@
-import child_process from 'child_process';
+import crossSpawn from 'cross-spawn';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
 
@@ -94,7 +94,7 @@ export class ReactAgentsLocalRuntime {
     } = this.agentSpec;
 
     // spawn the wrangler child process
-    const cp = child_process.spawn(
+    const cp = crossSpawn(
       wranglerBinPath,
       [
         'dev',

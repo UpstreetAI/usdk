@@ -3,18 +3,16 @@ import fs from 'fs';
 import https from 'https';
 import stream from 'stream';
 import repl from 'repl';
-import readline from 'readline';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import toml from '@iarna/toml';
 import open from 'open';
-import { mkdirp } from 'mkdirp';
-import { rimraf } from 'rimraf';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
+import { mkdirp } from 'mkdirp';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -59,6 +57,7 @@ import {
   chatEndpointUrl,
   workersHost,
   aiProxyHost,
+  usdkDiscordUrl,
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
@@ -83,19 +82,17 @@ import {
 import {
   describe,
 } from './packages/upstreet-agent/packages/react-agents/util/vision.mjs';
-import { getLoginJwt } from './lib/login.mjs';
+import { getLoginJwt } from './util/login-util.mjs';
 import {
   loginLocation,
-  certsLocalPath,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
+  login,
+  logout,
   create,
   edit,
 } from './lib/commands.mjs';
-import {
-  tryReadFile,
-} from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
@@ -108,6 +105,8 @@ import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-code
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
+import { logUpstreetBanner } from './util/logger/log-utils.mjs';
+import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -138,51 +137,6 @@ const eraseLine = '\x1b[2K\r';
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 
-const defaultCorsHeaders = [
-  // {
-  //   "key": "Access-Control-Allow-Origin",
-  //   "value": "*"
-  // },
-  {
-    key: 'Access-Control-Allow-Methods',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Headers',
-    value: ['content-type'].join(', '),
-  },
-  {
-    key: 'Access-Control-Expose-Headers',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Private-Network',
-    value: 'true',
-  },
-  {
-    key: 'Access-Control-Allow-Credentials',
-    value: 'true',
-  },
-];
-const makeCorsHeaders = (req) => {
-  const headers = [...defaultCorsHeaders];
-  // set Access-Control-Allow-Origin to the origin of the request
-  const origin = req.headers['origin'];
-  if (origin) {
-    headers.push({
-      key: 'Access-Control-Allow-Origin',
-      value: origin,
-    });
-  }
-  return headers;
-};
-
-const getServerOpts = () => {
-  return {
-    key: tryReadFile(path.join(certsLocalPath, 'privkey.pem')) || '',
-    cert: tryReadFile(path.join(certsLocalPath, 'fullchain.pem')) || '',
-  };
-};
 /* const putFile = async (pathname, file) => {
   const u = `https://r2.upstreet.ai/${pathname}`;
   const headers = {};
@@ -358,146 +312,6 @@ const status = async (args) => {
 
   // const localGuid = await ensureLocalGuid();
   // console.log(`local guid is ${localGuid}`);
-};
-const login = async (args) => {
-  const local = !!args.local;
-
-  // if (!anonymous) {
-    await new Promise((accept, reject) => {
-      let server = null;
-      let rl = null;
-      const handleLogin = async (j) => {
-        // close the server if it's still active
-        if (server) {
-          server.close();
-          server = null;
-        }
-        // terminate the rl if it's still active
-        if (rl) {
-          console.log('*ok*');
-          rl.close();
-        }
-    
-        const {
-          id,
-          jwt,
-        } = j;
-        await mkdirp(path.dirname(loginLocation));
-        await fs.promises.writeFile(loginLocation, JSON.stringify({
-          id,
-          jwt,
-        }));
-        console.log('Successfully logged in.');
-      };
-
-      const serverOpts = getServerOpts();
-      const requestQueueManager = new QueueManager();
-      server = https.createServer(serverOpts, (req, res) => {
-        requestQueueManager.waitForTurn(async () => {
-          if (server) {
-            // console.log('got login response 1', {
-            //   method: req.method,
-            //   url: req.url,
-            // });
-
-            // set cors
-            const corsHeaders = makeCorsHeaders(req);
-            for (const { key, value } of corsHeaders) {
-              res.setHeader(key, value);
-            }
-
-            // console.log('got login response 2', {
-            //   method: req.method,
-            //   url: req.url,
-            // });
-
-            // handle methods
-            if (req.method === 'OPTIONS') {
-              res.end();
-            } else if (req.method === 'POST') {
-              const bs = [];
-              req.on('data', (d) => {
-                bs.push(d);
-              });
-              req.on('end', async () => {
-                // respond to the page
-                res.end();
-
-                const b = Buffer.concat(bs);
-                const s = b.toString('utf8');
-                const j = JSON.parse(s);
-                await handleLogin(j);
-
-                accept();
-              });
-            } else {
-              res.statusCode = 405;
-              res.end();
-            }
-          }
-        });
-      });
-      // console.log('starting callback server on port', {
-      //   callbackPort,
-      // });
-      server.on('error', (err) => {
-        console.warn('callback server error', err);
-      });
-      // server.on('close', () => {
-      //   console.log('callback server closed');
-      // });
-      server.listen(callbackPort, '0.0.0.0', (err) => {
-        // console.log('callback server listening on port', {
-        //   callbackPort,
-        // });
-        if (err) {
-          console.warn(err);
-        } else {
-          const host = local ? `http://local.upstreet.ai:${localPort}` : `https://login.upstreet.ai`;
-          const u = new URL(`${host}/logintool`);
-          u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
-          const p = u + '';
-          console.log(`Waiting for login:`);
-          console.log(`  ${p}`);
-
-          open(p);
-
-          rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-          });
-          rl.question('Paste login code: ', async (input) => {
-            // loginCode is a base64 encoded json string
-            const loginCode = input.trim();
-            if (loginCode) {
-              try {
-                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
-                const j = JSON.parse(decoded);
-                await handleLogin(j);
-              } catch (e) {
-                console.log('invalid login code');
-              }
-            }
-          });
-        }
-      });
-    });
-  // } else {
-  //   const j = await getAnonUser();
-  //   await handleLogin(j);
-  // }
-};
-const logout = async (args) => {
-
-  const jwt = await getLoginJwt();
-
-  if (!jwt){
-    console.log("No user logged in");
-    return;
-  }
-
-  await rimraf(loginLocation);
-  console.log('Successfully logged out.');
 };
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
@@ -1265,6 +1079,11 @@ const connectRepl = async ({
     try {
       return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
     } catch (err) {
+      console.warn(pc.yellow(`\
+⚠️  Could not run the speaker module. You may not be able to hear your Agent.
+To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/errors#could-not-run-the-speaker-module
+For further assistance, please contact support or ask for help in our Discord community: ${usdkDiscordUrl}
+        `));
       return null;
     }
   })();
@@ -1380,20 +1199,16 @@ const chat = async (args) => {
   const jwt = await getLoginJwt();
   if (jwt !== null) {
     // start dev servers for the agents
-    const localRuntimePromises = agentSpecs
-      .map(async (agentSpec) => {
-        if (agentSpec.directory) {
-          const runtime = new ReactAgentsLocalRuntime(agentSpec);
-          await runtime.start({
-            debug,
-          });
-          return runtime;
-        } else {
-          return null;
-        }
-      })
-      .filter(Boolean);
-    const runtimes = await Promise.all(localRuntimePromises);
+    
+    const startPromises = agentSpecs.map(async (agentSpec) => {
+      if (agentSpec.directory) {
+        const runtime = new ReactAgentsLocalRuntime(agentSpec);
+        await runtime.start({
+          debug,
+        });
+      }
+    });
+    await Promise.all(startPromises);
 
     // wait for agents to join the multiplayer room
     const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
@@ -2046,8 +1861,12 @@ const deploy = async (args) => {
     for (const agentSpec of agentSpecs) {
       const { directory } = agentSpec;
 
+      console.log(pc.italic('Deploying agent...'));
+
       const uint8Array = await packZip(directory, {
-        exclude: [/\/node_modules\//],
+        exclude: [
+          /[\/\\]node_modules[\/\\]/, // linux and windows
+        ],
       });
       // upload the agent
       const u = `${deployEndpointUrl}/agent`;
@@ -2374,25 +2193,17 @@ const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args._[1] ?? makeRoomName();
 
-  if (agentSpecs.length === 1) {
-    if (room) {
-      const agentSpec = agentSpecs[0];
+  try {
+    const joinPromises = agentSpecs.map(async (agentSpec) => {
       const u = `${getAgentSpecHost(agentSpec)}`;
       const agentClient = new ReactAgentsClient(u);
-      try {
-        await agentClient.join(room, {
-          only: true,
-        });
-      } catch (err) {
-        console.warn('join error', err);
-        process.exit(1);
-      }
-    } else {
-      console.log('no room name provided');
-      process.exit(1);
-    }
-  } else {
-    console.log('expected 1 agent argument');
+      await agentClient.join(room, {
+        only: true,
+      });
+    });
+    await Promise.all(joinPromises);
+  } catch (err) {
+    console.warn('join error', err);
     process.exit(1);
   }
 };
@@ -2663,7 +2474,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-const main = async () => {
+export const main = async () => {
   let commandExecuted = false;
   program
     .name('usdk')
@@ -2703,7 +2514,9 @@ const main = async () => {
           _: [],
           ...opts,
         };
-        await login(args);
+        const loginJson = await login(args);
+        await mkdirp(path.dirname(loginLocation));
+        await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
       });
     });
   program
@@ -2822,6 +2635,18 @@ const main = async () => {
       `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
     )
     .action(async (directory = undefined, opts = {}) => {
+      logUpstreetBanner();
+      console.log(`
+
+Welcome to USDK's Agent Creation process.
+
+${pc.cyan(`v${packageJson.version}`)}
+
+To exit, press CTRL+C (CMD+C on macOS).
+
+For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+`);
       await handleError(async () => {
         commandExecuted = true;
         let args;
@@ -2916,7 +2741,7 @@ const main = async () => {
     });
   program
     .command('chat')
-    .alias('c')
+    // .alias('c')
     .description(`Chat with agents in a multiplayer room`)
     .argument(`[guids...]`, `Guids of the agents to join the room`)
     .option(`-b, --browser`, `Open the chat room in a browser window`)
@@ -3286,24 +3111,3 @@ const main = async () => {
     });*/
   await program.parseAsync();
 };
-
-// main module
-const isMainModule = /\/usdk(?:\.js)?$/.test(process.argv[1]) || import.meta.url.endsWith(process.argv[1]);
-if (isMainModule) {
-  // handle uncaught exceptions
-  const handleGlobalError = (err, err2) => {
-    console.log('cli uncaught exception', err, err2);
-    process.exit(1);
-  };
-  process.on('uncaughtException', handleGlobalError);
-  process.on('unhandledRejection', handleGlobalError);
-
-  // run main
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.warn(err.stack);
-    }
-  })();
-}

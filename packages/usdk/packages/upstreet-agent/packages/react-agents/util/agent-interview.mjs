@@ -76,7 +76,7 @@ const generateFeaturePrompt = (featureSpecs, userSpecifiedFeatures, allowAll) =>
 
 export class AgentInterview extends EventTarget {
   constructor(opts) {
-    super();
+    super()
 
     let {
       agentJson, // object
@@ -245,34 +245,19 @@ export class AgentInterview extends EventTarget {
         this.loadPromise.resolve(agentJson);
       }
     });
-    if (mode === 'auto') {
-      // automatically run the interview to completion
-      this.interactor.end();
-    } else if (mode === 'interactive') {
-      /* // XXX debugging hack: listen for the user pressing the tab key
-      {
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding('utf8');
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-          if (key === '\u0009') { // tab
-            console.log('got tab');
-          }
-          if (key === '\u0003') { // ctrl-c
-            console.log('got ctrl-c');
-            process.exit();
-          }
-        });
-      } */
-
-      // initiate the interview
-      this.interactor.write();
-    } else if (mode === 'manual') {
-      // pump the interview loop
-      pumpIo();
-    } else {
-      throw new Error(`invalid mode: ${mode}`)
-    }
+    setTimeout(() => {
+      if (mode === 'auto') {
+        // automatically run the interview to completion
+        this.interactor.end();
+      } else if (mode === 'interactive') {
+        // initiate the interview with an introductory message
+        pumpIo('What kind of agent do you want to create?');
+      } else if (mode === 'manual') {
+        // wait for external prompting
+      } else {
+        throw new Error(`invalid mode: ${mode}`)
+      }
+    }, 0);
   }
   write(response) {
     this.interactor.write(response);

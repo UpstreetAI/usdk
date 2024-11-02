@@ -22,17 +22,17 @@ export class SpeakerOutputStream extends WritableStream {
         // }
       },
       close: async () => {
-        console.log('speaker close 1');
+        // console.log('speaker close 1');
         // try {
           this.speaker.end();
 
-          console.log('speaker close 2');
+          // console.log('speaker close 2');
 
           await new Promise((accept, reject) => {
             this.speaker.once('close', accept);
           });
 
-          console.log('speaker close 3');
+          // console.log('speaker close 3');
         // } catch (err) {
         //   console.warn(err);
         // }
