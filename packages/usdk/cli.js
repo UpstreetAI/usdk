@@ -2481,7 +2481,13 @@ export const main = async () => {
           _: [],
           ...opts,
         };
-        await logout(args);
+        const ok = await logout(args);
+        if (ok) {
+          await rimraf(loginLocation);
+          console.log('Successfully logged out.');
+        } else {
+          console.log('No user logged in');
+        }
       });
     });
 

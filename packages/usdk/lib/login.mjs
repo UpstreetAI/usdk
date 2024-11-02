@@ -141,12 +141,5 @@ export const login = async (args) => {
 };
 export const logout = async (args) => {
   const jwt = await getLoginJwt();
-
-  if (!jwt){
-    console.log("No user logged in");
-    return;
-  }
-
-  await rimraf(loginLocation);
-  console.log('Successfully logged out.');
+  return !!jwt;
 };
