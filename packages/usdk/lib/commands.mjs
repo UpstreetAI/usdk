@@ -9,3 +9,6 @@ export {
   create,
   edit,
 } from './create.mjs';
+export {
+  deploy,
+} from './deploy.mjs';
