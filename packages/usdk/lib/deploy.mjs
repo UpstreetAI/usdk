@@ -5,12 +5,15 @@ import pc from 'picocolors';
 import { getLoginJwt } from '../util/login-util.mjs';
 import { packZip } from './zip-util.mjs';
 import {
+  parseAgentSpecs,
+} from './agent-spec-utils.mjs';
+import {
   deployEndpointUrl,
   workersHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import {
-  parseAgentSpecs,
-} from './agent-spec-utils.mjs';
+  getAgentPublicUrl,
+} from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 
 const getAgentHost = (guid) => `https://user-agent-${guid}.${workersHost}`;
 
