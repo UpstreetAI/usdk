@@ -18,6 +18,8 @@ import { loginLocation } from './locations.mjs';
 //
 
 export const login = async (args) => {
+  const code = args.code ?? null;
+
   return await new Promise((accept, reject) => {
     let server = null;
     let rl = null;
@@ -44,99 +46,108 @@ export const login = async (args) => {
       accept(loginJson);
     };
 
-    const serverOpts = getServerOpts();
-    const requestQueueManager = new QueueManager();
-    server = https.createServer(serverOpts, (req, res) => {
-      requestQueueManager.waitForTurn(async () => {
-        if (server) {
-          // console.log('got login response 1', {
-          //   method: req.method,
-          //   url: req.url,
-          // });
-
-          // set cors
-          const corsHeaders = makeCorsHeaders(req);
-          for (const { key, value } of corsHeaders) {
-            res.setHeader(key, value);
-          }
-
-          // console.log('got login response 2', {
-          //   method: req.method,
-          //   url: req.url,
-          // });
-
-          // handle methods
-          if (req.method === 'OPTIONS') {
-            res.end();
-          } else if (req.method === 'POST') {
-            const bs = [];
-            req.on('data', (d) => {
-              bs.push(d);
-            });
-            req.on('end', async () => {
-              // respond to the page
-              res.end();
-
-              const b = Buffer.concat(bs);
-              const s = b.toString('utf8');
-              const j = JSON.parse(s);
-              await handleLogin(j);
-            });
-          } else {
-            res.statusCode = 405;
-            res.end();
-          }
-        }
-      });
-    });
-    // console.log('starting callback server on port', {
-    //   callbackPort,
-    // });
-    server.on('error', (err) => {
-      console.warn('callback server error', err);
-    });
-    // server.on('close', () => {
-    //   console.log('callback server closed');
-    // });
-    server.listen(callbackPort, '0.0.0.0', (err) => {
-      // console.log('callback server listening on port', {
-      //   callbackPort,
-      // });
-      if (err) {
+    if (code) {
+      const j = JSON.parse(code);
+      (async () => {
+        await handleLogin(j);
+      })().catch((err) => {
         console.warn(err);
-      } else {
-        const host = `https://login.upstreet.ai`;
-        const u = new URL(`${host}/logintool`);
-        u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
-        const p = u + '';
-        console.log(`Waiting for login:`);
-        console.log(`  ${p}`);
+      });
+    } else {
+      const serverOpts = getServerOpts();
+      const requestQueueManager = new QueueManager();
+      server = https.createServer(serverOpts, (req, res) => {
+        requestQueueManager.waitForTurn(async () => {
+          if (server) {
+            // console.log('got login response 1', {
+            //   method: req.method,
+            //   url: req.url,
+            // });
 
-        open(p);
+            // set cors
+            const corsHeaders = makeCorsHeaders(req);
+            for (const { key, value } of corsHeaders) {
+              res.setHeader(key, value);
+            }
 
-        rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        });
-        rl.question('Paste login code: ', async (input) => {
-          // loginCode is a base64 encoded json string
-          const loginCode = input.trim();
-          if (loginCode) {
-            try {
-              const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
-              const j = JSON.parse(decoded);
+            // console.log('got login response 2', {
+            //   method: req.method,
+            //   url: req.url,
+            // });
 
-              rl.close();
-              rl = null;
+            // handle methods
+            if (req.method === 'OPTIONS') {
+              res.end();
+            } else if (req.method === 'POST') {
+              const bs = [];
+              req.on('data', (d) => {
+                bs.push(d);
+              });
+              req.on('end', async () => {
+                // respond to the page
+                res.end();
 
-              await handleLogin(j);
-            } catch (e) {
-              console.log('invalid login code');
+                const b = Buffer.concat(bs);
+                const s = b.toString('utf8');
+                const j = JSON.parse(s);
+                await handleLogin(j);
+              });
+            } else {
+              res.statusCode = 405;
+              res.end();
             }
           }
         });
-      }
-    });
+      });
+      // console.log('starting callback server on port', {
+      //   callbackPort,
+      // });
+      server.on('error', (err) => {
+        console.warn('callback server error', err);
+      });
+      // server.on('close', () => {
+      //   console.log('callback server closed');
+      // });
+      server.listen(callbackPort, '0.0.0.0', (err) => {
+        // console.log('callback server listening on port', {
+        //   callbackPort,
+        // });
+        if (err) {
+          console.warn(err);
+        } else {
+          const host = `https://login.upstreet.ai`;
+          const u = new URL(`${host}/logintool`);
+          u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
+          const p = u + '';
+          console.log(`Waiting for login:`);
+          console.log(`  ${p}`);
+
+          open(p);
+
+          rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+          });
+          rl.question('Paste login code: ', async (input) => {
+            // loginCode is a base64 encoded json string
+            const loginCode = input.trim();
+            if (loginCode) {
+              try {
+                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
+                const j = JSON.parse(decoded);
+
+                rl.close();
+                rl = null;
+
+                await handleLogin(j);
+              } catch (e) {
+                console.log('invalid login code');
+              }
+            }
+          });
+        }
+      });
+    }
   });
 };
 export const logout = async (args) => {
