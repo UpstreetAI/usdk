@@ -7,6 +7,8 @@ import {
 } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import Socials from '@/components/socials';
+import Link from 'next/link';
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -35,6 +37,10 @@ export default async function Page(props: {
       }}
       tableOfContent={{
         style: 'clerk',
+        footer: <div className='flex flex-col justify-start items-start gap-2 mt-4'>
+          <span className='text-sm opacity-40'>Facing an issue? <Link className='underline' target="_blank" href="https://discord.gg/XwQ3NqnMhK">Add a ticket</Link>.</span>
+          <Socials />
+        </div>,
       }}
       tableOfContentPopover={{
         style: 'clerk'
