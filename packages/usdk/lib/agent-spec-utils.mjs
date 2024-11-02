@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import toml from '@iarna/toml';
 import { cwd } from '../util/directory-utils.mjs';
+import { isGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 
 const getGuidFromPath = async (p) => {
   const makeEnoent = () => new Error('not an agent directory: ' + p);
