@@ -1833,10 +1833,6 @@ const deploy = async (args) => {
       // create a stream to pass to the request
       const dataStream = new stream.PassThrough();
       dataStream.pipe(req);
-      // dataStream.on('data', (b) => {
-      // });
-      // dataStream.on('end', (b) => {
-      // });
       // pump the loop
       (async () => {
         const chunkSize = 4 * 1024;
