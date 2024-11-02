@@ -12,14 +12,13 @@ import {
   callbackPort,
 } from '../util/ports.mjs';
 import { getLoginJwt } from '../util/login-util.mjs';
-import {
-  loginLocation,
-} from './locations.mjs';
+import { makeCorsHeaders, getServerOpts } from '../util/server-utils.mjs';
+import { loginLocation } from './locations.mjs';
 
 //
 
 export const login = async (args) => {
-  await new Promise((accept, reject) => {
+  return await new Promise((accept, reject) => {
     let server = null;
     let rl = null;
     const handleLogin = async (j) => {
@@ -38,12 +37,11 @@ export const login = async (args) => {
         id,
         jwt,
       } = j;
-      await mkdirp(path.dirname(loginLocation));
-      await fs.promises.writeFile(loginLocation, JSON.stringify({
+      const loginJson = {
         id,
         jwt,
-      }));
-      console.log('Successfully logged in.');
+      };
+      accept(loginJson);
     };
 
     const serverOpts = getServerOpts();
@@ -83,8 +81,6 @@ export const login = async (args) => {
               const s = b.toString('utf8');
               const j = JSON.parse(s);
               await handleLogin(j);
-
-              accept();
             });
           } else {
             res.statusCode = 405;
@@ -129,6 +125,10 @@ export const login = async (args) => {
             try {
               const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
               const j = JSON.parse(decoded);
+
+              rl.close();
+              rl = null;
+
               await handleLogin(j);
             } catch (e) {
               console.log('invalid login code');

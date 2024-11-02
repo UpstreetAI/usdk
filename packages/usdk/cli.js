@@ -12,6 +12,7 @@ import open from 'open';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
+import { mkdirp } from 'mkdirp';
 
 import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
@@ -84,7 +85,6 @@ import {
 import { getLoginJwt } from './util/login-util.mjs';
 import {
   loginLocation,
-  certsLocalPath,
   wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
@@ -93,9 +93,6 @@ import {
   create,
   edit,
 } from './lib/commands.mjs';
-import {
-  tryReadFile,
-} from './lib/file.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
@@ -109,6 +106,7 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
+import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -139,51 +137,6 @@ const eraseLine = '\x1b[2K\r';
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 
-const defaultCorsHeaders = [
-  // {
-  //   "key": "Access-Control-Allow-Origin",
-  //   "value": "*"
-  // },
-  {
-    key: 'Access-Control-Allow-Methods',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Headers',
-    value: ['content-type'].join(', '),
-  },
-  {
-    key: 'Access-Control-Expose-Headers',
-    value: '*',
-  },
-  {
-    key: 'Access-Control-Allow-Private-Network',
-    value: 'true',
-  },
-  {
-    key: 'Access-Control-Allow-Credentials',
-    value: 'true',
-  },
-];
-const makeCorsHeaders = (req) => {
-  const headers = [...defaultCorsHeaders];
-  // set Access-Control-Allow-Origin to the origin of the request
-  const origin = req.headers['origin'];
-  if (origin) {
-    headers.push({
-      key: 'Access-Control-Allow-Origin',
-      value: origin,
-    });
-  }
-  return headers;
-};
-
-const getServerOpts = () => {
-  return {
-    key: tryReadFile(path.join(certsLocalPath, 'privkey.pem')) || '',
-    cert: tryReadFile(path.join(certsLocalPath, 'fullchain.pem')) || '',
-  };
-};
 /* const putFile = async (pathname, file) => {
   const u = `https://r2.upstreet.ai/${pathname}`;
   const headers = {};
@@ -2561,7 +2514,9 @@ export const main = async () => {
           _: [],
           ...opts,
         };
-        await login(args);
+        const loginJson = await login(args);
+        await mkdirp(path.dirname(loginLocation));
+        await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
       });
     });
   program
