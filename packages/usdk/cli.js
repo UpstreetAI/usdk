@@ -1,25 +1,21 @@
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
-import stream from 'stream';
 import repl from 'repl';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
 import EventSource from 'eventsource';
-import toml from '@iarna/toml';
 import open from 'open';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
 import { mkdirp } from 'mkdirp';
 
-import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
 import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
