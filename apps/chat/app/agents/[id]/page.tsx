@@ -40,7 +40,7 @@ export async function generateMetadata({
     cardImage: agentData?.preview_url ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://upstreet.ai/`
+    url: `upstreet.ai/${agentData?.author?.name}`
   };
 
   return {
