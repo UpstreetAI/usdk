@@ -47,7 +47,9 @@ export const login = async (args) => {
     };
 
     if (code) {
-      const j = JSON.parse(code);
+      const b = Buffer.from(code, 'base64');
+      const s = b.toString('utf8');
+      const j = JSON.parse(s);
       (async () => {
         await handleLogin(j);
       })().catch((err) => {
