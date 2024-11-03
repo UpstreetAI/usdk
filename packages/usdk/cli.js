@@ -2331,7 +2331,8 @@ export const main = async () => {
         _: [],
         ...opts,
       };
-      await status(args);
+      const statusJson = await status(args);
+      console.log(JSON.stringify(statusJson, null, 2));
     });
   });
   /* program

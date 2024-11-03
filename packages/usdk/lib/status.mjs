@@ -12,16 +12,22 @@ export const status = async (args) => {
   if (jwt !== null) {
     const userId = await getUserIdForJwt(jwt);
 
+    let result = {
+      user: null,
+      wearing: null,
+    };
+
     const supabase = makeAnonymousClient(env, jwt);
-    const result = await supabase
+    // get user
+    const { error, data } = await supabase
       .from('accounts')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
-    const { error, data } = result;
     if (!error) {
-      console.log('user', data);
+      result.user = data;
 
+      // get wearing
       const { active_asset } = data;
       if (active_asset) {
         // print the currently worn character
@@ -34,20 +40,22 @@ export const status = async (args) => {
         const { error, data } = assetResult;
         if (!error) {
           if (data) {
-            console.log('wearing', data);
+            result.wearing = data;
           } else {
             console.warn('failed to fetch worn avatar', active_asset);
           }
         } else {
           console.log(`could not get asset ${userId}: ${error}`);
         }
-      } else {
-        console.log('not wearing an avatar');
+      // } else {
+      //   console.log('not wearing an avatar');
       }
+
+      return result;
     } else {
-      console.log(`could not get account ${userId}: ${error}`);
+      throw new Error(`could not get account ${userId}: ${error}`);
     }
   } else {
-    console.log('not logged in');
+    throw new Error('not logged in');
   }
 };
