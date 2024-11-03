@@ -31,3 +31,33 @@ After installing the required system build tools, reinstall `usdk` globally to e
 ```bash
 npm install -g usdk
 ```
+
+---
+
+## Running `usdk` in PowerShell
+
+When running `usdk` in PowerShell, you might encounter an error related to the Node.js directory. PowerShell has a known issue with the Node.js installation path, which may prevent `usdk` from running smoothly.
+
+### Solution 1: Switch to CMD
+As a quick workaround, consider using the Command Prompt (CMD) instead of PowerShell to run `usdk`:
+
+1. Open a new terminal.
+2. Select **Command Prompt** instead of **PowerShell**.
+3. Run your `usdk` commands in CMD.
+
+### Solution 2: Set Prefix in .npmrc File
+To configure Node.js to work in PowerShell, you can specify the installation path using the `.npmrc` file. This approach sets an explicit prefix path, helping to resolve any directory issues in PowerShell.
+
+#### Steps to Set the Prefix:
+1. Open PowerShell.
+2. Run the following command to open your `.npmrc` file in Notepad:
+   ```powershell
+   Notepad "$env:USERPROFILE\.npmrc"
+   ```
+3. In the `.npmrc` file, add the following line to set the Node.js prefix:
+   ```plaintext
+   prefix = "C:/Program Files/nodejs"
+   ```
+4. Save the file and restart PowerShell.
+
+After following these steps, PowerShell should recognize the Node.js installation path correctly, allowing `usdk` to run without directory-related issues.
