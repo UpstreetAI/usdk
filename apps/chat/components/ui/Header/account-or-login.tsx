@@ -10,7 +10,7 @@ export function AccountOrLogin({user}: any) {
       {user ? (
         <AccountButton user={user} />
       ) : (
-        <LoginButton className='mr-4' text={"Login"} />
+        <LoginButton className='mr-4 -mt-5'>Sign In</LoginButton>
       )}
     </>
   );

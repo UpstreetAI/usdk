@@ -2,43 +2,29 @@
 
 import { redirectToLoginTool } from '@/lib/redirectToLoginTool'
 import * as React from 'react'
+import { Button } from 'ucom'
 
-import { cn } from '@/lib/utils'
-import { Button, type ButtonProps, buttonVariants } from '@/components/ui/button'
-import { IconLogin, IconSpinner, IconUser } from '@/components/ui/icons'
-
-interface LoginButtonProps extends ButtonProps {
-  text: string
+interface LoginButtonProps extends React.ComponentProps<typeof Button> {
+  children: React.ReactNode
 }
 
 export function LoginButton({
-  className,
-  text,
+  children,
   ...props
 }: LoginButtonProps) {
   const [isLoading, setIsLoading] = React.useState(false)
 
   return (
       <Button
-        variant="ghost"
         onClick={async () => {
           setIsLoading( true )
           // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
           await redirectToLoginTool()
         }}
         disabled={isLoading}
-        className={cn(buttonVariants({ variant: 'ghost' }), "h-full rounded", className)}
         {...props}
       >
-        <div className="mr-2">
-          {
-            isLoading
-              ? <IconSpinner className="animate-spin"/>
-              : <IconLogin className='mr-2 size-5' />
-          }
-        </div>
-
-        <span>{text ? text : 'Login'}</span>
+        {children}
       </Button>
   );
 }

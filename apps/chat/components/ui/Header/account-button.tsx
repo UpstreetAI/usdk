@@ -46,8 +46,8 @@ export function AccountButton({ user }: AccountButtonProps) {
           </div>
         </div>
 
-        <div className="hidden md:flex items-center max-w-16">
-          <div className='bg-gray-100 text-black px-2 py-1 pr-6 font-bold'>
+        <div className="hidden md:flex items-center max-w-32">
+            <div className='bg-gray-100 text-black px-2 py-1 pr-6 font-bold truncate'>
             {user.name}
           </div>
         </div>
