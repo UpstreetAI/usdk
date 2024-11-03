@@ -131,40 +131,62 @@ const buildWranglerToml = (
 };
 const interview = async (agentJson, {
   prompt,
-  stream,
+  inputStream,
+  outputStream,
   jwt,
 }) => {
   const questionLogger = new InterviewLogger(
-    stream ? new StreamStrategy(stream) : new ReadlineStrategy()
+    inputStream && outputStream
+      ? new StreamStrategy(inputStream, outputStream)
+      : new ReadlineStrategy(),
   );
-  const getAnswer = (question) => {
-    return questionLogger.askQuestion(question);
+  const getAnswer = async (question) => {
+    // console.log('get answer 1', {
+    //   question,
+    // });
+    const answer = await questionLogger.askQuestion(question);
+    // console.log('get answer 2', {
+    //   question,
+    //   answer,
+    // });
+    return answer;
   };
-  const agentInterview = new AgentInterview({
+  const opts = {
     agentJson,
     prompt,
     mode: prompt ? 'auto' : 'interactive',
     jwt,
-  });
+  };
+  const agentInterview = new AgentInterview(opts);
   agentInterview.addEventListener('input', async e => {
     const {
       question,
     } = e.data;
+    // console.log('agent interview input 1', {
+    //   question,
+    // });
     const answer = await getAnswer(question);
+    // console.log('agent interview input 2', {
+    //   question,
+    //   answer,
+    // });
     agentInterview.write(answer);
   });
   agentInterview.addEventListener('output', async e => {
     const {
       text,
     } = e.data;
-    console.log(text);
+    // console.log('agent interview output', {
+    //   text,
+    // });
+    questionLogger.log(text);
   });
   agentInterview.addEventListener('change', e => {
     const {
       updateObject,
       agentJson,
     } = e.data;
-    // console.log('change', updateObject);
+    // console.log('agent interview change', updateObject);
   });
   const imageLogger = (label) => async (e) => {
     const {
@@ -238,7 +260,8 @@ export const create = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
-  const stream = args.stream ?? null;
+  const inputStream = args.inputStream ?? null;
+  const outputStream = args.outputStream ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -301,7 +324,8 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
-      stream,
+      inputStream,
+      outputStream,
       jwt,
     });
   }
@@ -436,7 +460,8 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
-  const stream = args.stream ?? null;
+  const inputStream = args.inputStream ?? null;
+  const outputStream = args.outputStream ?? null;
   const addFeature = args.addFeature;
   const removeFeature = args.removeFeature;
   // opts
@@ -457,7 +482,8 @@ export const edit = async (args, opts) => {
   if (!(addFeature || removeFeature)) {
     agentJson = await interview(agentJson, {
       prompt,
-      stream,
+      inputStream,
+      outputStream,
       jwt,
     });
   }

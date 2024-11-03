@@ -131,6 +131,7 @@
   transform: translateX(-50%);
   text-align: center;
   text-transform: uppercase;
+  color: #efefef;
 }
 
 .label.buttonLabel {

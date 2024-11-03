@@ -205,7 +205,7 @@ const SubscriptionPlansPublic = () => {
           );
         })}
         <div className="w-full text-center">
-          <LoginButton className="text-xl" text="Login to you account to subscribe!" />
+          <LoginButton className="text-xl">Login to you account to subscribe!</LoginButton>
         </div>
       </div>
     </div>
