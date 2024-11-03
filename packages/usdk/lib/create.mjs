@@ -45,6 +45,7 @@ import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-a
 import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
+import StreamStrategy from '../util/logger/stream.mjs';
 import {
   cwd,
 } from '../util/directory-utils.mjs';
@@ -130,9 +131,12 @@ const buildWranglerToml = (
 };
 const interview = async (agentJson, {
   prompt,
+  stream,
   jwt,
 }) => {
-  const questionLogger = new InterviewLogger(new ReadlineStrategy());
+  const questionLogger = new InterviewLogger(
+    stream ? new StreamStrategy(stream) : new ReadlineStrategy()
+  );
   const getAnswer = (question) => {
     return questionLogger.askQuestion(question);
   };
@@ -234,11 +238,13 @@ export const create = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const stream = args.stream ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
   const yes = args.yes;
   const force = !!args.force;
+  const noInstall = !!args.noInstall;
   const forceNoConfirm = !!args.forceNoConfirm;
   // opts
   const jwt = opts.jwt;
@@ -295,6 +301,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
+      stream,
       jwt,
     });
   }
@@ -379,10 +386,20 @@ export const create = async (args, opts) => {
   await _copyFiles();
 
   // npm install
-  console.log(pc.italic('Installing dependencies...'));
-  await npmInstall(dstDir);
+  if (!noInstall) {
+    console.log(pc.italic('Installing dependencies...'));
+    await npmInstall(dstDir);
+  }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+
+  return agentJson;
+  // // return the parsed dstWranglerToml
+  // {
+  //   const dstWranglerTomlString = await fs.promises.readFile(path.join(dstDir, 'wrangler.toml'), 'utf8');
+  //   const dstWranglerToml = toml.parse(dstWranglerTomlString);
+  //   return dstWranglerToml;
+  // }
 };
 
 const updateFeatures = (agentJson, {
@@ -419,6 +436,7 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const stream = args.stream ?? null;
   const addFeature = args.addFeature;
   const removeFeature = args.removeFeature;
   // opts
@@ -439,6 +457,7 @@ export const edit = async (args, opts) => {
   if (!(addFeature || removeFeature)) {
     agentJson = await interview(agentJson, {
       prompt,
+      stream,
       jwt,
     });
   }

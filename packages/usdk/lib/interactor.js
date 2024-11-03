@@ -35,8 +35,9 @@ const makeEmptyObjectFromSchema = (schema) => {
 
 export class Interactor extends EventTarget {
   jwt;
-  objectFormat;
   object;
+  objectFormat;
+  formatFn;
   messages;
   queueManager;
   constructor({
@@ -44,16 +45,18 @@ export class Interactor extends EventTarget {
     userPrompt,
     object,
     objectFormat,
+    formatFn = o => o,
     jwt,
   }) {
     super();
 
     this.jwt = jwt;
-    this.objectFormat = objectFormat;
     this.object = object ?
       makeCleanObjectFromSchema(object, objectFormat)
     :
       makeEmptyObjectFromSchema(objectFormat);
+    this.objectFormat = objectFormat;
+    this.formatFn = formatFn;
     this.messages = [
       {
         role: 'system',
@@ -107,9 +110,7 @@ export class Interactor extends EventTarget {
       }), {
         jwt,
       });
-      const {
-        updateObject,
-      } = o;
+      const updateObject = this.formatFn(o.updateObject);
       if (updateObject) {
         for (const key in updateObject) {
           object[key] = updateObject[key];
@@ -156,9 +157,7 @@ export class Interactor extends EventTarget {
         updateObject: o.output,
         done: true,
       };
-      const {
-        updateObject,
-      } = o;
+      const updateObject = this.formatFn(o.updateObject);
       if (updateObject) {
         for (const key in updateObject) {
           object[key] = updateObject[key];

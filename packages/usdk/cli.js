@@ -1,29 +1,26 @@
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
-import stream from 'stream';
 import repl from 'repl';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
 import EventSource from 'eventsource';
-import toml from '@iarna/toml';
 import open from 'open';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import dedent from 'dedent';
 import { mkdirp } from 'mkdirp';
 
-import prettyBytes from 'pretty-bytes';
 import Table from 'cli-table3';
 import * as ethers from 'ethers';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { isGuid } from './packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { packZip, extractZip } from './lib/zip-util.mjs';
+import { parseAgentSpecs } from './lib/agent-spec-utils.mjs';
 import {
   getAgentPublicUrl,
   getCloudAgentHost,
@@ -40,7 +37,6 @@ import {
 } from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
 import {
   makeAnonymousClient,
-  getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { cwd } from './util/directory-utils.mjs';
@@ -85,14 +81,19 @@ import {
 import { getLoginJwt } from './util/login-util.mjs';
 import {
   loginLocation,
-  wranglerTomlPath,
 } from './lib/locations.mjs';
 import {
+  version,
   login,
   logout,
+  status,
   create,
   edit,
+  deploy,
 } from './lib/commands.mjs';
+import {
+  env,
+} from './lib/env.mjs';
 import {
   consoleImageWidth,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
@@ -110,9 +111,6 @@ import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
-const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
-const wranglerToml = toml.parse(wranglerTomlString);
-const env = wranglerToml.vars;
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const shortName = () => uniqueNamesGenerator({
@@ -120,7 +118,6 @@ const shortName = () => uniqueNamesGenerator({
   separator: ' ',
 });
 const makeName = () => capitalize(shortName());
-const getAgentHost = (guid) => `https://user-agent-${guid}.${workersHost}`;
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);
@@ -266,53 +263,6 @@ const getAssetJson = async (supabase, guid) => {
 
 //
 
-const status = async (args) => {
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    const userId = await getUserIdForJwt(jwt);
-
-    const supabase = makeSupabase(jwt);
-    const result = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    const { error, data } = result;
-    if (!error) {
-      console.log('user', data);
-
-      const { active_asset } = data;
-      if (active_asset) {
-        // print the currently worn character
-        const assetResult = await supabase
-          .from('assets')
-          .select('*')
-          .eq('id', active_asset)
-          .eq('type', 'npc')
-          .maybeSingle();
-        const { error, data } = assetResult;
-        if (!error) {
-          if (data) {
-            console.log('wearing', data);
-          } else {
-            console.warn('failed to fetch worn avatar', active_asset);
-          }
-        } else {
-          console.log(`could not get asset ${userId}: ${error}`);
-        }
-      } else {
-        console.log('not wearing an avatar');
-      }
-    } else {
-      console.log(`could not get account ${userId}: ${error}`);
-    }
-  } else {
-    console.log('not logged in');
-  }
-
-  // const localGuid = await ensureLocalGuid();
-  // console.log(`local guid is ${localGuid}`);
-};
 /* const wear = async (args) => {
   const guid = args._[0] ?? '';
 
@@ -1121,75 +1071,6 @@ const connect = async (args) => {
     process.exit(1);
   }
 };
-const getGuidFromPath = async (p) => {
-  const makeEnoent = () => new Error('not an agent directory: ' + p);
-
-  const wranglerTomlPath = path.join(p, 'wrangler.toml');
-  try {
-    const wranglerTomString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-    const wranglerToml = toml.parse(wranglerTomString);
-    const agentJsonString = wranglerToml.vars.AGENT_JSON;
-    const agentJson = agentJsonString && JSON.parse(agentJsonString);
-    const id = agentJson?.id;
-    if (id) {
-      return id;
-    } else {
-      throw makeEnoent();
-    }
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      throw makeEnoent();
-    } else {
-      throw err;
-    }
-  }
-};
-const parseAgentSpecs = async (agentRefSpecs = []) => {
-  if (!Array.isArray(agentRefSpecs)) {
-    throw new Error('expected agent ref specs to be an array; got ' + JSON.stringify(agentRefSpecs));
-  }
-  if (!agentRefSpecs.every((agentRefSpec) => typeof agentRefSpec === 'string')) {
-    throw new Error('expected agent ref specs to be strings; got ' + JSON.stringify(agentRefSpecs));
-  }
-
-  if (agentRefSpecs.length === 0) {
-    // if no agent refs are provided, use the current directory
-    const directory = cwd;
-    const guid = await getGuidFromPath(directory);
-    return [
-      {
-        ref: directory,
-        guid,
-        directory,
-        portIndex: 0,
-      },
-    ];
-  } else {
-    // treat each agent ref as a guid or directory
-    const agentSpecsPromises = agentRefSpecs.map(async (agentRefSpec, index) => {
-      if (isGuid(agentRefSpec)) {
-        // if it's a cloud agent
-        return {
-          ref: agentRefSpec,
-          guid: agentRefSpec,
-          directory: null,
-          portIndex: index,
-        };
-      } else {
-        // if it's a directory agent
-        const directory = agentRefSpec;
-        const guid = await getGuidFromPath(directory);
-        return {
-          ref: directory,
-          guid,
-          directory,
-          portIndex: index,
-        };
-      }
-    });
-    return await Promise.all(agentSpecsPromises);
-  }
-};
 const chat = async (args) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
@@ -1849,108 +1730,6 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const deploy = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
-    throw new Error('all agent specs must have directories');
-  }
-
-  // log in
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    for (const agentSpec of agentSpecs) {
-      const { directory } = agentSpec;
-
-      console.log(pc.italic('Deploying agent...'));
-
-      const uint8Array = await packZip(directory, {
-        exclude: [
-          /[\/\\]node_modules[\/\\]/, // linux and windows
-        ],
-      });
-      // upload the agent
-      const u = `${deployEndpointUrl}/agent`;
-      const req = https.request(u, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          'Content-Length': uint8Array.byteLength,
-        },
-      });
-      // create a stream to pass to the request
-      const dataStream = new stream.PassThrough();
-      dataStream.pipe(req);
-      // dataStream.on('data', (b) => {
-      // });
-      // dataStream.on('end', (b) => {
-      // });
-      // pump the loop
-      (async () => {
-        const chunkSize = 4 * 1024;
-        const logSize = (i) => {
-          process.stdout.write(
-            `\r${prettyBytes(i)} / ${prettyBytes(uint8Array.byteLength)} (${((i / uint8Array.byteLength) * 100).toFixed(2)}%)`,
-          );
-        };
-        for (let i = 0; i < uint8Array.byteLength; i += chunkSize) {
-          logSize(i);
-          const slice = Buffer.from(uint8Array.slice(i, i + chunkSize));
-          const ok = dataStream.write(slice);
-          if (!ok) {
-            await new Promise((accept) => {
-              dataStream.once('drain', accept);
-            });
-          }
-        }
-        dataStream.end();
-
-        logSize(uint8Array.length);
-        console.log();
-      })();
-      const wranglerTomlJson = await new Promise((accept, reject) => {
-        req.on('response', async (res) => {
-          // console.log('got response', res.statusCode);
-
-          const b = await new Promise((accept, reject) => {
-            const bs = [];
-            res.on('data', (b) => {
-              bs.push(b);
-            });
-            res.on('end', async () => {
-              const b = Buffer.concat(bs);
-              accept(b);
-            });
-            res.on('error', reject);
-          });
-          const s = b.toString('utf8');
-          // console.log('got response output', s);
-
-          if (res.statusCode === 200) {
-            const j = JSON.parse(s);
-            accept(j);
-          } else {
-            reject(new Error('deploy failed: ' + s));
-          }
-        });
-        req.on('error', reject);
-      });
-      const agentJsonString = wranglerTomlJson.vars.AGENT_JSON;
-      const agentJson = JSON.parse(agentJsonString);
-      const guid = agentJson.id;
-      const url = getAgentHost(guid);
-      
-      console.log();
-      console.group(pc.green('Agent Deployed Successfully:'), '\n');
-      console.log(pc.cyan('✓ Host:'), url, '\n');
-      console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
-      console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
 const pull = async (args) => {
   const agentId = args._[0] ?? '';
   const dstDir = args._[1] ?? cwd;
@@ -2485,7 +2264,8 @@ export const main = async () => {
       }
     });
 
-  program.version(packageJson.version);
+  const ver = version();
+  program.version(ver);
 
   // misc
   program
@@ -2494,7 +2274,7 @@ export const main = async () => {
     .action(async () => {
       await handleError(async () => {
         commandExecuted = true;
-        console.log(pc.cyan(packageJson.version));
+        console.log(pc.cyan(ver));
       });
     });
   /* program
@@ -2529,7 +2309,13 @@ export const main = async () => {
           _: [],
           ...opts,
         };
-        await logout(args);
+        const ok = await logout(args);
+        if (ok) {
+          await rimraf(loginLocation);
+          console.log('Successfully logged out.');
+        } else {
+          console.log('No user logged in');
+        }
       });
     });
 
@@ -2545,7 +2331,11 @@ export const main = async () => {
         _: [],
         ...opts,
       };
-      await status(args);
+      const jwt = await getLoginJwt();
+      const statusJson = await status(args, {
+        jwt,
+      });
+      console.log(JSON.stringify(statusJson, null, 2));
     });
   });
   /* program
@@ -2628,6 +2418,7 @@ export const main = async () => {
     .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
     .option(`-y, --yes`, `Non-interactive mode`)
     .option(`-f, --force`, `Overwrite existing files`)
+    .option(`-n, --no-install`, `Do not install dependencies`)
     .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
     .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
     .option(

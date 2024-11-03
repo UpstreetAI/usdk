@@ -175,6 +175,19 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
       }),
+      formatFn: (updateObject) => {
+        updateObject = structuredClone(updateObject);
+        // remove all optional features
+        if (updateObject.features) {
+          for (const featureName in updateObject.features) {
+            const value = updateObject.features[featureName];
+            if (value === null || value === undefined) {
+              delete updateObject.features[featureName];
+            }
+          }
+        }
+        return updateObject;
+      },
       jwt,
     });
     this.interactor.addEventListener('message', async (e) => {
