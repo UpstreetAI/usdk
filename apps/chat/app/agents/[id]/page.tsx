@@ -32,13 +32,15 @@ export async function generateMetadata({
     .single();
   const agentData = result.data as any;
 
+  console.log(agentData)
+
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
     description: agentData?.description ?? '',
-    cardImage: agentData?.preview_image ?? '',
+    cardImage: agentData?.preview_url ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {
