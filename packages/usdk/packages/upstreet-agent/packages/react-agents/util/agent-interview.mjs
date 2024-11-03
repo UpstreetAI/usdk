@@ -178,7 +178,7 @@ export class AgentInterview extends EventTarget {
       formatFn: (updateObject) => {
         updateObject = structuredClone(updateObject);
         // remove all optional features
-        if (updateObject.features) {
+        if (updateObject?.features) {
           for (const featureName in updateObject.features) {
             const value = updateObject.features[featureName];
             if (value === null || value === undefined) {
