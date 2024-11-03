@@ -1,4 +1,7 @@
 export {
+  version,
+} from './version.mjs';
+export {
   login,
   logout,
 } from './login.mjs';
