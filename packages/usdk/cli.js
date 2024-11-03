@@ -83,6 +83,7 @@ import {
   loginLocation,
 } from './lib/locations.mjs';
 import {
+  version,
   login,
   logout,
   status,
@@ -2263,7 +2264,8 @@ export const main = async () => {
       }
     });
 
-  program.version(packageJson.version);
+  const ver = version();
+  program.version(ver);
 
   // misc
   program
@@ -2272,7 +2274,7 @@ export const main = async () => {
     .action(async () => {
       await handleError(async () => {
         commandExecuted = true;
-        console.log(pc.cyan(packageJson.version));
+        console.log(pc.cyan(ver));
       });
     });
   /* program
