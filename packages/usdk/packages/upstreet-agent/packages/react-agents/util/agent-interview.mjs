@@ -175,18 +175,18 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
       }),
-      formatFn: (object) => {
-        object = structuredClone(object);
+      formatFn: (updateObject) => {
+        updateObject = structuredClone(updateObject);
         // remove all optional features
-        if (object.features) {
-          for (const featureName in object.features) {
-            const value = object.features[featureName];
+        if (updateObject.features) {
+          for (const featureName in updateObject.features) {
+            const value = updateObject.features[featureName];
             if (value === null || value === undefined) {
-              delete object.features[featureName];
+              delete updateObject.features[featureName];
             }
           }
         }
-        return object;
+        return updateObject;
       },
       jwt,
     });
