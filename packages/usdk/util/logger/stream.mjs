@@ -1,4 +1,5 @@
 import readline from 'readline';
+import util from 'util';
 
 class StreamStrategy {
   constructor(stream) {
@@ -19,6 +20,16 @@ class StreamStrategy {
         return answer;
       }
     }
+  }
+
+  log(...args) {
+    const formattedArgs = args.map(arg =>
+      util.inspect(arg, {
+        depth: 3,
+        // colors: true,
+      })
+    );
+    this.rl.output.write(formattedArgs.join(' ') + '\n');
   }
 
   close() {

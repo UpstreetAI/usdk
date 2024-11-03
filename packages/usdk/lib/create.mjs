@@ -157,7 +157,7 @@ const interview = async (agentJson, {
     const {
       text,
     } = e.data;
-    console.log(text);
+    questionLogger.log(text);
   });
   agentInterview.addEventListener('change', e => {
     const {
