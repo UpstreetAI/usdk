@@ -76,7 +76,7 @@ const generateFeaturePrompt = (featureSpecs, userSpecifiedFeatures, allowAll) =>
 
 export class AgentInterview extends EventTarget {
   constructor(opts) {
-    super()
+    super();
 
     let {
       agentJson, // object
