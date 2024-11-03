@@ -2331,7 +2331,10 @@ export const main = async () => {
         _: [],
         ...opts,
       };
-      const statusJson = await status(args);
+      const jwt = await getLoginJwt();
+      const statusJson = await status(args, {
+        jwt,
+      });
       console.log(JSON.stringify(statusJson, null, 2));
     });
   });

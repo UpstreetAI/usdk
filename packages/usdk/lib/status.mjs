@@ -7,9 +7,10 @@ import {
   env,
 } from './env.mjs';
 
-export const status = async (args) => {
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
+export const status = async (args, {
+  jwt,
+}) => {
+  if (jwt) {
     const userId = await getUserIdForJwt(jwt);
 
     let result = {
