@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   const result = await supabase
     .from('assets')
-    .select('*')
+    .select('*, author: accounts ( id, name )')
     .eq('id', agentId)
     .single();
   const agentData = result.data as any;
@@ -60,7 +60,7 @@ export async function generateMetadata({
       description: meta.description,
       images: [meta.cardImage],
       type: 'website',
-      siteName: meta.title
+      siteName: `www.upstreet.ai`
     },
     twitter: {
       card: 'summary_large_image',
