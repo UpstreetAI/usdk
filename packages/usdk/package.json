@@ -1,7 +1,7 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.81",
+  "version": "0.0.82",
   "author": "Upstreet",
   "type": "module",
   "main": "module.mjs",
