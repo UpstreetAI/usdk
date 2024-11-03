@@ -2642,7 +2642,7 @@ Welcome to USDK's Agent Creation process.
 
 ${pc.cyan(`v${packageJson.version}`)}
 
-To exit, press CTRL+C (CMD+C on macOS).
+To exit, press CTRL+C (CMD+C on macOS) twice.
 
 For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
 
