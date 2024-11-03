@@ -32,11 +32,11 @@ export function HeaderMenu() {
       <div className='md:m-w-[160px] md:w-[160px] pr-4 md:pr-0'>
         <a href="/" rel="nofollow" className='hidden md:block w-44 ml-4'>
           {/* <IconUpstreetChatStroke className="mr-2 fill-black size-12 w-auto dark:hidden" inverted /> */}
-          <IconUpstreetChatStroke className="hidden mr-2 fill-white size-12 w-auto block" />
+          <IconUpstreetChatStroke className="mr-2 fill-white size-12 w-auto block" />
         </a>
         <a href="/" rel="nofollow" className='block md:hidden w-6 ml-4'>
           {/* <IconUpstreetStroke className="mr-2 fill-black size-8 w-auto dark:hidden" inverted /> */}
-          <IconUpstreetStroke className="hidden mr-2 fill-white size-8 w-auto block" />
+          <IconUpstreetStroke className="mr-2 fill-white size-8 w-auto block" />
         </a>
       </div>
       <div className='hidden md:flex gap-4 ml-6'>
@@ -55,7 +55,7 @@ export function HeaderMenu() {
         <SidebarMobileLeft>
         <a href="/" rel="nofollow" className='block w-44 mb-4'>
           {/* <IconUpstreetChatStroke className="mr-2 fill-black size-12 w-auto dark:hidden" inverted /> */}
-          <IconUpstreetChatStroke className="hidden mr-2 fill-white size-12 w-auto block" />
+          <IconUpstreetChatStroke className="mr-2 fill-white size-12 w-auto block" />
         </a>
         {MenuItems.map((item) => (
           <Button
