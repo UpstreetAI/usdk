@@ -1042,9 +1042,76 @@ For further assistance, please contact support or ask for help in our Discord co
     _trackAudio();
   }
 };
+const connectStream = async ({
+  room,
+  stream,
+}) => {
+  if (!stream) {
+    throw new Error('no stream provided');
+  }
+
+  let profile = await getUserProfile();
+  profile = {
+    ...profile,
+    capabilities: [
+      'human',
+    ],
+  };
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
+
+  // set up the chat
+  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
+    room,
+    profile,
+  });
+  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+  const mpLog = (...args) => {
+    // use util.format to format the message
+    const s = args.map((arg) => {
+      if (typeof arg === 'string') {
+        return arg;
+      } else {
+        return util.format(arg);
+      }
+    }).join(' ');
+    stream.write(s);
+  };
+  multiplayerConnection.addEventListener('log', (e) => {
+    const { args, logLevel } = e.data;
+    if (localLogLevel >= logLevel) {
+      mpLog(...args);
+    }
+  });
+  multiplayerConnection.addEventListener('chat', (e) => {
+    const { message } = e.data;
+    mpLog(message);
+  });
+  await multiplayerConnection.waitForConnect();
+  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
+  const agentJsons = Array.from(playersMap.getMap().values()).map(
+    (player) => player.playerSpec,
+  );
+  mpLog(dedent`\
+    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
+    In the room (${room}):
+    ${agentJsons.length > 0 ?
+      agentJsons
+        .map((agent) => {
+          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
+        })
+        .join('\n')
+      :
+        `* no one else is here`
+    }
+    http://local.upstreet.ai:${devServerPort}
+  `);
+};
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
+  const stream = args.stream ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -1062,6 +1129,14 @@ const connect = async (args) => {
         });
         break;
       }
+      case 'stream': {
+        connectStream({
+          room,
+          stream,
+          debug,
+        });
+        break;
+      }
       default: {
         throw new Error(`unknown mode: ${mode}`);
       }
@@ -1075,6 +1150,8 @@ const chat = async (args) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
+  const browser = args.browser;
+  const stream = args.stream;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
@@ -1098,10 +1175,20 @@ const chat = async (args) => {
     });
 
     // connect to the chat
+    const mode = (() => {
+      if (browser) {
+        return 'browser';
+      } else if (stream) {
+        return 'stream';
+      } else {
+        return 'repl';
+      }
+    })();
     await connect({
       _: [room],
-      mode: args.browser ? 'browser' : 'repl',
-      debug: args.debug,
+      mode,
+      stream,
+      debug,
     });
   } else {
     console.log('not logged in');
