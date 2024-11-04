@@ -108,7 +108,7 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
   return (
     <>
       {search && (
-        <div className='flex mb-0 mt-2'>
+        <div className='flex mt-4'>
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8 w-full">
             Agents <span className="text-zinc-950 ml-3">{agents.length}{showLoadMore && "+"}</span>
               <input

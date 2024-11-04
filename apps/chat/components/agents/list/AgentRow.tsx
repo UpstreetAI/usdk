@@ -38,6 +38,7 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
         <div className="min-w-40 text-md capitalize w-full relative">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
+            <div className="font-italic text-sm">Created by: <span className="font-bold underline">{user ? `You` : `@${author}`}</span></div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex absolute bottom-0 right-0">
@@ -49,8 +50,6 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
               <AgentDelete agent={agent} />
             </div>
           )}
-
-          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author} {user && '(ME)'}</div>
         </div>
       </div>
     </div>
