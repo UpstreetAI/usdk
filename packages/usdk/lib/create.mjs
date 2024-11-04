@@ -133,6 +133,7 @@ const interview = async (agentJson, {
   prompt,
   inputStream,
   outputStream,
+  events,
   jwt,
 }) => {
   const questionLogger = new InterviewLogger(
@@ -188,28 +189,38 @@ const interview = async (agentJson, {
     } = e.data;
     // console.log('agent interview change', updateObject);
   });
-  const imageLogger = (label) => async (e) => {
-    const {
-      result: blob,
-      signal,
-    } = e.data;
+  if (events) {
+    ['preview', 'homespace'].forEach(eventType => {
+      agentInterview.addEventListener(eventType, (e) => {
+        events.dispatchEvent(new MessageEvent(eventType, {
+          data: e.data,
+        }));
+      });
+    });
+  } else {
+    const imageLogger = (label) => async (e) => {
+      const {
+        result: blob,
+        signal,
+      } = e.data;
 
-    const ab = await blob.arrayBuffer();
-    if (signal.aborted) return;
+      const ab = await blob.arrayBuffer();
+      if (signal.aborted) return;
 
-    const b = Buffer.from(ab);
-    const jimp = await Jimp.read(b);
-    if (signal.aborted) return;
+      const b = Buffer.from(ab);
+      const jimp = await Jimp.read(b);
+      if (signal.aborted) return;
 
-    const imageRenderer = new ImageRenderer();
-    const {
-      text: imageText,
-    } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
-    console.log(label);
-    console.log(imageText);
-  };
-  agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
-  agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
+      const imageRenderer = new ImageRenderer();
+      const {
+        text: imageText,
+      } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
+      console.log(label);
+      console.log(imageText);
+    };
+    agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
+    agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
+  }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
   return result;
@@ -262,6 +273,7 @@ export const create = async (args, opts) => {
   const prompt = args.prompt ?? '';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
+  const events = args.events ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -326,6 +338,7 @@ export const create = async (args, opts) => {
       prompt,
       inputStream,
       outputStream,
+      events,
       jwt,
     });
   }
@@ -462,6 +475,7 @@ export const edit = async (args, opts) => {
   const prompt = args.prompt ?? '';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
+  const events = args.events ?? null;
   const addFeature = args.addFeature;
   const removeFeature = args.removeFeature;
   // opts
@@ -484,6 +498,7 @@ export const edit = async (args, opts) => {
       prompt,
       inputStream,
       outputStream,
+      events,
       jwt,
     });
   }

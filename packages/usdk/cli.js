@@ -133,25 +133,6 @@ const eraseLine = '\x1b[2K\r';
 //
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
-
-/* const putFile = async (pathname, file) => {
-  const u = `https://r2.upstreet.ai/${pathname}`;
-  const headers = {};
-  if (file.type) {
-    headers['Content-Type'] = file.type;
-  }
-  if (file.size) {
-    headers['Content-Length'] = file.size;
-  }
-  const res = await fetch(u, {
-    method: 'PUT',
-    headers,
-    body: file,
-    duplex: 'half',
-  });
-  const j = await res.json();
-  return j;
-}; */
 const ensureLocalGuid = async () => {
   throw new Error(`move this to use the agent's guid`);
   /* const guidFile = await tryReadFileAsync(guidLocation);
@@ -179,44 +160,6 @@ const ensureLocalGuid = async () => {
     return guid;
   } */
 };
-/* const ensureLocalMnemonic = async () => {
-  const walletFile = await tryReadFileAsync(walletLocation);
-  if (walletFile) {
-    const o = jsonParse(walletFile);
-    if (typeof o === 'object' && typeof o?.mnemonic === 'string') {
-      const { mnemonic } = o;
-      return mnemonic;
-    } else {
-      throw new Error(
-        'could not parse wallet file: ' + JSON.stringify(o, null, 2),
-      );
-    }
-  } else {
-    const mnemonic = generateMnemonic();
-    const o = {
-      mnemonic,
-    };
-    const s = JSON.stringify(o);
-    await fs.promises.writeFile(walletLocation, s);
-    return mnemonic;
-  }
-}; */
-/* const getLocalMnemonic = async () => {
-  const walletFile = await tryReadFileAsync(walletLocation);
-  if (walletFile) {
-    const o = jsonParse(walletFile);
-    if (typeof o === 'object' && typeof o?.mnemonic === 'string') {
-      const { mnemonic } = o;
-      return mnemonic;
-    } else {
-      throw new Error(
-        'could not parse wallet file: ' + JSON.stringify(o, null, 2),
-      );
-    }
-  } else {
-    return null;
-  }
-}; */
 const getAgentMnemonic = async (supabase, agentId) => {
   const accountResult = await supabase
     .from('wallets')
@@ -1042,9 +985,76 @@ For further assistance, please contact support or ask for help in our Discord co
     _trackAudio();
   }
 };
+const connectStream = async ({
+  room,
+  stream,
+}) => {
+  if (!stream) {
+    throw new Error('no stream provided');
+  }
+
+  let profile = await getUserProfile();
+  profile = {
+    ...profile,
+    capabilities: [
+      'human',
+    ],
+  };
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
+
+  // set up the chat
+  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
+    room,
+    profile,
+  });
+  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+  const mpLog = (...args) => {
+    // use util.format to format the message
+    const s = args.map((arg) => {
+      if (typeof arg === 'string') {
+        return arg;
+      } else {
+        return util.format(arg);
+      }
+    }).join(' ');
+    stream.write(s);
+  };
+  multiplayerConnection.addEventListener('log', (e) => {
+    const { args, logLevel } = e.data;
+    if (localLogLevel >= logLevel) {
+      mpLog(...args);
+    }
+  });
+  multiplayerConnection.addEventListener('chat', (e) => {
+    const { message } = e.data;
+    mpLog(message);
+  });
+  await multiplayerConnection.waitForConnect();
+  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
+  const agentJsons = Array.from(playersMap.getMap().values()).map(
+    (player) => player.playerSpec,
+  );
+  mpLog(dedent`\
+    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
+    In the room (${room}):
+    ${agentJsons.length > 0 ?
+      agentJsons
+        .map((agent) => {
+          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
+        })
+        .join('\n')
+      :
+        `* no one else is here`
+    }
+    http://local.upstreet.ai:${devServerPort}
+  `);
+};
 const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
+  const stream = args.stream ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -1062,6 +1072,14 @@ const connect = async (args) => {
         });
         break;
       }
+      case 'stream': {
+        connectStream({
+          room,
+          stream,
+          debug,
+        });
+        break;
+      }
       default: {
         throw new Error(`unknown mode: ${mode}`);
       }
@@ -1075,6 +1093,8 @@ const chat = async (args) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
+  const browser = args.browser;
+  const stream = args.stream;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
@@ -1098,10 +1118,20 @@ const chat = async (args) => {
     });
 
     // connect to the chat
+    const mode = (() => {
+      if (browser) {
+        return 'browser';
+      } else if (stream) {
+        return 'stream';
+      } else {
+        return 'repl';
+      }
+    })();
     await connect({
       _: [room],
-      mode: args.browser ? 'browser' : 'repl',
-      debug: args.debug,
+      mode,
+      stream,
+      debug,
     });
   } else {
     console.log('not logged in');

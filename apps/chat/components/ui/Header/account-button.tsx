@@ -53,7 +53,7 @@ export function AccountButton({ user }: AccountButtonProps) {
         </div>
       </a>
       
-      <IconButton onClick={logout} icon="Logout" variant='ghost' size='small' />
+      {/* <IconButton onClick={logout} icon="Logout" variant='ghost' size='small' /> */}
 
     </div>
   )
