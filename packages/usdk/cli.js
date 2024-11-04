@@ -674,6 +674,7 @@ const startMultiplayerRepl = ({
 
   return replServer;
 };
+// XXX break this out into connect-utils
 const connectBrowser = ({
   room,
 }) => {
@@ -1089,6 +1090,7 @@ const connect = async (args) => {
     process.exit(1);
   }
 };
+// XXX break this out into an importable command
 const chat = async (args) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
