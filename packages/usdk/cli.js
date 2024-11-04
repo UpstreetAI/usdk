@@ -133,25 +133,6 @@ const eraseLine = '\x1b[2K\r';
 //
 
 const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
-
-/* const putFile = async (pathname, file) => {
-  const u = `https://r2.upstreet.ai/${pathname}`;
-  const headers = {};
-  if (file.type) {
-    headers['Content-Type'] = file.type;
-  }
-  if (file.size) {
-    headers['Content-Length'] = file.size;
-  }
-  const res = await fetch(u, {
-    method: 'PUT',
-    headers,
-    body: file,
-    duplex: 'half',
-  });
-  const j = await res.json();
-  return j;
-}; */
 const ensureLocalGuid = async () => {
   throw new Error(`move this to use the agent's guid`);
   /* const guidFile = await tryReadFileAsync(guidLocation);
@@ -179,44 +160,6 @@ const ensureLocalGuid = async () => {
     return guid;
   } */
 };
-/* const ensureLocalMnemonic = async () => {
-  const walletFile = await tryReadFileAsync(walletLocation);
-  if (walletFile) {
-    const o = jsonParse(walletFile);
-    if (typeof o === 'object' && typeof o?.mnemonic === 'string') {
-      const { mnemonic } = o;
-      return mnemonic;
-    } else {
-      throw new Error(
-        'could not parse wallet file: ' + JSON.stringify(o, null, 2),
-      );
-    }
-  } else {
-    const mnemonic = generateMnemonic();
-    const o = {
-      mnemonic,
-    };
-    const s = JSON.stringify(o);
-    await fs.promises.writeFile(walletLocation, s);
-    return mnemonic;
-  }
-}; */
-/* const getLocalMnemonic = async () => {
-  const walletFile = await tryReadFileAsync(walletLocation);
-  if (walletFile) {
-    const o = jsonParse(walletFile);
-    if (typeof o === 'object' && typeof o?.mnemonic === 'string') {
-      const { mnemonic } = o;
-      return mnemonic;
-    } else {
-      throw new Error(
-        'could not parse wallet file: ' + JSON.stringify(o, null, 2),
-      );
-    }
-  } else {
-    return null;
-  }
-}; */
 const getAgentMnemonic = async (supabase, agentId) => {
   const accountResult = await supabase
     .from('wallets')
