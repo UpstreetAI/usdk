@@ -111,15 +111,17 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
         <div className='flex mt-4'>
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8 w-full">
             Agents <span className="text-zinc-950 ml-3">{agents.length}{showLoadMore && "+"}</span>
+            <div className='float-right'>
               <input
               type='text'
               placeholder='Search agents...'
               value={searchTerm}
-              className='w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm float-right'
+              className='w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm'
               onChange={(e) => {
                 setSearchTerm(e.target.value);
               }}
             />
+            </div>
           </h1>
         </div>
       )}
