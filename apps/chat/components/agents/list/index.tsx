@@ -115,7 +115,7 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
               type='text'
               placeholder='Search agents...'
               value={searchTerm}
-              className='w-60 -mt-2 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm float-right'
+              className='w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm float-right'
               onChange={(e) => {
                 setSearchTerm(e.target.value);
               }}
