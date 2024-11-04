@@ -108,19 +108,19 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
   return (
     <>
       {search && (
-        <div className='flex mb-4'>
-          <h1 className='text-3xl font-bold text-left text-[#2D4155] w-full'>
-            Agents
+        <div className='flex mb-0 mt-2'>
+          <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8 w-full">
+            Agents <span className="text-zinc-950 ml-3">{agents.length}{showLoadMore && "+"}</span>
+              <input
+              type='text'
+              placeholder='Search agents...'
+              value={searchTerm}
+              className='w-60 -mt-2 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm float-right'
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+              }}
+            />
           </h1>
-          <input
-            type='text'
-            placeholder='Search agents...'
-            value={searchTerm}
-            className='w-60 px-4 py-2 bg-gray-100 border-2 border-gray-900 text-gray-900 text-sm'
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-            }}
-          />
         </div>
       )}
 
