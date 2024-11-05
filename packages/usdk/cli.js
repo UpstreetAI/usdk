@@ -843,14 +843,12 @@ const startMultiplayerRepl = ({
   const sendChatMessage = async (text) => {
     const userId = profile.id;
     const name = profile.name;
-    const playerType = profile.playerType;
     await realms.sendChatMessage({
       method: 'say',
       userId,
       name,
       args: {
         text,
-        playerType,
       },
       timestamp: Date.now(),
     });

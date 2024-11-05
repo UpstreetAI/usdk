@@ -187,7 +187,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           method,
           userId,
           name,
-          args: { ...args, playerType },
+          args,
           attachments,
           hidden: !!opts?.hidden,
           timestamp,

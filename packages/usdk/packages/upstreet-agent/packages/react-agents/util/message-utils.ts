@@ -4,7 +4,6 @@ import {
   // AgentObject,
   // ActiveAgentObject,
 } from '../types';
-import { PlayerType } from 'react-agents/constants.mjs';
 
 export const formatConversationMessage = (rawMessage: PendingActionMessage, {
   agent,
@@ -19,7 +18,7 @@ export const formatConversationMessage = (rawMessage: PendingActionMessage, {
     userId,
     name,
     method,
-    args: {...args, playerType: PlayerType.Agent},
+    args,
     attachments,
     timestamp,
     hidden: false,
