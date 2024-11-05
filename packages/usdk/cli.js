@@ -25,6 +25,7 @@ import {
 } from './util/ports.mjs';
 import {
   makeAnonymousClient,
+  getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import packageJson from './package.json' with { type: 'json' };
