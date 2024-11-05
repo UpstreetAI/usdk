@@ -25,6 +25,7 @@ import {
 } from './util/ports.mjs';
 import {
   makeAnonymousClient,
+  getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import packageJson from './package.json' with { type: 'json' };
@@ -913,103 +914,151 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const agents = async (args) => {
-  const network = args.network ?? Object.keys(providers)[0];
+const agents = async (args, opts) => {
+  // const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
   // const dev = !!args.dev;
-
-  const queueManager = new QueueManager({
-    parallelism: 8,
-  });
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to create an agent.');
+  }
 
   const listAssets = async (supabase, agentAssets) => {
     const table = new Table({
       head: [
-        'id',
-        'name',
-        'enabled',
-        'address',
-        'location',
-        'balance',
-        'battery',
-        // 'bio',
-        'server',
-        'created',
+        'ID',
+        'Name',
+        // 'enabled',
+        // 'location',
+        // 'balance',
+        // 'battery',
+        'Bio',
+        'Server',
+        'Created',
+        'Active Room IDs',
+        'Last Active',
       ],
-      colWidths: [38, 20, 9, 44, 10, 10, 10, /*40,*/ 73, 10],
+      colWidths: [20, 30, 40, 30, 10, 30, 20],
+      wordWrap: true,
+      wrapOnWordBoundary: false,
     });
+
     const promises = [];
+    const queueManager = new QueueManager({
+      parallelism: 8,
+    });
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
       const agentHost = getCloudAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
-        const statusPromise = (async () => {
-          const u = `${agentHost}/status`;
-          const proxyRes = await fetch(u);
-          if (proxyRes.ok) {
-            const j = await proxyRes.json();
-            return j;
-          } else {
-            return null;
-          }
-        })();
-        const creditsPromise = (async () => {
-          const creditsResult = await supabase
-            .from('credits')
-            .select('credits')
-            .eq('agent_id', agent.id)
-            .maybeSingle();
-          const { error, data } = creditsResult;
-          if (!error) {
-            return data?.credits ?? 0;
-          } else {
-            throw new Error(
-              `could not get credits for agent ${agent.id}: ${error}`,
-            );
-          }
+        const pingTimestampPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('pings')
+          .select('timestamp')
+          .eq('user_id', agent.id)
+          .order('timestamp', { ascending: false })
+          .limit(1);
+          return data[0];
         })();
 
-        const res = await fetch(`${agent.start_url}/agent.json`);
-        if (res.ok) {
-          const agentJson = await res.json();
-          if (
-            agentJson.id &&
-            agentJson.name &&
-            agentJson.address &&
-            agentJson.bio
-          ) {
-            const balancePromise = (async () => {
-              const provider = providers[network];
-              const balance = await provider.getBalance(agentJson.address);
-              const ethBalance = ethers.formatEther(balance);
-              return ethBalance;
-            })();
-            const [status, credits, balance] = await Promise.all([
-              statusPromise,
-              creditsPromise,
-              balancePromise,
-            ]);
+        const roomsPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('chat_specifications')
+          .select('data')
+          .eq('user_id', agent.id)
+          .order('created_at', { ascending: false });
 
-            const serverUrl = agentHost;
+          // extract room identifiers only
+          const rooms = data.map((d) => {
+            return d.data.room;
+          });
 
-            table.push([
-              agentJson.id,
-              agentJson.name,
-              status?.enabled ?? false,
-              agentJson.address,
-              status?.room ?? '',
-              balance,
-              credits,
-              // agentJson.bio,
-              serverUrl,
-              timeAgo(new Date(agent.created_at)),
-            ]);
-          // } else {
-          //   console.warn('skipping agent', agentJson);
-          }
-        } else {
-          console.warn('could not get agent json', agent.start_url);
+          return rooms;
+        })();
+        // const statusPromise = (async () => {
+        //   // const u = `${agentHost}/status`;
+        //   // const proxyRes = await fetch(u);
+        //   // if (proxyRes.ok) {
+        //   //   const j = await proxyRes.json();
+        //   //   return j;
+        //   // } else {
+        //   //   return null;
+        //   // }
+        // })();
+        // const creditsPromise = (async () => {
+        //   const creditsResult = await supabase
+        //     .from('credits')
+        //     .select('credits')
+        //     .eq('agent_id', agent.id)
+        //     .maybeSingle();
+        //   const { error, data } = creditsResult;
+        //   if (!error) {
+        //     return data?.credits ?? 0;
+        //   } else {
+        //     throw new Error(
+        //       `could not get credits for agent ${agent.id}: ${error}`,
+        //     );
+        //   }
+        // })();
+
+        // const res = await fetch(`${agent.start_url}/agent.json`);
+        // if (res.ok) {
+        //   const agentJson = await res.json();
+        //   if (
+        //     agentJson.id &&
+        //     agentJson.name &&
+        //     agentJson.address &&
+        //     agentJson.bio
+        //   ) {
+        //     // const balancePromise = (async () => {
+        //     //   const provider = providers[network];
+        //     //   const balance = await provider.getBalance(agentJson.address);
+        //     //   const ethBalance = ethers.formatEther(balance);
+        //     //   return ethBalance;
+        //     // })();
+        //     const [status, credits, balance] = await Promise.all([
+        //       statusPromise,
+        //       // creditsPromise,
+        //       // balancePromise,
+        //     ]);
+
+        //     const serverUrl = agentHost;
+
+           
+        //   // } else {
+        //   //   console.warn('skipping agent', agentJson);
+        //   }
+        
+        const [
+          latestTimestamp,
+          rooms,
+        ] = await Promise.all([
+          pingTimestampPromise,
+          roomsPromise,
+        ]);
+
+        const agentJson = agent.metadata || agent;
+
+        if (!agent.metadata) {
+          console.warn(pc.red(`Metadata not found for agent with ID: ${agent.id}, some fields may be missing and are marked as 'N/A'`));
         }
+
+        const serverUrl = agentHost;
+
+        table.push([
+          agentJson.id,
+          agentJson.name,
+          // status?.enabled ?? false,
+          agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
+          // status?.room ?? '',
+          // balance,
+          // credits,
+          { content: serverUrl, href: serverUrl },
+          timeAgo(new Date(agent.created_at)),
+          rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
+          timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
+        ]);
       });
       promises.push(p);
     }
@@ -1017,50 +1066,24 @@ const agents = async (args) => {
     console.log(table.toString());
   };
 
-  const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
     const supabase = makeSupabase(jwt);
 
-    // if (!dev) {
-      // list agents in the account
-      const assetsResult = await supabase
-        .from('assets')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'npc');
-      const { error, data } = assetsResult;
-      if (!error) {
-        // console.log('got remote data', data);
-        await listAssets(supabase, data);
-        process.exit(0);
-      } else {
-        throw new Error(`could not get assets for user ${userId}: ${error}`);
-      }
-    /* } else {
-      // use the local development guid
-      const guid = await ensureLocalGuid();
-      const user_id = makeZeroGuid();
-      const created_at = new Date().toISOString();
-      const agent = {
-        start_url: devAgentJsonUrl,
-        created_at,
-        user_id,
-        name: '',
-        id: guid,
-        preview_url: '',
-        type: 'npc',
-        description: '',
-        rarity: null,
-        slots: null,
-        hero_urls: null,
-        address: null,
-        enabled: false,
-        character_name: null,
-      };
-      await listAssets(supabase, [agent]);
+    // list agents in the account
+    const assetsResult = await supabase
+      .from('assets')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'npc');
+    const { error, data } = assetsResult;
+    if (!error) {
+      // console.log('got remote data', data);
+      await listAssets(supabase, data);
       process.exit(0);
-    } */
+    } else {
+      throw new Error(`could not get assets for user ${userId}: ${error}`);
+    }
   } else {
     console.log('not logged in');
     process.exit(1);
@@ -1724,21 +1747,21 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
       });
     });
   // const networkOptions = ['baseSepolia', 'opMainnet'];
-  /* program
+  program
     .command('agents')
     .description('List the currently deployed agents')
-    .option(
-      `-n, --network <networkId>`,
-      `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-    )
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .option(
-      `-d, --dev`,
-      `List local development agents instead of account agents (requires running cli dev server)`,
-    )
+    // .option(
+    //   `-n, --network <networkId>`,
+    //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
+    // )
+    // .option(
+    //   `-l, --local`,
+    //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+    // )
+    // .option(
+    //   `-d, --dev`,
+    //   `List local development agents instead of account agents (requires running cli dev server)`,
+    // )
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -1746,9 +1769,14 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [],
           ...opts,
         };
-        await agents(args);
+
+        const jwt = await getLoginJwt();
+
+        await agents(args, {
+          jwt,
+        });
       });
-    });*/
+    });
   program
     .command('unpublish')
     .description('Unpublish a deployed agent from the network')

@@ -27,8 +27,6 @@ import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
-  // makeAnonymousClient,
-  // getUserIdForJwt,
   getUserForJwt,
 } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import {
