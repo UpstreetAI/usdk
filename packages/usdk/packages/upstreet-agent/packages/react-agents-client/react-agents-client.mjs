@@ -31,12 +31,13 @@ export class ReactAgentsClient {
     if (joinReq.ok) {
       const joinJson = await joinReq.json();
       // console.log('join json', joinJson);
+    } else if (joinReq.status === 404) {
+      throw new Error('agent not found');
     } else {
       const text = await joinReq.text();
-      console.warn(
+      throw new Error(
         'failed to join, status code: ' + joinReq.status + ': ' + text,
       );
-      process.exit(1);
     }
   }
 }
