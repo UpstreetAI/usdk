@@ -913,14 +913,15 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const agents = async (args) => {
+const agents = async (args, opts) => {
   // const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
   // const dev = !!args.dev;
-
-  const queueManager = new QueueManager({
-    parallelism: 8,
-  });
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to create an agent.');
+  }
 
   const listAssets = async (supabase, agentAssets) => {
     const table = new Table({
@@ -943,6 +944,9 @@ const agents = async (args) => {
     });
 
     const promises = [];
+    const queueManager = new QueueManager({
+      parallelism: 8,
+    });
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
       const agentHost = getCloudAgentHost(agent.id);
@@ -1061,50 +1065,24 @@ const agents = async (args) => {
     console.log(table.toString());
   };
 
-  const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
     const supabase = makeSupabase(jwt);
 
-    // if (!dev) {
-      // list agents in the account
-      const assetsResult = await supabase
-        .from('assets')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'npc');
-      const { error, data } = assetsResult;
-      if (!error) {
-        // console.log('got remote data', data);
-        await listAssets(supabase, data);
-        process.exit(0);
-      } else {
-        throw new Error(`could not get assets for user ${userId}: ${error}`);
-      }
-    /* } else {
-      // use the local development guid
-      const guid = await ensureLocalGuid();
-      const user_id = makeZeroGuid();
-      const created_at = new Date().toISOString();
-      const agent = {
-        start_url: devAgentJsonUrl,
-        created_at,
-        user_id,
-        name: '',
-        id: guid,
-        preview_url: '',
-        type: 'npc',
-        description: '',
-        rarity: null,
-        slots: null,
-        hero_urls: null,
-        address: null,
-        enabled: false,
-        character_name: null,
-      };
-      await listAssets(supabase, [agent]);
+    // list agents in the account
+    const assetsResult = await supabase
+      .from('assets')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'npc');
+    const { error, data } = assetsResult;
+    if (!error) {
+      // console.log('got remote data', data);
+      await listAssets(supabase, data);
       process.exit(0);
-    } */
+    } else {
+      throw new Error(`could not get assets for user ${userId}: ${error}`);
+    }
   } else {
     console.log('not logged in');
     process.exit(1);
@@ -1790,7 +1768,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [],
           ...opts,
         };
-        await agents(args);
+
+        const jwt = await getLoginJwt();
+
+        await agents(args, {
+          jwt,
+        });
       });
     });
   program
