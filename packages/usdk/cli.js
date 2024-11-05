@@ -918,7 +918,7 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const ls = async (args) => {
+const agents = async (args) => {
   const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
   // const dev = !!args.dev;
@@ -1071,7 +1071,7 @@ const ls = async (args) => {
     process.exit(1);
   }
 };
-const rm = async (args) => {
+const unpublish = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
 
   const jwt = await getLoginJwt();
@@ -1730,7 +1730,7 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
     });
   // const networkOptions = ['baseSepolia', 'opMainnet'];
   /* program
-    .command('ls')
+    .command('agents')
     .description('List the currently deployed agents')
     .option(
       `-n, --network <networkId>`,
@@ -1751,13 +1751,13 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [],
           ...opts,
         };
-        await ls(args);
+        await agents(args);
       });
     });*/
   program
-    .command('rm')
-    .description('Remove a deployed agent from the network')
-    .argument(`[guids...]`, `Guids of the agents to delete`)
+    .command('unpublish')
+    .description('Unpublish a deployed agent from the network')
+    .argument(`[guids...]`, `Guids of the agents to unpublish`)
     .action(async (guids = '', opts) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -1765,7 +1765,7 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [guids],
           ...opts,
         };
-        await rm(args);
+        await unpublish(args);
       });
     });
   // program
