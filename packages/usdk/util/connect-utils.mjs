@@ -37,6 +37,10 @@ import { AudioDecodeStream } from '../packages/upstreet-agent/packages/codecs/au
 import * as codecs from '../packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 
 import {
+  getAgentPublicUrl,
+  getCloudAgentHost,
+} from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
   devServerPort,
 } from '../packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
 import {
