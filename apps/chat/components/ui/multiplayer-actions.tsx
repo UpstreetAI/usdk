@@ -20,7 +20,6 @@ import type {
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-import { PlayerType } from 'react-agents/constants.mjs';
 import { QueueManager } from 'queue-manager';
 
 //
@@ -133,7 +132,6 @@ export type PlayerSpec = {
   name: string;
   previewUrl: string;
   capabilities: string[];
-  playerType: string;
 };
 
 export class Player {
@@ -157,7 +155,6 @@ const makeFakePlayerSpec = () => (
     name: '',
     previewUrl: '',
     capabilities: [],
-    playerType: '',
   }
 );
 export function MultiplayerActionsProvider({ children }: MultiplayerActionsProviderProps) {
@@ -180,7 +177,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
     const sendMessage = (method: string, args: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
       if (multiplayerConnection) {
-        const { id: userId, name, playerType } = localPlayerSpec;
+        const { id: userId, name } = localPlayerSpec;
 
         const timestamp = new Date();
         const message: ActionMessage = {

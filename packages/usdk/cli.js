@@ -97,7 +97,6 @@ import {
 } from './lib/file.mjs';
 import {
   consoleImageWidth,
-  PlayerType,
 } from './packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
@@ -945,8 +944,9 @@ const connectRepl = async ({
   let profile = await getUserProfile();
   profile = {
     ...profile,
-    capabilities: [],
-    playerType: PlayerType.Human,
+    capabilities: [
+      'human',
+    ],
   };
   if (!profile) {
     throw new Error('could not get user profile');

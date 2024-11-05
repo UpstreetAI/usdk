@@ -1028,7 +1028,9 @@ export const JsonFormatter = () => {
 // perceptions
 const shouldThink = (e: PerceptionEvent): boolean => {
   const { message } = e.data;
-  const { playerType } = message.args as { playerType: PlayerType };
+
+  // XXX: get player type from capabilites
+  const playerType = 'human';
 
   // condition for not replying when the perception is from a non-human source
   if (playerType && playerType !== PlayerType.Human) {

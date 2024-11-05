@@ -28,7 +28,7 @@ import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
-import { currencies, intervals, PlayerType } from 'react-agents/constants.mjs';
+import { currencies, intervals } from 'react-agents/constants.mjs';
 // import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
@@ -122,8 +122,9 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
         id: (user as any).id as string,
         name: (user as any).name as string,
         previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
-        capabilities: [],
-        playerType: PlayerType.Human,
+        capabilities: [
+          'human'
+        ],
       };
       setMultiplayerConnectionParameters({
         room,
