@@ -10,7 +10,7 @@ import {
 
 //
 
-export const chat = async (args) => {
+export const chat = async (args, opts) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
@@ -18,46 +18,44 @@ export const chat = async (args) => {
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
   const debug = !!args.debug;
-
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    // start dev servers for the agents
-    
-    const startPromises = agentSpecs.map(async (agentSpec) => {
-      if (agentSpec.directory) {
-        const runtime = new ReactAgentsLocalRuntime(agentSpec);
-        await runtime.start({
-          debug,
-        });
-      }
-    });
-    await Promise.all(startPromises);
-
-    // wait for agents to join the multiplayer room
-    const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
-    await join({
-      _: [agentRefs, room],
-    });
-
-    // connect to the chat
-    const mode = (() => {
-      if (browser) {
-        return 'browser';
-      } else if (inputStream && outputStream) {
-        return 'stream';
-      } else {
-        return 'repl';
-      }
-    })();
-    await connect({
-      _: [room],
-      mode,
-      inputStream,
-      outputStream,
-      debug,
-    });
-  } else {
-    console.log('not logged in');
-    process.exit(1);
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to chat.');
   }
+
+  // start dev servers for the agents
+  const startPromises = agentSpecs.map(async (agentSpec) => {
+    if (agentSpec.directory) {
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
+    }
+  });
+  await Promise.all(startPromises);
+
+  // wait for agents to join the multiplayer room
+  const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+  await join({
+    _: [agentRefs, room],
+  });
+
+  // connect to the chat
+  const mode = (() => {
+    if (browser) {
+      return 'browser';
+    } else if (inputStream && outputStream) {
+      return 'stream';
+    } else {
+      return 'repl';
+    }
+  })();
+  await connect({
+    _: [room],
+    mode,
+    inputStream,
+    outputStream,
+    debug,
+  });
 };

@@ -1687,7 +1687,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [guids],
           ...opts,
         };
-        await chat(args);
+
+        const jwt = await getLoginJwt();
+
+        await chat(args, {
+          jwt,
+        });
       });
     });
     
