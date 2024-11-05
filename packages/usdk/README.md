@@ -5,7 +5,7 @@ AI Agents SDK in TypeScript and React.
 [![npm version](https://badge.fury.io/js/usdk.svg)](https://badge.fury.io/js/usdk)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Documentation](https://img.shields.io/badge/docs-upstreet.ai-blue)](https://docs.upstreet.ai/)
-[![Join our Discord](https://img.shields.io/discord/123456789012345678.svg?label=Join%20our%20Discord&logo=discord&colorB=7289DA)](https://upstreet.ai/discord)
+[![Join our Discord](https://img.shields.io/discord/123456789012345678.svg?label=Join%20our%20Discord&logo=discord&colorB=7289DA)](https://upstreet.ai/usdk-discord)
 [![GitHub](https://img.shields.io/badge/GitHub-UpstreetAI-181717?style=flat&logo=github)](https://github.com/UpstreetAI)
 [![Twitter Follow](https://img.shields.io/twitter/follow/upstreetai?style=social)](https://x.com/upstreetai)
 
