@@ -3,6 +3,7 @@ import repl from 'repl';
 import dedent from 'dedent';
 import open from 'open';
 import pc from 'picocolors';
+import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { QueueManager } from '../packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from '../packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
