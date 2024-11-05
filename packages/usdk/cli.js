@@ -1423,23 +1423,23 @@ export const main = async () => {
 
     // account
   program
-  .command('status')
-  .description('Print the current login status of the SDK')
-  // .argument('<string>', 'string to split')
-  .action(async (opts = {}) => {
-    await handleError(async () => {
-      commandExecuted = true;
-      const args = {
-        _: [],
-        ...opts,
-      };
-      const jwt = await getLoginJwt();
-      const statusJson = await status(args, {
-        jwt,
+    .command('status')
+    .description('Print the current login status of the SDK')
+    // .argument('<string>', 'string to split')
+    .action(async (opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [],
+          ...opts,
+        };
+        const jwt = await getLoginJwt();
+        const statusJson = await status(args, {
+          jwt,
+        });
+        console.log(JSON.stringify(statusJson, null, 2));
       });
-      console.log(JSON.stringify(statusJson, null, 2));
     });
-  });
   /* program
     .command('wear')
     .description('Wear the character with the given guid')
