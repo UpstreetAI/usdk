@@ -1089,36 +1089,35 @@ const agents = async (args, opts) => {
     process.exit(1);
   }
 };
-const unpublish = async (args) => {
+const unpublish = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to unpublish an agent.');
+  }
 
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    for (const agentSpec of agentSpecs) {
-      const { guid } = agentSpec;
-      const u = `${deployEndpointUrl}/agent`;
-      const req = await fetch(u, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          // 'Content-Length': uint8Array.byteLength,
-        },
-        body: JSON.stringify({
-          guid,
-        }),
-      });
-      if (req.ok) {
-        await req.json();
-        console.log(`deleted agent ${guid}`);
-      } else {
-        const text = await req.text();
-        console.warn(`could not delete agent ${guid}: ${text}`);
-      }
+  for (const agentSpec of agentSpecs) {
+    const { guid } = agentSpec;
+    const u = `${deployEndpointUrl}/agent`;
+    const req = await fetch(u, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/zip',
+        // 'Content-Length': uint8Array.byteLength,
+      },
+      body: JSON.stringify({
+        guid,
+      }),
+    });
+    if (req.ok) {
+      await req.json();
+      console.log(`deleted agent ${guid}`);
+    } else {
+      const text = await req.text();
+      console.warn(`could not delete agent ${guid}: ${text}`);
     }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
   }
 };
 const voice = async (args) => {
@@ -1788,7 +1787,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [guids],
           ...opts,
         };
-        await unpublish(args);
+
+        const jwt = await getLoginJwt();
+
+        await unpublish(args, {
+          jwt,
+        });
       });
     });
   // program
