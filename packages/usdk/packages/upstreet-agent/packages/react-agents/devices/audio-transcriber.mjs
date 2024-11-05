@@ -1,11 +1,6 @@
-import {
-  transcribeRealtime,
-} from '../util/audio-perception.mjs';
-import { resample } from '../lib/multiplayer/public/audio-worker/resample.mjs';
-import {
-  AudioChunker,
-  // WavAudioChunker,
-} from '../util/audio-chunker.mjs';
+import { transcribeRealtime } from '../util/audio-perception.mjs';
+import { resample } from 'codecs/resample.mjs';
+import { AudioChunker } from '../util/audio-chunker.mjs';
 
 //
 

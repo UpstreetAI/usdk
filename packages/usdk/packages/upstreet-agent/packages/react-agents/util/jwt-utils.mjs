@@ -1,9 +1,9 @@
 import {
-  metamaskHost,
+  authHost,
 } from './endpoints.mjs';
 
 export const getAgentToken = async (jwt, guid) => {
-  const jwtRes = await fetch(`${metamaskHost}/agent`, {
+  const jwtRes = await fetch(`${authHost}/agent`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -41,10 +41,14 @@ import {
   getAgentName,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
+  aiProxyHost,
+} from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
+import StreamStrategy from '../util/logger/stream.mjs';
 import {
   cwd,
 } from '../util/directory-utils.mjs';
@@ -130,60 +134,96 @@ const buildWranglerToml = (
 };
 const interview = async (agentJson, {
   prompt,
+  inputStream,
+  outputStream,
+  events,
   jwt,
 }) => {
-  const questionLogger = new InterviewLogger(new ReadlineStrategy());
-  const getAnswer = (question) => {
-    return questionLogger.askQuestion(question);
+  const questionLogger = new InterviewLogger(
+    inputStream && outputStream
+      ? new StreamStrategy(inputStream, outputStream)
+      : new ReadlineStrategy(),
+  );
+  const getAnswer = async (question) => {
+    // console.log('get answer 1', {
+    //   question,
+    // });
+    const answer = await questionLogger.askQuestion(question);
+    // console.log('get answer 2', {
+    //   question,
+    //   answer,
+    // });
+    return answer;
   };
-  const agentInterview = new AgentInterview({
+  const opts = {
     agentJson,
     prompt,
     mode: prompt ? 'auto' : 'interactive',
     jwt,
-  });
+  };
+  const agentInterview = new AgentInterview(opts);
   agentInterview.addEventListener('input', async e => {
     const {
       question,
     } = e.data;
+    // console.log('agent interview input 1', {
+    //   question,
+    // });
     const answer = await getAnswer(question);
+    // console.log('agent interview input 2', {
+    //   question,
+    //   answer,
+    // });
     agentInterview.write(answer);
   });
   agentInterview.addEventListener('output', async e => {
     const {
       text,
     } = e.data;
-    console.log(text);
+    // console.log('agent interview output', {
+    //   text,
+    // });
+    questionLogger.log(text);
   });
   agentInterview.addEventListener('change', e => {
     const {
       updateObject,
       agentJson,
     } = e.data;
-    // console.log('change', updateObject);
+    // console.log('agent interview change', updateObject);
   });
-  const imageLogger = (label) => async (e) => {
-    const {
-      result: blob,
-      signal,
-    } = e.data;
+  if (events) {
+    ['preview', 'homespace'].forEach(eventType => {
+      agentInterview.addEventListener(eventType, (e) => {
+        events.dispatchEvent(new MessageEvent(eventType, {
+          data: e.data,
+        }));
+      });
+    });
+  } else {
+    const imageLogger = (label) => async (e) => {
+      const {
+        result: blob,
+        signal,
+      } = e.data;
 
-    const ab = await blob.arrayBuffer();
-    if (signal.aborted) return;
+      const ab = await blob.arrayBuffer();
+      if (signal.aborted) return;
 
-    const b = Buffer.from(ab);
-    const jimp = await Jimp.read(b);
-    if (signal.aborted) return;
+      const b = Buffer.from(ab);
+      const jimp = await Jimp.read(b);
+      if (signal.aborted) return;
 
-    const imageRenderer = new ImageRenderer();
-    const {
-      text: imageText,
-    } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-    console.log(label);
-    console.log(imageText);
-  };
-  agentInterview.addEventListener('preview', imageLogger('Avatar updated:'));
-  agentInterview.addEventListener('homespace', imageLogger('Homespace updated:'));
+      const imageRenderer = new ImageRenderer();
+      const {
+        text: imageText,
+      } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
+      console.log(label);
+      console.log(imageText);
+    };
+    agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
+    agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
+  }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
   return result;
@@ -234,11 +274,15 @@ export const create = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const inputStream = args.inputStream ?? null;
+  const outputStream = args.outputStream ?? null;
+  const events = args.events ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
   const yes = args.yes;
   const force = !!args.force;
+  const noInstall = !!args.noInstall;
   const forceNoConfirm = !!args.forceNoConfirm;
   // opts
   const jwt = opts.jwt;
@@ -286,17 +330,23 @@ export const create = async (args, opts) => {
   await _prepareDirectory();
 
   // generate the agent
-  console.log(pc.italic('Generating agent...'));
   let agentJson = makeAgentJsonInit({
     agentJsonString,
     features,
   });
   // run the interview, if applicable
   if (!(agentJsonString || source || yes)) {
+    console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
+      inputStream,
+      outputStream,
+      events,
       jwt,
     });
+  }
+  else {
+    console.log(pc.italic('Generating agent...'));
   }
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
   ensureAgentJsonDefaults(agentJson);
@@ -320,19 +370,19 @@ export const create = async (args, opts) => {
 
   // copy over files
   const _copyFiles = async () => {
+    const upstreetAgentSrcDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
+    const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
+
     const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
-    const srcWranglerToml = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
+    const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
     const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
-
-    const srcSdkDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
-    const srcDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
 
-    const srcJestConfigPath = path.join(BASE_DIRNAME, 'jest.config.js');
-    const dstJestConfigPath = path.join(dstDir, 'jest.config.js');
+    const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
+    const dstJestPath = dstDir;
 
     // copy over the template files
     console.log(pc.italic('Copying files...'));
@@ -357,7 +407,7 @@ export const create = async (args, opts) => {
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
       // root jest config
-      recursiveCopy(srcJestConfigPath, dstJestConfigPath),
+      recursiveCopy(srcJestPath, dstJestPath),
       // root wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
@@ -369,17 +419,27 @@ export const create = async (args, opts) => {
         });
         return toml.stringify(t);
       }),
-      // sdk directory
-      recursiveCopy(srcSdkDir, srcDstDir),
+      // upstreet-agent directory
+      recursiveCopy(upstreetAgentSrcDir, upstreetAgentDstDir),
     ]);
   };
   await _copyFiles();
 
   // npm install
-  console.log(pc.italic('Installing dependencies...'));
-  await npmInstall(dstDir);
+  if (!noInstall) {
+    console.log(pc.italic('Installing dependencies...'));
+    await npmInstall(dstDir);
+  }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+
+  return agentJson;
+  // // return the parsed dstWranglerToml
+  // {
+  //   const dstWranglerTomlString = await fs.promises.readFile(path.join(dstDir, 'wrangler.toml'), 'utf8');
+  //   const dstWranglerToml = toml.parse(dstWranglerTomlString);
+  //   return dstWranglerToml;
+  // }
 };
 
 const updateFeatures = (agentJson, {
@@ -416,6 +476,9 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const inputStream = args.inputStream ?? null;
+  const outputStream = args.outputStream ?? null;
+  const events = args.events ?? null;
   const addFeature = args.addFeature;
   const removeFeature = args.removeFeature;
   // opts
@@ -436,6 +499,9 @@ export const edit = async (args, opts) => {
   if (!(addFeature || removeFeature)) {
     agentJson = await interview(agentJson, {
       prompt,
+      inputStream,
+      outputStream,
+      events,
       jwt,
     });
   }
@@ -462,4 +528,61 @@ export const edit = async (args, opts) => {
     ]);
   };
   await _updateFiles();
+};
+export const pull = async (args, opts) => {
+  const agentId = args._[0] ?? '';
+  const dstDir = args._[1] ?? cwd;
+  const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to pull.');
+  }
+
+  const userId = jwt && (await getUserIdForJwt(jwt));
+  if (userId) {
+    // clean the old directory
+    await cleanDir(dstDir, {
+      force,
+      forceNoConfirm,
+    });
+
+    // download the source
+    console.log(pc.italic('Downloading source...'));
+    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
+    try {
+      const req = await fetch(u, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (req.ok) {
+        const zipBuffer = await req.arrayBuffer();
+        // console.log('downloaded source', zipBuffer.byteLength);
+
+        // extract the source
+        console.log(pc.italic('Extracting zip...'));
+        await extractZip(zipBuffer, dstDir);
+
+        console.log(pc.italic('Installing dependencies...'));
+        try {
+          await npmInstall(dstDir);
+        } catch (err) {
+          console.warn('npm install failed:', err.stack);
+          process.exit(1);
+        }
+      } else {
+        const text = await req.text();
+        console.warn('pull request error', text);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.warn('pull request failed', err);
+      process.exit(1);
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
 };

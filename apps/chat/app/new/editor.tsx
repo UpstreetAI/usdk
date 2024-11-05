@@ -7,10 +7,6 @@ import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
-// import {
-//   defaultModels,
-//   defaultVisionModels,
-// } from 'react-agents/constants.mjs';
 import type {
   StoreItem,
   SubscriptionProps,
@@ -23,10 +19,9 @@ import {
 import {
   getAgentToken,
 } from 'react-agents/util/jwt-utils.mjs';
-// XXX this is a bad dependency, this should be moved down to the lower layer
 import {
   generateMnemonic,
-} from 'usdk/util/ethereum-utils.mjs';
+} from '../../utils/etherium-utils.mjs';
 import {
   Chat,
 } from '@/components/chat/chat';
@@ -44,8 +39,9 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-import type { FetchableWorker } from 'react-agents-client/types';
-import { buildAgentSrc, ReactAgentsWorker } from 'react-agents-client';
+import { buildAgentSrc } from 'react-agents-builder';
+import { ReactAgentsWorker } from 'react-agents-browser';
+import type { FetchableWorker } from 'react-agents-browser/types';
 import { IconButton } from 'ucom';
 
 //
@@ -166,10 +162,11 @@ export default function AgentEditor({
         .eq( 'type', 'voice' );
       if (signal.aborted) return;
 
-      const { error, data } = result;
+      const error = result.error as any;
+      const data = result.data as any;
       if (!error) {
         // console.log('got voices data 1', data);
-        const userVoices = await Promise.all(data.map(async voice => {
+        const userVoices = await Promise.all(data.map(async (voice: any) => {
           const res = await fetch(voice.start_url);
           const j = await res.json();
           return j;

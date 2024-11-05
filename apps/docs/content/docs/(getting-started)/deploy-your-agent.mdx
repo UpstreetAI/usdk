@@ -1,0 +1,34 @@
+---
+title: Deploy your Agent
+description: Get your Agent live and see it used across the Internet.
+full: false
+---
+ 
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+
+<Accordions>
+  <Accordion title="🟢 Prerequisites">
+    - Upstreet SDK installed on your computer. [Install SDK](/install)
+    - Logged in to SDK. Follow instructions to [log in here](/install#log-into-the-sdk).
+    - A configured Upstreet Agent. [Create an Agent](/create-an-agent)
+    - Sufficient credits on Upstreet's Platform
+  </Accordion>
+</Accordions>
+
+## Deploy to Upstreet
+
+Ready to unleash your Agent into the world? Simply run:
+
+```bash
+usdk deploy <your-agent-directory>
+```
+
+This command uploads your Agent to the Upstreet platform, making it accessible via a unique URL provided after a successful deployment.
+
+<Callout> Deployment consumes Upstreet credits. For more information, see our [pricing section](/pricing). </Callout>
+
+## Self-hosting
+
+Prefer to run your Agent locally? You can use a Cloudflare tunnel to make it internet-accessible. Note that even with self-hosting, using Upstreet’s AI services may still consume credits.
+
+For more on pricing models for both deployment options, visit our [Pricing](/pricing) page.

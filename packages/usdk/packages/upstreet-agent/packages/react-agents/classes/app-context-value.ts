@@ -16,8 +16,6 @@ import type {
   ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
-// import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
-// import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
 import {
   lembed,
 } from '../util/embedding.mjs';
@@ -29,9 +27,9 @@ import { useAgent } from '../hooks';
 //
 
 export class AppContextValue {
-  // members
   subtleAi: SubtleAi;
   agentJson: object;
+  environment: string;
   wallets: any;
   authToken: string;
   supabase: any;
@@ -43,6 +41,7 @@ export class AppContextValue {
   constructor({
     subtleAi,
     agentJson,
+    environment,
     wallets,
     authToken,
     supabase,
@@ -53,6 +52,7 @@ export class AppContextValue {
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
+    environment: string;
     wallets: any;
     authToken: string;
     supabase: any;
@@ -63,6 +63,7 @@ export class AppContextValue {
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
+    this.environment = environment;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
@@ -76,6 +77,9 @@ export class AppContextValue {
 
   useAgentJson() {
     return this.agentJson;
+  }
+  useEnvironment() {
+    return this.environment;
   }
   useWallets() {
     return this.wallets;

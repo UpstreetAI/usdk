@@ -1,22 +1,17 @@
 'use client';
 
 import { isValidUrl } from "@/utils/helpers/urls";
-import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
-import Image from "next/image";
 import { IconUser } from "@/components/ui/icons";
-import { useState } from "react";
-import { IconButton } from "ucom";
+import { AgentJoin } from "@/components/cta";
+import { AgentDelete } from "@/components/cta/AgentDelete";
 
 export interface AgentListProps {
   agent: any
+  user: any
   author: string
 }
 
-export function AgentRow({ agent, author }: AgentListProps) {
-
-  const { agentJoin } = useMultiplayerActions();
-
-  const [loadingChat, setLoadingChat] = useState(false);
+export function AgentRow({ agent, user, author }: AgentListProps) {
 
   return (
     <div className="bg-gray-100 border p-4 text-black">
@@ -43,24 +38,18 @@ export function AgentRow({ agent, author }: AgentListProps) {
         <div className="min-w-40 text-md capitalize w-full relative">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
+            <div className="font-italic text-sm">Created by: <span className="font-bold underline">{user ? `You` : `@${author}`}</span></div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex absolute bottom-0 right-0">
-            <IconButton
-              onClick={async e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                setLoadingChat(true);
-
-                await agentJoin(agent.id);
-              }}
-              icon="Chat"
-              size="small"
-              variant="primary" />
+            <AgentJoin agent={agent} />
           </div>
 
-          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
+          {user && (
+            <div className="flex absolute top-0 right-0">
+              <AgentDelete agent={agent} />
+            </div>
+          )}
         </div>
       </div>
     </div>

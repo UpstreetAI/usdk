@@ -163,6 +163,7 @@ export class AgentInterview extends EventTarget {
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
           
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
+          When you think the editing session is complete, set the \`done\` flag.
         ` + '\n\n' +
         featuresAvailablePrompt,
       userPrompt: prompt,
@@ -175,6 +176,19 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
       }),
+      formatFn: (updateObject) => {
+        updateObject = structuredClone(updateObject);
+        // remove all optional features
+        if (updateObject?.features) {
+          for (const featureName in updateObject.features) {
+            const value = updateObject.features[featureName];
+            if (value === null || value === undefined) {
+              delete updateObject.features[featureName];
+            }
+          }
+        }
+        return updateObject;
+      },
       jwt,
     });
     this.interactor.addEventListener('message', async (e) => {
@@ -245,34 +259,19 @@ export class AgentInterview extends EventTarget {
         this.loadPromise.resolve(agentJson);
       }
     });
-    if (mode === 'auto') {
-      // automatically run the interview to completion
-      this.interactor.end();
-    } else if (mode === 'interactive') {
-      /* // XXX debugging hack: listen for the user pressing the tab key
-      {
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding('utf8');
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-          if (key === '\u0009') { // tab
-            console.log('got tab');
-          }
-          if (key === '\u0003') { // ctrl-c
-            console.log('got ctrl-c');
-            process.exit();
-          }
-        });
-      } */
-
-      // initiate the interview
-      this.interactor.write();
-    } else if (mode === 'manual') {
-      // pump the interview loop
-      pumpIo();
-    } else {
-      throw new Error(`invalid mode: ${mode}`)
-    }
+    setTimeout(() => {
+      if (mode === 'auto') {
+        // automatically run the interview to completion
+        this.interactor.end();
+      } else if (mode === 'interactive') {
+        // initiate the interview with an introductory message
+        pumpIo('What kind of agent do you want to create?');
+      } else if (mode === 'manual') {
+        // wait for external prompting
+      } else {
+        throw new Error(`invalid mode: ${mode}`)
+      }
+    }, 0);
   }
   write(response) {
     this.interactor.write(response);

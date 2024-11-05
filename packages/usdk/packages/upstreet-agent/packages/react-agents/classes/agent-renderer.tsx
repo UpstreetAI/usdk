@@ -17,7 +17,7 @@ import type {
 // import inspect from 'browser-util-inspect';
 
 import { RenderLoader } from './render-loader';
-import { QueueManager } from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { makeAnonymousClient } from '../util/supabase-client.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';
@@ -110,6 +110,26 @@ const logError =
 
 //
 
+const serializeError = (error: Error) => {
+  return {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+  };
+};
+
+const logDetailedError = (errorType: string, error: Error, containerState) => {
+  const errorInfo = {
+    type: errorType,
+    error: serializeError(error),
+    containerState: containerState,
+    timestamp: new Date().toISOString(),
+  };
+  console.error('[Reconciler Error]:', JSON.stringify(errorInfo, null, 2));
+};
+
+//
+
 export class AgentRenderer {
   env: object;
   userRender: UserHandler;
@@ -156,6 +176,9 @@ export class AgentRenderer {
       const agentJson = JSON.parse(agentJsonString);
       return agentJson;
     };
+    const useEnvironment = () => {
+      return (env as any).WORKER_ENV as string;
+    };
     const useWallets = () => {
       const mnemonic = (env as any).WALLET_MNEMONIC as string;
       const wallets = getConnectedWalletsFromMnemonic(mnemonic);
@@ -184,6 +207,7 @@ export class AgentRenderer {
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
+      environment: useEnvironment(),
       wallets: useWallets(),
       authToken: useAuthToken(),
       supabase: useSupabase(),
@@ -269,6 +293,9 @@ export class AgentRenderer {
       unhideTextInstance: (textInstance: TextInstance) => {
         textInstance.visible = true;
       },
+      detachDeletedInstance: (instance: Instance) => {
+        // console.log('detach deleted instance', [instance]);
+      },
       appendChild: (container: Instance, child: InstanceChild) => {
         container.children.push(child);
       },
@@ -299,13 +326,11 @@ export class AgentRenderer {
       this.container, // containerInfo
       ConcurrentRoot, // tag
       null, // hydrationCallbacks
-      env['WORKER_ENV'] === 'development', // isStrictMode
+      env['WORKER_ENV'] !== 'production', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
-      logError, // onUncaughtError
-      logError, // onCaughtError
-      logError, // onRecoverableError
-      null, // transitionCallbacks
+      (error: Error) => logDetailedError('Recoverable Error', error, this.container),
+      null // transitionCallbacks
     );
     this.root = root;
     this.renderLoader = new RenderLoader();
@@ -344,7 +369,12 @@ export class AgentRenderer {
       appContextValue,
       topLevelRenderPromise: null,
     };
-    await this.renderProps(props);
+    try {
+      await this.renderProps(props);
+    } catch (error) {
+      logDetailedError('Error during render', error, this.container);
+      throw error;
+    }
   }
 
   // note: needs to be async to wait for React to resolves

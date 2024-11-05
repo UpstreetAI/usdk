@@ -1,12 +1,11 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
 import Jimp from 'jimp';
-// import { intToRGBA } from "@jimp/utils";
 const { intToRGBA } = Jimp;
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
-import { QueueManager } from '../util/queue-manager.mjs';
-import { WebPEncoder } from './codecs.mjs';
+import { QueueManager } from 'queue-manager';
+import { WebPEncoder } from 'codecs/webp-codec.mjs';
 
 //
 
@@ -246,6 +245,11 @@ export class VideoInput extends EventEmitter {
           if (bsLength >= fileSize) {
             const data = new Uint8Array(fileSize);
             data.set(b.slice(0, fileSize));
+
+            // emit raw image
+            this.emit('image', data);
+
+            // emit decoded frame
             await this.queueManager.waitForTurn(async () => {
               let imageData = await encoder.decode(data);
               if (typeof width === 'number' || typeof height === 'number') {

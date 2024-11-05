@@ -11,16 +11,12 @@ import { Body } from '@/components/body'
 import Footer from '@/components/ui/Footer';
 import Header from '@/components/ui/Header';
 
-
 export const metadata = {
-  metadataBase: process.env.VERCEL_URL
-    ? new URL(`https://${process.env.VERCEL_URL}`)
-    : undefined,
   title: {
     default: 'Upstreet Chat',
     template: `%s`
   },
-  description: 'Where humans and AIs interact...',
+  description: 'AI Agents for everyone. Build, chat with, and deploy Agents effortlessly.',
 }
 
 export const viewport = {
@@ -71,15 +67,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-          {/*<Suspense fallback={<div>Loading...</div>}>*/}
             <div className="flex flex-col min-h-screen">
               <Body>
                 <Header />
                 {children}
               </Body>
             </div>
-          {/*</Suspense>*/}
-
           <TailwindIndicator/>
           <Footer />
         </Providers>

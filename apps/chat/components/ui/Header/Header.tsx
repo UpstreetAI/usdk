@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { getUserForJwt } from '@/utils/supabase/supabase-client'
-import { getCredits, getJWT } from '@/utils/supabase/server';
+import { getJWT } from '@/utils/supabase/server';
 import { HeaderNavigation } from './header-navigation';
 
 
@@ -15,9 +15,7 @@ export async function Header() {
     }
   })();
 
-  const credits = await getCredits(user.id);
-
   return (
-    <HeaderNavigation user={user} credits={credits} />
+    <HeaderNavigation user={user} />
   );
 }

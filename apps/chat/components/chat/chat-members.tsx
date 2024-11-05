@@ -18,9 +18,10 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 export function ChatMembers() {
   const { localPlayerSpec, playersMap, getCrdtDoc, agentLeave, room } = useMultiplayerActions()
 
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   const [memberSearchQuery, setMemberSearchQuery] = React.useState('')
 

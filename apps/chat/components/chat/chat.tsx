@@ -26,12 +26,13 @@ import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multi
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
-import { createSession } from 'react-agents/util/stripe-utils.mjs';
+import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 // import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
+import { environment } from '@/lib/env';
 
 
 //
@@ -91,9 +92,10 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   } = useMultiplayerActions();
 
   /// Get players
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   // Get room specs
   const crdt = getCrdtDoc()
@@ -199,21 +201,19 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
 
-    // TODO Move the typing logic to form component, over send message?
-    case 'typing': return null;
-
+    // fake client side messages
     case 'join': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
         <span className='font-bold'>{message.name}</span> joined the room.
       </div>
     )
-
     case 'leave': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
         <span className='font-bold'>{message.name}</span> left the room.
       </div>
     )
 
+    // server messages
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
@@ -374,6 +374,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
             stripe_connect_account_id,
           };
           const j = await createSession(opts, {
+            environment,
             jwt,
           });
           const {
