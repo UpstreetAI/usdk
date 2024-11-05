@@ -736,6 +736,7 @@ const connectStream = async ({
   room,
   inputStream,
   outputStream,
+  debug,
 }) => {
   if (!inputStream) {
     throw new Error('no inputStream provided');
