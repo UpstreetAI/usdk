@@ -243,7 +243,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
             const profile = {
               ...newLocalPlayerSpec,
-              capabilities: [],
+              capabilities: [
+                'human',
+              ],
             };
             const debug = true;
             multiplayerConnection = new ReactAgentsMultiplayerConnection({
