@@ -15,7 +15,8 @@ export const chat = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room ?? makeRoomName();
   const browser = args.browser;
-  const stream = args.stream;
+  const inputStream = args.inputStream;
+  const outputStream = args.outputStream;
   const debug = !!args.debug;
 
   const jwt = await getLoginJwt();
@@ -42,7 +43,7 @@ export const chat = async (args) => {
     const mode = (() => {
       if (browser) {
         return 'browser';
-      } else if (stream) {
+      } else if (inputStream && outputStream) {
         return 'stream';
       } else {
         return 'repl';
@@ -51,7 +52,8 @@ export const chat = async (args) => {
     await connect({
       _: [room],
       mode,
-      stream,
+      inputStream,
+      outputStream,
       debug,
     });
   } else {

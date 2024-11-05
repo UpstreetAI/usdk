@@ -730,10 +730,14 @@ For further assistance, please contact support or ask for help in our Discord co
 };
 const connectStream = async ({
   room,
-  stream,
+  inputStream,
+  outputStream,
 }) => {
-  if (!stream) {
-    throw new Error('no stream provided');
+  if (!inputStream) {
+    throw new Error('no inputStream provided');
+  }
+  if (!outputStream) {
+    throw new Error('no outputStream provided');
   }
 
   let profile = await getUserProfile();
@@ -762,7 +766,7 @@ const connectStream = async ({
         return util.format(arg);
       }
     }).join(' ');
-    stream.write(s);
+    outputStream.write(s);
   };
   multiplayerConnection.addEventListener('log', (e) => {
     const { args, logLevel } = e.data;
@@ -793,11 +797,32 @@ const connectStream = async ({
     }
     http://local.upstreet.ai:${devServerPort}
   `);
+
+  // read input stream
+  const sendChatMessage = async (text) => {
+    const userId = profile.id;
+    const name = profile.name;
+    await realms.sendChatMessage({
+      method: 'say',
+      userId,
+      name,
+      args: {
+        text,
+      },
+      timestamp: Date.now(),
+    });
+  };
+  inputStream.setEncoding('utf8');
+  inputStream.on('data', (data) => {
+    const text = data;
+    sendChatMessage(text);
+  });
 };
 export const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
-  const stream = args.stream ?? null;
+  const inputStream = args.inputStream ?? null;
+  const outputStream = args.outputStream ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -818,7 +843,8 @@ export const connect = async (args) => {
       case 'stream': {
         connectStream({
           room,
-          stream,
+          inputStream,
+          outputStream,
           debug,
         });
         break;
