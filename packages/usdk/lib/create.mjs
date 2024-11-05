@@ -424,6 +424,12 @@ export const create = async (args, opts) => {
   };
   await _copyFiles();
 
+  events.dispatchEvent(new MessageEvent('finalize', {
+    data: {
+      agentJson,
+    },
+  }));
+
   // npm install
   if (!noInstall) {
     console.log(pc.italic('Installing dependencies...'));
@@ -563,6 +569,12 @@ export const pull = async (args, opts) => {
         // extract the source
         console.log(pc.italic('Extracting zip...'));
         await extractZip(zipBuffer, dstDir);
+
+        events.dispatchEvent(new MessageEvent('finalize', {
+          data: {
+            agentJson,
+          },
+        }));
 
         console.log(pc.italic('Installing dependencies...'));
         try {
