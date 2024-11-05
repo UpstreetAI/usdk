@@ -11,13 +11,53 @@ For more in-depth help, you can reach out to us at [support@upstreet.ai](mailto:
 
 ## Could not run the speaker module
 
-This may occur when running `usdk chat` locally. The CLI uses audio output backends based on your operating system, in order to play audio in the CLI. To resolve this, you may need to install **optional dependencies** in your Agent, which involve the `speaker` module.
+This error may occur when running `usdk chat` locally. The CLI uses operating system-specific audio output backends to play audio, and installing the necessary dependencies may be required to enable audio functionality in the CLI.
+
+To resolve this, follow the steps below:
+
+### Step 1: Install System Build Tools
+Some operating systems require specific build tools to compile and run audio modules:
+
+- **macOS**: Install Xcode Command Line Tools. Run the following command:
+  ```bash
+  xcode-select --install
+  ```
+  
+- **Windows**: Install Visual Studio Build Tools with **C++ environment support**.
+
+### Step 2: Reinstall `usdk` Globally
+After installing the required system build tools, reinstall `usdk` globally to ensure that all dependencies are properly configured:
 
 ```bash
-npm install --only=optional
+npm install -g usdk
 ```
 
-You may need to install build tools on your system in order for this to work, as of yet.
+---
 
-1. macOS: XCode command line tools
-2. Windows: Visual Studio build tools
+## Running `usdk` in PowerShell
+
+When running `usdk` in PowerShell, you might encounter an error related to the Node.js directory. PowerShell has a known issue with the Node.js installation path, which may prevent `usdk` from running smoothly.
+
+### Solution 1: Switch to CMD
+As a quick workaround, consider using the Command Prompt (CMD) instead of PowerShell to run `usdk`:
+
+1. Open a new terminal.
+2. Select **Command Prompt** instead of **PowerShell**.
+3. Run your `usdk` commands in CMD.
+
+### Solution 2: Set Prefix in .npmrc File
+To configure Node.js to work in PowerShell, you can specify the installation path using the `.npmrc` file. This approach sets an explicit prefix path, helping to resolve any directory issues in PowerShell.
+
+#### Steps to Set the Prefix:
+1. Open PowerShell.
+2. Run the following command to open your `.npmrc` file in Notepad:
+   ```powershell
+   Notepad "$env:USERPROFILE\.npmrc"
+   ```
+3. In the `.npmrc` file, add the following line to set the Node.js prefix:
+   ```plaintext
+   prefix = "C:/Program Files/nodejs"
+   ```
+4. Save the file and restart PowerShell.
+
+After following these steps, PowerShell should recognize the Node.js installation path correctly, allowing `usdk` to run without directory-related issues.

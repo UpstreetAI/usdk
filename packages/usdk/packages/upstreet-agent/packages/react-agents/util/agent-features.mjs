@@ -63,10 +63,10 @@ export const defaultVoices = [
     description: 'Waifu girl',
   },
 ];
-const formatDiscordBotChannels = (channels = []) =>
-  channels.split(',').map(c => c.trim()).filter(Boolean);
 
-//
+const formatDiscordBotChannels = (channels = '') => {
+  return channels.split(',').map(c => c.trim()).filter(Boolean);
+};
 
 export const featureSpecs = [
   {

@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   const result = await supabase
     .from('assets')
-    .select('*')
+    .select('*, author: accounts ( id, name )')
     .eq('id', agentId)
     .single();
   const agentData = result.data as any;
@@ -35,10 +35,10 @@ export async function generateMetadata({
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
     description: agentData?.description ?? '',
-    cardImage: agentData?.preview_image ?? '',
+    cardImage: agentData?.preview_url ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {
@@ -58,7 +58,7 @@ export async function generateMetadata({
       description: meta.description,
       images: [meta.cardImage],
       type: 'website',
-      siteName: meta.title
+      siteName: `upstreet.ai/${agentData?.author?.name}`
     },
     twitter: {
       card: 'summary_large_image',
