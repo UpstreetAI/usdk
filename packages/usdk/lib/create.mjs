@@ -456,10 +456,10 @@ const updateFeatures = (agentJson, {
   agentJson = {
     ...agentJson,
   };
-  console.log('add feature remove feature', {
-    addFeature,
-    removeFeature,
-  });
+  // console.log('add feature remove feature', {
+  //   addFeature,
+  //   removeFeature,
+  // });
   
   if (removeFeature) {
     for (const feature of removeFeature) {
