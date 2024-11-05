@@ -917,13 +917,17 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const pull = async (args) => {
+const pull = async (args, opts) => {
   const agentId = args._[0] ?? '';
   const dstDir = args._[1] ?? cwd;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to pull.');
+  }
 
-  const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
     // clean the old directory
@@ -1668,7 +1672,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
             ...opts,
           };
         }
-        await pull(args);
+
+        const jwt = await getLoginJwt();
+
+        await pull(args, {
+          jwt,
+        });
       });
     });
   program
