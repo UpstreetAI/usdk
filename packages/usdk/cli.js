@@ -14,7 +14,6 @@ import * as ethers from 'ethers';
 
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
-import { packZip, extractZip } from './lib/zip-util.mjs';
 import { parseAgentSpecs } from './lib/agent-spec-utils.mjs';
 import {
   getAgentPublicUrl,
