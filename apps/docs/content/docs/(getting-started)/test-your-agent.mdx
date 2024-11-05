@@ -10,8 +10,8 @@ import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
 <Accordions>
   <Accordion title="🟢 Prerequisites">
-    - Upstreet SDK installed. [Get the SDK here](/install)
-    - Logged into the SDK. Follow the steps to [log in here](/install#log-into-the-sdk)
+    - Upstreet SDK installed on your computer. [Install SDK](/install)
+    - Logged in to SDK. Follow instructions to [log in here](/install#log-into-the-sdk).
     - A configured Upstreet Agent. [Create an Agent](/create-an-agent)
   </Accordion>
 </Accordions>
@@ -22,12 +22,19 @@ Once your Agent is created, you can test its responses and behaviors before depl
 
 To start testing, run the following command in your terminal:
 ```bash
-usdk chat [agent-dir]
+usdk chat <your-agent-directory>
 ```
+Where `<your-agent-directory>` is the **relative path** to the directory containing all your Agent's code. [How to create an Agent](/create-an-agent#file-structure)
 
 This command launches an interactive chat session (REPL-like) with your Agent, where you can input prompts and review responses in real-time.
 
-<Callout> Agent inferences do not run locally and may consume Upstreet credits during testing. </Callout> <Wrapper> <Image src="/images/general/usdk-dev-chat.png" width={740} height={300} className='rounded-md'/> </Wrapper>
+To exit the chat, type `.exit` in the chat and press the Enter key. Or, you can use the shortcut <kbd>CTRL</kbd> + <kbd>C</kbd> (macOS users: <kbd>⌘</kbd> + <kbd>C</kbd>) twice.
+
+<Callout> Agent inferences do not run locally and may consume Upstreet credits during testing. </Callout>
+
+<Wrapper>
+  <Image src="/images/general/usdk-dev-chat.png" width={740} height={300} className='rounded-md'/>
+</Wrapper>
 
 ## Testing Tips
 - **Specific Task Testing:** Prompt your Agent to carry out the exact tasks or interactions you want to verify.

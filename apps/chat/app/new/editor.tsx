@@ -19,7 +19,6 @@ import {
 import {
   getAgentToken,
 } from 'react-agents/util/jwt-utils.mjs';
-// XXX this is a bad dependency, this should be moved down to the lower layer
 import {
   generateMnemonic,
 } from '../../utils/etherium-utils.mjs';
@@ -163,10 +162,11 @@ export default function AgentEditor({
         .eq( 'type', 'voice' );
       if (signal.aborted) return;
 
-      const { error, data } = result;
+      const error = result.error as any;
+      const data = result.data as any;
       if (!error) {
         // console.log('got voices data 1', data);
-        const userVoices = await Promise.all(data.map(async voice => {
+        const userVoices = await Promise.all(data.map(async (voice: any) => {
           const res = await fetch(voice.start_url);
           const j = await res.json();
           return j;

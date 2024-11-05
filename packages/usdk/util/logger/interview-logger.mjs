@@ -6,6 +6,10 @@ class InterviewLogger {
     askQuestion(question) {
       return this.strategy.askQuestion(question);
     }
+
+    log(...args) {
+      return this.strategy.log(...args);
+    }
   
     close() {
       this.strategy.close();

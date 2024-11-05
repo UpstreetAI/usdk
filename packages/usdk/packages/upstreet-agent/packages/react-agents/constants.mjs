@@ -20,6 +20,7 @@ export const currencies = ['usd'];
 export const intervals = ['month', 'year', 'week', 'day'];
 
 export const consoleImageWidth = 80;
+export const consoleImagePreviewWidth = 24;
 
 export const PlayerType = {
   Human: 'human',

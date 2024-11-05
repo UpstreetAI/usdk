@@ -121,7 +121,7 @@ export function ChatMessage({
                     {content}
                   </ReactMarkdown>
                 </div>
-                <div className="float-right text-md text-right text-gray-500 dark:text-gray-400">
+                <div className="float-right text-md text-right text-gray-400">
                   {timeAgo(timestamp)}
                 </div>
               </div>
@@ -228,7 +228,7 @@ export function ChatMessageModel({
   timestamp
 }: ChatMessageModelProps) {
   return (
-    <div className="bg-[rgba(0,0,0,0.1)] dark:bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
+    <div className="bg-[rgba(255,255,255,0.1)] rounded-[16px] p-4 shadow-lg mt-2">
       <Model src={url} />
       <Button
         variant="secondary"
