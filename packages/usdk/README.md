@@ -5,15 +5,15 @@ AI Agents SDK in TypeScript and React.
 [![npm version](https://badge.fury.io/js/usdk.svg)](https://badge.fury.io/js/usdk)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Documentation](https://img.shields.io/badge/docs-upstreet.ai-blue)](https://docs.upstreet.ai/)
-[![Join our Discord](https://img.shields.io/discord/123456789012345678.svg?label=Join%20our%20Discord&logo=discord&colorB=7289DA)](https://upstreet.ai/discord)
+[![Join our Discord](https://img.shields.io/discord/123456789012345678.svg?label=Join%20our%20Discord&logo=discord&colorB=7289DA)](https://upstreet.ai/usdk-discord)
 [![GitHub](https://img.shields.io/badge/GitHub-UpstreetAI-181717?style=flat&logo=github)](https://github.com/UpstreetAI)
 [![Twitter Follow](https://img.shields.io/twitter/follow/upstreetai?style=social)](https://x.com/upstreetai)
 
 
 ## Table of Contents
 - [Overview](#overview)
-- [Quick Install](#quick-install)
 - [Supported Environments](#supported-environments)
+- [Quick Install](#quick-install)
 - [What is Upstreet SDK?](#what-is-upstreet-sdk)
 - [How does Upstreet SDK help?](#how-does-upstreet-sdk-help)
 - [Key Features](#key-features)
@@ -27,6 +27,13 @@ Upstreet SDK (USDK) is a simple yet powerful command-line interface to build, te
 
 USDK is crafted to give you the freedom to build Agents independently, yet also make your interaction with Upstreet's platform easier, allowing effortless creation, management, and communication with autonomous Upstreet AI Agents.
 
+## Supported Environments
+
+USDK integrates smoothly with various development environments:
+
+- Node.js (version 22.9.0 and above)
+- Windows, macOS, and Linux compatible
+
 ## Quick Install
 
 Embark on your Upstreet journey in seconds:
@@ -34,13 +41,6 @@ Embark on your Upstreet journey in seconds:
 ```bash
 npm install -g usdk
 ```
-
-## Supported Environments
-
-USDK integrates smoothly with various development environments:
-
-- Node.js (version 22.9.0 and above)
-- Windows, macOS, and Linux compatible
 
 ## What is Upstreet SDK and How Does It Help?
 
@@ -177,9 +177,10 @@ For a full command reference, use `usdk --help` or `usdk <command> --help`.
 
 Dive deeper into Upstreet SDK with our comprehensive guides:
 
-- [Getting Started](https://docs.upstreet.ai/docs/sdk/getting-started)
-- [Command Reference](https://docs.upstreet.ai/sdk/commands)
-- [Tutorials and Examples](https://docs.upstreet.ai/sdk/tutorials)
+- [What is an Upstreet Agent?](https://docs.upstreet.ai/concepts/agents-sdk/architecture#what-are-upstreet-agents)
+- [Getting Started](https://docs.upstreet.ai/install)
+- [Command Reference](https://docs.upstreet.ai/concepts/agents-sdk/architecture#available-commands)
+- [Tutorials and Examples](https://docs.upstreet.ai/examples)
 
 ## License
 
@@ -187,6 +188,9 @@ Upstreet SDK is released under the ISC License.
 
 ---
 
-We're thrilled to have you join the Upstreet community! As you explore and create with USDK, remember that our support team and community forums are always here to help. Let's shape the future of AI interaction together!
+We're thrilled to have you join the Upstreet community! As you explore and create with USDK, remember that our support team and community forums are always here to help.
+
+👉 Join our Discord community to log issues and find inspiration: https://upstreet.ai/usdk-discord
+👉 Talk to us directly for deeper issues, and commercial usage: support@upstreet.ai 
 
 Happy creating in Upstreet! 🌆🚀
