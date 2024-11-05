@@ -612,7 +612,6 @@ const connectRepl = async ({
   );
   mpLog(dedent`\
     ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
-    In the room (${room}):
     ${agentJsons.length > 0 ?
       agentJsons
         .map((agent) => {
