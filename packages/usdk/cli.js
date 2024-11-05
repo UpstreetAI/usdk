@@ -293,46 +293,45 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const logs = async (args) => {
+const logs = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
-
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    const eventSources = agentSpecs.map((agentSpec) => {
-      const { directory } = agentSpec;
-      const u = `${deployEndpointUrl}/agents/${directory}/logs`;
-      const eventSource = new EventSource(u, {
-        headers: {
-          'Authorization': `Bearer ${jwt}`,
-        },
-      });
-      eventSource.addEventListener('message', (e) => {
-        const j = JSON.parse(e.data);
-        if (typeof j === 'string') {
-          process.stdout.write(j);
-        } else {
-          console.log(j);
-        }
-      });
-      eventSource.addEventListener('error', (e) => {
-        console.warn('error', e);
-      });
-      eventSource.addEventListener('close', (e) => {
-        process.exit(0);
-      });
-    });
-
-    return {
-      close: () => {
-        for (const eventSource of eventSources) {
-          eventSource.close();
-        }
-      },
-    };
-  } else {
-    console.log('not logged in');
-    process.exit(1);
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to view logs.');
   }
+
+  const eventSources = agentSpecs.map((agentSpec) => {
+    const { directory } = agentSpec;
+    const u = `${deployEndpointUrl}/agents/${directory}/logs`;
+    const eventSource = new EventSource(u, {
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
+      },
+    });
+    eventSource.addEventListener('message', (e) => {
+      const j = JSON.parse(e.data);
+      if (typeof j === 'string') {
+        process.stdout.write(j);
+      } else {
+        console.log(j);
+      }
+    });
+    eventSource.addEventListener('error', (e) => {
+      console.warn('error', e);
+    });
+    eventSource.addEventListener('close', (e) => {
+      process.exit(0);
+    });
+  });
+
+  return {
+    close: () => {
+      for (const eventSource of eventSources) {
+        eventSource.close();
+      }
+    },
+  };
 };
 // XXX rename command to charge or refill
 const fund = async (args) => {
@@ -1938,7 +1937,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
   //         _: [guids],
   //         ...opts,
   //       };
-  //       await logs(args);
+  //
+  //       const jwt = await getLoginJwt();
+  //
+  //       await logs(args, {
+  //         jwt,
+  //       });
   //     });
   //   });
   // program
