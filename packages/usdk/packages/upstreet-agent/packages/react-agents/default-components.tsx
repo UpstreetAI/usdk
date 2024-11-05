@@ -5,6 +5,8 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
+import { Telegraf } from 'telegraf';
+import { message } from 'telegraf/filters';
 
 import type {
   AppContextValue,
@@ -35,6 +37,7 @@ import type {
   DiscordBotRoomSpecs,
   DiscordBotProps,
   DiscordBotArgs,
+  TelegramBotProps,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -3244,6 +3247,33 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
   ]);
+
+  return null;
+};
+export const TelegramBot: React.FC<TelegramBotProps> = (props: TelegramBotProps) => {
+  const {
+    token,
+  } = props;
+  const agent = useAgent();
+  const botRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (!botRef.current) {
+      botRef.current = true;
+
+      const bot = new Telegraf(token);
+      bot.on('message', async (ctx) => {
+        const message = ctx.message as any;
+        const messageContent = message?.text;
+        ctx.reply('Reply to your message: ' + JSON.stringify(message) + ' : ' + JSON.stringify(messageContent));
+      });
+      bot.catch((err: any, ctx) => {
+        console.error(`❌ Telegram Error for ${ctx.updateType}:`, err);
+        ctx.reply('An unexpected error occurred: ' + err?.stack);
+      });
+      bot.launch();
+    }
+  }, []);
 
   return null;
 };
