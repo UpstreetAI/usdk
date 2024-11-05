@@ -71,6 +71,12 @@ type FeaturesObject = {
     token: string;
     channels: string;
   } | null;
+  telnyx: {
+    token: string;
+    phoneNumber: string;
+    message: boolean;
+    voice: boolean;
+  } | null;
 };
 type AgentEditorProps = {
   user: any;
@@ -115,6 +121,7 @@ export default function AgentEditor({
     rateLimit: null,
     storeItems: null,
     discordBot: null,
+    telnyx: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -214,6 +221,12 @@ export default function AgentEditor({
   const makeDefaultDiscordBot = () => ({
     token: '',
     channels: '',
+  });
+  const makeTelnyx = () => ({
+    token: '',
+    phoneNumber: '',
+    message: false,
+    voice: false,
   });
   const makeEmptyStoreItems = () => [
     makeEmptyStoreItem(),
@@ -893,6 +906,78 @@ export default function AgentEditor({
                     },
                   }));
                 }} placeholder="text, voice" required />
+              </label>
+            </div>}
+          </div>
+          {/* telnyx */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.telnyx} onChange={e => {
+                setFeatures({
+                  ...features,
+                  telnyx: e.target.checked ? makeTelnyx() : null,
+                });
+              }} />
+              <div className="px-2">Telnyx</div>
+            </label>
+            {features.telnyx && <div className="flex flex-col">
+              {/* token */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Token</div>
+                <input type="text" value={features.telnyx.token} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    discordBot: {
+                      token: e.target.value,
+                      channels: features.discordBot?.channels ?? '',
+                    },
+                  }));
+                }} placeholder="<bot token>" required />
+              </label>
+              {/* phone number */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Phone number</div>
+                <input type="text" value={features.telnyx.phoneNumber} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    telnyx: {
+                      token: features.telnyx?.token ?? '',
+                      phoneNumber: e.target.value,
+                      message: features.telnyx?.message ?? false,
+                      voice: features.telnyx?.voice ?? false,
+                    },
+                  }));
+                }} placeholder="text, voice" required />
+              </label>
+              {/* message */}
+              <label className="flex">
+                <input type="checkbox" checked={features.telnyx.message} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    telnyx: {
+                      token: features.telnyx?.token ?? '',
+                      phoneNumber: features.telnyx?.phoneNumber ?? '',
+                      message: e.target.checked,
+                      voice: features.telnyx?.voice ?? false,
+                    },
+                  }));
+                }} />
+                <div className="px-2">Message</div>
+              </label>
+              {/* voice */}
+              <label className="flex">
+                <input type="checkbox" checked={features.telnyx.voice} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    telnyx: {
+                      token: features.telnyx?.token ?? '',
+                      phoneNumber: features.telnyx?.phoneNumber ?? '',
+                      message: features.telnyx?.message ?? false,
+                      voice: e.target.checked,
+                    },
+                  }));
+                }} />
+                <div className="px-2">Voice</div>
               </label>
             </div>}
           </div>
