@@ -133,6 +133,7 @@ const buildWranglerToml = (
 };
 const interview = async (agentJson, {
   prompt,
+  mode,
   inputStream,
   outputStream,
   events,
@@ -157,7 +158,7 @@ const interview = async (agentJson, {
   const opts = {
     agentJson,
     prompt,
-    mode: prompt ? 'auto' : 'interactive',
+    mode,
     jwt,
   };
   const agentInterview = new AgentInterview(opts);
@@ -338,6 +339,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
+      mode: prompt ? 'auto' : 'interactive',
       inputStream,
       outputStream,
       events,
@@ -504,6 +506,7 @@ export const edit = async (args, opts) => {
   if (!(addFeature || removeFeature)) {
     agentJson = await interview(agentJson, {
       prompt,
+      mode: prompt ? 'auto' : 'edit',
       inputStream,
       outputStream,
       events,

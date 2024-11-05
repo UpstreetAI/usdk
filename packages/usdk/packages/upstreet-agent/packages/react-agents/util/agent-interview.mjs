@@ -266,6 +266,9 @@ export class AgentInterview extends EventTarget {
       } else if (mode === 'interactive') {
         // initiate the interview with an introductory message
         pumpIo('What kind of agent do you want to create?');
+      } else if (mode === 'edit') {
+        // initiate the interview with an introductory message
+        pumpIo('What edits do you want to make?');
       } else if (mode === 'manual') {
         // wait for external prompting
       } else {
