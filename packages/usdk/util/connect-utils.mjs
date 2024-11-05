@@ -781,7 +781,20 @@ const connectStream = async ({
   });
   multiplayerConnection.addEventListener('chat', (e) => {
     const { message } = e.data;
-    mpLog(message);
+    const method = message?.method;
+    const args = message?.args;
+    switch (method) {
+      case 'say': {
+        const { name } = message;
+        const { text } = args;
+        outputStream.write(`${name}: ${text}\n`);
+        break;
+      }
+      // default: {
+      //   // nothing
+      //   break;
+      // }
+    }
   });
   await multiplayerConnection.waitForConnect();
   const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
