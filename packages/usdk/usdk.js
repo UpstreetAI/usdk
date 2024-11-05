@@ -1,8 +1,20 @@
 #!/usr/bin/env -S node --no-warnings --experimental-wasm-modules
+import { main } from './cli.js';
 
-// import './packages/cli/src/index.js'
-import './cli.js'
-// import { tsImport } from 'tsx/esm/api'
+// Set up global error handling
+['uncaughtException', 'unhandledRejection'].forEach(event =>
+  process.on(event, (err, err2) => {
+    console.log('cli uncaught exception', err, err2);
+    process.exit(1);
+  })
+);
 
-
-// await tsImport( './packages/cli/src/index.js', import.meta.url )
+// Execute CLI
+(async () => {
+  try {
+    await main();
+  } catch (err) {
+    console.warn(err.stack);
+    process.exit(1);
+  }
+})();

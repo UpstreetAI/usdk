@@ -6,7 +6,7 @@ import {
   uint8ArrayToBase64,
   base64ToUint8Array,
 } from '../util/util.mjs';
-import { zbdecode, zbencode } from '../lib/zjs/encoding.mjs';
+import { zbdecode, zbencode } from 'zjs/encoding.mjs';
 
 export class Kv<T> {
   #agent: ActiveAgentObject;
@@ -47,7 +47,7 @@ export class Kv<T> {
     const { error, data } = result;
     if (!error) {
       if (data) {
-        const base64Data = data.data as string;
+        const base64Data = data.value as string;
         const encodedData = base64ToUint8Array(base64Data);
         const value = zbdecode(encodedData);
         return value;

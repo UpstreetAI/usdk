@@ -16,8 +16,6 @@ import type {
   ChatsSpecification,
 } from '../types';
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from '../lib/voice-output/voice-endpoint-voicer.mjs';
-// import { createOpusReadableStreamSource } from '../lib/multiplayer/public/audio/audio-client.mjs';
-// import { NetworkRealms } from "../lib/multiplayer/public/network-realms.mjs";
 import {
   lembed,
 } from '../util/embedding.mjs';
@@ -29,42 +27,49 @@ import { useAgent } from '../hooks';
 //
 
 export class AppContextValue {
-  // members
   subtleAi: SubtleAi;
   agentJson: object;
+  environment: string;
   wallets: any;
   authToken: string;
   supabase: any;
   conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
+  codecs: any;
   registry: RenderRegistry;
 
   constructor({
     subtleAi,
     agentJson,
+    environment,
     wallets,
     authToken,
     supabase,
     conversationManager,
     chatsSpecification,
+    codecs,
     registry,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
+    environment: string;
     wallets: any;
     authToken: string;
     supabase: any;
     conversationManager: ConversationManager;
     chatsSpecification: ChatsSpecification;
+    codecs: any;
     registry: RenderRegistry;
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
+    this.environment = environment;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
     this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
+    this.codecs = codecs;
     this.registry = registry;
   }
 
@@ -72,6 +77,9 @@ export class AppContextValue {
 
   useAgentJson() {
     return this.agentJson;
+  }
+  useEnvironment() {
+    return this.environment;
   }
   useWallets() {
     return this.wallets;
@@ -87,6 +95,9 @@ export class AppContextValue {
   }
   useChatsSpecification() {
     return this.chatsSpecification;
+  }
+  useCodecs() {
+    return this.codecs;
   }
   useRegistry() {
     return this.registry;

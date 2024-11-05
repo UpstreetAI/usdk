@@ -27,10 +27,11 @@ export function ChatHistory() {
   const roomDescription = crdt?.getText('description').toString()
 
   const roomLink = typeof window !== 'undefined' ? window.location.href : ''
-  
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   const [memberSearchQuery, setMemberSearchQuery] = React.useState('')
 
@@ -113,7 +114,7 @@ export function ChatHistory() {
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: 'outline' }),
-                  'flex w-full justify-start bg-zinc-50 px-2 shadow-none transition-colors hover:bg-zinc-200/40 dark:bg-zinc-900 dark:hover:bg-zinc-300/10'
+                  'flex w-full justify-start px-2 shadow-none transition-colors bg-zinc-900 hover:bg-zinc-300/10'
                 )}
               >
                 {previewUrl && isValidUrl(previewUrl) ? (

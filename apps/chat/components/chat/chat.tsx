@@ -26,12 +26,13 @@ import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multi
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
-import { createSession } from 'react-agents/util/stripe-utils.mjs';
+import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-import { IconButton } from 'ucom';
+// import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
+import { environment } from '@/lib/env';
 
 
 //
@@ -91,14 +92,15 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   } = useMultiplayerActions();
 
   /// Get players
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   // Get room specs
   const crdt = getCrdtDoc()
   const roomName = crdt?.getText('name').toString()
-  
+
   useEffect(() => {
     onConnect && onConnect(connected);
   }, [connected]);
@@ -137,41 +139,45 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
 
   const { isAgentLoading } = useLoading();
-  
+
   return (
     <div
-      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in overflow-auto ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
-      ref={scrollRef}
+      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
 
-      <ChatMenu players={players} roomName={roomName} />
+      {room && (
+        <>
+          <ChatMenu players={players} roomName={roomName} />
 
-      <div
-        className={cn('pb-[200px] pt-20 md:pt-24', className)}
-        ref={messagesRef}
-      >
-        {room ? (
-          messages.length ? (
-            <ChatList messages={messages} />
-          ) : (
-            null
-          )
-        ) : <EmptyScreen />}
-        
-        <div className="relative mx-auto max-w-2xl px-4">
-          {isAgentLoading && "Loading agent..."}
-        </div>
+          <div className='h-screen overflow-auto' ref={scrollRef}>
+            <div
+              className={cn('pb-[200px] pt-20 md:pt-24', className)}
+              ref={messagesRef}
+            >
+              {messages.length ? (
+                <ChatList messages={messages} />
+              ) : (
+                null
+              )}
 
-        <div className="w-full h-px" ref={visibilityRef} />
-      </div>
-      <ChatPanel
-        input={input}
-        setInput={setInput}
-        isAtBottom={isAtBottom}
-        scrollToBottom={scrollToBottom}
-        room={room}
-        messages={messages}
-      />
+              <div className="relative mx-auto max-w-2xl px-4">
+                {isAgentLoading && "Loading agent..."}
+              </div>
+
+              <div className="w-full h-px" ref={visibilityRef} />
+            </div>
+          </div>
+          <ChatPanel
+            input={input}
+            setInput={setInput}
+            isAtBottom={isAtBottom}
+            scrollToBottom={scrollToBottom}
+            room={room}
+            messages={messages}
+          />
+
+        </>
+      )}
     </div>
   )
 }
@@ -195,21 +201,19 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
 
-    // TODO Move the typing logic to form component, over send message?
-    case 'typing': return null;
-
+    // fake client side messages
     case 'join': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
         <span className='font-bold'>{message.name}</span> joined the room.
       </div>
     )
-
     case 'leave': return (
       <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
         <span className='font-bold'>{message.name}</span> left the room.
       </div>
     )
 
+    // server messages
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
@@ -370,6 +374,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
             stripe_connect_account_id,
           };
           const j = await createSession(opts, {
+            environment,
             jwt,
           });
           const {

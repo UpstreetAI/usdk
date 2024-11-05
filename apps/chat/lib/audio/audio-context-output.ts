@@ -1,6 +1,3 @@
-// import { createMp3DecodeTransformStream } from '../lib/multiplayer/public/audio/audio-client.mjs';
-// import { QueueManager } from '../../utils/queue-manager.mjs';
-
 type LoadableAudioContext = AudioContext & {
   waitForLoad: () => Promise<void>;
 };
@@ -56,10 +53,9 @@ const ensureAudioWorklet = async (
       });
     }
   };
-  audioWorkletNode.port.addEventListener('message', (e) => {
+  audioWorkletNode.port.onmessage = (e) => {
     const {
       method,
-      // args,
     } = e.data;
     switch (method) {
       case 'flush': {
@@ -77,7 +73,7 @@ const ensureAudioWorklet = async (
         console.warn('unhandled audio worklet node message method', e.data);
       }
     }
-  });
+  };
 
   if (!signal.aborted) {
     audioWorkletNode.connect(audioContext.destination);
@@ -100,28 +96,18 @@ export class AudioContextOutputStream extends WritableStream {
     // const queueManager = new QueueManager();
 
     super({
-      write: async (chunk, controller) => {
-        // (async () => {
-          // await queueManager.waitForTurn(async () => {
-            const audioWorkletNode = await audioWorkletNodePromise;
-
-            // console.log('write chunk', chunk);
-            // debugger;
-
-            // const buffer = getAudioDataBuffer(data);
-            // audioWorkletNode.port.postMessage(buffer, [buffer.buffer]);
-            audioWorkletNode.write(chunk);
-          // });
-        // })();
+      write: async (chunk) => {
+        const audioWorkletNode = await audioWorkletNodePromise;
+        audioWorkletNode.write(chunk);
       },
       close: async () => {
-        console.log('closed 1');
         const audioWorkletNode = await audioWorkletNodePromise;
-        console.log('closed 2');
         await audioWorkletNode.waitForFlush();
-        console.log('closed 3');
-        abortController.abort();
+        abortController.abort(new Error('close() called'));
       },
+      abort(reason) {
+        abortController.abort(reason);
+      }
     });
 
     // create the output

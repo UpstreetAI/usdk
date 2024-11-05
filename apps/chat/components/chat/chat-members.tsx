@@ -18,9 +18,10 @@ import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 export function ChatMembers() {
   const { localPlayerSpec, playersMap, getCrdtDoc, agentLeave, room } = useMultiplayerActions()
 
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   const [memberSearchQuery, setMemberSearchQuery] = React.useState('')
 
@@ -75,7 +76,7 @@ export function ChatMembers() {
                 >
                   {!isValidUrl(previewUrl) && name.charAt(0)}
                 </div>
-                <div className="flex-1 text-ellipsis overflow-hidden text-xl font-[Aller-Bold] ml-2">
+                <div className="flex-1 text-ellipsis overflow-hidden text-xl font-bold ml-2">
                   {name}
                 </div>
                 {localPlayerSpec.id !== id && (

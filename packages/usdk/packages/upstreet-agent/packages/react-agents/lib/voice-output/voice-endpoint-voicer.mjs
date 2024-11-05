@@ -1,10 +1,7 @@
 /* this module is responsible for mapping a remote TTS endpoint to the character. */
 
-// import { createMp3DecodeTransformStream } from '../multiplayer/public/audio/audio-client.mjs';
 // import Rvc from '../rvc.js';
-import {aiProxyHost} from '../../util/endpoints.mjs'
-// import { abortableRead, makePromise } from '../../util.js';
-import { makePromise } from '../multiplayer/public/util.mjs';
+import { aiProxyHost } from '../../util/endpoints.mjs'
 
 //
 
@@ -83,13 +80,17 @@ const getVoiceStream = {
     };
 
     // request the audio stream
-    const loadPromise = makePromise();
+    const {
+      promise: loadPromise,
+      resolve: loadResolve,
+      reject: loadReject,
+    } = Promise.withResolvers();
     (async () => {
       try {
         const res = await getVoiceRequest.elevenlabs(spec, opts);
 
         if (res.ok) {
-          loadPromise.resolve();
+          loadResolve(null);
 
           await res.body.pipeTo(throughStream.writable);
         } else {
@@ -130,13 +131,17 @@ const getVoiceStream = {
     };
 
     // request the audio stream
-    const loadPromise = makePromise();
+    const {
+      promise: loadPromise,
+      resolve: loadResolve,
+      reject: loadReject,
+    } = Promise.withResolvers();
     (async () => {
       try {
         const res = await getVoiceRequest.tiktalknet(spec, opts);
 
         if (res.ok) {
-          loadPromise.resolve();
+          loadResolve(null);
 
           // const start = performance.now();
           await res.body.pipeTo(throughStream.writable);
@@ -183,7 +188,11 @@ const getVoiceStream = {
       throughStream.writable.getWriter().close();
     };
 
-    const loadPromise = makePromise();
+    const {
+      promise: loadPromise,
+      resolve: loadResolve,
+      reject: loadReject,
+    } = Promise.withResolvers();
     (async () => {
       const u = `https://${aiProxyHost}/api/ai/audio/speech`;
       const j = {
@@ -204,7 +213,7 @@ const getVoiceStream = {
         signal,
       });
       if (res.ok) {
-        loadPromise.resolve();
+        loadResolve(null);
 
         await res.body.pipeTo(throughStream.writable);
       } else {
@@ -271,13 +280,17 @@ export const getVoiceConversionStream = {
     };
 
     // request the audio stream
-    const loadPromise = makePromise();
+    const {
+      promise: loadPromise,
+      resolve: loadResolve,
+      reject: loadReject,
+    } = Promise.withResolvers();
     (async () => {
       try {
         const res = await getVoiceConversionRequest.elevenlabs(spec, opts);
 
         if (res.ok) {
-          loadPromise.resolve();
+          loadResolve(null);
 
           await res.body.pipeTo(throughStream.writable);
         } else {

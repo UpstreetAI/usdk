@@ -2,21 +2,25 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import dedent from 'dedent'
-import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
-import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
+// import dedent from 'dedent'
+// import { NetworkRealms } from '@upstreet/multiplayer/public/network-realms.mjs';
+// import { multiplayerEndpointUrl } from '@/utils/const/endpoints';
 import { getAgentEndpointUrl, getAgentHost } from '@/lib/utils'
 import { r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { AudioDecodeStream } from '@upstreet/multiplayer/public/audio/audio-decode.mjs';
 import { AudioContextOutputStream } from '@/lib/audio/audio-context-output';
+import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
+import { PlayersMap, TypingMap } from 'react-agents-client/util/maps.mjs';
 import type {
   ActionMessage,
   Attachment,
   PlayableAudioStream,
+  PlayableVideoStream,
 } from 'react-agents/types';
 import { useLoading } from '@/lib/client/hooks/use-loading';
-import * as codecs from '@upstreet/multiplayer/public/audio/ws-codec-runtime-worker.mjs';
+import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
+import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import { QueueManager } from 'queue-manager';
 
 //
 
@@ -75,21 +79,13 @@ const uploadFile = async (file: File) => {
 
 //
 
-type Agent = {
-  // Define the properties of an Agent here
-  id: string;
-  name: string;
-  // Add other properties as needed
-};
-
-//
-
 interface MultiplayerActionsContextType {
   connected: boolean
   room: string
   getCrdtDoc: () => any
   localPlayerSpec: PlayerSpec
-  playersMap: Map<string, Player>
+  playersMap: PlayersMap
+  typingMap: TypingMap
   playersCache: Map<string, Player>
   messages: object[]
   setMultiplayerConnectionParameters: (params: object | null) => void
@@ -104,7 +100,10 @@ interface MultiplayerActionsContextType {
     waitForFinish: () => Promise<void>
   }
   removeAudioSource: (stream: PlayableAudioStream) => void
-  typingMap: TypingMap
+  addVideoSource: (stream: PlayableVideoStream) => {
+    waitForFinish: () => Promise<void>
+  }
+  removeVideoSource: (stream: PlayableVideoStream) => void
   epoch: number
 }
 type MessageSendOptions = {
@@ -114,7 +113,7 @@ type MessageSendOptions = {
 
 const MultiplayerActionsContext = React.createContext<MultiplayerActionsContextType | undefined>(
   undefined
-)
+);
 
 export function useMultiplayerActions() {
   const context = React.useContext(MultiplayerActionsContext)
@@ -150,393 +149,6 @@ export class Player {
   }
 }
 
-class TypingMap extends EventTarget {
-  #internalMap = new Map(); // playerId: string -> { userId: string, name: string, typing: boolean }
-  getMap() {
-    return this.#internalMap;
-  }
-  set(playerId: string, spec : object) {
-    this.#internalMap.set(playerId, spec);
-    this.dispatchEvent(new MessageEvent('typingchange', {
-      data: spec,
-    }));
-  }
-  clear() {
-    for (const [playerId, spec] of this.#internalMap) {
-      this.dispatchEvent(new MessageEvent('typingchange', {
-        data: spec,
-      }));
-    }
-    this.#internalMap.clear();
-  }
-}
-
-const connectMultiplayer = (room: string, playerSpec: PlayerSpec) => {
-  const userId = playerSpec.id;
-  const name = playerSpec.name;
-
-  const realms = new NetworkRealms({
-    endpointUrl: multiplayerEndpointUrl,
-    playerId: userId,
-    // audioManager: null,
-  });
-
-  const playersMap = new Map<string, Player>();
-  const typingMap = new TypingMap();
-
-  const virtualWorld = realms.getVirtualWorld();
-  const virtualPlayers = realms.getVirtualPlayers();
-  // console.log('got initial players', virtualPlayers.getKeys());
-
-  // console.log('waiting for initial connection...');
-
-  let connected = false;
-  const onConnect = async (e: any) => {
-    // console.log('on connect...');
-    e.waitUntil(
-      (async () => {
-        const realmKey = e.data.rootRealmKey;
-
-        const existingAgentIds = Array.from(playersMap.keys());
-        if (existingAgentIds.includes(userId)) {
-          console.log('your character is already in the room! disconnecting.');
-          process.exit(1);
-        }
-
-        {
-          // Initialize network realms player.
-          const localPlayer = new Player(userId, playerSpec);
-
-          playersMap.set(userId, localPlayer);
-          realms.dispatchEvent(new MessageEvent('playerschange', {
-            data: null,
-          }));
-          const _pushInitialPlayer = () => {
-            realms.localPlayer?.initializePlayer(
-              {
-                realmKey,
-              },
-              {},
-            );
-            realms.localPlayer?.setKeyValue(
-              'playerSpec',
-              localPlayer.playerSpec,
-            );
-          };
-          _pushInitialPlayer();
-        }
-
-        connected = true;
-
-        // log the initial room state
-        // agentIds.push(userId);
-        /* const agentJsons = await Promise.all(
-          agentIds.map(async (agentId) => {
-            // current player
-            if (agentId === userId) {
-              return {
-                id: userId,
-                name,
-              };
-            // development agent
-            } else if (agentId === devAgentId) {
-              return {
-                id: devAgentId,
-                name,
-              };
-            } else {
-              const assetJson = await getAssetJson(supabase, agentId);
-              return {
-                id: agentId,
-                name: assetJson.name,
-              };
-            }
-          }),
-        ); */
-
-        const agentJsons = Array.from(playersMap.values()).map(
-          (player) => player.playerSpec,
-        );
-        console.log(dedent`
-          ${`You are ${JSON.stringify(name)} [${userId}]), chatting in ${room}.`}
-          In the room (${room}):
-          ${agentJsons
-            .map((agent: any) => {
-              return `* ${agent.name} [${agent.id}] ${agent.id === userId ? '(you)' : ''}`;
-            })
-            .join('\n')
-          }
-        `,
-        );
-      })(),
-    );
-  };
-  realms.addEventListener('connect', onConnect);
-
-  const _trackRemotePlayers = () => {
-    virtualPlayers.addEventListener('join', (e: any) => {
-      const { playerId, player } = e.data;
-      if (connected) {
-        console.log('remote player joined:', playerId);
-      }
-
-      // construct the remote player
-      const remotePlayer = new Player(playerId, {
-        id: '',
-        name: '',
-        previewUrl: '',
-        capabilities: [],
-      });
-
-      // helpers
-      const emitJoin = () => {
-        playersMap.set(playerId, remotePlayer);
-        realms.dispatchEvent(new MessageEvent('playerschange', {
-          data: playersMap,
-        }));
-
-        const agentJson = remotePlayer.getPlayerSpec() as any;
-        realms.dispatchEvent(new MessageEvent('chat', {
-          data: {
-            message: {
-              userId: playerId,
-              method: 'join',
-              name: agentJson.name,
-              args: {
-                playerId,
-              },
-            },
-          },
-        }));
-      };
-      const ensureJoin = (() => {
-        let emitted = false;
-        return () => {
-          if (!emitted) {
-            const playerSpec = remotePlayer.getPlayerSpec();
-            if (playerSpec) {
-              emitted = true;
-              emitJoin();
-            }
-          }
-        }
-      })();
-
-
-      // apply initial remote player state
-      {
-        const playerSpec = player.getKeyValue('playerSpec');
-        if (playerSpec) {
-          remotePlayer.setPlayerSpec(playerSpec);
-          ensureJoin();
-        }
-      }
-
-      // Handle remote player state updates
-      player.addEventListener('update', (e: any) => {
-        const { key, val } = e.data;
-
-        if (key === 'playerSpec') {
-          remotePlayer.setPlayerSpec(val);
-        }
-
-        ensureJoin();
-      });
-    });
-    virtualPlayers.addEventListener('leave', (e: any) => {
-      const { playerId } = e.data;
-      if (connected) {
-        console.log('remote player left:', playerId);
-      }
-
-      // remove remote player
-      const remotePlayer = playersMap.get(playerId);
-      if (remotePlayer) {
-        const agentJson = remotePlayer.getPlayerSpec() as any;
-        realms.dispatchEvent(new MessageEvent('chat', {
-          data: {
-            message: {
-              userId: playerId,
-              method: 'leave',
-              name: agentJson.name,
-              args: {
-                playerId,
-              },
-            },
-          },
-        }));
-
-        playersMap.delete(playerId);
-        realms.dispatchEvent(new MessageEvent('playerschange', {
-          data: playersMap,
-        }));
-      } else {
-        console.log('remote player not found', playerId);
-        debugger;
-      }
-
-      // remove dangling audio streams
-      for (const [streamId, stream] of Array.from(audioStreams.entries())) {
-        if (stream.metadata.playerId === playerId) {
-          stream.close();
-          audioStreams.delete(streamId);
-        }
-      }
-    });
-  };
-  _trackRemotePlayers();
-
-  const audioStreams = new Map();
-  const _trackAudio = () => {
-    virtualPlayers.addEventListener('audiostart', (e: any) => {
-      const {
-        playerId,
-        streamId,
-        type,
-        disposition,
-      } = e.data;
-
-      if (disposition === 'audio') {
-        const outputStream = new AudioContextOutputStream();
-        const { sampleRate } = outputStream;
-
-        // decode stream
-        const decodeStream = new AudioDecodeStream({
-          type,
-          sampleRate,
-          format: 'f32',
-          codecs,
-        }) as any;
-        decodeStream.readable.pipeTo(outputStream);
-
-        const writer = decodeStream.writable.getWriter();
-        writer.metadata = {
-          playerId,
-        };
-        audioStreams.set(streamId, writer);
-      }
-    });
-    virtualPlayers.addEventListener('audio', (e: any) => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.write(data);
-      } else {
-        // throw away unmapped data
-        // console.warn('dropping audio data', e.data);
-      }
-    });
-    virtualPlayers.addEventListener('audioend', (e: any) => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.close();
-        audioStreams.delete(streamId);
-      } else {
-        // throw away unmapped data
-        console.warn('dropping audioend data', e.data);
-      }
-    });
-  };
-  _trackAudio();
-
-  const _bindMultiplayerChat = () => {
-    const onchat = (e: any) => {
-      const { message } = e.data;
-      // console.log('got message', { message });
-      const { userId: messageUserId, name, method, args } = message;
-
-      switch (method) {
-        case 'say': {
-          // const { text } = args;
-          // if (messageUserId !== userId) {
-          //   console.log(`${name}: ${text}`);
-          // }
-          break;
-        }
-        case 'log': {
-          // if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // replServer.displayPrompt(true);
-            const { text } = args;
-            console.log(text);
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
-          // }
-          break;
-        }
-        case 'typing': {
-          const { typing } = args;
-          typingMap.set(messageUserId, { userId: messageUserId, name, typing });
-          break;
-        }
-        case 'join':
-        case 'leave':
-        case 'nudge':
-        {
-          // nothing
-          break;
-        }
-        case 'mediaPerception':
-        case 'browserAction':
-        case 'paymentRequest':
-        {
-          // nothing
-          break;
-        }
-        default: {
-          // if (debug) {
-            // console.log('got log message', JSON.stringify(args, null, 2));
-            // const { userId, name, text } = args;
-            // console.log(`\r${name}: ${text}`);
-            // replServer.displayPrompt(true);
-            console.log('unhandled method', JSON.stringify(message));
-            // console.log(eraseLine + JSON.stringify(args2, null, 2));
-          // }
-          break;
-        }
-      }
-    };
-    realms.addEventListener('chat', onchat);
-    const cleanup = () => {
-      realms.removeEventListener('chat', onchat);
-      typingMap.clear();
-    };
-    realms.addEventListener('disconnect', () => {
-      cleanup();
-    });
-  };
-  _bindMultiplayerChat();
-
-  (async () => {
-    // console.log('update realms keys 1');
-    await realms.updateRealmsKeys({
-      realmsKeys: [room],
-      rootRealmKey: room,
-    });
-    // console.log('update realms keys 2');
-  })().catch(err => {
-    console.warn(err);
-  });
-
-  return {
-    realms,
-    playersMap,
-    typingMap,
-  };
-};
-
 const makeFakePlayerSpec = () => (
   {
     id: '',
@@ -552,9 +164,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const [multiplayerState, setMultiplayerState] = React.useState(() => {
     let connected = false;
     let room = '';
-    let realms: NetworkRealms | null = null;
+    let multiplayerConnection: any | null = null;
     let localPlayerSpec: PlayerSpec = makeFakePlayerSpec();
-    let playersMap: Map<string, Player> = new Map();
+    let playersMap = new PlayersMap();
     let playersCache: Map<string, Player> = new Map();
     let typingMap = new TypingMap();
     let messages: object[] = [];
@@ -564,7 +176,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
     };
 
     const sendMessage = (method: string, args: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
-      if (realms) {
+      if (multiplayerConnection) {
         const { id: userId, name } = localPlayerSpec;
 
         const timestamp = new Date();
@@ -579,9 +191,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           timestamp,
         };
         // console.log('send chat message', message);
-        realms.sendChatMessage(message);
+        multiplayerConnection.sendChatMessage(message);
       } else {
-        console.warn('realms not connected');
+        console.warn(`can't send message: not connected`);
       }
     };
 
@@ -590,6 +202,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       getRoom: () => room,
       getCrdtDoc: () => {
         // console.log('got realms 1', realms);
+        const realms = multiplayerConnection?.realms;
         if (realms) {
           const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
           // console.log('got realms 2', headRealm, headRealm);
@@ -618,9 +231,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           messages = [];
 
           // disconnect old room
-          if (realms) {
-            realms.disconnect();
-            realms = null;
+          if (multiplayerConnection) {
+            multiplayerConnection.disconnect();
+            multiplayerConnection = null;
           }
 
           // connect new room
@@ -629,49 +242,246 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               throw new Error('Invalid local player spec: ' + JSON.stringify(newLocalPlayerSpec, null, 2));
             }
 
-            const connectResult = connectMultiplayer(room, newLocalPlayerSpec);
+            const profile = {
+              ...newLocalPlayerSpec,
+              capabilities: [
+                'human',
+              ],
+            };
+            const debug = true;
+            multiplayerConnection = new ReactAgentsMultiplayerConnection({
+              room,
+              profile,
+            });
+            const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
+            multiplayerConnection.addEventListener('log', (e: any) => {
+              const { args, logLevel } = e.data;
+              if (localLogLevel >= logLevel) {
+                console.log(...args);
+              }
+            });
+            multiplayerConnection.addEventListener('chat', (e: any) => {
+              const { message } = e.data;
+              // console.log('got message', { message });
+              const { userId: messageUserId, name, method, args } = message;
 
-            realms = connectResult.realms;
-            realms.addEventListener('connect', e => {
-              console.log('connect event');
-
+              switch (method) {
+                case 'say': {
+                  // const { text } = args;
+                  // if (messageUserId !== userId) {
+                  //   console.log(`${name}: ${text}`);
+                  // }
+                  break;
+                }
+                case 'log': {
+                  // if (debug) {
+                    // console.log('got log message', JSON.stringify(args, null, 2));
+                    // const { userId, name, text } = args;
+                    // console.log(`\r${name}: ${text}`);
+                    // replServer.displayPrompt(true);
+                    const { text } = args;
+                    console.log(text);
+                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // }
+                  break;
+                }
+                case 'typing': {
+                  const { typing } = args;
+                  typingMap.set(messageUserId, { userId: messageUserId, name, typing });
+                  break;
+                }
+                case 'join':
+                case 'leave':
+                case 'nudge':
+                {
+                  // nothing
+                  break;
+                }
+                case 'mediaPerception':
+                case 'browserAction':
+                case 'paymentRequest':
+                {
+                  // nothing
+                  break;
+                }
+                default: {
+                  // if (debug) {
+                    // console.log('got log message', JSON.stringify(args, null, 2));
+                    // const { userId, name, text } = args;
+                    // console.log(`\r${name}: ${text}`);
+                    // replServer.displayPrompt(true);
+                    console.log('unhandled method', JSON.stringify(message));
+                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // }
+                  break;
+                }
+              }
+            });
+            // const { virtualPlayers } = multiplayerConnection;
+            (async () => {
+              console.log('multiplayer connecting...');
+              await multiplayerConnection.waitForConnect();
+              console.log('multiplayer connected');
+            })();
+            multiplayerConnection.addEventListener('connect', (e: any) => {
               connected = true;
               refresh();
             });
-            realms.addEventListener('disconnect', e => {
-              console.log('disconnect event');
-
+            multiplayerConnection.addEventListener('disconnect', (e: any) => {
               connected = false;
               refresh();
             });
-            realms.addEventListener('chat', (e) => {
-              const { message } = (e as any).data;
+            multiplayerConnection.addEventListener('chat', (e: any) => {
+              const { message } = e.data;
               messages = [...messages, message];
               refresh();
             });
-            realms.addEventListener('playerschange', (e: any) => {
-              // const playersMap = (e as any).data;
 
-              // ensure all players are in the players cache
-              for (const [playerId, player] of playersMap) {
-                playersCache.set(playerId, player);
-              }
+            playersMap = multiplayerConnection.playersMap;
+            typingMap = multiplayerConnection.typingMap;
+
+            // join + leave messages
+            playersMap.addEventListener('join', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+              const joinMessage = {
+                method: 'join',
+                userId,
+                name,
+                args: {},
+                timestamp: Date.now(),
+              };
+              messages = [...messages, joinMessage];
+
+              refresh();
+            });
+            playersMap.addEventListener('leave', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+              const leaveMessage = {
+                method: 'leave',
+                userId,
+                name,
+                args: {},
+                timestamp: Date.now(),
+              };
+              messages = [...messages, leaveMessage];
 
               refresh();
             });
 
-            playersMap = connectResult.playersMap;
-
-            typingMap = connectResult.typingMap;
+            // typing
             typingMap.addEventListener('typingchange', (e) => {
               refresh();
             });
+
+            const _trackPlayersCache = () => {
+              const updatePlayersCache = () => {
+                (globalThis as any).playersMap = playersMap;
+                (globalThis as any).playersCache = playersCache;
+
+                // ensure all players are in the players cache
+                for (const [playerId, player] of playersMap.getMap()) {
+                  playersCache.set(playerId, player);
+                }
+
+                refresh();
+              };
+              updatePlayersCache();
+
+              ['join', 'leave'].forEach((eventName) => {
+                playersMap.addEventListener(eventName, updatePlayersCache);
+              });
+            };
+            _trackPlayersCache();
+            
+            const _trackAudio = () => {
+              const audioStreams = new Map();
+              const audioQueueManger = new QueueManager();
+              playersMap.addEventListener('audiostart', (e: any) => {
+                const {
+                  playerId,
+                  streamId,
+                  type,
+                  disposition,
+                } = e.data;
+
+                if (disposition === 'audio') {
+                  const outputStream = new AudioContextOutputStream();
+                  const { sampleRate } = outputStream;
+
+                  // decode stream
+                  const decodeStream = new AudioDecodeStream({
+                    type,
+                    sampleRate,
+                    format: 'f32',
+                    codecs,
+                  }) as any;
+
+                  const writer = decodeStream.writable.getWriter();
+                  writer.metadata = {
+                    playerId,
+                  };
+                  audioStreams.set(streamId, writer);
+
+                  (async () => {
+                    await audioQueueManger.waitForTurn(async ({
+                      signal,
+                    }: {
+                      signal: AbortSignal,
+                    }) => {
+                      signal.addEventListener('abort', (e: any) => {
+                        decodeStream.abort(e.reason);
+                        outputStream.abort(e.reason);
+                      });
+
+                      await decodeStream.readable.pipeTo(outputStream);
+                    });
+                  })().catch((e) => {
+                    console.error('error in audio pipeline', e);
+                  });
+                }
+              });
+              playersMap.addEventListener('audio', (e: any) => {
+                const {
+                  playerId,
+                  streamId,
+                  data,
+                } = e.data;
+
+                const stream = audioStreams.get(streamId);
+                if (stream) {
+                  stream.write(data);
+                } else {
+                  // throw away unmapped data
+                  // console.warn('dropping audio data', e.data);
+                }
+              });
+              playersMap.addEventListener('audioend', (e: any) => {
+                const {
+                  playerId,
+                  streamId,
+                  data,
+                } = e.data;
+
+                const stream = audioStreams.get(streamId);
+                if (stream) {
+                  stream.close();
+                  audioStreams.delete(streamId);
+                } else {
+                  // throw away unmapped data
+                  console.warn('dropping audioend data', e.data);
+                }
+              });
+            };
+            _trackAudio();
           }
 
           refresh();
         }
       },
-      // sendMessage,
       sendChatMessage: (text: string) =>
         sendMessage('say', {
           text,
@@ -772,8 +582,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         }
       },
       addAudioSource: (stream: PlayableAudioStream) => {
-        if (realms) {
-          return realms.addAudioSource(stream) as {
+        if (multiplayerConnection) {
+          return multiplayerConnection.addAudioSource(stream) as {
             waitForFinish: () => Promise<void>
           };
         } else {
@@ -781,8 +591,24 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         }
       },
       removeAudioSource: (stream: PlayableAudioStream) => {
-        if (realms) {
-          realms.removeAudioSource(stream);
+        if (multiplayerConnection) {
+          multiplayerConnection.removeAudioSource(stream);
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
+      addVideoSource: (stream: PlayableVideoStream) => {
+        if (multiplayerConnection) {
+          return multiplayerConnection.addVideoSource(stream) as {
+            waitForFinish: () => Promise<void>
+          };
+        } else {
+          throw new Error('realms not connected');
+        }
+      },
+      removeVideoSource: (stream: PlayableVideoStream) => {
+        if (multiplayerConnection) {
+          multiplayerConnection.removeVideoSource(stream);
         } else {
           throw new Error('realms not connected');
         }
@@ -809,6 +635,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
+  const addVideoSource = multiplayerState.addVideoSource;
+  const removeVideoSource = multiplayerState.removeVideoSource;
 
   return (
     <MultiplayerActionsContext.Provider
@@ -830,6 +658,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         agentLeave,
         addAudioSource,
         removeAudioSource,
+        addVideoSource,
+        removeVideoSource,
         typingMap,
         epoch,
       }}

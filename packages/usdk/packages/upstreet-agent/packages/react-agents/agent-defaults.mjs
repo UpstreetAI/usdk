@@ -2,13 +2,8 @@ import packageJson from '../../../../package.json' with { type: 'json' };
 import { defaultModels } from './constants.mjs';
 import { workersHost } from './util/endpoints.mjs';
 
-export const localPort = 3000;
-export const callbackPort = 10617;
-export const devServerPort = 10618;
-
 export const getAgentName = (guid) => `user-agent-${guid}`;
 export const getAgentPublicUrl = (guid) => `https://chat.upstreet.ai/agents/${guid}`;
-export const getLocalAgentHost = (portIndex = 0) => `http://localhost:${devServerPort + portIndex}`;
 export const getCloudAgentHost = (guid) => `https://${getAgentName(guid)}.${workersHost}`;
 
 export const ensureAgentJsonDefaults = (spec) => {

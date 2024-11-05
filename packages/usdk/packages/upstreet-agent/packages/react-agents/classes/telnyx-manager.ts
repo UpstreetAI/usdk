@@ -1,7 +1,6 @@
 import uuidByString from 'uuid-by-string';
 import {
   TelnyxBotArgs,
-  ConversationEventData,
   ActiveAgentObject,
   ExtendableMessageEvent,
   ActionMessageEventData,
@@ -9,9 +8,7 @@ import {
 import {
   ConversationObject,
 } from './conversation-object';
-import {
-  Player,
-} from './player';
+import { Player } from 'react-agents-client/util/player.mjs';
 import { TelnyxClient, getTelnyxCallConversationHash } from '../lib/telnyx/telnyx-client';
 import type {
   TelnyxMessageArgs,
@@ -21,7 +18,6 @@ import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
-import { ConversationManager } from './conversation-manager';
 
 //
 

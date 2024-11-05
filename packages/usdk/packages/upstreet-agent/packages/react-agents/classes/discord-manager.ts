@@ -10,15 +10,12 @@ import {
 import {
   ConversationObject,
 } from './conversation-object';
-import {
-  Player,
-} from './player';
+import { Player } from 'react-agents-client/util/player.mjs';
 import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX move this to typescript
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
-// import { ConversationManager } from './conversation-manager';
 
 //
 

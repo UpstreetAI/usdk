@@ -17,9 +17,10 @@ export function ChatHead() {
 
   const roomLink = typeof window !== 'undefined' ? window.location.href : '';
   
-  const players = Array.from(playersMap.values()).sort((a, b) => {
-    return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
-  })
+  const players = Array.from(playersMap.getMap().values())
+    .sort((a, b) => {
+      return a.getPlayerSpec().name.localeCompare(b.getPlayerSpec().name)
+    });
 
   return (
     <HeaderMaskFrame
@@ -27,13 +28,13 @@ export function ChatHead() {
     >
       <div className="flex flex-col justify-start gap-1 rounded-md border-1 mb-2 p-4 pt-32">
 
-        <div className="absolute left-0 bottom-0 w-full h-full bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+        <div className="absolute left-0 bottom-0 size-full bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
-        <span className="select-none text-gray-100 font-[Aller-Bold] text-2xl flex justify-between w-full items-center">
+        <span className="select-none text-gray-100 font-bold text-2xl flex justify-between w-full items-center">
           {roomName ? roomName : '156 Starlight Street'}
         </span>
 
-        <span className="select-none text-gray-100 font-[Aller-Bold] font-medium flex">
+        <span className="select-none text-gray-100 font-bold flex">
           {players.length} <span className='text-gray-300 ml-2 italic'>member{players.length > 1 && "s"}</span>
         </span>
 

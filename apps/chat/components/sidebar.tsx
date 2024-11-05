@@ -14,11 +14,6 @@ export function Sidebar({ className, position, children }: SidebarProps) {
     <div
       data-state={isLeftSidebarOpen ? 'open' : 'closed'}
       className={cn(className, 'h-full flex-col boder-r')}
-      style={{
-        backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-      }}
     >
       {children}
     </div>

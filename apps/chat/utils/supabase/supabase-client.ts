@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import jwt from '@tsndr/cloudflare-worker-jwt';
-import { aiProxyAPI } from '@upstreet/api';
+import { aiProxyAPI } from '../api.mjs';
 // import { isStringSignatureValid } from './signature-utils.mjs';
 import { aiHost } from '@/utils/const/endpoints';
 
@@ -139,7 +139,7 @@ export const getUserForJwt = async (jwt: string, {
   private?: boolean,
 } = {}) => {
   try {
-    const u = new URL(`${aiHost}/${aiProxyAPI.getUser}`);
+    const u = new URL(`${aiProxyAPI.getUser}`);
     _private && u.searchParams.set('private', true + '');
     const res = await fetch(u, {
       headers: {

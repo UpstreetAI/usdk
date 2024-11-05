@@ -297,7 +297,7 @@ export type ChatsManager = {
   chatsSpecification: ChatsSpecification;
   // state
   rooms: Map<string, NetworkRealms>;
-  incomingMessageDebouncer: Debouncer;
+  // incomingMessageDebouncer: Debouncer;
   roomsQueueManager: QueueManager;
   abortController: AbortController | null;
 
@@ -709,11 +709,13 @@ export type AppContextValue = {
   subtleAi: SubtleAi;
 
   useAgentJson: () => object;
+  useEnvironment: () => string;
   useWallets: () => object[];
   useAuthToken: () => string;
   useSupabase: () => any;
   useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
+  useCodecs: () => any;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;
@@ -734,10 +736,6 @@ export type AppContextValue = {
     opts: SubtleAiImageOpts,
   ) => Promise<Blob>;
 };
-/* export type ConfigurationContextValue = {
-  get: (key: string) => any;
-  set: (key: string, value: any) => void;
-}; */
 
 // messages
 
@@ -764,6 +762,15 @@ export type ReadableAudioStream = ReadableStream & {
   waitForLoad: () => Promise<void>;
 };
 export type PlayableAudioStream = ReadableAudioStream & {
+  id: string;
+};
+
+export type ReadableVideoStream = ReadableStream & {
+  type: string;
+  disposition: string;
+  waitForLoad: () => Promise<void>;
+};
+export type PlayableVideoStream = ReadableAudioStream & {
   id: string;
 };
 
