@@ -539,6 +539,7 @@ export const pull = async (args, opts) => {
   const dstDir = args._[1] ?? cwd;
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
+  const noInstall = !!args.noInstall;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
@@ -578,7 +579,9 @@ export const pull = async (args, opts) => {
 
         console.log(pc.italic('Installing dependencies...'));
         try {
-          await npmInstall(dstDir);
+          if (!noInstall) {
+            await npmInstall(dstDir);
+          }
         } catch (err) {
           console.warn('npm install failed:', err.stack);
           process.exit(1);
