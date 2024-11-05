@@ -1743,7 +1743,11 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           ...opts,
         };
 
-        await deploy(args);
+        const jwt = await getLoginJwt();
+
+        await deploy(args, {
+          jwt,
+        });
       });
     });
   // const networkOptions = ['baseSepolia', 'opMainnet'];
