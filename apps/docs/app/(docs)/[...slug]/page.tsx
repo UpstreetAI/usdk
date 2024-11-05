@@ -7,6 +7,8 @@ import {
 } from 'fumadocs-ui/page';
 import { notFound } from 'next/navigation';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
+import Socials from '@/components/socials';
+import Link from 'next/link';
 
 export default async function Page(props: {
   params: Promise<{ slug?: string[] }>;
@@ -35,6 +37,10 @@ export default async function Page(props: {
       }}
       tableOfContent={{
         style: 'clerk',
+        footer: <div className='flex flex-col justify-start items-start gap-2 mt-4'>
+          <span className='text-sm opacity-40'>Facing an issue? <Link className='underline' target="_blank" href="https://discord.gg/XwQ3NqnMhK">Add a ticket</Link>.</span>
+          <Socials />
+        </div>,
       }}
       tableOfContentPopover={{
         style: 'clerk'
@@ -60,9 +66,30 @@ export async function generateMetadata(props: {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
+  
+  const title = `${page?.data?.title} - Upstreet Documentation`;
+  const description = page.data.description;
+
+  const ogImage = {
+    type: "image/png",
+    width: 1200,
+    height: 630,
+    url: `/opengraph/${params.slug?.join("/") ?? ''}`,
+  }
 
   return {
-    title: page.data.title,
-    description: page.data.description,
+    title,
+    description,
+    openGraph: {
+      images: [
+        ogImage
+      ],
+    },
+    twitter: {
+      card: "summary_large_image", 
+      images: [
+        ogImage
+      ],
+    }
   };
 }

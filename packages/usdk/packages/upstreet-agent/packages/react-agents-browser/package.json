@@ -3,6 +3,6 @@
   "main": "browser-runtime.ts",
   "dependencies": {
     "upstreet-agent": "file:../..",
-    "codecs": "file:../react-agents/lib/codecs"
+    "codecs": "file:../codecs"
   }
 }

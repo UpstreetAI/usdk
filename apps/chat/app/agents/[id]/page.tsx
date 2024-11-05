@@ -25,19 +25,20 @@ export async function generateMetadata({
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id)
 
-  const { data: agentData } = await supabase
+  const result = await supabase
     .from('assets')
-    .select('*')
+    .select('*, author: accounts ( id, name )')
     .eq('id', agentId)
     .single();
+  const agentData = result.data as any;
 
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
     description: agentData?.description ?? '',
-    cardImage: agentData?.preview_image ?? '',
+    cardImage: agentData?.preview_url ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {
@@ -57,7 +58,7 @@ export async function generateMetadata({
       description: meta.description,
       images: [meta.cardImage],
       type: 'website',
-      siteName: meta.title
+      siteName: `upstreet.ai/${agentData?.author?.name}`
     },
     twitter: {
       card: 'summary_large_image',
@@ -80,7 +81,7 @@ export default async function AgentProfilePage({ params }: Params) {
   // const agentName = decodeURIComponent(params.id)
   const agentId = decodeURIComponent(params.id);
 
-  const { data: agentData } = await supabase
+  const result = await supabase
     .from('assets')
     .select(`
       *,
@@ -88,6 +89,7 @@ export default async function AgentProfilePage({ params }: Params) {
     `)
     .eq('id', agentId)
     .single();
+  const agentData = result.data as any;
 
   if (!agentData?.id) return <div className="w-full max-w-2xl mx-auto p-8 text-center">Agent Not Found</div>;
 
