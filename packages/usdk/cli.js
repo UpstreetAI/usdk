@@ -77,6 +77,7 @@ import {
   status,
   create,
   edit,
+  pull,
   deploy,
   chat,
 } from './lib/commands.mjs';
@@ -915,63 +916,6 @@ const capture = async (args) => {
   } else {
     // console.log('devices:');
     console.log(devices);
-  }
-};
-const pull = async (args, opts) => {
-  const agentId = args._[0] ?? '';
-  const dstDir = args._[1] ?? cwd;
-  const force = !!args.force;
-  const forceNoConfirm = !!args.forceNoConfirm;
-  // opts
-  const jwt = opts.jwt;
-  if (!jwt) {
-    throw new Error('You must be logged in to pull.');
-  }
-
-  const userId = jwt && (await getUserIdForJwt(jwt));
-  if (userId) {
-    // clean the old directory
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
-
-    // download the source
-    console.log(pc.italic('Downloading source...'));
-    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
-    try {
-      const req = await fetch(u, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-      if (req.ok) {
-        const zipBuffer = await req.arrayBuffer();
-        // console.log('downloaded source', zipBuffer.byteLength);
-
-        // extract the source
-        console.log(pc.italic('Extracting zip...'));
-        await extractZip(zipBuffer, dstDir);
-
-        console.log(pc.italic('Installing dependencies...'));
-        try {
-          await npmInstall(dstDir);
-        } catch (err) {
-          console.warn('npm install failed:', err.stack);
-          process.exit(1);
-        }
-      } else {
-        const text = await req.text();
-        console.warn('pull request error', text);
-        process.exit(1);
-      }
-    } catch (err) {
-      console.warn('pull request failed', err);
-      process.exit(1);
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
   }
 };
 const ls = async (args) => {
