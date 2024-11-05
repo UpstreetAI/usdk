@@ -1,4 +1,5 @@
 import repl from 'repl';
+import util from 'util';
 
 import dedent from 'dedent';
 import open from 'open';
