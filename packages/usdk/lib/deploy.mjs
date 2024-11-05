@@ -22,6 +22,7 @@ export const deploy = async (args, opts) => {
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
     throw new Error('all agent specs must have directories');
   }
+  const outputStream = args.outputStream ?? null;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
@@ -41,6 +42,9 @@ export const deploy = async (args, opts) => {
     });
     // upload the agent
     const u = `${deployEndpointUrl}/agent`;
+    // XXX make this an EventSource
+    // XXX handle the result event
+    // XXX pipe the log events to outputStream
     const req = https.request(u, {
       method: 'PUT',
       headers: {
