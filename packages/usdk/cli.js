@@ -724,37 +724,34 @@ const getCodeGenContext = async () => {
     throw new Error('not logged in');
   }
 }; */
-const test = async (args) => {
+const test = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
+  const debug = !!args.debug;
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
     throw new Error('all agent specs must have directories');
   }
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to run tests.');
+  }
 
-  const debug = !!args.debug;
+  const room = makeRoomName();
+  for (const agentSpec of agentSpecs) {
+    const runtime = new ReactAgentsLocalRuntime(agentSpec);
+    await runtime.start({
+      debug,
+    });
 
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    const room = makeRoomName();
+    // join
+    await join({
+      _: [[agentSpec.ref], room],
+    });
 
-    for (const agentSpec of agentSpecs) {
-      const runtime = new ReactAgentsLocalRuntime(agentSpec);
-      await runtime.start({
-        debug,
-      });
+    // run the tests
+    await runJest(agentSpec.directory);
 
-      // join
-      await join({
-        _: [[agentSpec.ref], room],
-      });
-
-      // run the tests
-      await runJest(agentSpec.directory);
-
-      runtime.terminate();
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
+    runtime.terminate();
   }
 };
 const ensureWebpEncoder = (() => {
@@ -1699,7 +1696,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [directories],
           ...opts,
         };
-        await test(args);
+
+        const jwt = await getLoginJwt();
+
+        await test(args, {
+          jwt,
+        });
       });
     });
   // program
