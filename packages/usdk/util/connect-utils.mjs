@@ -622,7 +622,6 @@ const connectRepl = async ({
       :
         `* no one else is here`
     }
-    http://local.upstreet.ai:${devServerPort}
   `);
 
   replServer = startMultiplayerRepl({
