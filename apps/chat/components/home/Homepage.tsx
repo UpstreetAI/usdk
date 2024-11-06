@@ -61,7 +61,7 @@ export default function Home() {
         <div className="relative flex flex-col md:flex-row items-center h-full md:pt-20 box-border mx-auto">
 
           <div className='w-full text-center md:text-left md:mr-16 mt-8'>
-            <div className='text-3xl md:text-6xl inline-block mb-4 uppercase text-zinc-950'>
+            <div className='text-3xl md:text-6xl inline-block mb-12 uppercase text-zinc-950'>
               <span className='font-bold'>USDK:</span> open source<br />
               <span className='font-bold'>framework</span><br />
               to create <span className='font-bold'>AI agents</span>
