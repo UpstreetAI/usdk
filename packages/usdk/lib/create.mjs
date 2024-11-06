@@ -336,10 +336,13 @@ export const create = async (args, opts) => {
   });
   // run the interview, if applicable
   if (!(agentJsonString || source || yes)) {
-    console.log(pc.italic('Starting the Interview process...\n'));
+    const interviewMode = prompt ? 'auto' : 'interactive';
+    if (interviewMode !== 'auto') {
+      console.log(pc.italic('Starting the Interview process...\n'));
+    }
     agentJson = await interview(agentJson, {
       prompt,
-      mode: prompt ? 'auto' : 'interactive',
+      mode: interviewMode,
       inputStream,
       outputStream,
       events,
