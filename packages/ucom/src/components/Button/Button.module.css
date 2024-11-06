@@ -27,7 +27,8 @@ a.ucomButton {
 }
 
 .ucomButton.large {
-  padding: 1.66rem;
+  padding: 1.60rem;
+  font-size: 1.2rem;
 }
 
 .ucomButton.shadow {
@@ -71,13 +72,15 @@ a.ucomButton {
 /* Secondary variant styles */
 
 .ucomButton.secondary {
-  background-color: #CFF2FE;
-  border: 2px solid #7CD5F3;
+  background-color: #57F3CC;
+  border: 2px solid #1B4C40;
+  color: #000000;
 }
 
 .ucomButton.secondary:hover {
-  background-color: #A2E3F9;
-  border: 2px solid #7CD5F3;
+  background-color: #57F3CC;
+  border: 2px solid #1B4C40;
+  color: #000000;
 }
 
 .ucomButton.secondary.active {
