@@ -28,6 +28,8 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import { models } from './packages/upstreet-agent/packages/react-agents/util/models.mjs';
+import { cwd } from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -293,45 +295,92 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const logs = async (args, opts) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  // opts
-  const jwt = opts.jwt;
-  if (!jwt) {
-    throw new Error('You must be logged in to view logs.');
+const llm = async (args) => {
+  const model = args._[0] ?? models[0];
+  const match = model.match(/^(.*):(.*)$/);
+  if (match) {
+    
+  } else {
+    throw new Error('invalid model: ' + model);
   }
 
-  const eventSources = agentSpecs.map((agentSpec) => {
-    const { directory } = agentSpec;
-    const u = `${deployEndpointUrl}/agents/${directory}/logs`;
-    const eventSource = new EventSource(u, {
-      headers: {
-        'Authorization': `Bearer ${jwt}`,
-      },
-    });
-    eventSource.addEventListener('message', (e) => {
-      const j = JSON.parse(e.data);
-      if (typeof j === 'string') {
-        process.stdout.write(j);
-      } else {
-        console.log(j);
-      }
-    });
-    eventSource.addEventListener('error', (e) => {
-      console.warn('error', e);
-    });
-    eventSource.addEventListener('close', (e) => {
-      process.exit(0);
-    });
-  });
+  // console.log('got chat args', args);
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  const room = args.room ?? makeRoomName();
+  const debug = !!args.debug;
 
-  return {
-    close: () => {
-      for (const eventSource of eventSources) {
-        eventSource.close();
+  const jwt = await getLoginJwt();
+  if (jwt !== null) {
+    // start dev servers for the agents
+    const runtimes = [];
+    for (const agentSpec of agentSpecs) {
+      if (agentSpec.directory) {
+      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      await runtime.start({
+        debug,
+      });
+      runtimes.push(runtime);
       }
-    },
-  };
+    }
+
+    // wait for agents to join the multiplayer room
+    for (const agentSpec of agentSpecs) {
+      await join({
+      _: [agentSpec.ref, room, agentSpec.portIndex],
+      });
+    }
+
+    // connect to the chat
+    await connect({
+      _: [room],
+      mode: args.browser ? 'browser' : 'repl',
+      debug: args.debug,
+    });
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
+};
+const logs = async (args) => {
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+
+  const jwt = await getLoginJwt();
+  if (jwt) {
+    const eventSources = agentSpecs.map((agentSpec) => {
+      const { directory } = agentSpec;
+      const u = `${deployEndpointUrl}/agents/${directory}/logs`;
+      const eventSource = new EventSource(u, {
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+        },
+      });
+      eventSource.addEventListener('message', (e) => {
+        const j = JSON.parse(e.data);
+        if (typeof j === 'string') {
+          process.stdout.write(j);
+        } else {
+          console.log(j);
+        }
+      });
+      eventSource.addEventListener('error', (e) => {
+        console.warn('error', e);
+      });
+      eventSource.addEventListener('close', (e) => {
+        process.exit(0);
+      });
+    });
+
+    return {
+      close: () => {
+        for (const eventSource of eventSources) {
+          eventSource.close();
+        }
+      },
+    };
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
 };
 // XXX rename command to charge or refill
 const fund = async (args) => {
@@ -1661,7 +1710,21 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
         });
       });
     });
-    
+  program
+    .command('llm')
+    .description(`Test llm streaming`)
+    .argument(`modelType`, `The model type to test`)
+    .action(async (modelType = '', opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        let args;
+        args = {
+          _: [modelType],
+          ...opts,
+        };
+        await llm(args);
+      });
+    });
   // program
   //   .command('search')
   //   .description(

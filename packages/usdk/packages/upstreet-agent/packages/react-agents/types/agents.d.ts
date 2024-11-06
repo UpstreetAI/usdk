@@ -12,6 +12,21 @@ declare global {
   }
 }
 
+// fetch
+
+type FetchArgs = {
+  model: string
+  messages: ChatMessage[],
+  format?: ZodTypeAny,
+  stream?: boolean,
+  max_completion_tokens?: number,
+  signal?: AbortSignal,
+};
+type FetchOpts = {
+  jwt: string,
+};
+type FetchFn = (args: FetchArgs, opts: FetchOpts) => Promise<any>;
+
 // network
 
 export type NetworkRealms = any;
@@ -73,8 +88,16 @@ export type AgentThinkOptions = {
 // messages
 
 export type ChatMessage = {
-  role: string;
-  content: string | object;
+  role: string,
+  content: string | {
+    type: 'text',
+    text: string,
+  } | {
+    type: 'image_url',
+    image_url: {
+      url: string,
+    },
+  },
 };
 export type ChatMessages = Array<ChatMessage>;
 

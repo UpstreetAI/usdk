@@ -68,7 +68,7 @@ import {
 } from 'react-agents/util/generate-model.mjs';
 import { getJWT } from '@/lib/jwt';
 import { LocalforageLoader } from '@/utils/localforage-loader';
-import { fetchChatCompletion, fetchJsonCompletion } from '@/utils/fetch';
+import { fetchChatCompletion, fetchJsonCompletion } from 'react-agents/util/fetch.mjs';
 import { useTextureLoaderBlob, useTextureLoaderImage, useTextureLoaderUrl } from '@/utils/texture-utils';
 import { fetchImageGeneration, inpaintImage } from 'react-agents/util/generate-image.mjs';
 

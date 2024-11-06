@@ -4,9 +4,6 @@ import dedent from 'dedent';
 import {
   aiProxyHost,
 } from './endpoints.mjs';
-import {
-  defaultOpenAIModel,
-} from '../defaults.mjs';
 import { blobToDataUrl } from './base64.mjs';
 
 const makeDataUrl = async blob => typeof blob === 'string' ? blob : await blobToDataUrl(blob);
@@ -38,6 +35,7 @@ export const describe = async (blob, query = dedent`\
       ],
     },
   ];
+  const model = openaiModels[0];
   const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
     method: 'POST',
 
@@ -48,7 +46,7 @@ export const describe = async (blob, query = dedent`\
     },
 
     body: JSON.stringify({
-      model: defaultOpenAIModel,
+      model,
       messages,
 
       // stream,
