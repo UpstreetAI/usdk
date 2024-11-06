@@ -95,15 +95,15 @@ export default function Home() {
               </Button>
             </div>
             <div className="mt-8 flex gap-4 justify-left">
-            <Link href="https://discord.gg/your-discord" target="_blank" className="hover:opacity-80">
+              <Link href="https://youtube.com/" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/youtube.png"
-                  alt="Discord"
+                  alt="Youtube"
                   width={40}
                   height={40}
                 />
               </Link>
-              <Link href="https://discord.gg/your-discord" target="_blank" className="hover:opacity-80">
+              <Link href="https://discord.gg/maD9GKgSSJ" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/discord.png"
                   alt="Discord"
@@ -111,18 +111,18 @@ export default function Home() {
                   height={40}
                 />
               </Link>
-              <Link href="https://twitter.com/your-twitter" target="_blank" className="hover:opacity-80">
+              <Link href="https://x.com/upstreetai" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/x.png"
-                  alt="Twitter"
+                  alt="X"
                   width={40}
                   height={40}
                 />
               </Link>
-              <Link href="https://github.com/your-github" target="_blank" className="hover:opacity-80">
+              <Link href="https://www.linkedin.com/company/upstreetai/" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/linkedin.png"
-                  alt="GitHub"
+                  alt="Linkedin"
                   width={40}
                   height={40}
                 />
