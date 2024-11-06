@@ -32,21 +32,12 @@ export default async function AgentOgImage({
     (image: any) => image.type === 'image/homespace'
   )?.url
 
-  const meta = {
-    title: agentData?.name ?? 'Agent not found!',
-    description: agentData?.description ?? '',
-    cardImage: agentData?.preview_url ?? '',
-    robots: 'follow, index',
-    favicon: '/favicon.ico',
-    url: `https://upstreet.ai/`
-  }
-
   return new ImageResponse(
     (
       // ImageResponse JSX element
       <div
         style={{
-          fontSize: 38,
+          fontSize: 32,
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -119,7 +110,19 @@ export default async function AgentOgImage({
                 columnGap: '20px'
               }}
             >
-              <span style={{ fontSize: 100, fontWeight: 'black' }}>
+              <span
+                style={{ 
+                  fontSize: 80,
+                  lineHeight: 1.2,
+                  fontWeight: 'black',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  WebkitLineClamp: 1, // Limits text to two lines
+                  lineClamp: 1, // For Firefox support (experimental)
+                  textOverflow: 'ellipsis'
+                  }}
+                >
                 {agentData?.name}
               </span>
               <span
@@ -134,7 +137,7 @@ export default async function AgentOgImage({
               >
                 {agentData?.description}
               </span>
-              <span style={{ fontSize: 30, opacity: 0.45, paddingTop: '10px' }}>
+              <span style={{ fontSize: 26, opacity: 0.45, paddingTop: '10px' }}>
                 Created by {agentData?.author?.name}
               </span>
             </div>
