@@ -95,14 +95,14 @@ export default function Home() {
               </Button>
             </div>
             <div className="mt-8 flex gap-4 justify-left">
-              <Link href="https://youtube.com/" target="_blank" className="hover:opacity-80">
+              {/* <Link href="https://youtube.com/" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/youtube.png"
                   alt="Youtube"
                   width={40}
                   height={40}
                 />
-              </Link>
+              </Link> */}
               <Link href="https://discord.gg/maD9GKgSSJ" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/discord.png"
