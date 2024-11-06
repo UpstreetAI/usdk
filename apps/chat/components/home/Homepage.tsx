@@ -49,7 +49,7 @@ export default function Home() {
   }, [supabase]);
 
   return (
-    <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20 bg-cover bg-center" style={{ backgroundImage: "url('/images/backgrounds/background.jpg')" }}>
+    <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20 bg-cover bg-center" style={{ backgroundImage: "url('/images/backgrounds/background-main.jpg')" }}>
 
       {/* <BackgroundSlider
         images={HeroImages}
