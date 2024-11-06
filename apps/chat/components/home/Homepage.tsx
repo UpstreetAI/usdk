@@ -51,6 +51,12 @@ export default function Home() {
   return (
     <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20 bg-cover bg-center" style={{ backgroundImage: "url('/images/backgrounds/background.jpg')" }}>
 
+      {/* <BackgroundSlider
+        images={HeroImages}
+        duration={0}
+        transition={0}
+      /> */}
+
       <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
 
       <div className="p-4 mx-auto max-w-7xl h-full relative text-center flex flex-col justify-center">
@@ -60,7 +66,7 @@ export default function Home() {
             USDK: Open Source Framework for Building AI Agents
           </div>
         </div>
-        
+
         <div className='w-full flex justify-center py-4 gap-4'>
           {agents.length > 0 && (
             <Button size='large' className='min-w-40' onClick={async e => {
