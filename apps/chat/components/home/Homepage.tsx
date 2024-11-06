@@ -34,7 +34,7 @@ export default function Home() {
           .select('*, author: accounts ( id, name )')
           .eq('origin', 'sdk')
           .limit(30);
-        
+
         if (error) {
           console.log(error);
         } else {
@@ -49,55 +49,85 @@ export default function Home() {
   }, [supabase]);
 
   return (
-    <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20">
-      <BackgroundSlider
+    <div className="w-full h-screen z-1 absolute top-0 left-0 pt-20 bg-cover bg-center" style={{ backgroundImage: "url('/images/backgrounds/background-main.jpg')" }}>
+
+      {/* <BackgroundSlider
         images={HeroImages}
-        duration={6}
-        transition={3}
-      />
+        duration={0}
+        transition={0}
+      /> */}
 
-      <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+      <div className="mx-auto max-w-8xl relative text-center flex flex-col justify-center h-full px-4">
+        <div className="relative flex flex-col md:flex-row items-center h-full md:pt-20 box-border mx-auto">
 
-      <div className="md:flex p-4 mx-auto max-w-7xl h-full md:pb-40 relative">
-
-        {/* <div className='my-auto md:w-[60%] pr-24'>
-          <div className='text-4xl md:text-6xl font-bold'>
-            <div className={styles.flipBox}>
-              <div className={styles.inner}>
-                {['WORK', 'PLAY', 'EARN'].map((text, index) => (
-                  <div key={index} className={styles.flipSlide}>
-                    <h3>{text}</h3>
-                  </div>
-                ))}
-              </div>
+          <div className='w-full text-center md:text-left md:mr-16 mt-8'>
+            <div className='text-3xl md:text-6xl inline-block mb-4 md:mb-16 uppercase text-zinc-950'>
+              <span className='font-bold'>USDK:</span> open source<br />
+              <span className='font-bold'>framework</span><br />
+              to create <span className='font-bold'>AI agents</span>
             </div>
-            <div className="px-2 py-[10px] md:py-1 inline-block bg-[#000000]">
-              WITH AIs
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              <Button
+                variant="secondary"
+                size='large'
+                href='https://docs.upstreet.ai/'
+                target='_blank'
+              >
+                SDK
+              </Button>
+              <Button
+                size='large'
+                href='https://discord.gg/maD9GKgSSJ'
+                target='_blank'
+              >
+                Create Agent in Discord
+              </Button>
+            </div>
+            <div className="mt-8 flex gap-4 justify-center md:justify-start">
+              {/* <Link href="https://youtube.com/" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/youtube.png"
+                  alt="Youtube"
+                  width={40}
+                  height={40}
+                />
+              </Link> */}
+              <Link href="https://discord.gg/maD9GKgSSJ" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/discord.png"
+                  alt="Discord"
+                  width={40}
+                  height={40}
+                />
+              </Link>
+              <Link href="https://x.com/upstreetai" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/x.png"
+                  alt="X"
+                  width={40}
+                  height={40}
+                />
+              </Link>
+              <Link href="https://www.linkedin.com/company/upstreetai/" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/linkedin.png"
+                  alt="Linkedin"
+                  width={40}
+                  height={40}
+                />
+              </Link>
             </div>
           </div>
-          <div className='text-lg md:text-4xl font-bold text-stroke inline-block mt-8 mb-4'>
-            Make AI friends in the embodied multi-agent social network.
-          </div>
-          <br />
-          <div className='text-lg md:text-4xl text-stroke font-bold inline-block'>
-            Create your own AIs using the AI builder or React.
-          </div>
-        </div> */}
 
-        <div className='absolute bottom-40 h-[60%] overflow-y-scroll md:h-auto md:w-[100%] flex items-start'>
-          <Agents search={false} loadmore={false} range={3} row={false} />
+          <Image
+            src="/images/homepage-avatar.png"
+            alt="Avatar"
+            width={500}
+            height={500}
+            className="absolute bottom-0 md:relative h-auto w-auto md:h-full max-w-[300px] md:max-w-none mx-auto md:mx-0"
+          />
+
         </div>
-      </div>
-
-      <div className='w-full absolute bottom-10 flex justify-center py-4 gap-4'>
-        { agents.length > 0 && (
-          <Button size='large' className='min-w-40' onClick={async e => {
-            e.preventDefault();
-            e.stopPropagation();
-            await agentJoinRandom(agents);
-          }}>Random Chat</Button>
-        )}
-        <Button size='large' className='min-w-40' href="/agents">Browse Agents</Button>
       </div>
     </div>
   );
