@@ -33,7 +33,6 @@
     "tsconfig.json"
   ],
   "dependencies": {
-    "@chialab/esbuild-plugin-require-resolve": "^0.18.0",
     "@eshaz/web-worker": "1.2.2",
     "@iarna/toml": "^2.2.5",
     "@rollup/plugin-commonjs": "^25.0.7",
