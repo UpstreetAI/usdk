@@ -94,8 +94,39 @@ export default function Home() {
                 Create Agent in Discord
               </Button>
             </div>
-            <div>
-
+            <div className="mt-8 flex gap-4 justify-left">
+            <Link href="https://discord.gg/your-discord" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/youtube.png"
+                  alt="Discord"
+                  width={40}
+                  height={40}
+                />
+              </Link>
+              <Link href="https://discord.gg/your-discord" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/discord.png"
+                  alt="Discord"
+                  width={40}
+                  height={40}
+                />
+              </Link>
+              <Link href="https://twitter.com/your-twitter" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/x.png"
+                  alt="Twitter"
+                  width={40}
+                  height={40}
+                />
+              </Link>
+              <Link href="https://github.com/your-github" target="_blank" className="hover:opacity-80">
+                <Image
+                  src="/images/socials/linkedin.png"
+                  alt="GitHub"
+                  width={40}
+                  height={40}
+                />
+              </Link>
             </div>
           </div>
 
