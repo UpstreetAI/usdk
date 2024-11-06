@@ -44,10 +44,10 @@ import {
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   devServerPort,
-} from '../packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
+} from '../packages/upstreet-agent/packages/react-agents-wrangler/util/ports.mjs';
 import {
   getLocalAgentHost,
-} from '../packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
+} from '../packages/upstreet-agent/packages/react-agents-wrangler/util/hosts.mjs';
 
 //
 

@@ -35,7 +35,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -737,7 +737,7 @@ const test = async (args, opts) => {
 
   const room = makeRoomName();
   for (const agentSpec of agentSpecs) {
-    const runtime = new ReactAgentsLocalRuntime(agentSpec);
+    const runtime = new ReactAgentsWranglerRuntime(agentSpec);
     await runtime.start({
       debug,
     });
