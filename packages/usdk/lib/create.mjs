@@ -27,8 +27,7 @@ import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
-  // makeAnonymousClient,
-  // getUserIdForJwt,
+  getUserIdForJwt,
   getUserForJwt,
 } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import {
@@ -41,6 +40,9 @@ import {
   getAgentName,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
+  aiProxyHost,
+} from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
 import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
@@ -131,6 +133,7 @@ const buildWranglerToml = (
 };
 const interview = async (agentJson, {
   prompt,
+  mode,
   inputStream,
   outputStream,
   events,
@@ -155,7 +158,7 @@ const interview = async (agentJson, {
   const opts = {
     agentJson,
     prompt,
-    mode: prompt ? 'auto' : 'interactive',
+    mode,
     jwt,
   };
   const agentInterview = new AgentInterview(opts);
@@ -336,6 +339,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Starting the Interview process...\n'));
     agentJson = await interview(agentJson, {
       prompt,
+      mode: prompt ? 'auto' : 'interactive',
       inputStream,
       outputStream,
       events,
@@ -422,6 +426,12 @@ export const create = async (args, opts) => {
   };
   await _copyFiles();
 
+  events.dispatchEvent(new MessageEvent('finalize', {
+    data: {
+      agentJson,
+    },
+  }));
+
   // npm install
   if (!noInstall) {
     console.log(pc.italic('Installing dependencies...'));
@@ -446,10 +456,10 @@ const updateFeatures = (agentJson, {
   agentJson = {
     ...agentJson,
   };
-  console.log('add feature remove feature', {
-    addFeature,
-    removeFeature,
-  });
+  // console.log('add feature remove feature', {
+  //   addFeature,
+  //   removeFeature,
+  // });
   
   if (removeFeature) {
     for (const feature of removeFeature) {
@@ -496,6 +506,7 @@ export const edit = async (args, opts) => {
   if (!(addFeature || removeFeature)) {
     agentJson = await interview(agentJson, {
       prompt,
+      mode: prompt ? 'auto' : 'edit',
       inputStream,
       outputStream,
       events,
@@ -525,4 +536,70 @@ export const edit = async (args, opts) => {
     ]);
   };
   await _updateFiles();
+};
+export const pull = async (args, opts) => {
+  const agentId = args._[0] ?? '';
+  const dstDir = args._[1] ?? cwd;
+  const force = !!args.force;
+  const forceNoConfirm = !!args.forceNoConfirm;
+  const noInstall = !!args.noInstall;
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to pull.');
+  }
+
+  const userId = jwt && (await getUserIdForJwt(jwt));
+  if (userId) {
+    // clean the old directory
+    await cleanDir(dstDir, {
+      force,
+      forceNoConfirm,
+    });
+
+    // download the source
+    console.log(pc.italic('Downloading source...'));
+    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
+    try {
+      const req = await fetch(u, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+      if (req.ok) {
+        const zipBuffer = await req.arrayBuffer();
+        // console.log('downloaded source', zipBuffer.byteLength);
+
+        // extract the source
+        console.log(pc.italic('Extracting zip...'));
+        await extractZip(zipBuffer, dstDir);
+
+        events.dispatchEvent(new MessageEvent('finalize', {
+          data: {
+            agentJson,
+          },
+        }));
+
+        console.log(pc.italic('Installing dependencies...'));
+        try {
+          if (!noInstall) {
+            await npmInstall(dstDir);
+          }
+        } catch (err) {
+          console.warn('npm install failed:', err.stack);
+          process.exit(1);
+        }
+      } else {
+        const text = await req.text();
+        console.warn('pull request error', text);
+        process.exit(1);
+      }
+    } catch (err) {
+      console.warn('pull request failed', err);
+      process.exit(1);
+    }
+  } else {
+    console.log('not logged in');
+    process.exit(1);
+  }
 };

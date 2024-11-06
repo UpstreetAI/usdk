@@ -163,6 +163,11 @@ export class AgentInterview extends EventTarget {
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
           
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
+          ${mode == 'auto' ?
+            `When you think the session is over, set the \`done\` flag.`
+          :
+            `When you think the session is over, first confirm with the user that they are done, then set the \`done\` flag.`
+          }
         ` + '\n\n' +
         featuresAvailablePrompt,
       userPrompt: prompt,
@@ -265,6 +270,9 @@ export class AgentInterview extends EventTarget {
       } else if (mode === 'interactive') {
         // initiate the interview with an introductory message
         pumpIo('What kind of agent do you want to create?');
+      } else if (mode === 'edit') {
+        // initiate the interview with an introductory message
+        pumpIo('What edits do you want to make?');
       } else if (mode === 'manual') {
         // wait for external prompting
       } else {

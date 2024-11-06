@@ -1,7 +1,7 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.83",
+  "version": "0.0.85",
   "author": "Upstreet",
   "type": "module",
   "main": "module.mjs",
@@ -73,7 +73,7 @@
     "picocolors": "^1.0.1",
     "pretty-bytes": "^6.1.1",
     "queue-manager": "file:./packages/upstreet-agent/packages/queue-manager",
-    "react-agents-local": "file:./packages/upstreet-agent/packages/react-agents-local",
+    "react-agents-wrangler": "file:./packages/upstreet-agent/packages/react-agents-wrangler",
     "recursive-copy": "^2.0.14",
     "recursive-readdir": "^2.2.3",
     "rimraf": "^5.0.5",

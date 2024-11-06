@@ -1,25 +1,19 @@
 import path from 'path';
 import fs from 'fs';
 import https from 'https';
-import repl from 'repl';
 
 import { program } from 'commander';
 import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import open from 'open';
 import pc from 'picocolors';
-import Jimp from 'jimp';
-import dedent from 'dedent';
 import { mkdirp } from 'mkdirp';
 
 import Table from 'cli-table3';
 import * as ethers from 'ethers';
-import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
-import { makeId } from './packages/upstreet-agent/packages/react-agents/util/util.mjs';
-import { packZip, extractZip } from './lib/zip-util.mjs';
 import { parseAgentSpecs } from './lib/agent-spec-utils.mjs';
 import {
   getAgentPublicUrl,
@@ -30,16 +24,10 @@ import {
   callbackPort,
 } from './util/ports.mjs';
 import {
-  devServerPort,
-} from './packages/upstreet-agent/packages/react-agents-local/util/ports.mjs';
-import {
-  getLocalAgentHost,
-} from './packages/upstreet-agent/packages/react-agents-local/util/hosts.mjs';
-import {
   makeAnonymousClient,
+  getUserIdForJwt,
   getUserForJwt,
 } from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-import { cwd } from './util/directory-utils.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -47,7 +35,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { ReactAgentsLocalRuntime } from './packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -57,7 +45,6 @@ import {
 } from './packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 
 import { AutoVoiceEndpoint, VoiceEndpointVoicer } from './packages/upstreet-agent/packages/react-agents/lib/voice-output/voice-endpoint-voicer.mjs';
-import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
@@ -89,22 +76,21 @@ import {
   status,
   create,
   edit,
+  pull,
   deploy,
+  chat,
 } from './lib/commands.mjs';
+import {
+  makeRoomName,
+} from './util/connect-utils.mjs';
 import {
   env,
 } from './lib/env.mjs';
-import {
-  consoleImageWidth,
-} from './packages/upstreet-agent/packages/react-agents/constants.mjs';
-import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from './packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
-import { cleanDir } from './lib/directory-util.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
 import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
-import { npmInstall } from './lib/npm-util.mjs';
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
@@ -112,12 +98,6 @@ import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
-const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-const shortName = () => uniqueNamesGenerator({
-  dictionaries: [adjectives, adjectives, colors, animals],
-  separator: ' ',
-});
-const makeName = () => capitalize(shortName());
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);
@@ -128,11 +108,6 @@ const jsonParse = (s) => {
 
 //
 
-const eraseLine = '\x1b[2K\r';
-
-//
-
-const getAgentSpecHost = (agentSpec) => !!agentSpec.directory ? getLocalAgentHost(agentSpec.portIndex) : getCloudAgentHost(agentSpec.guid);
 const ensureLocalGuid = async () => {
   throw new Error(`move this to use the agent's guid`);
   /* const guidFile = await tryReadFileAsync(guidLocation);
@@ -318,866 +293,45 @@ const getUserWornAssetFromJwt = async (supabase, jwt) => {
     return null;
   }
 }; */
-const getUserProfile = async () => {
-  let user = null;
-
-  // try getting the user asset from the login
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    // const supabase = makeSupabase(jwt);
-    // userAsset = await getUserWornAssetFromJwt(supabase, jwt);
-    user = await getUserForJwt(jwt);
+const logs = async (args, opts) => {
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to view logs.');
   }
 
-  // use a default asset spec
-  if (!user) {
-    const userId = crypto.randomUUID();
-    user = {
-      id: userId,
-      name: makeName(),
-      description: '',
-    };
-    // ensureAgentJsonDefaults(userAsset);
-  }
-
-  return user;
-};
-// XXX break this out into react-agents-local
-const startMultiplayerRepl = ({
-  profile,
-  realms,
-  typingMap,
-  speakerMap,
-}) => {
-  const getPrompt = () => {
-    const name = profile.name;
-
-    let s = `${name} (you): `;
-    
-    // typing
-    const tm = typingMap.getMap();
-    const specs = Array.from(tm.values()).filter((spec) => spec.typing);
-    if (specs.length > 0) {
-      const names = specs.map((spec) => spec.name);
-      const typingLine = `[${names.join(', ')} ${specs.length > 1 ? 'are' : 'is'} typing...] `;
-      s = typingLine + s;
-    }
-
-    // speaking
-    const localSpeaking = speakerMap.getLocal() > 0;
-    if (localSpeaking) {
-      s = `[🎤] ` + s;
-    }
-
-    return s;
-  };
-  const updatePrompt = () => {
-    replServer.setPrompt(getPrompt());
-  };
-  const renderPrompt = () => {
-    replServer.displayPrompt(true);
-  };
-  typingMap.addEventListener('typingchange', (e) => {
-    updatePrompt();
-    renderPrompt();
-  });
-  speakerMap.addEventListener('localspeakingchange', (e) => {
-    updatePrompt();
-    renderPrompt();
-  });
-
-  const getDoc = () => {
-    const headRealm = realms.getClosestRealm(realms.lastRootRealmKey);
-    const { networkedCrdtClient } = headRealm;
-    const doc = networkedCrdtClient.getDoc();
-    return doc;
-  };
-
-  let microphoneInput = null;
-  const microphoneQueueManager = new QueueManager();
-  const toggleMic = async () => {
-    await microphoneQueueManager.waitForTurn(async () => {
-      if (!microphoneInput) {
-        const jwt = await getLoginJwt();
-        if (!jwt) {
-          throw new Error('not logged in');
-        }
-
-        const inputDevices = new InputDevices();
-        const devices = await inputDevices.listDevices();
-        const device = inputDevices.getDefaultMicrophoneDevice(devices.audio);
-        
-        const sampleRate = AudioInput.defaultSampleRate;
-        microphoneInput = inputDevices.getAudioInput(device.id, {
-          sampleRate,
-        });
-
-        const onplayingchange = e => {
-          const { playing } = e.data;
-          // console.log('playing change', playing);
-          if (playing) {
-            microphoneInput.pause();
-          } else {
-            microphoneInput.resume();
-          }
-        };
-        speakerMap.addEventListener('playingchange', onplayingchange);
-        microphoneInput.on('close', e => {
-          speakerMap.removeEventListener('playingchange', onplayingchange);
-        });
-
-        await new Promise((accept, reject) => {
-          microphoneInput.on('start', e => {
-            accept();
-          });
-        });
-        console.log('* mic enabled *');
-
-        const audioStream = new ReadableStream({
-          start(controller) {
-            microphoneInput.on('data', (data) => {
-              controller.enqueue(data);
-            });
-            microphoneInput.on('end', (e) => {
-              controller.close();
-            });
-          },
-        });
-        audioStream.id = crypto.randomUUID();
-        audioStream.type = 'audio/pcm-f32-48000';
-        audioStream.disposition = 'text';
-
-        (async () => {
-          console.log('start streaming audio');
-          const {
-            waitForFinish,
-          } = realms.addAudioSource(audioStream);
-          await waitForFinish();
-          realms.removeAudioSource(audioStream);
-        })();
-        renderPrompt();
-      } else {
-        microphoneInput.close();
-        microphoneInput = null;
-        console.log('* mic disabled *');
-        renderPrompt();
-      }
-    });
-  };
-  let cameraInput = null;
-  const cameraQueueManager = new QueueManager();
-  const toggleCam = async () => {
-    await cameraQueueManager.waitForTurn(async () => {
-      if (!cameraInput) {
-        const inputDevices = new InputDevices();
-        const devices = await inputDevices.listDevices();
-        const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
-
-        cameraInput = inputDevices.getVideoInput(cameraDevice.id, {
-          // width,
-          // height,
-          fps: 5,
-        });
-
-        const videoRenderer = new TerminalVideoRenderer({
-          width: 80,
-          // height: rows,
-          footerHeight: 5,
-        });
-        cameraInput.on('frame', (imageData) => {
-          videoRenderer.setImageData(imageData);
-          videoRenderer.render();
-          renderPrompt();
-        });
-        console.log('* cam enabled *');
-
-        const cameraStream = new ReadableStream({
-          start(controller) {
-            cameraInput.on('image', (data) => {
-              controller.enqueue(data);
-            });
-            cameraInput.on('close', (e) => {
-              controller.close();
-            });
-          },
-        });
-        cameraStream.id = crypto.randomUUID();
-        cameraStream.type = 'image/webp';
-        cameraStream.disposition = 'text';
-
-        (async () => {
-          console.log('start streaming video');
-          const {
-            waitForFinish,
-          } = realms.addVideoSource(cameraStream);
-          await waitForFinish();
-          realms.removeVideoSource(cameraStream);
-        })();
-        renderPrompt();
-      } else {
-        cameraInput.close();
-        cameraInput = null;
-        console.log('* cam disabled *');
-        renderPrompt();
-      }
-    });
-  };
-
-  let screenInput = null;
-  const screenQueueManager = new QueueManager();
-  const toggleScreen = async () => {
-    await screenQueueManager.waitForTurn(async () => {
-      if (!screenInput) {
-        const inputDevices = new InputDevices();
-        const devices = await inputDevices.listDevices();
-        const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
-
-        screenInput = inputDevices.getVideoInput(screenDevice.id, {
-          // width,
-          // height,
-          fps: 5,
-        });
-
-        const videoRenderer = new TerminalVideoRenderer({
-          width: 80,
-          // height: rows,
-          footerHeight: 5,
-        });
-        screenInput.on('frame', (imageData) => {
-          videoRenderer.setImageData(imageData);
-          videoRenderer.render();
-          renderPrompt();
-        });
-        console.log('* screen capture enabled *');
-
-        const screenStream = new ReadableStream({
-          start(controller) {
-            screenInput.on('image', (data) => {
-              controller.enqueue(data);
-            });
-            screenInput.on('close', (e) => {
-              controller.close();
-            });
-          },
-        });
-        screenStream.id = crypto.randomUUID();
-        screenStream.type = 'image/webp';
-        screenStream.disposition = 'text';
-
-        (async () => {
-          console.log('start streaming video');
-          const {
-            waitForFinish,
-          } = realms.addVideoSource(screenStream);
-          await waitForFinish();
-          realms.removeVideoSource(screenStream);
-        })();
-        renderPrompt();
-      } else {
-        screenInput.close();
-        screenInput = null;
-        console.log('* screen capture disabled *');
-        renderPrompt();
-      }
-    });
-  };
-
-  const sendChatMessage = async (text) => {
-    const userId = profile.id;
-    const name = profile.name;
-    await realms.sendChatMessage({
-      method: 'say',
-      userId,
-      name,
-      args: {
-        text,
+  const eventSources = agentSpecs.map((agentSpec) => {
+    const { directory } = agentSpec;
+    const u = `${deployEndpointUrl}/agents/${directory}/logs`;
+    const eventSource = new EventSource(u, {
+      headers: {
+        'Authorization': `Bearer ${jwt}`,
       },
-      timestamp: Date.now(),
     });
-  };
-
-  const replServer = repl.start({
-    prompt: getPrompt(),
-    eval: async (cmd, context, filename, callback) => {
-      let error = null;
-      try {
-        cmd = cmd.replace(/;?\s*$/, '');
-
-        if (cmd) {
-          const cmdSplit = cmd.split(/\s+/);
-          const commandMatch = (cmdSplit[0] ?? '').match(/^\/(\S+)/);
-          if (commandMatch) {
-            const command = commandMatch ? commandMatch[1] : null;
-            switch (command) {
-              case 'get': {
-                const key = cmdSplit[1];
-
-                const doc = getDoc();
-                if (key) {
-                  const text = doc.getText(key);
-                  const s = text.toString();
-                  console.log(s);
-                } else {
-                  const j = doc.toJSON();
-                  console.log(j);
-                }
-                break;
-              }
-              case 'set': {
-                const key = cmdSplit[1];
-                const value = cmdSplit[2];
-
-                if (key && value) {
-                  const doc = getDoc();
-                  doc.transact(() => {
-                    const text = doc.getText(key);
-                    text.delete(0, text.length);
-                    text.insert(0, value);
-                  });
-                } else {
-                  throw new Error('expected 2 arguments');
-                }
-                break;
-              }
-              case 'mic': {
-                toggleMic();
-                break;
-              }
-              case 'cam': {
-                toggleCam();
-                break;
-              }
-              case 'screen': {
-                toggleScreen();
-                break;
-              }
-              default: {
-                console.log('unknown command', command);
-                break;
-              }
-            }
-          } else {
-            await sendChatMessage(cmd);
-          }
-        }
-      } catch (err) {
-        error = err;
+    eventSource.addEventListener('message', (e) => {
+      const j = JSON.parse(e.data);
+      if (typeof j === 'string') {
+        process.stdout.write(j);
+      } else {
+        console.log(j);
       }
-      callback(error);
+    });
+    eventSource.addEventListener('error', (e) => {
+      console.warn('error', e);
+    });
+    eventSource.addEventListener('close', (e) => {
+      process.exit(0);
+    });
+  });
+
+  return {
+    close: () => {
+      for (const eventSource of eventSources) {
+        eventSource.close();
+      }
     },
-    ignoreUndefined: true,
-  });
-
-  replServer.on('exit', (e) => {
-    process.exit(0);
-  });
-
-  return replServer;
-};
-const connectBrowser = ({
-  room,
-}) => {
-  open(`${chatEndpointUrl}/rooms/${room}`)
-    .catch( console.error );
-};
-const connectRepl = async ({
-  room,
-  debug,
-}) => {
-  let profile = await getUserProfile();
-  profile = {
-    ...profile,
-    capabilities: [
-      'human',
-    ],
   };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
-
-  let replServer = null;
-
-  // set up the chat
-  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
-    room,
-    profile,
-  });
-  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
-  const renderPrompt = () => {
-    replServer && replServer.displayPrompt(true);
-  };
-  const mpLog = (...args) => {
-    process.stdout.write(eraseLine);
-    console.log(...args);
-    renderPrompt();
-  };
-  multiplayerConnection.addEventListener('log', (e) => {
-    const { args, logLevel } = e.data;
-    if (localLogLevel >= logLevel) {
-      mpLog(...args);
-    }
-  });
-  multiplayerConnection.addEventListener('chat', (e) => {
-    const { message } = e.data;
-    const { userId: messageUserId, name, method, args } = message;
-    // console.log('got message', message);
-    const attachments = (message.attachments ?? []).filter(a => !!a.url);
-
-    switch (method) {
-      case 'say': {
-        const { text } = args;
-        if (messageUserId !== profile.id) {
-          let s = `${name}: ${text}`;
-          if (attachments.length > 0) {
-            s += '\n[Attachments:';
-            for (const attachment of attachments) {
-              const { type, url } = attachment;
-              s += `\n  [${type}]: ${url}`;
-            }
-            s += '\n]';
-          }
-          mpLog(s);
-
-          // read attachments and print them to the console if we can
-          if (attachments) {
-            for (const attachment of attachments) {
-              if (attachment.type.startsWith('image/')) {
-                (async () => {
-                  const { url } = attachment;
-
-                  const res = await fetch(url);
-                  const ab = await res.arrayBuffer();
-
-                  const b = Buffer.from(ab);
-                  const jimp = await Jimp.read(b);
-
-                  const imageRenderer = new ImageRenderer();
-                  const {
-                    text: imageText,
-                  } = imageRenderer.render(jimp.bitmap, consoleImageWidth, undefined);
-                  console.log(`${url}:`);
-                  console.log(imageText);
-                })();
-              }
-            }
-          }
-          }
-        break;
-      }
-      case 'log': {
-        if (debug) {
-          const { text } = args;
-          mpLog(text);
-        }
-        break;
-      }
-      case 'typing': {
-        const { typing } = args;
-        typingMap.set(messageUserId, { userId: messageUserId, name, typing });
-        break;
-      }
-      case 'mediaPerception': {
-        mpLog(`[${name} checked an attachment`);
-        break;
-      }
-      case 'addMemory': {
-        mpLog(`[${name} will remember that]`);
-        break;
-      }
-      case 'queryMemories': {
-        mpLog(`[${name} is trying to remember]`);
-        break;
-      }
-      case 'browserAction': {
-        const {
-          method: method2,
-          args: args2,
-          result,
-          error,
-        } = args;
-        const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
-        if (webbrowserAction) {
-          // get the agent from the player spec
-          const player = playersMap.get(messageUserId);
-          // console.log('got player', player);
-          let agent = player?.playerSpec;
-          // console.log('got agent', agent);
-          if (!agent) {
-            console.warn('no agent for browserAction message user id', messageUserId);
-            // debugger;
-            agent = {};
-          }
-          const o = {
-            // get the agent from the local player spec
-            agent,
-            method: method2,
-            args: args2,
-            result,
-            error,
-          };
-          mpLog(`[${webbrowserAction.toText(o)}]`);
-        }
-        // mpLog(`[${name} checked an attachment`);
-        break;
-      }
-      case 'paymentRequest': {
-        const {
-          type,
-          props,
-        } = args;
-        const {
-          amount,
-          currency,
-          interval,
-          intervalCount,
-        } = props;
-        const price = (() => {
-          const v = amount / 100;
-          if (currency === 'usd') {
-            return `$${v}`;
-          } else {
-            return `${v} ${currency.toUpperCase()}`;
-          }
-        })();
-        const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
-        mpLog(`[${name} requests ${price}${subscriptionText} for ${type} ${props.name}${props.description ? `: ${props.description}` : ''}]`);
-        // const { amount, currency, url, productName, productDescription, productQuantity } = args;
-        // mpLog(`[${name} requests ${amount / 100} ${currency} for ${productQuantity} x ${productName}]: ${url}`);
-        break;
-      }
-      case 'nudge':
-      case 'join':
-      case 'leave': {
-        // nothing
-        break;
-      }
-      default: {
-        mpLog(`${name}: ${JSON.stringify(message)}`);
-        break;
-      }
-    }
-  });
-  await multiplayerConnection.waitForConnect();
-  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
-  const agentJsons = Array.from(playersMap.getMap().values()).map(
-    (player) => player.playerSpec,
-  );
-  mpLog(dedent`\
-    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
-    In the room (${room}):
-    ${agentJsons.length > 0 ?
-      agentJsons
-        .map((agent) => {
-          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
-        })
-        .join('\n')
-      :
-        `* no one else is here`
-    }
-    http://local.upstreet.ai:${devServerPort}
-  `);
-
-  replServer = startMultiplayerRepl({
-    profile,
-    realms,
-    typingMap,
-    speakerMap,
-  });
-
-  const _trackAudio = () => {
-    const audioStreams = new Map();
-    const audioQueueManger = new QueueManager();
-    const virtualPlayers = realms.getVirtualPlayers();
-    virtualPlayers.addEventListener('audiostart', e => {
-      const {
-        playerId,
-        streamId,
-        type,
-        disposition,
-      } = e.data;
-
-      if (disposition === 'audio') {
-        const outputStream = new SpeakerOutputStream();
-        const { sampleRate } = outputStream;
-
-        // decode stream
-        const decodeStream = new AudioDecodeStream({
-          type,
-          sampleRate,
-          codecs,
-          format: 'i16',
-        });
-
-        (async () => {
-          await audioQueueManger.waitForTurn(async ({
-            signal,
-          }) => {
-            signal.addEventListener('abort', (e) => {
-              decodeStream.abort(e.reason);
-              outputStream.abort(e.reason);
-            });
-
-            try {
-              speakerMap.addRemote(playerId);
-              await decodeStream.readable.pipeTo(outputStream);
-            } finally {
-              speakerMap.removeRemote(playerId);
-            }
-          });
-        })().catch((e) => {
-          console.error('error in audio pipeline', e);
-        });
-
-        const writer = decodeStream.writable.getWriter();
-        writer.metadata = {
-          playerId,
-        };
-        audioStreams.set(streamId, writer);
-      }
-    });
-    virtualPlayers.addEventListener('audio', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.write(data);
-      } else {
-        // throw away unmapped data
-        // console.warn('dropping audio data', e.data);
-      }
-    });
-    virtualPlayers.addEventListener('audioend', e => {
-      const {
-        playerId,
-        streamId,
-        data,
-      } = e.data;
-
-      const stream = audioStreams.get(streamId);
-      if (stream) {
-        stream.close();
-        audioStreams.delete(streamId);
-      } else {
-        // throw away unmapped data
-        console.warn('dropping audioend data', e.data);
-      }
-    });
-  };
-  // dynamic import audio output module
-  const audioOutput = await (async () => {
-    try {
-      return await import('./packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs');
-    } catch (err) {
-      console.warn(pc.yellow(`\
-⚠️  Could not run the speaker module. You may not be able to hear your Agent.
-To solve this, you may need to install optional dependencies. https://docs.upstreet.ai/errors#could-not-run-the-speaker-module
-For further assistance, please contact support or ask for help in our Discord community: ${usdkDiscordUrl}
-        `));
-      return null;
-    }
-  })();
-  const SpeakerOutputStream = audioOutput?.SpeakerOutputStream;
-  if (SpeakerOutputStream) {
-    _trackAudio();
-  }
-};
-const connectStream = async ({
-  room,
-  stream,
-}) => {
-  if (!stream) {
-    throw new Error('no stream provided');
-  }
-
-  let profile = await getUserProfile();
-  profile = {
-    ...profile,
-    capabilities: [
-      'human',
-    ],
-  };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
-
-  // set up the chat
-  const multiplayerConnection = new ReactAgentsMultiplayerConnection({
-    room,
-    profile,
-  });
-  const localLogLevel = debug ? ReactAgentsMultiplayerConnection.logLevels.debug : ReactAgentsMultiplayerConnection.logLevels.info;
-  const mpLog = (...args) => {
-    // use util.format to format the message
-    const s = args.map((arg) => {
-      if (typeof arg === 'string') {
-        return arg;
-      } else {
-        return util.format(arg);
-      }
-    }).join(' ');
-    stream.write(s);
-  };
-  multiplayerConnection.addEventListener('log', (e) => {
-    const { args, logLevel } = e.data;
-    if (localLogLevel >= logLevel) {
-      mpLog(...args);
-    }
-  });
-  multiplayerConnection.addEventListener('chat', (e) => {
-    const { message } = e.data;
-    mpLog(message);
-  });
-  await multiplayerConnection.waitForConnect();
-  const { realms, typingMap, playersMap, speakerMap } = multiplayerConnection;
-  const agentJsons = Array.from(playersMap.getMap().values()).map(
-    (player) => player.playerSpec,
-  );
-  mpLog(dedent`\
-    ${profile ? `You are ${JSON.stringify(profile.name)} [${profile.id}]), chatting in ${room}.` : ''}
-    In the room (${room}):
-    ${agentJsons.length > 0 ?
-      agentJsons
-        .map((agent) => {
-          return `* ${agent.name} [${agent.id}] ${agent.id === profile.id ? '(you)' : ''}`;
-        })
-        .join('\n')
-      :
-        `* no one else is here`
-    }
-    http://local.upstreet.ai:${devServerPort}
-  `);
-};
-const connect = async (args) => {
-  const room = args._[0] ?? '';
-  const mode = args.mode ?? 'repl';
-  const stream = args.stream ?? null;
-  const debug = !!args.debug;
-
-  if (room) {
-    switch (mode) {
-      case 'browser': {
-        connectBrowser({
-          room,
-        });
-        break;
-      }
-      case 'repl': {
-        connectRepl({
-          room,
-          debug,
-        });
-        break;
-      }
-      case 'stream': {
-        connectStream({
-          room,
-          stream,
-          debug,
-        });
-        break;
-      }
-      default: {
-        throw new Error(`unknown mode: ${mode}`);
-      }
-    }
-  } else {
-    console.log('no room name provided');
-    process.exit(1);
-  }
-};
-const chat = async (args) => {
-  // console.log('got chat args', args);
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args.room ?? makeRoomName();
-  const browser = args.browser;
-  const stream = args.stream;
-  const debug = !!args.debug;
-
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    // start dev servers for the agents
-    
-    const startPromises = agentSpecs.map(async (agentSpec) => {
-      if (agentSpec.directory) {
-        const runtime = new ReactAgentsLocalRuntime(agentSpec);
-        await runtime.start({
-          debug,
-        });
-      }
-    });
-    await Promise.all(startPromises);
-
-    // wait for agents to join the multiplayer room
-    const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
-    await join({
-      _: [agentRefs, room],
-    });
-
-    // connect to the chat
-    const mode = (() => {
-      if (browser) {
-        return 'browser';
-      } else if (stream) {
-        return 'stream';
-      } else {
-        return 'repl';
-      }
-    })();
-    await connect({
-      _: [room],
-      mode,
-      stream,
-      debug,
-    });
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
-const logs = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    const eventSources = agentSpecs.map((agentSpec) => {
-      const { directory } = agentSpec;
-      const u = `${deployEndpointUrl}/agents/${directory}/logs`;
-      const eventSource = new EventSource(u, {
-        headers: {
-          'Authorization': `Bearer ${jwt}`,
-        },
-      });
-      eventSource.addEventListener('message', (e) => {
-        const j = JSON.parse(e.data);
-        if (typeof j === 'string') {
-          process.stdout.write(j);
-        } else {
-          console.log(j);
-        }
-      });
-      eventSource.addEventListener('error', (e) => {
-        console.warn('error', e);
-      });
-      eventSource.addEventListener('close', (e) => {
-        process.exit(0);
-      });
-    });
-
-    return {
-      close: () => {
-        for (const eventSource of eventSources) {
-          eventSource.close();
-        }
-      },
-    };
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
 };
 // XXX rename command to charge or refill
 const fund = async (args) => {
@@ -1530,7 +684,6 @@ const getCodeGenContext = async () => {
     agentJson,
   };
 }; */
-const makeRoomName = () => `room:` + makeId(8);
 /* const search = async (args) => {
   const prompt = args._[0] ?? '';
 
@@ -1570,37 +723,34 @@ const makeRoomName = () => `room:` + makeId(8);
     throw new Error('not logged in');
   }
 }; */
-const test = async (args) => {
+const test = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
+  const debug = !!args.debug;
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
     throw new Error('all agent specs must have directories');
   }
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to run tests.');
+  }
 
-  const debug = !!args.debug;
+  const room = makeRoomName();
+  for (const agentSpec of agentSpecs) {
+    const runtime = new ReactAgentsWranglerRuntime(agentSpec);
+    await runtime.start({
+      debug,
+    });
 
-  const jwt = await getLoginJwt();
-  if (jwt !== null) {
-    const room = makeRoomName();
+    // join
+    await join({
+      _: [[agentSpec.ref], room],
+    });
 
-    for (const agentSpec of agentSpecs) {
-      const runtime = new ReactAgentsLocalRuntime(agentSpec);
-      await runtime.start({
-        debug,
-      });
+    // run the tests
+    await runJest(agentSpec.directory);
 
-      // join
-      await join({
-        _: [[agentSpec.ref], room],
-      });
-
-      // run the tests
-      await runJest(agentSpec.directory);
-
-      runtime.terminate();
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
+    runtime.terminate();
   }
 };
 const ensureWebpEncoder = (() => {
@@ -1760,156 +910,151 @@ const capture = async (args) => {
     console.log(devices);
   }
 };
-const pull = async (args) => {
-  const agentId = args._[0] ?? '';
-  const dstDir = args._[1] ?? cwd;
-  const force = !!args.force;
-  const forceNoConfirm = !!args.forceNoConfirm;
-
-  const jwt = await getLoginJwt();
-  const userId = jwt && (await getUserIdForJwt(jwt));
-  if (userId) {
-    // clean the old directory
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
-
-    // download the source
-    console.log(pc.italic('Downloading source...'));
-    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
-    try {
-      const req = await fetch(u, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-      if (req.ok) {
-        const zipBuffer = await req.arrayBuffer();
-        // console.log('downloaded source', zipBuffer.byteLength);
-
-        // extract the source
-        console.log(pc.italic('Extracting zip...'));
-        await extractZip(zipBuffer, dstDir);
-
-        console.log(pc.italic('Installing dependencies...'));
-        try {
-          await npmInstall(dstDir);
-        } catch (err) {
-          console.warn('npm install failed:', err.stack);
-          process.exit(1);
-        }
-      } else {
-        const text = await req.text();
-        console.warn('pull request error', text);
-        process.exit(1);
-      }
-    } catch (err) {
-      console.warn('pull request failed', err);
-      process.exit(1);
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
-const ls = async (args) => {
-  const network = args.network ?? Object.keys(providers)[0];
+const agents = async (args, opts) => {
+  // const network = args.network ?? Object.keys(providers)[0];
   // const local = !!args.local;
   // const dev = !!args.dev;
-
-  const queueManager = new QueueManager({
-    parallelism: 8,
-  });
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to create an agent.');
+  }
 
   const listAssets = async (supabase, agentAssets) => {
     const table = new Table({
       head: [
-        'id',
-        'name',
-        'enabled',
-        'address',
-        'location',
-        'balance',
-        'battery',
-        // 'bio',
-        'server',
-        'created',
+        'ID',
+        'Name',
+        // 'enabled',
+        // 'location',
+        // 'balance',
+        // 'battery',
+        'Bio',
+        'Server',
+        'Created',
+        'Active Room IDs',
+        'Last Active',
       ],
-      colWidths: [38, 20, 9, 44, 10, 10, 10, /*40,*/ 73, 10],
+      colWidths: [20, 30, 40, 30, 10, 30, 20],
+      wordWrap: true,
+      wrapOnWordBoundary: false,
     });
+
     const promises = [];
+    const queueManager = new QueueManager({
+      parallelism: 8,
+    });
     for (let i = 0; i < agentAssets.length; i++) {
       const agent = agentAssets[i];
       const agentHost = getCloudAgentHost(agent.id);
       const p = queueManager.waitForTurn(async () => {
-        const statusPromise = (async () => {
-          const u = `${agentHost}/status`;
-          const proxyRes = await fetch(u);
-          if (proxyRes.ok) {
-            const j = await proxyRes.json();
-            return j;
-          } else {
-            return null;
-          }
-        })();
-        const creditsPromise = (async () => {
-          const creditsResult = await supabase
-            .from('credits')
-            .select('credits')
-            .eq('agent_id', agent.id)
-            .maybeSingle();
-          const { error, data } = creditsResult;
-          if (!error) {
-            return data?.credits ?? 0;
-          } else {
-            throw new Error(
-              `could not get credits for agent ${agent.id}: ${error}`,
-            );
-          }
+        const pingTimestampPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('pings')
+          .select('timestamp')
+          .eq('user_id', agent.id)
+          .order('timestamp', { ascending: false })
+          .limit(1);
+          return data[0];
         })();
 
-        const res = await fetch(`${agent.start_url}/agent.json`);
-        if (res.ok) {
-          const agentJson = await res.json();
-          if (
-            agentJson.id &&
-            agentJson.name &&
-            agentJson.address &&
-            agentJson.bio
-          ) {
-            const balancePromise = (async () => {
-              const provider = providers[network];
-              const balance = await provider.getBalance(agentJson.address);
-              const ethBalance = ethers.formatEther(balance);
-              return ethBalance;
-            })();
-            const [status, credits, balance] = await Promise.all([
-              statusPromise,
-              creditsPromise,
-              balancePromise,
-            ]);
+        const roomsPromise = (async () => {
+          const  { error , data } = await supabase
+          .from('chat_specifications')
+          .select('data')
+          .eq('user_id', agent.id)
+          .order('created_at', { ascending: false });
 
-            const serverUrl = agentHost;
+          // extract room identifiers only
+          const rooms = data.map((d) => {
+            return d.data.room;
+          });
 
-            table.push([
-              agentJson.id,
-              agentJson.name,
-              status?.enabled ?? false,
-              agentJson.address,
-              status?.room ?? '',
-              balance,
-              credits,
-              // agentJson.bio,
-              serverUrl,
-              timeAgo(new Date(agent.created_at)),
-            ]);
-          // } else {
-          //   console.warn('skipping agent', agentJson);
-          }
-        } else {
-          console.warn('could not get agent json', agent.start_url);
+          return rooms;
+        })();
+        // const statusPromise = (async () => {
+        //   // const u = `${agentHost}/status`;
+        //   // const proxyRes = await fetch(u);
+        //   // if (proxyRes.ok) {
+        //   //   const j = await proxyRes.json();
+        //   //   return j;
+        //   // } else {
+        //   //   return null;
+        //   // }
+        // })();
+        // const creditsPromise = (async () => {
+        //   const creditsResult = await supabase
+        //     .from('credits')
+        //     .select('credits')
+        //     .eq('agent_id', agent.id)
+        //     .maybeSingle();
+        //   const { error, data } = creditsResult;
+        //   if (!error) {
+        //     return data?.credits ?? 0;
+        //   } else {
+        //     throw new Error(
+        //       `could not get credits for agent ${agent.id}: ${error}`,
+        //     );
+        //   }
+        // })();
+
+        // const res = await fetch(`${agent.start_url}/agent.json`);
+        // if (res.ok) {
+        //   const agentJson = await res.json();
+        //   if (
+        //     agentJson.id &&
+        //     agentJson.name &&
+        //     agentJson.address &&
+        //     agentJson.bio
+        //   ) {
+        //     // const balancePromise = (async () => {
+        //     //   const provider = providers[network];
+        //     //   const balance = await provider.getBalance(agentJson.address);
+        //     //   const ethBalance = ethers.formatEther(balance);
+        //     //   return ethBalance;
+        //     // })();
+        //     const [status, credits, balance] = await Promise.all([
+        //       statusPromise,
+        //       // creditsPromise,
+        //       // balancePromise,
+        //     ]);
+
+        //     const serverUrl = agentHost;
+
+           
+        //   // } else {
+        //   //   console.warn('skipping agent', agentJson);
+        //   }
+        
+        const [
+          latestTimestamp,
+          rooms,
+        ] = await Promise.all([
+          pingTimestampPromise,
+          roomsPromise,
+        ]);
+
+        const agentJson = agent.metadata || agent;
+
+        if (!agent.metadata) {
+          console.warn(pc.red(`Metadata not found for agent with ID: ${agent.id}, some fields may be missing and are marked as 'N/A'`));
         }
+
+        const serverUrl = agentHost;
+
+        table.push([
+          agentJson.id,
+          agentJson.name,
+          // status?.enabled ?? false,
+          agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
+          // status?.room ?? '',
+          // balance,
+          // credits,
+          { content: serverUrl, href: serverUrl },
+          timeAgo(new Date(agent.created_at)),
+          rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
+          timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
+        ]);
       });
       promises.push(p);
     }
@@ -1917,131 +1062,58 @@ const ls = async (args) => {
     console.log(table.toString());
   };
 
-  const jwt = await getLoginJwt();
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
     const supabase = makeSupabase(jwt);
 
-    // if (!dev) {
-      // list agents in the account
-      const assetsResult = await supabase
-        .from('assets')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('type', 'npc');
-      const { error, data } = assetsResult;
-      if (!error) {
-        // console.log('got remote data', data);
-        await listAssets(supabase, data);
-        process.exit(0);
-      } else {
-        throw new Error(`could not get assets for user ${userId}: ${error}`);
-      }
-    /* } else {
-      // use the local development guid
-      const guid = await ensureLocalGuid();
-      const user_id = makeZeroGuid();
-      const created_at = new Date().toISOString();
-      const agent = {
-        start_url: devAgentJsonUrl,
-        created_at,
-        user_id,
-        name: '',
-        id: guid,
-        preview_url: '',
-        type: 'npc',
-        description: '',
-        rarity: null,
-        slots: null,
-        hero_urls: null,
-        address: null,
-        enabled: false,
-        character_name: null,
-      };
-      await listAssets(supabase, [agent]);
+    // list agents in the account
+    const assetsResult = await supabase
+      .from('assets')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('type', 'npc');
+    const { error, data } = assetsResult;
+    if (!error) {
+      // console.log('got remote data', data);
+      await listAssets(supabase, data);
       process.exit(0);
-    } */
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
-const rm = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    for (const agentSpec of agentSpecs) {
-      const { guid } = agentSpec;
-      const u = `${deployEndpointUrl}/agent`;
-      const req = await fetch(u, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-          'Content-Type': 'application/zip',
-          // 'Content-Length': uint8Array.byteLength,
-        },
-        body: JSON.stringify({
-          guid,
-        }),
-      });
-      if (req.ok) {
-        await req.json();
-        console.log(`deleted agent ${guid}`);
-      } else {
-        const text = await req.text();
-        console.warn(`could not delete agent ${guid}: ${text}`);
-      }
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
-};
-const join = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args._[1] ?? makeRoomName();
-
-  try {
-    const joinPromises = agentSpecs.map(async (agentSpec) => {
-      const u = `${getAgentSpecHost(agentSpec)}`;
-      const agentClient = new ReactAgentsClient(u);
-      await agentClient.join(room, {
-        only: true,
-      });
-    });
-    await Promise.all(joinPromises);
-  } catch (err) {
-    console.warn('join error', err);
-    process.exit(1);
-  }
-};
-const leave = async (args) => {
-  const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args._[1] ?? '';
-
-  if (agentSpecs.length === 1) {
-    if (room) {
-      const _leaveAgent = async (agentSpec, room) => {
-        const u = `${getAgentSpecHost(agentSpec)}/leave`;
-        const leaveReq = await fetch(u, {
-          method: 'POST',
-          body: JSON.stringify({
-            room,
-          }),
-        });
-        const leaveJson = await leaveReq.json();
-        // console.log('leave json', leaveJson);
-      };
-
-      return await _leaveAgent(agentSpecs[0], room);
     } else {
-      console.log('no room name provided');
-      process.exit(1);
+      throw new Error(`could not get assets for user ${userId}: ${error}`);
     }
   } else {
-    console.log('expected 1 agent argument');
+    console.log('not logged in');
     process.exit(1);
+  }
+};
+const unpublish = async (args, opts) => {
+  const agentSpecs = await parseAgentSpecs(args._[0]);
+  // opts
+  const jwt = opts.jwt;
+  if (!jwt) {
+    throw new Error('You must be logged in to unpublish an agent.');
+  }
+
+  for (const agentSpec of agentSpecs) {
+    const { guid } = agentSpec;
+    const u = `${deployEndpointUrl}/agent`;
+    const req = await fetch(u, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        'Content-Type': 'application/zip',
+        // 'Content-Length': uint8Array.byteLength,
+      },
+      body: JSON.stringify({
+        guid,
+      }),
+    });
+    if (req.ok) {
+      await req.json();
+      console.log(`deleted agent ${guid}`);
+    } else {
+      const text = await req.text();
+      console.warn(`could not delete agent ${guid}: ${text}`);
+    }
   }
 };
 const voice = async (args) => {
@@ -2351,23 +1423,23 @@ export const main = async () => {
 
     // account
   program
-  .command('status')
-  .description('Print the current login status of the SDK')
-  // .argument('<string>', 'string to split')
-  .action(async (opts = {}) => {
-    await handleError(async () => {
-      commandExecuted = true;
-      const args = {
-        _: [],
-        ...opts,
-      };
-      const jwt = await getLoginJwt();
-      const statusJson = await status(args, {
-        jwt,
+    .command('status')
+    .description('Print the current login status of the SDK')
+    // .argument('<string>', 'string to split')
+    .action(async (opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+        const args = {
+          _: [],
+          ...opts,
+        };
+        const jwt = await getLoginJwt();
+        const statusJson = await status(args, {
+          jwt,
+        });
+        console.log(JSON.stringify(statusJson, null, 2));
       });
-      console.log(JSON.stringify(statusJson, null, 2));
     });
-  });
   /* program
     .command('wear')
     .description('Wear the character with the given guid')
@@ -2557,7 +1629,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
             ...opts,
           };
         }
-        await pull(args);
+
+        const jwt = await getLoginJwt();
+
+        await pull(args, {
+          jwt,
+        });
       });
     });
   program
@@ -2576,7 +1653,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [guids],
           ...opts,
         };
-        await chat(args);
+
+        const jwt = await getLoginJwt();
+
+        await chat(args, {
+          jwt,
+        });
       });
     });
     
@@ -2613,7 +1695,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [directories],
           ...opts,
         };
-        await test(args);
+
+        const jwt = await getLoginJwt();
+
+        await test(args, {
+          jwt,
+        });
       });
     });
   // program
@@ -2656,25 +1743,29 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           ...opts,
         };
 
-        await deploy(args);
+        const jwt = await getLoginJwt();
+
+        await deploy(args, {
+          jwt,
+        });
       });
     });
   // const networkOptions = ['baseSepolia', 'opMainnet'];
-  /* program
-    .command('ls')
+  program
+    .command('agents')
     .description('List the currently deployed agents')
-    .option(
-      `-n, --network <networkId>`,
-      `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-    )
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .option(
-      `-d, --dev`,
-      `List local development agents instead of account agents (requires running cli dev server)`,
-    )
+    // .option(
+    //   `-n, --network <networkId>`,
+    //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
+    // )
+    // .option(
+    //   `-l, --local`,
+    //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+    // )
+    // .option(
+    //   `-d, --dev`,
+    //   `List local development agents instead of account agents (requires running cli dev server)`,
+    // )
     .action(async (opts = {}) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -2682,13 +1773,18 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [],
           ...opts,
         };
-        await ls(args);
+
+        const jwt = await getLoginJwt();
+
+        await agents(args, {
+          jwt,
+        });
       });
-    });*/
+    });
   program
-    .command('rm')
-    .description('Remove a deployed agent from the network')
-    .argument(`[guids...]`, `Guids of the agents to delete`)
+    .command('unpublish')
+    .description('Unpublish a deployed agent from the network')
+    .argument(`[guids...]`, `Guids of the agents to unpublish`)
     .action(async (guids = '', opts) => {
       await handleError(async () => {
         commandExecuted = true;
@@ -2696,7 +1792,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
           _: [guids],
           ...opts,
         };
-        await rm(args);
+
+        const jwt = await getLoginJwt();
+
+        await unpublish(args, {
+          jwt,
+        });
       });
     });
   // program
@@ -2840,7 +1941,12 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
   //         _: [guids],
   //         ...opts,
   //       };
-  //       await logs(args);
+  //
+  //       const jwt = await getLoginJwt();
+  //
+  //       await logs(args, {
+  //         jwt,
+  //       });
   //     });
   //   });
   // program

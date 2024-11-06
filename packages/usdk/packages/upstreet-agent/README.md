@@ -103,7 +103,7 @@ Where `<your-agent-directory>` is the **relative path** to the directory contain
 
 This command launches an interactive chat session (REPL-like) with your Agent, where you can input prompts and review responses in real-time.
 
-To exit the chat, type `.exit` in the chat and press the Enter key. Or, you can use the shortcut CTRL+C (macOS users: CMD+C) twice.
+To exit the chat, type `.exit` in the chat and press the Enter key. Or, you can use the shortcut CTRL+C twice.
 
 *Note: Your AI inferences will not run locally. The Upstreet Agent may consume credits during testing.*
 
