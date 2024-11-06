@@ -61,13 +61,15 @@ export default function Home() {
 
       <div className="p-4 mx-auto max-w-7xl h-full relative text-center flex flex-col justify-center">
 
-        <div className='my-auto w-full pr-24'>
-          <div className='text-lg md:text-4xl font-bold text-stroke inline-block mt-8 mb-4'>
-            USDK: Open Source Framework for Building AI Agents
+        <div className='my-auto w-full pr-24 text-left'>
+          <div className='text-lg md:text-6xl inline-block mt-8 mb-4 uppercase text-zinc-950'>
+            <span className='font-bold'>USDK:</span> open source<br />
+            <span className='font-bold'>framework</span><br />
+            to create <span className='font-bold'>AI agents</span>
           </div>
         </div>
 
-        <div className='w-full flex justify-center py-4 gap-4'>
+        {/* <div className='w-full flex justify-center py-4 gap-4'>
           {agents.length > 0 && (
             <Button size='large' className='min-w-40' onClick={async e => {
               e.preventDefault();
@@ -76,7 +78,7 @@ export default function Home() {
             }}>Random Chat</Button>
           )}
           <Button size='large' className='min-w-40' href="/agents">Browse Agents</Button>
-        </div>
+        </div> */}
 
         {/* <div className='absolute bottom-40 h-[60%] overflow-y-scroll md:h-auto md:w-[100%] flex items-start'>
           <Agents search={false} loadmore={false} range={3} row={false} />
