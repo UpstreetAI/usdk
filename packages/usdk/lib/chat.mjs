@@ -1,5 +1,5 @@
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
-import { ReactAgentsLocalRuntime } from '../packages/upstreet-agent/packages/react-agents-local/local-runtime.mjs';
+import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 // import { getLoginJwt } from '../util/login-util.mjs';
 import {
   makeRoomName,
@@ -27,7 +27,7 @@ export const chat = async (args, opts) => {
   // start dev servers for the agents
   const startPromises = agentSpecs.map(async (agentSpec) => {
     if (agentSpec.directory) {
-      const runtime = new ReactAgentsLocalRuntime(agentSpec);
+      const runtime = new ReactAgentsWranglerRuntime(agentSpec);
       await runtime.start({
         debug,
       });
