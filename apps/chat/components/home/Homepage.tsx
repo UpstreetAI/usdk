@@ -57,32 +57,26 @@ export default function Home() {
         transition={0}
       /> */}
 
-      <div className="fixed left-0 bottom-0 w-full h-2/3 bg-gradient-to-t from-black/80 to-transparent z-[-1]"></div>
+      <div className="mx-auto max-w-8xl relative text-center flex flex-col justify-center h-full">
+        <div className="relative flex flex-row items-center h-full pt-20 box-border mx-auto">
 
-      <div className="p-4 mx-auto max-w-7xl h-full relative text-center flex flex-col justify-center">
+          <Image 
+            src="/images/homepage-avatar.png"
+            alt="Avatar"
+            width={500}
+            height={500}
+            className="h-full w-auto"
+          />
 
-        <div className='my-auto w-full pr-24 text-left'>
-          <div className='text-lg md:text-6xl inline-block mt-8 mb-4 uppercase text-zinc-950'>
-            <span className='font-bold'>USDK:</span> open source<br />
-            <span className='font-bold'>framework</span><br />
-            to create <span className='font-bold'>AI agents</span>
+          <div className='w-full text-left pl-12 mt-8'>
+            <div className='text-lg md:text-6xl inline-block mb-4 uppercase text-zinc-950'>
+              <span className='font-bold'>USDK:</span> open source<br />
+              <span className='font-bold'>framework</span><br />
+              to create <span className='font-bold'>AI agents</span>
+            </div>
           </div>
+
         </div>
-
-        {/* <div className='w-full flex justify-center py-4 gap-4'>
-          {agents.length > 0 && (
-            <Button size='large' className='min-w-40' onClick={async e => {
-              e.preventDefault();
-              e.stopPropagation();
-              await agentJoinRandom(agents);
-            }}>Random Chat</Button>
-          )}
-          <Button size='large' className='min-w-40' href="/agents">Browse Agents</Button>
-        </div> */}
-
-        {/* <div className='absolute bottom-40 h-[60%] overflow-y-scroll md:h-auto md:w-[100%] flex items-start'>
-          <Agents search={false} loadmore={false} range={3} row={false} />
-        </div> */}
       </div>
     </div>
   );
