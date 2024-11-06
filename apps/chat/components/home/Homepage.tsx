@@ -60,7 +60,7 @@ export default function Home() {
       <div className="mx-auto max-w-8xl relative text-center flex flex-col justify-center h-full">
         <div className="relative flex flex-row items-center h-full pt-20 box-border mx-auto">
 
-          <Image 
+          <Image
             src="/images/homepage-avatar.png"
             alt="Avatar"
             width={500}
@@ -73,6 +73,29 @@ export default function Home() {
               <span className='font-bold'>USDK:</span> open source<br />
               <span className='font-bold'>framework</span><br />
               to create <span className='font-bold'>AI agents</span>
+            </div>
+            <div>
+              <Button
+                variant="secondary"
+                size='large'
+                onClick={() => {
+                  newChat();
+                }}
+              >
+                SDK
+              </Button>
+              <Button
+                size='large'
+                className="ml-4"
+                onClick={() => {
+                  newChat();
+                }}
+              >
+                Create Agent in Discord
+              </Button>
+            </div>
+            <div>
+
             </div>
           </div>
 
