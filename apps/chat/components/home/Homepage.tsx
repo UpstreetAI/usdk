@@ -57,24 +57,16 @@ export default function Home() {
         transition={0}
       /> */}
 
-      <div className="mx-auto max-w-8xl relative text-center flex flex-col justify-center h-full">
-        <div className="relative flex flex-row items-center h-full pt-20 box-border mx-auto">
+      <div className="mx-auto max-w-8xl relative text-center flex flex-col justify-center h-full px-4">
+        <div className="relative flex flex-col md:flex-row items-center h-full md:pt-20 box-border mx-auto">
 
-          <Image
-            src="/images/homepage-avatar.png"
-            alt="Avatar"
-            width={500}
-            height={500}
-            className="h-full w-auto"
-          />
-
-          <div className='w-full text-left pl-12 mt-8'>
-            <div className='text-lg md:text-6xl inline-block mb-4 uppercase text-zinc-950'>
+          <div className='w-full text-center md:text-left md:mr-16 mt-8'>
+            <div className='text-3xl md:text-6xl inline-block mb-4 uppercase text-zinc-950'>
               <span className='font-bold'>USDK:</span> open source<br />
               <span className='font-bold'>framework</span><br />
               to create <span className='font-bold'>AI agents</span>
             </div>
-            <div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Button
                 variant="secondary"
                 size='large'
@@ -86,7 +78,6 @@ export default function Home() {
               </Button>
               <Button
                 size='large'
-                className="ml-4"
                 onClick={() => {
                   newChat();
                 }}
@@ -94,7 +85,7 @@ export default function Home() {
                 Create Agent in Discord
               </Button>
             </div>
-            <div className="mt-8 flex gap-4 justify-left">
+            <div className="mt-8 flex gap-4 justify-center md:justify-start">
               {/* <Link href="https://youtube.com/" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/youtube.png"
@@ -129,6 +120,14 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          <Image
+            src="/images/homepage-avatar.png"
+            alt="Avatar"
+            width={500}
+            height={500}
+            className="absolute bottom-0 md:relative h-auto w-auto md:h-full max-w-[300px] md:max-w-none mx-auto md:mx-0"
+          />
 
         </div>
       </div>
