@@ -10,11 +10,11 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.9",
-    "fumadocs-core": "^14.0.2",
+    "fumadocs-core": "14.0.2",
     "fumadocs-mdx": "11.0.0",
     "fumadocs-ui": "14.0.2",
     "next": "15.0.1",
-    "postinstall": "^0.7.5",
+    "postinstall": "0.7.5",
     "tailwind-merge": "^2.5.4",
     "usdk": "file:../../packages/usdk"
   },
