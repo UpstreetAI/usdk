@@ -70,17 +70,15 @@ export default function Home() {
               <Button
                 variant="secondary"
                 size='large'
-                onClick={() => {
-                  newChat();
-                }}
+                href='https://docs.upstreet.ai/'
+                target='_blank'
               >
                 SDK
               </Button>
               <Button
                 size='large'
-                onClick={() => {
-                  newChat();
-                }}
+                href='https://discord.gg/maD9GKgSSJ'
+                target='_blank'
               >
                 Create Agent in Discord
               </Button>
