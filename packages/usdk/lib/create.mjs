@@ -426,11 +426,13 @@ export const create = async (args, opts) => {
   };
   await _copyFiles();
 
-  events.dispatchEvent(new MessageEvent('finalize', {
-    data: {
-      agentJson,
-    },
-  }));
+  if (events){
+    events.dispatchEvent(new MessageEvent('finalize', {
+      data: {
+        agentJson,
+      },
+    }));
+  }
 
   // npm install
   if (!noInstall) {
