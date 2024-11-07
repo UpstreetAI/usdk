@@ -84,7 +84,7 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
           {user && (
             <div className="flex absolute top-0 right-0">
               <DeleteAgentDialog agent={agent} onDelete={handleDelete} open={open} onCancel={() => setOpen(false)}>
-                <AgentDelete agent={agent} handleClick={handleDeleteClick} />
+                <AgentDelete handleClick={handleDeleteClick} />
               </DeleteAgentDialog>
             </div>
           )}

@@ -33,7 +33,7 @@ export function DeleteAgentDialog({
                 <AlertDialogHeader>
                     <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to delete the agent "{agent.name}"?
+                        {`Are you sure you want to delete the agent "${agent.name}"?`}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
