@@ -49,6 +49,8 @@ import {
 import {
   getLocalAgentHost,
 } from '../packages/upstreet-agent/packages/react-agents-wrangler/util/hosts.mjs';
+import Jimp from 'jimp';
+import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 //
 
