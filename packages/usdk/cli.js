@@ -94,32 +94,24 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
-import winston from 'winston';
+import LoggerFactory from './util/logger/logger-factory.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
-
 //
 
-const currentDateTime = new Date().toISOString().replace(/[-:]/g, '').slice(0, 14);
-const logFilePath = path.join(__dirname, `crash-log-${currentDateTime}.log`);
+const logger = LoggerFactory.getLogger();
+// override console methods
+console.log = (...args) => logger.info(...args);
+console.info = (...args) => logger.info(...args);
+console.warn = (...args) => logger.warn(...args);
+console.error = (...args) => logger.error(...args);
 
-const logger = winston.createLogger({
-  level: 'error',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.printf(({ level, message, timestamp }) => {
-      return `${timestamp} [${level}]: ${message}`;
-    })
-  ),
-  transports: [
-    new winston.transports.File({ filename: logFilePath })
-  ]
-});
-
-console.error = (...args) => {
-  logger.error(...args);
-};
+// test logging
+console.log('This is a log message');
+console.info('This is an info message');
+console.warn('This is a warning message');
+console.error('This is an error message');
 
 //
 
