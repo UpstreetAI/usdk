@@ -2,7 +2,7 @@ import path from 'path';
 import * as esbuild from 'esbuild-wasm';
 
 const ensureEsbuild = (() => {
-  let esBuildPromise: Promise<void> | null = null;
+  let esBuildPromise = null;
   return () => {
     if (!esBuildPromise) {
       esBuildPromise = (async () => {
@@ -20,6 +20,7 @@ const ensureEsbuild = (() => {
     return esBuildPromise;
   };
 })();
+
 const defaultFiles = [
   {
     path: '/example.ts',
@@ -31,7 +32,7 @@ const defaultFiles = [
 
 //
 
-export const buildAgentSrc = async (sourceCode: string, {
+export const buildAgentSrc = async (sourceCode, {
   files = defaultFiles,
 } = {}) => {
   await ensureEsbuild();
