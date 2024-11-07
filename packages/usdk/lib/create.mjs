@@ -444,7 +444,11 @@ export const create = async (args, opts) => {
     await npmInstall(dstDir);
   }
 
-  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
+  console.log();
+  console.log(pc.green('To start a chat with your agent, run:'));
+  console.log(pc.cyan(`  usdk chat ${dstDir}`));
+  console.log();
 
   return agentJson;
   // // return the parsed dstWranglerToml
