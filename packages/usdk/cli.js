@@ -1,4 +1,5 @@
 import path from 'path';
+import stream from 'stream';
 import fs from 'fs';
 import https from 'https';
 
@@ -1737,10 +1738,14 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
       await handleError(async () => {
         commandExecuted = true;
 
+        const outputStream = new stream.PassThrough();
+        outputStream.pipe(process.stdout);
+
         let args;
         args = {
           _: [agentRefs],
           ...opts,
+          outputStream,
         };
 
         const jwt = await getLoginJwt();
