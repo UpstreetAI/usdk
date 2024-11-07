@@ -166,7 +166,7 @@ export class AgentInterview extends EventTarget {
           ${mode == 'auto' ?
             `When you think the session is over, set the \`done\` flag.`
           :
-            `When you think the session is over, first confirm with the user that they are done, then set the \`done\` flag.`
+            `When you think the session is over, then set the \`done\` flag. You might want to confirm with the user beforehand.`
           }
         ` + '\n\n' +
         featuresAvailablePrompt,
