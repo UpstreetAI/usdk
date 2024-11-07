@@ -426,7 +426,7 @@ export const create = async (args, opts) => {
   };
   await _copyFiles();
 
-  events.dispatchEvent(new MessageEvent('finalize', {
+  events && events.dispatchEvent(new MessageEvent('finalize', {
     data: {
       agentJson,
     },
