@@ -94,6 +94,7 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
+import { ReactAgentsNodeRuntime } from './packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1661,7 +1662,24 @@ For more information, head over to https://docs.upstreet.ai/create-an-agent#step
         });
       });
     });
-    
+  program
+    .command('node')
+    .action(async (guids = [], opts = {}) => {
+      await handleError(async () => {
+        const jwt = await getLoginJwt();
+
+        const agentJson = {};
+        const agentSrc = '';
+        const apiKey = jwt;
+        const mnemonic = '';
+        const runtime = new ReactAgentsNodeRuntime({
+          agentJson,
+          agentSrc,
+          apiKey,
+          mnemonic,
+        });
+      });
+    });
   // program
   //   .command('search')
   //   .description(
