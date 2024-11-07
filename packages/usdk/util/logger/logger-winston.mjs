@@ -1,13 +1,13 @@
 import winston from 'winston';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { Logger } from './logger-interface.mjs';
+import { getLogDirectory } from '../path/index.mjs';
 
 class WinstonLogger extends Logger {
   constructor() {
     super();
-    const currentDateTime = new Date().toISOString().replace(/[-:]/g, '').slice(0, 14);
-    const currentModuleDir = fileURLToPath(new URL('.', import.meta.url));
+    const currentDateTime = new Date().toISOString().replace(/[:.]/g, '-');
+    const currentModuleDir = getLogDirectory();
     const logFilePath = path.join(currentModuleDir, `log-${currentDateTime}.log`);
 
     this.logger = winston.createLogger({
