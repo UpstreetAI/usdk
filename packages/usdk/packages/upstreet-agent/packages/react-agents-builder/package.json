@@ -1,6 +1,6 @@
 {
   "name": "react-agents-builder",
-  "main": "builder.ts",
+  "main": "builder.mjs",
   "dependencies": {
     "esbuild-wasm": "^0.24.0"
   }
