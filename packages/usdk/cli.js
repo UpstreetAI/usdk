@@ -94,8 +94,34 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
+import winston from 'winston';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
+
+
+//
+
+const currentDateTime = new Date().toISOString().replace(/[-:]/g, '').slice(0, 14);
+const logFilePath = path.join(__dirname, `crash-log-${currentDateTime}.log`);
+
+const logger = winston.createLogger({
+  level: 'error',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf(({ level, message, timestamp }) => {
+      return `${timestamp} [${level}]: ${message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.File({ filename: logFilePath })
+  ]
+});
+
+console.error = (...args) => {
+  logger.error(...args);
+};
+
+//
 
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
 const jsonParse = (s) => {
@@ -1356,685 +1382,689 @@ const handleError = async (fn) => {
   }
 };
 export const main = async () => {
-  let commandExecuted = false;
-  program
-    .name('usdk')
-    .description('Upstreet Agents SDK')
-    .exitOverride((err) => {
-      if (!commandExecuted) {
-        process.exit(0);
-      }
-    });
-
-  const ver = version();
-  program.version(ver);
-
-  // misc
-  program
-    .command('version')
-    .description('Print the version of the SDK')
-    .action(async () => {
-      await handleError(async () => {
-        commandExecuted = true;
-        console.log(pc.cyan(ver));
-      });
-    });
-  /* program
-    .command('-h')
-    .description('Display help')
-    .action(() => {
-      program.help();
-    }); */
-  program
-    .command('login')
-    .description('Log in to the SDK')
-    // .option(`-l, --local`, `Connect to localhost app server instead of hosted`)
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        const loginJson = await login(args);
-        await mkdirp(path.dirname(loginLocation));
-        await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
-      });
-    });
-  program
-    .command('logout')
-    .description('Log out of the SDK')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        const ok = await logout(args);
-        if (ok) {
-          await rimraf(loginLocation);
-          console.log('Successfully logged out.');
-        } else {
-          console.log('No user logged in');
+  try {
+    let commandExecuted = false;
+    program
+      .name('usdk')
+      .description('Upstreet Agents SDK')
+      .exitOverride((err) => {
+        if (!commandExecuted) {
+          process.exit(0);
         }
       });
-    });
 
-    // account
-  program
-    .command('status')
-    .description('Print the current login status of the SDK')
-    // .argument('<string>', 'string to split')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        const jwt = await getLoginJwt();
-        const statusJson = await status(args, {
-          jwt,
+    const ver = version();
+    program.version(ver);
+
+    // misc
+    program
+      .command('version')
+      .description('Print the version of the SDK')
+      .action(async () => {
+        await handleError(async () => {
+          commandExecuted = true;
+          console.log(pc.cyan(ver));
         });
-        console.log(JSON.stringify(statusJson, null, 2));
       });
-    });
-  /* program
-    .command('wear')
-    .description('Wear the character with the given guid')
-    .argument('<guid>', 'The guid of the agent to wear')
-    .action(async (guid = '', opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof guid === 'string') {
-          args = {
-            _: [guid],
-            ...opts,
-          };
-        } else {
-          opts = guid;
-          guid = undefined;
-          args = {
+    /* program
+      .command('-h')
+      .description('Display help')
+      .action(() => {
+        program.help();
+      }); */
+    program
+      .command('login')
+      .description('Log in to the SDK')
+      // .option(`-l, --local`, `Connect to localhost app server instead of hosted`)
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
             _: [],
             ...opts,
           };
-        }
-        await wear(args);
+          const loginJson = await login(args);
+          await mkdirp(path.dirname(loginLocation));
+          await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
+        });
       });
-    });*/
-  /* program
-    .command('unwear')
-    .description('Unwear the currently worn character')
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        // console.log('got args', JSON.stringify(args));
-        // const args = {
-        //   _: [guid],
-        // };
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await unwear(args);
-      });
-    });*/
-
-  // agents
-  // const templateNames = await getTemplateNames();
-
-  // Generate the JSON string dynamically based on the examples in featureSpecs
-  const featureExamples = featureSpecs.reduce((acc, feature) => {
-    acc[feature.name] = feature.examples;
-    return acc;
-  }, {});
-  const featureExamplesString = Object.entries(featureExamples)
-    .map(([name, examples]) => {
-      const exampleString = examples.map(example => JSON.stringify(example)).join(', ');
-      return `"${name}", example using json ${exampleString}`;
-    })
-    .join('. ');
-  const parseFeatures = (featuresSpec) => {
-    let features = {};
-    for (const featuresString of featuresSpec) {
-      const parsedJson = jsonParse(featuresString);
-      if (parsedJson !== undefined) {
-        features = {
-          ...features,
-          ...parsedJson,
-        };
-      } else {
-        features[featuresString] = featureExamples[featuresString][0];
-      }
-    }
-    return features;
-  };
-
-  program
-    .command('create')
-    .description('Create a new agent, from either a prompt or template')
-    .argument(`[directory]`, `Directory to create the project in`)
-    .option(`-p, --prompt <string>`, `Creation prompt`)
-    .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
-    .option(`-y, --yes`, `Non-interactive mode`)
-    .option(`-f, --force`, `Overwrite existing files`)
-    .option(`-n, --no-install`, `Do not install dependencies`)
-    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
-    .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
-    .option(
-      `-feat, --feature <feature...>`,
-      `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
-    )
-    .action(async (directory = undefined, opts = {}) => {
-      logUpstreetBanner();
-      console.log(`
-
-Welcome to USDK's Agent Creation process.
-
-${pc.cyan(`v${packageJson.version}`)}
-
-To exit, press CTRL+C (CMD+C on macOS) twice.
-
-For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
-
-`);
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [directory],
-            ...opts,
-          };
-        } else {
-          args = {
+    program
+      .command('logout')
+      .description('Log out of the SDK')
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
             _: [],
             ...opts,
           };
-        }
-
-        // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
-        if (opts.feature) {
-          args.feature = parseFeatures(opts.feature);
-        }
-
-        const jwt = await getLoginJwt();
-
-        await create(args, {
-          jwt,
+          const ok = await logout(args);
+          if (ok) {
+            await rimraf(loginLocation);
+            console.log('Successfully logged out.');
+          } else {
+            console.log('No user logged in');
+          }
         });
       });
-    });
-  program
-    .command('edit')
-    .description('Edit an existing agent')
-    .argument(`[directory]`, `Directory containing the agent to edit`)
-    .option(`-p, --prompt <string>`, `Edit prompt`)
-    .option(
-      `-af, --add-feature <feature...>`,
-      `Add a feature`,
-    )
-    .option(
-      `-rf, --remove-feature <feature...>`,
-      `Remove a feature`,
-    )
-    .action(async (directory = undefined, opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [directory],
-            ...opts,
-          };
-        } else {
-          args = {
+
+      // account
+    program
+      .command('status')
+      .description('Print the current login status of the SDK')
+      // .argument('<string>', 'string to split')
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
             _: [],
             ...opts,
           };
-        }
-
-        if (opts.addFeature) {
-          args.addFeature = parseFeatures(opts.addFeature);
-        }
-
-        const jwt = await getLoginJwt();
-
-        await edit(args, {
-          jwt,
+          const jwt = await getLoginJwt();
+          const statusJson = await status(args, {
+            jwt,
+          });
+          console.log(JSON.stringify(statusJson, null, 2));
         });
       });
-    });
-  program
-    .command('pull')
-    .description('Download source of deployed agent')
-    .argument('<guid>', 'Guid of the agent')
-    .argument(`[directory]`, `The directory to create the project in`)
-    .option(`-f, --force`, `Overwrite existing files`)
-    .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
-    .action(async (guid = undefined, directory = undefined, opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        if (typeof directory === 'string') {
-          args = {
-            _: [guid, directory],
+    /* program
+      .command('wear')
+      .description('Wear the character with the given guid')
+      .argument('<guid>', 'The guid of the agent to wear')
+      .action(async (guid = '', opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          if (typeof guid === 'string') {
+            args = {
+              _: [guid],
+              ...opts,
+            };
+          } else {
+            opts = guid;
+            guid = undefined;
+            args = {
+              _: [],
+              ...opts,
+            };
+          }
+          await wear(args);
+        });
+      });*/
+    /* program
+      .command('unwear')
+      .description('Unwear the currently worn character')
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          // console.log('got args', JSON.stringify(args));
+          // const args = {
+          //   _: [guid],
+          // };
+          const args = {
+            _: [],
             ...opts,
+          };
+          await unwear(args);
+        });
+      });*/
+
+    // agents
+    // const templateNames = await getTemplateNames();
+
+    // Generate the JSON string dynamically based on the examples in featureSpecs
+    const featureExamples = featureSpecs.reduce((acc, feature) => {
+      acc[feature.name] = feature.examples;
+      return acc;
+    }, {});
+    const featureExamplesString = Object.entries(featureExamples)
+      .map(([name, examples]) => {
+        const exampleString = examples.map(example => JSON.stringify(example)).join(', ');
+        return `"${name}", example using json ${exampleString}`;
+      })
+      .join('. ');
+    const parseFeatures = (featuresSpec) => {
+      let features = {};
+      for (const featuresString of featuresSpec) {
+        const parsedJson = jsonParse(featuresString);
+        if (parsedJson !== undefined) {
+          features = {
+            ...features,
+            ...parsedJson,
           };
         } else {
+          features[featuresString] = featureExamples[featuresString][0];
+        }
+      }
+      return features;
+    };
+
+    program
+      .command('create')
+      .description('Create a new agent, from either a prompt or template')
+      .argument(`[directory]`, `Directory to create the project in`)
+      .option(`-p, --prompt <string>`, `Creation prompt`)
+      .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
+      .option(`-y, --yes`, `Non-interactive mode`)
+      .option(`-f, --force`, `Overwrite existing files`)
+      .option(`-n, --no-install`, `Do not install dependencies`)
+      .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+      .option(`-s, --source <string>`, `Main source file for the agent. ${pc.red('REQUIRED: Agent Json string must be provided using -j option')}`)
+      .option(
+        `-feat, --feature <feature...>`,
+        `Provide either a feature name or a JSON string with feature details. Default values are used if specifications are not provided. Supported features: ${pc.green(featureExamplesString)}`
+      )
+      .action(async (directory = undefined, opts = {}) => {
+        logUpstreetBanner();
+        console.log(`
+
+  Welcome to USDK's Agent Creation process.
+
+  ${pc.cyan(`v${packageJson.version}`)}
+
+  To exit, press CTRL+C (CMD+C on macOS) twice.
+
+  For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
+
+  `);
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          if (typeof directory === 'string') {
+            args = {
+              _: [directory],
+              ...opts,
+            };
+          } else {
+            args = {
+              _: [],
+              ...opts,
+            };
+          }
+
+          // if features flag used, check if the feature is a valid JSON string, if so parse accordingly, else use default values
+          if (opts.feature) {
+            args.feature = parseFeatures(opts.feature);
+          }
+
+          const jwt = await getLoginJwt();
+
+          await create(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('edit')
+      .description('Edit an existing agent')
+      .argument(`[directory]`, `Directory containing the agent to edit`)
+      .option(`-p, --prompt <string>`, `Edit prompt`)
+      .option(
+        `-af, --add-feature <feature...>`,
+        `Add a feature`,
+      )
+      .option(
+        `-rf, --remove-feature <feature...>`,
+        `Remove a feature`,
+      )
+      .action(async (directory = undefined, opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          if (typeof directory === 'string') {
+            args = {
+              _: [directory],
+              ...opts,
+            };
+          } else {
+            args = {
+              _: [],
+              ...opts,
+            };
+          }
+
+          if (opts.addFeature) {
+            args.addFeature = parseFeatures(opts.addFeature);
+          }
+
+          const jwt = await getLoginJwt();
+
+          await edit(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('pull')
+      .description('Download source of deployed agent')
+      .argument('<guid>', 'Guid of the agent')
+      .argument(`[directory]`, `The directory to create the project in`)
+      .option(`-f, --force`, `Overwrite existing files`)
+      .option(`-F, --force-no-confirm`, `Overwrite existing files without confirming\nUseful for headless environments. ${pc.red('WARNING: Data loss can occur. Use at your own risk.')}`)
+      .action(async (guid = undefined, directory = undefined, opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          if (typeof directory === 'string') {
+            args = {
+              _: [guid, directory],
+              ...opts,
+            };
+          } else {
+            args = {
+              _: [guid],
+              ...opts,
+            };
+          }
+
+          const jwt = await getLoginJwt();
+
+          await pull(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('chat')
+      // .alias('c')
+      .description(`Chat with agents in a multiplayer room`)
+      .argument(`[guids...]`, `Guids of the agents to join the room`)
+      .option(`-b, --browser`, `Open the chat room in a browser window`)
+      .option(`-r, --room <room>`, `The room name to join`)
+      .option(`-g, --debug`, `Enable debug logging`)
+      .action(async (guids = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
           args = {
-            _: [guid],
+            _: [guids],
             ...opts,
           };
+
+          const jwt = await getLoginJwt();
+
+          await chat(args, {
+            jwt,
+          });
+        });
+      });
+      
+    // program
+    //   .command('search')
+    //   .description(
+    //     'Find an agent to do something',
+    //   )
+    //   .argument(
+    //     `[query]`,
+    //     `Prompt to search for`,
+    //   )
+    //   // .option(`-g, --debug`, `Enable debug logging`)
+    //   .action(async (prompt = '', opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       let args;
+    //       args = {
+    //         _: [prompt],
+    //         ...opts,
+    //       };
+    //       await search(args);
+    //     });
+    //   });
+    program
+      .command('test')
+      .description('Run agent tests')
+      .argument(`[directories...]`, `Directories containing the agent projects to test`)
+      .option('-g, --debug', 'Enable debug logging')
+      .action(async (directories = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await test(args, {
+            jwt,
+          });
+        });
+      });
+    // program
+    //   .command('capture')
+    //   .description('Test display functionality; with no arguments, list available devices')
+    //   .option('-m, --microphone [id]', 'Enable microphone')
+    //   .option('-c, --camera [id]', 'Enable camera')
+    //   .option('-s, --screen [id]', 'Enable screen capture')
+    //   .option('-w, --width <width>', 'Render width')
+    //   .option('-h, --height <height>', 'Render height')
+    //   .option('-r, --rows <rows>', 'Render rows')
+    //   .option('-l, --cols <cols>', 'Render cols')
+    //   .option('-x, --execute', 'Execute inference')
+    //   .option('-q, --query <string>', 'Inference query for video')
+    //   .action(async (opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       const args = {
+    //         _: [],
+    //         ...opts,
+    //       };
+    //       await capture(args);
+    //     });
+    //   });
+    program
+      .command('deploy')
+      .description('Deploy an agent to the network')
+      .argument(`[guids...]`, `Guids of the agents to deploy`)
+      // .argument(
+      //   `[type]`,
+      //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
+      // )
+      .action(async (agentRefs, opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+
+          let args;
+          args = {
+            _: [agentRefs],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await deploy(args, {
+            jwt,
+          });
+        });
+      });
+    // const networkOptions = ['baseSepolia', 'opMainnet'];
+    program
+      .command('agents')
+      .description('List the currently deployed agents')
+      // .option(
+      //   `-n, --network <networkId>`,
+      //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
+      // )
+      // .option(
+      //   `-l, --local`,
+      //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      // )
+      // .option(
+      //   `-d, --dev`,
+      //   `List local development agents instead of account agents (requires running cli dev server)`,
+      // )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await agents(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('unpublish')
+      .description('Unpublish a deployed agent from the network')
+      .argument(`[guids...]`, `Guids of the agents to unpublish`)
+      .action(async (guids = '', opts) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [guids],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await unpublish(args, {
+            jwt,
+          });
+        });
+      });
+    // program
+    //   .command('join')
+    //   .description(`Make an agent join a multiplayer room`)
+    //   .argument(`<guid>`, `Guid of the agent`)
+    //   .argument(`<room>`, `Name of the room to join`)
+    //   .option(
+    //     `-l, --local`,
+    //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+    //   )
+    //   .action(async (opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       const args = {
+    //         _: [],
+    //         ...opts,
+    //       };
+    //       await join(args);
+    //     });
+    //   });
+    // program
+    //   .command('leave')
+    //   .description(`Make an agent leave a multiplayer room`)
+    //   .argument(`<guid>`, `Guid of the agent`)
+    //   .option(
+    //     `-l, --local`,
+    //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+    //   )
+    //   .action(async (opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       const args = {
+    //         _: [],
+    //         ...opts,
+    //       };
+    //       await leave(args);
+    //     });
+    //   });
+    /* program
+      .command('enable')
+      .description(`Enable an agent for autonomous operation`)
+      .argument(`<guid>`, `Guid of the agent`)
+      .option(
+        `-l, --local`,
+        `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          }
+          await enable(args);
+        });
+      });
+    program
+      .command('disable')
+      .description(`Disable an agent for autonomous operation`)
+      .argument(`<guid>`, `Guid of the agent`)
+      .option(
+        `-l, --local`,
+        `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          };
+          await disable(args);
+        });
+      }); */
+      const voiceSubCommands = [
+        {
+          name: 'ls',
+          description: 'Lists all available voices for the current user.',
+          usage: 'usdk voice ls'
+        },
+        {
+          name: 'get',
+          description: 'Retrieves details about a specific voice.',
+          usage: 'usdk voice get <voice_name>'
+        },
+        {
+          name: 'play',
+          description: 'Plays the given text using the specified voice.',
+          usage: 'usdk voice play <voice_name> <text>'
+        },
+        {
+          name: 'add',
+          description: 'Adds new audio files to create or update a voice.',
+          usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
+        },
+        {
+          name: 'remove',
+          description: 'Removes a voice from the user\'s account.',
+          usage: 'usdk voice remove <voice_id>'
         }
+      ];
 
-        const jwt = await getLoginJwt();
+    // program
+    //   .command('voice')
+    //   .description(
+    //     'Manage agent voices',
+    //   )
+    //   .argument(
+    //     `[subcommand]`,
+    //     `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
+    //   )
+    //   .argument(
+    //     `[args...]`,
+    //     `Arguments to pass to the subcommand`,
+    //   )
+    //   .action(async (subcommand = '', args = [], opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       args = {
+    //         _: [subcommand, args],
+    //         ...opts,
+    //       };
+    //       await voice(args);
+    //     });
+    //   })
+    //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
+    // program
+    //   .command('logs')
+    //   .description(`Stream an agent's logs`)
+    //   .argument(`[guids...]`, `The guids of the agents to listen to`)
+    //   // .option(
+    //   //   `-d, --dev`,
+    //   //   `Chat with a local development agent`,
+    //   // )
+    //   .action(async (guids = [], opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       let args;
+    //       args = {
+    //         _: [guids],
+    //         ...opts,
+    //       };
+    //
+    //       const jwt = await getLoginJwt();
+    //
+    //       await logs(args, {
+    //         jwt,
+    //       });
+    //     });
+    //   });
+    // program
+    //   .command('listen')
+    //   .description(`Stream an agent's action events`)
+    //   .argument(`[guids...]`, `The guids of the agents to listen to`)
+    //   // .option(
+    //   //   `-d, --dev`,
+    //   //   `Chat with a local development agent`,
+    //   // )
+    //   .action(async (guids = [], opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       let args;
+    //       args = {
+    //         _: guids,
+    //         ...opts,
+    //       };
+    //       await listen(args);
+    //     });
+    //   });
 
-        await pull(args, {
-          jwt,
+    // wallet
+    /* program
+      .command('fund')
+      .description('Fund an agent on the network')
+      .argument(`<guid>`, `Guid of the agent to deposit to`)
+      .argument(`<amount>`, `Amount of funds to deposit`)
+      .option(
+        `-l, --local`,
+        `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      )
+      .option(
+        `-d, --dev`,
+        `Use the local development guid instead of your account guid`,
+      )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          };
+          await fund(args);
         });
-      });
-    });
-  program
-    .command('chat')
-    // .alias('c')
-    .description(`Chat with agents in a multiplayer room`)
-    .argument(`[guids...]`, `Guids of the agents to join the room`)
-    .option(`-b, --browser`, `Open the chat room in a browser window`)
-    .option(`-r, --room <room>`, `The room name to join`)
-    .option(`-g, --debug`, `Enable debug logging`)
-    .action(async (guids = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        let args;
-        args = {
-          _: [guids],
-          ...opts,
-        };
-
-        const jwt = await getLoginJwt();
-
-        await chat(args, {
-          jwt,
+      });*/
+    /*program
+      .command('deposit')
+      .description('Deposit funds to an agent on the network')
+      .argument(`<guid>`, `Guid of the agent to deposit to`)
+      .argument(`<amount>`, `Amount of funds to deposit`)
+      .option(
+        `-l, --local`,
+        `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      )
+      .option(
+        `-d, --dev`,
+        `Use the local development guid instead of your account guid`,
+      )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          };
+          await deposit(args);
         });
-      });
-    });
-    
-  // program
-  //   .command('search')
-  //   .description(
-  //     'Find an agent to do something',
-  //   )
-  //   .argument(
-  //     `[query]`,
-  //     `Prompt to search for`,
-  //   )
-  //   // .option(`-g, --debug`, `Enable debug logging`)
-  //   .action(async (prompt = '', opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       args = {
-  //         _: [prompt],
-  //         ...opts,
-  //       };
-  //       await search(args);
-  //     });
-  //   });
-  program
-    .command('test')
-    .description('Run agent tests')
-    .argument(`[directories...]`, `Directories containing the agent projects to test`)
-    .option('-g, --debug', 'Enable debug logging')
-    .action(async (directories = [], opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [directories],
-          ...opts,
-        };
-
-        const jwt = await getLoginJwt();
-
-        await test(args, {
-          jwt,
+      });*/
+    /*program
+      .command('withdraw')
+      .description('Withdraw funds from an agent on the network')
+      .argument(`<guid>`, `Guid of the agent to withdraw from`)
+      .argument(`<amount>`, `Amount of funds to withdraw`)
+      .argument(`<destination>`, `Destination address to withdraw to`)
+      .option(
+        `-n, --network <networkId>`,
+        `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
+      )
+      .action(async (opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [],
+            ...opts,
+          };
+          await withdraw(args);
         });
-      });
-    });
-  // program
-  //   .command('capture')
-  //   .description('Test display functionality; with no arguments, list available devices')
-  //   .option('-m, --microphone [id]', 'Enable microphone')
-  //   .option('-c, --camera [id]', 'Enable camera')
-  //   .option('-s, --screen [id]', 'Enable screen capture')
-  //   .option('-w, --width <width>', 'Render width')
-  //   .option('-h, --height <height>', 'Render height')
-  //   .option('-r, --rows <rows>', 'Render rows')
-  //   .option('-l, --cols <cols>', 'Render cols')
-  //   .option('-x, --execute', 'Execute inference')
-  //   .option('-q, --query <string>', 'Inference query for video')
-  //   .action(async (opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [],
-  //         ...opts,
-  //       };
-  //       await capture(args);
-  //     });
-  //   });
-  program
-    .command('deploy')
-    .description('Deploy an agent to the network')
-    .argument(`[guids...]`, `Guids of the agents to deploy`)
-    // .argument(
-    //   `[type]`,
-    //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
-    // )
-    .action(async (agentRefs, opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-
-        let args;
-        args = {
-          _: [agentRefs],
-          ...opts,
-        };
-
-        const jwt = await getLoginJwt();
-
-        await deploy(args, {
-          jwt,
-        });
-      });
-    });
-  // const networkOptions = ['baseSepolia', 'opMainnet'];
-  program
-    .command('agents')
-    .description('List the currently deployed agents')
-    // .option(
-    //   `-n, --network <networkId>`,
-    //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-    // )
-    // .option(
-    //   `-l, --local`,
-    //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    // )
-    // .option(
-    //   `-d, --dev`,
-    //   `List local development agents instead of account agents (requires running cli dev server)`,
-    // )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-
-        const jwt = await getLoginJwt();
-
-        await agents(args, {
-          jwt,
-        });
-      });
-    });
-  program
-    .command('unpublish')
-    .description('Unpublish a deployed agent from the network')
-    .argument(`[guids...]`, `Guids of the agents to unpublish`)
-    .action(async (guids = '', opts) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [guids],
-          ...opts,
-        };
-
-        const jwt = await getLoginJwt();
-
-        await unpublish(args, {
-          jwt,
-        });
-      });
-    });
-  // program
-  //   .command('join')
-  //   .description(`Make an agent join a multiplayer room`)
-  //   .argument(`<guid>`, `Guid of the agent`)
-  //   .argument(`<room>`, `Name of the room to join`)
-  //   .option(
-  //     `-l, --local`,
-  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-  //   )
-  //   .action(async (opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [],
-  //         ...opts,
-  //       };
-  //       await join(args);
-  //     });
-  //   });
-  // program
-  //   .command('leave')
-  //   .description(`Make an agent leave a multiplayer room`)
-  //   .argument(`<guid>`, `Guid of the agent`)
-  //   .option(
-  //     `-l, --local`,
-  //     `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-  //   )
-  //   .action(async (opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       const args = {
-  //         _: [],
-  //         ...opts,
-  //       };
-  //       await leave(args);
-  //     });
-  //   });
-  /* program
-    .command('enable')
-    .description(`Enable an agent for autonomous operation`)
-    .argument(`<guid>`, `Guid of the agent`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        }
-        await enable(args);
-      });
-    });
-  program
-    .command('disable')
-    .description(`Disable an agent for autonomous operation`)
-    .argument(`<guid>`, `Guid of the agent`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await disable(args);
-      });
-    }); */
-    const voiceSubCommands = [
-      {
-        name: 'ls',
-        description: 'Lists all available voices for the current user.',
-        usage: 'usdk voice ls'
-      },
-      {
-        name: 'get',
-        description: 'Retrieves details about a specific voice.',
-        usage: 'usdk voice get <voice_name>'
-      },
-      {
-        name: 'play',
-        description: 'Plays the given text using the specified voice.',
-        usage: 'usdk voice play <voice_name> <text>'
-      },
-      {
-        name: 'add',
-        description: 'Adds new audio files to create or update a voice.',
-        usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
-      },
-      {
-        name: 'remove',
-        description: 'Removes a voice from the user\'s account.',
-        usage: 'usdk voice remove <voice_id>'
-      }
-    ];
-
-  // program
-  //   .command('voice')
-  //   .description(
-  //     'Manage agent voices',
-  //   )
-  //   .argument(
-  //     `[subcommand]`,
-  //     `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
-  //   )
-  //   .argument(
-  //     `[args...]`,
-  //     `Arguments to pass to the subcommand`,
-  //   )
-  //   .action(async (subcommand = '', args = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       args = {
-  //         _: [subcommand, args],
-  //         ...opts,
-  //       };
-  //       await voice(args);
-  //     });
-  //   })
-  //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
-  // program
-  //   .command('logs')
-  //   .description(`Stream an agent's logs`)
-  //   .argument(`[guids...]`, `The guids of the agents to listen to`)
-  //   // .option(
-  //   //   `-d, --dev`,
-  //   //   `Chat with a local development agent`,
-  //   // )
-  //   .action(async (guids = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       args = {
-  //         _: [guids],
-  //         ...opts,
-  //       };
-  //
-  //       const jwt = await getLoginJwt();
-  //
-  //       await logs(args, {
-  //         jwt,
-  //       });
-  //     });
-  //   });
-  // program
-  //   .command('listen')
-  //   .description(`Stream an agent's action events`)
-  //   .argument(`[guids...]`, `The guids of the agents to listen to`)
-  //   // .option(
-  //   //   `-d, --dev`,
-  //   //   `Chat with a local development agent`,
-  //   // )
-  //   .action(async (guids = [], opts = {}) => {
-  //     await handleError(async () => {
-  //       commandExecuted = true;
-  //       let args;
-  //       args = {
-  //         _: guids,
-  //         ...opts,
-  //       };
-  //       await listen(args);
-  //     });
-  //   });
-
-  // wallet
-  /* program
-    .command('fund')
-    .description('Fund an agent on the network')
-    .argument(`<guid>`, `Guid of the agent to deposit to`)
-    .argument(`<amount>`, `Amount of funds to deposit`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .option(
-      `-d, --dev`,
-      `Use the local development guid instead of your account guid`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await fund(args);
-      });
-    });*/
-  /*program
-    .command('deposit')
-    .description('Deposit funds to an agent on the network')
-    .argument(`<guid>`, `Guid of the agent to deposit to`)
-    .argument(`<amount>`, `Amount of funds to deposit`)
-    .option(
-      `-l, --local`,
-      `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-    )
-    .option(
-      `-d, --dev`,
-      `Use the local development guid instead of your account guid`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await deposit(args);
-      });
-    });*/
-  /*program
-    .command('withdraw')
-    .description('Withdraw funds from an agent on the network')
-    .argument(`<guid>`, `Guid of the agent to withdraw from`)
-    .argument(`<amount>`, `Amount of funds to withdraw`)
-    .argument(`<destination>`, `Destination address to withdraw to`)
-    .option(
-      `-n, --network <networkId>`,
-      `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-    )
-    .action(async (opts = {}) => {
-      await handleError(async () => {
-        commandExecuted = true;
-        const args = {
-          _: [],
-          ...opts,
-        };
-        await withdraw(args);
-      });
-    });*/
-  await program.parseAsync();
+      });*/
+    await program.parseAsync();
+  } catch (error) {
+    console.error(error);
+  }
 };
