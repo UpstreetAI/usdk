@@ -101,17 +101,12 @@ globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 //
 
 const logger = LoggerFactory.getLogger();
+
 // override console methods
 console.log = (...args) => logger.info(...args);
 console.info = (...args) => logger.info(...args);
 console.warn = (...args) => logger.warn(...args);
 console.error = (...args) => logger.error(...args);
-
-// test logging
-console.log('This is a log message');
-console.info('This is an info message');
-console.warn('This is a warning message');
-console.error('This is an error message');
 
 //
 
