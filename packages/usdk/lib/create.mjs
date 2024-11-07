@@ -553,6 +553,7 @@ export const pull = async (args, opts) => {
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
   const noInstall = !!args.noInstall;
+  const events = args.events ?? null;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
@@ -584,7 +585,7 @@ export const pull = async (args, opts) => {
         console.log(pc.italic('Extracting zip...'));
         await extractZip(zipBuffer, dstDir);
 
-        events.dispatchEvent(new MessageEvent('finalize', {
+        events && events.dispatchEvent(new MessageEvent('finalize', {
           data: {
             agentJson,
           },
