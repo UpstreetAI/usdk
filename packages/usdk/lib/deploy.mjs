@@ -203,7 +203,6 @@ export const deploy = async (args, opts) => {
         }
       });
       req.on('response', async (res) => {
-        console.log('got response', res.statusCode, res.headers);
         res.setEncoding('utf8');
         res.on('data', (chunk) => {
           parser.feed(chunk);
