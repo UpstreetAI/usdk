@@ -9,9 +9,11 @@ import { QueueManager } from 'queue-manager';
 const makeCleanObjectFromSchema = (object, schema) => {
   if (schema && typeof schema === 'object' && schema._def && schema._def.typeName === 'ZodObject') {
     const shape = schema.shape;
-    const result = {};
+    const result = structuredClone(object);
     for (const key in shape) {
-      result[key] = object[key];
+      if (result[key] === undefined) {
+        result[key] = object[key];
+      }
     }
     return result;
   } else {

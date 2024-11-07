@@ -1,9 +1,12 @@
 'use client';
 
+import React, { useState } from 'react';
 import { isValidUrl } from "@/utils/helpers/urls";
-import { IconUser } from "@/components/ui/icons";
 import { AgentJoin } from "@/components/cta";
 import { AgentDelete } from "@/components/cta/AgentDelete";
+import { getJWT } from '@/lib/jwt';
+import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { DeleteAgentDialog } from '@/components/delete-agent-dialog';
 
 export interface AgentListProps {
   agent: any
@@ -12,6 +15,39 @@ export interface AgentListProps {
 }
 
 export function AgentRow({ agent, user, author }: AgentListProps) {
+  const [open, setOpen] = useState(false);
+
+  const updateOpenState = () => {
+    setOpen(!open);
+  }
+
+  const deleteAgent = async () => {
+    try {
+      const jwt = await getJWT();
+      const res = await fetch(`${deployEndpointUrl}/agent`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({ guid: agent.id }),
+      });
+
+      if (!res.ok) {
+        console.warn(`Invalid status code: ${res.status}`);
+      }
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+    }
+  }
+  const handleDelete = async () => {
+    updateOpenState();
+    await deleteAgent();
+  };
+
+  const handleDeleteClick = () => {
+    updateOpenState();
+  }
 
   return (
     <div className="bg-gray-100 border p-4 text-black">
@@ -47,7 +83,9 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
 
           {user && (
             <div className="flex absolute top-0 right-0">
-              <AgentDelete agent={agent} />
+              <DeleteAgentDialog agent={agent} onDelete={handleDelete} open={open} onCancel={() => setOpen(false)}>
+                <AgentDelete handleClick={handleDeleteClick} />
+              </DeleteAgentDialog>
             </div>
           )}
         </div>
@@ -55,7 +93,6 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
     </div>
   );
 }
-
 
 export function SkeletonAgentRow() {
   return (

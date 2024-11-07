@@ -79,7 +79,7 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 
 //
 
-export class ReactAgentsLocalRuntime {
+export class ReactAgentsWranglerRuntime {
   agentSpec;
   cp = null;
   constructor(agentSpec) {

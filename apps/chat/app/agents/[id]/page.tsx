@@ -56,7 +56,6 @@ export async function generateMetadata({
       url: meta.url,
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage],
       type: 'website',
       siteName: `upstreet.ai/${agentData?.author?.name}`
     },
@@ -66,7 +65,6 @@ export async function generateMetadata({
       creator: '@upstreetai',
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage]
     }
   }
 }
