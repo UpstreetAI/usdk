@@ -1,0 +1,7 @@
+{
+  "name": "react-agents-node",
+  "main": "node-runtime.mjs",
+  "dependencies": {
+    "react-agents-builder": "file:../react-agents-builder"
+  }
+}
