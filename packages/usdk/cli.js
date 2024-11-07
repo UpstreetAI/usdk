@@ -1109,10 +1109,10 @@ const unpublish = async (args, opts) => {
     });
     if (req.ok) {
       await req.json();
-      console.log(`deleted agent ${guid}`);
+      console.log(`Deleted agent ${guid}`);
     } else {
       const text = await req.text();
-      console.warn(`could not delete agent ${guid}: ${text}`);
+      console.warn(`Could not delete agent ${guid}: ${text}`);
     }
   }
 };
