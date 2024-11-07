@@ -269,7 +269,7 @@ export class AgentInterview extends EventTarget {
         this.interactor.end();
       } else if (mode === 'interactive') {
         // initiate the interview with an introductory message
-        pumpIo('What kind of agent do you want to create?');
+        pumpIo('What do you want your agent to do?');
       } else if (mode === 'edit') {
         // initiate the interview with an introductory message
         pumpIo('What edits do you want to make?');
