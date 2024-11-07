@@ -37,6 +37,7 @@ import { getLoginJwt } from '../util/login-util.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from '../packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
 import { AudioDecodeStream } from '../packages/upstreet-agent/packages/codecs/audio-decode.mjs';
 import * as codecs from '../packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
+import { webbrowserActionsToText } from '../packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import {
   getAgentPublicUrl,
@@ -48,6 +49,8 @@ import {
 import {
   getLocalAgentHost,
 } from '../packages/upstreet-agent/packages/react-agents-wrangler/util/hosts.mjs';
+import Jimp from 'jimp';
+import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 //
 
