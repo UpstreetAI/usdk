@@ -152,7 +152,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       systemPrompt:
         dedent`\
-          Configure an AI agent character.
+          Configure an AI agent as specified by the user.
           
           \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
           \`bio\` describes the personality and character traits of the agent.
