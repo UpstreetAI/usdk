@@ -48,9 +48,8 @@ import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/re
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
-import {
-  cwd,
-} from '../util/directory-utils.mjs';
+import { cwd } from '../util/directory-utils.mjs';
+import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
 
@@ -272,7 +271,7 @@ const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
 
 export const create = async (args, opts) => {
   // args
-  const dstDir = args._[0] ?? cwd;
+  let dstDir = args._[0] ?? '';
   const prompt = args.prompt ?? '';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
@@ -311,6 +310,13 @@ export const create = async (args, opts) => {
   // since agentJsonString is required for proper agentJson creation
   if (source && !agentJsonString) {
     throw new Error('The --json flag is required when using the --source flag.');
+  }
+
+  // create the destination directory if not present
+  if (!dstDir) {
+    const dirname = makeId(8);
+    dstDir = path.join(cwd, 'agents', dirname);
+    await mkdirp(dstDir);
   }
 
   // load source file
