@@ -1,4 +1,5 @@
 import path from 'path';
+import stream from 'stream';
 import fs from 'fs';
 import https from 'https';
 
@@ -1751,10 +1752,14 @@ export const main = async () => {
         await handleError(async () => {
           commandExecuted = true;
 
+          const outputStream = new stream.PassThrough();
+          outputStream.pipe(process.stdout);
+
           let args;
           args = {
             _: [agentRefs],
             ...opts,
+            outputStream,
           };
 
           const jwt = await getLoginJwt();
