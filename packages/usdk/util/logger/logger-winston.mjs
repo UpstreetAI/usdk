@@ -24,7 +24,7 @@ class WinstonLogger extends Logger {
       ]
     });
 
-    console.log('logFilePath: ', logFilePath);
+    // console.log('logFilePath: ', logFilePath);
   }
 
   info(...args) {
