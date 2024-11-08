@@ -1751,7 +1751,7 @@ export const main = async () => {
       .command('deploy')
       .description('Deploy an agent to the network')
       .argument(`[guids...]`, `Guids of the agents to deploy`)
-      .option('-s, --stream', 'Enable log streaming')
+      .option('-s, --stream', 'Enable streaming deployment logs')
       // .argument(
       //   `[type]`,
       //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
