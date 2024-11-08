@@ -48,8 +48,7 @@ export class ReactAgentsNodeRuntime {
       console.warn('node runtime got exit', code);
     });
 
-    /* this.worker = new Worker(new URL('./worker.ts', import.meta.url));
-
+    // send init message
     const env = {
       AGENT_JSON: JSON.stringify(agentJson),
       AGENT_TOKEN: apiKey,
@@ -59,16 +58,16 @@ export class ReactAgentsNodeRuntime {
       WORKER_ENV: 'development', // 'production',
     };
     console.log('starting worker with env:', env);
-    this.worker.postMessage({
-      method: 'initDurableObject',
+    cp.send({
+      method: 'init',
       args: {
         env,
         agentSrc,
       },
     });
-    this.worker.addEventListener('error', e => {
+    cp.on('error', e => {
       console.warn('got error', e);
-    }); */
+    });
   }
   async fetch(url, opts) {
     const requestId = crypto.randomUUID();
