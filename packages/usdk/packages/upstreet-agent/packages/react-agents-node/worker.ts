@@ -6,18 +6,18 @@ import { buildAgentSrc } from 'react-agents-builder';
 //
 
 const nativeImport = new Function('specifier', 'return import(specifier)');
-const headersToObject = (headers: Headers) => {
+const headersToObject = (headers) => {
   const result = {};
   for (const [key, value] of headers.entries()) {
-    (result as any)[key] = value;
+    result[key] = value;
   }
   return result;
 };
 
 //
 
-let agentMainPromise: Promise<AgentMain> | null = null;
-globalThis.onmessage = (event: any) => {
+let agentMainPromise = null;
+globalThis.onmessage = (event) => {
   // console.log('got event', event.data);
   const method = event.data?.method;
   switch (method) {
@@ -34,7 +34,7 @@ globalThis.onmessage = (event: any) => {
           const userRender = agentModule.default;
           // console.log('got user render', userRender.toString());
 
-          let alarmTimestamp: number | null = null;
+          let alarmTimestamp = null;
           const state = {
             userRender,
             codecs,
@@ -42,7 +42,7 @@ globalThis.onmessage = (event: any) => {
               async getAlarm() {
                 return alarmTimestamp;
               },
-              setAlarm(timestamp: number) {
+              setAlarm(timestamp) {
                 alarmTimestamp = timestamp;
               },
             },
@@ -80,9 +80,9 @@ globalThis.onmessage = (event: any) => {
           throw new Error('request message missing id: ' + JSON.stringify(args));
         }
 
-        let resultArrayBuffer = null as any;
-        let resultStatus = null as any;
-        let resultHeaders = null as any;
+        let resultArrayBuffer = null;
+        let resultStatus = null;
+        let resultHeaders = null;
         let error = null;
         try {
           const request = new Request(args.url, {
