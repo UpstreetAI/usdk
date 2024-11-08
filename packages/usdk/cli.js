@@ -11,7 +11,7 @@ import pc from 'picocolors';
 import { mkdirp } from 'mkdirp';
 
 import Table from 'cli-table3';
-import * as ethers from 'ethers';
+// import * as ethers from 'ethers';
 
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
