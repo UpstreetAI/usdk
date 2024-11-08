@@ -1,6 +1,7 @@
 import './util/worker-globals.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-import { DurableObjectImpl } from 'upstreet-agent/durable-object-impl.tsx';
+import { AgentMain } from 'react-agents/entry.ts';
+import { buildAgentSrc } from 'react-agents-builder';
 
 //
 
@@ -15,14 +16,14 @@ const headersToObject = (headers: Headers) => {
 
 //
 
-let durableObjectPromise: Promise<DurableObjectImpl> | null = null;
+let agentMainPromise: Promise<AgentMain> | null = null;
 globalThis.onmessage = (event: any) => {
   // console.log('got event', event.data);
   const method = event.data?.method;
   switch (method) {
     case 'initDurableObject': {
-      if (!durableObjectPromise) {
-        durableObjectPromise = (async () => {
+      if (!agentMainPromise) {
+        agentMainPromise = (async () => {
           const { args } = event.data;
           const { env, agentSrc } = args;
           if (typeof agentSrc !== 'string') {
@@ -50,7 +51,7 @@ globalThis.onmessage = (event: any) => {
           //   state,
           //   env,
           // });
-          const durableObject = new DurableObjectImpl(state, env);
+          const durableObject = new AgentMain(state, env);
           // console.log('worker init 2', {
           //   durableObject,
           // });
@@ -63,10 +64,10 @@ globalThis.onmessage = (event: any) => {
     }
     case 'request': {
       (async () => {
-        if (!durableObjectPromise) {
+        if (!agentMainPromise) {
           throw new Error('agent worker: DurableObject not initialized');
         }
-        const durableObject = await durableObjectPromise;
+        const agentMain = await agentMainPromise;
 
         const { args } = event.data;
         const {
@@ -79,9 +80,9 @@ globalThis.onmessage = (event: any) => {
           throw new Error('request message missing id: ' + JSON.stringify(args));
         }
 
-        let resultArrayBuffer = null;
-        let resultStatus = null;
-        let resultHeaders = null;
+        let resultArrayBuffer = null as any;
+        let resultStatus = null as any;
+        let resultHeaders = null as any;
         let error = null;
         try {
           const request = new Request(args.url, {
@@ -90,7 +91,7 @@ globalThis.onmessage = (event: any) => {
             body,
           });
 
-          const res = await durableObject.fetch(request);
+          const res = await agentMain.fetch(request);
           // console.log('got durable object response', res.ok, res.status, res.headers);
           if (res.ok) {
             resultArrayBuffer = await res.arrayBuffer();
