@@ -1,10 +1,5 @@
 import path from 'path';
 import crossSpawn from 'cross-spawn';
-// import { FetchOpts } from './types';
-// import {
-//   SUPABASE_URL,
-//   SUPABASE_PUBLIC_API_KEY,
-// } from './secrets.mjs';
 import 'react-agents-builder';
 
 import Worker from 'web-worker';
