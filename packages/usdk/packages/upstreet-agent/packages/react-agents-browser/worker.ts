@@ -1,4 +1,4 @@
-import './util/worker-globals.mjs';
+import 'upstreet-agent/packages/react-agents/util/worker-globals.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { DurableObjectImpl } from 'upstreet-agent/durable-object-impl.tsx';
 
