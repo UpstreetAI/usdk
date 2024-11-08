@@ -1751,6 +1751,7 @@ export const main = async () => {
       .command('deploy')
       .description('Deploy an agent to the network')
       .argument(`[guids...]`, `Guids of the agents to deploy`)
+      .option('-s, --stream', 'Enable log streaming')
       // .argument(
       //   `[type]`,
       //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
@@ -1759,8 +1760,11 @@ export const main = async () => {
         await handleError(async () => {
           commandExecuted = true;
 
-          const outputStream = new stream.PassThrough();
-          outputStream.pipe(process.stdout);
+          let outputStream = null;
+          if (opts.stream) {
+            outputStream = new stream.PassThrough();
+            outputStream.pipe(process.stdout);
+          }
 
           let args;
           args = {
