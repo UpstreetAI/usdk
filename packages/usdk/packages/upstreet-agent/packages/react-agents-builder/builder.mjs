@@ -1,6 +1,6 @@
 import path from 'path';
 import * as esbuild from 'esbuild-wasm';
-import { globalImports } from 'react-agents/util/worker-globals-imports.mjs'
+import { globalImports } from 'react-agents/util/worker-global-imports.mjs'
 
 const ensureEsbuild = (() => {
   let esBuildPromise = null;
