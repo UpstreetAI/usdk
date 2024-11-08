@@ -2,6 +2,7 @@
   "name": "react-agents-builder",
   "main": "builder.mjs",
   "dependencies": {
-    "esbuild-wasm": "^0.24.0"
+    "esbuild-wasm": "^0.24.0",
+    "react-agents": "file:../react-agents"
   }
 }
