@@ -18,7 +18,8 @@ const headersToObject = (headers) => {
 
 let agentMainPromise = null;
 process.on('message', (eventData) => {
-  // console.log('got event', eventData);
+  console.log('got event', eventData);
+
   const method = eventData?.method;
   switch (method) {
     case 'init': {
