@@ -1,3 +1,4 @@
+import path from 'path';
 import crossSpawn from 'cross-spawn';
 // import { FetchOpts } from './types';
 // import {
@@ -16,26 +17,18 @@ const localDirectory = new URL('.', import.meta.url).pathname;
 //
 
 export class ReactAgentsNodeRuntime {
-  worker;
-  constructor({
-    agentJson,
-    agentSrc,
-    apiKey,
-    mnemonic,
-  }) {
-    if (
-      !agentJson ||
-      !agentSrc ||
-      !apiKey ||
-      !mnemonic
-    ) {
-      throw new Error('missing required options: ' + JSON.stringify({
-        agentJson,
-        agentSrc,
-        apiKey,
-        mnemonic,
-      }));
-    }
+  agentSpec;
+  cp = null;
+  constructor(agentSpec) {
+    this.agentSpec = agentSpec;
+  }
+  async start({
+    debug = false,
+  } = {}) {
+    const {
+      directory,
+      portIndex,
+    } = this.agentSpec;
 
     const cp = crossSpawn(
       'node',
@@ -43,19 +36,22 @@ export class ReactAgentsNodeRuntime {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        './worker.ts',
+        path.join(localDirectory, 'worker.ts'),
       ],
       {
         stdio: 'pipe',
         // stdio: 'inherit',
-        cwd: localDirectory,
+        cwd: directory,
       },
     );
+    cp.stdout.pipe(process.stdout);
+    cp.stderr.pipe(process.stderr);
     cp.on('error', err => {
-      console.warn('got error', err);
+      console.warn('node runtime got error', err);
     });
-
-    console.log('got agent src', agentSrc);
+    cp.on('exit', (code) => {
+      console.warn('node runtime got exit', code);
+    });
 
     /* this.worker = new Worker(new URL('./worker.ts', import.meta.url));
 
