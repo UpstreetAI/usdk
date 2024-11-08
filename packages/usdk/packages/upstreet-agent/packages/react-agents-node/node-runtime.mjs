@@ -34,7 +34,7 @@ export class ReactAgentsNodeRuntime {
         path.join(localDirectory, 'worker.mjs'),
       ],
       {
-        stdio: 'pipe',
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
         // stdio: 'inherit',
         cwd: directory,
       },

@@ -17,11 +17,11 @@ const headersToObject = (headers) => {
 //
 
 let agentMainPromise = null;
-globalThis.onmessage = (event) => {
-  // console.log('got event', event.data);
-  const method = event.data?.method;
+process.on('message', (eventData) => {
+  // console.log('got event', eventData);
+  const method = eventData?.method;
   switch (method) {
-    case 'initDurableObject': {
+    case 'init': {
       if (!agentMainPromise) {
         agentMainPromise = (async () => {
           const { args } = event.data;
@@ -118,4 +118,4 @@ globalThis.onmessage = (event) => {
       })();
     }
   }
-};
+});
