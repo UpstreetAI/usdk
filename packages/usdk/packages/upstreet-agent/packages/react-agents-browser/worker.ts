@@ -20,7 +20,7 @@ globalThis.onmessage = (event: any) => {
   // console.log('got event', event.data);
   const method = event.data?.method;
   switch (method) {
-    case 'initDurableObject': {
+    case 'init': {
       if (!agentMainPromise) {
         agentMainPromise = (async () => {
           const { args } = event.data;
