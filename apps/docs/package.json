@@ -26,5 +26,16 @@
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3"
+  },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "15.0.1",
+    "@next/swc-darwin-x64": "15.0.1",
+    "@next/swc-linux-arm64-gnu": "15.0.1",
+    "@next/swc-linux-arm64-musl": "15.0.1",
+    "@next/swc-linux-x64-gnu": "15.0.1",
+    "@next/swc-linux-x64-musl": "15.0.1",
+    "@next/swc-win32-arm64-msvc": "15.0.1",
+    "@next/swc-win32-ia32-msvc": "15.0.1",
+    "@next/swc-win32-x64-msvc": "15.0.1"
   }
 }
