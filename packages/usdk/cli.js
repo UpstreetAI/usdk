@@ -103,12 +103,19 @@ globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 //
 
 const logger = LoggerFactory.getLogger();
-
 // override console methods
-console.log = (...args) => logger.info(...args);
-console.info = (...args) => logger.info(...args);
-console.warn = (...args) => logger.warn(...args);
-console.error = (...args) => logger.error(...args);
+['log', 'info', 'warn', 'error'].forEach((method) => {
+  const originalMethod = console[method];
+  console[method] = function(...args) {
+    const result = originalMethod.apply(console, args);
+    if (logger[method]) {
+      logger[method](...args);
+    } else {
+      logger.info(...args);
+    }
+    return result;
+  };
+});
 
 //
 

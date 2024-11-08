@@ -1,5 +1,6 @@
 import path from 'path';
 import * as esbuild from 'esbuild-wasm';
+import { globalImports } from 'react-agents/util/worker-global-imports.mjs'
 
 const ensureEsbuild = (() => {
   let esBuildPromise = null;
@@ -39,11 +40,7 @@ export const buildAgentSrc = async (sourceCode, {
 
   const fileMap = new Map(files.map(file => [file.path, file.content]));
   const filesNamespace = 'files';
-  const globalImportMap = new Map(Array.from(Object.entries({
-    'react': 'React',
-    'zod': 'zod',
-    'react-agents': 'ReactAgents',
-  })));
+  const globalImportMap = new Map(Array.from(Object.entries(globalImports)));
   const globalNamespace = 'globals';
 
   const result = await esbuild.build({
