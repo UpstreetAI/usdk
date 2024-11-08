@@ -152,7 +152,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       systemPrompt:
         dedent`\
-          Configure an AI agent character.
+          Configure an AI agent as specified by the user.
           
           \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
           \`bio\` describes the personality and character traits of the agent.
@@ -163,7 +163,11 @@ export class AgentInterview extends EventTarget {
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
           
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
-          When you think the editing session is complete, set the \`done\` flag.
+          ${mode == 'auto' ?
+            `When you think the session is over, set the \`done\` flag.`
+          :
+            `When you think the session is over, then set the \`done\` flag. You might want to confirm with the user beforehand.`
+          }
         ` + '\n\n' +
         featuresAvailablePrompt,
       userPrompt: prompt,
@@ -265,7 +269,7 @@ export class AgentInterview extends EventTarget {
         this.interactor.end();
       } else if (mode === 'interactive') {
         // initiate the interview with an introductory message
-        pumpIo('What kind of agent do you want to create?');
+        pumpIo('What do you want your agent to do?');
       } else if (mode === 'edit') {
         // initiate the interview with an introductory message
         pumpIo('What edits do you want to make?');

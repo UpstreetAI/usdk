@@ -1,11 +1,11 @@
-import type { ActiveAgentObject } from 'react-agents/types';
-import { headers } from 'react-agents/constants.mjs';
-import { makeAnonymousClient } from 'react-agents/util/supabase-client.mjs';
-import { AgentRenderer } from 'react-agents/classes/agent-renderer.tsx';
-import { ChatsSpecification } from 'react-agents/classes/chats-specification.ts';
-import { pingRate } from 'react-agents/classes/ping-manager.ts';
-import { serverHandler } from 'react-agents/routes/server.ts';
-import { multiplayerEndpointUrl } from 'react-agents/util/endpoints.mjs';
+import type { ActiveAgentObject } from './types';
+import { headers } from './constants.mjs';
+import { makeAnonymousClient } from './util/supabase-client.mjs';
+import { AgentRenderer } from './classes/agent-renderer.tsx';
+import { ChatsSpecification } from './classes/chats-specification.ts';
+import { pingRate } from './classes/ping-manager.ts';
+import { serverHandler } from './routes/server.ts';
+import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 //
 
@@ -166,8 +166,7 @@ const cachedGet = (fn: () => any) => {
   };
 };
 
-// CloudFlare Worker Durable Object class
-export class DurableObjectImpl extends EventTarget {
+export class AgentMain extends EventTarget {
   state: any;
   env: any;
   supabase: any;
