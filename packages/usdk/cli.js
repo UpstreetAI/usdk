@@ -1557,11 +1557,12 @@ export const main = async () => {
 
   ${pc.cyan(`v${packageJson.version}`)}
 
-  To exit, press CTRL+C (CMD+C on macOS) twice.
+  To exit, press CTRL+C twice.
+  If you're customizing the code for this Agent, you may need to reload this chat every time you save.
 
-  For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
-
-  `);
+  ${pc.italic('For more information on the Agent creation process, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview')}
+  
+`);
         await handleError(async () => {
           commandExecuted = true;
           let args;
