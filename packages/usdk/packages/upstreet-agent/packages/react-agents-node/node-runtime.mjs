@@ -36,7 +36,7 @@ export class ReactAgentsNodeRuntime {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        path.join(localDirectory, 'worker.ts'),
+        path.join(localDirectory, 'worker.mjs'),
       ],
       {
         stdio: 'pipe',
