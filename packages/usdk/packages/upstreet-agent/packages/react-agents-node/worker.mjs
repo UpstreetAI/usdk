@@ -1,6 +1,6 @@
 import './util/worker-globals.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-import { AgentMain } from 'react-agents/entry.ts';
+import { AgentMain } from 'react-agents/entry.ts'; // XXX this needs to be built becauase it uses tsx
 import { buildAgentSrc } from 'react-agents-builder';
 
 //
