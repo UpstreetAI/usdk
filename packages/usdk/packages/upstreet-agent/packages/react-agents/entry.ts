@@ -166,8 +166,7 @@ const cachedGet = (fn: () => any) => {
   };
 };
 
-// CloudFlare Worker Durable Object class
-export class DurableObjectImpl extends EventTarget {
+export class AgentMain extends EventTarget {
   state: any;
   env: any;
   supabase: any;
