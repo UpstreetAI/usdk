@@ -1755,35 +1755,6 @@ export const main = async () => {
     //       await capture(args);
     //     });
     //   });
-    program
-      .command('publish')
-      .description('Publish an agent to the network')
-      .argument(`[guids...]`, `Guids of the agents to deploy`)
-      // .argument(
-      //   `[type]`,
-      //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
-      // )
-      .action(async (agentRefs, opts = {}) => {
-        await handleError(async () => {
-          commandExecuted = true;
-
-          const outputStream = new stream.PassThrough();
-          outputStream.pipe(process.stdout);
-
-          let args;
-          args = {
-            _: [agentRefs],
-            ...opts,
-            outputStream,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await publish(args, {
-            jwt,
-          });
-        });
-      });
     // const networkOptions = ['baseSepolia', 'opMainnet'];
     program
       .command('agents')
@@ -1815,6 +1786,35 @@ export const main = async () => {
           });
         });
       });
+    program
+    .command('publish')
+    .description('Publish an agent to the network')
+    .argument(`[guids...]`, `Guids of the agents to deploy`)
+    // .argument(
+    //   `[type]`,
+    //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
+    // )
+    .action(async (agentRefs, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+
+        const outputStream = new stream.PassThrough();
+        outputStream.pipe(process.stdout);
+
+        let args;
+        args = {
+          _: [agentRefs],
+          ...opts,
+          outputStream,
+        };
+
+        const jwt = await getLoginJwt();
+
+        await publish(args, {
+          jwt,
+        });
+      });
+    });
     program
       .command('unpublish')
       .description('Unpublish a deployed agent from the network')
