@@ -50,6 +50,7 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import ora from 'ora';
 
 //
 
@@ -138,6 +139,8 @@ const interview = async (agentJson, {
   events,
   jwt,
 }) => {
+  const spinner = ora();
+
   const questionLogger = new InterviewLogger(
     inputStream && outputStream
       ? new StreamStrategy(inputStream, outputStream)
@@ -168,11 +171,23 @@ const interview = async (agentJson, {
     // console.log('agent interview input 1', {
     //   question,
     // });
+
+    // stop the spinner while we the agent interview asks a question
+
+    if (spinner.isSpinning){
+      spinner.stop();
+    }
+
     const answer = await getAnswer(question);
+
+    // start the spinner again when the user replies
+    spinner.start();
+
     // console.log('agent interview input 2', {
     //   question,
     //   answer,
     // });
+
     agentInterview.write(answer);
   });
   agentInterview.addEventListener('output', async e => {

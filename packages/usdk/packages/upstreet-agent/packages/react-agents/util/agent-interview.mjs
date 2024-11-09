@@ -14,7 +14,6 @@ import { makePromise, uploadBlob } from './util.mjs';
 import {
   featureSpecs,
 } from './agent-features.mjs';
-import ora from 'ora';
 
 const processFeatures = (agentJson) => {
   const userSpecifiedFeatures = new Set(Object.keys(agentJson.features || {}));
@@ -85,8 +84,6 @@ export class AgentInterview extends EventTarget {
       mode, // 'auto' | 'interactive' | 'manual'
       jwt,
     } = opts;
-
-    this.processingStateSpinner = ora();
 
     const { result: featureSchemas, userSpecifiedFeatures, allowAll } = processFeatures(agentJson);
 
@@ -201,10 +198,6 @@ export class AgentInterview extends EventTarget {
     this.interactor.addEventListener('message', async (e) => {
       const o = e.data;
 
-      if (this.processingStateSpinner.isSpinning) {
-        this.processingStateSpinner.stop();
-      }
-
       const {
         response,
         updateObject,
@@ -289,7 +282,6 @@ export class AgentInterview extends EventTarget {
     }, 0);
   }
   write(response) {
-    this.processingStateSpinner.start();
     this.interactor.write(response);
   }
   async waitForFinish() {
