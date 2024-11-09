@@ -14,7 +14,7 @@
     "name": "Microsoft Corporation"
   },
   "license": "Apache-2.0",
-  "main": "index.mjs",
+  "main": "dist/bundle.mjs",
   "bin": {
     "playwright-core": "cli.js"
   },
