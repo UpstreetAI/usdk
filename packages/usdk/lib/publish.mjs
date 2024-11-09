@@ -116,7 +116,7 @@ const logSize = (i, total) => {
     console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
   }
 }; */
-export const deploy = async (args, opts) => {
+export const publish = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
     throw new Error('all agent specs must have directories');

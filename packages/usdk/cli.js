@@ -78,7 +78,7 @@ import {
   create,
   edit,
   pull,
-  deploy,
+  publish,
   chat,
 } from './lib/commands.mjs';
 import {
@@ -1757,7 +1757,7 @@ export const main = async () => {
     //   });
     program
       .command('publish')
-      .description('Deploy an agent to the network')
+      .description('Publish an agent to the network')
       .argument(`[guids...]`, `Guids of the agents to deploy`)
       // .argument(
       //   `[type]`,
@@ -1779,7 +1779,7 @@ export const main = async () => {
 
           const jwt = await getLoginJwt();
 
-          await deploy(args, {
+          await publish(args, {
             jwt,
           });
         });
