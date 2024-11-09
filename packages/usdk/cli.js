@@ -1756,7 +1756,7 @@ export const main = async () => {
     //     });
     //   });
     program
-      .command('deploy')
+      .command('publish')
       .description('Deploy an agent to the network')
       .argument(`[guids...]`, `Guids of the agents to deploy`)
       // .argument(
