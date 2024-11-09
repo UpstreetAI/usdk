@@ -57,6 +57,38 @@ const agentJsonSrcFilename = 'agent.json';
 
 //
 
+const logAgentPropertyUpdate = (propertyName, newValue) => {
+  // ANSI escape codes for colors
+  const colors = {
+    blue: '\x1b[34m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    cyan: '\x1b[36m',
+    reset: '\x1b[0m',
+    bold: '\x1b[1m',
+    dim: '\x1b[2m'
+  };
+
+  if (typeof newValue === 'object' && newValue !== null) {
+    console.log(`${colors.blue}${colors.bold}[AGENT UPDATE]${colors.reset} ${colors.cyan}${propertyName}${colors.reset}`);
+    Object.entries(newValue).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        console.log(`  ${colors.dim}→${colors.reset} ${colors.yellow}${key}${colors.reset}: ${colors.green}${value}${colors.reset}`);
+      }
+    });
+  } else {
+    console.log(
+      `${colors.blue}${colors.bold}[AGENT UPDATE]${colors.reset} ${colors.cyan}${propertyName}${colors.reset} ${colors.dim}→${colors.reset} ${colors.green}${newValue}${colors.reset}`
+    );
+  }
+};
+
+const propertyLogger = (prefix) => (e) => {
+  logAgentPropertyUpdate(prefix, e.data);
+};
+
+//
+
 const writeFile = async (dstPath, s) => {
   await mkdirp(path.dirname(dstPath));
   await fs.promises.writeFile(dstPath, s);
@@ -217,11 +249,15 @@ const interview = async (agentJson, {
       const {
         text: imageText,
       } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
-      console.log(label);
+      logAgentPropertyUpdate(label, '');
       console.log(imageText);
     };
     agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
     agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
+    agentInterview.addEventListener('name', propertyLogger('name'));
+    agentInterview.addEventListener('bio', propertyLogger('bio'));
+    agentInterview.addEventListener('description', propertyLogger('description'));
+    agentInterview.addEventListener('features', propertyLogger('features'));
   }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
