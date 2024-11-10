@@ -23,10 +23,6 @@ const viteServerPromise = createViteServer({
     jsxFragment: 'React.Fragment',
   },
   optimizeDeps: {
-    // entries: {
-    //   agent: './agent.tsx',
-    //   agentMain: './packages/react-agents/entry.ts',
-    // },
     entries: [
       './agent.tsx',
       './packages/upstreet-agent/packages/react-agents/entry.ts',
