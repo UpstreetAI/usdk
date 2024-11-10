@@ -16,8 +16,5 @@
   "devDependencies": {
     "@eslint/js": "^9.4.0",
     "@stylistic/eslint-plugin": "^2.1.0"
-  },
-  "dependencies": {
-    "esbuild-wasm": "^0.24.0"
   }
 }
