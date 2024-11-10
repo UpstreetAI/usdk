@@ -56,7 +56,8 @@ export const buildAgentSrc = async (sourceCode, {
       loader: 'tsx', // Set the appropriate loader based on the source type
     },
     bundle: true,
-    outdir: 'dist',
+    write: false,
+    // outdir: 'dist',
     format: 'esm',
     plugins: [
       {
