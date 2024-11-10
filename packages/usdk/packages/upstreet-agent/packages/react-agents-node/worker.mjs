@@ -37,9 +37,9 @@ const viteServerPromise = createViteServer({
     ],
   },
 });
-const loadModule = async (path) => {
+const loadModule = async (p) => {
   const viteServer = await viteServerPromise;
-  return await viteServer.ssrLoadModule(path);
+  return await viteServer.ssrLoadModule(p);
 };
 //
 const getEnv = async () => {
