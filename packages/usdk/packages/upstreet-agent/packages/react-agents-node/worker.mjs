@@ -1,9 +1,7 @@
 import fs from 'fs';
-import toml from '@iarna/toml';
-// import './util/worker-globals.mjs';
-import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-// import { AgentMain } from 'react-agents/entry.ts';
 import { createServer as createViteServer } from 'vite';
+import toml from '@iarna/toml';
+import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 
 // helpers
 
@@ -96,7 +94,15 @@ const getUserRender = async () => {
 //
 let agentMainPromise = null;
 const reloadAgentMain = () => {
+  const oldAgentMainPromise = agentMainPromise;
   agentMainPromise = (async () => {
+    // wait for the old agent process to terminate
+    if (oldAgentMainPromise) {
+      const oldAgentMain = await oldAgentMainPromise;
+      await oldAgentMain.terminate(); // XXX implement this
+    }
+
+    // start the new agent process
     const [
       AgentMain,
       env,
@@ -106,6 +112,11 @@ const reloadAgentMain = () => {
       getEnv(),
       getUserRender(),
     ]);
+
+    // XXX need to handle command line args e.g.
+    // '--var', 'WORKER_ENV:development',
+    // '--ip', '0.0.0.0',
+    // '--port', devServerPort + portIndex,
 
     let alarmTimestamp = null;
     const state = {

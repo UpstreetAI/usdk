@@ -1,11 +1,6 @@
 import path from 'path';
-import fs from 'fs';
 import crossSpawn from 'cross-spawn';
-import toml from '@iarna/toml';
-// import 'react-agents-builder';
-
-import Worker from 'web-worker';
-globalThis.Worker = Worker;
+import { devServerPort } from './util/ports.mjs';
 
 //
 
@@ -33,6 +28,9 @@ export class ReactAgentsNodeRuntime {
         '--experimental-wasm-modules',
         '--experimental-transform-types',
         path.join(localDirectory, 'worker.mjs'),
+        '--var', 'WORKER_ENV:development',
+        '--ip', '0.0.0.0',
+        '--port', devServerPort + portIndex,
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
@@ -50,13 +48,14 @@ export class ReactAgentsNodeRuntime {
     cp.on('error', e => {
       console.warn('got error', e);
     });
+    this.cp = cp;
   }
   async fetch(url, opts) {
     const requestId = crypto.randomUUID();
     const {
       method, headers, body,
     } = opts;
-    this.worker.postMessage({
+    this.cp.send({
       method: 'request',
       args: {
         id: requestId,
@@ -105,15 +104,33 @@ export class ReactAgentsNodeRuntime {
           reject(err);
         }
       };
-      this.worker.addEventListener('message', onmessage);
+      this.cp.on('message', onmessage);
 
       const cleanup = () => {
-        this.worker.removeEventListener('message', onmessage);
+        this.cp.removeListener('message', onmessage);
       };
     });
     return res;
   }
   terminate() {
-    this.worker.terminate();
+    return new Promise((accept, reject) => {
+      if (this.cp === null) {
+        accept(null);
+      } else {
+        if (this.cp.exitCode !== null) {
+          // Process already terminated
+          accept(this.cp.exitCode);
+        } else {
+          // Process is still running
+          this.cp.on('exit', (code) => {
+            accept(code);
+          });
+          this.cp.on('error', (err) => {
+            reject(err);
+          });
+          this.cp.kill('SIGTERM');
+        }
+      }
+    });
   }
 }
