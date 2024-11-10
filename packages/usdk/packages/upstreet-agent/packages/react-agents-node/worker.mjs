@@ -1,7 +1,10 @@
-import './util/worker-globals.mjs';
-import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-import { AgentMain } from 'react-agents/entry.ts'; // XXX this needs to be built becauase it uses tsx
-import { buildAgentSrc } from 'react-agents-builder';
+// import './util/worker-globals.mjs';
+// import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+// import { AgentMain } from 'react-agents/entry.ts'; // XXX this needs to be built becauase it uses tsx
+// import { buildAgentSrc } from 'react-agents-builder';
+// import requireTransform from 'vite-plugin-require';
+// import commonjs from 'vite-plugin-commonjs';
+import { createServer as createViteServer } from 'vite';
 
 //
 
@@ -14,53 +17,80 @@ const headersToObject = (headers) => {
   return result;
 };
 
+// initialize the dev server
+console.time('lol');
+const viteServerPromise = createViteServer({
+  server: { middlewareMode: 'ssr' },
+  // plugins: [
+  //   commonjs(),
+  // ],
+  esbuild: {
+    jsx: 'transform',
+    jsxFactory: 'React.createElement',
+    jsxFragment: 'React.Fragment',
+  },
+  optimizeDeps: {
+    entries: [
+      './agent.tsx',
+    ],
+  },
+});
+
 //
 
 let agentMainPromise = null;
-process.on('message', (eventData) => {
+process.on('message', async (eventData) => {
   console.log('got event', eventData);
 
   const method = eventData?.method;
   switch (method) {
     case 'init': {
-      if (!agentMainPromise) {
-        agentMainPromise = (async () => {
-          const { args } = event.data;
-          const { env, agentSrc } = args;
-          if (typeof agentSrc !== 'string') {
-            throw new Error('agent worker: missing agentSrc');
-          }
+      console.log('init 1');
+      const viteServer = await viteServerPromise;
+      console.log('init 2', viteServer);
 
-          const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
-          const userRender = agentModule.default;
-          // console.log('got user render', userRender.toString());
+      const agentModule = await viteServer.ssrLoadModule('/agent.tsx');
+      console.log('init 3', agentModule);
+      const userRender = agentModule.default;
+      console.log('init 4', userRender);
+      console.timeEnd('lol');
 
-          let alarmTimestamp = null;
-          const state = {
-            userRender,
-            codecs,
-            storage: {
-              async getAlarm() {
-                return alarmTimestamp;
-              },
-              setAlarm(timestamp) {
-                alarmTimestamp = timestamp;
-              },
-            },
-          };
-          // console.log('worker init 1', {
-          //   state,
-          //   env,
-          // });
-          const durableObject = new AgentMain(state, env);
-          // console.log('worker init 2', {
-          //   durableObject,
-          // });
-          return durableObject;
-        })();
-      } else {
-        console.warn('agent worker: DurableObject already initialized', new Error().stack);
-      }
+      // if (!agentMainPromise) {
+      //   agentMainPromise = (async () => {
+      //     const { args } = eventData;
+      //     const { env, agentSrc } = args;
+      //     if (typeof agentSrc !== 'string') {
+      //       throw new Error('agent worker: missing agentSrc');
+      //     }
+
+      //     // build the module here
+      //     console.log('init 1');
+      //     const agentModule = await buildAgentSrc(agentSrc);
+      //     console.log('init 2', agentModule);
+
+      //     /* const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
+      //     const userRender = agentModule.default;
+      //     // console.log('got user render', userRender.toString());
+
+      //     let alarmTimestamp = null;
+      //     const state = {
+      //       userRender,
+      //       codecs,
+      //       storage: {
+      //         async getAlarm() {
+      //           return alarmTimestamp;
+      //         },
+      //         setAlarm(timestamp) {
+      //           alarmTimestamp = timestamp;
+      //         },
+      //       },
+      //     };
+      //     const durableObject = new AgentMain(state, env);
+      //     return durableObject; */
+      //   })();
+      // } else {
+      //   console.warn('agent worker: DurableObject already initialized', new Error().stack);
+      // }
       break;
     }
     case 'request': {
