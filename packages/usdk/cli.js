@@ -1712,8 +1712,6 @@ export const main = async () => {
           const agentSpecs = await parseAgentSpecs(args._[0]);
           const debug = true;
 
-          const jwt = await getLoginJwt();
-
           // start dev servers for the agents
           const startPromises = agentSpecs.map(async (agentSpec) => {
             if (agentSpec.directory) {
