@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as os from 'os';
+// import * as os from 'os';
 import path from 'path';
 // import * as util from 'util';
 // import * as fs from 'fs';
@@ -281,16 +281,16 @@ export const registryDirectory = (() => {
     result = envDefined;
   } else {
     let cacheDirectory: string;
-    if (process.platform === 'linux')
+    cacheDirectory = '/tmp';
+    /* if (process.platform === 'linux')
       cacheDirectory = process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache');
     else if (process.platform === 'darwin')
       cacheDirectory = path.join(os.homedir(), 'Library', 'Caches');
     else if (process.platform === 'win32')
       cacheDirectory = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
     else {
-      cacheDirectory = '/tmp';
-      // throw new Error('Unsupported platform: ' + process.platform);
-    }
+      throw new Error('Unsupported platform: ' + process.platform);
+    } */
     result = path.join(cacheDirectory, 'ms-playwright');
   }
 
@@ -826,10 +826,10 @@ export class Registry {
   }
 
   private async _validateHostRequirements(sdkLanguage: string, browserName: BrowserName, browserDirectory: string, linuxLddDirectories: string[], dlOpenLibraries: string[], windowsExeAndDllDirectories: string[]) {
-    if (os.platform() === 'linux')
-      return await validateDependenciesLinux(sdkLanguage, linuxLddDirectories.map(d => path.join(browserDirectory, d)), dlOpenLibraries);
-    if (os.platform() === 'win32' && os.arch() === 'x64')
-      return await validateDependenciesWindows(windowsExeAndDllDirectories.map(d => path.join(browserDirectory, d)));
+    // if (os.platform() === 'linux')
+    //   return await validateDependenciesLinux(sdkLanguage, linuxLddDirectories.map(d => path.join(browserDirectory, d)), dlOpenLibraries);
+    // if (os.platform() === 'win32' && os.arch() === 'x64')
+    //   return await validateDependenciesWindows(windowsExeAndDllDirectories.map(d => path.join(browserDirectory, d)));
   }
 
   async installDeps(executablesToInstallDeps: Executable[], dryRun: boolean) {
@@ -840,10 +840,10 @@ export class Registry {
         targets.add(executable._dependencyGroup);
     }
     targets.add('tools');
-    if (os.platform() === 'win32')
-      return await installDependenciesWindows(targets, dryRun);
-    if (os.platform() === 'linux')
-      return await installDependenciesLinux(targets, dryRun);
+    // if (os.platform() === 'win32')
+    //   return await installDependenciesWindows(targets, dryRun);
+    // if (os.platform() === 'linux')
+    //   return await installDependenciesLinux(targets, dryRun);
   }
 
   async install(executablesToInstall: Executable[], forceReinstall: boolean) {
