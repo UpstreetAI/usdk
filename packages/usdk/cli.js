@@ -1725,23 +1725,11 @@ export const main = async () => {
           });
           await Promise.all(startPromises);
 
-          /* const agentJson = {};
-          const agentSrc = '';
-          const apiKey = jwt;
-          const mnemonic = generateMnemonic();
-          const runtime = new ReactAgentsNodeRuntime({
-            agentJson,
-            agentSrc,
-            apiKey,
-            mnemonic,
-          }); */
-
-          await new Promise((accept, reject) => {
-            console.log('waiting');
-            setTimeout(() => {
-              reject(new Error('timeout'));
-            }, 1000 * 60 * 60 * 24);
-          });
+          // await new Promise((accept, reject) => {
+          //   setTimeout(() => {
+          //     reject(new Error('timeout'));
+          //   }, 1000 * 60 * 60 * 24);
+          // });
         });
       });
       
