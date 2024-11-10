@@ -1,14 +1,11 @@
 // import './util/worker-globals.mjs';
 // import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-// import { AgentMain } from 'react-agents/entry.ts'; // XXX this needs to be built becauase it uses tsx
-// import { buildAgentSrc } from 'react-agents-builder';
-// import requireTransform from 'vite-plugin-require';
-// import commonjs from 'vite-plugin-commonjs';
+// import { AgentMain } from 'react-agents/entry.ts';
 import { createServer as createViteServer } from 'vite';
 
-//
+// helpers
 
-const nativeImport = new Function('specifier', 'return import(specifier)');
+// const nativeImport = new Function('specifier', 'return import(specifier)');
 const headersToObject = (headers) => {
   const result = {};
   for (const [key, value] of headers.entries()) {
@@ -18,12 +15,8 @@ const headersToObject = (headers) => {
 };
 
 // initialize the dev server
-console.time('lol');
 const viteServerPromise = createViteServer({
   server: { middlewareMode: 'ssr' },
-  // plugins: [
-  //   commonjs(),
-  // ],
   esbuild: {
     jsx: 'transform',
     jsxFactory: 'React.createElement',
@@ -35,10 +28,22 @@ const viteServerPromise = createViteServer({
     ],
   },
 });
-
-//
+// get AgentMain
+const ensureAgentMain = () => {
+  if (!agentMainPromise) {
+    agentMainPromise = (async () => {
+      const viteServer = await viteServerPromise;
+      const agentModule = await viteServer.ssrLoadModule('/packages/react-agents/entry.ts');
+      console.log('got agent module', agentModule);
+      return agentModule.default;
+    })();
+  }
+  return agentMainPromise;
+};
 
 let agentMainPromise = null;
+
+
 process.on('message', async (eventData) => {
   console.log('got event', eventData);
 
@@ -53,7 +58,9 @@ process.on('message', async (eventData) => {
       console.log('init 3', agentModule);
       const userRender = agentModule.default;
       console.log('init 4', userRender);
-      console.timeEnd('lol');
+
+      const agentMain = await ensureAgentMain();
+      console.log('init 5', agentMain);
 
       // if (!agentMainPromise) {
       //   agentMainPromise = (async () => {
