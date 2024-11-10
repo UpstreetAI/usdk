@@ -114,7 +114,7 @@ process.on('message', async (eventData) => {
         }
         const agentMain = await agentMainPromise;
 
-        const { args } = event.data;
+        const { args } = eventData;
         const {
           id,
           method,
