@@ -1,8 +1,15 @@
+import path from 'path';
+import fs from 'fs';
 import spawn from 'cross-spawn';
+
+const pnpmPackageJsonPath = import.meta.resolve('pnpm').replace('file://', '');
+const pnpmPackageJsonString = fs.readFileSync(pnpmPackageJsonPath, 'utf8');
+const pnpmPackageJson = JSON.parse(pnpmPackageJsonString);
+const pnpmPath = path.resolve(path.dirname(pnpmPackageJsonPath), pnpmPackageJson.bin.pnpm);
 
 export const npmInstall = async (dstDir) => {
   await new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['install'], {
+    const child = spawn(pnpmPath, ['install'], {
       cwd: dstDir,
       stdio: 'inherit',
     });
@@ -19,7 +26,7 @@ export const npmInstall = async (dstDir) => {
 
 const getNpmRoot = async () => {
   const { stdout } = await new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['root', '--quiet', '-g']);
+    const child = spawn(pnpmPath, ['root', '--quiet', '-g']);
 
     let output = '';
     child.stdout.on('data', (data) => {
