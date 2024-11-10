@@ -16,7 +16,7 @@
  */
 
 // import fs from 'fs';
-import os from 'os';
+// import os from 'os';
 import path from 'path';
 import type stream from 'stream';
 import { CRBrowser } from './crBrowser';
@@ -51,7 +51,7 @@ import { validateBrowserContextOptions } from '../browserContext';
 import { chromiumSwitches } from './chromiumSwitches';
 import type { ProtocolError } from '../protocolError';
 
-const ARTIFACTS_FOLDER = path.join(os.tmpdir(), 'playwright-artifacts-');
+// const ARTIFACTS_FOLDER = path.join(os.tmpdir(), 'playwright-artifacts-');
 
 export class Chromium extends BrowserType {
   private _devtools: CRDevTools | undefined;
@@ -298,13 +298,13 @@ export class Chromium extends BrowserType {
       throw new Error('Arguments can not specify page to be opened');
     const chromeArguments = [...chromiumSwitches];
 
-    if (os.platform() === 'darwin') {
-      // See https://github.com/microsoft/playwright/issues/7362
-      chromeArguments.push('--enable-use-zoom-for-dsf=false');
-      // See https://bugs.chromium.org/p/chromium/issues/detail?id=1407025.
-      if (options.headless)
-        chromeArguments.push('--use-angle');
-    }
+    // if (os.platform() === 'darwin') {
+    //   // See https://github.com/microsoft/playwright/issues/7362
+    //   chromeArguments.push('--enable-use-zoom-for-dsf=false');
+    //   // See https://bugs.chromium.org/p/chromium/issues/detail?id=1407025.
+    //   if (options.headless)
+    //     chromeArguments.push('--use-angle');
+    // }
 
     if (options.devtools)
       chromeArguments.push('--auto-open-devtools-for-tabs');
