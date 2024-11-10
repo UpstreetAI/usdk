@@ -89,7 +89,7 @@ const loadModuleSource = async (p) => {
 const getEnv = async () => {
   // load the wrangler.toml
   const wranglerTomlPath = './wrangler.toml';
-  const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
+  const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
   const wranglerToml = toml.parse(wranglerTomlString);
 
   const agentJsonString = wranglerToml.vars.AGENT_JSON;
