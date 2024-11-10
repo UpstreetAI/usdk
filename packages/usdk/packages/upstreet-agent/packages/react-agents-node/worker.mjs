@@ -1,5 +1,5 @@
 // import './util/worker-globals.mjs';
-// import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 // import { AgentMain } from 'react-agents/entry.ts';
 import { createServer as createViteServer } from 'vite';
 
