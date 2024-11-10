@@ -4,6 +4,15 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/usdk-discord',
+        destination: 'https://discord.gg/TfKW36rMj7',
+        permanent: false,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {

@@ -48,9 +48,8 @@ import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/re
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
-import {
-  cwd,
-} from '../util/directory-utils.mjs';
+import { cwd } from '../util/directory-utils.mjs';
+import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
 
@@ -272,7 +271,7 @@ const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
 
 export const create = async (args, opts) => {
   // args
-  const dstDir = args._[0] ?? cwd;
+  let dstDir = args._[0] ?? '';
   const prompt = args.prompt ?? '';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
@@ -313,6 +312,13 @@ export const create = async (args, opts) => {
     throw new Error('The --json flag is required when using the --source flag.');
   }
 
+  // create the destination directory if not present
+  if (!dstDir) {
+    const dirname = makeId(8);
+    dstDir = path.join(cwd, 'agents', dirname);
+    await mkdirp(dstDir);
+  }
+
   // load source file
   const sourceFile = source ?
     await fs.promises.readFile(source)
@@ -336,10 +342,13 @@ export const create = async (args, opts) => {
   });
   // run the interview, if applicable
   if (!(agentJsonString || source || yes)) {
-    console.log(pc.italic('Starting the Interview process...\n'));
+    const interviewMode = prompt ? 'auto' : 'interactive';
+    if (interviewMode !== 'auto') {
+      console.log(pc.italic('Starting the Interview process...\n'));
+    }
     agentJson = await interview(agentJson, {
       prompt,
-      mode: prompt ? 'auto' : 'interactive',
+      mode: interviewMode,
       inputStream,
       outputStream,
       events,
@@ -426,7 +435,7 @@ export const create = async (args, opts) => {
   };
   await _copyFiles();
 
-  events.dispatchEvent(new MessageEvent('finalize', {
+  events && events.dispatchEvent(new MessageEvent('finalize', {
     data: {
       agentJson,
     },
@@ -438,7 +447,17 @@ export const create = async (args, opts) => {
     await npmInstall(dstDir);
   }
 
-  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)), '\n');
+  console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
+  console.log();
+  console.log(pc.green('To start a chat with your agent, run:'));
+  console.log(pc.cyan(`  usdk chat ${dstDir}`));
+  console.log();
+  console.log(pc.green('To learn how to customize your agent with code, check out our docs: https://docs.upstreet.ai/customize-your-agent'));
+  console.log();
+  console.log(pc.green(`To edit this agent again, run:`));
+  console.log(pc.cyan(`  usdk edit ${dstDir}`));
+  console.log();
+  console.log(pc.green(`Happy building!`));
 
   return agentJson;
   // // return the parsed dstWranglerToml
@@ -543,6 +562,7 @@ export const pull = async (args, opts) => {
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
   const noInstall = !!args.noInstall;
+  const events = args.events ?? null;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
@@ -574,7 +594,7 @@ export const pull = async (args, opts) => {
         console.log(pc.italic('Extracting zip...'));
         await extractZip(zipBuffer, dstDir);
 
-        events.dispatchEvent(new MessageEvent('finalize', {
+        events && events.dispatchEvent(new MessageEvent('finalize', {
           data: {
             agentJson,
           },

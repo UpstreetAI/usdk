@@ -152,7 +152,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       systemPrompt:
         dedent`\
-          Configure an AI agent character.
+          Configure an AI agent as specified by the user.
           
           \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
           \`bio\` describes the personality and character traits of the agent.
@@ -166,7 +166,7 @@ export class AgentInterview extends EventTarget {
           ${mode == 'auto' ?
             `When you think the session is over, set the \`done\` flag.`
           :
-            `When you think the session is over, first confirm with the user that they are done, then set the \`done\` flag.`
+            `When you think the session is over, then set the \`done\` flag. You might want to confirm with the user beforehand.`
           }
         ` + '\n\n' +
         featuresAvailablePrompt,
@@ -269,7 +269,7 @@ export class AgentInterview extends EventTarget {
         this.interactor.end();
       } else if (mode === 'interactive') {
         // initiate the interview with an introductory message
-        pumpIo('What kind of agent do you want to create?');
+        pumpIo('What do you want your agent to do?');
       } else if (mode === 'edit') {
         // initiate the interview with an introductory message
         pumpIo('What edits do you want to make?');

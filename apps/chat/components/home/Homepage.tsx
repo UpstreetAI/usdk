@@ -77,7 +77,7 @@ export default function Home() {
               </Button>
               <Button
                 size='large'
-                href='https://discord.gg/maD9GKgSSJ'
+                href='/usdk-discord'
                 target='_blank'
               >
                 Create Agent in Discord
@@ -92,7 +92,7 @@ export default function Home() {
                   height={40}
                 />
               </Link> */}
-              <Link href="https://discord.gg/maD9GKgSSJ" target="_blank" className="hover:opacity-80">
+              <Link href="/usdk-discord" target="_blank" className="hover:opacity-80">
                 <Image
                   src="/images/socials/discord.png"
                   alt="Discord"
