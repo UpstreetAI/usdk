@@ -1,9 +1,16 @@
 import fs from 'fs';
-import { createServer as createViteServer } from 'vite';
+import { createServer as createViteServer, build as viteBuild } from 'vite';
 import toml from '@iarna/toml';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+// import { globalImports } from 'react-agents/util/worker-global-imports.mjs'
+import { Debouncer } from 'debouncer';
 
-// helpers
+//
+
+// const globalImportMap = new Map(Array.from(Object.entries(globalImports)));
+// const globalNamespace = 'globals';
+
+//
 
 // const nativeImport = new Function('specifier', 'return import(specifier)');
 const headersToObject = (headers) => {
@@ -40,6 +47,55 @@ const viteServerPromise = createViteServer({
 const loadModule = async (p) => {
   const viteServer = await viteServerPromise;
   return await viteServer.ssrLoadModule(p);
+};
+const loadModuleSource = async (p) => {
+  const result = await viteBuild({
+    build: {
+      write: false,
+      ssr: true,
+      sourcemap: true,
+      rollupOptions: {
+        input: p,
+      },
+    },
+    /* plugins: [
+      {
+        name: 'globals-plugin',
+        enforce: 'pre',
+        async resolveId(source, importer) {
+          console.log('resolveId', source, importer);
+          for (const [importName, importPath] of globalImportMap) {
+            if (source === importName) {
+              return source;
+            }
+          }
+          return null;
+        },
+        async load(id) {
+          console.log('load', id);
+          for (const [importName, importPath] of globalImportMap) {
+            if (id === importName) {
+              return {
+                code: `export default globalImports[${JSON.stringify(importName)}];`,
+                map: null
+              };
+            }
+          }
+          return null;
+        },
+      },
+    ], */
+  });
+  
+  if (!result || !result.output || !result.output[0]) {
+    throw new Error('Build failed to produce output');
+  }
+
+  const code = result.output[0].code;
+  const map = result.output[0].map;
+  const base64Map = Buffer.from(JSON.stringify(map)).toString('base64');
+  const sourceMapComment = `//# sourceMappingURL=data:application/json;base64,${base64Map}`;
+  return `${code}\n${sourceMapComment}`;
 };
 //
 const getEnv = async () => {
@@ -84,56 +140,63 @@ const getEnv = async () => {
   return env;
 };
 const getAgentMain = async () => {
-  const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');
+  const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');  
   return agentModule.AgentMain;
 };
 const getUserRender = async () => {
-  const agentModule = await loadModule('/agent.tsx');
-  return agentModule.default;
+  const userRenderModule = await loadModule('/agent.tsx');
+
+  // const userRenderSource = await loadModuleSource('/agent.tsx');
+  // console.log('userRenderSource', userRenderSource);
+  
+  return userRenderModule.default;
 };
 //
 let agentMainPromise = null;
-const reloadAgentMain = () => {
-  const oldAgentMainPromise = agentMainPromise;
-  agentMainPromise = (async () => {
-    // wait for the old agent process to terminate
-    if (oldAgentMainPromise) {
-      const oldAgentMain = await oldAgentMainPromise;
-      await oldAgentMain.terminate(); // XXX implement this
-    }
+const reloadDebouncer = new Debouncer();
+const reloadAgentMain = async () => {
+  await reloadDebouncer.waitForTurn(async () => {
+    const oldAgentMainPromise = agentMainPromise;
+    agentMainPromise = (async () => {
+      // wait for the old agent process to terminate
+      if (oldAgentMainPromise) {
+        const oldAgentMain = await oldAgentMainPromise;
+        await oldAgentMain.terminate(); // XXX implement this
+      }
 
-    // start the new agent process
-    const [
-      AgentMain,
-      env,
-      userRender,
-    ] = await Promise.all([
-      getAgentMain(),
-      getEnv(),
-      getUserRender(),
-    ]);
+      // start the new agent process
+      const [
+        AgentMain,
+        env,
+        userRender,
+      ] = await Promise.all([
+        getAgentMain(),
+        getEnv(),
+        getUserRender(),
+      ]);
 
-    // XXX need to handle command line args e.g.
-    // '--var', 'WORKER_ENV:development',
-    // '--ip', '0.0.0.0',
-    // '--port', devServerPort + portIndex,
+      // XXX need to handle command line args e.g.
+      // '--var', 'WORKER_ENV:development',
+      // '--ip', '0.0.0.0',
+      // '--port', devServerPort + portIndex,
 
-    let alarmTimestamp = null;
-    const state = {
-      userRender,
-      codecs,
-      storage: {
-        async getAlarm() {
-          return alarmTimestamp;
+      let alarmTimestamp = null;
+      const state = {
+        userRender,
+        codecs,
+        storage: {
+          async getAlarm() {
+            return alarmTimestamp;
+          },
+          setAlarm(timestamp) {
+            alarmTimestamp = timestamp;
+          },
         },
-        setAlarm(timestamp) {
-          alarmTimestamp = timestamp;
-        },
-      },
-    };
-    const agentMain = new AgentMain(state, env);
-    return agentMain;
-  })();
+      };
+      const agentMain = new AgentMain(state, env);
+      return agentMain;
+    })();
+  });
 };
 reloadAgentMain();
 //
