@@ -23,8 +23,13 @@ const viteServerPromise = createViteServer({
     jsxFragment: 'React.Fragment',
   },
   optimizeDeps: {
+    // entries: {
+    //   agent: './agent.tsx',
+    //   agentMain: './packages/react-agents/entry.ts',
+    // },
     entries: [
       './agent.tsx',
+      './packages/upstreet-agent/packages/react-agents/entry.ts',
     ],
   },
 });
@@ -33,9 +38,10 @@ const ensureAgentMain = () => {
   if (!agentMainPromise) {
     agentMainPromise = (async () => {
       const viteServer = await viteServerPromise;
-      const agentModule = await viteServer.ssrLoadModule('/packages/react-agents/entry.ts');
-      console.log('got agent module', agentModule);
-      return agentModule.default;
+      // console.log('get agent module 1');
+      const agentModule = await viteServer.ssrLoadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');
+      // console.log('get agent module 2', agentModule);
+      return agentModule.AgentMain;
     })();
   }
   return agentMainPromise;
@@ -52,15 +58,16 @@ process.on('message', async (eventData) => {
     case 'init': {
       console.log('init 1');
       const viteServer = await viteServerPromise;
-      console.log('init 2', viteServer);
+      console.log('init 2', !!viteServer);
 
-      const agentModule = await viteServer.ssrLoadModule('/agent.tsx');
-      console.log('init 3', agentModule);
-      const userRender = agentModule.default;
-      console.log('init 4', userRender);
-
-      const agentMain = await ensureAgentMain();
-      console.log('init 5', agentMain);
+      const [userRender, agentMain] = await Promise.all([
+        (async () => {
+          const agentModule = await viteServer.ssrLoadModule('/agent.tsx');
+          return agentModule.default;
+        })(),
+        ensureAgentMain(),
+      ]);
+      console.log('init 3', userRender, agentMain);
 
       // if (!agentMainPromise) {
       //   agentMainPromise = (async () => {
