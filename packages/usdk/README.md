@@ -191,6 +191,7 @@ Upstreet SDK is released under the ISC License.
 We're thrilled to have you join the Upstreet community! As you explore and create with USDK, remember that our support team and community forums are always here to help.
 
 👉 Join our Discord community to log issues and find inspiration: https://upstreet.ai/usdk-discord
+
 👉 Talk to us directly for deeper issues, and commercial usage: support@upstreet.ai 
 
 Happy creating in Upstreet! 🌆🚀

@@ -11,7 +11,7 @@ import pc from 'picocolors';
 import { mkdirp } from 'mkdirp';
 
 import Table from 'cli-table3';
-import * as ethers from 'ethers';
+// import * as ethers from 'ethers';
 
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
 // import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
@@ -1421,6 +1421,14 @@ export const main = async () => {
           const loginJson = await login(args);
           await mkdirp(path.dirname(loginLocation));
           await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
+
+          // instruct the user to use `usdk create` to create their own agent
+          console.log();
+          console.log(pc.green(`You logged in!`));
+          console.log();
+          console.log('To create an agent, run:');
+          console.log(pc.cyan('  usdk create'));
+          console.log();
         });
       });
     program
@@ -1557,11 +1565,12 @@ export const main = async () => {
 
   ${pc.cyan(`v${packageJson.version}`)}
 
-  To exit, press CTRL+C (CMD+C on macOS) twice.
+  To exit, press CTRL+C twice.
+  If you're customizing the code for this Agent, you may need to reload this chat every time you save.
 
-  For more information, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview
-
-  `);
+  ${pc.italic('For more information on the Agent creation process, head over to https://docs.upstreet.ai/create-an-agent#step-2-complete-the-agent-interview')}
+  
+`);
         await handleError(async () => {
           commandExecuted = true;
           let args;
