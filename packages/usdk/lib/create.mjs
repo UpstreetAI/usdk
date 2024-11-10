@@ -451,11 +451,10 @@ export const create = async (args, opts) => {
   console.log();
   console.log(pc.green('To start a chat with your agent, run:'));
   console.log(pc.cyan(`  usdk chat ${dstDir}`));
-  console.log();
-  console.log(pc.green('To learn how to customize your agent with code, check out our docs: https://docs.upstreet.ai/customize-your-agent'));
-  console.log();
   console.log(pc.green(`To edit this agent again, run:`));
   console.log(pc.cyan(`  usdk edit ${dstDir}`));
+  console.log();
+  console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
   console.log();
   console.log(pc.green(`Happy building!`));
 
