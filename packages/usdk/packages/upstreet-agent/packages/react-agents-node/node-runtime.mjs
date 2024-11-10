@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import crossSpawn from 'cross-spawn';
 import toml from '@iarna/toml';
-import 'react-agents-builder';
+// import 'react-agents-builder';
 
 import Worker from 'web-worker';
 globalThis.Worker = Worker;
