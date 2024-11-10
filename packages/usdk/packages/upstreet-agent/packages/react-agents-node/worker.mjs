@@ -58,33 +58,21 @@ const loadModuleSource = async (p) => {
         input: p,
       },
     },
-    /* plugins: [
-      {
-        name: 'globals-plugin',
-        enforce: 'pre',
-        async resolveId(source, importer) {
-          console.log('resolveId', source, importer);
-          for (const [importName, importPath] of globalImportMap) {
-            if (source === importName) {
-              return source;
-            }
-          }
-          return null;
-        },
-        async load(id) {
-          console.log('load', id);
-          for (const [importName, importPath] of globalImportMap) {
-            if (id === importName) {
-              return {
-                code: `export default globalImports[${JSON.stringify(importName)}];`,
-                map: null
-              };
-            }
-          }
-          return null;
-        },
-      },
-    ], */
+    plugins: [
+      // {
+      //   name: 'virtual-module',
+      //   resolveId(id) {
+      //     if (id === p) {
+      //       return id;
+      //     }
+      //   },
+      //   load(id) {
+      //     if (id === p && sourceCode) {
+      //       return sourceCode;
+      //     }
+      //   }
+      // },
+    ],
   });
   
   if (!result || !result.output || !result.output[0]) {
