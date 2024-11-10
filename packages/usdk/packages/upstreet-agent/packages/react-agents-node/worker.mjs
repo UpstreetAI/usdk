@@ -37,6 +37,10 @@ const viteServerPromise = createViteServer({
     ],
   },
 });
+const loadModule = async (path) => {
+  const viteServer = await viteServerPromise;
+  return await viteServer.ssrLoadModule(path);
+};
 //
 const getEnv = async () => {
   // load the wrangler.toml
@@ -80,15 +84,11 @@ const getEnv = async () => {
   return env;
 };
 const getAgentMain = async () => {
-  const viteServer = await viteServerPromise;
-  // console.log('get agent module 1');
-  const agentModule = await viteServer.ssrLoadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');
-  // console.log('get agent module 2', agentModule);
+  const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');
   return agentModule.AgentMain;
 };
 const getUserRender = async () => {
-  const viteServer = await viteServerPromise;
-  const agentModule = await viteServer.ssrLoadModule('/agent.tsx');
+  const agentModule = await loadModule('/agent.tsx');
   return agentModule.default;
 };
 //
