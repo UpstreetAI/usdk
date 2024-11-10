@@ -1425,6 +1425,14 @@ export const main = async () => {
           const loginJson = await login(args);
           await mkdirp(path.dirname(loginLocation));
           await fs.promises.writeFile(loginLocation, JSON.stringify(loginJson));
+
+          // instruct the user to use `usdk create` to create their own agent
+          console.log();
+          console.log(pc.green(`You logged in!`));
+          console.log();
+          console.log('To create an agent, run:');
+          console.log(pc.cyan('  usdk create'));
+          console.log();
         });
       });
     program
