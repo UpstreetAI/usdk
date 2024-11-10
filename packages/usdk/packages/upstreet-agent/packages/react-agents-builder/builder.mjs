@@ -9,10 +9,15 @@ const ensureEsbuild = (() => {
       esBuildPromise = (async () => {
         try {
           const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
-          await esbuild.initialize({
-            worker: true,
-            wasmURL: u.href,
-          });
+          let opts = {};
+          if (typeof window !== 'undefined') {
+            opts = {
+              ...opts,
+              worker: true,
+              wasmURL: u.href,
+            };
+          }
+          await esbuild.initialize(opts);
         } catch (err) {
           console.warn('failed to initialize esbuild', err);
         }
