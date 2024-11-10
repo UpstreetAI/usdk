@@ -2,14 +2,14 @@ import spawn from 'cross-spawn';
 
 export const npmInstall = async (dstDir) => {
   await new Promise((resolve, reject) => {
-    const child = spawn('npm', ['install'], {
+    const child = spawn('pnpm', ['install'], {
       cwd: dstDir,
       stdio: 'inherit',
     });
 
     child.on('close', (code) => {
       if (code !== 0) {
-        reject(new Error(`npm install failed with code ${code}`));
+        reject(new Error(`pnpm install failed with code ${code}`));
       } else {
         resolve();
       }
@@ -19,7 +19,7 @@ export const npmInstall = async (dstDir) => {
 
 const getNpmRoot = async () => {
   const { stdout } = await new Promise((resolve, reject) => {
-    const child = spawn('npm', ['root', '--quiet', '-g']);
+    const child = spawn('pnpm', ['root', '--quiet', '-g']);
 
     let output = '';
     child.stdout.on('data', (data) => {
@@ -28,7 +28,7 @@ const getNpmRoot = async () => {
 
     child.on('close', (code) => {
       if (code !== 0) {
-        reject(new Error(`npm root failed with code ${code}`));
+        reject(new Error(`pnpm root failed with code ${code}`));
       } else {
         resolve({ stdout: output });
       }
