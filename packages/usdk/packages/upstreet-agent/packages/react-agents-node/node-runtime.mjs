@@ -27,7 +27,7 @@ export class ReactAgentsNodeRuntime {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        path.join(localDirectory, 'worker.mjs'),
+        path.join(localDirectory, 'watcher.mjs'),
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
