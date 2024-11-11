@@ -171,11 +171,6 @@ const interview = async (agentJson, {
 
   let currentSpinnerState = false;
   const updateSpinner = (isProcessing) => {
-    console.log('updateSpinner', {
-      isProcessing,
-      currentSpinnerState,
-    });
-
     if (isProcessing && !currentSpinnerState) {
       currentSpinnerState = true;
       spinner.start();
@@ -191,11 +186,6 @@ const interview = async (agentJson, {
       const {
         isProcessing,
       } = event.data;
-
-      console.log('processingStateChange', {
-        isProcessing,
-        isSpinning: spinner.isSpinning,
-      });
       updateSpinner(isProcessing);
     } catch (error) {
       console.error('Spinner error:', error);
@@ -234,8 +224,6 @@ const interview = async (agentJson, {
     } = e.data;
     // console.log('agent interview change', updateObject);
   });
-
-  console.log('events: ', events);
   
   if (events) {
     ['preview', 'homespace'].forEach(eventType => {

@@ -98,7 +98,6 @@ export class Interactor extends EventTarget {
   }
 
   #setProcessingState(isProcessing) {
-    console.log('setProcessingState', { isProcessing });
     this.#isProcessing = isProcessing;
     this.dispatchEvent(new MessageEvent('processingStateChange', {
       data: { isProcessing }
