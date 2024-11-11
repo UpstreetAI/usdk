@@ -61,6 +61,9 @@ const loadModuleSource = async (p) => {
         input: p,
       },
     },
+    esbuild: {
+      jsx: 'transform',
+    },
     plugins: [
       // {
       //   name: 'virtual-module',
