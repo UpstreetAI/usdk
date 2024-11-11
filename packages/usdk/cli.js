@@ -120,6 +120,7 @@ const logger = LoggerFactory.getLogger();
 ['uncaughtException', 'unhandledRejection'].forEach(event =>
   process.on(event, (err, err2) => {
     console.error('cli uncaught exception', err, err2);
+    console.log("A complete log of this run can be found in: \n", logger.getLogFilePath());
     process.exit(1);
   })
 );
