@@ -16,6 +16,7 @@ import {
 } from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { npmInstall } from '../lib/npm-util.mjs';
+import { gitInit } from '../lib/git-util.mjs';
 import {
   makeTempDir,
 } from './file.mjs';
@@ -529,6 +530,12 @@ export const create = async (args, opts) => {
   if (!noInstall) {
     console.log(pc.italic('Installing dependencies...'));
     await npmInstall(dstDir);
+  }
+
+  // git init
+  if (!noInstall) {
+    console.log(pc.italic('Initializing git...'));
+    await gitInit(dstDir);
   }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
