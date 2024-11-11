@@ -1373,7 +1373,8 @@ const handleError = async (fn) => {
     return await fn();
   } catch (err) {
     console.warn(err.stack);
-    process.exit(1);
+    console.log("A complete log of this run can be found in: \n", logger.getLogFilePath());
+    // process.exit(1);
   }
 };
 export const main = async () => {
@@ -1399,6 +1400,7 @@ export const main = async () => {
         await handleError(async () => {
           commandExecuted = true;
           console.log(pc.cyan(ver));
+          throw new Error('done');
         });
       });
     /* program
