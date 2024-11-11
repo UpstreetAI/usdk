@@ -70,6 +70,7 @@
     "mpg123-decoder": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder",
     "open": "^10.1.0",
     "openai": "^4.56.0",
+    "ora": "^8.1.1",
     "picocolors": "^1.0.1",
     "pretty-bytes": "^6.1.1",
     "queue-manager": "file:./packages/upstreet-agent/packages/queue-manager",
