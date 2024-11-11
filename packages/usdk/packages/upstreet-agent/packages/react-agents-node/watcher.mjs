@@ -2,9 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
-// import toml from '@iarna/toml';
-// import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-// import { globalImports } from 'react-agents/util/worker-global-imports.mjs'
+import crossSpawn from 'cross-spawn';
 import { Debouncer } from 'debouncer';
 
 //
@@ -53,33 +51,42 @@ const viteServerPromise = createViteServer({
 const loadModuleSource = async (p) => {
   // read the source code at the path
   const sourceCode = await fs.promises.readFile(p, 'utf8');
-  // console.log('sourceCode', sourceCode.length);
+  console.log('build dir', cwd);
   const moduleName = './module.mjs';
   const result = await viteBuild({
     root: cwd,
+    ssr: {
+      noExternal: true,
+    },
     build: {
       write: false,
-      ssr: true,
       sourcemap: true,
       rollupOptions: {
         input: moduleName,
+        external: [],
+      },
+      commonjsOptions: {
+        include: /node_modules/,
       },
     },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
     },
+    optimizeDeps: {
+      disabled: false,
+      include: ['**/*'],
+      exclude: [],
+    },
     plugins: [
       {
         name: 'virtual-module',
         resolveId(id) {
-          // console.log('resolveId', id);
           if (id === moduleName) {
             return id;
           }
         },
         load(id) {
-          // console.log('load', id);
           if (id === moduleName) {
             return sourceCode;
           }
@@ -92,66 +99,16 @@ const loadModuleSource = async (p) => {
     throw new Error('Build failed to produce output');
   }
 
+  // XXX debugging
+  fs.writeFileSync('/tmp/result.json', JSON.stringify(result.output[0], null, 2));
+
   const code = result.output[0].code;
-  const map = result.output[0].map;
-  const base64Map = Buffer.from(JSON.stringify(map)).toString('base64');
-  const sourceMapComment = `//# sourceMappingURL=data:application/json;base64,${base64Map}`;
-  return `${code}\n${sourceMapComment}`;
+  return code;
+  // const map = result.output[0].map;
+  // const base64Map = Buffer.from(JSON.stringify(map)).toString('base64');
+  // const sourceMapComment = `//# sourceMappingURL=data:application/json;base64,${base64Map}`;
+  // return `${code}\n${sourceMapComment}`;
 };
-//
-// const getEnv = async () => {
-//   // load the wrangler.toml
-//   const wranglerTomlPath = './wrangler.toml';
-//   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-//   const wranglerToml = toml.parse(wranglerTomlString);
-
-//   const agentJsonString = wranglerToml.vars.AGENT_JSON;
-//   if (!agentJsonString) {
-//     throw new Error('missing AGENT_JSON in wrangler.toml');
-//   }
-//   const agentJson = JSON.parse(agentJsonString);
-
-//   const apiKey = wranglerToml.vars.AGENT_TOKEN;
-//   if (!apiKey) {
-//     throw new Error('missing AGENT_TOKEN in wrangler.toml');
-//   }
-
-//   const mnemonic = wranglerToml.vars.WALLET_MNEMONIC;
-//   if (!mnemonic) {
-//     throw new Error('missing WALLET_MNEMONIC in wrangler.toml');
-//   }
-
-//   const {
-//     SUPABASE_URL,
-//     SUPABASE_PUBLIC_API_KEY,
-//   } = wranglerToml.vars;
-//   if (!SUPABASE_URL || !SUPABASE_PUBLIC_API_KEY) {
-//     throw new Error('missing SUPABASE_URL or SUPABASE_PUBLIC_API_KEY in wrangler.toml');
-//   }
-
-//   // send init message
-//   const env = {
-//     AGENT_JSON: JSON.stringify(agentJson),
-//     AGENT_TOKEN: apiKey,
-//     WALLET_MNEMONIC: mnemonic,
-//     SUPABASE_URL,
-//     SUPABASE_PUBLIC_API_KEY,
-//     WORKER_ENV: 'development', // 'production',
-//   };
-//   return env;
-// };
-// const getAgentMain = async () => {
-//   const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');  
-//   return agentModule.AgentMain;
-// };
-// const getUserRender = async () => {
-//   const userRenderModule = await loadModule('/agent.tsx');
-
-//   // const userRenderSource = await loadModuleSource('/agent.tsx');
-//   // console.log('userRenderSource', userRenderSource);
-  
-//   return userRenderModule.default;
-// };
 //
 let agentWorkerPromise = null;
 const reloadDebouncer = new Debouncer();
@@ -168,7 +125,32 @@ const reloadAgentWorker = async () => {
       const p = path.join(dirname, 'entry.mjs');
       // console.log('load module source', p);
       const moduleSource = await loadModuleSource(p);
-      console.log('moduleSource', moduleSource.length);
+      // console.log('moduleSource', moduleSource);
+
+      // XXX debugging
+      fs.writeFileSync('/tmp/module.mjs', moduleSource);
+
+      // create the worker
+      const cp = crossSpawn(process.execPath, [
+        path.join(dirname, 'worker.mjs'),
+      ], {
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+      });
+      cp.stdout.pipe(process.stdout);
+      cp.stderr.pipe(process.stderr);
+      cp.on('exit', (code) => {
+        console.log('worker exited', code);
+      });
+      cp.on('error', (err) => {
+        console.error('worker error', err);
+      });
+
+      cp.send({
+        method: 'init',
+        args: [
+          moduleSource,
+        ],
+      });
 
       /* // start the new agent process
       const [

@@ -4,12 +4,14 @@ process.on('message', async (message) => {
   if (method === 'init') {
     const [source] = args;
     try {
-      eval(source);
+      const dataUrl = 'data:text/javascript,' + encodeURIComponent(source);
+      const module = await import(dataUrl);
+      console.log('module', module);
     } catch(err) {
-      console.error('worker eval error:', err);
-      // process.send({
-      //   error: err.stack
-      // });
+      console.error('worker import error:', err);
+      process.send({
+        error: err.stack
+      });
       process.exit(1);
     }
   }
