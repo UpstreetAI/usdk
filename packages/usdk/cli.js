@@ -1400,7 +1400,6 @@ export const main = async () => {
         await handleError(async () => {
           commandExecuted = true;
           console.log(pc.cyan(ver));
-          throw new Error('done');
         });
       });
     /* program
