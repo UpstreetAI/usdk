@@ -20,12 +20,16 @@ class PinoLogger extends Logger{
         const transport = pino.transport({
             targets: [
                 {
-                    target: 'pino/file',
+                    target: 'pino-pretty',
                     options: {
                         destination: this.logFilePath,
+                        colorize: false,
+                        translateTime: 'SYS:standard',
+                        ignore: 'pid,hostname',
+                        singleLine: false,
                     }
-                },
-            ]
+                }
+            ],
         });
 
         this.logger = pino({
@@ -35,9 +39,8 @@ class PinoLogger extends Logger{
                 level: (label) => {
                     return { level: label.toUpperCase() };
                 }
-            }
+            },
         }, transport);
-
         PinoLogger.instance = this;
     }
 
