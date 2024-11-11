@@ -11,6 +11,11 @@ module.exports = {
         destination: 'https://discord.gg/TfKW36rMj7',
         permanent: false,
       },
+      {
+        source: '/agentika-hackathon',
+        destination: 'https://forms.gle/YZgQqW6dXLYCjDwCA',
+        permanent: false,
+      },
     ]
   },
   images: {

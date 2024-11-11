@@ -50,10 +50,43 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import ora from 'ora';
 
 //
 
 const agentJsonSrcFilename = 'agent.json';
+
+//
+
+const logAgentPropertyUpdate = (propertyName, newValue) => {
+  // ANSI escape codes for colors
+  const colors = {
+    blue: '\x1b[34m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    cyan: '\x1b[36m',
+    reset: '\x1b[0m',
+    bold: '\x1b[1m',
+    dim: '\x1b[2m'
+  };
+
+  if (typeof newValue === 'object' && newValue !== null) {
+    console.log(`${colors.blue}${colors.bold}[AGENT UPDATE]${colors.reset} ${colors.cyan}${propertyName}${colors.reset}`);
+    Object.entries(newValue).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        console.log(`  ${colors.dim}→${colors.reset} ${colors.yellow}${key}${colors.reset}: ${colors.green}${value}${colors.reset}`);
+      }
+    });
+  } else {
+    console.log(
+      `${colors.blue}${colors.bold}[AGENT UPDATE]${colors.reset} ${colors.cyan}${propertyName}${colors.reset} ${colors.dim}→${colors.reset} ${colors.green}${newValue}${colors.reset}`
+    );
+  }
+};
+
+const propertyLogger = (prefix) => (e) => {
+  logAgentPropertyUpdate(prefix, e.data);
+};
 
 //
 
@@ -138,6 +171,7 @@ const interview = async (agentJson, {
   events,
   jwt,
 }) => {
+
   const questionLogger = new InterviewLogger(
     inputStream && outputStream
       ? new StreamStrategy(inputStream, outputStream)
@@ -160,7 +194,44 @@ const interview = async (agentJson, {
     mode,
     jwt,
   };
+
+  const spinner = ora({
+    text: '',
+    spinner: {
+        interval: 80,
+        frames: [
+            '●∙∙∙',
+            '∙●∙∙',
+            '∙∙●∙',
+            '∙∙∙●',
+            '∙∙∙∙'
+        ]
+    },
+    discardStdin: false,
+  }).stop(); // initialize as stopped
+
+  let currentSpinnerState = false;
+  const updateSpinner = (isProcessing) => {
+    if (isProcessing && !currentSpinnerState) {
+      currentSpinnerState = true;
+      spinner.start();
+    } else if (!isProcessing && currentSpinnerState) {
+      currentSpinnerState = false;
+      spinner.stop();
+    }
+  };
+
   const agentInterview = new AgentInterview(opts);
+  agentInterview.addEventListener('processingStateChange', (event) => {
+    try {
+      const {
+        isProcessing,
+      } = event.data;
+      updateSpinner(isProcessing);
+    } catch (error) {
+      console.error('Spinner error:', error);
+    }
+  });
   agentInterview.addEventListener('input', async e => {
     const {
       question,
@@ -168,11 +239,14 @@ const interview = async (agentJson, {
     // console.log('agent interview input 1', {
     //   question,
     // });
+
     const answer = await getAnswer(question);
+
     // console.log('agent interview input 2', {
     //   question,
     //   answer,
     // });
+
     agentInterview.write(answer);
   });
   agentInterview.addEventListener('output', async e => {
@@ -191,6 +265,7 @@ const interview = async (agentJson, {
     } = e.data;
     // console.log('agent interview change', updateObject);
   });
+  
   if (events) {
     ['preview', 'homespace'].forEach(eventType => {
       agentInterview.addEventListener(eventType, (e) => {
@@ -217,11 +292,15 @@ const interview = async (agentJson, {
       const {
         text: imageText,
       } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
-      console.log(label);
+      logAgentPropertyUpdate(label, '');
       console.log(imageText);
     };
     agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
     agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
+    agentInterview.addEventListener('name', propertyLogger('name'));
+    agentInterview.addEventListener('bio', propertyLogger('bio'));
+    agentInterview.addEventListener('description', propertyLogger('description'));
+    agentInterview.addEventListener('features', propertyLogger('features'));
   }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
@@ -451,11 +530,10 @@ export const create = async (args, opts) => {
   console.log();
   console.log(pc.green('To start a chat with your agent, run:'));
   console.log(pc.cyan(`  usdk chat ${dstDir}`));
-  console.log();
-  console.log(pc.green('To learn how to customize your agent with code, check out our docs: https://docs.upstreet.ai/customize-your-agent'));
-  console.log();
   console.log(pc.green(`To edit this agent again, run:`));
   console.log(pc.cyan(`  usdk edit ${dstDir}`));
+  console.log();
+  console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
   console.log();
   console.log(pc.green(`Happy building!`));
 
