@@ -4,11 +4,11 @@ import React from 'react';
 import { IconButton } from 'ucom';
 import { useRouter } from 'next/navigation';
 
-export function BackButton() {
+export function BackButton({className = ''}) {
   const router = useRouter();
 
   return (
-    <div className='absolute z-[100] left-8 top-8'>
+    <div className={`${className}`}>
       <IconButton 
         onClick={() => router.back()} 
         icon={'BackArrow'} 
