@@ -1,4 +1,5 @@
 // import fs from 'fs';
+import os from 'os';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
 // import toml from '@iarna/toml';
 // import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
@@ -13,6 +14,7 @@ import { Debouncer } from 'debouncer';
 //
 
 const cwd = process.cwd();
+const homeDir = os.homedir();
 // const nativeImport = new Function('specifier', 'return import(specifier)');
 const headersToObject = (headers) => {
   const result = {};
@@ -61,6 +63,7 @@ const loadModuleSource = async (p) => {
         input: p,
       },
     },
+    cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
     },
