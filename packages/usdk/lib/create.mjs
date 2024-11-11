@@ -165,7 +165,16 @@ const interview = async (agentJson, {
 
   const spinner = ora({
     text: '',
-    spinner: 'dots',
+    spinner: {
+        interval: 80,
+        frames: [
+            '●∙∙∙',
+            '∙●∙∙',
+            '∙∙●∙',
+            '∙∙∙●',
+            '∙∙∙∙'
+        ]
+    },
     discardStdin: false,
   }).stop(); // initialize as stopped
 
