@@ -1,7 +1,7 @@
 import fs from 'fs';
-import toml from 'toml';
-import { AgentMain } from 'upstreet-agent/packages/react-agents/entry.ts';
-import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+import toml from '@iarna/toml';
+import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
+import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-worker.mjs';
 import userRender from './agent.tsx';
 
 //

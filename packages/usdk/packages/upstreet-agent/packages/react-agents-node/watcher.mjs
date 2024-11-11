@@ -1,4 +1,5 @@
-// import fs from 'fs';
+import path from 'path';
+import fs from 'fs';
 import os from 'os';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
 // import toml from '@iarna/toml';
@@ -10,41 +11,38 @@ import { Debouncer } from 'debouncer';
 
 // const globalImportMap = new Map(Array.from(Object.entries(globalImports)));
 // const globalNamespace = 'globals';
+const dirname = path.dirname(import.meta.url.replace('file://', ''));
 
 //
 
 const cwd = process.cwd();
 const homeDir = os.homedir();
 // const nativeImport = new Function('specifier', 'return import(specifier)');
-const headersToObject = (headers) => {
+/* const headersToObject = (headers) => {
   const result = {};
   for (const [key, value] of headers.entries()) {
     result[key] = value;
   }
   return result;
-};
+}; */
 
 // initialize the dev server
 const viteServerPromise = createViteServer({
-  server: { 
-    middlewareMode: true
-  },
-  appType: 'custom',
-  esbuild: {
-    jsx: 'transform',
-    // jsxFactory: 'React.createElement',
-    // jsxFragment: 'React.Fragment',
-  },
-  optimizeDeps: {
-    // XXX make this watch only, instead of rebuilding. we build manually
-    entries: [
-      './agent.tsx',
-      './packages/upstreet-agent/packages/react-agents/entry.ts',
-    ],
-  },
+  // server: { 
+  //   middlewareMode: true
+  // },
+  // appType: 'custom',
+  // esbuild: {
+  //   jsx: 'transform',
+  // },
+  // optimizeDeps: {
+  //   disabled: true // Disable dependency optimization/building
+  // },
   watch: {
     include: [
       'wrangler.toml',
+      './agent.tsx',
+      './packages/upstreet-agent/packages/react-agents/entry.ts'
     ],
   },
 });
@@ -53,14 +51,18 @@ const viteServerPromise = createViteServer({
 //   return await viteServer.ssrLoadModule(p);
 // };
 const loadModuleSource = async (p) => {
+  // read the source code at the path
+  const sourceCode = await fs.promises.readFile(p, 'utf8');
+  // console.log('sourceCode', sourceCode.length);
+  const moduleName = './module.mjs';
   const result = await viteBuild({
-    // root: cwd,
+    root: cwd,
     build: {
       write: false,
       ssr: true,
       sourcemap: true,
       rollupOptions: {
-        input: p,
+        input: moduleName,
       },
     },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
@@ -68,19 +70,21 @@ const loadModuleSource = async (p) => {
       jsx: 'transform',
     },
     plugins: [
-      // {
-      //   name: 'virtual-module',
-      //   resolveId(id) {
-      //     if (id === p) {
-      //       return id;
-      //     }
-      //   },
-      //   load(id) {
-      //     if (id === p && sourceCode) {
-      //       return sourceCode;
-      //     }
-      //   }
-      // },
+      {
+        name: 'virtual-module',
+        resolveId(id) {
+          // console.log('resolveId', id);
+          if (id === moduleName) {
+            return id;
+          }
+        },
+        load(id) {
+          // console.log('load', id);
+          if (id === moduleName) {
+            return sourceCode;
+          }
+        }
+      },
     ],
   });
   
@@ -161,8 +165,10 @@ const reloadAgentWorker = async () => {
         await oldAgentWorker.terminate();
       }
 
-      const moduleSource = await loadModuleSource('./entry.mjs');
-      console.log('moduleSource', moduleSource);
+      const p = path.join(dirname, 'entry.mjs');
+      // console.log('load module source', p);
+      const moduleSource = await loadModuleSource(p);
+      console.log('moduleSource', moduleSource.length);
 
       /* // start the new agent process
       const [
@@ -215,72 +221,72 @@ const listenForChanges = async () => {
 };
 listenForChanges();
 
-process.on('message', async (eventData) => {
-  console.log('got event', eventData);
+// process.on('message', async (eventData) => {
+//   console.log('got event', eventData);
 
-  throw new Error('not implemented');
+//   throw new Error('not implemented');
 
-  /* const method = eventData?.method;
-  switch (method) {
-    case 'request': {
-      (async () => {
-        if (!agentMainPromise) {
-          throw new Error('agent worker: DurableObject not initialized');
-        }
-        const agentMain = await agentMainPromise;
+//   /* const method = eventData?.method;
+//   switch (method) {
+//     case 'request': {
+//       (async () => {
+//         if (!agentMainPromise) {
+//           throw new Error('agent worker: DurableObject not initialized');
+//         }
+//         const agentMain = await agentMainPromise;
 
-        const { args } = eventData;
-        const {
-          id,
-          method,
-          headers,
-          body,
-        } = args;
-        if (!id) {
-          throw new Error('request message missing id: ' + JSON.stringify(args));
-        }
+//         const { args } = eventData;
+//         const {
+//           id,
+//           method,
+//           headers,
+//           body,
+//         } = args;
+//         if (!id) {
+//           throw new Error('request message missing id: ' + JSON.stringify(args));
+//         }
 
-        let resultArrayBuffer = null;
-        let resultStatus = null;
-        let resultHeaders = null;
-        let error = null;
-        try {
-          const request = new Request(args.url, {
-            method,
-            headers,
-            body,
-          });
+//         let resultArrayBuffer = null;
+//         let resultStatus = null;
+//         let resultHeaders = null;
+//         let error = null;
+//         try {
+//           const request = new Request(args.url, {
+//             method,
+//             headers,
+//             body,
+//           });
 
-          const res = await agentMain.fetch(request);
-          // console.log('got durable object response', res.ok, res.status, res.headers);
-          if (res.ok) {
-            resultArrayBuffer = await res.arrayBuffer();
-            resultStatus = res.status;
-            resultHeaders = headersToObject(res.headers);
-          } else {
-            throw new Error('Failed to fetch: ' + res.status);
-          }
-        } catch (err) {
-          console.error('Failed to fetch', err);
-          error = err;
-        }
+//           const res = await agentMain.fetch(request);
+//           // console.log('got durable object response', res.ok, res.status, res.headers);
+//           if (res.ok) {
+//             resultArrayBuffer = await res.arrayBuffer();
+//             resultStatus = res.status;
+//             resultHeaders = headersToObject(res.headers);
+//           } else {
+//             throw new Error('Failed to fetch: ' + res.status);
+//           }
+//         } catch (err) {
+//           console.error('Failed to fetch', err);
+//           error = err;
+//         }
 
-        globalThis.postMessage({
-          method: 'response',
-          args: {
-            id,
-            status: resultStatus,
-            body: resultArrayBuffer,
-            headers: resultHeaders,
-            error,
-          },
-        });
-      })();
-      break;
-    }
-    default: {
-      console.error('unknown method', method);
-      break;
-    }
-  } */
-});
+//         globalThis.postMessage({
+//           method: 'response',
+//           args: {
+//             id,
+//             status: resultStatus,
+//             body: resultArrayBuffer,
+//             headers: resultHeaders,
+//             error,
+//           },
+//         });
+//       })();
+//       break;
+//     }
+//     default: {
+//       console.error('unknown method', method);
+//       break;
+//     }
+//   } */
+// });
