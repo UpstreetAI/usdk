@@ -50,6 +50,7 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import ora from 'ora';
 
 //
 
@@ -138,6 +139,7 @@ const interview = async (agentJson, {
   events,
   jwt,
 }) => {
+
   const questionLogger = new InterviewLogger(
     inputStream && outputStream
       ? new StreamStrategy(inputStream, outputStream)
@@ -160,7 +162,44 @@ const interview = async (agentJson, {
     mode,
     jwt,
   };
+
+  const spinner = ora({
+    text: '',
+    spinner: {
+        interval: 80,
+        frames: [
+            '●∙∙∙',
+            '∙●∙∙',
+            '∙∙●∙',
+            '∙∙∙●',
+            '∙∙∙∙'
+        ]
+    },
+    discardStdin: false,
+  }).stop(); // initialize as stopped
+
+  let currentSpinnerState = false;
+  const updateSpinner = (isProcessing) => {
+    if (isProcessing && !currentSpinnerState) {
+      currentSpinnerState = true;
+      spinner.start();
+    } else if (!isProcessing && currentSpinnerState) {
+      currentSpinnerState = false;
+      spinner.stop();
+    }
+  };
+
   const agentInterview = new AgentInterview(opts);
+  agentInterview.addEventListener('processingStateChange', (event) => {
+    try {
+      const {
+        isProcessing,
+      } = event.data;
+      updateSpinner(isProcessing);
+    } catch (error) {
+      console.error('Spinner error:', error);
+    }
+  });
   agentInterview.addEventListener('input', async e => {
     const {
       question,
@@ -168,11 +207,14 @@ const interview = async (agentJson, {
     // console.log('agent interview input 1', {
     //   question,
     // });
+
     const answer = await getAnswer(question);
+
     // console.log('agent interview input 2', {
     //   question,
     //   answer,
     // });
+
     agentInterview.write(answer);
   });
   agentInterview.addEventListener('output', async e => {
@@ -191,6 +233,7 @@ const interview = async (agentJson, {
     } = e.data;
     // console.log('agent interview change', updateObject);
   });
+  
   if (events) {
     ['preview', 'homespace'].forEach(eventType => {
       agentInterview.addEventListener(eventType, (e) => {
@@ -451,7 +494,12 @@ export const create = async (args, opts) => {
   console.log();
   console.log(pc.green('To start a chat with your agent, run:'));
   console.log(pc.cyan(`  usdk chat ${dstDir}`));
+  console.log(pc.green(`To edit this agent again, run:`));
+  console.log(pc.cyan(`  usdk edit ${dstDir}`));
   console.log();
+  console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
+  console.log();
+  console.log(pc.green(`Happy building!`));
 
   return agentJson;
   // // return the parsed dstWranglerToml
