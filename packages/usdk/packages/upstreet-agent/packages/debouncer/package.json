@@ -1,0 +1,5 @@
+{
+  "name": "debouncer",
+  "version": "0.0.1",
+  "main": "debouncer.mjs"
+}

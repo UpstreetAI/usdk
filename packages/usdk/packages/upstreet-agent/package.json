@@ -9,6 +9,7 @@
     "@types/react": "^18.3.3",
     "browser-util-inspect": "^0.2.0",
     "codecs": "file:./packages/codecs",
+    "debouncer": "file:./packages/debouncer",
     "dedent": "^1.5.3",
     "ethers": "^6.12.0",
     "format-util": "^1.0.5",
