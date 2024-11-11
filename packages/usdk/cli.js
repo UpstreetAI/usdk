@@ -1376,7 +1376,7 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-export const main = async () => {
+export const main = async (returnProgram = false) => {
   try {
     let commandExecuted = false;
     program
@@ -2071,7 +2071,12 @@ export const main = async () => {
           await withdraw(args);
         });
       });*/
-    await program.parseAsync();
+    if (returnProgram) {
+      return program;  
+    }
+    else {
+      await program.parseAsync();
+    }
   } catch (error) {
     console.error(error);
   }
