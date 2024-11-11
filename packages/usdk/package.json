@@ -84,6 +84,7 @@
     "together-ai": "^0.6.0-alpha.4",
     "unique-names-generator": "^4.7.1",
     "vercel": "^34.2.6",
+    "vite": "^5.4.11",
     "web-worker": "1.2.0",
     "webp-wasm": "^1.0.6",
     "winston": "^3.16.0",
