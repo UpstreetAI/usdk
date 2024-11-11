@@ -1,4 +1,3 @@
-
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agents';
@@ -12,25 +11,38 @@ type Params = {
   };
 };
 
-export async function generateMetadata({
-  params
-}: Params): Promise<Metadata> {
-  // const supabase = createClient();
-  const supabase = makeAnonymousClient(env);
-  // const {
-  //   data: { user }
-  // } = await supabase.auth.getUser();
-
-  // decode the uri for usernames that have spaces in them
-  // const agentName = decodeURIComponent(params.id)
-  const agentId = decodeURIComponent(params.id)
-
-  const result = await supabase
+async function getAgentData(supabase: any, identifier: string) {
+  // First try to find by ID
+  let result = await supabase
     .from('assets')
     .select('*, author: accounts ( id, name )')
-    .eq('id', agentId)
+    .eq('id', identifier)
     .single();
+
+  // If not found by ID, try to find by username
+  if (!result.data) {
+    result = await supabase
+      .from('assets')
+      .select('*, author: accounts ( id, name )')
+      .eq('name', identifier)
+      .single();
+  }
+
+  return result;
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const supabase = makeAnonymousClient(env);
+  const identifier = decodeURIComponent(params.id);
+
+  const result = await getAgentData(supabase, identifier);
   const agentData = result.data as any;
+
+  if (!agentData) {
+    return {
+      title: 'Agent not found!'
+    };
+  }
 
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
@@ -71,39 +83,16 @@ export async function generateMetadata({
 
 export default async function AgentProfilePage({ params }: Params) {
   const supabase = makeAnonymousClient(env);
-  // const {
-  //   data: { user }
-  // } = await supabase.auth.getUser();
+  const identifier = decodeURIComponent(params.id);
 
-  // decode the uri for usernames that have spaces in them
-  // const agentName = decodeURIComponent(params.id)
-  const agentId = decodeURIComponent(params.id);
-
-  const result = await supabase
-    .from('assets')
-    .select(`
-      *,
-      author: accounts ( id, name )
-    `)
-    .eq('id', agentId)
-    .single();
+  const result = await getAgentData(supabase, identifier);
   const agentData = result.data as any;
 
-  if (!agentData?.id) return <div className="w-full max-w-2xl mx-auto p-8 text-center">Agent Not Found</div>;
+  if (!agentData?.id) {
+    return notFound();  // Using Next.js not found page instead of div
+  }
 
-  // const response = await fetch(agentData.start_url);
-  // if (response.ok) {
-    // const jsonData = await response.json();
-
-    // const agentInfo = {
-    //   ...agentData,
-    //   npc: jsonData
-    // }
-
-    return (
-      <AgentProfile agent={agentData} />
-    );
-  // } else {
-  //   throw new Error('Failed to fetch agent data: ' + response.status);
-  // }
+  return (
+    <AgentProfile agent={agentData} />
+  );
 }
