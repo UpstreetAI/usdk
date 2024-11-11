@@ -161,7 +161,7 @@ const reloadAgentWorker = async () => {
         await oldAgentWorker.terminate();
       }
 
-      const moduleSource = await loadModuleSource('./worker.mjs');
+      const moduleSource = await loadModuleSource('./entry.mjs');
       console.log('moduleSource', moduleSource);
 
       /* // start the new agent process
