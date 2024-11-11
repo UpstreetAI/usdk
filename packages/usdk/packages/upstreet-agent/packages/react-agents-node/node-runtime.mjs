@@ -28,13 +28,15 @@ export class ReactAgentsNodeRuntime {
         '--experimental-wasm-modules',
         '--experimental-transform-types',
         path.join(localDirectory, 'watcher.mjs'),
+        'run',
+        directory,
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-        cwd: directory,
+        // cwd: directory,
       },
     );
     cp.stdout.pipe(process.stdout);
@@ -50,7 +52,7 @@ export class ReactAgentsNodeRuntime {
     });
     this.cp = cp;
   }
-  async fetch(url, opts) {
+  /* async fetch(url, opts) {
     const requestId = crypto.randomUUID();
     const {
       method, headers, body,
@@ -111,7 +113,7 @@ export class ReactAgentsNodeRuntime {
       };
     });
     return res;
-  }
+  } */
   terminate() {
     return new Promise((accept, reject) => {
       if (this.cp === null) {
