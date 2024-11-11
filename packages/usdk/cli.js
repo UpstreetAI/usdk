@@ -116,6 +116,15 @@ const logger = LoggerFactory.getLogger();
   };
 });
 
+// Set up global error handling
+['uncaughtException', 'unhandledRejection'].forEach(event =>
+  process.on(event, (err, err2) => {
+    console.error('cli uncaught exception', err, err2);
+    process.exit(1);
+  })
+);
+
+
 //
 
 const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
