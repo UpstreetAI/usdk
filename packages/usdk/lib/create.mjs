@@ -162,22 +162,43 @@ const interview = async (agentJson, {
     mode,
     jwt,
   };
-  const spinner = ora();
-  const agentInterview = new AgentInterview(opts);
-  agentInterview.addEventListener('processingStateChange', (event) => {
-    const {
-      isProcessing,
-    } = event.data;
 
-    console.log('processingStateChange', {
+  const spinner = ora({
+    text: '',
+    spinner: 'dots',
+    discardStdin: false,
+  }).stop(); // initialize as stopped
+
+  let currentSpinnerState = false;
+  const updateSpinner = (isProcessing) => {
+    console.log('updateSpinner', {
       isProcessing,
-      isSpinning: spinner.isSpinning,
+      currentSpinnerState,
     });
 
-    if (isProcessing) {
+    if (isProcessing && !currentSpinnerState) {
+      currentSpinnerState = true;
       spinner.start();
-    } else {
+    } else if (!isProcessing && currentSpinnerState) {
+      currentSpinnerState = false;
       spinner.stop();
+    }
+  };
+
+  const agentInterview = new AgentInterview(opts);
+  agentInterview.addEventListener('processingStateChange', (event) => {
+    try {
+      const {
+        isProcessing,
+      } = event.data;
+
+      console.log('processingStateChange', {
+        isProcessing,
+        isSpinning: spinner.isSpinning,
+      });
+      updateSpinner(isProcessing);
+    } catch (error) {
+      console.error('Spinner error:', error);
     }
   });
   agentInterview.addEventListener('input', async e => {
@@ -213,6 +234,9 @@ const interview = async (agentJson, {
     } = e.data;
     // console.log('agent interview change', updateObject);
   });
+
+  console.log('events: ', events);
+  
   if (events) {
     ['preview', 'homespace'].forEach(eventType => {
       agentInterview.addEventListener(eventType, (e) => {
