@@ -80,8 +80,6 @@ const main = async () => {
     },
   };
   const agentMain = new AgentMain(state, env);
-  // return agentMain;
+  return agentMain;
 };
-main().catch(err => {
-  console.error(err);
-});
+export default main;
