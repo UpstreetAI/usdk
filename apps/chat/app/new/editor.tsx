@@ -43,6 +43,7 @@ import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { IconButton } from 'ucom';
+import { BackButton } from '@/components/back';
 
 //
 
@@ -449,9 +450,7 @@ export default function AgentEditor({
   return (
     <div className="flex flex-1 h-screen overflow-hidden">
 
-      <div className='absolute z-[100] left-2 top-2'>
-        <IconButton size='small' href={"/"} icon={'BackArrow'}  />
-      </div>
+      <BackButton className="absolute z-[100] left-8 top-8" />
 
       {/* builder */}
       <div className="flex flex-col h-screen flex-1 bg-zinc-900 z-[50]">
