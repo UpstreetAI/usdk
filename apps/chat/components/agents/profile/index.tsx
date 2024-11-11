@@ -75,7 +75,7 @@ export function AgentProfile({ agent }: AgentProps) {
 
   return (
     <div
-      className="w-full h-[calc(100vh-64px)] bg-cover bg-center"
+      className="w-full h-[calc(100vh-48px)] bg-cover bg-center"
       style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
     >
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">

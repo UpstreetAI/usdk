@@ -4,6 +4,7 @@ import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
+import { AgentNotFound } from '@/components/agents/profile/AgentNotFound';
 
 type Params = {
   params: {
@@ -89,7 +90,7 @@ export default async function AgentProfilePage({ params }: Params) {
   const agentData = result.data as any;
 
   if (!agentData?.id) {
-    return notFound();  // Using Next.js not found page instead of div
+    return <AgentNotFound />; 
   }
 
   return (
