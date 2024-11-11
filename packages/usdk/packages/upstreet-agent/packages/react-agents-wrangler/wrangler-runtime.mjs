@@ -117,8 +117,24 @@ export class ReactAgentsWranglerRuntime {
     this.cp = cp;
   }
   terminate() {
-    if (this.cp) {
-      this.cp.kill('SIGINT');
-    }
+    return new Promise((accept, reject) => {
+      if (this.cp === null) {
+        accept(null);
+      } else {
+        if (this.cp.exitCode !== null) {
+          // Process already terminated
+          accept(this.cp.exitCode);
+        } else {
+          // Process is still running
+          this.cp.on('exit', (code) => {
+            accept(code);
+          });
+          this.cp.on('error', (err) => {
+            reject(err);
+          });
+          this.cp.kill('SIGTERM');
+        }
+      }
+    });
   }
 }
