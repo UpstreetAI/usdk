@@ -565,6 +565,9 @@ export const create = async (args, opts) => {
   console.log(pc.green(`To edit this agent again, run:`));
   console.log(pc.cyan(`  usdk edit ${dstDir}`));
   console.log();
+  console.log(pc.green(`To set up your agent with a git repository, run:`));
+  console.log(pc.cyan(`  git remote add origin https://github.com/USERNAME/REPOSITORY.git`));
+  console.log();
   console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
   console.log();
   console.log(pc.green(`Happy building!`));
