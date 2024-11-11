@@ -4,19 +4,23 @@ import os from 'os';
 import crossSpawn from 'cross-spawn';
 import { program } from 'commander';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
-// import wasm from 'vite-plugin-wasm';
-// import { nodePolyfills } from 'vite-plugin-node-polyfills'
 import { Debouncer } from 'debouncer';
 
 //
 
-const dirname = path.dirname(import.meta.url.replace('file://', ''));
+// const dirname = path.dirname(import.meta.url.replace('file://', ''));
 
 //
 
-// const cwd = process.cwd();
 const homeDir = os.homedir();
 
+const loadModule = async (directory, p) => {
+  const viteServer = await makeViteServer(directory);
+  // console.log('get agent module 1');
+  const entryModule = await viteServer.ssrLoadModule(p);
+  console.log('get agent module 2', entryModule);
+  return entryModule.default;
+};
 const loadModuleSource = async (directory, p) => {
   // read the source code at the path
   const sourceCode = await fs.promises.readFile(p, 'utf8');
@@ -26,35 +30,19 @@ const loadModuleSource = async (directory, p) => {
     root: directory,
     ssr: {
       noExternal: true,
-      // target: 'node',
     },
     build: {
       write: false,
       sourcemap: true,
       rollupOptions: {
         input: moduleName,
-        // external: [],
       },
-      // commonjsOptions: {
-      //   include: /node_modules/,
-      // },
     },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
     },
-    // optimizeDeps: {
-    //   disabled: false,
-    //   include: ['**/*'],
-    //   exclude: [],
-    // },
     plugins: [
-      // nodePolyfills({
-      //   // globals: {
-      //   //   process: false,
-      //   //   Buffer: false,
-      //   // },
-      // }),
       {
         name: 'virtual-module',
         resolveId(id) {
@@ -98,15 +86,13 @@ const reloadAgentWorker = async (directory, opts) => {
         await oldAgentWorker.terminate();
       }
 
-      const p = path.join(dirname, 'entry.mjs');
+      // const p = path.join(dirname, 'entry.mjs');
+      const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
       // console.log('load module source 1', directory, p);
-      const moduleSource = await loadModuleSource(directory, p);
-      console.log('moduleSource', moduleSource.length);
+      const module = await loadModule(directory, p);
+      console.log('module', module);
 
-      // XXX debugging
-      fs.writeFileSync('/tmp/module.mjs', moduleSource);
-
-      // create the worker
+      /* // create the worker
       const cp = crossSpawn(process.execPath, [
         path.join(dirname, 'worker.mjs'),
       ], {
@@ -126,7 +112,7 @@ const reloadAgentWorker = async (directory, opts) => {
         args: [
           moduleSource,
         ],
-      });
+      }); */
 
       const agentWorker = {
         async terminate() {
@@ -137,27 +123,35 @@ const reloadAgentWorker = async (directory, opts) => {
     })();
   });
 };
-const listenForChanges = async (directory, opts) => {
-  const viteServerPromise = createViteServer({
+const makeViteServer = (directory) => {
+  return createViteServer({
+    root: directory,
+    server: { middlewareMode: 'ssr' },
+    esbuild: {
+      jsx: 'transform',
+      jsxFactory: 'React.createElement',
+      jsxFragment: 'React.Fragment',
+    },
+    optimizeDeps: {
+      entries: [
+        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
+      ],
+    },
+  });
+};
+const makeViteWatcher = (directory) => {
+  return createViteServer({
     root: directory,
     watch: {
       include: [
-        'wrangler.toml',
-        './agent.tsx',
-        './packages/upstreet-agent/packages/react-agents/entry.ts'
+        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
       ],
-      // plugins: [
-      //   nodePolyfills({
-      //     // globals: {
-      //     //   process: false,
-      //     //   Buffer: false,
-      //     // },
-      //   }),
-      // ],
     },
   });
-  const viteServer = await viteServerPromise;
-  viteServer.watcher.on('change', () => {
+};
+const listenForChanges = async (directory, opts) => {
+  const viteWatcher = await makeViteWatcher(directory);
+  viteWatcher.watcher.on('change', () => {
     reloadAgentWorker(directory, opts);
   });
 };
