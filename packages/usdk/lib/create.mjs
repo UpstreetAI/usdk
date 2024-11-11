@@ -15,7 +15,8 @@ import {
   generateMnemonic,
 } from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
-import { npmInstall } from '../lib/npm-util.mjs';
+import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
+import { hasGit, gitInit } from '../lib/git-util.mjs';
 import {
   makeTempDir,
 } from './file.mjs';
@@ -44,7 +45,7 @@ import {
   aiProxyHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth, consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
@@ -470,6 +471,9 @@ export const create = async (args, opts) => {
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
 
+    const srcGitignorePath = path.join(upstreetAgentSrcDir, '.gitignore');
+    const dstGitignorePath = path.join(dstDir, '.gitignore');
+
     const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
     const dstJestPath = dstDir;
 
@@ -495,6 +499,8 @@ export const create = async (args, opts) => {
       }, null, 2)),
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
+      // .gitignore
+      recursiveCopy(srcGitignorePath, dstGitignorePath),
       // root jest config
       recursiveCopy(srcJestPath, dstJestPath),
       // root wrangler.toml
@@ -522,8 +528,34 @@ export const create = async (args, opts) => {
 
   // npm install
   if (!noInstall) {
-    console.log(pc.italic('Installing dependencies...'));
-    await npmInstall(dstDir);
+    const has = await hasNpm();
+    if (has) {
+      console.log(pc.italic('Installing dependencies...'));
+      try {
+        await npmInstall(dstDir);
+      } catch(err) {
+        console.warn('failed to install dependencies:', err.stack);
+      }
+    } else {
+      console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
+      console.warn('To install dependencies, run `npm install` in the agent directory.');
+    }
+  }
+
+  // git init
+  if (!noInstall) {
+    const has = await hasGit();
+    if (has) {
+      console.log(pc.italic('Initializing git repository...'));
+      try {
+        await gitInit(dstDir);
+      } catch(err) {
+        console.warn('failed to initialize git repository:', err.stack);
+      }
+    } else {
+      console.warn('git not found; skipping git initialization. Your agent may not work correctly.');
+      console.warn('To initialize a git repository, run `git init` in the agent directory.');
+    }
   }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
@@ -532,6 +564,9 @@ export const create = async (args, opts) => {
   console.log(pc.cyan(`  usdk chat ${dstDir}`));
   console.log(pc.green(`To edit this agent again, run:`));
   console.log(pc.cyan(`  usdk edit ${dstDir}`));
+  console.log();
+  console.log(pc.green(`To set up your agent with a git repository, run:`));
+  console.log(pc.cyan(`  git remote add origin https://github.com/USERNAME/REPOSITORY.git`));
   console.log();
   console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
   console.log();
