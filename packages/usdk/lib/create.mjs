@@ -139,7 +139,6 @@ const interview = async (agentJson, {
   events,
   jwt,
 }) => {
-  const spinner = ora();
 
   const questionLogger = new InterviewLogger(
     inputStream && outputStream
@@ -163,7 +162,24 @@ const interview = async (agentJson, {
     mode,
     jwt,
   };
+  const spinner = ora();
   const agentInterview = new AgentInterview(opts);
+  agentInterview.addEventListener('processingStateChange', (event) => {
+    const {
+      isProcessing,
+    } = event.data;
+
+    console.log('processingStateChange', {
+      isProcessing,
+      isSpinning: spinner.isSpinning,
+    });
+
+    if (isProcessing) {
+      spinner.start();
+    } else {
+      spinner.stop();
+    }
+  });
   agentInterview.addEventListener('input', async e => {
     const {
       question,
@@ -172,16 +188,7 @@ const interview = async (agentJson, {
     //   question,
     // });
 
-    // stop the spinner while we the agent interview asks a question
-
-    if (spinner.isSpinning){
-      spinner.stop();
-    }
-
     const answer = await getAnswer(question);
-
-    // start the spinner again when the user replies
-    spinner.start();
 
     // console.log('agent interview input 2', {
     //   question,

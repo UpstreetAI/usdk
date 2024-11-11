@@ -195,6 +195,11 @@ export class AgentInterview extends EventTarget {
       },
       jwt,
     });
+    this.interactor.addEventListener('processingStateChange', (event) => {
+      this.dispatchEvent(new MessageEvent('processingStateChange', {
+        data: event.data,
+      }))
+    });
     this.interactor.addEventListener('message', async (e) => {
       const o = e.data;
 
