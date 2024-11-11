@@ -1,7 +1,7 @@
-import fs from 'fs';
+// import fs from 'fs';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
-import toml from '@iarna/toml';
-import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
+// import toml from '@iarna/toml';
+// import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 // import { globalImports } from 'react-agents/util/worker-global-imports.mjs'
 import { Debouncer } from 'debouncer';
 
@@ -12,6 +12,7 @@ import { Debouncer } from 'debouncer';
 
 //
 
+const cwd = process.cwd();
 // const nativeImport = new Function('specifier', 'return import(specifier)');
 const headersToObject = (headers) => {
   const result = {};
@@ -29,10 +30,11 @@ const viteServerPromise = createViteServer({
   appType: 'custom',
   esbuild: {
     jsx: 'transform',
-    jsxFactory: 'React.createElement',
-    jsxFragment: 'React.Fragment',
+    // jsxFactory: 'React.createElement',
+    // jsxFragment: 'React.Fragment',
   },
   optimizeDeps: {
+    // XXX make this watch only, instead of rebuilding. we build manually
     entries: [
       './agent.tsx',
       './packages/upstreet-agent/packages/react-agents/entry.ts',
@@ -44,12 +46,13 @@ const viteServerPromise = createViteServer({
     ],
   },
 });
-const loadModule = async (p) => {
-  const viteServer = await viteServerPromise;
-  return await viteServer.ssrLoadModule(p);
-};
+// const loadModule = async (p) => {
+//   const viteServer = await viteServerPromise;
+//   return await viteServer.ssrLoadModule(p);
+// };
 const loadModuleSource = async (p) => {
   const result = await viteBuild({
+    // root: cwd,
     build: {
       write: false,
       ssr: true,
@@ -86,73 +89,76 @@ const loadModuleSource = async (p) => {
   return `${code}\n${sourceMapComment}`;
 };
 //
-const getEnv = async () => {
-  // load the wrangler.toml
-  const wranglerTomlPath = './wrangler.toml';
-  const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-  const wranglerToml = toml.parse(wranglerTomlString);
+// const getEnv = async () => {
+//   // load the wrangler.toml
+//   const wranglerTomlPath = './wrangler.toml';
+//   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+//   const wranglerToml = toml.parse(wranglerTomlString);
 
-  const agentJsonString = wranglerToml.vars.AGENT_JSON;
-  if (!agentJsonString) {
-    throw new Error('missing AGENT_JSON in wrangler.toml');
-  }
-  const agentJson = JSON.parse(agentJsonString);
+//   const agentJsonString = wranglerToml.vars.AGENT_JSON;
+//   if (!agentJsonString) {
+//     throw new Error('missing AGENT_JSON in wrangler.toml');
+//   }
+//   const agentJson = JSON.parse(agentJsonString);
 
-  const apiKey = wranglerToml.vars.AGENT_TOKEN;
-  if (!apiKey) {
-    throw new Error('missing AGENT_TOKEN in wrangler.toml');
-  }
+//   const apiKey = wranglerToml.vars.AGENT_TOKEN;
+//   if (!apiKey) {
+//     throw new Error('missing AGENT_TOKEN in wrangler.toml');
+//   }
 
-  const mnemonic = wranglerToml.vars.WALLET_MNEMONIC;
-  if (!mnemonic) {
-    throw new Error('missing WALLET_MNEMONIC in wrangler.toml');
-  }
+//   const mnemonic = wranglerToml.vars.WALLET_MNEMONIC;
+//   if (!mnemonic) {
+//     throw new Error('missing WALLET_MNEMONIC in wrangler.toml');
+//   }
 
-  const {
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_API_KEY,
-  } = wranglerToml.vars;
-  if (!SUPABASE_URL || !SUPABASE_PUBLIC_API_KEY) {
-    throw new Error('missing SUPABASE_URL or SUPABASE_PUBLIC_API_KEY in wrangler.toml');
-  }
+//   const {
+//     SUPABASE_URL,
+//     SUPABASE_PUBLIC_API_KEY,
+//   } = wranglerToml.vars;
+//   if (!SUPABASE_URL || !SUPABASE_PUBLIC_API_KEY) {
+//     throw new Error('missing SUPABASE_URL or SUPABASE_PUBLIC_API_KEY in wrangler.toml');
+//   }
 
-  // send init message
-  const env = {
-    AGENT_JSON: JSON.stringify(agentJson),
-    AGENT_TOKEN: apiKey,
-    WALLET_MNEMONIC: mnemonic,
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_API_KEY,
-    WORKER_ENV: 'development', // 'production',
-  };
-  return env;
-};
-const getAgentMain = async () => {
-  const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');  
-  return agentModule.AgentMain;
-};
-const getUserRender = async () => {
-  const userRenderModule = await loadModule('/agent.tsx');
+//   // send init message
+//   const env = {
+//     AGENT_JSON: JSON.stringify(agentJson),
+//     AGENT_TOKEN: apiKey,
+//     WALLET_MNEMONIC: mnemonic,
+//     SUPABASE_URL,
+//     SUPABASE_PUBLIC_API_KEY,
+//     WORKER_ENV: 'development', // 'production',
+//   };
+//   return env;
+// };
+// const getAgentMain = async () => {
+//   const agentModule = await loadModule('/packages/upstreet-agent/packages/react-agents/entry.ts');  
+//   return agentModule.AgentMain;
+// };
+// const getUserRender = async () => {
+//   const userRenderModule = await loadModule('/agent.tsx');
 
-  // const userRenderSource = await loadModuleSource('/agent.tsx');
-  // console.log('userRenderSource', userRenderSource);
+//   // const userRenderSource = await loadModuleSource('/agent.tsx');
+//   // console.log('userRenderSource', userRenderSource);
   
-  return userRenderModule.default;
-};
+//   return userRenderModule.default;
+// };
 //
-let agentMainPromise = null;
+let agentWorkerPromise = null;
 const reloadDebouncer = new Debouncer();
-const reloadAgentMain = async () => {
+const reloadAgentWorker = async () => {
   await reloadDebouncer.waitForTurn(async () => {
-    const oldAgentMainPromise = agentMainPromise;
-    agentMainPromise = (async () => {
+    const oldAgentWorkerPromise = agentWorkerPromise;
+    agentWorkerPromise = (async () => {
       // wait for the old agent process to terminate
-      if (oldAgentMainPromise) {
-        const oldAgentMain = await oldAgentMainPromise;
-        await oldAgentMain.terminate(); // XXX implement this
+      if (oldAgentWorkerPromise) {
+        const oldAgentWorker = await oldAgentWorkerPromise;
+        await oldAgentWorker.terminate();
       }
 
-      // start the new agent process
+      const moduleSource = await loadModuleSource('./worker.mjs');
+      console.log('moduleSource', moduleSource);
+
+      /* // start the new agent process
       const [
         AgentMain,
         env,
@@ -182,16 +188,23 @@ const reloadAgentMain = async () => {
         },
       };
       const agentMain = new AgentMain(state, env);
-      return agentMain;
+      return agentMain; */
+
+      const agentWorker = {
+        async terminate() {
+          // XXX implement this
+        },
+      };
+      return agentWorker;
     })();
   });
 };
-reloadAgentMain();
+reloadAgentWorker();
 //
 const listenForChanges = async () => {
   const viteServer = await viteServerPromise;
   viteServer.watcher.on('change', () => {
-    reloadAgentMain();
+    reloadAgentWorker();
   });
 };
 listenForChanges();
@@ -199,7 +212,9 @@ listenForChanges();
 process.on('message', async (eventData) => {
   console.log('got event', eventData);
 
-  const method = eventData?.method;
+  throw new Error('not implemented');
+
+  /* const method = eventData?.method;
   switch (method) {
     case 'request': {
       (async () => {
@@ -261,5 +276,5 @@ process.on('message', async (eventData) => {
       console.error('unknown method', method);
       break;
     }
-  }
+  } */
 });
