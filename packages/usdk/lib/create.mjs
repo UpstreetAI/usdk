@@ -529,13 +529,21 @@ export const create = async (args, opts) => {
   // npm install
   if (!noInstall) {
     console.log(pc.italic('Installing dependencies...'));
-    await npmInstall(dstDir);
+    try {
+      await npmInstall(dstDir);
+    } catch(err) {
+      console.warn('failed to install dependencies:', err.stack);
+    }
   }
 
   // git init
   if (!noInstall) {
-    console.log(pc.italic('Initializing git...'));
-    await gitInit(dstDir);
+    console.log(pc.italic('Initializing git repository...'));
+    try {
+      await gitInit(dstDir);
+    } catch(err) {
+      console.warn('failed to initialize git repository:', err.stack);
+    }
   }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
