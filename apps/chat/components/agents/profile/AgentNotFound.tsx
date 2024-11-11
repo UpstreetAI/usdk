@@ -10,8 +10,8 @@ export function AgentNotFound() {
 
   return (
     <div
-      className="w-full h-[calc(100vh-64px)] bg-cover bg-center"
-      style={{ backgroundImage: `url("${'/images/background.png'}")` }}
+      className="w-full h-[calc(100vh-48px)] bg-cover bg-center"
+      style={{ backgroundImage: `url("${'/images/backgrounds/agent-not-found-bg.png'}")` }}
     >
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
         <div className="absolute bottom-16 left-4">
