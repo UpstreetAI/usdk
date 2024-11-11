@@ -93,7 +93,7 @@
     "zod-to-ts": "^1.2.0"
   },
   "optionalDependencies": {
-    "speaker": "git+https://github.com/AbdurrehmanSubhani/node-speaker.git"
+    "speaker": "git+https://github.com/UpstreetAI/node-speaker.git"
   },
   "overrides": {
     "@supabase/auth-js": "2.62.0",
