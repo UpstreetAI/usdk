@@ -22,12 +22,14 @@ export class ReactAgentsClient {
   } = {}) {
     const u = `${this.url}/join`;
     try {
+      const opts = {
+        room,
+        only,
+      };
+      console.log('join opts', opts);
       const joinReq = await fetch(u, {
         method: 'POST',
-        body: JSON.stringify({
-          room,
-          only,
-        }),
+        body: JSON.stringify(opts),
       });
       if (joinReq.ok) {
         const joinJson = await joinReq.json();
