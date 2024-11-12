@@ -8,10 +8,22 @@ import { Debouncer } from 'debouncer';
 
 const dirname = path.dirname(import.meta.url.replace('file://', ''));
 
+const bindProcess = (cp) => {
+  process.on('exit', () => {
+    // console.log('got exit', cp.pid);
+    try {
+      process.kill(cp.pid, 'SIGINT');
+    } catch (err) {
+      // console.warn(err.stack);
+    }
+  });
+};
+
 //
 
 let agentWorkerPromise = null;
 const reloadDebouncer = new Debouncer();
+let first = true;
 const reloadAgentWorker = async (directory, opts) => {
   await reloadDebouncer.waitForTurn(async () => {
     const oldAgentWorkerPromise = agentWorkerPromise;
@@ -57,6 +69,20 @@ const reloadAgentWorker = async (directory, opts) => {
       cp.on('error', (err) => {
         console.error('worker error', err);
       });
+      bindProcess(cp);
+      console.log('wait for ready 1');
+      await new Promise((resolve) => {
+        const message = (e) => {
+          console.log('watcher got message', e);
+          cleanup();
+          resolve(null);
+        };
+        cp.on('message', message);
+        const cleanup = () => {
+          cp.removeListener('message', message);
+        };
+      });
+      console.log('wait for ready 2');
 
       const agentWorker = {
         terminate() {
@@ -77,6 +103,15 @@ const reloadAgentWorker = async (directory, opts) => {
           });
         },
       };
+
+      if (first) {
+        first = false;
+        process.send({
+          method: 'ready',
+          args: [],
+        });
+      }
+
       return agentWorker;
     })();
   });

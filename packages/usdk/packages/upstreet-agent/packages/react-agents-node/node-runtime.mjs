@@ -8,6 +8,19 @@ const localDirectory = new URL('.', import.meta.url).pathname;
 
 //
 
+const bindProcess = (cp) => {
+  process.on('exit', () => {
+    // console.log('got exit', cp.pid);
+    try {
+      process.kill(cp.pid, 'SIGTERM');
+    } catch (err) {
+      // console.warn(err.stack);
+    }
+  });
+};
+
+//
+
 export class ReactAgentsNodeRuntime {
   agentSpec;
   cp = null;
@@ -41,6 +54,7 @@ export class ReactAgentsNodeRuntime {
     );
     cp.stdout.pipe(process.stdout);
     cp.stderr.pipe(process.stderr);
+    bindProcess(cp);
     cp.on('error', err => {
       console.warn('node runtime got error', err);
     });
@@ -50,6 +64,19 @@ export class ReactAgentsNodeRuntime {
     cp.on('error', e => {
       console.warn('got error', e);
     });
+    console.log('node runtime wait 1');
+    await new Promise((resolve) => {
+      const message = (e) => {
+        console.log('node runtime got message', e);
+        cleanup();
+        resolve(null);
+      };
+      cp.on('message', message);
+      const cleanup = () => {
+        cp.removeListener('message', message);
+      };
+    });
+    console.log('node runtime wait 2');
     this.cp = cp;
   }
   /* async fetch(url, opts) {
