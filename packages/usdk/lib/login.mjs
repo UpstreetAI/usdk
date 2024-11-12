@@ -114,6 +114,17 @@ export const login = async (args) => {
         // console.log('callback server listening on port', {
         //   callbackPort,
         // });
+        let mode = 'auto';
+
+        const handleBrowserOpenError = () => {
+          console.warn('Failed to open browser automatically');
+          u.searchParams.set('mode', 'code');
+          const codeUrl = u + '';
+          console.log('\nPlease open this URL manually in your browser:');
+          console.log(`  ${codeUrl}`);
+        };
+
+
         if (err) {
           console.warn(err);
         } else {
@@ -124,7 +135,11 @@ export const login = async (args) => {
           console.log(`Waiting for login:`);
           console.log(`  ${p}`);
 
-          open(p);
+          try {
+            open(p).catch(handleBrowserOpenError);            
+          } catch (error) {
+            handleBrowserOpenError();
+          }
 
           rl = readline.createInterface({
             input: process.stdin,
