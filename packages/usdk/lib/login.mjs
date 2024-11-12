@@ -110,34 +110,37 @@ export const login = async (args) => {
       // server.on('close', () => {
       //   console.log('callback server closed');
       // });
-      server.listen(callbackPort, '0.0.0.0', (err) => {
+      server.listen(callbackPort, '0.0.0.0', async (err) => {
         // console.log('callback server listening on port', {
         //   callbackPort,
         // });
         let mode = 'auto';
 
-        const handleBrowserOpenError = () => {
-          console.warn('Failed to open browser automatically');
-          u.searchParams.set('mode', 'code');
-          const codeUrl = u + '';
-          console.log('\nPlease open this URL manually in your browser:');
-          console.log(`  ${codeUrl}`);
-        };
 
 
         if (err) {
           console.warn(err);
         } else {
-          const host = `https://login.upstreet.ai`;
+          const host = `invalid://https://login.upstreet.ai`;
           const u = new URL(`${host}`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
           console.log(`Waiting for login:`);
           console.log(`  ${p}`);
 
+              
+          const handleBrowserOpenError = () => {
+            console.warn('Failed to open browser automatically');
+            u.searchParams.set('mode', 'code');
+            const codeUrl = u + '';
+            console.log('\nPlease open this URL manually in your browser:');
+            console.log(`  ${codeUrl}`);
+          };
+          
           try {
-            open(p).catch(handleBrowserOpenError);            
+            await open(p, { wait: true });            
           } catch (error) {
+            console.warn('error opening browser', error);
             handleBrowserOpenError();
           }
 
