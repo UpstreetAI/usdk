@@ -61,11 +61,6 @@ const getEnv = async () => {
 const main = async () => {
   const env = await getEnv();
 
-  // XXX need to handle command line args e.g.
-  // '--var', 'WORKER_ENV:development',
-  // '--ip', '0.0.0.0',
-  // '--port', devServerPort + portIndex,
-
   let alarmTimestamp = null;
   const state = {
     userRender,

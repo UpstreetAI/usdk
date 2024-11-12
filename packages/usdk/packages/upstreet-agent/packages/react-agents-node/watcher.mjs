@@ -1,6 +1,6 @@
 import path from 'path';
-import fs from 'fs';
-import os from 'os';
+// import fs from 'fs';
+// import os from 'os';
 import crossSpawn from 'cross-spawn';
 import { program } from 'commander';
 import { createServer as createViteServer, build as viteBuild } from 'vite';
@@ -8,69 +8,11 @@ import { Debouncer } from 'debouncer';
 
 //
 
-// const dirname = path.dirname(import.meta.url.replace('file://', ''));
+const dirname = path.dirname(import.meta.url.replace('file://', ''));
+// const homeDir = os.homedir();
 
 //
 
-const homeDir = os.homedir();
-
-const loadModule = async (directory, p) => {
-  const viteServer = await makeViteServer(directory);
-  // console.log('get agent module 1');
-  const entryModule = await viteServer.ssrLoadModule(p);
-  console.log('get agent module 2', entryModule);
-  return entryModule.default;
-};
-/* const loadModuleSource = async (directory, p) => {
-  // read the source code at the path
-  const sourceCode = await fs.promises.readFile(p, 'utf8');
-  // console.log('build dir', directory);
-  const moduleName = './module.mjs';
-  const result = await viteBuild({
-    root: directory,
-    ssr: {
-      noExternal: true,
-    },
-    build: {
-      write: false,
-      sourcemap: true,
-      rollupOptions: {
-        input: moduleName,
-      },
-    },
-    cacheDir: path.join(homeDir, '.usdk', 'vite'),
-    esbuild: {
-      jsx: 'transform',
-    },
-    plugins: [
-      {
-        name: 'virtual-module',
-        resolveId(id) {
-          if (id === moduleName) {
-            return id;
-          }
-        },
-        load(id) {
-          if (id === moduleName) {
-            return sourceCode;
-          }
-        }
-      },
-    ],
-  });
-
-  if (!result || !result.output || !result.output[0]) {
-    throw new Error('Build failed to produce output');
-  }
-
-  const code = result.output[0].code;
-  return code;
-  // const map = result.output[0].map;
-  // const base64Map = Buffer.from(JSON.stringify(map)).toString('base64');
-  // const sourceMapComment = `//# sourceMappingURL=data:application/json;base64,${base64Map}`;
-  // return `${code}\n${sourceMapComment}`;
-}; */
-//
 let agentWorkerPromise = null;
 const reloadDebouncer = new Debouncer();
 const reloadAgentWorker = async (directory, opts) => {
@@ -83,16 +25,31 @@ const reloadAgentWorker = async (directory, opts) => {
         await oldAgentWorker.terminate();
       }
 
-      // const p = path.join(dirname, 'entry.mjs');
-      const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-      // console.log('load module source 1', directory, p);
-      const module = await loadModule(directory, p);
-      console.log('module', module);
-
-      /* // create the worker
-      const cp = crossSpawn(process.execPath, [
+      // initialize args
+      const args = [
         path.join(dirname, 'worker.mjs'),
-      ], {
+        'run',
+        directory,
+      ];
+      // pass the opts
+      if (opts.var) {
+        if (Array.isArray(opts.var)) {
+          for (const v of opts.var) {
+            args.push('--var', v);
+          }
+        } else {
+          args.push('--var', opts.var);
+        }
+      }
+      if (opts.ip) {
+        args.push('--ip', opts.ip);
+      }
+      if (opts.port) {
+        args.push('--port', opts.port);
+      }
+
+      // create the worker
+      const cp = crossSpawn(process.execPath, args, {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       });
       cp.stdout.pipe(process.stdout);
@@ -104,36 +61,27 @@ const reloadAgentWorker = async (directory, opts) => {
         console.error('worker error', err);
       });
 
-      cp.send({
-        method: 'init',
-        args: [
-          moduleSource,
-        ],
-      }); */
-
       const agentWorker = {
-        async terminate() {
-          // XXX implement this
+        terminate() {
+          return new Promise((accept, reject) => {
+            if (cp.exitCode !== null) {
+              // Process already terminated
+              accept(cp.exitCode);
+            } else {
+              // Process is still running
+              cp.on('exit', (code) => {
+                accept(code);
+              });
+              cp.on('error', (err) => {
+                reject(err);
+              });
+              cp.kill('SIGTERM');
+            }
+          });
         },
       };
       return agentWorker;
     })();
-  });
-};
-const makeViteServer = (directory) => {
-  return createViteServer({
-    root: directory,
-    server: { middlewareMode: 'ssr' },
-    esbuild: {
-      jsx: 'transform',
-      jsxFactory: 'React.createElement',
-      jsxFragment: 'React.Fragment',
-    },
-    optimizeDeps: {
-      entries: [
-        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
-      ],
-    },
   });
 };
 const makeViteWatcher = (directory) => {
@@ -167,7 +115,7 @@ const main = async () => {
       commandExecuted = true;
 
       reloadAgentWorker(directory, opts);
-      // listenForChanges(directory, opts);
+      listenForChanges(directory, opts);
     });
 
   await program.parseAsync();
