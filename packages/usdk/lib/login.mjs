@@ -129,7 +129,7 @@ export const login = async (args) => {
           console.warn(err);
         } else {
           const host = `https://login.upstreet.ai`;
-          const u = new URL(`${host}/logintool`);
+          const u = new URL(`${host}`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
           console.log(`Waiting for login:`);
