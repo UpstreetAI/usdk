@@ -1,7 +1,7 @@
 import path from 'path';
 import os from 'os';
 import { program } from 'commander';
-import { createServer as createViteServer, build as viteBuild } from 'vite';
+import { createServer as createViteServer } from 'vite';
 
 //
 
@@ -17,8 +17,10 @@ const loadModule = async (directory, p) => {
 //
 const runAgent = async (directory, opts) => {
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const module = await loadModule(directory, p);
-  console.log('worker loaded module', module);
+  const main = await loadModule(directory, p);
+  console.log('worker loaded module', main);
+  const agentMain = await main();
+  console.log('agentMain', agentMain);
 };
 const makeViteServer = (directory) => {
   return createViteServer({
@@ -51,7 +53,12 @@ const main = async () => {
     .action(async (directory, opts) => {
       commandExecuted = true;
 
-      runAgent(directory, opts);
+      try {
+        await runAgent(directory, opts);
+      } catch (err) {
+        console.warn(err);
+        process.exit(1);
+      }
     });
 
   await program.parseAsync();

@@ -1,15 +1,12 @@
 import path from 'path';
-// import fs from 'fs';
-// import os from 'os';
 import crossSpawn from 'cross-spawn';
 import { program } from 'commander';
-import { createServer as createViteServer, build as viteBuild } from 'vite';
+import { createServer as createViteServer } from 'vite';
 import { Debouncer } from 'debouncer';
 
 //
 
 const dirname = path.dirname(import.meta.url.replace('file://', ''));
-// const homeDir = os.homedir();
 
 //
 
