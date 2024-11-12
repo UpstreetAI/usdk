@@ -44,6 +44,7 @@
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/estree": "^1.0.5",
     "@wasm-audio-decoders/common": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common",
+    "alea": "^1.0.1",
     "ansi-escape-sequences": "^6.2.2",
     "ansi-escapes": "^7.0.0",
     "archiver": "^7.0.1",

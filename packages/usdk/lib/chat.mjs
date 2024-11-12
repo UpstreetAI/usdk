@@ -14,7 +14,7 @@ import {
 export const chat = async (args, opts) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args.room ?? makeRoomName();
+  const room = args.room;
   const browser = args.browser;
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
@@ -38,8 +38,9 @@ export const chat = async (args, opts) => {
 
   // wait for agents to join the multiplayer room
   const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+  const localRoom = room ?? makeRoomName(agentSpecs[0].guid);
   await join({
-    _: [agentRefs, room],
+    _: [agentRefs, localRoom],
   });
 
   // connect to the chat
@@ -53,7 +54,7 @@ export const chat = async (args, opts) => {
     }
   })();
   await connect({
-    _: [room],
+    _: [localRoom],
     mode,
     inputStream,
     outputStream,
