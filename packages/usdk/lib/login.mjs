@@ -116,8 +116,6 @@ export const login = async (args) => {
         // });
         let mode = 'auto';
 
-
-
         if (err) {
           console.warn(err);
         } else {
@@ -127,7 +125,6 @@ export const login = async (args) => {
           const p = u + '';
           console.log(`Waiting for login:`);
           console.log(`  ${p}`);
-
               
           const handleBrowserOpenError = () => {
             console.warn('Failed to open browser automatically');
@@ -135,6 +132,28 @@ export const login = async (args) => {
             const codeUrl = u + '';
             console.log('\nPlease open this URL manually in your browser:');
             console.log(`  ${codeUrl}`);
+
+            rl = readline.createInterface({
+              input: process.stdin,
+              output: process.stdout
+            });
+            rl.question('Paste login code: ', async (input) => {
+              // loginCode is a base64 encoded json string
+              const loginCode = input.trim();
+              if (loginCode) {
+                try {
+                  const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
+                  const j = JSON.parse(decoded);
+
+                  rl.close();
+                  rl = null;
+
+                  await handleLogin(j);
+                } catch (e) {
+                  console.log('invalid login code');
+                }
+              }
+            });
           };
           
           try {
@@ -143,28 +162,6 @@ export const login = async (args) => {
             console.warn('error opening browser', error);
             handleBrowserOpenError();
           }
-
-          rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-          });
-          rl.question('Paste login code: ', async (input) => {
-            // loginCode is a base64 encoded json string
-            const loginCode = input.trim();
-            if (loginCode) {
-              try {
-                const decoded = Buffer.from(loginCode, 'base64').toString('utf8');
-                const j = JSON.parse(decoded);
-
-                rl.close();
-                rl = null;
-
-                await handleLogin(j);
-              } catch (e) {
-                console.log('invalid login code');
-              }
-            }
-          });
         }
       });
     }
