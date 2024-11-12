@@ -119,7 +119,7 @@ export const login = async (args) => {
         if (err) {
           console.warn(err);
         } else {
-          const host = `invalid://https://login.upstreet.ai`;
+          const host = `https://login.upstreet.ai/logintool`;
           const u = new URL(`${host}`);
           u.searchParams.set('callback_url', `https://local.upstreet.ai:${callbackPort}`);
           const p = u + '';
