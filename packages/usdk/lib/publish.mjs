@@ -128,11 +128,11 @@ export const publish = async (args, opts) => {
     throw new Error('You must be logged in to chat.');
   }
 
-  // deploy the agents
+  // publish the agents
   for (const agentSpec of agentSpecs) {
     const { directory } = agentSpec;
 
-    console.log(pc.italic('Deploying agent...'));
+    console.log(pc.italic('Publishing agent...'));
 
     const uint8Array = await packZip(directory, {
       exclude: [
@@ -193,7 +193,7 @@ export const publish = async (args, opts) => {
             const url = getAgentHost(guid);
 
             console.log();
-            console.group(pc.green('Agent Deployed Successfully:'), '\n');
+            console.group(pc.green('Agent Published Successfully:'), '\n');
             console.log(pc.cyan('✓ Host:'), url, '\n');
             console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
             console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');

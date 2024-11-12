@@ -1640,7 +1640,7 @@ export const main = async () => {
       });
     program
       .command('pull')
-      .description('Download source of deployed agent')
+      .description('Download source of a published agent')
       .argument('<guid>', 'Guid of the agent')
       .argument(`[directory]`, `The directory to create the project in`)
       .option(`-f, --force`, `Overwrite existing files`)
@@ -1759,7 +1759,7 @@ export const main = async () => {
     // const networkOptions = ['baseSepolia', 'opMainnet'];
     program
       .command('agents')
-      .description('List the currently deployed agents')
+      .description('List the currently published agents')
       // .option(
       //   `-n, --network <networkId>`,
       //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
@@ -1790,7 +1790,7 @@ export const main = async () => {
     program
     .command('publish')
     .description('Publish an agent to the network')
-    .argument(`[guids...]`, `Guids of the agents to deploy`)
+    .argument(`[guids...]`, `Guids of the agents to publish`)
     // .argument(
     //   `[type]`,
     //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
@@ -1818,7 +1818,7 @@ export const main = async () => {
     });
     program
       .command('unpublish')
-      .description('Unpublish a deployed agent from the network')
+      .description('Unpublish an agent from the network')
       .argument(`[guids...]`, `Guids of the agents to unpublish`)
       .action(async (guids = '', opts) => {
         await handleError(async () => {
