@@ -21,23 +21,31 @@ export class ReactAgentsClient {
     only = false,
   } = {}) {
     const u = `${this.url}/join`;
-    const joinReq = await fetch(u, {
-      method: 'POST',
-      body: JSON.stringify({
-        room,
-        only,
-      }),
-    });
-    if (joinReq.ok) {
-      const joinJson = await joinReq.json();
-      // console.log('join json', joinJson);
-    } else if (joinReq.status === 404) {
-      throw new Error('agent not found');
-    } else {
-      const text = await joinReq.text();
-      throw new Error(
-        'failed to join, status code: ' + joinReq.status + ': ' + text,
-      );
+    try {
+      const joinReq = await fetch(u, {
+        method: 'POST',
+        body: JSON.stringify({
+          room,
+          only,
+        }),
+      });
+      if (joinReq.ok) {
+        const joinJson = await joinReq.json();
+        // console.log('join json', joinJson);
+      } else if (joinReq.status === 404) {
+        throw new Error('agent not found');
+      } else {
+        const text = await joinReq.text();
+        throw new Error(
+          'failed to join, status code: ' + joinReq.status + ': ' + text,
+        );
+      }
+    } catch (err) {
+      console.warn('join fetch failed', err);
+      await new Promise((accept, reject) => {
+        setTimeout(accept, 10000000);
+      });
+      throw err;
     }
   }
 }
