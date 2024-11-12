@@ -21,7 +21,7 @@ const loadModule = async (directory, p) => {
   console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const loadModuleSource = async (directory, p) => {
+/* const loadModuleSource = async (directory, p) => {
   // read the source code at the path
   const sourceCode = await fs.promises.readFile(p, 'utf8');
   // console.log('build dir', directory);
@@ -59,9 +59,6 @@ const loadModuleSource = async (directory, p) => {
     ],
   });
 
-  // XXX debugging
-  fs.writeFileSync('/tmp/result.json', JSON.stringify(result.output[0], null, 2));
-  
   if (!result || !result.output || !result.output[0]) {
     throw new Error('Build failed to produce output');
   }
@@ -72,7 +69,7 @@ const loadModuleSource = async (directory, p) => {
   // const base64Map = Buffer.from(JSON.stringify(map)).toString('base64');
   // const sourceMapComment = `//# sourceMappingURL=data:application/json;base64,${base64Map}`;
   // return `${code}\n${sourceMapComment}`;
-};
+}; */
 //
 let agentWorkerPromise = null;
 const reloadDebouncer = new Debouncer();
