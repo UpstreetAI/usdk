@@ -653,8 +653,15 @@ export const edit = async (args, opts) => {
         const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
         await copyWithStringTransform(wranglerTomlPath, wranglerTomlPath, (s) => {
           let t = toml.parse(s);
+          const name = t.name;
+          const agentToken = t.vars.AGENT_TOKEN;
+          const mnemonic = t.vars.WALLET_MNEMONIC;
+
           t = buildWranglerToml(t, {
+            name,
             agentJson,
+            agentToken,
+            mnemonic,
           });
           return toml.stringify(t);
         });
