@@ -165,6 +165,7 @@ const makeViteWatcher = (directory) => {
 const listenForChanges = async (directory, opts) => {
   const viteWatcher = await makeViteWatcher(directory);
   viteWatcher.watcher.on('change', () => {
+    console.log('reloading agent...');
     reloadAgentWorker(directory, opts);
   });
 };
