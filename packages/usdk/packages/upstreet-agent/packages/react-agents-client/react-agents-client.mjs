@@ -26,7 +26,7 @@ export class ReactAgentsClient {
         room,
         only,
       };
-      console.log('join opts', opts);
+      // console.log('join opts', opts);
       const joinReq = await fetch(u, {
         method: 'POST',
         body: JSON.stringify(opts),
