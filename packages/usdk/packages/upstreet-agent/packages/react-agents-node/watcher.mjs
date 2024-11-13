@@ -12,9 +12,9 @@ const bindProcess = (cp) => {
   process.on('exit', () => {
     // console.log('got exit', cp.pid);
     try {
-      process.kill(cp.pid, 'SIGINT');
+      process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
-      // console.warn(err.stack);
+      console.warn(err.stack);
     }
   });
 };
