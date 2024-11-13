@@ -1,5 +1,6 @@
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
-import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+// import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+import { ReactAgentsNodeRuntime } from '../packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 // import { getLoginJwt } from '../util/login-util.mjs';
 import {
   makeRoomName,
@@ -13,7 +14,7 @@ import {
 export const chat = async (args, opts) => {
   // console.log('got chat args', args);
   const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args.room ?? makeRoomName();
+  const room = args.room;
   const browser = args.browser;
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
@@ -27,7 +28,7 @@ export const chat = async (args, opts) => {
   // start dev servers for the agents
   const startPromises = agentSpecs.map(async (agentSpec) => {
     if (agentSpec.directory) {
-      const runtime = new ReactAgentsWranglerRuntime(agentSpec);
+      const runtime = new ReactAgentsNodeRuntime(agentSpec);
       await runtime.start({
         debug,
       });
@@ -37,8 +38,9 @@ export const chat = async (args, opts) => {
 
   // wait for agents to join the multiplayer room
   const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
+  const localRoom = room ?? makeRoomName(agentSpecs[0].guid);
   await join({
-    _: [agentRefs, room],
+    _: [agentRefs, localRoom],
   });
 
   // connect to the chat
@@ -52,7 +54,7 @@ export const chat = async (args, opts) => {
     }
   })();
   await connect({
-    _: [room],
+    _: [localRoom],
     mode,
     inputStream,
     outputStream,
