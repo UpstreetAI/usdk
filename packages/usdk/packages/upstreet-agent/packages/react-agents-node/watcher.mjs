@@ -165,10 +165,13 @@ const makeViteWatcher = (directory) => {
 };
 const listenForChanges = async (directory, opts) => {
   const viteWatcher = await makeViteWatcher(directory);
+  const changeDebouncer = new Debouncer();
   viteWatcher.watcher.on('change', async () => {
-    console.log('reloading agent...');
-    await reloadAgentWorker(directory, opts);
-    console.log('agent reloaded');
+    await changeDebouncer.waitForTurn(async () => {
+      console.log('reloading agent...');
+      await reloadAgentWorker(directory, opts);
+      console.log('agent reloaded');
+    });
   });
 };
 
