@@ -7,6 +7,17 @@ import { serve } from '@hono/node-server';
 
 //
 
+['uncaughtException', 'unhandledRejection'].forEach(event => {
+  process.on(event, err => {
+    process.send({
+      method: 'error',
+      args: [err.stack],
+    });
+  });
+});
+
+//
+
 const homeDir = os.homedir();
 
 const loadModule = async (directory, p) => {
