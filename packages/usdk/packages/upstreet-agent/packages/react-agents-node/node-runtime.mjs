@@ -14,7 +14,9 @@ const bindProcess = (cp) => {
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
-      console.warn(err.stack);
+      if (err.code !== 'ESRCH') {
+        console.warn(err.stack);
+      }
     }
   });
 };
