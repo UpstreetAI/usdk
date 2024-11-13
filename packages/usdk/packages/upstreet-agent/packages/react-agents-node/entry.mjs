@@ -14,11 +14,13 @@ import userRender from './agent.tsx';
 
 //
 
+// this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
+const wranglerTomlPath = new URL('../../../../wrangler.toml', import.meta.url).pathname;
+
+//
+
 const getEnv = async () => {
   // load the wrangler.toml
-
-  // construct an absolute path to the wrangler.toml file relative to the current module's location
-  const wranglerTomlPath = new URL('../../../../wrangler.toml', import.meta.url).pathname;
   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
   const wranglerToml = toml.parse(wranglerTomlString);
 
