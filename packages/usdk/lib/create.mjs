@@ -156,12 +156,20 @@ const generateTemplateFromAgentJson = async (agentJson) => {
 };
 const buildWranglerToml = (
   t,
-  { name, agentJson, mnemonic, agentToken },
+  { name, agentJson, mnemonic, agentToken } = {},
 ) => {
-  t.name = name;
-  t.vars.AGENT_JSON = JSON.stringify(agentJson);
-  t.vars.WALLET_MNEMONIC = mnemonic;
-  t.vars.AGENT_TOKEN = agentToken;
+  if (name !== undefined) {
+    t.name = name;
+  }
+  if (agentJson !== undefined) {
+    t.vars.AGENT_JSON = JSON.stringify(agentJson);
+  }
+  if (mnemonic !== undefined) {
+    t.vars.WALLET_MNEMONIC = mnemonic;
+  }
+  if (agentToken !== undefined) {
+    t.vars.AGENT_TOKEN = agentToken;
+  }
   return t;
 };
 const interview = async (agentJson, {
