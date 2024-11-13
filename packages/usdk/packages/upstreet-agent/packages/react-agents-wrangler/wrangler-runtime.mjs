@@ -10,7 +10,7 @@ const bindProcess = (cp) => {
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
-      // console.warn(err.stack);
+      console.warn(err.stack);
     }
   });
 };
@@ -118,21 +118,30 @@ export class ReactAgentsWranglerRuntime {
   }
   terminate() {
     return new Promise((accept, reject) => {
-      if (this.cp === null) {
+      const { cp } = this;
+      if (cp === null) {
         accept(null);
       } else {
-        if (this.cp.exitCode !== null) {
+        if (cp.exitCode !== null) {
           // Process already terminated
-          accept(this.cp.exitCode);
+          accept(cp.exitCode);
         } else {
           // Process is still running
-          this.cp.on('exit', (code) => {
+          const exit = (code) => {
             accept(code);
-          });
-          this.cp.on('error', (err) => {
+            cleanup();
+          };
+          cp.on('exit', exit);
+          const error = (err) => {
             reject(err);
-          });
-          this.cp.kill('SIGTERM');
+            cleanup();
+          };
+          cp.on('error', error);
+          const cleanup = () => {
+            cp.removeListener('exit', exit);
+            cp.removeListener('error', error);
+          };
+          cp.kill('SIGTERM');
         }
       }
     });
