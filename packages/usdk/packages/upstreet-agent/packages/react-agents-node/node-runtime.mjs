@@ -14,7 +14,7 @@ const bindProcess = (cp) => {
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
-      // console.warn(err.stack);
+      console.warn(err.stack);
     }
   });
 };
