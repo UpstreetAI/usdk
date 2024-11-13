@@ -150,6 +150,7 @@ const reloadAgentWorker = async (directory, opts) => {
 
       return agentWorker;
     })();
+    await agentWorkerPromise;
   });
 };
 const makeViteWatcher = (directory) => {
