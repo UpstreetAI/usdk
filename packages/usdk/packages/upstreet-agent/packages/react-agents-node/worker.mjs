@@ -88,8 +88,8 @@ const makeViteServer = (directory) => {
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
-      jsxFactory: 'React.createElement',
-      jsxFragment: 'React.Fragment',
+      // jsxFactory: 'React.createElement',
+      // jsxFragment: 'React.Fragment',
     },
     optimizeDeps: {
       entries: [
