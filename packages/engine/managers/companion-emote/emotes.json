@@ -1,0 +1,112 @@
+[
+  {
+    "name": "agree",
+    "animation": "agree",
+    "emotion": "joy"
+  },
+  {
+    "name": "angry",
+    "animation": "angryFists",
+    "emotion": "angry"
+  },
+  {
+    "name": "apologetic",
+    "animation": "apologetic",
+    "emotion": "neutral"
+  },
+  {
+    "name": "confused",
+    "animation": "confused",
+    "emotion": "angry"
+  },
+  {
+    "name": "curious",
+    "animation": "curious",
+    "emotion": "headShake"
+  },
+  {
+    "name": "cry",
+    "animation": "cry",
+    "emotion": "sorrow"
+  },
+  {
+    "name": "disagree",
+    "animation": "disagree",
+    "emotion": "headShake"
+  },
+  {
+    "name": "embarrassed",
+    "animation": "embarrassed2",
+    "emotion": "embarrassed"
+  },
+  {
+    "name": "excited",
+    "animation": "excited",
+    "emotion": "fun"
+  },
+  {
+    "name": "explaining",
+    "animation": "explain",
+    "emotion": "neutral"
+  },
+  {
+    "name": "headNod",
+    "animation": "headNod",
+    "emotion": "headNod"
+  },
+  {
+    "name": "headShake",
+    "animation": "headShake2",
+    "emotion": "headShake"
+  },
+  {
+    "name": "irritated",
+    "animation": "angryFistsSoft",
+    "emotion": "angry"
+  },
+  {
+    "name": "listening",
+    "animation": "listen",
+    "emotion": "neutral"
+  },
+  {
+    "name": "typing",
+    "animation": "keyboard",
+    "emotion": "headNod"
+  },
+  {
+    "name": "searching",
+    "animation": "keyboardSoft",
+    "emotion": "headNod"
+  },
+  {
+    "name": "sad",
+    "animation": "sad",
+    "emotion": "sorrow"
+  },
+  {
+    "name": "shocked",
+    "animation": "shocked",
+    "emotion": "surprise"
+  },
+  {
+    "name": "surprise",
+    "animation": "surprise",
+    "emotion": "surprise"
+  },
+  {
+    "name": "tantrum",
+    "animation": "tantrum",
+    "emotion": "sorrow"
+  },
+  {
+    "name": "upset",
+    "animation": "upset",
+    "emotion": "sorrow"
+  },
+  {
+    "name": "victory",
+    "animation": "victory",
+    "emotion": "victory"
+  }
+]
