@@ -1,5 +1,3 @@
-// 
-
 import fs from 'fs';
 import toml from '@iarna/toml';
 import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
