@@ -9,10 +9,15 @@ const ensureEsbuild = (() => {
       esBuildPromise = (async () => {
         try {
           const u = new URL('esbuild-wasm/esbuild.wasm', import.meta.url);
-          await esbuild.initialize({
-            worker: true,
-            wasmURL: u.href,
-          });
+          let opts = {};
+          if (typeof window !== 'undefined') {
+            opts = {
+              ...opts,
+              worker: true,
+              wasmURL: u.href,
+            };
+          }
+          await esbuild.initialize(opts);
         } catch (err) {
           console.warn('failed to initialize esbuild', err);
         }
@@ -51,7 +56,8 @@ export const buildAgentSrc = async (sourceCode, {
       loader: 'tsx', // Set the appropriate loader based on the source type
     },
     bundle: true,
-    outdir: 'dist',
+    write: false,
+    // outdir: 'dist',
     format: 'esm',
     plugins: [
       {
@@ -110,14 +116,19 @@ export const buildAgentSrc = async (sourceCode, {
     outputFiles = [],
   } = result;
   if (errors.length === 0) {
-    const outputFile = outputFiles[0];
-    // console.log('got output file', outputFile);
-    const { contents } = outputFile;
-    const textDecoder = new TextDecoder();
-    const text = textDecoder.decode(contents);
-    // console.log('got contents');
-    // console.log(text);
-    return text;
+    if (outputFiles.length > 0) {
+      const outputFile = outputFiles[0];
+      // console.log('got output file', outputFile);
+      const { contents } = outputFile;
+      const textDecoder = new TextDecoder();
+      const text = textDecoder.decode(contents);
+      // console.log('got contents');
+      // console.log(text);
+      return text;
+    } else {
+      console.warn('no output files');
+      throw new Error('Failed to build: no output files');
+    }
   } else {
     console.warn('build errors: ', errors);
     throw new Error('Failed to build: ' + JSON.stringify(errors));

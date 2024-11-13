@@ -127,15 +127,17 @@ export class ChatsSpecification extends EventTarget {
             return;
           }
 
+          const opts = {
+            id: key,
+            user_id: this.userId,
+            data: {
+              room: roomSpecification.room,
+              endpoint_url: roomSpecification.endpointUrl,
+            },
+          };
+          // console.log('upserting chat specification:', opts);
           const result = await this.supabase.from('chat_specifications')
-            .upsert({
-              id: key,
-              user_id: this.userId,
-              data: {
-                room: roomSpecification.room,
-                endpoint_url: roomSpecification.endpointUrl,
-              },
-            });
+            .upsert(opts);
           const {
             error,
           } = result;
