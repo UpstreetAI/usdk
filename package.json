@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "chat": "npm run -w @upstreet/chat --",
+    "login": "npm run -w @upstreet/login --",
     "docs": "npm run -w @upstreet/docs --"
   },
   "workspaces": [

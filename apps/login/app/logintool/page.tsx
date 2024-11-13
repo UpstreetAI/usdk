@@ -1,3 +1,5 @@
+"use client";
+
 import React, {
   useState,
   useEffect,
@@ -15,17 +17,17 @@ import { aiProxyAPI } from '@/const/api.js';
 //   LoginProvider,
 //   // LoginConsumer,
 // } from './components/login-provider/LoginProvider.tsx';
-import { MetamaskAuthUi } from '@/components/metamask-auth-ui/MetamaskAuthUi.jsx';
+import { MetamaskAuthUi } from '@/components/metamask-auth-ui/MetamaskAuthUi';
 // import { AuthUi } from './components/auth-ui/AuthUi.jsx';
-import { AuthUiLoginTool } from '@/components/auth-ui/AuthUILoginTool.jsx';
+import { AuthUiLoginTool } from '@/components/auth-ui/AuthUILoginTool';
 // import {
 //   LoginRedirect,
 // } from './components/login-redirect/LoginRedirect.jsx';
 
-import { aiHost, authEndpoint } from '@/const/endpoints.js';
+import { aiHost, authEndpoint } from '@/const/endpoints';
 // import { EngineContext } from '../packages/engine/engine-context.js';
 
-import styles from '../styles/Login.module.css';
+// import styles from '../styles/Login.module.css';
 
 //
 
@@ -260,14 +262,14 @@ const LoginToolApp = ({
 
   return (
     <>
-      <div className={styles.loginApp}>
-        <div className={styles.wrap}>
+      <div className={"styles.loginApp"}>
+        <div className={"styles.wrap"}>
           {(() => {
             if (done) {
               if (cbUrl) {
                 return (
                   <>
-                    <div className={styles.done}>
+                    <div className={"styles.done"}>
                       {error ? (
                         <>
                           <CopyResultComponent cbResult={cbResult} />

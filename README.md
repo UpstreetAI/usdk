@@ -40,6 +40,11 @@ npm run docs start
 npm i PACKAGE_NAME --workspace=@upstreet/chat
 ```
 
+#### Login
+```bash
+npm i PACKAGE_NAME --workspace=@upstreet/login
+```
+
 #### Docs
 ```bash
 npm i PACKAGE_NAME --workspace=@upstreet/docs

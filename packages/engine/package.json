@@ -1,0 +1,10 @@
+{
+  "name": "engine",
+  "type": "module",
+  "files": [
+    "**/*.js"
+  ],
+  "dependencies": {
+    "jszip": "^3.10.1"
+  }
+}

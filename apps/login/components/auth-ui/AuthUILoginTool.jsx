@@ -6,8 +6,9 @@ import React, {
 } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import styles from '../../../styles/AuthUi.module.css';
+// import styles from '../../../styles/AuthUi.module.css';
 
+const styles = {}
 //
 
 const AuthWrap = ({ supabaseClient, children }) => {

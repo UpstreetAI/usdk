@@ -2,14 +2,16 @@ import React from // useContext,
 // useState,
 'react';
 
-import { resolveIpfsUrl } from '../../../packages/engine/util.js';
-import { ALCHEMY_API_KEY } from '../../../packages/engine/constants/auth.js';
+import { resolveIpfsUrl } from 'engine/util.js';
+import { ALCHEMY_API_KEY } from 'engine/constants/auth.js';
 
-import styles from '../../../styles/MetamaskAuthUi.module.css';
+// import styles from '../../../styles/MetamaskAuthUi.module.css';
 
 import { ethers } from 'ethers';
 
-import { authEndpoint } from '../../../endpoints.js';
+import { authEndpoint } from '@/const/endpoints';
+
+const styles={}
 
 const ACCOUNT_DATA = {
   EMAIL: 'email',
