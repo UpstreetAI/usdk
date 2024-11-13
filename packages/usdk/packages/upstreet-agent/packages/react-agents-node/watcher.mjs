@@ -61,6 +61,7 @@ const reloadAgentWorker = async (directory, opts) => {
       }
 
       // create the worker
+      let live = true;
       const cp = crossSpawn(process.execPath, args, {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       });
@@ -110,7 +111,6 @@ const reloadAgentWorker = async (directory, opts) => {
       });
       // console.log('wait for ready 2');
 
-      let live = true;
       const agentWorker = {
         async terminate() {
           live = false;
