@@ -116,8 +116,8 @@ export class ReactAgentsWranglerRuntime {
     }
     this.cp = cp;
   }
-  terminate() {
-    return new Promise((accept, reject) => {
+  async terminate() {
+    await new Promise((accept, reject) => {
       const { cp } = this;
       if (cp === null) {
         accept(null);

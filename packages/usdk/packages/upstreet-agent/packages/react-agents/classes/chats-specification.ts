@@ -135,7 +135,7 @@ export class ChatsSpecification extends EventTarget {
               endpoint_url: roomSpecification.endpointUrl,
             },
           };
-          console.log('upserting chat specification:', opts);
+          // console.log('upserting chat specification:', opts);
           const result = await this.supabase.from('chat_specifications')
             .upsert(opts);
           const {
