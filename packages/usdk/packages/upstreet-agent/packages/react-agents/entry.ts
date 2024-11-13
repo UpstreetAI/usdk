@@ -237,7 +237,7 @@ export class AgentMain extends EventTarget {
   async fetch(request: Request) {
     try {
       const u = new URL(request.url);
-      console.log('worker request', request.method, u.href);
+      // console.log('worker request', request.method, u.href);
 
       await this.waitForLoad();
 
