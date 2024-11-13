@@ -66,41 +66,74 @@ const reloadAgentWorker = async (directory, opts) => {
       });
       cp.stdout.pipe(process.stdout);
       cp.stderr.pipe(process.stderr);
-      cp.on('exit', (code) => {
-        console.log('worker exited', code);
-      });
-      cp.on('error', (err) => {
-        console.error('worker error', err);
-      });
+      const exit = (code) => {
+        if (live) {
+          console.log('worker exited unexpectedly', code);
+        }
+        cleanup();
+      };
+      cp.on('exit', exit);
+      const error = (err) => {
+        process.send({
+          method: 'error',
+          args: ['runtime worker error: ' + err.stack],
+        });
+      };
+      cp.on('error', error);
+      const message = (e) => {
+        const { method, args } = e;
+        if (method === 'error') {
+          const error = new Error('runtime worker error: ' + args[0]);
+          process.send({
+            method: 'error',
+            args: [error.stack],
+          });
+        }
+      };
+      const cleanup = () => {
+        cp.removeListener('exit', exit);
+        cp.removeListener('error', error);
+        cp.removeListener('message', message);
+      };
       bindProcess(cp);
-      console.log('wait for ready 1');
+      // console.log('wait for ready 1');
       await new Promise((resolve) => {
         const message = (e) => {
-          console.log('watcher got message', e);
-          cleanup();
+          // console.log('watcher got message', e);
+          cleanup2();
           resolve(null);
         };
         cp.on('message', message);
-        const cleanup = () => {
+        const cleanup2 = () => {
           cp.removeListener('message', message);
         };
       });
-      console.log('wait for ready 2');
+      // console.log('wait for ready 2');
 
+      let live = true;
       const agentWorker = {
-        terminate() {
-          return new Promise((accept, reject) => {
+        async terminate() {
+          live = false;
+          await new Promise((accept, reject) => {
             if (cp.exitCode !== null) {
               // Process already terminated
               accept(cp.exitCode);
             } else {
               // Process is still running
-              cp.on('exit', (code) => {
+              const exit = (code) => {
                 accept(code);
-              });
-              cp.on('error', (err) => {
+                cleanup();
+              };
+              cp.on('exit', exit);
+              const error = (err) => {
                 reject(err);
-              });
+                cleanup();
+              };
+              cp.on('error', error);
+              const cleanup = () => {
+                cp.removeListener('exit', exit);
+                cp.removeListener('error', error);
+              };
               cp.kill('SIGTERM');
             }
           });

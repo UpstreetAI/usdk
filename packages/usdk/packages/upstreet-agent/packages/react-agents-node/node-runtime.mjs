@@ -49,100 +49,52 @@ export class ReactAgentsNodeRuntime {
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-        // cwd: directory,
       },
     );
     cp.stdout.pipe(process.stdout);
     cp.stderr.pipe(process.stderr);
     bindProcess(cp);
-    cp.on('error', err => {
-      console.warn('node runtime got error', err);
-    });
-    cp.on('exit', (code) => {
-      console.warn('node runtime got exit', code);
-    });
-    cp.on('error', e => {
-      console.warn('got error', e);
-    });
-    console.log('node runtime wait 1');
+    const error = (err) => {
+      console.warn('node runtime watcher error', err);
+    };
+    cp.on('error', error);
+    const exit = (code) => {
+      console.warn('node runtime watcher exit', code);
+      cleanup();
+    };
+    cp.on('exit', exit);
+    const message = (e) => {
+      const { method, args } = e;
+      if (method === 'error') {
+        const error = new Error('node runtime watcher error: ' + args[0]);
+        console.warn(error.stack);
+      }
+    };
+    cp.on('message', message);
+    const cleanup = () => {
+      cp.removeListener('error', error);
+      cp.removeListener('exit', exit);
+      cp.removeListener('message', message);
+    };
+    // console.log('node runtime wait 1');
     await new Promise((resolve) => {
       const message = (e) => {
-        console.log('node runtime got message', e);
-        cleanup();
-        resolve(null);
+        const { method } = e;
+        if (method === 'ready') {
+          resolve(null);
+          cleanup2();
+        }
       };
       cp.on('message', message);
-      const cleanup = () => {
+      const cleanup2 = () => {
         cp.removeListener('message', message);
       };
     });
-    console.log('node runtime wait 2');
+    // console.log('node runtime wait 2');
     this.cp = cp;
   }
-  /* async fetch(url, opts) {
-    const requestId = crypto.randomUUID();
-    const {
-      method, headers, body,
-    } = opts;
-    this.cp.send({
-      method: 'request',
-      args: {
-        id: requestId,
-        url,
-        method,
-        headers,
-        body,
-      },
-    }, []);
-    const res = await new Promise<Response>((accept, reject) => {
-      const onmessage = (e) => {
-        // console.log('got worker message data', e.data);
-        try {
-          const { method } = e.data;
-          switch (method) {
-            case 'response': {
-              const { args } = e.data;
-              const {
-                id: responseId,
-              } = args;
-              if (responseId === requestId) {
-                cleanup();
-
-                const {
-                  error, status, headers, body,
-                } = args;
-                if (!error) {
-                  const res = new Response(body, {
-                    status,
-                    headers,
-                  });
-                  accept(res);
-                } else {
-                  reject(new Error(error));
-                }
-              }
-              break;
-            }
-            default: {
-              console.warn('unhandled worker message method', e.data);
-              break;
-            }
-          }
-        } catch (err) {
-          console.error('failed to handle worker message', err);
-          reject(err);
-        }
-      };
-      this.cp.on('message', onmessage);
-
-      const cleanup = () => {
-        this.cp.removeListener('message', onmessage);
-      };
-    });
-    return res;
-  } */
-  terminate() {
-    return new Promise((accept, reject) => {
+  async terminate() {
+    await new Promise((accept, reject) => {
       if (this.cp === null) {
         accept(null);
       } else {
