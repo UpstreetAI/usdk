@@ -6,9 +6,21 @@ import userRender from './agent.tsx';
 
 //
 
+['uncaughtException', 'unhandledRejection'].forEach(event => {
+  process.on(event, err => {
+    console.error(err);
+  });
+});
+
+//
+
+// this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
+const wranglerTomlPath = new URL('../../../../wrangler.toml', import.meta.url).pathname;
+
+//
+
 const getEnv = async () => {
   // load the wrangler.toml
-  const wranglerTomlPath = './wrangler.toml';
   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
   const wranglerToml = toml.parse(wranglerTomlString);
 
