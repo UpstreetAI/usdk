@@ -36,6 +36,9 @@ const reloadAgentWorker = async (directory, opts) => {
 
       // initialize args
       const args = [
+        '--no-warnings',
+        '--experimental-wasm-modules',
+        '--experimental-transform-types',
         path.join(dirname, 'worker.mjs'),
         'run',
         directory,
