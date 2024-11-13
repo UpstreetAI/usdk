@@ -156,7 +156,7 @@ const generateTemplateFromAgentJson = async (agentJson) => {
 };
 const buildWranglerToml = (
   t,
-  { name, agentJson, mnemonic, agentToken },
+  { name, agentJson, mnemonic, agentToken } = {},
 ) => {
   if (name !== undefined) {
     t.name = name;
