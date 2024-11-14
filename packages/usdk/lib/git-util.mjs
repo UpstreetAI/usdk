@@ -1,4 +1,6 @@
 import spawn from 'cross-spawn';
+import fs from 'fs';
+import path from 'path';  
 
 export const hasGit = async () => {
   // check if the git command exists
@@ -19,6 +21,11 @@ export const hasGit = async () => {
   });
 };
 
+const createGitignore = (dstDir) => {
+  const gitignorePath = path.join(dstDir, '.gitignore');
+  fs.writeFileSync(gitignorePath, 'node_modules/\n');
+};
+
 export const gitInit = async (dstDir) => {
   await new Promise((resolve, reject) => {
     const child = spawn('git', [
@@ -33,6 +40,7 @@ export const gitInit = async (dstDir) => {
       if (code !== 0) {
         reject(new Error(`git init failed with code ${code}`));
       } else {
+        createGitignore(dstDir);
         resolve();
       }
     });
