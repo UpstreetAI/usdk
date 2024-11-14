@@ -17,12 +17,12 @@ import {
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
-import {
-  makeTempDir,
-} from './file.mjs';
+// import {
+//   makeTempDir,
+// } from './file.mjs';
 import {
   BASE_DIRNAME,
-  templatesDirectory,
+  // templatesDirectory,
 } from './locations.mjs';
 import {
   ImageRenderer,
@@ -132,7 +132,7 @@ const getAgentAuthSpec = async (jwt) => {
     mnemonic,
   };
 };
-const generateTemplateFromAgentJson = async (agentJson) => {
+/* const generateTemplateFromAgentJson = async (agentJson) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
 
@@ -153,7 +153,7 @@ const generateTemplateFromAgentJson = async (agentJson) => {
   );
 
   return templateDirectory;
-};
+}; */
 const buildWranglerToml = (
   t,
   { name, agentJson, mnemonic, agentToken } = {},
@@ -462,9 +462,16 @@ export const create = async (args, opts) => {
     : '*none*'
   );
 
-  console.log(pc.italic('Building agent...'));
-  const srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
-  console.log(pc.italic('Agent built.'));
+  const agentJSX = await (async () => {
+    if (sourceFile !== null) {
+      return sourceFile;
+    } else {
+      console.log(pc.italic('Building agent...'));
+      const sourceCode = makeAgentSourceCode(agentJson.features ?? []);
+      console.log(pc.italic('Agent built.'));
+      return sourceCode;
+    }
+  })();
 
   // copy over files
   const _copyFiles = async () => {
@@ -472,6 +479,8 @@ export const create = async (args, opts) => {
     const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
     const dstPackageJsonPath = path.join(dstDir, 'package.json');
+
+    const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
 
     const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
     const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
@@ -488,16 +497,8 @@ export const create = async (args, opts) => {
     // copy over the template files
     console.log(pc.italic('Copying files...'));
     await Promise.all([
-      // generated template -> root
-      (async () => {
-        await recursiveCopy(srcTemplateDir, dstDir, {
-          filter: (p) => !/^(?:package\.json|agent\.json)$/.test(p),
-        });
-        if (sourceFile !== null) {
-          const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
-          await fs.promises.writeFile(dstAgentTsxPath, sourceFile);
-        }
-      })(),
+      // agent.tsx
+      fs.promises.writeFile(dstAgentTsxPath, agentJSX),
       // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
