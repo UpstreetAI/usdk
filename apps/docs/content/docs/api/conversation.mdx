@@ -24,7 +24,7 @@ import { Conversation } from 'react-agents';
 </Conversation>
 ```
 
-When using the Conversation component, you can provide any number of child components (such as <MemoriesManager />) that will be rendered for each individual conversation managed by the agent. This allows the agent to maintain awareness of each conversation and its context separately.
+When using the Conversation component, you can provide any number of child components that will be rendered for each individual conversation managed by the agent. This allows the agent to maintain awareness of each conversation and its context separately.
 
 ### Properties
 
@@ -35,13 +35,15 @@ The Conversation component utilizes two contexts:
 
 - AgentContext: Provides access to the agent managing the conversation.
 - ConversationsContext: Supplies the list of active conversations the agent is participating in.
-Each active conversation is rendered as an instance of ConversationInstance, which takes the agent and conversation details as props. The children of <Conversation> are rendered within each ConversationInstance, allowing them to interact with and respond to the specific context of each conversation.
+Each active conversation is rendered as an instance of ConversationInstance, which takes the agent and conversation details as props. The children of `<Conversation>` are rendered within each ConversationInstance, allowing them to interact with and respond to the specific context of each conversation.
 
 - Accessing Conversation State
-Within any component rendered inside <Conversation>, you can access the current conversation state using the following hook:
+Within any component rendered inside `<Conversation>`, you can access the current conversation state using the following hooks:
 
 ```javascript
-const conversation = useConversation();
+// inside of a function comonent nested in a `<Conversation>`
+const conversation = useConversation(); // get the current conversation state
+const cachedMessages = useCachedMessages(); // get the current conversation chat messages
 ```
 
 This hook provides access to the specific conversation's state, allowing you to interact with or respond to the context of that conversation as needed.
