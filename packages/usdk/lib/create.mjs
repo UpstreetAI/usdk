@@ -510,8 +510,8 @@ export const create = async (args, opts) => {
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
       recursiveCopy(srcGitignorePath, dstGitignorePath),
-      // root jest config
-      recursiveCopy(srcJestPath, dstJestPath),
+      /* // root jest config
+      recursiveCopy(srcJestPath, dstJestPath), */
       // root wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
