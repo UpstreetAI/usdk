@@ -1,4 +1,6 @@
 import spawn from 'cross-spawn';
+import path from 'path';
+import fs from 'fs/promises';
 
 export const hasGit = async () => {
   // check if the git command exists
