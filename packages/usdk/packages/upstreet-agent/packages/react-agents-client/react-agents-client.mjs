@@ -183,6 +183,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             }
           }
         });
+
+        this.dispatchEvent(new MessageEvent('join', {
+          data: e.data,
+        }));
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
@@ -201,6 +205,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           this.log('remote player not found', playerId);
           throw new Error('remote player not found');
         }
+
+        this.dispatchEvent(new MessageEvent('leave', {
+          data: e.data,
+        }));
       });
       // map multimedia events virtualPlayers -> playersMap
       [
@@ -213,6 +221,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       ].forEach(eventName => {
         virtualPlayers.addEventListener(eventName, e => {
           playersMap.dispatchEvent(new MessageEvent(eventName, {
+            data: e.data,
+          }));
+          this.dispatchEvent(new MessageEvent(eventName, {
             data: e.data,
           }));
         });
