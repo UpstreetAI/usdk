@@ -26,7 +26,7 @@ The Action component accepts the following props:
 | `examples`    | `Array<object />` (required) | An array of example objects demonstrating the expected structure of the action’s inputs.                                                          | Provide examples to illustrate typical usage scenarios for this action.                                             |
 | `handler`     | `function` (optional) | A function or asynchronous function that handles the action when triggered. Receives a `PendingActionEvent` as its argument.                      | Define the action’s behavior when invoked. If the handler is asynchronous, ensure it returns a Promise.             |
 
-Example Usage
+## Example
 Here is an example of how the Action component might be used:
 ```javascript
 import { Action } from 'react-agents';
@@ -59,7 +59,7 @@ function MyComponent() {
 }
 ```
 
-In this example:
+## Example Breakdown:
 
 name is set to "SendMessage" to identify the action.
 description provides a brief summary of the action's purpose.
@@ -70,7 +70,7 @@ handler is an asynchronous function that handles the SendMessage action when it 
 Component Lifecycle
 When the Action component is mounted, it registers the action with the agent registry using the registerAction method, associating the action with a unique symbol. When unmounted, it unregisters the action, ensuring no memory leaks.
 
-Dependencies
+## Dependencies
 The component recalculates and registers the action if any of the following dependencies change:
 
 name
