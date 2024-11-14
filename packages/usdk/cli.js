@@ -37,6 +37,7 @@ import {
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+import { ReactAgentsNodeRuntime } from './packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -95,6 +96,9 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
+import {
+  generateMnemonic,
+} from './util/ethereum-utils.mjs';
 import LoggerFactory from './util/logger/logger-factory.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
@@ -1692,6 +1696,40 @@ export const main = async () => {
           });
         });
       });
+    program
+      .command('node')
+      .description('Run a node agent')
+      .argument(`[guids...]`, `Guids of the agents to join the room`)
+      .action(async (guids = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          args = {
+            _: [guids],
+            ...opts,
+          };
+
+          const agentSpecs = await parseAgentSpecs(args._[0]);
+          const debug = true;
+
+          // start dev servers for the agents
+          const startPromises = agentSpecs.map(async (agentSpec) => {
+            if (agentSpec.directory) {
+              const runtime = new ReactAgentsNodeRuntime(agentSpec);
+              await runtime.start({
+                debug,
+              });
+            }
+          });
+          await Promise.all(startPromises);
+
+          // await new Promise((accept, reject) => {
+          //   setTimeout(() => {
+          //     reject(new Error('timeout'));
+          //   }, 1000 * 60 * 60 * 24);
+          // });
+        });
+      });
       
     // program
     //   .command('search')
@@ -2050,6 +2088,7 @@ export const main = async () => {
           };
           await deposit(args);
         });
+
       });*/
     /*program
       .command('withdraw')

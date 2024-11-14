@@ -1,0 +1,4 @@
+node_modules
+
+# This is to protect secrets being exposed in a public git repo. Remove this on your own discretion.
+wrangler.toml
