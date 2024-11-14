@@ -224,11 +224,13 @@ const StoreActions = () => {
 type EveryNMessagesOptions = {
   signal: AbortSignal,
 };
-const EveryNMessages = ({
+export const EveryNMessages = ({
   n,
+  firstCallback = true,
   children,
 }: {
   n: number,
+  firstCallback?: boolean,
   children: (opts: EveryNMessagesOptions) => void,
 }) => {
   const numMessages = useNumMessages();
@@ -237,7 +239,7 @@ const EveryNMessages = ({
 
   useEffect(() => {
     const diff = numMessages - startNumMessages;
-    if (diff % n === 0) {
+    if (diff % n === 0 && (diff > 0 || firstCallback)) {
       if (!abortControllerRef.current) {
         abortControllerRef.current = new AbortController();
       }
