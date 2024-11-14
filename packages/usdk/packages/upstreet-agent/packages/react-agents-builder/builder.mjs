@@ -27,19 +27,19 @@ const ensureEsbuild = (() => {
   };
 })();
 
-const defaultFiles = [
+/* const defaultFiles = [
   {
     path: '/example.ts',
     content: `\
       export const example = 'This is an example module';
     `,
   },
-];
+]; */
 
 //
 
 export const buildAgentSrc = async (sourceCode, {
-  files = defaultFiles,
+  files = [],
 } = {}) => {
   await ensureEsbuild();
 
