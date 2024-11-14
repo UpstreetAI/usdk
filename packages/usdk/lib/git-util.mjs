@@ -23,7 +23,10 @@ export const hasGit = async () => {
 
 const createGitignore = (dstDir) => {
   const gitignorePath = path.join(dstDir, '.gitignore');
-  fs.writeFileSync(gitignorePath, 'node_modules/\n');
+  const gitignoreContent = `node_modules/
+wrangler.toml
+`;
+  fs.writeFileSync(gitignorePath, gitignoreContent);
 };
 
 export const gitInit = async (dstDir) => {
