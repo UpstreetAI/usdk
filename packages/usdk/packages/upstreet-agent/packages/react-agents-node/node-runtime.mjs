@@ -1,10 +1,11 @@
 import path from 'path';
 import crossSpawn from 'cross-spawn';
 import { devServerPort } from './util/ports.mjs';
+import { getCurrentDirname} from '../react-agents/util/path-util.mjs'
 
 //
 
-const localDirectory = new URL('.', import.meta.url).pathname;
+const localDirectory = getCurrentDirname(import.meta);
 
 //
 
@@ -36,13 +37,15 @@ export class ReactAgentsNodeRuntime {
       portIndex,
     } = this.agentSpec;
 
+    const watcherPath = path.join(localDirectory, 'watcher.mjs');
+
     const cp = crossSpawn(
       'node',
       [
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        path.join(localDirectory, 'watcher.mjs'),
+        watcherPath,
         'run',
         directory,
         '--var', 'WORKER_ENV:development',

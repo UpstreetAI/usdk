@@ -3,10 +3,11 @@ import crossSpawn from 'cross-spawn';
 import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
 import { Debouncer } from 'debouncer';
+import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 
 //
 
-const dirname = path.dirname(import.meta.url.replace('file://', ''));
+const dirname = getCurrentDirname(import.meta);
 
 const bindProcess = (cp) => {
   process.on('exit', () => {
@@ -36,12 +37,14 @@ const reloadAgentWorker = async (directory, opts) => {
         await oldAgentWorker.terminate();
       }
 
+      const workerPath = path.join(dirname, 'worker.mjs');
+
       // initialize args
       const args = [
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        path.join(dirname, 'worker.mjs'),
+        workerPath,
         'run',
         directory,
       ];

@@ -3,6 +3,8 @@ import toml from '@iarna/toml';
 import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import userRender from './agent.tsx';
+import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
+import path from 'path';
 
 //
 
@@ -15,7 +17,7 @@ import userRender from './agent.tsx';
 //
 
 // this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
-const wranglerTomlPath = new URL('../../../../wrangler.toml', import.meta.url).pathname;
+const wranglerTomlPath = path.join(getCurrentDirname(import.meta), '../../../../wrangler.toml');
 
 //
 
