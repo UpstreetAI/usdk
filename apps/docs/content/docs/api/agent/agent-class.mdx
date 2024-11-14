@@ -16,15 +16,15 @@ You do not construct the `Agent` class yourself. It is created for you when your
 
 To get a handle to the `Agent` class, use one of the following:
 
-1) `useAgent` hook
+### `useAgent` hook
 - Any component nested within and `<Agent>` can call the `useAgent` hook to get a handle to the underlying `Agent` class.
 ```javascript
 ```
-2) handler callbacks
+### `handler` callback
 - Each `handler` in your agent (such as `<Action handler={(event) => {/* ... */}}>` or `<Perception handler={(event) => {/* ... */}}>`) has an `agent` key on the `event.data`. You can use this for convenient access to the currently running `agent`. e.g.
 ```javascript
 ```
-3) `useRef` hook
+### `useRef` hook
 - Every `<Agent>` has an internal `ref` that resolves to the `Agent` instance. You can access it the usual way using React's `useRef`:
 ```javascript
 ```
