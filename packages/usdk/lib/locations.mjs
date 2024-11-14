@@ -20,6 +20,7 @@ const usdkProfileLocation = path.join(homedir, '.usdk');
 export const loginLocation = path.join(usdkProfileLocation, 'login.json');
 // const export walletLocation = path.join(usdkProfileLocation, 'wallet.json');
 
+// this should point to the usdk roor directory
 export const BASE_DIRNAME = (() => {
   let metaUrl = decodeURI(import.meta.url).replace('file://', '');
   if (os.platform() === 'win32') {
