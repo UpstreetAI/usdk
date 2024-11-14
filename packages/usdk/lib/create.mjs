@@ -16,7 +16,7 @@ import {
 } from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
-import { hasGit, gitInit } from '../lib/git-util.mjs';
+import { hasGit, gitInit, addToGitignore } from '../lib/git-util.mjs';
 // import {
 //   makeTempDir,
 // } from './file.mjs';
@@ -509,7 +509,10 @@ export const create = async (args, opts) => {
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
-      recursiveCopy(srcGitignorePath, dstGitignorePath),
+      (async () => {
+        await recursiveCopy(srcGitignorePath, dstGitignorePath);
+        await addToGitignore(dstGitignorePath, 'wrangler.toml');
+      })(),
       // root jest config
       recursiveCopy(srcJestPath, dstJestPath),
       // root wrangler.toml

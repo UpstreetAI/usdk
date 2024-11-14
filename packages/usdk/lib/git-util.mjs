@@ -31,16 +31,11 @@ export const gitInit = async (dstDir) => {
       stdio: 'inherit',
     });
 
-    child.on('close', async (code) => {
+    child.on('close', (code) => {
       if (code !== 0) {
         reject(new Error(`git init failed with code ${code}`));
       } else {
-        try {
-          await addToGitignore(dstDir, 'wrangler.toml');
-          resolve();
-        } catch (err) {
-          reject(err);
-        }
+        resolve();
       }
     });
   });
