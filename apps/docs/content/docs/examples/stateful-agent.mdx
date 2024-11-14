@@ -1,0 +1,150 @@
+---
+title: Stateful Agent
+description: This section describes how to build an Agent capable of maintaining its own state.
+full: false
+---
+
+In this guide, we build a **simple guessing game** which can maintain its own state, and uses NPM libraries to enhance the game's experience.
+
+<Callout>
+We define a **Stateful Agent** as an Agent which can take maintain its own memory and event lifecycle.
+</Callout>
+
+The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/guessingGame).
+
+## Guide
+
+### Step 1: Setup `usdk`
+
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+
+Make sure you are logged in.
+
+### Step 2: Initialize your agent
+
+Create a new agent:
+
+```bash
+usdk create <your-agent-directory> -y
+```
+
+This will directly scaffold an agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
+
+Your agent directory contains the node application and git repository for your agent (should you choose to use `git`).
+
+Note: `-y` means to skip the agent interview process, which we don't need here.
+Note: you can also omit the agent directory. In that case, a directory will be created for you.
+
+### Step 3: Start the agentic developer environment
+
+Start a chat with your agent in the terminal:
+
+```
+cd <your-agent-directory>
+usdk chat
+```
+
+To edit your agent, open `agent.tsx` in any IDE or text editor.
+
+Hot reloading is supported by default, so when you save your code the agent will automatically reload so you can test out your changes immediately in the chat terminal.
+
+### Step 4: Add the Guessing Game logic
+
+Our guessing game will work like this:
+
+> The Agent will choose a random animal, and then give slight hints to the user until the user guesses the word.
+
+We can use [`unique-names-generator`](https://www.npmjs.com/package/unique-names-generator), an NPM library, to get the random animal name generation logic.
+
+Install this library to your agent:
+
+```
+cd <your-agent-directory>
+npm install unique-names-generator
+```
+
+Note: You can also install any library from `npm`.
+
+Edit your `agent.tsx` by adding the following code stub:
+
+```tsx
+import { uniqueNamesGenerator, animals } from 'unique-names-generator'; // [!code ++]
+const generateRandomName = () => uniqueNamesGenerator({ // [!code ++]
+  dictionaries: [animals], // [!code ++]
+  separator: ' ', // [!code ++]
+}); // [!code ++]
+
+const GuessingGame = () => {
+    // Guessing game logic goes here
+
+    return (
+        <>
+        </>
+    )
+};
+```
+
+Next, let's write up our guessing game logic! To maintain state, we'll use [`useState`](https://react.dev/reference/react/useState) in React - for the sake of simplicity.
+
+```tsx
+import { uniqueNamesGenerator, animals } from 'unique-names-generator';
+const generateRandomName = () => uniqueNamesGenerator({
+  dictionaries: [animals],
+  separator: ' ',
+}); // big red donkey
+
+const GuessingGame = () => {
+  const [secretWord, setSecretWord] = useState(generateRandomName); // [!code ++]
+
+  return (
+    {/* [!code highlight] */} 
+    <>
+    {/* [!code highlight] */} 
+      <Prompt>
+        {/* [!code highlight] */} 
+        Play a guessing game with the user.
+        {/* [!code highlight] */} 
+        The secret word that the user is must guess is {secretWord}.
+        {/* [!code highlight] */} 
+        You can give them very subtle hints about the phrase, e.g. "this animal really likes treats".
+        {/* [!code highlight] */} 
+        You can also answer general questions if they don't give too much away.
+        {/* [!code highlight] */} 
+        However, be cryptic. Don't make the game so easy.
+        {/* [!code highlight] */} 
+        When the user guesses the secret word or gives up, call the "guessingGameDone" action with an apppropriate message to reset the secret word.
+      {/* [!code highlight] */}
+      </Prompt> 
+      <Action // [!code ++]
+        name="guessingGameDone" // [!code ++]
+        description="The user has guessed the secret word" // [!code ++]
+        schema={z.object({ // [!code ++]
+          congratulationsMessage: z.string(), // [!code ++]
+        })} // [!code ++]
+        examples={[ // [!code ++]
+          { // [!code ++]
+            congratulationsMessage: 'Whoa, you guessed it!', // [!code ++]
+          }, // [!code ++]
+        ]} // [!code ++]
+        handler={async (e) => { // [!code ++]
+          const { agent, message } = e.data; // [!code ++]
+          const { args } = message; // [!code ++]
+          const { congratulationsMessage } = args; // [!code ++]
+          agent.say(congratulationsMessage); // [!code ++]
+          setSecretWord(generateRandomName); // [!code ++]
+        }} // [!code ++]
+      />
+    </>
+  );
+};
+```
+
+### Step 4: (optional) Test the Guessing Game Agent
+
+Run [`usdk chat`](/test-your-agent) to test the Agent in your CLI.
+
+How long does it take you to guess your first animal? Join our [Discord community](https://upstreet.ai/usdk-discord); we'd love to know!
+
+## Further Challenges
+
+- "20 questions": Put a limit on the number of questions, and have the AI answer only YES or NO. If the user makes a guess, the game is considered done!

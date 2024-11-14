@@ -14,7 +14,7 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.description = 'Created by the AI Agent SDK';
   }
   if (typeof spec.bio !== 'string') {
-    spec.bio = 'A cool person';
+    spec.bio = 'A cool AI';
   }
   if (typeof spec.ownerId !== 'string') {
     spec.ownerId = '';
