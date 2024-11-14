@@ -18,18 +18,37 @@ The source code for this example is available on [GitHub](https://github.com/Ups
 
 Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
 
-### Step 2: Create an Agent (shortcut)
+Make sure you are logged in.
 
-We can skip the Interview process, and directly generate an Agent with a prompt, by running:
+### Step 2: Initialize your agent
+
+Create a new agent:
 
 ```bash
-usdk create <your-agent-directory> -p "create a guessing game agent, which initializes a random animal name, and then has the user guess it"
+usdk create <your-agent-directory> -y
 ```
 
-This will directly scaffold an Agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
+This will directly scaffold an agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
 
+Your agent directory contains the node application and git repository for your agent (should you choose to use `git`).
 
-### Step 3: Add the Guessing Game logic
+Note: `-y` means to skip the agent interview process, which we don't need here.
+Note: you can also omit the agent directory. In that case, a directory will be created for you.
+
+### Step 3: Start the agentic developer environment
+
+Start a chat with your agent in the terminal:
+
+```
+cd <your-agent-directory>
+usdk chat
+```
+
+To edit your agent, open `agent.tsx` in any IDE or text editor.
+
+Hot reloading is supported by default, so when you save your code the agent will automatically reload so you can test out your changes immediately in the chat terminal.
+
+### Step 4: Add the Guessing Game logic
 
 Our guessing game will work like this:
 
@@ -37,15 +56,26 @@ Our guessing game will work like this:
 
 We can use [`unique-names-generator`](https://www.npmjs.com/package/unique-names-generator), an NPM library, to get the random animal name generation logic.
 
+Install this library to your agent:
+
+```
+cd <your-agent-directory>
+npm install `unique-names-generator`
+```
+
+Note: You can also install any library from `npm`.
+
+Edit your `agent.tsx` by adding the following code stub:
+
 ```tsx
 import { uniqueNamesGenerator, animals } from 'unique-names-generator'; // [!code ++]
 const generateRandomName = () => uniqueNamesGenerator({ // [!code ++]
   dictionaries: [animals], // [!code ++]
   separator: ' ', // [!code ++]
-}); // big red donkey // [!code ++]
+}); // [!code ++]
 
 const GuessingGame = () => {
-    // Guessing game logic will come here
+    // Guessing game logic goes here
 
     return (
         <>
@@ -54,7 +84,7 @@ const GuessingGame = () => {
 };
 ```
 
-Next, let's write up our guessing game logic! To maintain state, we'll simply use [`useState`](https://react.dev/reference/react/useState) in React - for the sake of simplicity.
+Next, let's write up our guessing game logic! To maintain state, we'll use [`useState`](https://react.dev/reference/react/useState) in React - for the sake of simplicity.
 
 ```tsx
 import { uniqueNamesGenerator, animals } from 'unique-names-generator';
