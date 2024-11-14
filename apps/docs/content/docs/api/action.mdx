@@ -14,27 +14,18 @@ To use the `Action` component, import it as follows:
 import { Action } from 'react-agents';
 ```
 
-Props
+## Props
 The Action component accepts the following props:
 
-name (string, required)
-Description: The name of the action.
-Usage: This name is used to identify the action within the agent registry.
-description (string, required)
-Description: A human-readable description of what the action does.
-Usage: Helpful for documenting the action's purpose or behavior.
-state (string, optional)
-Description: An optional state associated with the action, which can be used for additional contextual information.
-Usage: Set the state if the action's behavior or meaning changes based on specific states.
-schema (ZodTypeAny, required)
-Description: A Zod schema object that defines the structure and validation of the action's input parameters.
-Usage: The schema is used to validate the data passed to the action, ensuring it conforms to the expected format.
-examples (Array<object />, required)
-Description: An array of example objects demonstrating the expected structure of the action’s inputs.
-Usage: Provide examples to illustrate typical usage scenarios for this action.
-handler (function, optional)
-Description: A function or asynchronous function that handles the action when triggered. Receives a PendingActionEvent as its argument.
-Usage: Define the action’s behavior when invoked. If the handler is asynchronous, ensure it returns a Promise.
+| **Prop**      | **Type**          | **Description**                                                                                                                                  | **Usage**                                                                                                           |
+|---------------|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `name`        | `string` (required) | The name of the action.                                                                                                                          | This name is used to identify the action within the agent registry.                                                 |
+| `description` | `string` (required) | A human-readable description of what the action does.                                                                                            | Helpful for documenting the action's purpose or behavior.                                                           |
+| `state`       | `string` (optional) | An optional state associated with the action, which can be used for additional contextual information.                                           | Set the state if the action's behavior or meaning changes based on specific states.                                 |
+| `schema`      | `ZodTypeAny` (required) | A Zod schema object that defines the structure and validation of the action's input parameters.                                                  | The schema is used to validate the data passed to the action, ensuring it conforms to the expected format.          |
+| `examples`    | `Array<object />` (required) | An array of example objects demonstrating the expected structure of the action’s inputs.                                                          | Provide examples to illustrate typical usage scenarios for this action.                                             |
+| `handler`     | `function` (optional) | A function or asynchronous function that handles the action when triggered. Receives a `PendingActionEvent` as its argument.                      | Define the action’s behavior when invoked. If the handler is asynchronous, ensure it returns a Promise.             |
+
 Example Usage
 Here is an example of how the Action component might be used:
 ```javascript
