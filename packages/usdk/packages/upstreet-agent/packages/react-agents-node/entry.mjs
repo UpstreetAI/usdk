@@ -3,7 +3,7 @@ import toml from '@iarna/toml';
 import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import userRender from './agent.tsx';
-import { getCurrentDirname } from './packages/react-agents/util/path-util.mjs';
+import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 import path from 'path';
 
 //

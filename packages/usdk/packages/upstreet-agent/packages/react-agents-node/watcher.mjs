@@ -37,14 +37,14 @@ const reloadAgentWorker = async (directory, opts) => {
         await oldAgentWorker.terminate();
       }
 
-      const watcherPath = path.join(dirname, 'watcher.mjs');
+      const workerPath = path.join(dirname, 'worker.mjs');
 
       // initialize args
       const args = [
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        watcherPath,
+        workerPath,
         'run',
         directory,
       ];
