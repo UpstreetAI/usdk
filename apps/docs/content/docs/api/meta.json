@@ -1,5 +1,5 @@
 {
     "title": "API Reference",
-    "pages": ["action"],
+    "pages": ["agent", "action", "perception"],
     "defaultOpen": false
 }
