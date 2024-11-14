@@ -32,3 +32,17 @@ This command uploads your Agent to the Upstreet platform, making it accessible v
 Prefer to run your Agent locally? You can use a Cloudflare tunnel to make it internet-accessible. Note that even with self-hosting, using Upstreet’s AI services may still consume credits.
 
 For more on pricing models for both deployment options, visit our [Pricing](/pricing) page.
+
+---
+
+## Unpublishing an Agent
+
+You may want to undeploy or unpublish your Agent. To do so, simply run the following command in the Agent's directory:
+
+```bash
+usdk unpublish
+```
+
+This will pull your Agent off the Upstreet infrastructure and make the Agent unavailable on the Platform. To run again, simply [redeploy](/deploy-your-agent#deploy-to-upstreet).
+
+---
