@@ -1,5 +1,5 @@
 {
     "title": "API Reference",
-    "pages": ["agent", "action", "action-modifier", "perception", "perception-modifier", "conversation"],
+    "pages": ["agent", "conversation", "action", "action-modifier", "perception", "perception-modifier"],
     "defaultOpen": false
 }
