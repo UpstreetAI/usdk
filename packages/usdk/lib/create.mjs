@@ -488,9 +488,6 @@ export const create = async (args, opts) => {
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
 
-    const srcGitignorePath = path.join(upstreetAgentSrcDir, '.gitignore');
-    const dstGitignorePath = path.join(dstDir, '.gitignore');
-
     const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
     const dstJestPath = dstDir;
 
@@ -508,8 +505,6 @@ export const create = async (args, opts) => {
       }, null, 2)),
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
-      // .gitignore
-      recursiveCopy(srcGitignorePath, dstGitignorePath),
       // root jest config
       recursiveCopy(srcJestPath, dstJestPath),
       // root wrangler.toml
