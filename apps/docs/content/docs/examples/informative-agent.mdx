@@ -16,13 +16,13 @@ The source code for this example is available on [GitHub](https://github.com/Ups
 
 You can follow along this example by watching the video below:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Guide
 
 ### Step 1: Setup `usdk`
 
-Follow the _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
 
 ### Step 2: Create an Agent (shortcut)
 
@@ -228,6 +228,19 @@ You can define multiple `<Action>` components, each tailored to a specific purpo
 - `fetchPokemonMoves`: Fetches moves using `fetchPokemonMovesNames`.
 
 ---
+
+Finally, we call `<PokeDexAssistant />` in our Agent's main code
+```tsx title="agent.tsx"
+// ...
+
+export default function MyAgent() {
+  return (
+    <Agent>
+      <PokemonDexAssistant /> // [!code ++]
+    </Agent>
+  );
+}
+```
 
 You can see this code on GitHub [here](https://github.com/UpstreetAI/usdk-examples/blob/5d1e2299ff4a518c0791f8e3c8a49143eb1fecc2/pokedex/agent.tsx#L13).
 
