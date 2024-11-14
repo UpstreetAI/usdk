@@ -49,11 +49,10 @@ import {
   Formatter,
   Perception,
   PerceptionModifier,
-  Task,
-  // Scheduler,
+  // Task,
   Server,
   Conversation,
-  Defer,
+  DeferConversation,
   Uniform,
 } from './components';
 import {
@@ -330,7 +329,7 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <Defer>
+      <DeferConversation>
         <EveryNMessages n={10}>{({
           signal,
         }: {
@@ -349,7 +348,7 @@ const DefaultMemoriesInternal = () => {
             signal,
           });
         }}</EveryNMessages>
-      </Defer>
+      </DeferConversation>
     </>
   );
 };
@@ -418,7 +417,7 @@ const MemoryWatcher = ({
           \`\`\`
         `}
       </Prompt>
-      <Defer>
+      <DeferConversation>
         {/* trigger memory watcher refresh */}
         {allMemoryWatchers.map((memoryWatcher, index) => {
           return (
@@ -427,7 +426,7 @@ const MemoryWatcher = ({
             }}</EveryNMessages>
           );
         })}
-      </Defer>
+      </DeferConversation>
     </Conversation>
   );
 };
