@@ -29,12 +29,29 @@ export const gitInit = async (dstDir) => {
       stdio: 'inherit',
     });
 
-    child.on('close', (code) => {
+    child.on('close', async (code) => {
       if (code !== 0) {
         reject(new Error(`git init failed with code ${code}`));
       } else {
-        resolve();
+        try {
+          await addToGitignore(dstDir, 'wrangler.toml');
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
       }
     });
   });
+};
+
+export const addToGitignore = async (dstDir, patterns) => {
+  const gitignorePath = path.join(dstDir, '.gitignore');
+  const patternsToAdd = Array.isArray(patterns) ? patterns : [patterns];
+  
+  try {
+    // Append to existing .gitignore or create new one
+    await fs.appendFile(gitignorePath, '\n' + patternsToAdd.join('\n'));
+  } catch (err) {
+    throw new Error(`Failed to update .gitignore: ${err.message}`);
+  }
 };
