@@ -1393,7 +1393,7 @@ export const main = async () => {
       console.log(pc.yellow(`Update available: you are using version ${ver}, but version ${latestVersion} is available.`));
       console.log(pc.green(`Run 'npm i usdk -g' or 'npm update usdk' again to update to the latest version.`));
     } else {
-      console.log(`The installed usdk version (${ver}) is up-to-date.`);
+      console.log(pc.green(`The installed usdk version (${ver}) is up-to-date.`));
     }
 
     program.version(ver);
