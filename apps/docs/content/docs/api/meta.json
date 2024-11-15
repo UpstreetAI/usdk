@@ -1,0 +1,5 @@
+{
+    "title": "API Reference",
+    "pages": ["overview", "agent", "hooks", "integrations"],
+    "defaultOpen": false
+}
