@@ -2,6 +2,8 @@ import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import pc from 'picocolors';
 
+// Importing package.json using readFileSync and JSON.parse to ensure compatibility across different Node.js versions.
+// Direct import with 'assert { type: "json" }' can cause syntax errors in older Node.js versions.
 const packageJsonPath = './package.json';
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
