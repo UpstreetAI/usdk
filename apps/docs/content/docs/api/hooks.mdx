@@ -8,3 +8,75 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 <InlineTOC defaultOpen items={toc} />
 
 The `react-agents` library provides a few hooks to help you interact with your agent.
+
+# React Agents Hooks Documentation
+
+## Context Hooks
+
+### `useEnvironment()`
+Returns the current environment string from the AppContext.
+
+### `useAuthToken()`
+Returns the current authentication token from the AppContext.
+
+### `useAgent()`
+Returns the current agent context value.
+
+### `useSupabase()`
+Returns the Supabase client instance from the agent context.
+
+### `useConversations()`
+Returns the array of conversations from the ConversationsContext.
+
+### `useConversation()`
+Returns the current conversation object from the ConversationContext. Throws an error if used outside a conversation context.
+
+## Registry Hooks
+
+### `useActions()`
+Returns an array of ActionPropsAux objects from the agent registry.
+
+### `useUniforms()`
+Returns an array of UniformPropsAux objects from the agent registry.
+
+### `useFormatters()`
+Returns an array of FormatterProps from the agent registry.
+
+### `useName()`
+Returns the agent's name, prioritizing the registry name over the agent's default name.
+
+### `usePersonality()`
+Returns the agent's personality/bio, prioritizing the registry personality over the agent's default bio.
+
+## Message Hooks
+
+### `useCachedMessages(opts?: ActionHistoryQuery)`
+Returns cached messages for the current conversation, with optional filtering. Automatically handles loading and updates.
+
+### `useNumMessages()`
+Returns the total number of cached messages in the current conversation.
+
+### `useMessageFetch(opts?: ActionHistoryQuery)`
+Currently unimplemented. Intended for fetching messages with query options.
+
+## Utility Hooks
+
+### `useKv(opts?: KvArgs)`
+Returns the key-value storage interface from the AppContext.
+
+### `useTts(opts?: TtsArgs)`
+Returns a memoized text-to-speech interface with optional voice endpoint and sample rate configuration.
+
+### `useStripe()`
+Returns a configured Stripe client instance that routes requests through the AI proxy host.
+
+### `useStoreItems()`
+Returns an array of StoreItem objects from the agent registry.
+
+### `usePurchases()`
+Returns an array of processed purchase records from Stripe webhooks. Handles both one-time payments and subscriptions.
+Features:
+- Automatically syncs with Supabase webhooks
+- Processes both payment and subscription events
+- Maintains purchase history in key-value storage
+- Includes purchase details like amount, currency, name, and description
