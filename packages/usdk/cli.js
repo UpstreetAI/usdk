@@ -1,3 +1,6 @@
+import { checkNodeVersion, currentSdkVersion, latestSdkVersion } from './lib/version.mjs';
+checkNodeVersion();
+
 import path from 'path';
 import stream from 'stream';
 import fs from 'fs';
@@ -72,7 +75,7 @@ import {
   loginLocation,
 } from './lib/locations.mjs';
 import {
-  version,
+  // version,
   login,
   logout,
   status,
@@ -100,7 +103,6 @@ import {
   generateMnemonic,
 } from './util/ethereum-utils.mjs';
 import LoggerFactory from './util/logger/logger-factory.mjs';
-import { getLatestVersion } from './lib/version.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1384,8 +1386,8 @@ const handleError = async (fn) => {
 export const main = async () => {
   try {
 
-    const ver = version();
-    const latestVersion = getLatestVersion();
+    const ver = currentSdkVersion();
+    const latestVersion = latestSdkVersion();
 
     const isLatestVersion = latestVersion === ver;
 
