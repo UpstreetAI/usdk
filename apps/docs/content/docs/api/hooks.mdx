@@ -9,36 +9,20 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 The `react-agents` library provides a few hooks to help you interact with your agent.
 
-## Context Hooks
-
-### `useEnvironment()`
-Returns the current environment string from the AppContext.
-
-### `useAuthToken()`
-Returns the current authentication token from the AppContext.
+## Agent hooks
 
 ### `useAgent()`
-Returns the current agent context value.
-
-### `useSupabase()`
-Returns the Supabase client instance from the agent context.
+Returns the current `Agent` context.
 
 ### `useConversations()`
-Returns the array of conversations from the ConversationsContext.
+Returns the array of conversations the `Agent` is currently participating in.
 
 ### `useConversation()`
-Returns the current conversation object from the ConversationContext. Throws an error if used outside a conversation context.
+Returns the current `Conversation`.
 
-## Registry Hooks
+Must be used from the child of a `<Conversation>`.
 
-### `useActions()`
-Returns an array of ActionPropsAux objects from the agent registry.
-
-### `useUniforms()`
-Returns an array of UniformPropsAux objects from the agent registry.
-
-### `useFormatters()`
-Returns an array of FormatterProps from the agent registry.
+## Metadata Hooks
 
 ### `useName()`
 Returns the agent's name, prioritizing the registry name over the agent's default name.
@@ -48,33 +32,33 @@ Returns the agent's personality/bio, prioritizing the registry personality over 
 
 ## Message Hooks
 
-### `useCachedMessages(opts?: ActionHistoryQuery)`
+### `useCachedMessages()`
 Returns cached messages for the current conversation, with optional filtering. Automatically handles loading and updates.
 
 ### `useNumMessages()`
 Returns the total number of cached messages in the current conversation.
 
-### `useMessageFetch(opts?: ActionHistoryQuery)`
-Currently unimplemented. Intended for fetching messages with query options.
+## Environment Hooks
+
+### `useEnvironment()`
+Returns the current environment: `'development'` or `'production'`.
+
+This can be used to determine if the agent is running in a development or deployed server environment.
+
+### `useAuthToken()`
+Returns the current authentication token.
+
+Generally, you should not need to use this.
+
+> **Warning:** Do not put this token into the prompt context or use it anywhere it might be seen by a user, as it can be used to take over the agent.
 
 ## Utility Hooks
 
-### `useKv(opts?: KvArgs)`
+### `useKv()`
 Returns the key-value storage interface from the AppContext.
 
-### `useTts(opts?: TtsArgs)`
+### `useTts(opts: {
+  voiceEndpoint?: string;
+  sampleRate?: number;
+})`
 Returns a memoized text-to-speech interface with optional voice endpoint and sample rate configuration.
-
-### `useStripe()`
-Returns a configured Stripe client instance that routes requests through the AI proxy host.
-
-### `useStoreItems()`
-Returns an array of StoreItem objects from the agent registry.
-
-### `usePurchases()`
-Returns an array of processed purchase records from Stripe webhooks. Handles both one-time payments and subscriptions.
-Features:
-- Automatically syncs with Supabase webhooks
-- Processes both payment and subscription events
-- Maintains purchase history in key-value storage
-- Includes purchase details like amount, currency, name, and description
