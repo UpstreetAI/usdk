@@ -15,13 +15,14 @@ import {
   generateMnemonic,
 } from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
-import { npmInstall } from '../lib/npm-util.mjs';
-import {
-  makeTempDir,
-} from './file.mjs';
+import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
+import { hasGit, gitInit } from '../lib/git-util.mjs';
+// import {
+//   makeTempDir,
+// } from './file.mjs';
 import {
   BASE_DIRNAME,
-  templatesDirectory,
+  // templatesDirectory,
 } from './locations.mjs';
 import {
   ImageRenderer,
@@ -44,7 +45,7 @@ import {
   aiProxyHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth, consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
@@ -131,7 +132,7 @@ const getAgentAuthSpec = async (jwt) => {
     mnemonic,
   };
 };
-const generateTemplateFromAgentJson = async (agentJson) => {
+/* const generateTemplateFromAgentJson = async (agentJson) => {
   // create a temporary directory
   const templateDirectory = await makeTempDir();
 
@@ -152,15 +153,23 @@ const generateTemplateFromAgentJson = async (agentJson) => {
   );
 
   return templateDirectory;
-};
+}; */
 const buildWranglerToml = (
   t,
-  { name, agentJson, mnemonic, agentToken },
+  { name, agentJson, mnemonic, agentToken } = {},
 ) => {
-  t.name = name;
-  t.vars.AGENT_JSON = JSON.stringify(agentJson);
-  t.vars.WALLET_MNEMONIC = mnemonic;
-  t.vars.AGENT_TOKEN = agentToken;
+  if (name !== undefined) {
+    t.name = name;
+  }
+  if (agentJson !== undefined) {
+    t.vars.AGENT_JSON = JSON.stringify(agentJson);
+  }
+  if (mnemonic !== undefined) {
+    t.vars.WALLET_MNEMONIC = mnemonic;
+  }
+  if (agentToken !== undefined) {
+    t.vars.AGENT_TOKEN = agentToken;
+  }
   return t;
 };
 const interview = async (agentJson, {
@@ -453,9 +462,16 @@ export const create = async (args, opts) => {
     : '*none*'
   );
 
-  console.log(pc.italic('Building agent...'));
-  const srcTemplateDir = await generateTemplateFromAgentJson(agentJson);
-  console.log(pc.italic('Agent built.'));
+  const agentJSX = await (async () => {
+    if (sourceFile !== null) {
+      return sourceFile;
+    } else {
+      console.log(pc.italic('Building agent...'));
+      const sourceCode = makeAgentSourceCode(agentJson.features ?? []);
+      console.log(pc.italic('Agent built.'));
+      return sourceCode;
+    }
+  })();
 
   // copy over files
   const _copyFiles = async () => {
@@ -464,11 +480,16 @@ export const create = async (args, opts) => {
 
     const dstPackageJsonPath = path.join(dstDir, 'package.json');
 
+    const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
+
     const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
     const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
+
+    const srcGitignorePath = path.join(upstreetAgentSrcDir, 'gitignore.template');
+    const dstGitignorePath = path.join(dstDir, '.gitignore');
 
     const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
     const dstJestPath = dstDir;
@@ -476,16 +497,8 @@ export const create = async (args, opts) => {
     // copy over the template files
     console.log(pc.italic('Copying files...'));
     await Promise.all([
-      // generated template -> root
-      (async () => {
-        await recursiveCopy(srcTemplateDir, dstDir, {
-          filter: (p) => !/^(?:package\.json|agent\.json)$/.test(p),
-        });
-        if (sourceFile !== null) {
-          const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
-          await fs.promises.writeFile(dstAgentTsxPath, sourceFile);
-        }
-      })(),
+      // agent.tsx
+      fs.promises.writeFile(dstAgentTsxPath, agentJSX),
       // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
@@ -495,8 +508,10 @@ export const create = async (args, opts) => {
       }, null, 2)),
       // root tsconfig
       recursiveCopy(srcTsconfigPath, dstTsconfigPath),
-      // root jest config
-      recursiveCopy(srcJestPath, dstJestPath),
+      // .gitignore
+      recursiveCopy(srcGitignorePath, dstGitignorePath),
+      /* // root jest config
+      recursiveCopy(srcJestPath, dstJestPath), */
       // root wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
@@ -522,8 +537,34 @@ export const create = async (args, opts) => {
 
   // npm install
   if (!noInstall) {
-    console.log(pc.italic('Installing dependencies...'));
-    await npmInstall(dstDir);
+    const has = await hasNpm();
+    if (has) {
+      console.log(pc.italic('Installing dependencies...'));
+      try {
+        await npmInstall(dstDir);
+      } catch(err) {
+        console.warn('failed to install dependencies:', err.stack);
+      }
+    } else {
+      console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
+      console.warn('To install dependencies, run `npm install` in the agent directory.');
+    }
+  }
+
+  // git init
+  if (!noInstall) {
+    const has = await hasGit();
+    if (has) {
+      console.log(pc.italic('Initializing git repository...'));
+      try {
+        await gitInit(dstDir);
+      } catch(err) {
+        console.warn('failed to initialize git repository:', err.stack);
+      }
+    } else {
+      console.warn('git not found; skipping git initialization. Your agent may not work correctly.');
+      console.warn('To initialize a git repository, run `git init` in the agent directory.');
+    }
   }
 
   console.log('\nCreated agent at', ansi.link(path.resolve(dstDir)));
@@ -532,6 +573,9 @@ export const create = async (args, opts) => {
   console.log(pc.cyan(`  usdk chat ${dstDir}`));
   console.log(pc.green(`To edit this agent again, run:`));
   console.log(pc.cyan(`  usdk edit ${dstDir}`));
+  console.log();
+  console.log(pc.green(`To set up your agent with a git repository, run:`));
+  console.log(pc.cyan(`  git remote add origin https://github.com/USERNAME/REPOSITORY.git`));
   console.log();
   console.log(pc.green('To learn how to customize your agent with code, see the docs: https://docs.upstreet.ai/customize-your-agent'));
   console.log();

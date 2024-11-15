@@ -1,0 +1,258 @@
+---
+title: Informative Agent
+description: This section describes how to build an Agent with Upstreet, with custom Components.
+full: false
+---
+
+In this guide, we build an **Informative Agent** inspired by the [Pokédex](https://www.pokemon.com/us/pokedex) in the Pokémon franchise, an encyclopedia device capable of retrieving Pokémon information and having conversations with its user.
+
+<Callout>
+We define an **Informative Agent** as an Agent which can retrieve information from an **API** or the **internet**.
+</Callout>
+
+The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/pokedex).
+
+## Video Tutorial 
+
+You can follow along this example by watching the video below:
+
+<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## Guide
+
+### Step 1: Setup `usdk`
+
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+
+### Step 2: Create an Agent (shortcut)
+
+We can skip the Interview process, and directly generate an Agent with a prompt, by running:
+
+```bash
+usdk create <your-agent-directory> -p "create a pokedex assistant agent" -y
+```
+
+This will directly scaffold an Agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
+
+### Step 3: Create a `PokeDexAssistant` Component
+
+As of November 12, 2024, there are **1,025** Pokémon in the National Pokédex. That's a lot of Pokémon!
+
+So instead of keeping the Pokédex database in memory, we'll use [PokéAPI](https://pokeapi.co/) - an open-source (and free) Pokémon API - to retrieve Pokémon information at runtime.
+
+We'll have to create a [custom Component](/concepts/agents-sdk/creating-custom-components) to retrieve Pokémon information from the PokéAPI. For the sake of this example, we'll keep it simple:
+
+```tsx
+const PokemonDexAssistant = () => {
+
+  // We'll add functions, useState, useEffect here
+
+  return (
+    <>
+        {/* We can add components here to compose our Agent  */}
+    </>
+  );
+}
+```
+
+Now add a helper function to retrieve the Pokémon data, and also two more to filter them by abilities and moves:
+
+
+```tsx
+const PokemonDexAssistant = () => {
+
+    const fetchPokemonDetails = async (pokemonName: string) => { // [!code ++]
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);// [!code ++]
+        const data = await response.json();// [!code ++]
+        return data;// [!code ++]
+    };// [!code ++]
+// [!code ++]
+    const fetchPokemonAbilities = async (pokemonName: string) => {// [!code ++]
+        const response = await fetchPokemonDetails(pokemonName);// [!code ++]
+        const abilities = response.abilities;// [!code ++]
+        return abilities;// [!code ++]
+    };// [!code ++]
+// [!code ++]
+    const fetchPokemonMovesNames = async (pokemonName: string) => {// [!code ++]
+        const response = await fetchPokemonDetails(pokemonName);// [!code ++]
+        const moves = response.moves.map(move => move.move.name);// [!code ++]
+        return moves;// [!code ++]
+    };// [!code ++]
+        
+
+  return (
+    <>
+        {/* We can add components here to compose our Agent  */}
+    </>
+  );
+}
+```
+
+Now comes the interesting part. We'll use the [`<Action>`](/install) tag to define how the Agent should respond to the default text perception.
+
+To say that simply, we want the Agent to know that it can fetch Pokémon details whenever a user messages them.
+
+
+```tsx
+const PokemonDexAssistant = () => {
+
+    const fetchPokemonDetails = async (pokemonName: string) => { 
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
+        const data = await response.json();
+        return data;
+    };
+
+    const fetchPokemonAbilities = async (pokemonName: string) => {
+        const response = await fetchPokemonDetails(pokemonName);
+        const abilities = response.abilities;
+        return abilities;
+    };
+
+    const fetchPokemonMovesNames = async (pokemonName: string) => {
+        const response = await fetchPokemonDetails(pokemonName);
+        const moves = response.moves.map(move => move.move.name);
+        return moves;
+    };
+        
+
+  return (
+    <>
+        <Action  // [!code ++]
+        name='fetchPokemonMoves' // [!code ++]
+        description="Retrieve a list of move names for a given Pokemon from the PokeAPI" // [!code ++]
+        schema={ // [!code ++]
+            z.object({ // [!code ++]
+            pokemonName: z.string(), // [!code ++]
+            }) // [!code ++]
+        } // [!code ++]
+        examples={[ // [!code ++]
+            {  // [!code ++]
+            pokemonName: 'pikachu', // [!code ++]
+            }, // [!code ++]
+        ]} // [!code ++]
+        handler={ // [!code ++]
+            async (e: PendingActionEvent) => { // [!code ++]
+            const { pokemonName } = e.data.message.args as { pokemonName: string }; // [!code ++]
+            const moves =await fetchPokemonMovesNames(pokemonName); // [!code ++]
+            const monologueString = dedent`\ // [!code ++]
+                Your character fetched details about a pokemon's moves and discovered the following: // [!code ++]
+            ` + '\n\n' + moves; // [!code ++]
+            await e.data.agent.monologue(monologueString);   // [!code ++]
+            await e.commit(); // [!code ++]
+            } // [!code ++]
+        } // [!code ++]
+        /> 
+        <Action // [!code ++]
+        name="fetchPokemonAbilities" // [!code ++]
+        description="Retrieve a list of ability names for a given Pokemon from the PokeAPI" // [!code ++]
+        schema={ // [!code ++]
+            z.object({ // [!code ++]
+            pokemonName: z.string(), // [!code ++]
+            }) // [!code ++]
+        } // [!code ++]
+        examples={[ // [!code ++]
+            {  // [!code ++]
+            pokemonName: 'pikachu', // [!code ++]
+            }, // [!code ++]
+        ]} // [!code ++]
+        handler={ // [!code ++]
+            async (e: PendingActionEvent) => { // [!code ++]
+            const { pokemonName } = e.data.message.args as { pokemonName: string }; // [!code ++]
+            const abilities = await fetchPokemonAbilities(pokemonName); // [!code ++]
+            const monologueString = dedent`\
+Your character fetched details about a pokemon's abilities and discovered the following:
+            ` + '\n\n' + abilities; // [!code ++]
+            await e.data.agent.monologue(monologueString);   // [!code ++]
+            await e.commit(); // [!code ++]
+            } // [!code ++]
+        } // [!code ++]
+        />
+    </>
+  );
+}
+```
+
+---
+
+Let's break down one of the Actions, and understand it.
+
+#### Breakdown summary of the `<Action>` Component
+
+1. **Purpose of the `<Action>` Component**  
+   `<Action>` components define specific actions that your agent can perform in response to user inputs. In this case, the agent retrieves Pokémon-related details like abilities and moves from the PokéAPI.
+
+2. **Defining Action Properties**
+   Each `<Action>` is structured with the following properties:
+   - **`name`**: A unique identifier for the action. Example: `'fetchPokemonMoves'`.
+   - **`description`**: Explains what the action does. This helps developers understand its purpose.
+   - **`schema`**: Specifies the input structure for the action, defined using a `zod` schema. Here, the input is a Pokémon's name (`pokemonName`), and the schema ensures it's a string.
+   - **`examples`**: Provides sample inputs for testing or guiding the agent's behavior. Example: `{ pokemonName: 'pikachu' }`.
+
+3. **`handler`: The Action's Core Logic**
+   The `handler` function is where the actual functionality of the action is implemented:
+   - **Input Processing**: The `e.data.message.args` extracts the input (`pokemonName`) from the user's request.
+   - **Calling Helper Functions**: Helper functions like `fetchPokemonMovesNames` or `fetchPokemonAbilities` are invoked to fetch data from the PokéAPI.
+   - **Building the Response**: The results are formatted into a string (e.g., a monologue) using `dedent` for cleaner output.
+   - **Responding to the User**: The agent sends a response via `e.data.agent.monologue`.
+   - **Marking Action Completion**: The `await e.commit()` call signals that the action is complete.
+
+#### The `fetchPokemonMoves` Action
+   
+   Learn about the basics of Actions [here](/concepts/agents-sdk).
+
+   Let's break apart the `fetchPokemonMoves` Action. This action retrieves a Pokémon's move names:
+   - **Schema Validation**: Ensures `pokemonName` is a valid string.
+   - **Fetch Logic**: The `fetchPokemonMovesNames` helper gets the moves from the API.
+   - **User Feedback**: The response lists the moves and delivers them back to the user.
+
+   ```tsx
+   <Action 
+       name="fetchPokemonMoves"
+       description="Retrieve a list of move names for a given Pokemon from the PokeAPI"
+       schema={z.object({ pokemonName: z.string() })}
+       examples={[{ pokemonName: 'pikachu' }]}
+       handler={async (e: PendingActionEvent) => {
+           const { pokemonName } = e.data.message.args as { pokemonName: string };
+           const moves = await fetchPokemonMovesNames(pokemonName);
+           const monologueString = dedent`
+               Your character fetched details about a Pokémon's moves and discovered the following:
+           ` + '\n\n' + moves;
+           await e.data.agent.monologue(monologueString);
+           await e.commit();
+       }}
+   />
+   ```
+
+You can define multiple `<Action>` components, each tailored to a specific purpose. For example:
+- `fetchPokemonAbilities`: Fetches abilities using `fetchPokemonAbilities`.
+- `fetchPokemonMoves`: Fetches moves using `fetchPokemonMovesNames`.
+
+---
+
+Finally, we call `<PokeDexAssistant />` in our Agent's main code
+```tsx title="agent.tsx"
+// ...
+
+export default function MyAgent() {
+  return (
+    <Agent>
+      <PokemonDexAssistant /> // [!code ++]
+    </Agent>
+  );
+}
+```
+
+You can see this code on GitHub [here](https://github.com/UpstreetAI/usdk-examples/blob/5d1e2299ff4a518c0791f8e3c8a49143eb1fecc2/pokedex/agent.tsx#L13).
+
+### Step 4: Test out your Pokédex-like Agent!
+
+You can run `usdk chat` to test it out. [Learn more](/test-your-agent)
+
+You can ask it questions like:
+> What are Charizard's top abilities?
+
+Share its response in our [Discord community](https://upstreet.ai/usdk-discord); we'd love to know what it responds to you.
+
+## Further Challenges
+
+- ["Who's that Pokémon?"](https://www.youtube.com/watch?v=VDJu97ijM-4) - Give the Agent an Image Perception, and create an Action so it can guess a Pokémon based on the image and provide its details

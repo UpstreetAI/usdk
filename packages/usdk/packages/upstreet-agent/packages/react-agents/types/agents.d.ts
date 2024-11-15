@@ -142,7 +142,7 @@ export type ActionMessage = {
   userId: string;
   name: string;
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   human: boolean; // XXX can be converted to flags
   hidden: boolean;
@@ -150,12 +150,12 @@ export type ActionMessage = {
 };
 export type PendingActionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
 };
 export type PerceptionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   timestamp: Date;
 };

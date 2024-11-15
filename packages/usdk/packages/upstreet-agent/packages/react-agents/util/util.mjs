@@ -6,12 +6,12 @@ const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
 
 export const abortError = new Error('aborted');
 
-export function makeId(length) {
+export function makeId(length, rng = Math.random) {
   let result = '';
   const characters =
     'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+    result += characters.charAt(Math.floor(rng() * characters.length));
   }
   return result;
 }

@@ -341,7 +341,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             typingMap = multiplayerConnection.typingMap;
 
             // join + leave messages
-            playersMap.addEventListener('join', (e: any) => {
+            multiplayerConnection.addEventListener('join', (e: any) => {
               const { player } = e.data;
               const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
@@ -356,7 +356,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
               refresh();
             });
-            playersMap.addEventListener('leave', (e: any) => {
+            multiplayerConnection.addEventListener('leave', (e: any) => {
               const { player } = e.data;
               const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
@@ -392,7 +392,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               updatePlayersCache();
 
               ['join', 'leave'].forEach((eventName) => {
-                playersMap.addEventListener(eventName, updatePlayersCache);
+                multiplayerConnection.addEventListener(eventName, updatePlayersCache);
               });
             };
             _trackPlayersCache();
@@ -400,7 +400,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             const _trackAudio = () => {
               const audioStreams = new Map();
               const audioQueueManger = new QueueManager();
-              playersMap.addEventListener('audiostart', (e: any) => {
+              multiplayerConnection.addEventListener('audiostart', (e: any) => {
                 const {
                   playerId,
                   streamId,
@@ -444,7 +444,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   });
                 }
               });
-              playersMap.addEventListener('audio', (e: any) => {
+              multiplayerConnection.addEventListener('audio', (e: any) => {
                 const {
                   playerId,
                   streamId,
@@ -459,7 +459,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   // console.warn('dropping audio data', e.data);
                 }
               });
-              playersMap.addEventListener('audioend', (e: any) => {
+              multiplayerConnection.addEventListener('audioend', (e: any) => {
                 const {
                   playerId,
                   streamId,
