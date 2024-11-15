@@ -57,8 +57,11 @@ Generally, you should not need to use this.
 ### `useKv()`
 Returns the key-value storage interface from the AppContext.
 
-### `useTts(opts: {
-  voiceEndpoint?: string;
-  sampleRate?: number;
-})`
+### `useTts(opts?)`
+```
+{
+  voiceEndpoint?: string,
+  sampleRate?: number,
+}
+```
 Returns a memoized text-to-speech interface with optional voice endpoint and sample rate configuration.
