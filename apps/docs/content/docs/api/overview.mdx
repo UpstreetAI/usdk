@@ -7,3 +7,60 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 <InlineTOC defaultOpen items={toc} />
 
+### What is React Agents?
+
+React Agents is a framework for building AI agents with React.
+
+It allows you to build AI agents using the same technology, tools, and libraries as you'd use in a traditional React application.
+
+The main difference is that instead of rendering an interface for the user, you're rendering an prompt for the agent.
+
+e.g. suppose you want to write an app that controls a smart home.
+
+#### React app
+
+```jsx
+<form
+  onSubmit={(e) => {
+    turnOnLights(e.target.lightName.value);
+  }}>
+  <label>Light Name:</label>
+  <input
+    type="text"
+    value={lightName}
+    onChange={(e) => setLightName(e.target.value)}
+  />
+  <button type="submit">Turn On Light</button>
+</form>
+```
+
+#### React Agents app
+
+```jsx
+<Agent>
+  <Action
+    name="turnOnLights"
+    description="turn on the lights in my room"
+    schema={z.object({ lightName: z.string() })}
+    examples={[{ lightName: 'bedroom' }]}
+    handler={(e) => {
+      turnOnLights();
+      e.data.agent.monologue(`lights changed: ${e.data.message.args.lightName}`);
+    }}
+  />
+</Agent>
+```
+
+(some state management code is omitted for brevity)
+
+In the first example, you're rendering a form that the user can fill out and submit to turn on the lights.
+
+In the second example, you're rendering an agent that can perform an action to turn on the lights.
+
+Note that similar to the first example where we use a form to collect user input text, the agent generates data that conforms to the given `zod` schema. The difference is that the agent operates autonomously.
+
+### How does it work?
+
+React Agents translates JSX code into an agentic loop, generating and executing a series of prompts and structured outputs.
+
+It contains a React renderer, chain of thought runtime, integrations, and premade components that work together to execute the agentic app.
