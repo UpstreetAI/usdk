@@ -1,5 +1,5 @@
 export {
-  currentSdkVersion as version,
+  version,
 } from './version.mjs';
 export {
   login,
