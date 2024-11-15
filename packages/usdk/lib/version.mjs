@@ -21,18 +21,18 @@ export function latestSdkVersion() {
 // Check if the Node.js version is equal or above the minimum required version
 export function checkNodeVersion(packageJsonPath = './package.json') {
   const { engines } = JSON.parse(readFileSync(packageJsonPath, 'utf-8')) || {};
-  const requiredVersion = engines?.node;
+  const requiredNodeVersion = engines?.node;
 
-  if (!requiredVersion) {
-    console.error('Node.js version requirement is not defined in package.json.');
+  if (!requiredNodeVersion) {
+    console.log(pc.red('Node.js version requirement is not defined in package.json.'));
     process.exit(1);
   }
 
-  const currentMajor = +process.version.slice(1).split('.')[0];
-  const requiredMajor = +requiredVersion.match(/\d+/)[0];
+  const currentVersion = process.version.match(/\d+\.\d+\.\d+/)[0];
+  const requiredVersion = requiredNodeVersion.match(/\d+\.\d+\.\d+/)[0];
 
-  if (currentMajor < requiredMajor) {
-    console.error(`Node.js ${requiredVersion} or higher is required. You are using ${process.version}.`);
+  if (currentVersion < requiredVersion) {
+    console.log(pc.yellow(`Node.js v${requiredVersion} or higher is required. You are using v${currentVersion}.`));
     process.exit(1);
   }
 }
