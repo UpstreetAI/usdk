@@ -74,7 +74,7 @@ const reloadAgentWorker = async (directory, opts) => {
       cp.stderr.pipe(process.stderr);
       const exit = (code) => {
         if (live) {
-          console.log('worker exited unexpectedly', code);
+          console.log('agent crashed with status code', code);
         }
         cleanup();
       };
