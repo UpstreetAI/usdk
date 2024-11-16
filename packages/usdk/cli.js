@@ -85,9 +85,9 @@ import {
 import {
   makeRoomName,
 } from './util/connect-utils.mjs';
-import {
-  env,
-} from './lib/env.mjs';
+// import {
+//   env,
+// } from './lib/env.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
@@ -123,7 +123,7 @@ const logger = LoggerFactory.getLogger();
 
 //
 
-const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
+const makeSupabase = (jwt) => makeAnonymousClient(jwt);
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);

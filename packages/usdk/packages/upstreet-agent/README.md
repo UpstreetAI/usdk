@@ -20,11 +20,8 @@ Read more in our [documentation](https://docs.upstreet.ai/install).
 
 We **do not recommend** modifying this configuration file manually. Following is a breakdown of some important variables within it:
 
-- `AGENT_JSON`: Contains essential Agent data. The "id" key must never be modified. Manual modifications might break your Agent, so proceed with caution if changes are required.
-- `WALLET_MNEMONIC`: Customize as needed
-- `WORKER_ENV`: Defines the Agent's current environment
-
-> ⚠️ Never modify `AGENT_TOKEN`, `SUPABASE_URL`, or `SUPABASE_PUBLIC_API_KEY` unless you know exactly what you're doing!
+- `AGENT_JSON`: Contains essential Agent data. You should not need to modify anything here; manual modifications might break your Agent, so proceed with caution if changes are required.
+- `WORKER_ENV`: Defines the Agent's current environment: "development" or "production"
 
 The file is located at the root of the Agent directory i.e `myAgent/wrangler.toml`.
 

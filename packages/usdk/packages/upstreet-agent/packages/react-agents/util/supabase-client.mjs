@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
-import jwt from '@tsndr/cloudflare-worker-jwt';
+// import jwt from '@tsndr/cloudflare-worker-jwt';
 // import { isStringSignatureValid } from './signature-utils.mjs';
 import { aiHost } from './endpoints.mjs';
 import { aiProxyAPI } from '../api.mjs';
+import {
+  SUPABASE_URL,
+  SUPABASE_PUBLIC_API_KEY,
+} from '../constants.mjs';
 
-
-// uses the service api key
-export const makeClient = (env, jwt) => {
-  if (!env) {
+/* // uses the service api key
+export const makeClient = (auth, jwt) => {
+  if (!auth) {
     throw new Error('cannot make client for blank env');
   }
 
@@ -26,13 +29,13 @@ export const makeClient = (env, jwt) => {
     };
   }
 
-  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_API_KEY, o);
-};
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_API_KEY, o);
+}; */
 // uses the public api key
-export const makeAnonymousClient = (env, jwt) => {
-  if (!env) {
+export const makeAnonymousClient = (jwt) => {
+  /* if (!auth) {
     throw new Error('cannot make anonymous client for blank env');
-  }
+  } */
 
   const o = {
     auth: {
@@ -48,7 +51,7 @@ export const makeAnonymousClient = (env, jwt) => {
       },
     };
   }
-  return createClient(env.SUPABASE_URL, env.SUPABASE_PUBLIC_API_KEY, o);
+  return createClient(SUPABASE_URL, SUPABASE_PUBLIC_API_KEY, o);
 };
 
 export const getTokenFromRequest = (request) => {
@@ -66,7 +69,7 @@ export const getTokenFromRequest = (request) => {
     return '';
   }
 };
-export const getClientFromToken = async (env, token) => {
+/* export const getClientFromToken = async (env, token) => {
   if (!env.SUPABASE_SERVICE_API_KEY) {
     throw new Error('no service api key');
   }
@@ -79,7 +82,7 @@ export const getClientFromToken = async (env, token) => {
 
   let userId;
   let supabase;
-  let match;
+  // let match;
   const serviceKeyPrefix = `${env.SUPABASE_SERVICE_API_KEY}:`;
   if ( // serviceKey:guid format
     token.startsWith(serviceKeyPrefix) &&
@@ -87,31 +90,10 @@ export const getClientFromToken = async (env, token) => {
   ) {
     userId = token.slice(serviceKeyPrefix.length);
     supabase = makeClient(env);
-  /* } else if (
-    (match = token.match(/^signature_([^_]+?)_([^_]+?)_([^_]+?)_([^_]+?)$/))
-  ) {
-    // signature format
-    const guid = match[1];
-    const dateString = match[2];
-    const nonce = match[3];
-    const signatureString = match[4];
-    const s = `${guid}_${dateString}_${nonce}`;
-
-    const valid = await isStringSignatureValid(
-      s,
-      env.SUPABASE_SERVICE_API_KEY,
-      signatureString,
-    );
-    if (valid) {
-      userId = guid;
-      supabase = makeClient(env);
-    } else {
-      throw new Error('signature is not valid: ' + token);
-    } */
   } else { // jwt format
     const out = jwt.decode(token);
     userId = out?.payload?.id ?? null;
-    supabase = makeAnonymousClient(env, token);
+    supabase = makeAnonymousClient(token);
 
     if (!userId) {
       const out2 = await supabase.auth.getUser();
@@ -126,7 +108,7 @@ export const getClientFromToken = async (env, token) => {
     userId,
     supabase,
   };
-};
+}; */
 
 export const getUserIdForJwt = async (jwt) => {
   const res = await fetch(`${aiHost}/checkLogin`, {
