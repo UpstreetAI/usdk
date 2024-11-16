@@ -201,8 +201,6 @@ export class ActiveAgentObject extends AgentObject {
     const id = crypto.randomUUID();
     const embedding = await this.appContextValue.embed(text);
 
-    // const jwt = this.useAuthToken();
-    // const supabase = makeAnonymousClient(env, jwt);
     const supabase = this.useSupabase();
     const writeResult = await supabase
       .from('ai_memory')

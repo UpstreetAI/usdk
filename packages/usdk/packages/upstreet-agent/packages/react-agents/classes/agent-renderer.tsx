@@ -131,7 +131,8 @@ const logDetailedError = (errorType: string, error: Error, containerState) => {
 //
 
 export class AgentRenderer {
-  env: object;
+  env: any;
+  auth: any;
   userRender: UserHandler;
   chatsSpecification: ChatsSpecification;
   codecs: any;
@@ -150,17 +151,20 @@ export class AgentRenderer {
 
   constructor({
     env,
+    auth,
     userRender,
     chatsSpecification,
     codecs,
   }: {
-    env: object;
+    env: any;
+    auth: any;
     userRender: UserHandler;
     chatsSpecification: ChatsSpecification;
     codecs: any;
   }) {
     // latch arguments
     this.env = env;
+    this.auth = auth;
     this.userRender = userRender;
     this.chatsSpecification = chatsSpecification;
     this.codecs = codecs;
@@ -172,24 +176,24 @@ export class AgentRenderer {
     });
     const subtleAi = new SubtleAi();
     const useAgentJson = () => {
-      const agentJsonString = (env as any).AGENT_JSON as string;
+      const agentJsonString = this.env.AGENT_JSON as string;
       const agentJson = JSON.parse(agentJsonString);
       return agentJson;
     };
     const useEnvironment = () => {
-      return (env as any).WORKER_ENV as string;
+      return this.env.WORKER_ENV as string;
     };
     const useWallets = () => {
-      const mnemonic = (env as any).WALLET_MNEMONIC as string;
+      const mnemonic = this.auth.WALLET_MNEMONIC as string;
       const wallets = getConnectedWalletsFromMnemonic(mnemonic);
       return wallets;
     };
     const useAuthToken = () => {
-      return (this.env as any).AGENT_TOKEN;
+      return this.auth.AGENT_TOKEN;
     };
     const useSupabase = () => {
       const jwt = useAuthToken();
-      const supabase = makeAnonymousClient(env, jwt);
+      const supabase = makeAnonymousClient(jwt);
       return supabase;
     };
     const useConversationManager = () => {

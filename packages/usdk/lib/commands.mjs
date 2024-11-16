@@ -17,5 +17,8 @@ export {
   deploy,
 } from './deploy.mjs';
 export {
+  update,
+} from './update.mjs';
+export {
   chat,
 } from './chat.mjs';

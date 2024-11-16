@@ -2,7 +2,6 @@ import path from 'path';
 import fs from 'fs';
 
 import { mkdirp } from 'mkdirp';
-import recursiveCopy from 'recursive-copy';
 import pc from 'picocolors';
 import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
@@ -31,31 +30,27 @@ import {
   getUserIdForJwt,
   getUserForJwt,
 } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-import {
-  // providers,
-  getWalletFromMnemonic,
-  // getConnectedWalletsFromMnemonic,
-} from '../packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
-  ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+import {
+  updateAgentJsonAuth,
+  ensureAgentJsonDefaults,
+} from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
+// import { getDirectoryHash } from '../util/hash-util.mjs';
 import {
   aiProxyHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImagePreviewWidth, consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
+import { recursiveCopyAll } from '../util/copy-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import ora from 'ora';
-
-//
-
-const agentJsonSrcFilename = 'agent.json';
 
 //
 
@@ -132,43 +127,15 @@ const getAgentAuthSpec = async (jwt) => {
     mnemonic,
   };
 };
-/* const generateTemplateFromAgentJson = async (agentJson) => {
-  // create a temporary directory
-  const templateDirectory = await makeTempDir();
-
-  // copy over the basic template
-  const template = 'basic';
-  const basicTemplateDirectory = path.join(templatesDirectory, template);
-  await recursiveCopy(basicTemplateDirectory, templateDirectory);
-
-  // write the agent jsx
-  const agentJSXPath = path.join(templateDirectory, 'agent.tsx');
-  const agentJSX = makeAgentSourceCode(agentJson.features ?? []);
-  await fs.promises.writeFile(agentJSXPath, agentJSX);
-
-  // write the agent json
-  await fs.promises.writeFile(
-    path.join(templateDirectory, agentJsonSrcFilename),
-    JSON.stringify(agentJson, null, 2),
-  );
-
-  return templateDirectory;
-}; */
 const buildWranglerToml = (
   t,
-  { name, agentJson, mnemonic, agentToken } = {},
+  { name, agentJson, /* mnemonic, agentToken */ } = {},
 ) => {
   if (name !== undefined) {
     t.name = name;
   }
   if (agentJson !== undefined) {
     t.vars.AGENT_JSON = JSON.stringify(agentJson);
-  }
-  if (mnemonic !== undefined) {
-    t.vars.WALLET_MNEMONIC = mnemonic;
-  }
-  if (agentToken !== undefined) {
-    t.vars.AGENT_TOKEN = agentToken;
   }
   return t;
 };
@@ -336,24 +303,9 @@ const loadAgentJson = (dstDir) => {
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
 };
-const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
-  const {
-    guid,
-    // agentToken,
-    userPrivate,
-    mnemonic,
-  } = agentAuthSpec;
-
-  const wallet = getWalletFromMnemonic(mnemonic);
-
-  return {
-    ...agentJsonInit,
-    id: guid,
-    ownerId: userPrivate.id,
-    address: wallet.address.toLowerCase(),
-    stripeConnectAccountId: userPrivate.stripe_connect_account_id,
-  };
-};
+const dotenvFormat = (o) => Object.entries(o ?? {})
+  .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+  .join('\n');
 
 //
 
@@ -447,7 +399,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Generating agent...'));
   }
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
-  ensureAgentJsonDefaults(agentJson);
+  agentJson = ensureAgentJsonDefaults(agentJson);
   console.log(pc.italic('Agent generated.'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
@@ -491,14 +443,16 @@ export const create = async (args, opts) => {
     const srcGitignorePath = path.join(upstreetAgentSrcDir, 'gitignore.template');
     const dstGitignorePath = path.join(dstDir, '.gitignore');
 
-    const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
-    const dstJestPath = dstDir;
+    const dstEnvTxt = path.join(dstDir, '.env.txt');
+
+    // const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
+    // const dstJestPath = dstDir;
 
     // copy over the template files
     console.log(pc.italic('Copying files...'));
     await Promise.all([
       // agent.tsx
-      fs.promises.writeFile(dstAgentTsxPath, agentJSX),
+      writeFile(dstAgentTsxPath, agentJSX),
       // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
@@ -507,24 +461,29 @@ export const create = async (args, opts) => {
         },
       }, null, 2)),
       // root tsconfig
-      recursiveCopy(srcTsconfigPath, dstTsconfigPath),
+      recursiveCopyAll(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
-      recursiveCopy(srcGitignorePath, dstGitignorePath),
+      recursiveCopyAll(srcGitignorePath, dstGitignorePath),
       /* // root jest config
-      recursiveCopy(srcJestPath, dstJestPath), */
-      // root wrangler.toml
+      recursiveCopyAll(srcJestPath, dstJestPath), */
+      // wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
         t = buildWranglerToml(t, {
           name: getAgentName(guid),
           agentJson,
-          agentToken,
-          mnemonic,
+          // agentToken,
+          // mnemonic,
         });
         return toml.stringify(t);
       }),
+      // env.txt
+      writeFile(dstEnvTxt, dotenvFormat({
+        AGENT_TOKEN: agentToken,
+        WALLET_MNEMONIC: mnemonic,
+      })),
       // upstreet-agent directory
-      recursiveCopy(upstreetAgentSrcDir, upstreetAgentDstDir),
+      recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir),
     ]);
   };
   await _copyFiles();

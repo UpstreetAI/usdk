@@ -85,7 +85,6 @@ const getUserProfile = async () => {
       name: makeName(),
       description: '',
     };
-    // ensureAgentJsonDefaults(userAsset);
   }
 
   return user;
