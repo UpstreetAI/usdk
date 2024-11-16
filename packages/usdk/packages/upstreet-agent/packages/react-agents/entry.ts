@@ -9,151 +9,6 @@ import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 //
 
-/*
-import { AudioInput } from 'react-agents/devices/audio-input.mjs';
-import {
-  OpusAudioEncoder,
-  OpusAudioDecoder,
-  Mp3AudioEncoder,
-  Mp3AudioDecoder,
-} from './packages/react-agents/lib/multiplayer/public/audio/ws-codec-local.mjs';
-const makeFakeData = () => {
-  const numSamples = 128 * 1024;
-  // const numSamples = 1024;
-  const fakeData = new Float32Array(numSamples);
-  const freq = 440;
-  for (let i = 0; i < numSamples; i++) {
-    const t = i / AudioInput.defaultSampleRate;
-    fakeData[i] = Math.sin(2 * Math.PI * freq * t);
-  }
-  return fakeData;
-};
-const _testCodecs = async () => {
-  try {
-    const fakeData = makeFakeData();
-    console.log('got fake data', fakeData);
-
-    const _testOpus = async () => {
-      // encode 
-      console.log('test 1');
-      const sampleRate = AudioInput.defaultSampleRate;
-      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers<any[]>();
-      const bs = [];
-      const opusEncoder = new OpusAudioEncoder({
-        sampleRate,
-        output: (d: any) => {
-          // console.log('output', d.data);
-          if (d.data !== null) {
-            // console.log('case 1');
-            bs.push(d.data);
-          } else {
-            // console.log('case 2');
-            // console.log('output done 1', bs);
-            // const b = Buffer.concat(bs.map(u => Buffer.from(u)));
-            // const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
-            // console.log('output done 2', uint8Array);
-            resolveEncode(bs);
-            // console.log('output done 3');
-          }
-        },
-        error: (err: any) => {
-          console.log('error', err);
-        },
-      });
-      console.log('test 2', opusEncoder);
-      opusEncoder.encode({
-        data: fakeData.slice(),
-      });
-      opusEncoder.encode({
-        data: null,
-      });
-      console.log('test 3', opusEncoder);
-      const packets = await encodedPromise;
-      console.log('test 4', packets);
-
-      // decode
-      console.log('test 5');
-      const opusDecoder = new OpusAudioDecoder({
-        sampleRate,
-        output: (d: any) => {
-          console.log('output', d.data);
-        },
-        error: (err: any) => {
-          console.log('error', err);
-        },
-      });
-      console.log('test 6', packets);
-      for (const packet of packets) {
-        opusDecoder.decode(packet);
-      }
-      opusDecoder.decode(null);
-      console.log('test 7');
-    };
-    await _testOpus();
-
-    const _testMp3 = async () => { 
-      console.log('test 1');
-      const sampleRate = AudioInput.defaultSampleRate;
-      const { resolve: resolveEncode, promise: encodedPromise } = Promise.withResolvers();
-      const bs = [];
-      const mp3Encoder = new Mp3AudioEncoder({
-        sampleRate,
-        output: (d: any) => {
-          // console.log('output', d.data);
-          if (d.data !== null) {
-            // console.log('case 1');
-            bs.push(d.data);
-          } else {
-            // console.log('case 2');
-            // console.log('output done 1', bs);
-            const b = Buffer.concat(bs.map(u => Buffer.from(u)));
-            const uint8Array = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
-            // console.log('output done 2', uint8Array);
-            resolveEncode(uint8Array);
-            // console.log('output done 3');
-          }
-        },
-        error: (err: any) => {
-          console.log('error', err);
-        },
-      });
-      console.log('test 2', mp3Encoder);
-      mp3Encoder.encode({
-        data: fakeData.slice(),
-      });
-      mp3Encoder.encode({
-        data: null,
-      });
-      console.log('test 3', mp3Encoder);
-      const b = await encodedPromise;
-      console.log('test 4', {
-        b,
-      });
-
-      console.log('decoder 1');
-      const mp3Decoder = new Mp3AudioDecoder({
-        sampleRate,
-        output: (d: any) => {
-          console.log('output', d.data);
-        },
-        error: (err: any) => {
-          console.log('error', err);
-        },
-      });
-      console.log('decoder 2');
-      mp3Decoder.decode(b);
-      console.log('decoder 3');
-      mp3Decoder.decode(null);
-      console.log('decoder 4');
-    };
-    await _testMp3();
-  } catch (err) {
-    console.error(err);
-  }
-}; */
-
-//
-
 const cachedGet = (fn: () => any) => {
   let value = null;
   let ran = false;
@@ -169,17 +24,19 @@ const cachedGet = (fn: () => any) => {
 export class AgentMain extends EventTarget {
   state: any;
   env: any;
+  auth: any;
   supabase: any;
   chatsSpecification: ChatsSpecification;
   agentRenderer: AgentRenderer;
   loadPromise: Promise<void>;
 
-  constructor(state: any, env: any) {
+  constructor(state: any, env: any, auth: any) {
     super();
-    
+
     this.state = state;
     this.env = env;
-    this.supabase = makeAnonymousClient(env, env.AGENT_TOKEN);
+    this.auth = auth;
+    this.supabase = makeAnonymousClient(auth.AGENT_TOKEN);
 
     this.chatsSpecification = new ChatsSpecification({
       userId: this.#getId(),
@@ -191,6 +48,7 @@ export class AgentMain extends EventTarget {
     } = state;
     this.agentRenderer = new AgentRenderer({
       env,
+      auth,
       userRender,
       codecs,
       chatsSpecification: this.chatsSpecification,
@@ -209,8 +67,6 @@ export class AgentMain extends EventTarget {
     (async () => {
       await this.alarm();
     })();
-
-    // _testCodecs();
   }
 
   waitForLoad() {
@@ -237,7 +93,7 @@ export class AgentMain extends EventTarget {
   async fetch(request: Request) {
     try {
       const u = new URL(request.url);
-      console.log('worker request', request.method, u.href);
+      // console.log('worker request', request.method, u.href);
 
       await this.waitForLoad();
 

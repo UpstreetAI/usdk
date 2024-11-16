@@ -20,6 +20,7 @@ const usdkProfileLocation = path.join(homedir, '.usdk');
 export const loginLocation = path.join(usdkProfileLocation, 'login.json');
 // const export walletLocation = path.join(usdkProfileLocation, 'wallet.json');
 
+// this should point to the usdk roor directory
 export const BASE_DIRNAME = (() => {
   let metaUrl = decodeURI(import.meta.url).replace('file://', '');
   if (os.platform() === 'win32') {
@@ -39,7 +40,7 @@ export const BASE_DIRNAME = (() => {
 })();
 
 export const certsLocalPath = path.join(BASE_DIRNAME, 'certs-local');
-export const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
+// export const templatesDirectory = path.join(BASE_DIRNAME, 'examples');
 
 export const wranglerTomlPath = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
 

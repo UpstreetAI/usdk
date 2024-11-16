@@ -7,13 +7,31 @@ const pnpmPackageJsonString = fs.readFileSync(pnpmPackageJsonPath, 'utf8');
 const pnpmPackageJson = JSON.parse(pnpmPackageJsonString);
 const pnpmPath = path.resolve(path.dirname(pnpmPackageJsonPath), pnpmPackageJson.bin.pnpm);
 
+export const hasNpm = async () => {
+  // check if the npm command exists
+  return await new Promise((resolve) => {
+    const child = spawn(pnpmPath, ['--version'], {
+      stdio: 'ignore',
+    });
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+    child.on('error', (err) => {
+      resolve(false);
+    });
+  });
+};
+
 export const npmInstall = async (dstDir) => {
   await new Promise((resolve, reject) => {
     const child = spawn(pnpmPath, ['install'], {
       cwd: dstDir,
       stdio: 'inherit',
     });
-
     child.on('close', (code) => {
       if (code !== 0) {
         reject(new Error(`pnpm install failed with code ${code}`));
@@ -21,6 +39,7 @@ export const npmInstall = async (dstDir) => {
         resolve();
       }
     });
+    child.on('error', reject);
   });
 };
 

@@ -8,9 +8,11 @@ const bindProcess = (cp) => {
   process.on('exit', () => {
     // console.log('got exit', cp.pid);
     try {
-      process.kill(cp.pid, 'SIGINT');
+      process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
-      // console.warn(err.stack);
+      if (err.code !== 'ESRCH') {
+        console.warn(err.stack);
+      }
     }
   });
 };
@@ -116,9 +118,34 @@ export class ReactAgentsWranglerRuntime {
     }
     this.cp = cp;
   }
-  terminate() {
-    if (this.cp) {
-      this.cp.kill('SIGINT');
-    }
+  async terminate() {
+    await new Promise((accept, reject) => {
+      const { cp } = this;
+      if (cp === null) {
+        accept(null);
+      } else {
+        if (cp.exitCode !== null) {
+          // Process already terminated
+          accept(cp.exitCode);
+        } else {
+          // Process is still running
+          const exit = (code) => {
+            accept(code);
+            cleanup();
+          };
+          cp.on('exit', exit);
+          const error = (err) => {
+            reject(err);
+            cleanup();
+          };
+          cp.on('error', error);
+          const cleanup = () => {
+            cp.removeListener('exit', exit);
+            cp.removeListener('error', error);
+          };
+          cp.kill('SIGTERM');
+        }
+      }
+    });
   }
 }
