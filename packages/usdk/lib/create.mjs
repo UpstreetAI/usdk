@@ -34,7 +34,10 @@ import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents
 import {
   getAgentName,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
-import { ensureAgentJsonDefaults } from '../packages/upstreet-agent/util/agent-json-util.mjs';
+import {
+  updateAgentJsonAuth,
+  ensureAgentJsonDefaults,
+} from '../packages/upstreet-agent/util/agent-json-util.mjs';
 // import { getDirectoryHash } from '../util/hash-util.mjs';
 import {
   aiProxyHost,
