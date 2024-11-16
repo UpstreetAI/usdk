@@ -1544,40 +1544,6 @@ export const main = async () => {
           });
         });
       });
-    program
-      .command('node')
-      .description('Run a node agent')
-      .argument(`[guids...]`, `Guids of the agents to join the room`)
-      .action(async (guids = [], opts = {}) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          let args;
-          args = {
-            _: [guids],
-            ...opts,
-          };
-
-          const agentSpecs = await parseAgentSpecs(args._[0]);
-          const debug = true;
-
-          // start dev servers for the agents
-          const startPromises = agentSpecs.map(async (agentSpec) => {
-            if (agentSpec.directory) {
-              const runtime = new ReactAgentsNodeRuntime(agentSpec);
-              await runtime.start({
-                debug,
-              });
-            }
-          });
-          await Promise.all(startPromises);
-
-          // await new Promise((accept, reject) => {
-          //   setTimeout(() => {
-          //     reject(new Error('timeout'));
-          //   }, 1000 * 60 * 60 * 24);
-          // });
-        });
-      });
       
     // program
     //   .command('search')
