@@ -1748,34 +1748,33 @@ export const main = async () => {
           await disable(args);
         });
       }); */
-      const voiceSubCommands = [
-        {
-          name: 'ls',
-          description: 'Lists all available voices for the current user.',
-          usage: 'usdk voice ls'
-        },
-        {
-          name: 'get',
-          description: 'Retrieves details about a specific voice.',
-          usage: 'usdk voice get <voice_name>'
-        },
-        {
-          name: 'play',
-          description: 'Plays the given text using the specified voice.',
-          usage: 'usdk voice play <voice_name> <text>'
-        },
-        {
-          name: 'add',
-          description: 'Adds new audio files to create or update a voice.',
-          usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
-        },
-        {
-          name: 'remove',
-          description: 'Removes a voice from the user\'s account.',
-          usage: 'usdk voice remove <voice_id>'
-        }
-      ];
-
+    const voiceSubCommands = [
+      {
+        name: 'ls',
+        description: 'Lists all available voices for the current user.',
+        usage: 'usdk voice ls'
+      },
+      {
+        name: 'get',
+        description: 'Retrieves details about a specific voice.',
+        usage: 'usdk voice get <voice_name>'
+      },
+      {
+        name: 'play',
+        description: 'Plays the given text using the specified voice.',
+        usage: 'usdk voice play <voice_name> <text>'
+      },
+      {
+        name: 'add',
+        description: 'Adds new audio files to create or update a voice.',
+        usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
+      },
+      {
+        name: 'remove',
+        description: 'Removes a voice from the user\'s account.',
+        usage: 'usdk voice remove <voice_id>'
+      }
+    ];
     // program
     //   .command('voice')
     //   .description(
