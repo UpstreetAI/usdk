@@ -123,7 +123,7 @@ const logger = LoggerFactory.getLogger();
 
 //
 
-const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
+const makeSupabase = (jwt) => makeAnonymousClient(jwt);
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);
