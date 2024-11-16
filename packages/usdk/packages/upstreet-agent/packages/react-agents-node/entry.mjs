@@ -1,5 +1,6 @@
 import fs from 'fs';
 import toml from '@iarna/toml';
+import dotenv from 'dotenv';
 import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import userRender from './agent.tsx';
@@ -18,54 +19,58 @@ import path from 'path';
 
 // this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
 const wranglerTomlPath = path.join(getCurrentDirname(import.meta), '../../../../wrangler.toml');
+const envTxtPath = path.join(getCurrentDirname(import.meta), '../../../../.env.txt');
 
 //
 
 const getEnv = async () => {
-  // load the wrangler.toml
   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
   const wranglerToml = toml.parse(wranglerTomlString);
 
   const agentJsonString = wranglerToml.vars.AGENT_JSON;
   if (!agentJsonString) {
-    throw new Error('missing AGENT_JSON in wrangler.toml');
+    throw new Error('missing AGENT_JSON');
   }
   const agentJson = JSON.parse(agentJsonString);
 
-  const apiKey = wranglerToml.vars.AGENT_TOKEN;
-  if (!apiKey) {
-    throw new Error('missing AGENT_TOKEN in wrangler.toml');
-  }
-
-  const mnemonic = wranglerToml.vars.WALLET_MNEMONIC;
-  if (!mnemonic) {
-    throw new Error('missing WALLET_MNEMONIC in wrangler.toml');
-  }
-
-  const {
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_API_KEY,
-  } = wranglerToml.vars;
-  if (!SUPABASE_URL || !SUPABASE_PUBLIC_API_KEY) {
-    throw new Error('missing SUPABASE_URL or SUPABASE_PUBLIC_API_KEY in wrangler.toml');
-  }
-
-  // send init message
   const env = {
     AGENT_JSON: JSON.stringify(agentJson),
-    AGENT_TOKEN: apiKey,
-    WALLET_MNEMONIC: mnemonic,
-    SUPABASE_URL,
-    SUPABASE_PUBLIC_API_KEY,
     WORKER_ENV: 'development', // 'production',
   };
   return env;
 };
 
+const getAuth = async () => {
+  const envTxtString = await fs.promises.readFile(envTxtPath, 'utf8');
+  const envTxt = dotenv.parse(envTxtString);
+
+  const apiKey = envTxt.AGENT_TOKEN;
+  if (!apiKey) {
+    throw new Error('missing AGENT_TOKEN');
+  }
+
+  const mnemonic = envTxt.WALLET_MNEMONIC;
+  if (!mnemonic) {
+    throw new Error('missing WALLET_MNEMONIC');
+  }
+
+  const auth = {
+    AGENT_TOKEN: apiKey,
+    WALLET_MNEMONIC: mnemonic,
+  };
+  return auth;
+};
+
 //
 
 const main = async () => {
-  const env = await getEnv();
+  const [
+    env,
+    auth,
+  ] = await Promise.all([
+    getEnv(),
+    getAuth(),
+  ]);
 
   let alarmTimestamp = null;
   const state = {
@@ -80,7 +85,7 @@ const main = async () => {
       },
     },
   };
-  const agentMain = new AgentMain(state, env);
+  const agentMain = new AgentMain(state, env, auth);
   return agentMain;
 };
 export default main;

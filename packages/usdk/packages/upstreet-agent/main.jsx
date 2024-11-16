@@ -30,15 +30,4 @@ export default {
       });
     }
   },
-  /* async tail(events, env, ctx) {
-    // console.log('worker main tail', events);
-
-    const guid = env.GUID;
-
-    const supabase = makeAnonymousClient(env);
-    await supabase.from('logs').upsert({
-      user_id: guid,
-      content: events,
-    });
-  }, */
 };
