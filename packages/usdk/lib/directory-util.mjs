@@ -20,9 +20,9 @@ export const cleanDir = async (dstDir, { force, forceNoConfirm } = {}) => {
   if (files.length > 0) {
     if (force || forceNoConfirm) {
       if (!forceNoConfirm) {
-        const rl = readline.createInterface({
+        const rl = readline.promises.createInterface({
           input: process.stdin,
-          output: process.stdout
+          output: process.stdout,
         });
 
         const answer = await rl.question(`\nDelete the contents of "${path.resolve(dstDir)}"? ${pc.cyan('y/N')}: `)

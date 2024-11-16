@@ -9,6 +9,7 @@ import EventSource from 'eventsource';
 import open from 'open';
 import pc from 'picocolors';
 import { mkdirp } from 'mkdirp';
+import { rimraf } from 'rimraf';
 
 import Table from 'cli-table3';
 // import * as ethers from 'ethers';
@@ -1524,6 +1525,10 @@ export const main = async () => {
           });
         });
       });
+    const runtimes = [
+      'node',
+      'wrangler',
+    ];
     program
       .command('chat')
       // .alias('c')
@@ -1531,6 +1536,7 @@ export const main = async () => {
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
+      .option(`-run, --runtime <room>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .option(`-g, --debug`, `Enable debug logging`)
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {

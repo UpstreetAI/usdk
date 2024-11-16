@@ -1,7 +1,6 @@
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
-// import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import { ReactAgentsNodeRuntime } from '../packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
-// import { getLoginJwt } from '../util/login-util.mjs';
+import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   makeRoomName,
   connect,
@@ -16,6 +15,7 @@ export const chat = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const room = args.room;
   const browser = args.browser;
+  const runtime = args.runtime ?? 'node';
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
   const debug = !!args.debug;
@@ -26,9 +26,18 @@ export const chat = async (args, opts) => {
   }
 
   // start dev servers for the agents
+  const Runtime = (() => {
+    if (runtime === 'node') {
+      return ReactAgentsNodeRuntime;
+    } else if (runtime === 'wrangler') {
+      return ReactAgentsWranglerRuntime;
+    } else {
+      throw new Error('unknown runtime: ' + runtime);
+    }
+  })();
   const startPromises = agentSpecs.map(async (agentSpec) => {
     if (agentSpec.directory) {
-      const runtime = new ReactAgentsNodeRuntime(agentSpec);
+      const runtime = new Runtime(agentSpec);
       await runtime.start({
         debug,
       });
