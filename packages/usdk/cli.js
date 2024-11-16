@@ -1641,18 +1641,6 @@ export const main = async () => {
     program
       .command('agents')
       .description('List the currently deployed agents')
-      // .option(
-      //   `-n, --network <networkId>`,
-      //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-      // )
-      // .option(
-      //   `-l, --local`,
-      //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-      // )
-      // .option(
-      //   `-d, --dev`,
-      //   `List local development agents instead of account agents (requires running cli dev server)`,
-      // )
       .action(async (opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
