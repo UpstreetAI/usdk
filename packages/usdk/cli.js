@@ -80,6 +80,7 @@ import {
   edit,
   pull,
   deploy,
+  update,
   chat,
 } from './lib/commands.mjs';
 import {
@@ -96,11 +97,14 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
-import {
-  generateMnemonic,
-} from './util/ethereum-utils.mjs';
+// import {
+//   generateMnemonic,
+// } from './util/ethereum-utils.mjs';
 import LoggerFactory from './util/logger/logger-factory.mjs';
 import { getLatestVersion } from './lib/version.mjs';
+import {
+  getDirectoryHash,
+} from './util/hash-util.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1671,6 +1675,26 @@ export const main = async () => {
           const jwt = await getLoginJwt();
 
           await unpublish(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('update')
+      .description('Update an agent to the latest sdk version')
+      .argument(`[directories...]`, `Path to the agents to update`)
+      .option(`-f, --force`, `Force the update even if there are conflicts`)
+      .action(async (directories = '', opts) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await update(args, {
             jwt,
           });
         });
