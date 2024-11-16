@@ -37,7 +37,7 @@ import {
 import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
-} from '../packages/upstreet-agent/util/agent-json-util.mjs';
+} from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
 // import { getDirectoryHash } from '../util/hash-util.mjs';
 import {
   aiProxyHost,
