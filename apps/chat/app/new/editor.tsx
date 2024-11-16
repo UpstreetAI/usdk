@@ -26,7 +26,7 @@ import {
   Chat,
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
-import { ensureAgentJsonDefaults } from 'react-agents/agent-defaults.mjs';
+import { ensureAgentJsonDefaults } from 'react-agents/util/agent-json-util.mjs';
 import {
   generateCharacterImage,
   generateBackgroundImage,
