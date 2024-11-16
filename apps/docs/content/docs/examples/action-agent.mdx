@@ -1,15 +1,429 @@
 ---
 title: Action Agent (Personal Assistant)
-description: This section describes how to build your own personal assistant Agent with Upstreet and the Google Calendar API.
+description: This section describes how to build your own personal assistant Agent with Upstreet and the Google Calendar API, using custom React Hooks.
 full: false
 ---
- 
-In this guide, we build an **Action Agent** capable of scheduling events on our Google Calendar for us, using the [Google Calendar API](https://developers.google.com/calendar/api/guides/overview).
+
+In this guide, we build an **Action Agent** capable of scheduling events on our Google Calendar for us, using the [Google Calendar API](https://developers.google.com/Calendar/api/guides/overview). We use [custom React Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) in this example - We want to use nice, clean coding practices.
 
 <Callout>
-We define an **Action Agent** as an Agent which can take actions on behalf of you.
+  We define an **Action Agent** as an Agent which can take actions on behalf of you.
 </Callout>
 
 The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/personalAssistant).
 
-<Callout type="warn">This section is under construction.</Callout>
+## Guide
+
+### Step 1: Setup `usdk`
+
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+
+### Step 2: Initialize your agent
+
+Create a new agent:
+
+```bash
+usdk create <your-agent-directory> -y
+```
+
+This will directly scaffold an agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
+
+Your agent directory now contains the Node application and `git` repository for your agent, should you choose to use `git`.
+
+<Callout>
+The `-y` flag means to skip the [Agent Interview](/create-an-agent#step-2-complete-the-agent-interview) process, which we don't need here.
+You can also omit the agent directory. In that case, a directory will be created for you.
+</Callout>
+
+### Step 3: Create a `PersonalAssistant` Component
+
+Why manage our calendar manually when an AI agent can handle the task for us? We can easily build an Upstreet Agent to handle Calendar management, reducing scheduling conflicts and saving time.
+
+This example, however, will be very simple. We want our Agent to be able to schedule a Google Calendar Event for us.
+
+```tsx title="agent.tsx"
+const PersonalAssistant = () => {
+  // We'll add functions, useState, useEffect here
+
+  return <>{/* We can add components here to compose our Agent  */}</>
+}
+```
+
+The `PersonalAssistant` component is just an empty wrapper component for now - it will later utilize a `GoogleCalenderManager` class to interact with the Google Calendar API, allowing users to create Calendar events programmatically.
+
+### Step 4: Using custom Hooks and better practices
+
+In `agent-renderer.tsx` file, inside the `AgentRenderer` class, we can make a [custom Hook](https://react.dev/learn/reusing-logic-with-custom-hooks) called `useCalendarKeysJson`:
+
+```tsx title="/packages/upstreet-agent/packages/react-agents/classes/agent-renderer.tsx"
+const useEnvironment = () => {
+  return (env as any).WORKER_ENV as string
+}
+// place here below useEnvironment function
+const useCalendarKeysJson = () => { // [!code ++]
+  const CalenderKeysJsonString = (env as any).CALENDER_KEYS_JSON as string // [!code ++]
+  const CalenderKeysJson = JSON.parse(CalenderKeysJsonString) // [!code ++]
+  return CalenderKeysJson // [!code ++]
+} // [!code ++]
+```
+
+In the same file there is `AppContextValue` mention. Make the below modification in your code.
+
+```tsx
+this.appContextValue = new AppContextValue({
+  subtleAi,
+  agentJson: useAgentJson(),
+  CalenderKeysJson: useCalendarKeysJson(), // [!code ++]
+  environment: useEnvironment(),
+  wallets: useWallets(),
+  authToken: useAuthToken(),
+  supabase: useSupabase(),
+  conversationManager: useConversationManager(),
+  chatsSpecification: useChatsSpecification(),
+  codecs: useCodecs(),
+  registry: useRegistry()
+})
+```
+
+Now make some changes in `app-value-context.tsx` file's `AppContextValue` class .
+
+```tsx title="/packages/upstreet-agent/packages/react-agents/classes/app-context-value.ts"
+export class AppContextValue {
+  subtleAi: SubtleAi
+  agentJson: object
+  calendarKeysJson: object // [!code ++]
+  // other code remain same
+
+  constructor({
+    subtleAi,
+    agentJson,
+    CalenderKeysJson // [!code ++]
+    // other code remain same
+  }: {
+    subtleAi: SubtleAi
+    agentJson: object
+    CalenderKeysJson: object // [!code ++]
+    // other code remain same
+  }) {
+    this.subtleAi = subtleAi
+    this.agentJson = agentJson
+    this.CalenderKeysJson = CalenderKeysJson // [!code ++]
+    // other code remain same
+  }
+}
+```
+
+In the same file add `useCalendarKeysJson` custom hooks
+
+```tsx
+
+  useAgentJson() {
+    return this.agentJson;
+  }
+
+  useCalendarKeysJson() { // [!code ++]
+    return this.CalenderKeysJson; // [!code ++]
+  } // [!code ++]
+
+  // other code remain same
+
+```
+
+Now add `useCalendarKeysJson` in `hooks.ts` file.
+
+```tsx title="/packages/upstreet-agent/packages/react-agents/hooks.ts"
+export const useAgent = () => {
+  const agentContextValue = useContext(AgentContext)
+  return agentContextValue
+}
+
+export const useCalendarKeysJson = () => { // [!code ++]
+  const agentContextValue = useContext(AgentContext) // [!code ++]
+  return agentContextValue.appContextValue.useCalendarKeysJson() // [!code ++]
+} // [!code ++]
+
+// other code remain same
+```
+
+You can now use `useCalendarKeysJson` as a Hook in your PersonalAssistant Component.
+
+
+### Step 5: Integrating the Google Calendar API
+
+Let's build our `GoogleCalendarManager`, which will leverage a service account for authentication and handling token generation, event creation, and error handling.
+
+---
+
+Ensure you have your Google Calendar API credentials, including:
+`GOOGLE_CALENDAR_ID`, `GOOGLE_API_KEY`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`
+<Callout>
+This tutorial will **not** cover how to obtain these credentials. For more information, you can refer to the [Google Calendar API's documentation](https://developers.google.com/calendar/api/guides/overview).
+</Callout>
+
+After obtaining the keys, add them to the `wrangler.toml` file.
+
+Here's how it might look like:
+
+```toml
+...
+CALENDER_KEYS_JSON = "{\"GOOGLE_API_KEY\":\"\",\"GOOGLE_SERVICE_ACCOUNT_EMAIL\":\"\",\"GOOGLE_PRIVATE_KEY\":\"",\"GOOGLE_CALENDAR_ID\":\"\"}"
+...
+```
+
+Let's get back to the code.
+
+---
+
+This code provides an integration with the Google Calendar API by implementing a class called `GoogleCalenderManager`.
+
+```tsx title="agent.tsx"
+
+// Import all the required modules
+import { // [!code ++]
+  Action, // [!code ++]
+  Agent, // [!code ++]
+  PendingActionEvent, // [!code ++]
+  useCalendarKeysJson // [!code ++]
+} from 'react-agents' // [!code ++]
+import { z } from 'zod' // [!code ++]
+
+// integrating the Google Calendar API
+interface CalenderEvent {// [!code ++]
+  summary: string // [!code ++]
+  description: string // [!code ++]
+  start: { dateTime: string } // [!code ++]
+  end: { dateTime: string } // [!code ++]
+} // [!code ++]
+
+class GoogleCalenderManager {// [!code ++]
+  private readonly GOOGLE_Calender_ID: string // [!code ++]
+  private readonly GOOGLE_API_KEY: string // [!code ++]
+  private readonly GOOGLE_SERVICE_ACCOUNT_EMAIL: string // [!code ++]
+  private readonly GOOGLE_PRIVATE_KEY: string // [!code ++]
+  constructor({ // [!code ++]
+    GOOGLE_Calender_ID, // [!code ++]
+    GOOGLE_API_KEY, // [!code ++]
+    GOOGLE_SERVICE_ACCOUNT_EMAIL, // [!code ++]
+    GOOGLE_PRIVATE_KEY // [!code ++]
+  }: {// [!code ++]
+    GOOGLE_Calender_ID: string // [!code ++]
+    GOOGLE_API_KEY: string // [!code ++]
+    GOOGLE_SERVICE_ACCOUNT_EMAIL: string // [!code ++]
+    GOOGLE_PRIVATE_KEY: string // [!code ++]
+  }) {// [!code ++]
+    this.GOOGLE_Calender_ID = GOOGLE_Calender_ID // [!code ++]
+    this.GOOGLE_API_KEY = GOOGLE_API_KEY // [!code ++]
+    this.GOOGLE_SERVICE_ACCOUNT_EMAIL = GOOGLE_SERVICE_ACCOUNT_EMAIL // [!code ++]
+    this.GOOGLE_PRIVATE_KEY = GOOGLE_PRIVATE_KEY // [!code ++]
+  } // [!code ++]
+
+  private async getAccessToken(): Promise<string> {// [!code ++]
+    const now = Math.floor(Date.now() / 1000) // [!code ++]
+    const expiry = now + 3600 // Token valid for 1 hour // [!code ++]
+    const jwtHeader = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' })) // [!code ++]
+    const jwtClaimSet = btoa(// [!code ++]
+      JSON.stringify({// [!code ++]
+        iss: this.GOOGLE_SERVICE_ACCOUNT_EMAIL, // [!code ++]
+        scope: 'https://www.googleapis.com/auth/Calendar', // [!code ++]
+        aud: 'https://oauth2.googleapis.com/token', // [!code ++]
+        exp: expiry, // [!code ++]
+        iat: now // [!code ++]
+      }) // [!code ++]
+    ) // [!code ++]
+
+    const signatureInput = `${jwtHeader}.${jwtClaimSet}` // [!code ++]
+    const signature = await this.signJwt(signatureInput) // [!code ++]
+    const jwt = `${signatureInput}.${signature}` // [!code ++]
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {// [!code ++]
+      method: 'POST', // [!code ++]
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // [!code ++]
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}` // [!code ++]
+    }) // [!code ++]
+    const tokenData = await tokenResponse.json() // [!code ++]
+    return tokenData.access_token // [!code ++]
+  } // [!code ++]
+
+  private async signJwt(input: string): Promise<string> {// [!code ++]
+    const pemHeader = '-----BEGIN PRIVATE KEY-----' // [!code ++]
+    const pemFooter = '-----END PRIVATE KEY-----' // [!code ++]
+    const pemContents = this.GOOGLE_PRIVATE_KEY.substring(// [!code ++]
+      this.GOOGLE_PRIVATE_KEY.indexOf(pemHeader) + pemHeader.length, // [!code ++]
+      this.GOOGLE_PRIVATE_KEY.indexOf(pemFooter) // [!code ++]
+    ).replace(/\s/g, '') // [!code ++]
+    const binaryDer = this.base64StringToArrayBuffer(pemContents) // [!code ++]
+    const cryptoKey = await crypto.subtle.importKey(// [!code ++]
+      'pkcs8', // [!code ++]
+      binaryDer, // [!code ++]
+      {// [!code ++]
+        name: 'RSASSA-PKCS1-v1_5', // [!code ++]
+        hash: 'SHA-256' // [!code ++]
+      }, // [!code ++]
+      false, // [!code ++]
+      ['sign'] // [!code ++]
+    ) // [!code ++]
+
+    const encoder = new TextEncoder() // [!code ++]
+    const signatureBuffer = await crypto.subtle.sign(  // [!code ++]
+      'RSASSA-PKCS1-v1_5', // [!code ++]
+      cryptoKey, // [!code ++]
+      encoder.encode(input) // [!code ++]
+    ) // [!code ++]
+    const signatureArray = new Uint8Array(signatureBuffer) // [!code ++]
+    return btoa(String.fromCharCode.apply(null, signatureArray)) // [!code ++]
+      .replace(/=/g, '') // [!code ++]
+      .replace(/\+/g, '-') // [!code ++]
+      .replace(/\//g, '_') // [!code ++]
+  } // [!code ++]
+
+  private base64StringToArrayBuffer(base64: string): ArrayBuffer {// [!code ++]
+    const binaryString = atob(base64) // [!code ++]
+    const bytes = new Uint8Array(binaryString.length) // [!code ++]
+    for (let i = 0; i < binaryString.length; i++) { // [!code ++]
+      bytes[i] = binaryString.charCodeAt(i) // [!code ++]
+    } // [!code ++]
+    return bytes.buffer // [!code ++]
+  } // [!code ++]
+  async setCalenderEvent(event: CalenderEvent): Promise<string> { // [!code ++]
+    console.log('Creating event:', event) // [!code ++]
+    const accessToken = await this.getAccessToken() // [!code ++]
+    const response = await fetch( // [!code ++]
+      `https://www.googleapis.com/Calendar/v3/Calenders/${this.GOOGLE_Calender_ID}/events?key=${this.GOOGLE_API_KEY}`, // [!code ++]
+      { // [!code ++]
+        method: 'POST', // [!code ++]
+        headers: {// [!code ++]
+          Authorization: `Bearer ${accessToken}`, // [!code ++]
+          'Content-Type': 'application/json' // [!code ++]
+        }, // [!code ++]
+        body: JSON.stringify(event) // [!code ++]
+      } // [!code ++]
+    ) // [!code ++]
+    console.log(response) // [!code ++]
+    if (!response.ok) {  // [!code ++]
+      const errorText = await response.text() // [!code ++]
+      throw new Error(`Failed to create event: ${errorText}`) // [!code ++]
+    } // [!code ++]
+    const result = await response.json() // [!code ++]
+    console.log('Event created:', result) // [!code ++]
+    return `Event created: ${result.htmlLink}` // [!code ++]
+  } // [!code ++]
+} // [!code ++]
+```
+
+#### Breakdown summary of the `GoogleCalenderManager` Class and its functions
+
+1. **Constructor:** Initializes the GoogleCalenderManager with Google API credentials (GOOGLE_Calender_ID, GOOGLE_API_KEY, GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY).
+2. **getAccessToken:** Generates an OAuth2 access token using a JWT for authorizing Google Calendar API requests.
+3. **signJwt:** Signs a JSON Web Token (JWT) using the private key for secure authorization.
+4. **base64StringToArrayBuffer:** Converts a base64-encoded string into an ArrayBuffer, which is used for cryptographic operations.
+5. **setCalenderEvent:** Posts a new event to the specified Google Calendar using the access token and provided event details.
+
+### Step 6: Initialize the GoogleCalenderManager instance
+
+Now let's modify the `PersonalAssistant` component.
+
+In the code snippet, the credentials are being fetched using `useCalendarKeysJson()` and are used to initialize the GoogleCalenderManager instance.
+
+```tsx title="agent.tsx"
+const PersonalAssistant = () => {
+  // [!code ++]
+  // get credentials from wrangler.toml
+  const CalenderKeysJson = useCalendarKeysJson() // [!code ++]
+
+  const googleCalenderManager = new GoogleCalenderManager({ // [!code ++]
+    GOOGLE_Calender_ID: CalenderKeysJson.GOOGLE_Calender_ID, // [!code ++]
+    GOOGLE_API_KEY: CalenderKeysJson.GOOGLE_API_KEY, // [!code ++]
+    GOOGLE_SERVICE_ACCOUNT_EMAIL: CalenderKeysJson.GOOGLE_SERVICE_ACCOUNT_EMAIL, // [!code ++]
+    GOOGLE_PRIVATE_KEY: CalenderKeysJson.GOOGLE_PRIVATE_KEY // [!code ++]
+  }) // [!code ++]
+
+  return <>{/* We can add components here to compose our Agent  */}</>
+}
+```
+
+Now we'll use the `<Action>` tag to define how the Agent should respond to the default text perception.
+
+```tsx
+return (
+  <>
+    <Action // [!code ++]
+      name="setCalenderEvent" // [!code ++]
+      description="Sets a new event in the user's Google Calendar." // [!code ++]
+      schema={ // [!code ++]
+        // [!code ++]
+        // update according to https://developers.google.com/Calendar/api/v3/reference/events
+        z.object({ // [!code ++]
+          // [!code ++]
+          summary: z.string(), // [!code ++]
+          startDateTime: z.string(), // [!code ++]
+          endDateTime: z.string(), // [!code ++]
+          description: z.string() // [!code ++]
+        })// [!code ++]
+      } // [!code ++]
+      examples={[   // [!code ++]
+        {// [!code ++]
+          summary: 'Meeting with John Doe', // [!code ++]
+          startDateTime: '2023-06-15T10:00:00-07:00', // [!code ++]
+          endDateTime: '2023-06-15T11:00:00-07:00', // [!code ++]
+          description: 'Discuss the project timeline and requirements.' // [!code ++]
+        } // [!code ++]
+      ]} // [!code ++]
+      handler={async (e: PendingActionEvent) => { // [!code ++]
+        const { summary, description, startDateTime, endDateTime } = e.data // [!code ++]
+          .message.args as { // [!code ++]
+          summary: string // [!code ++]
+          description: string // [!code ++]
+          startDateTime: string // [!code ++]
+          endDateTime: string // [!code ++]
+        } // [!code ++]
+        const event = {// [!code ++]
+          summary, // [!code ++]
+          description, // [!code ++]
+          start: { dateTime: startDateTime }, // [!code ++]
+          end: { dateTime: endDateTime } // [!code ++]
+        } // [!code ++]
+        await googleCalenderManager.setCalenderEvent(event) // [!code ++]
+      }} // [!code ++]
+    />
+  </>
+)
+```
+
+#### Breakdown summary of this `<Action>` Component
+
+1. **Purpose of the `<Action>` Component**
+
+`<Action>` components define specific actions that your agent can perform in response to user inputs. [Learn more](/api/agent/action)
+
+This component is used to define a specific action that can be triggered, in this case, **setting an event in Google Calendar**.
+
+2. **Defining Action Properties**
+
+   Each `<Action>` is structured with the following properties:
+
+   - **`name`**: A unique identifier for the action. Example: `'setCalenderEvent'`.
+   - **`description`**: Explains what the action does. In this case, it sets a new event in the user's Google Calendar.
+   - **`schema`**: Specifies the input structure for the action, defined using a `zod` schema. The schema expects the event's summary (`summary`), start date and time (`startDateTime`), end date and time (`endDateTime`), and a description (`description`), all of which must be strings.
+   - **`examples`**: Provides sample inputs to guide the agent’s behavior. Example: `{ summary: 'Meeting with John Doe', startDateTime: '2023-06-15T10:00:00-07:00', endDateTime: '2023-06-15T11:00:00-07:00', description: 'Discuss project timeline and requirements.' }`.
+
+3. **`handler`: The Action's Core Logic**
+
+   The handler function is the core of the action. This function contains the logic that will be executed when the action is triggered. In this case, the action is to create a new event in the user's Google Calendar. Here's a breakdown:
+
+   - **PendingActionEvent**: The handler receives an event object of type PendingActionEvent, which contains all the data and context for the action being triggered. This event object has a data field, which holds the `message.args`. The args will contain the arguments passed when the action was triggered.
+   - **Destructuring**: Inside the handler, the event data (e.data.message.args) is destructured into the specific fields: `summary`, `description`, `startDateTime`, and `endDateTime`. These correspond to the values passed when the action was triggered.
+   - **Event Creation**: Once the necessary data is extracted, an event object is created.
+
+   This object is structured according to the Google Calendar API's expected format:
+
+   - **Calling googleCalenderManager.setCalenderEvent**: The googleCalenderManager.setCalenderEvent(event) method is then called to create the event in Google Calendar. This method is asynchronous, so the await keyword is used to ensure that the event is created before proceeding.
+
+### Step 7: Test out your PersonalAssistant Agent!
+
+You can run `usdk chat` to test it out. [Learn more](/test-your-agent)
+
+You can ask it questions like:
+> Schedule my meeting with Steve on 15 November at 10 PM.
+
+The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/personalAssistant).
+
+Share its response in our [Discord community](https://upstreet.ai/usdk-discord); we'd love to know what it responds to you.
