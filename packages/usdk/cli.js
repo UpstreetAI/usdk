@@ -109,9 +109,11 @@ import {
   getDirectoryHash,
 } from './util/hash-util.mjs';
 
-import { createBrowser/*, testBrowser*/ } from './packages/upstreet-agent/packages/react-agents/util/create-browser.mjs';
+// import { createBrowser/*, testBrowser*/ } from './packages/upstreet-agent/packages/react-agents/util/create-browser.mjs';
 
 // globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
+
+const dirname = path.dirname(import.meta.url.replace('file://', ''));
 
 //
 
@@ -1564,6 +1566,11 @@ export const main = async () => {
       .argument(`[subcommand]`, `Subcommand to execute`)
       .argument(`[url]`, `URL to join`)
       .option(`--token <string>`, `Auth token for Twitter API`)
+      .option(`--twid <string>`, `TWID for Twitter space`)
+      .option(`--ct0 <string>`, `CT0 for Twitter space`)
+      .option(`--kdt <string>`, `KDT for Twitter space`)
+      .option(`--att <string>`, `ATT for Twitter space`)
+      .option(`--guestId <string>`, `Guest ID for Twitter space`)
       .option('--personalizationId <string>', 'Personalization ID')
       .action(async (subcommand, url, opts = {}) => {
         await handleError(async () => {
@@ -1579,10 +1586,13 @@ export const main = async () => {
             const browser = await chromium.launch({
               headless: false,
               devtools: true,
+              // args: ['--disable-web-security'],
             });
             console.log('launch 2');
             const context = await browser.newContext({
               permissions: ['microphone', 'camera'],
+              // serviceWorkers: 'block',
+              bypassCSP: true,
             });
             const destroySession = () => {
               context.close();
@@ -1591,19 +1601,95 @@ export const main = async () => {
 
             // set the auth token cookie
             await context.addCookies([
-              {
+              opts.token && {
                 name: 'auth_token',
                 value: opts.token,
                 domain: '.x.com',
                 path: '/',
               },
-              {
+              opts.twid && {
+                name: 'twid',
+                value: opts.twid,
+                domain: '.x.com',
+                path: '/',
+              },
+              opts.ct0 && {
+                name: 'ct0',
+                value: opts.ct0,
+                domain: '.x.com',
+                path: '/',
+              },
+              opts.kdt && {
+                name: 'kdt',
+                value: opts.kdt,
+                domain: '.x.com',
+                path: '/',
+              },
+              opts.att && {
+                name: 'att',
+                value: opts.att,
+                domain: '.x.com',
+                path: '/',
+              },
+              opts.guestId && {
+                name: 'guest_id',
+                value: opts.guestId,
+                domain: '.x.com',
+                path: '/',
+              },
+              opts.personalizationId && {
                 name: 'personalization_id',
                 value: opts.personalizationId,
                 domain: '.x.com',
                 path: '/',
               },
-            ]);
+            ].filter(Boolean));
+
+            // load the worklet files
+            const workletPath = path.join(dirname, '../../apps/chat/public/audio-worker');
+            const workletInputFileName = 'ws-input-worklet.js';
+            const workletOutputFileName = 'ws-output-worklet.js';
+            const workletInputPath = `${workletPath}/${workletInputFileName}`;
+            const workletOutputPath = `${workletPath}/${workletOutputFileName}`;
+            const workletInput = fs.readFileSync(workletInputPath, 'utf8');
+            const workletOutput = fs.readFileSync(workletOutputPath, 'utf8');
+
+            // Intercept worklet requests and serve local files
+            await context.route(`**/${workletInputFileName}`, async (route) => {
+              console.log(`serving ${workletInputFileName}`);
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/javascript',
+                headers: {
+                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0',
+                  'Surrogate-Control': 'no-store',
+                  'Service-Worker-Allowed': '/',
+                  'Clear-Site-Data': '"cache", "storage"'
+                },
+                body: workletInput,
+              });
+            });
+            await context.route(`**/${workletOutputFileName}`, async (route) => {
+              console.log(`serving ${workletOutputFileName}`);
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/javascript',
+                headers: {
+                  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                  'Pragma': 'no-cache',
+                  'Expires': '0',
+                  'Surrogate-Control': 'no-store',
+                  'Service-Worker-Allowed': '/',
+                  'Clear-Site-Data': '"cache", "storage"'
+                },
+                body: workletOutput,
+              });
+            });
+            context.on('request', request => {
+              console.log('Request:', request.url());
+            });
 
             const page = await context.newPage();
             console.log('got page');
@@ -1617,224 +1703,430 @@ export const main = async () => {
               console.log('PAGE ERROR:', msg.stack);
             });
 
-            // await page.addInitScript(() => {
-            //   const peerConnection = new RTCPeerConnection();
-            //   console.log('add track', RTCPeerConnection, peerConnection.addTrack);
-            // });
             console.log('intercept 1');
             // Override RTCPeerConnection and trap the methods
-            // await page.exposeFunction('handleRTCEvent', (eventType, args) => {
-            //   console.log(`Intercepted ${eventType}:`, JSON.stringify(args, null, 2));
-            // });
-            // console.log('intercept 2');
-            // await page.addInitScript(() => {
-            //   console.log('RTCPeerConnection override 1');
+            await page.exposeFunction('handleRTCEvent', (eventType, args) => {
+              console.log(`Intercepted ${eventType}:`, JSON.stringify(args, null, 2));
+            });
+            console.log('intercept 2');
+            await page.addInitScript(() => {
+              console.log('RTCPeerConnection override 1');
 
-            //   // Save the original RTCPeerConnection
-            //   const OriginalRTCPeerConnection = window.RTCPeerConnection;
+              // Save the original RTCPeerConnection
+              const OriginalRTCPeerConnection = window.RTCPeerConnection;
 
-            //   // Define the custom implementation
-            //   class CustomRTCPeerConnection {
-            //     constructor(config) {
-            //       console.log('Custom RTCPeerConnection created with config:', config);
-            //       this.original = new OriginalRTCPeerConnection(config);
-            //       this.original.addEventListener('track', e => {
-            //         console.log('track added', e);
-            //       });
+              // Define the custom implementation
+              class CustomRTCPeerConnection {
+                constructor(config) {
+                  console.log('Custom RTCPeerConnection created with config:', config);
+                  this.original = new OriginalRTCPeerConnection(config);
+                  this.original.addEventListener('track', e => {
+                    console.log('track added', e.streams.length, e.streams);
+                  });
 
-            //       window.handleRTCEvent('RTCPeerConnection', config);
-            //     }
-            //     get canTrickleIceCandidates() {
-            //       return this.original.canTrickleIceCandidates;
-            //     }
-            //     get connectionState() {
-            //       return this.original.connectionState;
-            //     }
-            //     get currentLocalDescription() {
-            //       return this.original.currentLocalDescription;
-            //     }
-            //     get currentRemoteDescription() {
-            //       return this.original.currentRemoteDescription;
-            //     }
-            //     get iceConnectionState() {
-            //       return this.original.iceConnectionState;
-            //     }
-            //     get iceGatheringState() {
-            //       return this.original.iceGatheringState;
-            //     }
-            //     get localDescription() {
-            //       return this.original.localDescription;
-            //     }
-            //     get peerIdentity() {
-            //       return this.original.peerIdentity;
-            //     }
-            //     get pendingLocalDescription() {
-            //       return this.original.pendingLocalDescription;
-            //     }
-            //     get pendingRemoteDescription() {
-            //       return this.original.pendingRemoteDescription;
-            //     }
-            //     get remoteDescription() {
-            //       return this.original.remoteDescription;
-            //     }
-            //     get sctp() {
-            //       return this.original.sctp;
-            //     }
-            //     get signalingState() {
-            //       return this.original.signalingState;
-            //     }
-            //     set onconnectionstatechange(value) {
-            //       console.log('set onconnectionstatechange', value);
-            //       this.original.onconnectionstatechange = value;
-            //     }
-            //     get onconnectionstatechange() {
-            //       return this.original.onconnectionstatechange;
-            //     }
-            //     set ondatachannel(value) {
-            //       console.log('set ondatachannel', value);
-            //       this.original.ondatachannel = value;
-            //     }
-            //     get ondatachannel() {
-            //       return this.original.ondatachannel;
-            //     }
-            //     set onicecandidate(value) {
-            //       console.log('set onicecandidate', value);
-            //       this.original.onicecandidate = value;
-            //     }
-            //     get onicecandidate() {
-            //       return this.original.onicecandidate;
-            //     }
-            //     set onicecandidateerror(value) {
-            //       console.log('set onicecandidateerror', value);
-            //       this.original.onicecandidateerror = value;
-            //     }
-            //     get onicecandidateerror() {
-            //       return this.original.onicecandidateerror;
-            //     }
-            //     set oniceconnectionstatechange(value) {
-            //       console.log('set oniceconnectionstatechange', value);
-            //       this.original.oniceconnectionstatechange = value;
-            //     }
-            //     get oniceconnectionstatechange() {
-            //       return this.original.oniceconnectionstatechange;
-            //     }
-            //     set onicegatheringstatechange(value) {
-            //       console.log('set onicegatheringstatechange', value);
-            //       this.original.onicegatheringstatechange = value;
-            //     }
-            //     get onicegatheringstatechange() {
-            //       return this.original.onicegatheringstatechange;
-            //     }
-            //     set onnegotiationneeded(value) {
-            //       console.log('set onnegotiationneeded', value);
-            //       this.original.onnegotiationneeded = value;
-            //     }
-            //     get onnegotiationneeded() {
-            //       return this.original.onnegotiationneeded;
-            //     }
-            //     set onsignalingstatechange(value) {
-            //       console.log('set onsignalingstatechange', value);
-            //       this.original.onsignalingstatechange = value;
-            //     }
-            //     get onsignalingstatechange() {
-            //       return this.original.onsignalingstatechange;
-            //     }
-            //     set ontrack(value) {
-            //       console.log('set ontrack', value);
-            //       this.original.ontrack = value;
-            //     }
-            //     get ontrack() {
-            //       return this.original.ontrack;
-            //     }
-            //     getTransceivers() {
-            //       return this.original.getTransceivers();
-            //     }
-            //     async setLocalDescription(...args) {
-            //       window.handleRTCEvent('setLocalDescription 1', args);
-            //       const localDescription = await this.original.setLocalDescription(...args);
-            //       window.handleRTCEvent('setLocalDescription 2', { args, localDescription });
-            //       return localDescription;
-            //     }
-            //     async setRemoteDescription(...args) {
-            //       window.handleRTCEvent('setRemoteDescription 1', args);
-            //       const remoteDescription = await this.original.setRemoteDescription(...args);
-            //       window.handleRTCEvent('setRemoteDescription 2', { args, remoteDescription });
-            //       return remoteDescription;
-            //     }
-            //     addTrack(...args) {
-            //       console.log('addTrack 1', args);
-            //       return this.original.addTrack(...args);
-            //     }
-            //     async createOffer(...args) {
-            //       console.log('createOffer 1', JSON.stringify(args), args.map(a => typeof a), JSON.stringify({
-            //         iceConnectionState: this.original.iceConnectionState,
-            //         signalingState: this.original.signalingState,
-            //       }, null, 2));
-            //       try {
-            //         const offer = await this.original.createOffer(...args);
-            //         window.handleRTCEvent('createOffer 2');
-            //         window.handleRTCEvent('createOffer 3', { args, offer });
-            //         return offer;
-            //       } catch (err) {
-            //         console.warn('createOffer error', err);
-            //         throw err;
-            //       }
-            //     }
-            //     async createAnswer(...args) {
-            //       window.handleRTCEvent('createAnswer 1', JSON.stringify(args), args.map(a => typeof a));
-            //       try {
-            //         const answer = await this.original.createAnswer(...args);
-            //         window.handleRTCEvent('createAnswer 2');
-            //         window.handleRTCEvent('createAnswer 3', { args, answer });
-            //         return answer;
-            //       } catch (err) {
-            //         console.warn('createAnswer error', err);
-            //         throw err;
-            //       }
-            //     }
-            //   }
-            //   console.log('RTCPeerConnection override 2');
-            //   // Replace the original RTCPeerConnection with the custom one
-            //   window.RTCPeerConnection = CustomRTCPeerConnection;
-            //   console.log('RTCPeerConnection override 3');
+                  window.handleRTCEvent('RTCPeerConnection', config);
+                }
+                get canTrickleIceCandidates() {
+                  return this.original.canTrickleIceCandidates;
+                }
+                get connectionState() {
+                  return this.original.connectionState;
+                }
+                get currentLocalDescription() {
+                  return this.original.currentLocalDescription;
+                }
+                get currentRemoteDescription() {
+                  return this.original.currentRemoteDescription;
+                }
+                get iceConnectionState() {
+                  return this.original.iceConnectionState;
+                }
+                get iceGatheringState() {
+                  return this.original.iceGatheringState;
+                }
+                get localDescription() {
+                  return this.original.localDescription;
+                }
+                get peerIdentity() {
+                  return this.original.peerIdentity;
+                }
+                get pendingLocalDescription() {
+                  return this.original.pendingLocalDescription;
+                }
+                get pendingRemoteDescription() {
+                  return this.original.pendingRemoteDescription;
+                }
+                get remoteDescription() {
+                  return this.original.remoteDescription;
+                }
+                get sctp() {
+                  return this.original.sctp;
+                }
+                get signalingState() {
+                  return this.original.signalingState;
+                }
+                set onconnectionstatechange(value) {
+                  console.log('set onconnectionstatechange', value);
+                  this.original.onconnectionstatechange = value;
+                }
+                get onconnectionstatechange() {
+                  return this.original.onconnectionstatechange;
+                }
+                set ondatachannel(value) {
+                  console.log('set ondatachannel', value);
+                  this.original.ondatachannel = value;
+                }
+                get ondatachannel() {
+                  return this.original.ondatachannel;
+                }
+                set onicecandidate(value) {
+                  console.log('set onicecandidate', value);
+                  this.original.onicecandidate = value;
+                }
+                get onicecandidate() {
+                  return this.original.onicecandidate;
+                }
+                set onicecandidateerror(value) {
+                  console.log('set onicecandidateerror', value);
+                  this.original.onicecandidateerror = value;
+                }
+                get onicecandidateerror() {
+                  return this.original.onicecandidateerror;
+                }
+                set oniceconnectionstatechange(value) {
+                  console.log('set oniceconnectionstatechange', value);
+                  this.original.oniceconnectionstatechange = value;
+                }
+                get oniceconnectionstatechange() {
+                  return this.original.oniceconnectionstatechange;
+                }
+                set onicegatheringstatechange(value) {
+                  console.log('set onicegatheringstatechange', value);
+                  this.original.onicegatheringstatechange = value;
+                }
+                get onicegatheringstatechange() {
+                  return this.original.onicegatheringstatechange;
+                }
+                set onnegotiationneeded(value) {
+                  console.log('set onnegotiationneeded', value);
+                  this.original.onnegotiationneeded = value;
+                }
+                get onnegotiationneeded() {
+                  return this.original.onnegotiationneeded;
+                }
+                set onsignalingstatechange(value) {
+                  console.log('set onsignalingstatechange', value);
+                  this.original.onsignalingstatechange = value;
+                }
+                get onsignalingstatechange() {
+                  return this.original.onsignalingstatechange;
+                }
+                set ontrack(value) {
+                  // console.log('set ontrack', value);
+                  this.original.ontrack = value;
+                }
+                get ontrack() {
+                  return this.original.ontrack;
+                }
+                getTransceivers() {
+                  return this.original.getTransceivers();
+                }
+                async setLocalDescription(...args) {
+                  window.handleRTCEvent('setLocalDescription 1', args);
+                  const localDescription = await this.original.setLocalDescription(...args);
+                  window.handleRTCEvent('setLocalDescription 2', { args, localDescription });
+                  return localDescription;
+                }
+                async setRemoteDescription(...args) {
+                  window.handleRTCEvent('setRemoteDescription 1', args);
+                  const remoteDescription = await this.original.setRemoteDescription(...args);
+                  window.handleRTCEvent('setRemoteDescription 2', { args, remoteDescription });
+                  return remoteDescription;
+                }
+                addTrack(...args) {
+                  console.log('addTrack 1', args);
+                  return this.original.addTrack(...args);
+                }
+                async createOffer(...args) {
+                  console.log('createOffer 1', JSON.stringify(args), args.map(a => typeof a), JSON.stringify({
+                    iceConnectionState: this.original.iceConnectionState,
+                    signalingState: this.original.signalingState,
+                  }, null, 2));
+                  try {
+                    const offer = await this.original.createOffer(...args);
+                    window.handleRTCEvent('createOffer 2');
+                    window.handleRTCEvent('createOffer 3', { args, offer });
+                    return offer;
+                  } catch (err) {
+                    console.warn('createOffer error', err);
+                    throw err;
+                  }
+                }
+                async createAnswer(...args) {
+                  window.handleRTCEvent('createAnswer 1', JSON.stringify(args), args.map(a => typeof a));
+                  try {
+                    const answer = await this.original.createAnswer(...args);
+                    window.handleRTCEvent('createAnswer 2');
+                    window.handleRTCEvent('createAnswer 3', { args, answer });
+                    return answer;
+                  } catch (err) {
+                    console.warn('createAnswer error', err);
+                    throw err;
+                  }
+                }
+              }
+              console.log('RTCPeerConnection override 2');
+              // Replace the original RTCPeerConnection with the custom one
+              window.RTCPeerConnection = CustomRTCPeerConnection;
+              console.log('RTCPeerConnection override 3');
 
-            //   if (window.navigator?.mediaDevices) {
-            //     const createFakeAudioStream = () => {
-            //       console.log('createFakeAudioStream');
+              // create the global audio context
+              globalThis.globalAudioContext = new AudioContext();
+              const sampleRate = globalAudioContext.sampleRate;
 
-            //       // Create a fake audio stream
-            //       const fakeAudioContext = new AudioContext();
-            //       const oscillator = fakeAudioContext.createOscillator();
-            //       oscillator.type = 'sine'; // Sine wave
-            //       oscillator.frequency.setValueAtTime(440, fakeAudioContext.currentTime); // 440 Hz (A4)
-            //       const destination = fakeAudioContext.createMediaStreamDestination();
-            //       oscillator.connect(destination);
-            //       oscillator.start();
+              // ensure the worklets are loaded
+              let workletsLoaded = false;
+              const ensureWorkletsLoaded = async (audioContext) => {
+                if (workletsLoaded) {
+                  return;
+                }
 
-            //       return destination.stream;
-            //     };
-            //     navigator.mediaDevices.enumerateDevices = async () => {
-            //       return [
-            //         {
-            //           deviceId: 'default',
-            //           groupId: 'default',
-            //           kind: 'audioinput',
-            //           label: 'Default Audio Device',
-            //         },
-            //       ];
-            //     };
-            //     navigator.mediaDevices.getUserMedia = async (constraints) => {
-            //       console.log('get user media 1', JSON.stringify(constraints, null, 2));
-            //       if (constraints.audio) {
-            //         console.log('get user media 2', constraints);
-            //         return createFakeAudioStream();
-            //       }
-            //       console.log('get user media 3', constraints);
-            //       throw new Error('Only audio streams are supported in this override');
-            //     };
-            //     console.log('RTCPeerConnection override 4');
-            //   }
-            // });
+                const wsInputText = `\
+                  const bufferSize = 4096;
+
+                  class WsInputWorklet extends AudioWorkletProcessor {
+                    constructor (...args) {
+                      super(...args);
+
+                      this.buffer = new Float32Array(bufferSize);
+                      this.bufferIndex = 0;
+                    }
+
+                    process(inputs, outputs, parameters) {
+                      const channels = inputs[0];
+                      const firstChannel = channels[0];
+                      // if (channels.length !== 1) {
+                      //   console.warn('expected 1 channel', channels.length);
+                      // }
+                      if (firstChannel) {
+                        for (let i = 0; i < firstChannel.length; i++) {
+                          this.buffer[this.bufferIndex++] = firstChannel[i];
+                          if (this.bufferIndex >= this.buffer.length) {
+                            this.port.postMessage(this.buffer, [this.buffer.buffer]);
+                            this.buffer = new Float32Array(bufferSize);
+                            this.bufferIndex = 0;
+                          }
+                        }
+                      }
+                      return true;
+                    }
+                  }
+                  registerProcessor('ws-input-worklet', WsInputWorklet);
+                `;
+                const wsInputBlob = new Blob([wsInputText], { type: 'text/javascript' });
+                const wsInputUrl = URL.createObjectURL(wsInputBlob);
+
+                const wsOutputText = `\
+                  // const volumeUpdateRate = 20;
+                  const volumeUpdateRate = Infinity;
+                  const volumeScale = 2;
+                  // const audioBufferLength = 30;
+                  const audioBufferLength = Infinity;
+                  class WsOutputWorklet extends AudioWorkletProcessor {
+                    constructor (...args) {
+                      super(...args);
+                      
+                      this.buffers = [];
+                      this.lastVolumeTime = 0;
+                      this.maxSample = 0;
+                      this.numSamples = 0;
+                      this.flushed = true;
+                      
+                      this.port.onmessage = e => {
+                        this.buffers.push(e.data);
+
+                        this.flushed = false;
+
+                        // if the buffer is too big, delete it
+                        // if (this.buffers.length > audioBufferLength) {
+                        //   this.buffers.splice(0, this.buffers.length - audioBufferLength);
+                        // }
+                      };
+                    }
+
+                    process(inputs, outputs, parameters) {
+                      const output = outputs[0];
+                      // console.log('outputs', outputs.length);
+                      let bufferIndex, frameIndex;
+                      for (const frames of output) {
+                        bufferIndex = 0;
+                        frameIndex = 0;
+
+                        if (bufferIndex < this.buffers.length) {
+                          for (let i = 0; i < frames.length; i++) {
+                            const buffer = this.buffers[bufferIndex];
+                            if (frameIndex < buffer.length) {
+                              // console.log('set frame', frames, buffer);
+                              const v = buffer[frameIndex++];
+                              frames[i] = v;
+                              this.maxSample = Math.max(Math.abs(v), this.maxSample);
+                              this.numSamples++;
+                            } else {
+                              bufferIndex++;
+                              frameIndex = 0;
+                              if (bufferIndex < this.buffers.length) {
+                                i--;
+                                continue;
+                              } else {
+                                break;
+                              }
+                            }
+                          }
+                        }
+                      }
+                      if (bufferIndex > 0) {
+                        // console.log('finished buffer', bufferIndex);
+                        this.buffers.splice(0, bufferIndex);
+                      }
+                      if (frameIndex > 0) {
+                        this.buffers[0] = this.buffers[0].slice(frameIndex);
+                        if (this.buffers[0].length === 0) {
+                          this.buffers.shift();
+                        }
+                      }
+
+                      // update flushed
+                      if (!this.flushed && this.buffers.length === 0) {
+                        this.flushed = true;
+                        this.port.postMessage({
+                          method: 'flush',
+                        });
+                      }
+
+                      // update volume
+                      if (isFinite(volumeUpdateRate)) {
+                        const now = Date.now();
+                        const timeDiff = now - this.lastVolumeTime;
+                        if (timeDiff >= volumeUpdateRate) {
+                          const volume = this.numSamples > 0 ?
+                            Math.min(this.maxSample * volumeScale, 1)
+                          :
+                            0;
+                          this.port.postMessage({
+                            method: 'volume',
+                            args: {
+                              volume,
+                            },
+                          });
+
+                          this.lastVolumeTime = now;
+                          this.maxSample = 0;
+                          this.numSamples = 0;
+                        }
+                      }
+                      
+                      return true;
+                    }
+                  }
+                  registerProcessor('ws-output-worklet', WsOutputWorklet);
+                `;
+                const wsOutputBlob = new Blob([wsOutputText], { type: 'text/javascript' });
+                const wsOutputUrl = URL.createObjectURL(wsOutputBlob);
+
+                await Promise.all([
+                  audioContext.audioWorklet.addModule(wsInputUrl),
+                  audioContext.audioWorklet.addModule(wsOutputUrl),
+                ]);
+                // await Promise.all([
+                //   audioContext.audioWorklet.addModule(`/ws-input-worklet.js`),
+                //   audioContext.audioWorklet.addModule(`/ws-output-worklet.js`),
+                // ]);
+                workletsLoaded = true;
+              };
+
+              // intercept the navigator.mediaDevices methods
+              if (window.navigator?.mediaDevices) {
+                const createInputAudioStream = async () => {
+                  try {
+                    console.log('createFakeAudioStream 1');
+
+                    await ensureWorkletsLoaded(globalAudioContext);
+
+                    console.log('createFakeAudioStream 2', globalAudioContext.state);
+
+                    // Resume the audio context if it's suspended
+                    if (globalAudioContext.state === 'suspended') {
+                      await globalAudioContext.resume();
+                    }
+
+                    console.log('createFakeAudioStream 3', globalAudioContext.state);
+
+                    const destination = globalAudioContext.createMediaStreamDestination();
+
+                    // create ws output worklet node
+                    const wsOutputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-output-worklet');
+                    // connect the worklet node to the destination
+                    wsOutputProcessor.connect(destination);
+
+                    // create a fake audio stream
+                    const intervalMs = 1000;
+                    const interval = setInterval(() => {
+                      _processAudio();
+                    }, intervalMs);
+                    const startTimestamp = Date.now();
+                    let lastTimestamp = startTimestamp;
+                    const frequency = 440; // Hz
+                    const _processAudio = () => {
+                      const currentTimestamp = Date.now();
+                      const numSamplesOld = Math.floor((lastTimestamp - startTimestamp) / 1000 * sampleRate);
+                      const numSamplesNew = Math.floor((currentTimestamp - startTimestamp) / 1000 * sampleRate);
+                      const numSamples = numSamplesNew - numSamplesOld;
+
+                      // create the audio buffer with the exact number of samples needed
+                      const f32 = new Float32Array(numSamples);
+
+                      // sine wave continuing from last timestamp
+                      const period = sampleRate / frequency;
+                      for (let i = 0; i < numSamples; i++) {
+                        const sampleIndex = numSamplesOld + i;
+                        f32[i] = Math.sin(2 * Math.PI * (sampleIndex / period));
+                      }
+
+                      console.log('post message', f32);
+                      wsOutputProcessor.port.postMessage(f32, [f32.buffer]);
+                      lastTimestamp = currentTimestamp;
+                    };
+
+                    // return the destination stream
+                    console.log('returning destination stream', destination.stream);
+                    return destination.stream;
+                  } catch (err) {
+                    console.warn('createFakeAudioStream error', err);
+                    throw err;
+                  }
+                };
+                navigator.mediaDevices.enumerateDevices = async () => {
+                  return [
+                    {
+                      deviceId: 'default',
+                      groupId: 'default',
+                      kind: 'audioinput',
+                      label: 'Default Audio Device',
+                    },
+                  ];
+                };
+                navigator.mediaDevices.getUserMedia = async (constraints) => {
+                  console.log('get user media 1', JSON.stringify(constraints, null, 2));
+                  if (constraints.audio) {
+                    console.log('get user media 2', constraints);
+                    return await createInputAudioStream();
+                  }
+                  console.log('get user media 3', constraints);
+                  throw new Error('Only audio streams are supported in this override');
+                };
+                console.log('RTCPeerConnection override 4');
+              }
+            });
             console.log('intercept 3');
 
             return {
@@ -1904,19 +2196,30 @@ export const main = async () => {
             await parentButton.click();
             console.log('button click 2');
 
-            console.log('waiting...');
-            await new Promise((accept, reject) => {
-              setTimeout(accept, 2000);
-            });
+            const unmuteButton = page.locator('button[aria-label="Unmute"]');
+            console.log('got unmute button html 1', await unmuteButton.innerHTML({
+              timeout: 60000,
+            }));
+            await unmuteButton.click();
+            console.log('got unmute button 2');
 
-            console.log('destroy session 1');
-            await destroySession();
-            console.log('destroy session 2');
+            // console.log('waiting...');
+            // await new Promise((accept, reject) => {
+            //   setTimeout(accept, 30000);
+            // });
+
+            // console.log('destroy session 1');
+            // await destroySession();
+            // console.log('destroy session 2');
           };
           const _connectTs = async () => {
+            if (!url) {
+              throw new Error('url argument is required');
+            }
+
             const {
               // browser,
-              context,
+              // context,
               page,
               destroySession,
             } = await _makeBrowser();
@@ -1934,6 +2237,18 @@ export const main = async () => {
             console.log('got start listening button html 1', await startListeningButton.innerHTML());
             await startListeningButton.click();
             console.log('got start listening button 2');
+
+            const requestToSpeakButton = page.locator('button[aria-label="Request to speak"]');
+            console.log('got request to speak button html 1', await requestToSpeakButton.innerHTML());
+            await requestToSpeakButton.click();
+            console.log('got request to speak button 2');
+
+            const unmuteButton = page.locator('button[aria-label="Unmute"]');
+            console.log('got unmute button html 1', await unmuteButton.innerHTML({
+              timeout: 60000,
+            }));
+            await unmuteButton.click();
+            console.log('got unmute button 2');
           };
 
           switch (subcommand) {
