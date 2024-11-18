@@ -2225,13 +2225,14 @@ export const main = async () => {
             } = await _makeBrowser();
 
             console.log('got browser');
-
             await page.goto(url);
 
-            const listenButton = page.locator('a[href^="/i/spaces/"][href$="/peek"]');
-            console.log('got button html 1', await listenButton.innerHTML());
-            await listenButton.click();
-            console.log('got button 2');
+            if (/status/.test(url)) {
+              const listenButton = page.locator('a[href^="/i/spaces/"][href$="/peek"]');
+              console.log('got button html 1', await listenButton.innerHTML());
+              await listenButton.click();
+              console.log('got button 2');
+            }
 
             const startListeningButton = page.locator('button[aria-label="Start listening"]');
             console.log('got start listening button html 1', await startListeningButton.innerHTML());
