@@ -172,17 +172,12 @@ export class ChatsManager {
       multiplayerConnection.addEventListener('connect', onConnect);
 
       multiplayerConnection.addEventListener('join', (e: any) => {
-        const { player, playerId } = e.data;
-        // console.log('chats specification: remote player joined:', playerId);h
-
-        const remotePlayer = new Player(playerId, {});
-        conversation.addAgent(playerId, remotePlayer);
+        const { remotePlayer } = e.data;
+        conversation.addAgent(remotePlayer.playerId, remotePlayer);
       });
       multiplayerConnection.addEventListener('leave', async (e: any) => {
-        const { player } = e.data;
-        const { playerId } = player;
-        // console.log('chats specification: remote player left:', playerId);
-        conversation.removeAgent(playerId);
+        const { remotePlayer } = e.data;
+        conversation.removeAgent(remotePlayer.playerId);
       });
 
       multiplayerConnection.addEventListener('chat', async (e) => {
