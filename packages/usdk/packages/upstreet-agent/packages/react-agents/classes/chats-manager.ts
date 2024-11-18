@@ -171,6 +171,12 @@ export class ChatsManager {
       };
       multiplayerConnection.addEventListener('connect', onConnect);
 
+      multiplayerConnection.addEventListener('playerSpecUpdate', (e: any) => {
+        const { player } = e.data;
+        if (player && player.playerId && !conversation.agentsMap.has(player.playerId)) {
+          conversation.addAgent(player.playerId, player);
+        }
+      });
       multiplayerConnection.addEventListener('join', (e: any) => {
         const { remotePlayer } = e.data;
         conversation.addAgent(remotePlayer.playerId, remotePlayer);
