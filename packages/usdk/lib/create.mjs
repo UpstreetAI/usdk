@@ -541,12 +541,6 @@ export const create = async (args, opts) => {
   console.log(pc.green(`Happy building!`));
 
   return agentJson;
-  // // return the parsed dstWranglerToml
-  // {
-  //   const dstWranglerTomlString = await fs.promises.readFile(path.join(dstDir, 'wrangler.toml'), 'utf8');
-  //   const dstWranglerToml = toml.parse(dstWranglerTomlString);
-  //   return dstWranglerToml;
-  // }
 };
 
 const updateFeatures = (agentJson, {
