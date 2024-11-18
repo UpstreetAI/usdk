@@ -182,23 +182,14 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             if (!playersMap.has(playerId)) {
               playersMap.add(playerId, remotePlayer);
             }
-            // Dispatch join event when playerSpec is updated
-            this.dispatchEvent(new MessageEvent('join', {
-              data: {
-                remotePlayer,
-              },
-            }));
           }
         });
 
-        // Dispatch join event initially if playerSpec is already set
-        if (remotePlayer.getPlayerSpec()) {
-          this.dispatchEvent(new MessageEvent('join', {
-            data: {
-              player: remotePlayer,
-            },
-          }));
-        }
+        this.dispatchEvent(new MessageEvent('join', {
+          data: {
+            player: remotePlayer,
+          },
+        }));
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
