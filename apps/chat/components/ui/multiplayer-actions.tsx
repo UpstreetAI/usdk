@@ -342,8 +342,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
             // join + leave messages
             multiplayerConnection.addEventListener('join', (e: any) => {
-              const { remotePlayer } = e.data;
-              const profile = remotePlayer.getPlayerSpec();
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
               const joinMessage = {
                 method: 'join',
@@ -357,8 +357,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               refresh();
             });
             multiplayerConnection.addEventListener('leave', (e: any) => {
-              const { remotePlayer } = e.data;
-              const profile = remotePlayer.getPlayerSpec();
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
               const leaveMessage = {
                 method: 'leave',

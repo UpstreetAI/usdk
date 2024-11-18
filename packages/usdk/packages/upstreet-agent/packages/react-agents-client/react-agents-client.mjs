@@ -195,7 +195,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         if (remotePlayer.getPlayerSpec()) {
           this.dispatchEvent(new MessageEvent('join', {
             data: {
-              remotePlayer
+              player: remotePlayer,
             },
           }));
         }
@@ -220,7 +220,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
         this.dispatchEvent(new MessageEvent('leave', {
           data: {
-            remotePlayer,
+            player: remotePlayer,
           },
         }));
       });
