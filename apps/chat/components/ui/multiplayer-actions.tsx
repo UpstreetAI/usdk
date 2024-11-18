@@ -340,6 +340,26 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             playersMap = multiplayerConnection.playersMap;
             typingMap = multiplayerConnection.typingMap;
 
+
+            // join event when the playerSpec is updated and the player is not already in the playersMap
+            // this is to be listened to for the case where the playerSpec is set after the player is connected
+            multiplayerConnection.addEventListener('playerSpecUpdate', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+
+              if (!playersMap.has(userId)) {
+                const joinMessage = {
+                  method: 'join',
+                  userId,
+                  name,
+                  args: {},
+                  timestamp: Date.now(),
+                };
+                messages = [...messages, joinMessage];
+              }
+              refresh();
+            });
             // join + leave messages
             multiplayerConnection.addEventListener('join', (e: any) => {
               const { player } = e.data;
