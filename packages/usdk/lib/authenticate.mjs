@@ -3,6 +3,7 @@ import fs from 'fs';
 import readline from 'readline';
 
 import { mkdirp } from 'mkdirp';
+import toml from '@iarna/toml';
 import pc from 'picocolors';
 import {
   parseAgentSpecs,
@@ -39,11 +40,12 @@ export const authenticate = async (args, opts) => {
 
   // update the agents
   for (const agentSpec of agentSpecs) {
-    const { directory: dstDir } = agentSpec;
+    const { directory } = agentSpec;
 
     // auth
     const agentAuthSpec = await getAgentAuthSpec(jwt);
     const {
+      guid,
       agentToken,
       mnemonic,
     } = agentAuthSpec;
@@ -51,7 +53,14 @@ export const authenticate = async (args, opts) => {
       throw new Error('Authorization error. Please try logging in again.')
     }
 
-    const dstEnvTxt = path.join(dstDir, '.env.txt');
+    const wranglerTomlPath = path.join(directory, 'wrangler.toml');
+    const dstEnvTxt = path.join(directory, '.env.txt');
+
+    // read the agent json
+    const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+    const wranglerToml = toml.parse(wranglerTomlString);
+    const agentJsonString = wranglerToml.vars.AGENT_JSON;
+    let agentJson = JSON.parse(agentJsonString);
 
     // check if dstEnvTxt exists
     const exists = fs.existsSync(dstEnvTxt);
@@ -70,10 +79,24 @@ export const authenticate = async (args, opts) => {
       }
     }
 
-    await writeFile(dstEnvTxt, dotenvFormat({
-      AGENT_TOKEN: agentToken,
-      WALLET_MNEMONIC: mnemonic,
-    }));
+    await Promise.all([
+      (async () => {
+        await writeFile(dstEnvTxt, dotenvFormat({
+          AGENT_TOKEN: agentToken,
+          WALLET_MNEMONIC: mnemonic,
+        }));
+      })(),
+      (async () => {
+        // update the guid
+        agentJson = {
+          ...agentJson,
+          id: guid,
+        };
+        // write the agent json
+        wranglerToml.vars.AGENT_JSON = JSON.stringify(agentJson);
+        await fs.promises.writeFile(wranglerTomlPath, toml.stringify(wranglerToml));
+      })(),
+    ]);
 
     console.log(pc.green(`Authentication token written to "${dstEnvTxt}".`));
   }
