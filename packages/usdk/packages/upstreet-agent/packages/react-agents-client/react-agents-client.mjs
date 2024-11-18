@@ -184,7 +184,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
               // dispatch join event when the playerSpec is updated and the player is not already in the playersMap
               this.dispatchEvent(new MessageEvent('playerSpecUpdate', {
-                data: e.data,
+                player: remotePlayer,
               }));
             }
           }
