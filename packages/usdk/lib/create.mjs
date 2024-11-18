@@ -6,13 +6,6 @@ import pc from 'picocolors';
 import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
-import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import {
-  getAgentToken,
-} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
-import {
-  generateMnemonic,
-} from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
@@ -28,17 +21,21 @@ import {
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
   getUserIdForJwt,
-  getUserForJwt,
 } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
+  getAgentAuthSpec,
+} from '../util/agent-auth-util.mjs';
+import {
+  dotenvFormat,
+} from '../util/dotenv-util.mjs';
+import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
-// import { getDirectoryHash } from '../util/hash-util.mjs';
 import {
   aiProxyHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
@@ -97,36 +94,6 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await fs.promises.writeFile(dst, s);
 };
 
-const getAgentAuthSpec = async (jwt) => {
-  const [
-    {
-      guid,
-      agentToken,
-    },
-    userPrivate,
-  ] = await Promise.all([
-    (async () => {
-      const guid = await createAgentGuid({
-        jwt,
-      });
-      const agentToken = await getAgentToken(jwt, guid);
-      return {
-        guid,
-        agentToken,
-      };
-    })(),
-    getUserForJwt(jwt, {
-      private: true,
-    }),
-  ]);
-  const mnemonic = generateMnemonic();
-  return {
-    guid,
-    agentToken,
-    userPrivate,
-    mnemonic,
-  };
-};
 const buildWranglerToml = (
   t,
   { name, agentJson, /* mnemonic, agentToken */ } = {},
@@ -303,9 +270,6 @@ const loadAgentJson = (dstDir) => {
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
 };
-const dotenvFormat = (o) => Object.entries(o ?? {})
-  .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-  .join('\n');
 
 //
 
