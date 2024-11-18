@@ -157,6 +157,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     const _trackRemotePlayers = () => {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
+
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
           // this.log('react agents client: remote player joined:', playerId);
@@ -184,8 +185,13 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           }
         });
 
+        const joinMessage = {
+          ...e.data,
+          remotePlayer,
+        };
+        
         this.dispatchEvent(new MessageEvent('join', {
-          data: e.data,
+          data: joinMessage,
         }));
       });
       virtualPlayers.addEventListener('leave', e => {
