@@ -38,9 +38,9 @@ export async function warnIfAgentsUseNewerSDKVersion(agentSpecs, opts) {
   for (const {guid, version} of agentVersionResults) {
     if (version && version > ver) {
       console.warn(pc.yellow(
-        `Warning: Agent ${guid} was created using SDK version ${version}, but you are using SDK version ${ver}. ` +
-        `Agent behavior may differ due to version mismatch. Please update your USDK version using 'npm install -g @upstreet/usdk@latest'`
-      ));
+        `Warning: Agent ${guid} was created with SDK version ${version}, but you're currently using SDK version ${ver}. ` +
+        `This version mismatch may cause unexpected behavior. Please update your USDK to the latest version using 'npm install usdk -g'.`
+      ));      
     }
   }
 }
