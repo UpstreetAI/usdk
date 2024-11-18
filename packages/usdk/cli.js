@@ -1816,20 +1816,20 @@ export const main = async () => {
                   break;
                 }
                 case 'audioStart': {
-                  console.log('audioStart', args);
+                  console.log('postUp got audioStart', typeof args, args.length);
                   break;
                 }
                 case 'audio': {
-                  console.log('audio', args);
+                  console.log('postUp got audio', typeof args, args.length);
                   break;
                 }
                 case 'audioEnd': {
-                  console.log('audioEnd', args);
+                  console.log('postUp got audioEnd', typeof args, args.length);
                   break;
                 }
                 default: {
                   // console.log('unknown event', eventType, args);
-                  console.log(`Intercepted ${eventType}:`, JSON.stringify(args, null, 2));
+                  console.log(`postUp unhandled ${eventType}:`, JSON.stringify(args, null, 2));
                   break;
                 }
               }
@@ -1898,7 +1898,7 @@ export const main = async () => {
                         wsInputProcessor.connect(destination);
                         // listen for messages
                         wsInputProcessor.port.onmessage = e => {
-                          console.log('wsInputProcessor data', e.data);
+                          // console.log('wsInputProcessor data', e.data);
                           // post the message up
                           const f32 = e.data; // Float32Array
                           // convert to base64
