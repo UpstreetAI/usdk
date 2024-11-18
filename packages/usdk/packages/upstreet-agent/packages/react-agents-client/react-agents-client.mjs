@@ -21,23 +21,33 @@ export class ReactAgentsClient {
     only = false,
   } = {}) {
     const u = `${this.url}/join`;
-    const joinReq = await fetch(u, {
-      method: 'POST',
-      body: JSON.stringify({
+    try {
+      const opts = {
         room,
         only,
-      }),
-    });
-    if (joinReq.ok) {
-      const joinJson = await joinReq.json();
-      // console.log('join json', joinJson);
-    } else if (joinReq.status === 404) {
-      throw new Error('agent not found');
-    } else {
-      const text = await joinReq.text();
-      throw new Error(
-        'failed to join, status code: ' + joinReq.status + ': ' + text,
-      );
+      };
+      // console.log('join opts', opts);
+      const joinReq = await fetch(u, {
+        method: 'POST',
+        body: JSON.stringify(opts),
+      });
+      if (joinReq.ok) {
+        const joinJson = await joinReq.json();
+        // console.log('join json', joinJson);
+      } else if (joinReq.status === 404) {
+        throw new Error('agent not found');
+      } else {
+        const text = await joinReq.text();
+        throw new Error(
+          'failed to join, status code: ' + joinReq.status + ': ' + text,
+        );
+      }
+    } catch (err) {
+      console.warn('join fetch failed', err);
+      await new Promise((accept, reject) => {
+        setTimeout(accept, 10000000);
+      });
+      throw err;
     }
   }
 }
@@ -149,7 +159,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         const { playerId, player } = e.data;
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
-          this.log('react agents client: remote player joined:', playerId);
+          // this.log('react agents client: remote player joined:', playerId);
         // } else {
         //   this.log('remote player joined before connection', playerId);
         //   throw new Error('remote player joined before connection: ' + playerId);
@@ -173,11 +183,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             }
           }
         });
+
+        this.dispatchEvent(new MessageEvent('join', {
+          data: e.data,
+        }));
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
         if (connected) {
-          this.log('react agents client: remote player left:', playerId);
+          // this.log('react agents client: remote player left:', playerId);
         // } else {
         //   this.log('remote player left before connection', playerId);
         //   throw new Error('remote player left before connection: ' + playerId);
@@ -191,6 +205,10 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           this.log('remote player not found', playerId);
           throw new Error('remote player not found');
         }
+
+        this.dispatchEvent(new MessageEvent('leave', {
+          data: e.data,
+        }));
       });
       // map multimedia events virtualPlayers -> playersMap
       [
@@ -203,6 +221,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       ].forEach(eventName => {
         virtualPlayers.addEventListener(eventName, e => {
           playersMap.dispatchEvent(new MessageEvent(eventName, {
+            data: e.data,
+          }));
+          this.dispatchEvent(new MessageEvent(eventName, {
             data: e.data,
           }));
         });
@@ -263,3 +284,14 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     return this.realms.removeVideoSource(videoSource);
   }
 }
+export const connect = async ({
+  room,
+  profile,
+}) => {
+  const connection = new ReactAgentsMultiplayerConnection({
+    room,
+    profile,
+  });
+  await connection.waitForConnect();
+  return connection;
+};

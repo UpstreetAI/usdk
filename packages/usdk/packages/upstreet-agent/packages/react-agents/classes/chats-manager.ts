@@ -171,19 +171,17 @@ export class ChatsManager {
       };
       multiplayerConnection.addEventListener('connect', onConnect);
 
-      const { playersMap } = multiplayerConnection;
-      playersMap.addEventListener('join', (e: any) => {
-        const { player } = e.data;
-        const { playerId } = player;
-        console.log('chats specification: remote player joined:', playerId);
+      multiplayerConnection.addEventListener('join', (e: any) => {
+        const { player, playerId } = e.data;
+        // console.log('chats specification: remote player joined:', playerId);h
 
         const remotePlayer = new Player(playerId, {});
         conversation.addAgent(playerId, remotePlayer);
       });
-      playersMap.addEventListener('leave', async (e: any) => {
+      multiplayerConnection.addEventListener('leave', async (e: any) => {
         const { player } = e.data;
         const { playerId } = player;
-        console.log('chats specification: remote player left:', playerId);
+        // console.log('chats specification: remote player left:', playerId);
         conversation.removeAgent(playerId);
       });
 
@@ -199,7 +197,7 @@ export class ChatsManager {
 
       const _trackAudio = () => {
         const transcriptionStreams = new Map<string, TranscriptionStream>();
-        playersMap.addEventListener('audiostart', async (e: any) => {
+        multiplayerConnection.addEventListener('audiostart', async (e: any) => {
           // console.log('got audio start', e.data);
           const { playerId, streamId, type, disposition } = e.data;
           if (disposition === 'text') {
@@ -250,7 +248,7 @@ export class ChatsManager {
           //   // nothing
           }
         });
-        playersMap.addEventListener('audio', async (e: any) => {
+        multiplayerConnection.addEventListener('audio', async (e: any) => {
           const { playerId, streamId, data } = e.data;
           // console.log('got audio data', playerId, streamId);
           const transcriptionStream = transcriptionStreams.get(streamId);
@@ -260,7 +258,7 @@ export class ChatsManager {
             // console.warn('audio data: no transcription stream', e.data);
           }
         });
-        playersMap.addEventListener('audioend', async (e: any) => {
+        multiplayerConnection.addEventListener('audioend', async (e: any) => {
           // console.log('got audio end', e.data);
           const { playerId, streamId } = e.data;
           const transcriptionStream = transcriptionStreams.get(streamId);
@@ -273,19 +271,19 @@ export class ChatsManager {
         });
       };
       const _trackVideo = () => {
-        playersMap.addEventListener('videostart', async (e: any) => {
+        multiplayerConnection.addEventListener('videostart', async (e: any) => {
           // console.log('got video start', e.data);
           conversation.dispatchEvent(new MessageEvent('videostart', {
             data: e.data,
           }));
         });
-        playersMap.addEventListener('video', async (e: any) => {
+        multiplayerConnection.addEventListener('video', async (e: any) => {
           // console.log('got video data', e.data);
           conversation.dispatchEvent(new MessageEvent('video', {
             data: e.data,
           }));
         });
-        playersMap.addEventListener('videoend', async (e: any) => {
+        multiplayerConnection.addEventListener('videoend', async (e: any) => {
           // console.log('got video end', e.data);
           conversation.dispatchEvent(new MessageEvent('videoend', {
             data: e.data,
@@ -357,16 +355,16 @@ export class ChatsManager {
       };
       const _bindDisconnect = () => {
         multiplayerConnection.addEventListener('disconnect', async (e: any) => {
-          console.log('realms emitted disconnect');
+          // console.log('realms emitted disconnect');
 
           // clean up the old connection
           cleanup();
 
           // try to reconnect, if applicable
           if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
-            console.log('rejoining room', roomSpecification);
+            // console.log('rejoining room', roomSpecification);
             await this.#join(roomSpecification);
-            console.log('rejoined room', roomSpecification);
+            // console.log('rejoined room', roomSpecification);
           }
         });
       };

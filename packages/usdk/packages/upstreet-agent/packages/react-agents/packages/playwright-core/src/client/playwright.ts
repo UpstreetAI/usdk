@@ -19,7 +19,7 @@ import { TimeoutError } from './errors';
 // import { Android } from './android';
 import { BrowserType } from './browserType';
 import { ChannelOwner } from './channelOwner';
-import { Electron } from './electron';
+// import { Electron } from './electron';
 import { APIRequest } from './fetch';
 import { Selectors, SelectorsOwner } from './selectors';
 
@@ -60,7 +60,7 @@ export class Playwright extends ChannelOwner<channels.PlaywrightChannel> {
     this._connection.on('close', () => {
       this.selectors._removeChannel(selectorsOwner);
     });
-    (global as any)._playwrightInstance = this;
+    (globalThis as any)._playwrightInstance = this;
   }
 
   _setSelectors(selectors: Selectors) {

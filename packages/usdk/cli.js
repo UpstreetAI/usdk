@@ -9,6 +9,7 @@ import EventSource from 'eventsource';
 import open from 'open';
 import pc from 'picocolors';
 import { mkdirp } from 'mkdirp';
+import { rimraf } from 'rimraf';
 
 import Table from 'cli-table3';
 // import * as ethers from 'ethers';
@@ -37,6 +38,7 @@ import {
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
 import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+import { ReactAgentsNodeRuntime } from './packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -79,14 +81,15 @@ import {
   edit,
   pull,
   deploy,
+  update,
   chat,
 } from './lib/commands.mjs';
 import {
   makeRoomName,
 } from './util/connect-utils.mjs';
-import {
-  env,
-} from './lib/env.mjs';
+// import {
+//   env,
+// } from './lib/env.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
 import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
@@ -95,7 +98,14 @@ import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runt
 import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
+// import {
+//   generateMnemonic,
+// } from './util/ethereum-utils.mjs';
 import LoggerFactory from './util/logger/logger-factory.mjs';
+import { getLatestVersion } from './lib/version.mjs';
+import {
+  getDirectoryHash,
+} from './util/hash-util.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -118,7 +128,7 @@ const logger = LoggerFactory.getLogger();
 
 //
 
-const makeSupabase = (jwt) => makeAnonymousClient(env, jwt);
+const makeSupabase = (jwt) => makeAnonymousClient(jwt);
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);
@@ -542,169 +552,6 @@ const withdraw = async (args) => {
     process.exit(1);
   }
 };
-/* const generateAgentJsonFromPrompt = async (prompt, style = 'Simple 2d anime style with strong lines and bold colors.') => {
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    const numRetries = 5;
-    for (let i = 0; i < numRetries; i++) {
-      const messages = [
-        {
-          role: 'system',
-          content: dedent`
-            You are an AI agent profile generator. The user will specify a prompt, and you will generate an agent profile based on it.
-            Agents are not chatbots, apps, or assistants. They are simulated characters with unique personalities, backgrounds, and abilities.
-            Respond in proper JSON! You must escape newlines (i.e. \n)!
-            The format is:
-            \`\`\`
-            {
-              "name": "A name for the agent",
-              "description": "A short description of the agent. This will be used in search results, meta tags, and profile pages. It can be a few sentences long.",
-              "bio": "A more in-depth simulated biography for the agent. It can be up to a few paragraphs long.",
-              "visualDescription": "A visual description of what the agent looks like, as a short image prompt.",
-            }
-            \`\`\`
-          `,
-        },
-        {
-          role: 'user',
-          content: `Generate an agent for the following prompt:\n${prompt}`,
-        },
-      ];
-      try {
-        const content = await fetchChatCompletion({
-          model: defaultModels[0],
-          messages,
-        }, {
-          jwt,
-        });
-        const codeBlock = parseCodeBlock(content);
-        const j = JSON.parse(codeBlock);
-        j.visualDescription = `${style} ${prompt}`;
-        return j;
-      } catch (err) {
-        console.warn('chat completion error', err);
-        continue;
-      }
-    }
-  } else {
-    throw new Error('not logged in');
-  }
-};
-const generateImage = async (prompt) => {
-  const jwt = await getLoginJwt();
-  if (jwt) {
-    const blob = await fetchImageGeneration(prompt);
-    return blob;
-  } else {
-    throw new Error('not logged in');
-  }
-};
-const getCodeGenContext = async () => {
-  // load the component jsdoc nodes
-  const nodes = await (async () => {
-    // generate new components based on the actions the agent should be allowed to take
-    const defaultComponentsPath = path.join(
-      BASE_DIRNAME,
-      'sdk',
-      'src',
-      'default-components.tsx',
-    );
-    const componentsPath = path.join(
-      BASE_DIRNAME,
-      'sdk',
-      'src',
-      'components.tsx',
-    );
-    const paths = [
-      defaultComponentsPath,
-      componentsPath,
-    ];
-    
-    const nodes = [];
-    for (const p of paths) {
-      // read the file
-      let s = await fs.promises.readFile(p, 'utf8');
-      // remove everything up to and including the line "// END IMPORTS", including newlines
-      s = s.replace(/[\s\S]*?\/\/ END IMPORTS\n/, '');
-      // write the file to tmp dir
-      const tmpDir = await makeTempDir();
-      const p2 = path.join(tmpDir, path.basename(p));
-      await fs.promises.writeFile(p2, s);
-      // convert to data url
-      // console.log('got doc nodes 1', { p2 });
-      let ns = await doc(`file://${p2}`);
-      // console.log('got doc nodes 2', nodes);
-      // filter to only documented nodes
-      ns = ns.filter((node) => !!node.jsDoc);
-      ns.splice(
-        ns.findIndex(node => node.name === 'DefaultAgentComponents'),
-        1,
-      );
-      ns = ns.map((node) => ({
-        ...node.jsDoc,
-        name: node.name,
-      }));
-      // add to the nodes
-      nodes.push(...ns);
-      await rimraf(tmpDir);
-    }
-    // console.log('got doc nodes 3', JSON.stringify(nodes, null, 2));
-
-    return nodes;
-  })();
-  // console.log('got nodes', JSON.stringify(nodes, null, 2));
-
-  return {
-    nodes,
-  };
-}; */
-/* const generateTemplateFromPrompt = async (prompt) => {
-  // create a temporary directory
-  const templateDirectory = await makeTempDir();
-
-  // copy over the basic template
-  const basicTemplateDirectory = path.join(templatesDirectory, 'empty');
-  await recursiveCopy(basicTemplateDirectory, templateDirectory);
-
-  // generate the agent json
-  const agentJson = await generateAgentJsonFromPrompt(prompt);
-
-  console.log(pc.italic('Generating code...'));
-  const agentJSXPath = path.join( templateDirectory, 'agent.tsx' );
-  const codeGenContext = await getCodeGenContext();
-  const { imports } = await modifyAgentJSXWithGeneratedCode({
-    agentJSXPath,
-    prompt,
-    codeGenContext,
-  });
-  console.log('\nUsing components:');
-  console.log(
-    imports
-      .map(x => '- ' + pc.cyan(x))
-      .join('\n')
-      .trim() + '\n'
-  );
-
-  console.log(pc.italic('Generating avatar...'));
-  // generate the agent preview_url
-  const blob = await generateImage(agentJson.visualDescription);
-  // upload to r2
-  const imageGuid = crypto.randomUUID();
-  const previewUrl = await putFile(`previews/${imageGuid}.png`, blob);
-  // set the agentJson preview url
-  agentJson.previewUrl = previewUrl;
-
-  // write back the generated the agent json
-  await fs.promises.writeFile(
-    path.join(templateDirectory, agentJsonSrcFilename),
-    JSON.stringify(agentJson, null, 2),
-  );
-
-  return {
-    templateDirectory,
-    agentJson,
-  };
-}; */
 /* const search = async (args) => {
   const prompt = args._[0] ?? '';
 
@@ -1378,6 +1225,19 @@ const handleError = async (fn) => {
 };
 export const main = async () => {
   try {
+
+    const ver = version();
+    const latestVersion = getLatestVersion();
+
+    const isLatestVersion = latestVersion === ver;
+
+    if (!isLatestVersion) {
+      console.log(pc.yellow(`Notice: You are currently using version ${ver}, a newer version (${latestVersion}) is available.`));
+      console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.`));
+    }
+
+    program.version(ver);
+
     let commandExecuted = false;
     program
       .name('usdk')
@@ -1387,9 +1247,6 @@ export const main = async () => {
           process.exit(0);
         }
       });
-
-    const ver = version();
-    program.version(ver);
 
     // misc
     program
@@ -1668,6 +1525,10 @@ export const main = async () => {
           });
         });
       });
+    const runtimes = [
+      'node',
+      'wrangler',
+    ];
     program
       .command('chat')
       // .alias('c')
@@ -1675,6 +1536,7 @@ export const main = async () => {
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
+      .option(`-run, --runtime <room>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .option(`-g, --debug`, `Enable debug logging`)
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {
@@ -1789,18 +1651,6 @@ export const main = async () => {
     program
       .command('agents')
       .description('List the currently deployed agents')
-      // .option(
-      //   `-n, --network <networkId>`,
-      //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
-      // )
-      // .option(
-      //   `-l, --local`,
-      //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
-      // )
-      // .option(
-      //   `-d, --dev`,
-      //   `List local development agents instead of account agents (requires running cli dev server)`,
-      // )
       .action(async (opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
@@ -1831,6 +1681,26 @@ export const main = async () => {
           const jwt = await getLoginJwt();
 
           await unpublish(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('update')
+      .description('Update an agent to the latest sdk version')
+      .argument(`[directories...]`, `Path to the agents to update`)
+      .option(`-f, --force`, `Force the update even if there are conflicts`)
+      .action(async (directories = '', opts) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await update(args, {
             jwt,
           });
         });
@@ -1908,34 +1778,33 @@ export const main = async () => {
           await disable(args);
         });
       }); */
-      const voiceSubCommands = [
-        {
-          name: 'ls',
-          description: 'Lists all available voices for the current user.',
-          usage: 'usdk voice ls'
-        },
-        {
-          name: 'get',
-          description: 'Retrieves details about a specific voice.',
-          usage: 'usdk voice get <voice_name>'
-        },
-        {
-          name: 'play',
-          description: 'Plays the given text using the specified voice.',
-          usage: 'usdk voice play <voice_name> <text>'
-        },
-        {
-          name: 'add',
-          description: 'Adds new audio files to create or update a voice.',
-          usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
-        },
-        {
-          name: 'remove',
-          description: 'Removes a voice from the user\'s account.',
-          usage: 'usdk voice remove <voice_id>'
-        }
-      ];
-
+    const voiceSubCommands = [
+      {
+        name: 'ls',
+        description: 'Lists all available voices for the current user.',
+        usage: 'usdk voice ls'
+      },
+      {
+        name: 'get',
+        description: 'Retrieves details about a specific voice.',
+        usage: 'usdk voice get <voice_name>'
+      },
+      {
+        name: 'play',
+        description: 'Plays the given text using the specified voice.',
+        usage: 'usdk voice play <voice_name> <text>'
+      },
+      {
+        name: 'add',
+        description: 'Adds new audio files to create or update a voice.',
+        usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
+      },
+      {
+        name: 'remove',
+        description: 'Removes a voice from the user\'s account.',
+        usage: 'usdk voice remove <voice_id>'
+      }
+    ];
     // program
     //   .command('voice')
     //   .description(
@@ -2050,6 +1919,7 @@ export const main = async () => {
           };
           await deposit(args);
         });
+
       });*/
     /*program
       .command('withdraw')

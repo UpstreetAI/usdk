@@ -30,11 +30,15 @@ This command launches an interactive chat session (REPL-like) with your Agent, w
 
 To exit the chat, type `.exit` in the chat and press the Enter key. Or, you can use the shortcut <kbd>CTRL</kbd> + <kbd>C</kbd> twice.
 
-<Callout> Agent inferences do not run locally and may consume Upstreet credits during testing. </Callout>
+<Callout> AI inferences **do not** run locally and may consume Upstreet credits during testing. </Callout>
 
 <Wrapper>
   <Image src="/images/general/usdk-dev-chat.png" width={740} height={300} className='rounded-md'/>
 </Wrapper>
+
+### Hot reloading
+
+**Hot reloading** is supported by default, so while [customizing your Agent](/customize-your-agent), your Agent will immediately update in the chat once you save your code.
 
 ## Testing Tips
 - **Specific Task Testing:** Prompt your Agent to carry out the exact tasks or interactions you want to verify.

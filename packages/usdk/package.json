@@ -1,8 +1,20 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.87",
-  "author": "Upstreet",
+  "version": "0.0.92",
+  "homepage": "https://upstreet.ai/",
+  "author": "Upstreet <hello@upstreet.ai> (https://github.com/UpstreetAI)",
+  "contributors": [
+    "Avaer Kazmer <avaer@upstreet.ai> (https://github.com/avaer)",
+    "Hayk Mavisakalyan <hayk@upstreet.ai> (https://github.com/mavisakalyan)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/UpstreetAI/monorepo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/UpstreetAI/monorepo/issues"
+  },
   "type": "module",
   "main": "module.mjs",
   "keywords": [
@@ -17,7 +29,6 @@
   "engines": {
     "node": ">=22.9.0"
   },
-  "homepage": "https://upstreet.ai",
   "bin": {
     "usdk": "./usdk.js"
   },
@@ -34,6 +45,7 @@
   ],
   "dependencies": {
     "@eshaz/web-worker": "1.2.2",
+    "@hono/node-server": "^1.13.6",
     "@iarna/toml": "^2.2.5",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.1.0",
@@ -43,6 +55,7 @@
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/estree": "^1.0.5",
     "@wasm-audio-decoders/common": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common",
+    "alea": "^1.0.1",
     "ansi-escape-sequences": "^6.2.2",
     "ansi-escapes": "^7.0.0",
     "archiver": "^7.0.1",
@@ -52,12 +65,15 @@
     "commander": "^12.0.0",
     "cookie": "^0.6.0",
     "cross-spawn": "^7.0.3",
+    "debouncer": "file:./packages/upstreet-agent/packages/debouncer",
     "dedent": "^1.5.3",
+    "dotenv": "^16.4.5",
     "esbuild": "^0.20.2",
     "ethers": "^6.12.0",
     "eventsource": "^2.0.2",
     "eventsource-parser": "^3.0.0",
     "form-data": "^4.0.0",
+    "hono": "^4.6.9",
     "javascript-time-ago": "^2.5.11",
     "jest": "^29.7.0",
     "jimp": "^0.22.12",
@@ -83,6 +99,7 @@
     "together-ai": "^0.6.0-alpha.4",
     "unique-names-generator": "^4.7.1",
     "vercel": "^34.2.6",
+    "vite": "^5.4.11",
     "web-worker": "1.2.0",
     "webp-wasm": "^1.0.6",
     "winston": "^3.16.0",
