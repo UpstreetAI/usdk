@@ -366,15 +366,18 @@ export const create = async (args, opts) => {
 
   // remove old directory
   const _prepareDirectory = async () => {
+    console.log(pc.italic('Preparing directory...'));
     await cleanDir(dstDir, {
       force,
       forceNoConfirm,
     });
     // bootstrap destination directory
     await mkdirp(dstDir);
+    console.log(pc.italic('Directory prepared...'));
   };
   await _prepareDirectory();
 
+  console.log(pc.italic('Generating Agent...'));
   // generate the agent
   let agentJson = makeAgentJsonInit({
     agentJsonString,
@@ -395,12 +398,10 @@ export const create = async (args, opts) => {
       jwt,
     });
   }
-  else {
-    console.log(pc.italic('Generating agent...'));
-  }
+ 
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
   agentJson = ensureAgentJsonDefaults(agentJson);
-  console.log(pc.italic('Agent generated.'));
+  console.log(pc.italic('Agent generated...'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
   console.log(pc.green('Description:'), agentJson.description);
