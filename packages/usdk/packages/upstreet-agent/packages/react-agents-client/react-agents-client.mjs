@@ -157,6 +157,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     const _trackRemotePlayers = () => {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
+
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
           // this.log('react agents client: remote player joined:', playerId);
@@ -180,13 +181,21 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
             remotePlayer.setPlayerSpec(val);
             if (!playersMap.has(playerId)) {
               playersMap.add(playerId, remotePlayer);
+
+              // dispatch join event when the playerSpec is updated and the player is not already in the playersMap
+              this.dispatchEvent(new MessageEvent('join', {
+                data: e.data,
+              }));
             }
           }
         });
 
-        this.dispatchEvent(new MessageEvent('join', {
-          data: e.data,
-        }));
+        // dispatch join event if the playerSpec is already set
+        if (remotePlayer.getPlayerSpec()) {
+          this.dispatchEvent(new MessageEvent('join', {
+            data: e.data,
+          }));
+        }
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
@@ -207,7 +216,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }
 
         this.dispatchEvent(new MessageEvent('leave', {
-          data: e.data,
+          data: {
+            player: remotePlayer,
+          },
         }));
       });
       // map multimedia events virtualPlayers -> playersMap
