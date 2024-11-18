@@ -343,7 +343,6 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             // join + leave messages
             multiplayerConnection.addEventListener('join', (e: any) => {
               const { remotePlayer } = e.data;
-
               const profile = remotePlayer.getPlayerSpec();
               const { id: userId, name } = profile;
               const joinMessage = {
