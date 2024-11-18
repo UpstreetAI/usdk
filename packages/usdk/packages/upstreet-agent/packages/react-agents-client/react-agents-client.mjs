@@ -216,9 +216,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }
 
         this.dispatchEvent(new MessageEvent('leave', {
-          data: {
-            player: remotePlayer,
-          },
+          data: e.data,
         }));
       });
       // map multimedia events virtualPlayers -> playersMap
