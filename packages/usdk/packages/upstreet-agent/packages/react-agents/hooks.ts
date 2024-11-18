@@ -44,6 +44,10 @@ import {
 
 //
 
+export const useEnv: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useEnv();
+};
 export const useEnvironment: () => string = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useEnvironment();
