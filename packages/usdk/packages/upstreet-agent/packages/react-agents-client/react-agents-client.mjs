@@ -194,7 +194,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
           this.dispatchEvent(new MessageEvent('join', {
             data: {
-              remotePlayer,
+              player: remotePlayer,
             },
         }));
       });
