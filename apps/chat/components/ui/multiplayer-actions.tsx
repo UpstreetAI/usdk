@@ -360,8 +360,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               refresh();
             });
             multiplayerConnection.addEventListener('leave', (e: any) => {
-              const { player } = e.data;
-              const profile = player.getPlayerSpec();
+              const { remotePlayer } = e.data;
+              const profile = remotePlayer.getPlayerSpec();
               const { id: userId, name } = profile;
               const leaveMessage = {
                 method: 'leave',

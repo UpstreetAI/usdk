@@ -212,8 +212,13 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           throw new Error('remote player not found');
         }
 
+        const leaveMessage = {
+          ...e.data,
+          remotePlayer,
+        };
+
         this.dispatchEvent(new MessageEvent('leave', {
-          data: e.data,
+          data: leaveMessage,
         }));
       });
       // map multimedia events virtualPlayers -> playersMap
