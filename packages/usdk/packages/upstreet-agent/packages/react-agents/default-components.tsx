@@ -3255,45 +3255,82 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
 
   return null;
 };
-// https://github.com/xdevplatform/twitter-api-typescript-sdk
-// twurl authorize --consumer-key XXX --consumer-secret XXX
-// less ~/.twurlrc
 export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) => {
   const {
     token,
   } = props;
   // const agent = useAgent();
+  const ref = useRef(false);
 
   useEffect(() => {
+    if (ref.current) {
+      return;
+    }
+    ref.current = true;
+
     (async () => {
       if (token) {
-        // console.log('twitter client 1', token);
+        console.log('twitter client 1', token);
         const client = new TwitterClient(token, {
           endpoint: `https://ai.upstreet.ai/api/twitter`,
         });
         // console.log('twitter client 2', client);
 
-        const tweet = await client.tweets.findTweetById('20');
-        console.log('tweet', tweet);
+        const user = await client.users.findMyUser();
+        // const username = user.data.username;
 
-        /* // Tell typescript it's a readonly app
-        const readOnlyClient = twitterClient.readOnly;
+        // const tweet = await client.tweets.findTweetById('20');
+        // console.log('got tweet', tweet);
 
-        // Play with the built in methods
-        const user = await readOnlyClient.v2.userByUsername('plhery');
-        await twitterClient.v2.tweet('Hello, this is a test.');
-        // You can upload media easily!
-        // await twitterClient.v1.uploadMedia('./big-buck-bunny.mp4');
+        // // Add a new rule to filter tweets mentioning @ScilliaHeart
+        // await client.tweets.addOrDeleteRules({
+        //   add: [
+        //     {
+        //       value: "@" + username, // Rule for tweets mentioning this handle
+        //       tag: "Mentions " + username, // Optional tag for this rule
+        //     },
+        //   ],
+        // });
 
-        console.log('twitter client 2', twitterClient);
+        const _poll = async () => {
+          try {
+            // This uses Twitter API v2 via twitter-api-sdk
+            // Specifically the GET /2/users/:id/mentions endpoint
+            const mentions = await client.tweets.usersIdMentions(user.data.id, {
+              expansions: ["author_id"],
+              "tweet.fields": ["created_at"]
+            });
+            
+            if (mentions.data) {
+              for (const tweet of mentions.data) {
+                // {
+                //   edit_history_tweet_ids: [ '1859007459953913966' ],
+                //   text: "@ScilliaHeart what's good?",
+                //   created_at: '2024-11-19T22:54:51.000Z',
+                //   id: '1859007459953913966',
+                //   author_id: '1850246434421092352'
+                // }
+                const { author_id, text } = tweet;
+                // get the handle of the author
+                const author = await client.users.findUserById(author_id);
+                const authorUsername = author.data.username;
 
-        try {
-          await twitterClient.v2.tweet('Hello, this is a test.');
+                console.log('got tweet', text, authorUsername);
+              }
+            }
+          } catch (err) {
+            console.error('Error polling tweets:', err);
+          }
+        };
+        _poll();
 
-          console.log('Tweet sent successfully');
-        } catch (error) {
-          console.error('Error sending tweet:', error);
-        } */
+        // Poll for tweets mentioning username
+        const pollInterval = setInterval(async () => {
+          _poll();
+        }, 10000);
+
+        // Cleanup interval on unmount
+        return () => clearInterval(pollInterval);
       }
     })();
   }, [token]);
