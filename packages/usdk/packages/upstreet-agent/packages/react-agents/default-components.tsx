@@ -31,10 +31,10 @@ import type {
   FormattedAttachment,
   AgentThinkOptions,
   GenerativeAgentObject,
-  DiscordBotRoomSpec,
-  DiscordBotRoomSpecs,
-  DiscordBotProps,
-  DiscordBotArgs,
+  DiscordRoomSpec,
+  DiscordRoomSpecs,
+  DiscordProps,
+  DiscordArgs,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -3218,7 +3218,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   const {
     token,
     channels,
@@ -3228,7 +3228,7 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
   const agent = useAgent();
 
   useEffect(() => {
-    const args: DiscordBotArgs = {
+    const args: DiscordArgs = {
       token,
       channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
       dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],

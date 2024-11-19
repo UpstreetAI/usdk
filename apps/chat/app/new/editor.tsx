@@ -68,7 +68,7 @@ type FeaturesObject = {
     message: string;
   } | null;
   storeItems: StoreItem[] | null;
-  discordBot: {
+  discord: {
     token: string;
     channels: string;
   } | null;
@@ -115,7 +115,7 @@ export default function AgentEditor({
     tts: null,
     rateLimit: null,
     storeItems: null,
-    discordBot: null,
+    discord: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -212,7 +212,7 @@ export default function AgentEditor({
     maxUserMessagesTime: maxUserMessagesTimeDefault,
     message: rateLimitMessageDefault,
   });
-  const makeDefaultDiscordBot = () => ({
+  const makeDefaultDiscord = () => ({
     token: '',
     channels: '',
   });
@@ -855,27 +855,27 @@ export default function AgentEditor({
               </label>
             </div>}
           </div>
-          {/* discord bot */}
+          {/* discord */}
           <div className="flex flex-col">
             <label className="flex">
-              <input type="checkbox" checked={!!features.discordBot} onChange={e => {
+              <input type="checkbox" checked={!!features.discord} onChange={e => {
                 setFeatures({
                   ...features,
-                  discordBot: e.target.checked ? makeDefaultDiscordBot() : null,
+                  discord: e.target.checked ? makeDefaultDiscord() : null,
                 });
               }} />
-              <div className="px-2">Discord bot</div>
+              <div className="px-2">Discord</div>
             </label>
-            {features.discordBot && <div className="flex flex-col">
+            {features.discord && <div className="flex flex-col">
               {/* token */}
               <label className="flex">
                 <div className="mr-2 min-w-32">Token</div>
-                <input type="text" value={features.discordBot.token} onChange={e => {
+                <input type="text" value={features.discord.token} onChange={e => {
                   setFeatures(features => ({
                     ...features,
-                    discordBot: {
+                    discord: {
                       token: e.target.value,
-                      channels: features.discordBot?.channels ?? '',
+                      channels: features.discord?.channels ?? '',
                     },
                   }));
                 }} placeholder="<bot token>" required />
@@ -883,11 +883,11 @@ export default function AgentEditor({
               {/* channels */}
               <label className="flex">
                 <div className="mr-2 min-w-32">Channels</div>
-                <input type="text" value={features.discordBot.channels} onChange={e => {
+                <input type="text" value={features.discord.channels} onChange={e => {
                   setFeatures(features => ({
                     ...features,
-                    discordBot: {
-                      token: features.discordBot?.token ?? '',
+                    discord: {
+                      token: features.discord?.token ?? '',
                       channels: e.target.value,
                     },
                   }));
