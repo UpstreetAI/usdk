@@ -11,8 +11,10 @@ export {
 export {
   create,
   edit,
-  pull,
 } from './create.mjs';
+export {
+  pull,
+} from './pull.mjs';
 export {
   deploy,
 } from './deploy.mjs';
