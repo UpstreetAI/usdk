@@ -84,6 +84,7 @@ import {
   update,
   authenticate,
   chat,
+  runAgent,
 } from './lib/commands.mjs';
 import {
   makeRoomName,
@@ -1522,6 +1523,26 @@ export const main = async () => {
           const jwt = await getLoginJwt();
 
           await pull(args, {
+            jwt,
+          });
+        });
+      });
+    program
+      .command('run')
+      .description('Run an agent')
+      .argument('[agentDirs...]', 'Directory of the agent(s)')
+      .action(async (agentDirs = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          args = {
+            _: [agentDirs],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await runAgent(args, {
             jwt,
           });
         });
