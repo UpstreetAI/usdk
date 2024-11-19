@@ -9,4 +9,60 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 ### Discord
 
-TBD
+Add Discord integration to your agent by following these steps:
+
+1. Create a Discord bot application:
+   - Go to https://discord.com/developers/applications
+   - Click "New Application" and give it a name
+   - Note down the CLIENT_ID (also called "Application ID") from the General Information tab
+
+2. Configure bot settings:
+   - Go to https://discord.com/developers/applications/CLIENT_ID/bot (replace CLIENT_ID with your actual ID)
+   - Under "Privileged Gateway Intents", enable:
+     - Presence Intent
+     - Server Members Intent
+     - Message Content Intent
+
+3. Add the bot to your server:
+   - Visit this URL (replace CLIENT_ID with your actual ID):
+     ```
+     https://discord.com/oauth2/authorize/?permissions=-2080908480&scope=bot&client_id=CLIENT_ID
+     ```
+   - Select the server you want to add the bot to
+   - Authorize the bot
+
+4. Get your bot token:
+   - Go back to https://discord.com/developers/applications/CLIENT_ID/bot
+   - Click "Reset Token" to reveal your bot token
+   - Copy and save this token securely - you'll need it for configuration
+
+5. Configure your agent:
+   - Add the following component to your agent:
+   ```json
+   import { Discord } from 'react-agents';
+   <Discord
+     token="YOUR_BOT_TOKEN" // The bot token from step 4
+     channels={[
+       "general", // Text channel names the bot should listen to
+       "voice-chat" // Voice channel names the bot should listen to
+     ]}
+     dms={true} // Enable direct messages with the bot
+     userWhitelist={[ // Optional: restrict which users can interact
+       "user1#1234",
+       "user2#5678" 
+     ]}
+   />
+   ```
+
+   **Additional Notes:**
+   - The bot will only respond in the specified channels and to whitelisted users (if configured)
+   - Voice channel support requires additional Discord permissions (see above)
+   - Channel names are case-sensitive and should match exactly
+   - For DMs, users must share a server with the bot
+   - The bot token should be kept secure and not committed to version control.
+     - You can use `.env.txt` and the useEnv() hook to load it at runtime.
+   - If you need to reset the token for security reasons, you can do so in the Discord Developer Portal
+   - The bot requires a stable internet connection to maintain WebSocket connection with Discord
+   - Rate limits apply to bot actions - see Discord's [developer documentation](https://discord.com/developers/docs/topics/rate-limits) for details
+
+
