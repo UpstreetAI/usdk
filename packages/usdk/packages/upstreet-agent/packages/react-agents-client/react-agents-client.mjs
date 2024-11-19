@@ -192,7 +192,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
         // Do not add the player or dispatch join event until it has the playerSpec set
         if (remotePlayer.getPlayerSpec()) {
-          playersMap.add(playerId, remotePlayer);
           this.dispatchEvent(new MessageEvent('join', {
             data: {
               player: remotePlayer,
