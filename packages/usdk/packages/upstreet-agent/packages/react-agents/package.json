@@ -2,7 +2,6 @@
   "name": "react-agents",
   "main": "index.tsx",
   "dependencies": {
-    "playwright-core": "file:./packages/playwright-core",
-    "twitter-api-sdk": "file:./packages/twitter-api-typescript-sdk"
+    "playwright-core": "file:./packages/playwright-core"
   }
 }
