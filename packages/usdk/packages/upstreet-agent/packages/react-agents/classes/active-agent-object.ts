@@ -23,6 +23,9 @@ import {
   DiscordManager,
 } from './discord-manager';
 import {
+  TwitterManager,
+} from './twitter-manager';
+import {
   TelnyxManager,
 } from './telnyx-manager';
 import {
@@ -80,6 +83,9 @@ export class ActiveAgentObject extends AgentObject {
       chatsSpecification,
     });
     this.discordManager = new DiscordManager({
+      codecs: appContextValue.useCodecs(),
+    });
+    this.twitterManager = new TwitterManager({
       codecs: appContextValue.useCodecs(),
     });
     this.telnyxManager = new TelnyxManager();

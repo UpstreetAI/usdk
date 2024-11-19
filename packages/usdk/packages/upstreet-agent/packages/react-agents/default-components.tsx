@@ -5,7 +5,6 @@ import { printNode, zodToTs } from 'zod-to-ts';
 import type { Browser, BrowserContext, Page } from 'playwright-core';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-import { Client as TwitterClient } from 'twitter-api-sdk';
 
 import type {
   AppContextValue,
@@ -36,7 +35,8 @@ import type {
   DiscordRoomSpecs,
   DiscordProps,
   DiscordArgs,
-  TwitterBotProps,
+  TwitterProps,
+  TwitterArgs,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -3255,11 +3255,11 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
 
   return null;
 };
-export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) => {
+export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
   const {
     token,
   } = props;
-  // const agent = useAgent();
+  const agent = useAgent();
   const ref = useRef(false);
 
   useEffect(() => {
@@ -3270,67 +3270,13 @@ export const TwitterBot: React.FC<TwitterBotProps> = (props: TwitterBotProps) =>
 
     (async () => {
       if (token) {
-        console.log('twitter client 1', token);
-        const client = new TwitterClient(token, {
-          endpoint: `https://ai.upstreet.ai/api/twitter`,
-        });
-        // console.log('twitter client 2', client);
-
-        const user = await client.users.findMyUser();
-        // const username = user.data.username;
-
-        // const tweet = await client.tweets.findTweetById('20');
-        // console.log('got tweet', tweet);
-
-        // // Add a new rule to filter tweets mentioning @ScilliaHeart
-        // await client.tweets.addOrDeleteRules({
-        //   add: [
-        //     {
-        //       value: "@" + username, // Rule for tweets mentioning this handle
-        //       tag: "Mentions " + username, // Optional tag for this rule
-        //     },
-        //   ],
-        // });
-
-        const _poll = async () => {
-          try {
-            // This uses Twitter API v2 via twitter-api-sdk
-            // Specifically the GET /2/users/:id/mentions endpoint
-            const mentions = await client.tweets.usersIdMentions(user.data.id, {
-              expansions: ["author_id"],
-              "tweet.fields": ["created_at"]
-            });
-            
-            if (mentions.data) {
-              for (const tweet of mentions.data) {
-                // {
-                //   edit_history_tweet_ids: [ '1859007459953913966' ],
-                //   text: "@ScilliaHeart what's good?",
-                //   created_at: '2024-11-19T22:54:51.000Z',
-                //   id: '1859007459953913966',
-                //   author_id: '1850246434421092352'
-                // }
-                const { author_id, text } = tweet;
-                // get the handle of the author
-                const author = await client.users.findUserById(author_id);
-                const authorUsername = author.data.username;
-
-                console.log('got tweet', text, authorUsername);
-              }
-            }
-          } catch (err) {
-            console.error('Error polling tweets:', err);
-          }
+        const args: TwitterArgs = {
+          token,
         };
-        _poll();
-
-        // Poll for tweets mentioning username
-        const pollInterval = setInterval(async () => {
-          _poll();
-        }, 10000);
-
-        // Cleanup interval on unmount
-        return () => clearInterval(pollInterval);
+        const twitterBot = agent.twitterManager.addTwitterBot(args);
+        return () => {
+          agent.twitterManager.removeTwitterBot(twitterBot);
+        };
       }
     })();
   }, [token]);

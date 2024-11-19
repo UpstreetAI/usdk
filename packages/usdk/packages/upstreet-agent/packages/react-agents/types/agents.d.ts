@@ -117,7 +117,10 @@ export type DiscordArgs = {
 
 // twitter
 
-export type TwitterBotProps = {
+export type TwitterProps = {
+  token: string;
+};
+export type TwitterArgs = {
   token: string;
 };
 
@@ -321,6 +324,16 @@ export type DiscordManager = {
   live: () => void;
   destroy: () => void;
 };
+export type TwitterBot = {
+  token: string;
+  agent: ActiveAgentObject;
+};
+export type TwitterManager = {
+  addTwitterBot: (args: TwitterArgs) => void;
+  removeTwitterBot: (client: TwitterBot) => void;
+  live: () => void;
+  destroy: () => void;
+};
 export type TelnyxBot = EventTarget & {
   getPhoneNumber: () => string;
   call: (opts: {
@@ -362,6 +375,7 @@ export type ActiveAgentObject = AgentObject & {
   conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  twitterManager: TwitterManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
   liveManager: LiveManager;
