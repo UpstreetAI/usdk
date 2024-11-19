@@ -23,32 +23,40 @@ export const runAgent = async (args, opts) => {
       throw new Error('unknown runtime: ' + runtime);
     }
   })();
+
+  const runtimes = [];
+
   const startPromises = agentSpecs.map(async (agentSpec) => {
     if (agentSpec.directory) {
       const runtime = new Runtime(agentSpec);
+      runtimes.push(runtime);
       await runtime.start({
         debug,
       });
       console.log(`Agent ${agentSpec.guid} running on URL: http://localhost:${devServerPort + agentSpec.portIndex}`);
-
-      let isExiting = false;
-      const handleExit = () => {
-        if (!isExiting) {
-          isExiting = true;
-          const pid = runtime.cp.pid;
-          console.log(`\nTerminating agent ${agentSpec.guid} runtime`);
-          process.kill(pid);
-          process.exit();
-        }
-      };
-
-      process.on('exit', handleExit);
-      process.on('SIGINT', handleExit);
-      process.on('SIGTERM', handleExit);
-      process.on('uncaughtException', handleExit);
     }
   });
+
   await Promise.all(startPromises);
+
+  let isExiting = false;
+
+  const handleExit = () => {
+    if (isExiting) return;
+    isExiting = true;
+    console.log('\nTerminating all agent runtimes');
+    runtimes.forEach(runtime => {
+      const pid = runtime.cp.pid;
+      console.log(`Terminating agent runtime with PID: ${pid}`);
+      process.kill(pid);
+    });
+    process.exit();
+  };
+
+  process.on('exit', handleExit);
+  process.on('SIGINT', handleExit);
+  process.on('SIGTERM', handleExit);
+  process.on('uncaughtException', handleExit);
 
   return;
 };
