@@ -110,6 +110,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
       ...rawMessage,
       timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
     };
+    console.log('chat message', message, ' playersCache', playersCache);
     return {
       id: index,
       display: getMessageComponent(room, message, index + '', playersCache, user),
@@ -215,6 +216,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
     // server messages
     case 'say': {
+      console.log('chat message say playersCache', playersCache);
+      console.log('chat message say message.userId', message.userId);
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
 
@@ -223,6 +226,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
       // Get the profile URL according to the user type
       const profileUrl = `/${message.human ? 'accounts' : 'agents'}/${message?.userId}`;
+
+      console.log('chat message player', player);
 
       return (
         <ChatMessage

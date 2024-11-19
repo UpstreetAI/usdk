@@ -405,14 +405,17 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
                 // ensure all players are in the players cache
                 for (const [playerId, player] of playersMap.getMap()) {
+                  console.log('updatePlayersCache setting', playerId, player);
                   playersCache.set(playerId, player);
                 }
+
+                console.log('updatePlayersCache', playersMap.getMap());
 
                 refresh();
               };
               updatePlayersCache();
 
-              ['join', 'leave'].forEach((eventName) => {
+              ['join', 'leave', 'playerSpecUpdate'].forEach((eventName) => {
                 multiplayerConnection.addEventListener(eventName, updatePlayersCache);
               });
             };
