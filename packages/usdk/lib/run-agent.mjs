@@ -1,9 +1,9 @@
 import { ReactAgentsNodeRuntime } from '../packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
+import { devServerPort } from '../packages/upstreet-agent/packages/react-agents-wrangler/util/ports.mjs';
 import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
 
 export const runAgent = async (args, opts) => {
-  console.log('runAgent', args, opts);
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const runtime = args.runtime ?? 'node';
   const debug = !!args.debug;
@@ -29,10 +29,10 @@ export const runAgent = async (args, opts) => {
       await runtime.start({
         debug,
       });
+      console.log(`Agent ${agentSpec.guid} running on URL: http://localhost:${devServerPort + agentSpec.portIndex}`);
     }
   });
   await Promise.all(startPromises);
 
-  console.log('started agents');
   return;
 };
