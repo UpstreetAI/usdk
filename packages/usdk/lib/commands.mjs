@@ -14,11 +14,17 @@ export {
   pull,
 } from './create.mjs';
 export {
+  runAgent,
+} from './run-agent.mjs';
+export {
   deploy,
 } from './deploy.mjs';
 export {
   update,
 } from './update.mjs';
+export {
+  authenticate,
+} from './authenticate.mjs';
 export {
   chat,
 } from './chat.mjs';

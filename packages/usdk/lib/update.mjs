@@ -39,7 +39,7 @@ export const update = async (args, opts) => {
   if (!jwt) {
     throw new Error('You must be logged in to update.');
   } */
-  const force = !!opts.force;
+  const force = !!args.force;
 
   // update the agents
   for (const agentSpec of agentSpecs) {

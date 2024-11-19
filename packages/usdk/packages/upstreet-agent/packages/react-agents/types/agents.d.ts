@@ -97,18 +97,18 @@ export type TtsArgs = {
 
 // discord
 
-export type DiscordBotRoomSpec = RegExp | string;
-export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
-export type DiscordBotProps = {
+export type DiscordRoomSpec = RegExp | string;
+export type DiscordRoomSpecs = DiscordRoomSpec | DiscordRoomSpec[];
+export type DiscordProps = {
   token: string;
-  channels?: DiscordBotRoomSpecs;
-  dms?: DiscordBotRoomSpecs;
+  channels?: DiscordRoomSpecs;
+  dms?: DiscordRoomSpecs;
   userWhitelist?: string[];
 };
-export type DiscordBotArgs = {
+export type DiscordArgs = {
   token: string;
-  channels: DiscordBotRoomSpec[];
-  dms: DiscordBotRoomSpec[];
+  channels: DiscordRoomSpec[];
+  dms: DiscordRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
 };
@@ -304,12 +304,12 @@ export type ChatsManager = {
   live: () => void;
   destroy: () => void;
 };
-export type DiscordBot = EventTarget & {
+export type Discord = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
-  removeDiscordBot: (client: DiscordBot) => void;
+  addDiscordBot: (args: DiscordArgs) => Discord;
+  removeDiscordBot: (client: Discord) => void;
   live: () => void;
   destroy: () => void;
 };

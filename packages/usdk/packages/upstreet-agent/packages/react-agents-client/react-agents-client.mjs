@@ -180,8 +180,6 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
             if (!playersMap.has(playerId)) {
-              playersMap.add(playerId, remotePlayer);
-
               // dispatch join event when the playerSpec is updated and the player is not already in the playersMap
               this.dispatchEvent(new MessageEvent('playerSpecUpdate', {
                 data: {
@@ -192,7 +190,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           }
         });
 
-        // dispatch join event if the playerSpec is already set
+        // Do not add the player or dispatch join event until it has the playerSpec set
         if (remotePlayer.getPlayerSpec()) {
           this.dispatchEvent(new MessageEvent('join', {
             data: {

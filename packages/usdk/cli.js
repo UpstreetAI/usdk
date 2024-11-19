@@ -82,7 +82,9 @@ import {
   pull,
   deploy,
   update,
+  authenticate,
   chat,
+  runAgent,
 } from './lib/commands.mjs';
 import {
   makeRoomName,
@@ -1525,6 +1527,26 @@ export const main = async () => {
           });
         });
       });
+    program
+      .command('run')
+      .description('Run an agent')
+      .argument('[agentDirs...]', 'Directory of the agent(s)')
+      .action(async (agentDirs = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args;
+          args = {
+            _: [agentDirs],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await runAgent(args, {
+            jwt,
+          });
+        });
+      });
     const runtimes = [
       'node',
       'wrangler',
@@ -1686,10 +1708,30 @@ export const main = async () => {
         });
       });
     program
+      .command('authenticate')
+      .description(`Configure agent's authentication token`)
+      .argument(`[directories...]`, `Path to the agents to authenticate`)
+      .option(`-f, --force`, `Force update even if there are conflicts`)
+      .action(async (directories = '', opts) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          const args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          await authenticate(args, {
+            jwt,
+          });
+        });
+      });
+    program
       .command('update')
       .description('Update an agent to the latest sdk version')
       .argument(`[directories...]`, `Path to the agents to update`)
-      .option(`-f, --force`, `Force the update even if there are conflicts`)
+      .option(`-f, --force`, `Force update even if there are conflicts`)
       .action(async (directories = '', opts) => {
         await handleError(async () => {
           commandExecuted = true;
