@@ -40,18 +40,25 @@ Add Discord integration to your agent by following these steps:
    - Add the following component to your agent:
    ```json
    import { Discord } from 'react-agents';
-   <Discord
-     token="YOUR_BOT_TOKEN" // The bot token from step 4
-     channels={[
-       "general", // Text channel names the bot should listen to
-       "voice-chat" // Voice channel names the bot should listen to
-     ]}
-     dms={true} // Enable direct messages with the bot
-     userWhitelist={[ // Optional: restrict which users can interact
-       "user1#1234",
-       "user2#5678" 
-     ]}
-   />
+
+   return (
+    <Agent>
+      {/* ... */}
+      <Discord
+        token="YOUR_BOT_TOKEN" // The bot token from step 4
+        channels={[
+          "general", // Text channel names the bot should listen to
+          "voice-chat" // Voice channel names the bot should listen to
+        ]}
+        dms={true} // Enable direct messages with the bot
+        userWhitelist={[ // Optional: restrict which users can interact
+          "user1#1234",
+          "user2#5678"
+        ]}
+      />
+      {/* ... */}
+    </Agent>
+   );
    ```
 
    **Additional Notes:**
