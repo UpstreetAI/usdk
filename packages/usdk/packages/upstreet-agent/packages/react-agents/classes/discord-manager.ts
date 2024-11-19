@@ -17,6 +17,9 @@ import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
+import {
+  QueueManager,
+} from 'queue-manager';
 
 //
 
@@ -82,10 +85,13 @@ const bindOutgoing = ({
     }
   });
   // audio
+  const queueManager = new QueueManager();
   conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-    // XXX finish this
-    console.log('conversation outgoing audio stream', e.data);
-    // const audioStream = e.data.audioStream as PlayableAudioStream;
+    await queueManager.waitForTurn(async () => {
+      // console.log('conversation outgoing audio stream', e.data);
+      const audioStream = e.data.audioStream as PlayableAudioStream;
+      await discordBotClient.input.pushStream(audioStream);
+    });
   });
   // typing
   conversation.addEventListener('typingstart', (e) => {
