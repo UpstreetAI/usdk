@@ -347,8 +347,9 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               const { player } = e.data;
               const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
-
               if (!playersMap.has(userId)) {
+                // add the player to the playersMap when the playerSpec is updated and the player is not already in the playersMap
+                playersMap.add(userId, player);
                 const joinMessage = {
                   method: 'join',
                   userId,
