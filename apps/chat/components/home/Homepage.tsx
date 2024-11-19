@@ -66,16 +66,18 @@ export default function Home() {
               <span className='font-bold'>framework</span><br />
               to create <span className='font-bold'>AI agents</span>
             </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start font-bold">
               <Button
                 variant="secondary"
                 size='large'
                 href='https://docs.upstreet.ai/'
                 target='_blank'
+                className='min-w-[200px]'
               >
                 SDK
               </Button>
               <Button
+                variant="accent"
                 size='large'
                 href='/usdk-discord'
                 target='_blank'

@@ -340,8 +340,29 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             playersMap = multiplayerConnection.playersMap;
             typingMap = multiplayerConnection.typingMap;
 
+
+            // join event when the playerSpec is updated and the player is not already in the playersMap
+            // this is to be listened to for the case where the playerSpec is set after the player is connected
+            multiplayerConnection.addEventListener('playerSpecUpdate', (e: any) => {
+              const { player } = e.data;
+              const profile = player.getPlayerSpec();
+              const { id: userId, name } = profile;
+              if (!playersMap.has(userId)) {
+                // add the player to the playersMap when the playerSpec is updated and the player is not already in the playersMap
+                playersMap.add(userId, player);
+                const joinMessage = {
+                  method: 'join',
+                  userId,
+                  name,
+                  args: {},
+                  timestamp: Date.now(),
+                };
+                messages = [...messages, joinMessage];
+              }
+              refresh();
+            });
             // join + leave messages
-            playersMap.addEventListener('join', (e: any) => {
+            multiplayerConnection.addEventListener('join', (e: any) => {
               const { player } = e.data;
               const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
@@ -356,7 +377,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
 
               refresh();
             });
-            playersMap.addEventListener('leave', (e: any) => {
+            multiplayerConnection.addEventListener('leave', (e: any) => {
               const { player } = e.data;
               const profile = player.getPlayerSpec();
               const { id: userId, name } = profile;
@@ -392,7 +413,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               updatePlayersCache();
 
               ['join', 'leave'].forEach((eventName) => {
-                playersMap.addEventListener(eventName, updatePlayersCache);
+                multiplayerConnection.addEventListener(eventName, updatePlayersCache);
               });
             };
             _trackPlayersCache();
@@ -400,7 +421,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             const _trackAudio = () => {
               const audioStreams = new Map();
               const audioQueueManger = new QueueManager();
-              playersMap.addEventListener('audiostart', (e: any) => {
+              multiplayerConnection.addEventListener('audiostart', (e: any) => {
                 const {
                   playerId,
                   streamId,
@@ -444,7 +465,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   });
                 }
               });
-              playersMap.addEventListener('audio', (e: any) => {
+              multiplayerConnection.addEventListener('audio', (e: any) => {
                 const {
                   playerId,
                   streamId,
@@ -459,7 +480,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   // console.warn('dropping audio data', e.data);
                 }
               });
-              playersMap.addEventListener('audioend', (e: any) => {
+              multiplayerConnection.addEventListener('audioend', (e: any) => {
                 const {
                   playerId,
                   streamId,

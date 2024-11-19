@@ -1,0 +1,8 @@
+{
+  "name": "react-agents-node",
+  "main": "node-runtime.mjs",
+  "dependencies": {
+    "@iarna/toml": "^2.2.5",
+    "react-agents-builder": "file:../react-agents-builder"
+  }
+}

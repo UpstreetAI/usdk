@@ -14,6 +14,7 @@ import Dev from '../development';
 import { logout } from '@/lib/logout';
 import { UserAgents } from '../agents/list';
 import { Credits } from '../credits';
+import { BackButton } from '../back';
 
 export interface TabsProps {
   user: any;
@@ -39,9 +40,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
   return (
     <div className='w-full'>
       <HeaderMaskFrame background={randomAgentImage} wrapperClass="bg-blue-500" backgroundOpacity={0.2}>
-        <div className='absolute z-[100] left-8 top-8'>
-          <IconButton href={"/"} icon={'BackArrow'} />
-        </div>
+        <BackButton className="absolute z-[100] left-8 top-8" />
         <div className="w-full max-w-6xl mx-auto h-60 pt-28 relative px-4">
           <div className="flex">
             <div className="mr-4 size-18 min-w-18 md:size-[150px] md:min-w-[150px] bg-gray-100 p-4 overflow-hidden flex items-center justify-center border-2 border-gray-900">
@@ -150,7 +149,7 @@ export function Tabs({ user, agents: agentsInit, voices: voicesInit, creditsUsag
         </div>
         <div className={tab === 'credits' ? 'block w-full' : 'hidden'}>
           <h1 className="text-2xl font-extrabold text-[#90A0B2] pb-2 border-b mb-8">
-            Credits Expanditure
+            Credits Expenditure
           </h1>
           <CreditsUsageHistory creditsUsageHistory={creditsUsageHistory} agents={agents} />
         </div>

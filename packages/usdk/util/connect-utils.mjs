@@ -3,6 +3,7 @@ import util from 'util';
 
 import dedent from 'dedent';
 import open from 'open';
+import alea from 'alea';
 import pc from 'picocolors';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
@@ -84,7 +85,6 @@ const getUserProfile = async () => {
       name: makeName(),
       description: '',
     };
-    // ensureAgentJsonDefaults(userAsset);
   }
 
   return user;
@@ -424,7 +424,10 @@ const startMultiplayerRepl = ({
 
 //
 
-export const makeRoomName = () => `room:` + makeId(8);
+export const makeRoomName = (s) => {
+  const suffix = typeof s === 'string' ? makeId(8, alea(s)) : makeId(8);
+  return `room:${suffix}`;
+};
 
 const connectBrowser = ({
   room,
@@ -882,19 +885,24 @@ export const connect = async (args) => {
 
 export const join = async (args) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
-  const room = args._[1] ?? makeRoomName();
-
-  try {
-    const joinPromises = agentSpecs.map(async (agentSpec) => {
-      const u = `${getAgentSpecHost(agentSpec)}`;
-      const agentClient = new ReactAgentsClient(u);
-      await agentClient.join(room, {
-        only: true,
+  const room = args._[1] ?? '';
+  
+  if (room) {
+    try {
+      const joinPromises = agentSpecs.map(async (agentSpec) => {
+        const u = `${getAgentSpecHost(agentSpec)}`;
+        const agentClient = new ReactAgentsClient(u);
+        await agentClient.join(room, {
+          only: true,
+        });
       });
-    });
-    await Promise.all(joinPromises);
-  } catch (err) {
-    console.warn('join error', err);
+      await Promise.all(joinPromises);
+    } catch (err) {
+      console.warn('join error', err);
+      process.exit(1);
+    }
+  } else {
+    console.log('no room name provided');
     process.exit(1);
   }
 };

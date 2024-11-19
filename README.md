@@ -1,5 +1,8 @@
 # Upstreet Monorepo
-## Available Workspaces
+
+This repository contains the open source apps for the Upstreet platform.
+
+## Workspaces
 
 #### Chat:
 - Url: https://chat.upstreet.ai
@@ -30,6 +33,14 @@ From the root directory run:
 ```bash
 npm run docs start
 ```
+#### Install SDK
+From the root directory run:
+```bash
+cd packages/usdk
+npm i
+npm i -g .
+usdk --version
+```
 
 # Development
 
@@ -44,3 +55,4 @@ npm i PACKAGE_NAME --workspace=@upstreet/chat
 ```bash
 npm i PACKAGE_NAME --workspace=@upstreet/docs
 ```
+

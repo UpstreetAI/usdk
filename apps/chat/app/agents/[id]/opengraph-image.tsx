@@ -97,7 +97,7 @@ export default async function AgentOgImage({
             }}
           >
             <img
-              src={withHttps(`${baseUrl}/images/upstreet_logo_raster.png`)}
+              src={`https://upstreet.ai/images/upstreet_logo_raster.png`}
               style={{ width: '160px', height: '120px', objectFit: 'contain' }}
             />
             <div

@@ -47,7 +47,7 @@ export class ReactAgentsWorker {
     };
     console.log('starting worker with env:', env);
     this.worker.postMessage({
-      method: 'initDurableObject',
+      method: 'init',
       args: {
         env,
         agentSrc,

@@ -97,20 +97,22 @@ export type TtsArgs = {
 
 // discord
 
-export type DiscordBotRoomSpec = RegExp | string;
-export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
-export type DiscordBotProps = {
+export type DiscordRoomSpec = RegExp | string;
+export type DiscordRoomSpecs = DiscordRoomSpec | DiscordRoomSpec[];
+export type DiscordProps = {
   token: string;
-  channels?: DiscordBotRoomSpecs;
-  dms?: DiscordBotRoomSpecs;
+  channels?: DiscordRoomSpecs;
+  dms?: DiscordRoomSpecs;
   userWhitelist?: string[];
 };
-export type DiscordBotArgs = {
+export type DiscordArgs = {
   token: string;
-  channels: DiscordBotRoomSpec[];
-  dms: DiscordBotRoomSpec[];
+  channels: DiscordRoomSpec[];
+  dms: DiscordRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
 };
 
 // twitter
@@ -148,7 +150,7 @@ export type ActionMessage = {
   userId: string;
   name: string;
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   human: boolean; // XXX can be converted to flags
   hidden: boolean;
@@ -156,12 +158,12 @@ export type ActionMessage = {
 };
 export type PendingActionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
 };
 export type PerceptionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   timestamp: Date;
 };
@@ -310,12 +312,12 @@ export type ChatsManager = {
   live: () => void;
   destroy: () => void;
 };
-export type DiscordBot = EventTarget & {
+export type Discord = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
-  removeDiscordBot: (client: DiscordBot) => void;
+  addDiscordBot: (args: DiscordArgs) => Discord;
+  removeDiscordBot: (client: Discord) => void;
   live: () => void;
   destroy: () => void;
 };
@@ -715,6 +717,7 @@ export type AppContextValue = {
   subtleAi: SubtleAi;
 
   useAgentJson: () => object;
+  useEnv: () => string;
   useEnvironment: () => string;
   useWallets: () => object[];
   useAuthToken: () => string;

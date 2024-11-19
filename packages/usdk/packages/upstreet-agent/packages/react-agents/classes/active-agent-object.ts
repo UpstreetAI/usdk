@@ -79,7 +79,9 @@ export class ActiveAgentObject extends AgentObject {
       agent: this,
       chatsSpecification,
     });
-    this.discordManager = new DiscordManager();
+    this.discordManager = new DiscordManager({
+      codecs: appContextValue.useCodecs(),
+    });
     this.telnyxManager = new TelnyxManager();
     this.liveManager = new LiveManager({
       agent: this,
@@ -201,8 +203,6 @@ export class ActiveAgentObject extends AgentObject {
     const id = crypto.randomUUID();
     const embedding = await this.appContextValue.embed(text);
 
-    // const jwt = this.useAuthToken();
-    // const supabase = makeAnonymousClient(env, jwt);
     const supabase = this.useSupabase();
     const writeResult = await supabase
       .from('ai_memory')

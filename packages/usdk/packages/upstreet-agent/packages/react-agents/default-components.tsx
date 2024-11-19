@@ -32,10 +32,10 @@ import type {
   FormattedAttachment,
   AgentThinkOptions,
   GenerativeAgentObject,
-  DiscordBotRoomSpec,
-  DiscordBotRoomSpecs,
-  DiscordBotProps,
-  DiscordBotArgs,
+  DiscordRoomSpec,
+  DiscordRoomSpecs,
+  DiscordProps,
+  DiscordArgs,
   TwitterBotProps,
   TelnyxProps,
   TelnyxBotArgs,
@@ -51,11 +51,10 @@ import {
   Formatter,
   Perception,
   PerceptionModifier,
-  Task,
-  // Scheduler,
+  // Task,
   Server,
   Conversation,
-  Defer,
+  DeferConversation,
   Uniform,
 } from './components';
 import {
@@ -227,11 +226,13 @@ const StoreActions = () => {
 type EveryNMessagesOptions = {
   signal: AbortSignal,
 };
-const EveryNMessages = ({
+export const EveryNMessages = ({
   n,
+  firstCallback = true,
   children,
 }: {
   n: number,
+  firstCallback?: boolean,
   children: (opts: EveryNMessagesOptions) => void,
 }) => {
   const numMessages = useNumMessages();
@@ -240,7 +241,7 @@ const EveryNMessages = ({
 
   useEffect(() => {
     const diff = numMessages - startNumMessages;
-    if (diff % n === 0) {
+    if (diff % n === 0 && (diff > 0 || firstCallback)) {
       if (!abortControllerRef.current) {
         abortControllerRef.current = new AbortController();
       }
@@ -332,7 +333,7 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <Defer>
+      <DeferConversation>
         <EveryNMessages n={10}>{({
           signal,
         }: {
@@ -351,7 +352,7 @@ const DefaultMemoriesInternal = () => {
             signal,
           });
         }}</EveryNMessages>
-      </Defer>
+      </DeferConversation>
     </>
   );
 };
@@ -420,7 +421,7 @@ const MemoryWatcher = ({
           \`\`\`
         `}
       </Prompt>
-      <Defer>
+      <DeferConversation>
         {/* trigger memory watcher refresh */}
         {allMemoryWatchers.map((memoryWatcher, index) => {
           return (
@@ -429,7 +430,7 @@ const MemoryWatcher = ({
             }}</EveryNMessages>
           );
         })}
-      </Defer>
+      </DeferConversation>
     </Conversation>
   );
 };
@@ -3219,7 +3220,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   const {
     token,
     channels,
@@ -3227,14 +3228,19 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     userWhitelist,
   } = props;
   const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
 
   useEffect(() => {
-    const args: DiscordBotArgs = {
+    const args: DiscordArgs = {
       token,
       channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
       dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],
       userWhitelist,
       agent,
+      codecs,
+      jwt: authToken,
     };
     const discordBot = agent.discordManager.addDiscordBot(args);
     return () => {

@@ -1,12 +1,30 @@
 import spawn from 'cross-spawn';
 
+export const hasNpm = async () => {
+  // check if the npm command exists
+  return await new Promise((resolve) => {
+    const child = spawn('npm', ['--version'], {
+      stdio: 'ignore',
+    });
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    });
+    child.on('error', (err) => {
+      resolve(false);
+    });
+  });
+};
+
 export const npmInstall = async (dstDir) => {
   await new Promise((resolve, reject) => {
     const child = spawn('npm', ['install'], {
       cwd: dstDir,
       stdio: 'inherit',
     });
-
     child.on('close', (code) => {
       if (code !== 0) {
         reject(new Error(`npm install failed with code ${code}`));
@@ -14,6 +32,7 @@ export const npmInstall = async (dstDir) => {
         resolve();
       }
     });
+    child.on('error', reject);
   });
 };
 
