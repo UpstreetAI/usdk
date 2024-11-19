@@ -35,10 +35,11 @@ export const cleanDir = async (dstDir, { force, forceNoConfirm } = {}) => {
       }
 
       // Remove all files.
-      console.log(pc.italic('\nRemoving old files...'));
+      console.log(pc.italic('Removing old files...'));
       await Promise.all(
         files.map((filePath) => rimraf(path.join(dstDir, filePath))),
       );
+      console.log(pc.italic('Removed old files...'));
     } else {
       // throw error
       throw new Error('directory is not empty (-f to override)');
