@@ -150,6 +150,12 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
       connected = true;
 
+      this.dispatchEvent(new MessageEvent('join', {
+        data: {
+          player: localPlayer,
+        },
+      }));
+
       realmsConnectResolve();
     };
     realms.addEventListener('connect', onConnect);
