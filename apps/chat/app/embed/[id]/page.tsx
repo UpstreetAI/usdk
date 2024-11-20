@@ -1,7 +1,7 @@
 import React from 'react';
-import { Chat } from '@/components/chat/chat';
-import { LoginRedirect } from '@/components/login-redirect';
-import { SidebarDesktopLeft, SidebarDesktopRight } from '@/components/sidebar-desktop';
+import { EmbedChat } from '@/components/chat/embed-chat';
+import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { env } from '@/lib/env';
 
 type Params = {
   params: {
@@ -9,16 +9,38 @@ type Params = {
   };
 };
 
+async function getAgentData(supabase: any, identifier: string) {
+  // First try to find by ID
+  let result = await supabase
+    .from('assets')
+    .select('*, author: accounts ( id, name )')
+    .eq('id', identifier)
+    .single();
+
+  // If not found by ID, try to find by username
+  if (!result.data) {
+    result = await supabase
+      .from('assets')
+      .select('*, author: accounts ( id, name )')
+      .eq('name', identifier)
+      .single();
+  }
+
+  return result;
+}
+
 export default async function EmbedPage({ params }: Params) {
-  const roomName = decodeURIComponent(params.id)
+  const agentId = decodeURIComponent(params.id)
+
+  const supabase = makeAnonymousClient(env);
+  const identifier = decodeURIComponent(params.id);
+
+  const result = await getAgentData(supabase, identifier);
+  const agentData = result.data as any;
 
   return (
-    // <AI initialAIState={{ chatId: id, messages: [] }}>
     <div className="w-full relative flex h-screen overflow-hidden">
-      <Chat
-        room={roomName}
-      />
+      <EmbedChat agent={agentData} room="221a406b-0674-4c30-b072-9503226ac8b4" />
     </div>
-    // </AI>
   );
 }
