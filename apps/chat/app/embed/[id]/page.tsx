@@ -30,18 +30,9 @@ async function getAgentData(supabase: any, identifier: string) {
   return result;
 }
 
-const getIpAddress = async () => {
-  const response = await fetch('https://api.ipify.org?format=json');
-  const data = await response.json();
-  return data.ip;
-};
-
 export default async function EmbedPage({ params }: Params) {
   const embedToken = decodeURIComponent(params.id)
-
   const token = JSON.parse(decrypt(embedToken));
-
-  console.log(token)
 
   const supabase = makeAnonymousClient(env);
   const identifier = decodeURIComponent(token.agentId);
@@ -49,13 +40,9 @@ export default async function EmbedPage({ params }: Params) {
   const result = await getAgentData(supabase, identifier);
   const agentData = result.data as any;
 
-  const ip = await getIpAddress()
-
-  console.log(ip)
-
   return (
     <div className="w-full relative flex h-screen overflow-hidden">
-      <EmbedChat id={agentData.id} room="221a406b-0674-4c30-b072-9503226ac8b4" />
+      <EmbedChat agentId={agentData.id} room="221a406b-0674-4c30-b072-9503226ac8b4" />
     </div>
   );
 }
