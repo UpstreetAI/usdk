@@ -16,6 +16,8 @@ class TwitterBot {
   token: string;
   abortController: AbortController;
   constructor(args: TwitterArgs) {
+    this.abortController = new AbortController();
+
     const _bind = async () => {
       const {
         token,
@@ -24,9 +26,6 @@ class TwitterBot {
         endpoint: `https://ai.upstreet.ai/api/twitter`,
       });
       // console.log('twitter client 2', client);
-
-      // abort controller
-      this.abortController = new AbortController();
 
       const user = await client.users.findMyUser();
 
@@ -53,9 +52,10 @@ class TwitterBot {
           console.error('Error polling tweets:', err);
         }
       };
-      _poll();
-
       // Poll for tweets mentioning username
+      const pollTimeout = setTimeout(() => {
+        _poll();
+      });
       const pollInterval = setInterval(async () => {
         _poll();
       }, 10000);
@@ -63,6 +63,7 @@ class TwitterBot {
       // listen for abort signal
       const { signal } = this.abortController;
       signal.addEventListener('abort', () => {
+        clearTimeout(pollTimeout);
         clearInterval(pollInterval);
       });
     };
