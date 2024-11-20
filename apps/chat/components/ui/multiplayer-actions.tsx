@@ -21,6 +21,7 @@ import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { QueueManager } from 'queue-manager';
+import { encrypt } from '@/utils/crypto/cryptouUtils';
 
 //
 
@@ -94,7 +95,7 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinRandom: (agentsArray: { id: string }[]) => Promise<void>
+  agentJoinEmbedRoom: (guid: string) => Promise<void>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -550,27 +551,40 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to false
         setIsAgentLoading(false);
       },
-      agentJoinRandom: async (agentsArray: { id: string }[]) => {
-        const oldRoom = multiplayerState.getRoom();
-        const room = oldRoom || crypto.randomUUID();
+      agentJoinEmbedRoom: async (guid: string) => {
+        let room;
         
-        // Randomly select an agent from the passed array
-        const randomAgent = agentsArray[Math.floor(Math.random() * agentsArray.length)];
-        // Get agent id
-        const guid = randomAgent.id;
+        try {
+          // Get user's IP address
+          const response = await fetch('https://api.ipify.org?format=json');
+          const data = await response.json();
+          const ipAddress = data.ip;
+          
+
+          // Url origin ( for chechking trusted urls )
+          const websiteUrl = window.location.origin;
+          // Concatenate IP address and website URL to form the "room" key
+          const roomKey = `${ipAddress}${websiteUrl}`;
+          // encrypt the "room" key
+          const roomKeyEncrypted = encrypt(roomKey);
+      
+          // set the room to the local storage one if it exists, otherwise use the new one
+          room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
+          
+        } catch (error) {
+          console.error('Error checking room cookie:', error);
+        }
+
+
 
         console.log('agent join', {
-          guid,
           room,
+          guid,
         });
 
         // Set loading state to true
         setIsAgentLoading(true);
 
-        // redirect to the room first
-        if (!/\/rooms\//.test(location.pathname)) {
-          router.push(`/rooms/${room}`);
-        }
         // wait for the router to complete the navigation
         await new Promise(resolve => setTimeout(resolve, 1000));
         await join({
@@ -652,7 +666,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendMediaMessage = multiplayerState.sendMediaMessage;
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
-  const agentJoinRandom = multiplayerState.agentJoinRandom;
+  const agentJoinEmbedRoom = multiplayerState.agentJoinEmbedRoom;
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
@@ -675,7 +689,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendMediaMessage,
         sendNudgeMessage,
         agentJoin,
-        agentJoinRandom,
+        agentJoinEmbedRoom,
         agentLeave,
         addAudioSource,
         removeAudioSource,
