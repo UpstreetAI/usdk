@@ -75,11 +75,10 @@ type Message = {
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   id?: string
-  agent?: any
   room: string
   onConnect?: (connected: boolean) => void
 }
-export function EmbedChat({ className, agent, /* user, missingKeys, */ room, onConnect }: ChatProps) {
+export function EmbedChat({ className, id, /* user, missingKeys, */ room, onConnect }: ChatProps) {
   const [input, setInput] = useState('')
   const { user } = useSupabase();
 
