@@ -3283,7 +3283,7 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
         };
         const twitter = agent.twitterManager.addTwitterBot(args);
         return () => {
-          agent.twitterManager.removeTwitterBot(twitterBot);
+          agent.twitterManager.removeTwitterBot(twitter);
         };
       }
     })();
