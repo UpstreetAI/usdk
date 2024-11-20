@@ -40,24 +40,33 @@ class TwitterBot {
       });
       // console.log('twitter client 2', client);
 
-      // Uses Twitter API v2 GET /2/users/me endpoint
-      const user = await client.users.findMyUser();
 
+      // GET /2/users/me - Get authenticated user
+      const _fetchLocalUser = async () => {
+        return await client.users.findMyUser();
+      };
+      // GET /2/users/:id/mentions - Get tweets mentioning user
+      const _fetchMentions = async (userId: string) => {
+        return await client.tweets.usersIdMentions(userId, {
+          expansions: ["author_id"],
+          "tweet.fields": ["created_at"]
+        });
+      };
+      // GET /2/users/:id - Get user by ID
+      const _fetchUserById = async (userId: string) => {
+        return await client.users.findUserById(userId);
+      };
       const _poll = async () => {
         try {
-          // GET /2/users/:id/mentions endpoint
-          const mentions = await client.tweets.usersIdMentions(user.data.id, {
-            expansions: ["author_id"],
-            "tweet.fields": ["created_at"]
-          });
+          // GET /2/users/me endpoint
+         const user = await _fetchLocalUser();
+
+          const mentions = await _fetchMentions(user.data.id);
           
           if (mentions.data) {
             for (const tweet of mentions.data) {
               const { author_id, text } = tweet;
-
-              // get the handle of the author
-              // GET /2/users/:id endpoint
-              const author = await client.users.findUserById(author_id);
+              const author = await _fetchUserById(author_id);
               const authorUsername = author.data.username;
 
               console.log('got tweet', text, authorUsername);
