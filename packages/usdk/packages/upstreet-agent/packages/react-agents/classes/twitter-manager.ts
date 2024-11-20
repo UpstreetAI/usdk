@@ -26,10 +26,13 @@ import { Client as TwitterClient } from 'twitter-api-sdk';
 //
 
 class TwitterBot {
+  accessToken: string;
   refreshToken: string;
   clientId: string;
+  clientSecret: string;
   abortController: AbortController;
   agent: ActiveAgentObject;
+  kv: any;
   codecs: any;
   jwt: string;
   client: any;
@@ -39,6 +42,7 @@ class TwitterBot {
     const {
       token,
       agent,
+      kv,
       codecs,
       jwt,
     } = args;
@@ -46,7 +50,7 @@ class TwitterBot {
     if (!token) {
       throw new Error('Twitter bot requires a token');
     }
-    const [accessToken, refreshToken, clientId] = token.split(':');
+    const [accessToken, refreshToken, clientId, clientSecret] = token.split(':');
     if (!accessToken) {
       throw new Error('Twitter bot requires an access token');
     }
@@ -55,6 +59,9 @@ class TwitterBot {
     }
     if (!clientId) {
       throw new Error('Twitter bot requires a client ID');
+    }
+    if (!clientSecret) {
+      throw new Error('Twitter bot requires a client secret');
     }
     if (!agent) {
       throw new Error('Twitter bot requires an agent');
@@ -68,13 +75,18 @@ class TwitterBot {
 
     this.refreshToken = refreshToken;
     this.clientId = clientId;
+    this.clientSecret = clientSecret;
     this.agent = agent;
+    this.kv = kv;
     this.codecs = codecs;
     this.jwt = jwt;
     this.client = null;
     this.conversations = new Map();
 
     this.abortController = new AbortController();
+
+    const refreshTokenKey = `twitter:refreshToken`;
+    const seenTweetIdsKey = `twitter:seenTweetIds`;
 
     const _bind = async () => {
       const _ensureClient = async () => {
@@ -101,39 +113,51 @@ class TwitterBot {
         }
       };
       const _fetchAccessToken = async () => {
-        // get the access token from the twitter oauth api
+        const _tryFetch = async (refreshToken: string) => {
+          const fd = new URLSearchParams();
+          fd.append('refresh_token', refreshToken);
+          fd.append('grant_type', 'refresh_token'); 
+          fd.append('client_id', this.clientId);
 
-        // Step 5: POST oauth2/token - refresh token
-        // A refresh token allows an application to obtain a new access token without prompting the user. You can create a refresh token by making a POST request to the following endpoint: https://api.x.com/2/oauth2/token You will need to add in the Content-Type of application/x-www-form-urlencoded via a header. In addition, you will also need to pass in your refresh_token, set your grant_type to be a refresh_token, and define your client_id.
+          const res = await fetch('https://api.x.com/2/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: fd,
+          });
 
-        // This request will work for public clients:
+          if (res.ok) {
+            const data = await res.json();
+            console.log('got new access/refresh tokens', data);
+            return data;
+          } else {
+            const text = await res.text();
+            throw new Error(`Failed to refresh token: ${res.status}: ${text}`);
+          }
+        };
 
-        // POST 'https://api.x.com/2/oauth2/token' \
-        // -> POST 'https://ai.upstreet.ai/api/twitter/2/oauth2/token' \
-        // --header 'Content-Type: application/x-www-form-urlencoded' \
-        // --data-urlencode 'refresh_token=bWRWa3gzdnk3WHRGU1o0bmRRcTJ5VUxWX1lZTDdJSUtmaWcxbTVxdEFXcW5tOjE2MjIxNDc3NDM5MTQ6MToxOnJ0OjE' \
-        // --data-urlencode 'grant_type=refresh_token' \
-        // --data-urlencode 'client_id=rG9n6402A3dbUJKzXTNX4oWHJ'
-
-        const fd = new URLSearchParams();
-        fd.append('refresh_token', this.refreshToken);
-        fd.append('grant_type', 'refresh_token');
-        fd.append('client_id', this.clientId);
-
-        const res = await fetch('https://ai.upstreet.ai/api/twitter/2/oauth2/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: fd,
-        });
-
-        if (!res.ok) {
-          throw new Error(`Failed to refresh token: ${res.status}`);
-        }
-
-        const json = await res.json();
-        return json.access_token;
+        const data = await (async () => {
+          let error = null;
+          try {
+            return await _tryFetch(this.refreshToken);
+          } catch (err) {
+            error = err;
+          }
+          try {
+            const cachedRefreshToken = await this.kv.get(refreshTokenKey, null);
+            if (cachedRefreshToken) {
+              return await _tryFetch(cachedRefreshToken);
+            } else {
+              throw new Error(`Passed refresh token didn't work and no refresh token cached; aborting`);
+            }
+          } catch (err) {
+            error = err;
+          }
+          throw error;
+        })();
+        await this.kv.set(refreshTokenKey, data.refresh_token);
+        return data.access_token;
       };
       const _refreshClient = async () => {
         const accessToken = await _fetchAccessToken();
@@ -158,15 +182,13 @@ class TwitterBot {
         return await this.client.users.findUserById(userId);
       };
 
-      const seenTweetIds = new Set();
       const _handleTweet = async (tweet: any, author: any) => {
         const { id: tweetId, text, conversation_id } = tweet;
-        const { username: authorUsername, id: authorId } = author.data;
+        // const { username: authorUsername, id: authorId } = author.data;
 
         // Skip if we've already handled this tweet
-        if (!seenTweetIds.has(tweetId)) {
-          seenTweetIds.add(tweetId);
-
+        const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
+        if (!seenTweetIds.includes(tweetId)) {
           // Create or get conversation
           let conversation = this.conversations.get(conversation_id);
           if (!conversation) {
@@ -190,7 +212,7 @@ class TwitterBot {
               if (method === 'say') {
                 const { text } = args;
                 // Reply to tweet
-                await client.tweets.createTweet({
+                await this.client.tweets.createTweet({
                   text,
                   // XXX make this in reply to the previous tweet in the conversation
                   // reply: {
@@ -208,12 +230,12 @@ class TwitterBot {
               text
             }
           };
-          const agent = {
-            id: authorId,
-            name: authorUsername
-          };
+          // const agent = {
+          //   id: authorId,
+          //   name: authorUsername
+          // };
           const newMessage = formatConversationMessage(rawMessage, {
-            agent
+            agent: this.agent,
           });
           await conversation.addLocalMessage(newMessage);
         }
