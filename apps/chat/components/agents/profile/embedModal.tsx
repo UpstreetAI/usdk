@@ -4,7 +4,7 @@ import { encrypt } from '@/utils/crypto/cryptouUtils';
 import { useState } from 'react';
 import { Button } from 'ucom';
 
-export default function EmbedModal() {
+export default function EmbedModal({agent}: {agent: any}) {
   const [trustedUrls, setTrustedUrls] = useState<string[]>([]);
   const [embedCode, setEmbedCode] = useState<string>('');
 
@@ -28,11 +28,10 @@ export default function EmbedModal() {
       return encrypt(tokenData);
     };
   
-    const agentId = "";
     const roomId = crypto.randomUUID();
     const domain = 'example.com';
   
-    const token = generateToken(agentId, roomId, domain);
+    const token = generateToken(agent.id, roomId, domain);
 
     const embedCode = `<iframe src="${window.location.origin}/embed/${token}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
     setEmbedCode(embedCode);
@@ -55,8 +54,13 @@ export default function EmbedModal() {
                   </li>
                 ))}
               </ul>
-              <input type="text" id="trusted-url-input" className="w-full p-2 border border-gray-300 rounded mb-2" placeholder="Enter a trusted URL" />
-              <Button onClick={addUrl}>
+              <input 
+                type="text" 
+                id="trusted-url-input" 
+                className='w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2'
+                placeholder="Enter a trusted URL"
+              />
+              <Button onClick={addUrl} className='w-full'>
                 Add URL
               </Button>
             </div>

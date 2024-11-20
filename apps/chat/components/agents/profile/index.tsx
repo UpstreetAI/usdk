@@ -77,7 +77,7 @@ export function AgentProfile({ agent }: AgentProps) {
     }
 
     fetchRooms();
-
+    
   }, [agent.id, supabase]);
 
   return (
@@ -85,10 +85,10 @@ export function AgentProfile({ agent }: AgentProps) {
       className="w-full h-[calc(100vh-48px)] bg-cover bg-center"
       style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
     >
+
+      <EmbedModal agent={agent} />
+
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
-
-<EmbedModal />
-
         <div className="absolute bottom-16 left-4">
           <div className="mr-4 mb-4 size-40 border-2 border-black rounded-xl bg-opacity-10 overflow-hidden flex items-center justify-center">
             {isPreviewUrlValid ? (
