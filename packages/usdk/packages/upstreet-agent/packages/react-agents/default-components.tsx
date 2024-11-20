@@ -3257,7 +3257,7 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
 };
 // https://twitter-oauth.upstreet.ai/
 // XXX the token needs to be refreshed
-export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
+export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
   const {
     token,
   } = props;
@@ -3281,7 +3281,7 @@ export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
           codecs,
           jwt: authToken,
         };
-        const twitterBot = agent.twitterManager.addTwitterBot(args);
+        const twitter = agent.twitterManager.addTwitterBot(args);
         return () => {
           agent.twitterManager.removeTwitterBot(twitterBot);
         };
