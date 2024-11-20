@@ -4,7 +4,7 @@ import { encrypt } from '@/utils/crypto/cryptouUtils';
 import { useState } from 'react';
 import { Button } from 'ucom';
 
-export default function EmbedModal({agent}: {agent: any}) {
+export default function EmbedModal({agent, close}: {agent: any, close: () => void}) {
   const [trustedUrls, setTrustedUrls] = useState<string[]>([]);
   const [embedCode, setEmbedCode] = useState<string>('');
 
@@ -68,7 +68,7 @@ export default function EmbedModal({agent}: {agent: any}) {
               <Button onClick={generateEmbedCode}>
                 Generate Embed Code
               </Button>
-              <Button>
+              <Button onClick={close}>
                 Cancel
               </Button>
             </div>
