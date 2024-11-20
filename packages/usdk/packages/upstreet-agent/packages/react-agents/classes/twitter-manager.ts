@@ -60,8 +60,11 @@ class TwitterBot {
         _poll();
       }, 10000);
 
-      // // Cleanup interval on unmount
-      // return () => clearInterval(pollInterval);
+      // listen for abort signal
+      const { signal } = this.abortController;
+      signal.addEventListener('abort', () => {
+        clearInterval(pollInterval);
+      });
     };
     
     (async () => {
