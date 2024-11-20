@@ -32,7 +32,7 @@
   "bin": {
     "usdk": "./usdk.js"
   },
-  "license": "GPL-3.0-only",
+  "license": "ISC",
   "files": [
     "certs-local",
     "packages",
