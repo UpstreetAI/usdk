@@ -17,8 +17,6 @@
 ██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
 ```
 
-# UPSTREET.AI
-
 <!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
 [![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
@@ -26,7 +24,8 @@
 
 [Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
 
-> We ❤️ Open Source! Star (⭐️) [this repo](https://github.com/upstreetAI/monorepo) to support our development.
+> We ❤️ Open Source! <br />
+> Star (⭐️) [this repo](https://github.com/upstreetAI/monorepo) to support our development.
 
 [Table of Contents](#in-this-repo) •
 [Getting started with USDK](#getting-started-with-usdk) •
@@ -58,13 +57,13 @@ If you want to get started with Upstreet Agents in general, you can simply insta
 npm i -g usdk
 ```
 
-Read more about how to use `usdk` in the [docs](https://docs.upstreet.ai/install).
+Read more about how to use `usdk` in the [documentation](https://docs.upstreet.ai/install).
 
 If you want to dive deeper into `usdk` and Upstreet, you can [set up this repository locally.](#Setting-up-your-development-environment)
 
 ## Contributing
 
-Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/monorepo/issues/new) on GitHub, or talk to the community to get help.
+Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/monorepo/issues/new) on GitHub, or talk to the [community](https://upstreet.ai/usdk-discord) to get help.
 
 ### Setting up your development environment
 
