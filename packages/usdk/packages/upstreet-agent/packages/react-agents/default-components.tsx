@@ -3256,6 +3256,7 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   return null;
 };
 // https://twitter-oauth.upstreet.ai/
+// XXX the token needs to be refreshed
 export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
   const {
     token,
