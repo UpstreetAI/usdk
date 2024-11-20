@@ -83,59 +83,65 @@ class TwitterBot {
         return await client.users.findUserById(userId);
       };
 
+      const seenTweetIds = new Set();
       const _handleTweet = async (tweet: any, author: any) => {
         const { id: tweetId, text, conversation_id } = tweet;
         const { username: authorUsername, id: authorId } = author.data;
 
-        // Create or get conversation
-        let conversation = this.conversations.get(conversation_id);
-        if (!conversation) {
-          conversation = new ConversationObject({
-            agent: this.agent,
-            getHash: () => `twitter:conversation:${conversation_id}`,
-          });
-          
-          this.agent.conversationManager.addConversation(conversation);
-          this.conversations.set(conversation_id, conversation);
+        // Skip if we've already handled this tweet
+        if (!seenTweetIds.has(tweetId)) {
+          seenTweetIds.add(tweetId);
 
-          bindConversationToAgent({
-            agent: this.agent,
-            conversation,
-          });
+          // Create or get conversation
+          let conversation = this.conversations.get(conversation_id);
+          if (!conversation) {
+            conversation = new ConversationObject({
+              agent: this.agent,
+              getHash: () => `twitter:conversation:${conversation_id}`,
+            });
+            
+            this.agent.conversationManager.addConversation(conversation);
+            this.conversations.set(conversation_id, conversation);
 
-          // Handle outgoing messages
-          conversation.addEventListener('remotemessage', async (e: any) => {
-            const { message } = e.data;
-            const { method, args } = message;
-            if (method === 'say') {
-              const { text } = args;
-              // Reply to tweet
-              await client.tweets.createTweet({
-                text,
-                // XXX make this in reply to the previous tweet in the conversation
-                // reply: {
-                //   in_reply_to_tweet_id: tweetId,
-                // }
-              });
-            }
-          });
-        }
+            bindConversationToAgent({
+              agent: this.agent,
+              conversation,
+            });
 
-        // Add message to conversation
-        const rawMessage = {
-          method: 'say',
-          args: {
-            text
+            // Handle outgoing messages
+            conversation.addEventListener('remotemessage', async (e: any) => {
+              const { message } = e.data;
+              const { method, args } = message;
+              if (method === 'say') {
+                const { text } = args;
+                // Reply to tweet
+                await client.tweets.createTweet({
+                  text,
+                  // XXX make this in reply to the previous tweet in the conversation
+                  // reply: {
+                  //   in_reply_to_tweet_id: tweetId,
+                  // }
+                });
+              }
+            });
           }
-        };
-        const agent = {
-          id: authorId,
-          name: authorUsername
-        };
-        const newMessage = formatConversationMessage(rawMessage, {
-          agent
-        });
-        await conversation.addLocalMessage(newMessage);
+
+          // Add message to conversation
+          const rawMessage = {
+            method: 'say',
+            args: {
+              text
+            }
+          };
+          const agent = {
+            id: authorId,
+            name: authorUsername
+          };
+          const newMessage = formatConversationMessage(rawMessage, {
+            agent
+          });
+          await conversation.addLocalMessage(newMessage);
+        }
       };
 
       const _poll = async () => {
