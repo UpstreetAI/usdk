@@ -3261,6 +3261,7 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
     token,
   } = props;
   const agent = useAgent();
+  const kv = useKv();
   const appContextValue = useContext(AppContext);
   const codecs = appContextValue.useCodecs();
   const authToken = useAuthToken();
@@ -3277,6 +3278,7 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
         const args: TwitterArgs = {
           token,
           agent,
+          kv,
           codecs,
           jwt: authToken,
         };

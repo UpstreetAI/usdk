@@ -123,6 +123,7 @@ export type TwitterProps = {
 export type TwitterArgs = {
   token: string;
   agent: ActiveAgentObject;
+  kv: any;
   codecs: any;
   jwt: string;
 };
