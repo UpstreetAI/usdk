@@ -2,6 +2,7 @@ import React from 'react';
 import { EmbedChat } from '@/components/chat/embed-chat';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
+import { decrypt } from '@/utils/crypto/cryptouUtils';
 
 type Params = {
   params: {
@@ -29,18 +30,32 @@ async function getAgentData(supabase: any, identifier: string) {
   return result;
 }
 
+const getIpAddress = async () => {
+  const response = await fetch('https://api.ipify.org?format=json');
+  const data = await response.json();
+  return data.ip;
+};
+
 export default async function EmbedPage({ params }: Params) {
-  const agentId = decodeURIComponent(params.id)
+  const embedToken = decodeURIComponent(params.id)
+
+  const token = JSON.parse(decrypt(embedToken));
+
+  console.log(token)
 
   const supabase = makeAnonymousClient(env);
-  const identifier = decodeURIComponent(params.id);
+  const identifier = decodeURIComponent(token.agentId);
 
   const result = await getAgentData(supabase, identifier);
   const agentData = result.data as any;
 
+  const ip = await getIpAddress()
+
+  console.log(ip)
+
   return (
     <div className="w-full relative flex h-screen overflow-hidden">
-      <EmbedChat agent={agentData} room="221a406b-0674-4c30-b072-9503226ac8b4" />
+      <EmbedChat id={agentData.id} room="221a406b-0674-4c30-b072-9503226ac8b4" />
     </div>
   );
 }
