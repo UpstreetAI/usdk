@@ -3260,6 +3260,9 @@ export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
     token,
   } = props;
   const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
   const ref = useRef(false);
 
   useEffect(() => {
@@ -3272,6 +3275,9 @@ export const TwitterBot: React.FC<TwitterProps> = (props: TwitterProps) => {
       if (token) {
         const args: TwitterArgs = {
           token,
+          agent,
+          codecs,
+          jwt: authToken,
         };
         const twitterBot = agent.twitterManager.addTwitterBot(args);
         return () => {

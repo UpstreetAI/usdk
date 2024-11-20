@@ -2,7 +2,7 @@ import {
   // DiscordRoomSpec,
   // DiscordArgs,
   // ConversationEventData,
-  // ActiveAgentObject,
+  ActiveAgentObject,
   // ExtendableMessageEvent,
   // ActionMessageEventData,
   // PlayableAudioStream,
@@ -15,13 +15,25 @@ import { Client as TwitterClient } from 'twitter-api-sdk';
 class TwitterBot {
   token: string;
   abortController: AbortController;
+  agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
   constructor(args: TwitterArgs) {
+    const {
+      token,
+      agent,
+      codecs,
+      jwt,
+    } = args;
+
+    this.token = token;
+    this.agent = agent;
+    this.codecs = codecs;
+    this.jwt = jwt;
+
     this.abortController = new AbortController();
 
     const _bind = async () => {
-      const {
-        token,
-      } = args;
       // console.log('twitter client', token);
       const client = new TwitterClient(token, {
         endpoint: `https://ai.upstreet.ai/api/twitter`,

@@ -122,6 +122,9 @@ export type TwitterProps = {
 };
 export type TwitterArgs = {
   token: string;
+  agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
 };
 
 // telnyx
