@@ -15,6 +15,7 @@ import {
 } from './agent-spec-utils.mjs';
 import { getDirectoryHash } from '../util/hash-util.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
+import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 
 const isDirectory = async (dir) => {
   try {
@@ -109,6 +110,19 @@ export const update = async (args, opts) => {
         // write the agent json
         wranglerToml.vars.AGENT_JSON = JSON.stringify(agentJson);
         await fs.promises.writeFile(wranglerTomlPath, toml.stringify(wranglerToml));
+      }
+
+      const has = await hasNpm();
+      if (has) {
+        console.log(pc.italic('Installing dependencies...'));
+        try {
+          await npmInstall(directory);
+        } catch(err) {
+          console.warn('failed to install dependencies:', err.stack);
+        }
+      } else {
+        console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
+        console.warn('To install dependencies, run `npm install` in the agent directory.');
       }
 
       console.log(pc.green(`Agent ${directory} updated to version ${packageJson.version}`));

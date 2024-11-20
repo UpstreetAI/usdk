@@ -3226,6 +3226,9 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
     userWhitelist,
   } = props;
   const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
 
   useEffect(() => {
     const args: DiscordArgs = {
@@ -3234,6 +3237,8 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
       dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],
       userWhitelist,
       agent,
+      codecs,
+      jwt: authToken,
     };
     const discordBot = agent.discordManager.addDiscordBot(args);
     return () => {

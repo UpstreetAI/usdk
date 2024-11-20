@@ -111,6 +111,8 @@ export type DiscordArgs = {
   dms: DiscordRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
 };
 
 // telnyx

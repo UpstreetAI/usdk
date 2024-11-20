@@ -1,6 +1,7 @@
 import {channelCount, bitrate, frameSize, voiceOptimization} from './ws-constants.mjs';
 import { QueueManager } from 'queue-manager';
 import { floatTo16Bit } from './convert.mjs';
+import { formatSamples } from './format.mjs';
 
 export const makeOpusCodec = (libopus) =>
 class WsOpusCodec extends EventTarget {
@@ -48,7 +49,7 @@ class WsOpusCodec extends EventTarget {
                   duration: 1, // fake
                 });
     
-                globalThis.close();
+                this.close();
               }
             });
           }
@@ -77,7 +78,7 @@ class WsOpusCodec extends EventTarget {
               } else {
                 this.dispatchMessage(null);
     
-                globalThis.close();
+                this.close();
               }
             });
           };

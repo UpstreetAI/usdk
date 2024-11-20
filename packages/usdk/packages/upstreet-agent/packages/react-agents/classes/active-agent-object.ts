@@ -79,7 +79,9 @@ export class ActiveAgentObject extends AgentObject {
       agent: this,
       chatsSpecification,
     });
-    this.discordManager = new DiscordManager();
+    this.discordManager = new DiscordManager({
+      codecs: appContextValue.useCodecs(),
+    });
     this.telnyxManager = new TelnyxManager();
     this.liveManager = new LiveManager({
       agent: this,
