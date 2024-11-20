@@ -4,7 +4,7 @@ interface EmbedLayoutProps {
 
 export default async function EmbedLayout({ children }: EmbedLayoutProps) {
   return (
-    <div className="relative flex min-h-full">
+    <div className="relative flex h-full w-full">
       {children}
     </div>
   );
