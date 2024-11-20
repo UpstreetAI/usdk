@@ -41,6 +41,9 @@ export function AgentProfile({ agent }: AgentProps) {
   const [rooms, setRooms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // state to toggle the embed modal
+  const [embedModal, setEmbedModal] = useState<boolean>(false);
+
   const handleCopy = () => {
     if (!isCopied) {
       copyToClipboard(agent.id);
@@ -50,9 +53,6 @@ export function AgentProfile({ agent }: AgentProps) {
   const backgroundImageUrl = agent.images?.[0]?.url || '/images/backgrounds/agents/default-agent-profile-background.jpg';
   const isPreviewUrlValid = isValidUrl(agent.preview_url);
   const agentInitial = agent.name.charAt(0).toUpperCase();
-
-  // state to toggle the embed modal
-  const [embedModal, setEmbedModal] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchRooms() {
@@ -76,7 +76,7 @@ export function AgentProfile({ agent }: AgentProps) {
     }
 
     fetchRooms();
-    
+
   }, [agent.id, supabase]);
 
   return (
@@ -84,8 +84,9 @@ export function AgentProfile({ agent }: AgentProps) {
       className="w-full h-[calc(100vh-48px)] bg-cover bg-center"
       style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
     >
-
-      <EmbedModal agent={agent} />
+      {embedModal &&
+        <EmbedModal agent={agent} close={() => setEmbedModal(false)} />
+      }
 
       <div className="w-full max-w-6xl mx-auto h-full pt-20 relative">
         <div className="absolute bottom-16 left-4">
@@ -106,8 +107,8 @@ export function AgentProfile({ agent }: AgentProps) {
           <div>
             <div className="text-6xl uppercase flex font-bold text-stroke">
               <div>{agent.name}</div>
-              <div 
-                onClick={() => setEmbedModal(true)} 
+              <div
+                onClick={() => setEmbedModal(true)}
                 className='ml-6'
               >
                 <IconEmbedCode className='size-14' />
