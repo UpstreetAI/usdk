@@ -22,14 +22,8 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
   };
 
   const generateEmbedCode = () => {
-    const generateToken = (agentId: string, domains: string[]) => {
-      const tokenData = JSON.stringify({ agentId, trustedDomains: domains });
-      return encrypt(tokenData);
-    };
-  
-    const token = generateToken(agent.id, trustedUrls);
 
-    const embedCode = `<iframe src="${window.location.origin}/embed/${token}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
+    const embedCode = `<iframe src="${window.location.origin}/embed/${agent.id}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
     setEmbedCode(embedCode);
   };
 
