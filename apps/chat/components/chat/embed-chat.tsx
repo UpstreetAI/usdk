@@ -74,12 +74,12 @@ type Message = {
 //
 
 export interface ChatProps extends React.ComponentProps<'div'> {
-  id?: string
+  agentId?: string
   room: string
   onConnect?: (connected: boolean) => void
 }
-export function EmbedChat({ className, id, room, onConnect }: ChatProps) {
-  const { agentJoin } = useMultiplayerActions();
+export function EmbedChat({ className, agentId, room, onConnect }: ChatProps) {
+  const { agentJoinEmbedRoom } = useMultiplayerActions();
   const [input, setInput] = useState('')
   const { user } = useSupabase();
 
@@ -131,10 +131,10 @@ export function EmbedChat({ className, id, room, onConnect }: ChatProps) {
         room,
         localPlayerSpec,
       });
-
-      agentJoin(id)
+      if(agentId)
+      agentJoinEmbedRoom(agentId)
     }
-  }, [room, user, setMultiplayerConnectionParameters]);
+  }, [room, agentId, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor();
