@@ -33,12 +33,11 @@ From the root directory run:
 ```bash
 pnpm run docs start
 ```
-#### Install SDK
+#### Install development SDK
 From the root directory run:
 ```bash
 cd packages/usdk
-pnpm i
-pnpm i -g .
+sudo ln -sf $(pwd)/usdk.js /usr/local/bin/usdk # add usdk to PATH
 usdk --version
 ```
 
