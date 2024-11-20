@@ -24,9 +24,9 @@
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
 [![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/upstreetai)
 
-Welcome to the main monorepo of [Upstreet.ai](https://upstreet.ai), which contains all our open-source subprojects.
+[Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
 
-> We ❤️ Open Source! Star (⭐️) this repo to support our development.
+> We ❤️ Open Source! Star (⭐️) [this repo](https://github.com/upstreetAI/monorepo) to support our development.
 
 [Table of Contents](#in-this-repo) •
 [Getting started with USDK](#getting-started-with-usdk) •
