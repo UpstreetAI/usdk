@@ -26,11 +26,13 @@ import { Client as TwitterClient } from 'twitter-api-sdk';
 //
 
 class TwitterBot {
-  token: string;
+  refreshToken: string;
+  clientId: string;
   abortController: AbortController;
   agent: ActiveAgentObject;
   codecs: any;
   jwt: string;
+  client: any;
   conversations: Map<string, ConversationObject>; // tweetId -> conversation
 
   constructor(args: TwitterArgs) {
@@ -44,6 +46,16 @@ class TwitterBot {
     if (!token) {
       throw new Error('Twitter bot requires a token');
     }
+    const [accessToken, refreshToken, clientId] = token.split(':');
+    if (!accessToken) {
+      throw new Error('Twitter bot requires an access token');
+    }
+    if (!refreshToken) {
+      throw new Error('Twitter bot requires a refresh token');
+    }
+    if (!clientId) {
+      throw new Error('Twitter bot requires a client ID');
+    }
     if (!agent) {
       throw new Error('Twitter bot requires an agent');
     }
@@ -54,33 +66,96 @@ class TwitterBot {
       throw new Error('Twitter bot requires a jwt');
     }
 
-    this.token = token;
+    this.refreshToken = refreshToken;
+    this.clientId = clientId;
     this.agent = agent;
     this.codecs = codecs;
     this.jwt = jwt;
+    this.client = null;
     this.conversations = new Map();
 
     this.abortController = new AbortController();
 
     const _bind = async () => {
-      const client = new TwitterClient(token, {
-        endpoint: `https://ai.upstreet.ai/api/twitter`,
-      });
+      const _ensureClient = async () => {
+        // clear old client if neccessary
+        if (this.client) {
+          // check if the client is still ok
+          let ok = true;
+          try {
+            const user = await _fetchLocalUser();
+            if (!user) {
+              ok = false;
+            }
+          } catch (err) {
+            console.warn('client no authorized, attempting refresh:', err);
+            ok = false;
+          }
+          if (!ok) {
+            this.client = null;
+          }
+        }
+        // refresh client if necessary
+        if (!this.client) {
+          await _refreshClient();
+        }
+      };
+      const _fetchAccessToken = async () => {
+        // get the access token from the twitter oauth api
+
+        // Step 5: POST oauth2/token - refresh token
+        // A refresh token allows an application to obtain a new access token without prompting the user. You can create a refresh token by making a POST request to the following endpoint: https://api.x.com/2/oauth2/token You will need to add in the Content-Type of application/x-www-form-urlencoded via a header. In addition, you will also need to pass in your refresh_token, set your grant_type to be a refresh_token, and define your client_id.
+
+        // This request will work for public clients:
+
+        // POST 'https://api.x.com/2/oauth2/token' \
+        // -> POST 'https://ai.upstreet.ai/api/twitter/2/oauth2/token' \
+        // --header 'Content-Type: application/x-www-form-urlencoded' \
+        // --data-urlencode 'refresh_token=bWRWa3gzdnk3WHRGU1o0bmRRcTJ5VUxWX1lZTDdJSUtmaWcxbTVxdEFXcW5tOjE2MjIxNDc3NDM5MTQ6MToxOnJ0OjE' \
+        // --data-urlencode 'grant_type=refresh_token' \
+        // --data-urlencode 'client_id=rG9n6402A3dbUJKzXTNX4oWHJ'
+
+        const fd = new URLSearchParams();
+        fd.append('refresh_token', this.refreshToken);
+        fd.append('grant_type', 'refresh_token');
+        fd.append('client_id', this.clientId);
+
+        const res = await fetch('https://ai.upstreet.ai/api/twitter/2/oauth2/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: fd,
+        });
+
+        if (!res.ok) {
+          throw new Error(`Failed to refresh token: ${res.status}`);
+        }
+
+        const json = await res.json();
+        return json.access_token;
+      };
+      const _refreshClient = async () => {
+        const accessToken = await _fetchAccessToken();
+        this.client = new TwitterClient(accessToken, {
+          endpoint: `https://ai.upstreet.ai/api/twitter`,
+        });
+      };
 
       // GET /2/users/me - Get authenticated user
       const _fetchLocalUser = async () => {
-        return await client.users.findMyUser();
+        return await this.client.users.findMyUser();
       };
       // GET /2/users/:id/mentions - Get tweets mentioning user 
       const _fetchMentions = async (userId: string) => {
-        return await client.tweets.usersIdMentions(userId, {
+        return await this.client.tweets.usersIdMentions(userId, {
           expansions: ["author_id"],
           "tweet.fields": ["created_at", "conversation_id"]
         });
       };
       // GET /2/users/:id - Get user by ID
       const _fetchUserById = async (userId: string) => {
-        return await client.users.findUserById(userId);
+        return await this.client.users.findUserById(userId);
       };
 
       const seenTweetIds = new Set();
@@ -146,6 +221,7 @@ class TwitterBot {
 
       const _poll = async () => {
         try {
+          await _ensureClient();
           const user = await _fetchLocalUser();
           const mentions = await _fetchMentions(user.data.id);
           
