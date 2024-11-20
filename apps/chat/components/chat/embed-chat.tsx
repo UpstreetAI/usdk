@@ -151,7 +151,7 @@ export function EmbedChat({ className, id, room, onConnect }: ChatProps) {
         <>
           <div className='h-screen overflow-auto' ref={scrollRef}>
             <div
-              className={cn('pb-[200px] pt-4 md:pt-24', className)}
+              className={cn('pb-[200px] pt-4', className)}
               ref={messagesRef}
             >
               {messages.length ? (
