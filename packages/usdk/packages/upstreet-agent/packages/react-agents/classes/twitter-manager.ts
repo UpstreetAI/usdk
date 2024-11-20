@@ -22,17 +22,18 @@ class TwitterBot {
       const {
         token,
       } = args;
+      // console.log('twitter client', token);
       const client = new TwitterClient(token, {
         endpoint: `https://ai.upstreet.ai/api/twitter`,
       });
       // console.log('twitter client 2', client);
 
+      // Uses Twitter API v2 GET /2/users/me endpoint
       const user = await client.users.findMyUser();
 
       const _poll = async () => {
         try {
-          // This uses Twitter API v2 via twitter-api-sdk
-          // Specifically the GET /2/users/:id/mentions endpoint
+          // GET /2/users/:id/mentions endpoint
           const mentions = await client.tweets.usersIdMentions(user.data.id, {
             expansions: ["author_id"],
             "tweet.fields": ["created_at"]
@@ -41,7 +42,9 @@ class TwitterBot {
           if (mentions.data) {
             for (const tweet of mentions.data) {
               const { author_id, text } = tweet;
+
               // get the handle of the author
+              // GET /2/users/:id endpoint
               const author = await client.users.findUserById(author_id);
               const authorUsername = author.data.username;
 
