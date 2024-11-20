@@ -105,9 +105,9 @@ import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 // } from './util/ethereum-utils.mjs';
 import LoggerFactory from './util/logger/logger-factory.mjs';
 import { getLatestVersion } from './lib/version.mjs';
-import {
-  getDirectoryHash,
-} from './util/hash-util.mjs';
+// import {
+//   getDirectoryHash,
+// } from './util/hash-util.mjs';
 
 globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
