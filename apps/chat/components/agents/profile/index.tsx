@@ -51,9 +51,8 @@ export function AgentProfile({ agent }: AgentProps) {
   const isPreviewUrlValid = isValidUrl(agent.preview_url);
   const agentInitial = agent.name.charAt(0).toUpperCase();
 
-
-
-  const [embedToken, setEmbedToken] = useState('');
+  // state to toggle the embed modal
+  const [embedModal, setEmbedModal] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchRooms() {
@@ -107,7 +106,12 @@ export function AgentProfile({ agent }: AgentProps) {
           <div>
             <div className="text-6xl uppercase flex font-bold text-stroke">
               <div>{agent.name}</div>
-              <div className='ml-6'><IconEmbedCode className='size-14' /></div>
+              <div 
+                onClick={() => setEmbedModal(true)} 
+                className='ml-6'
+              >
+                <IconEmbedCode className='size-14' />
+              </div>
             </div>
             <div className="flex items-center mb-1">
               <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
