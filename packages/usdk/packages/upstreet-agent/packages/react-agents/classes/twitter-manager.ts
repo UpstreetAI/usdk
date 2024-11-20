@@ -4,7 +4,8 @@ import {
   // ConversationEventData,
   ActiveAgentObject,
   // ExtendableMessageEvent,
-  // ActionMessageEventData,
+  ActionMessageEvent,
+  ActionMessageEventData,
   // PlayableAudioStream,
   TwitterArgs,
 } from '../types';
@@ -206,12 +207,13 @@ class TwitterBot {
             });
 
             // Handle outgoing messages
-            conversation.addEventListener('remotemessage', async (e: any) => {
-              const { message } = e.data;
+            conversation.addEventListener('remotemessage', async (e: ActionMessageEvent) => {
+              const { message, metadata } = e.data;
+              console.log('got twitter metadata', metadata);
               const { method, args } = message;
               if (method === 'say') {
                 const { text } = args;
-                // Reply to tweet
+                // Send the response tweet
                 await this.client.tweets.createTweet({
                   text,
                   // XXX make this in reply to the previous tweet in the conversation
@@ -230,28 +232,26 @@ class TwitterBot {
               text
             }
           };
-          // const agent = {
-          //   id: authorId,
-          //   name: authorUsername
-          // };
           const newMessage = formatConversationMessage(rawMessage, {
             agent: this.agent,
           });
+          // XXX might need to pass the metadata referencing the original tweet
           await conversation.addLocalMessage(newMessage);
         }
       };
 
       const _poll = async () => {
         try {
+          // XXX add queuManager.waitForTurn()
           await _ensureClient();
           const user = await _fetchLocalUser();
           const mentions = await _fetchMentions(user.data.id);
-          
+
           if (mentions.data) {
-            for (const tweet of mentions.data) {
+            const tweetPromises = mentions.data.map(async (tweet) => {
               // tweet:
               // - id: string (Tweet ID)
-              // - text: string (Tweet content)
+              // - text: string (Tweet content) 
               // - author_id: string (User ID who wrote the tweet)
               // - created_at: string (Tweet creation timestamp)
               // - edit_history_tweet_ids: string[] (IDs of previous versions if edited)
@@ -263,22 +263,28 @@ class TwitterBot {
               // - reply_settings: string (Who can reply to this tweet)
               // - source: string (Client used to post tweet)
               const { author_id } = tweet;
+              // Skip if tweet is from ourselves
+              if (author_id === user.data.id) {
+                return;
+              }
               const author = await _fetchUserById(author_id);
               await _handleTweet(tweet, author);
-            }
+            });
+            await Promise.all(tweetPromises);
           }
         } catch (err) {
           console.error('Error polling tweets:', err);
         }
       };
 
-      // Poll for tweets mentioning username
+      // Poll for tweets mentioning us
       const pollTimeout = setTimeout(() => {
         _poll();
       });
+      const pollRate = 15 * 60 * 1000 / 10 + 1000; // 10 requests per 15 minutes, plus 1 second buffer
       const pollInterval = setInterval(async () => {
         _poll();
-      }, 10000);
+      }, pollRate);
 
       // listen for abort signal
       const { signal } = this.abortController;
