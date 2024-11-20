@@ -38,7 +38,7 @@ export default function EmbedModal({agent}: {agent: any}) {
   };
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 text-zinc-900">
+    <div className="fixed inset-0 bg-opacity-50 bg-zinc-950 flex justify-center items-center z-50 text-zinc-900">
       <div className="bg-[#C8CFD7] rounded-lg w-full max-w-4xl">
         <div className='bg-zinc-900 px-4 py-3 text-xl font-bold text-center text-white'>Embed Agent</div>
         <div className="p-6 flex gap-4">
