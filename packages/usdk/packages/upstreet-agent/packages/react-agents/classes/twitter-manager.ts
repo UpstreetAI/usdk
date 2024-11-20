@@ -41,6 +41,19 @@ class TwitterBot {
       jwt,
     } = args;
 
+    if (!token) {
+      throw new Error('Twitter bot requires a token');
+    }
+    if (!agent) {
+      throw new Error('Twitter bot requires an agent');
+    }
+    if (!codecs) {
+      throw new Error('Twitter bot requires codecs');
+    }
+    if (!jwt) {
+      throw new Error('Twitter bot requires a jwt');
+    }
+
     this.token = token;
     this.agent = agent;
     this.codecs = codecs;
