@@ -78,7 +78,8 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
   onConnect?: (connected: boolean) => void
 }
-export function EmbedChat({ className, id, /* user, missingKeys, */ room, onConnect }: ChatProps) {
+export function EmbedChat({ className, id, room, onConnect }: ChatProps) {
+  const { agentJoin } = useMultiplayerActions();
   const [input, setInput] = useState('')
   const { user } = useSupabase();
 
@@ -130,6 +131,8 @@ export function EmbedChat({ className, id, /* user, missingKeys, */ room, onConn
         room,
         localPlayerSpec,
       });
+
+      agentJoin(id)
     }
   }, [room, user, setMultiplayerConnectionParameters]);
 
