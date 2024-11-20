@@ -9,11 +9,19 @@
 
 <div align="center">
 
+```
+  ██  ██ ██████  ███████ ████████ ██████  ███████ ███████ ████████
+  ██  ██ ██   ██ ██         ██    ██   ██ ██      ██         ██   
+  ██  ██ ██████  ███████    ██    ██████  █████   █████      ██   
+  ██  ██ ██           ██    ██    ██   ██ ██      ██         ██   
+██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
+```
+
 # UPSTREET.AI
 
 <!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
 [![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
+[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
 [![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/upstreetai)
 
 Welcome to the main monorepo of [Upstreet.ai](https://upstreet.ai), which contains all our open-source subprojects.
@@ -22,8 +30,8 @@ Welcome to the main monorepo of [Upstreet.ai](https://upstreet.ai), which contai
 
 [Table of Contents](#in-this-repo) •
 [Getting started with USDK](#getting-started-with-usdk) •
-[Integrations](#integrations) •
-[Contributing](#contributing)
+[Contributing](#contributing) •
+[Attributions](#usdk-is-built-with)
 
 </div>
 
@@ -105,13 +113,6 @@ Editing the `usdk` package will now automatically update your locally-installed 
 
 <div align="center">
 
-<<<<<<< Updated upstream
-#### Docs
-```bash
-npm i PACKAGE_NAME --workspace=@upstreet/docs
-```
-
-=======
 ### USDK is built with
 
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
@@ -122,4 +123,3 @@ npm i PACKAGE_NAME --workspace=@upstreet/docs
 
 ... And many more closed source and open-source projects.
 </div>
->>>>>>> Stashed changes
