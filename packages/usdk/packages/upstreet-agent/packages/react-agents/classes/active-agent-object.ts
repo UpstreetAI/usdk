@@ -1,6 +1,4 @@
 import { useEffect } from 'react';
-// import { z } from 'zod';
-// import dedent from 'dedent';
 import {
   AgentObject,
 } from './agent-object';
@@ -8,7 +6,8 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
-  LiveTriggerEvent,
+  ActionMessageEventData,
+  // LiveTriggerEvent,
 } from '../types';
 import {
   ConversationObject,
@@ -48,6 +47,7 @@ export class ActiveAgentObject extends AgentObject {
   conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  twitterManager: TwitterManager;
   telnyxManager: TelnyxManager;
   liveManager: LiveManager;
   pingManager: PingManager;
@@ -138,12 +138,17 @@ export class ActiveAgentObject extends AgentObject {
   // convert this ActiveAgentObject to a cached GenerativeAgentObject for inference
   generative({
     conversation,
+    perception,
   }: {
     conversation: ConversationObject;
+    perception: ActionMessageEventData;
   }) {
     let generativeAgent = this.generativeAgentsMap.get(conversation);
     if (!generativeAgent) {
-      generativeAgent = new GenerativeAgentObject(this, conversation);
+      generativeAgent = new GenerativeAgentObject(this, {
+        conversation,
+        perception,
+      });
       this.generativeAgentsMap.set(conversation, generativeAgent);
     }
     return generativeAgent;

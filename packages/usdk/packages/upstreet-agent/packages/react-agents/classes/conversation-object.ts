@@ -195,7 +195,7 @@ export class ConversationObject extends EventTarget {
   } */
 
   // handle a message from the network
-  async addLocalMessage(message: ActionMessage) {
+  async addLocalMessage(message: ActionMessage, metadata?: any) {
     const {
       hidden,
     } = message;
@@ -217,13 +217,14 @@ export class ConversationObject extends EventTarget {
       data: {
         agent: playerSpec,
         message,
+        metadata,
       },
     });
     this.dispatchEvent(e);
     await e.waitForFinish();
   }
   // send a message to the network
-  async addLocalAndRemoteMessage(message: ActionMessage) {
+  async addLocalAndRemoteMessage(message: ActionMessage, metadata?: any) {
     const {
       hidden,
     } = message;
@@ -234,6 +235,7 @@ export class ConversationObject extends EventTarget {
     const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
       data: {
         message,
+        metadata,
       },
     });
     this.dispatchEvent(e);

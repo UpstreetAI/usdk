@@ -402,6 +402,7 @@ const handleChatPerception = async (data: ActionMessageEventData, {
     }).map(async (perceptionModifier) => {
       const targetAgent = agent.generative({
         conversation,
+        perception: data,
       });
       const e = new AbortablePerceptionEvent({
         targetAgent,
@@ -425,6 +426,7 @@ const handleChatPerception = async (data: ActionMessageEventData, {
       if (perception.type === message.method) {
         const targetAgent = agent.generative({
           conversation,
+          perception: data,
         });
         const e = new PerceptionEvent({
           targetAgent,

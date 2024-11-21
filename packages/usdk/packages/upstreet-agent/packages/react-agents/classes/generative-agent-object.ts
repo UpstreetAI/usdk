@@ -7,6 +7,7 @@ import type {
   ReadableAudioStream,
   PlayableAudioStream,
   AgentThinkOptions,
+  ActionMessageEventData,
 } from '../types';
 import {
   ConversationObject,
@@ -28,7 +29,8 @@ import { chatEndpointUrl } from '../util/endpoints.mjs';
 export class GenerativeAgentObject {
   // members
   agent: ActiveAgentObject;
-  conversation: ConversationObject;
+  conversation: ConversationObject; // the conversation that this generative agent is bound to
+  perception?: ActionMessageEventData; // the perception that triggered this generative agent
   // state
   generativeQueueManager = new QueueManager();
 
@@ -36,10 +38,17 @@ export class GenerativeAgentObject {
   
   constructor(
     agent: ActiveAgentObject,
-    conversation: ConversationObject,
+    {
+      conversation,
+      perception,
+    }: {
+      conversation: ConversationObject;
+      perception?: ActionMessageEventData;
+    },
   ) {
     this.agent = agent;
     this.conversation = conversation;
+    this.perception = perception;
   }
 
   //
@@ -161,7 +170,10 @@ export class GenerativeAgentObject {
     const newMessage = formatConversationMessage(message, {
       agent: this.agent,
     });
-    return await this.conversation.addLocalAndRemoteMessage(newMessage);
+    const metadata = {
+      perception: this.perception ?? null,
+    };
+    return await this.conversation.addLocalAndRemoteMessage(newMessage, metadata);
   }
 
   addAudioStream(playableAudioStream: PlayableAudioStream) {

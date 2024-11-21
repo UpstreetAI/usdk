@@ -43,6 +43,7 @@ export type AgentSpec = {
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
+  perception?: ActionMessageEventData;
   generativeQueueManager: QueueManager;
   
   get location(): URL;
@@ -403,8 +404,10 @@ export type ActiveAgentObject = AgentObject & {
 
   generative: ({
     conversation,
+    perception,
   }: {
     conversation: ConversationObject,
+    perception?: ActionMessageEventData,
   }) => GenerativeAgentObject;
 
   getMemories: (opts?: GetMemoryOpts) => Promise<Array<Memory>>;
@@ -462,6 +465,7 @@ export type AbortablePerceptionEvent = AbortableMessageEvent<PerceptionEventData
 export type ActionMessageEventData = {
   agent: AgentObject;
   message: ActionMessage;
+  metadata: any;
 };
 export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
 
