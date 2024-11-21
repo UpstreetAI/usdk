@@ -8,6 +8,7 @@ import type {
   PlayableAudioStream,
   AgentThinkOptions,
   ActionMessageEventData,
+  ActionStep,
 } from '../types';
 import {
   ConversationObject,
@@ -30,9 +31,9 @@ export class GenerativeAgentObject {
   // members
   agent: ActiveAgentObject;
   conversation: ConversationObject; // the conversation that this generative agent is bound to
-  perception?: ActionMessageEventData; // the perception that triggered this generative agent
   // state
   generativeQueueManager = new QueueManager();
+  thinkCache: Array<ActionStep> = [];
 
   //
   
@@ -40,15 +41,12 @@ export class GenerativeAgentObject {
     agent: ActiveAgentObject,
     {
       conversation,
-      perception,
     }: {
       conversation: ConversationObject;
-      perception?: ActionMessageEventData;
     },
   ) {
     this.agent = agent;
     this.conversation = conversation;
-    this.perception = perception;
   }
 
   //
@@ -83,21 +81,19 @@ export class GenerativeAgentObject {
 
   // methods
 
+  // returns the ActionStep that the agent took
   async think(hint?: string, thinkOpts?: AgentThinkOptions) {
     await this.generativeQueueManager.waitForTurn(async () => {
-      // console.log('agent renderer think 1');
       await this.conversation.typing(async () => {
-        // console.log('agent renderer think 2');
         try {
           const step = await generateAgentActionStep(this, hint, thinkOpts);
-          // console.log('agent renderer think 3');
           await executeAgentActionStep(this, step);
-          // console.log('agent renderer think 4');
+
+          this.thinkCache.push(step);
         } catch (err) {
           console.warn('think error', err);
         }
       });
-      // console.log('agent renderer think 5');
     });
   }
   async generate(hint: string, schema?: ZodTypeAny) {
@@ -169,10 +165,7 @@ export class GenerativeAgentObject {
     const newMessage = formatConversationMessage(message, {
       agent: this.agent,
     });
-    const metadata = {
-      perception: this.perception ?? null,
-    };
-    return await this.conversation.addLocalAndRemoteMessage(newMessage, metadata);
+    return await this.conversation.addLocalAndRemoteMessage(newMessage);
   }
 
   addAudioStream(playableAudioStream: PlayableAudioStream) {
