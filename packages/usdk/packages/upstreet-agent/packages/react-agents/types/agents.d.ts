@@ -21,6 +21,7 @@ export type NetworkRealms = any;
 export type ExtendableMessageEvent<T> = MessageEvent<T> & {
   waitUntil: (promise: Promise<any>) => void;
   waitForFinish: () => Promise<void>;
+  setResult(result: any): void;
 };
 
 // agents
@@ -43,8 +44,8 @@ export type AgentSpec = {
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
-  perception?: ActionMessageEventData;
   generativeQueueManager: QueueManager;
+  thinkCache: Array<ActionStep>;
   
   get location(): URL;
 
@@ -69,6 +70,12 @@ export type GenerativeAgentObject =  {
 export type AgentThinkOptions = {
   forceAction?: string;
   excludeActions?: string[];
+};
+export type ActionStep = {
+  action?: PendingActionMessage,
+  uniforms?: {
+    [key: string]: object,
+  },
 };
 
 // messages
@@ -264,7 +271,7 @@ export type ConversationObject = EventTarget & {
   }) => Promise<ActionMessage[]>; */
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
-  addLocalMessage: (message: ActionMessage) => Promise<void>;
+  addLocalMessage: (message: ActionMessage) => Promise<ActionStep[]>;
   addLocalAndRemoteMessage: (message: ActionMessage) => Promise<void>;
 
   addAudioStream: (audioStream: PlayableAudioStream) => void;
@@ -276,6 +283,7 @@ export type ConversationObject = EventTarget & {
   // setAgent: (agent: ActiveAgentObject) => void;
 
   getAgents: () => Player[];
+  getAgentIds: () => string[];
   addAgent: (agentId: string, player: Player) => void;
   removeAgent: (agentId: string) => void;
   getKey: () => string;
@@ -404,10 +412,8 @@ export type ActiveAgentObject = AgentObject & {
 
   generative: ({
     conversation,
-    perception,
   }: {
     conversation: ConversationObject,
-    perception?: ActionMessageEventData,
   }) => GenerativeAgentObject;
 
   getMemories: (opts?: GetMemoryOpts) => Promise<Array<Memory>>;
@@ -465,7 +471,6 @@ export type AbortablePerceptionEvent = AbortableMessageEvent<PerceptionEventData
 export type ActionMessageEventData = {
   agent: AgentObject;
   message: ActionMessage;
-  metadata: any;
 };
 export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
 
