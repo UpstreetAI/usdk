@@ -162,7 +162,7 @@ export const featureSpecs = [
       if (discord.token && channels.length > 0) {
         return [
           dedent`
-            <DiscordBot
+            <Discord
               token=${JSON.stringify(discord.token)}
               ${discord.channels ? `channels={${JSON.stringify(channels)}}` : ''}
             />
