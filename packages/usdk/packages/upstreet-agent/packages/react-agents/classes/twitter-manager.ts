@@ -21,8 +21,20 @@ import {
   QueueManager,
 } from 'queue-manager';
 // import uuidByString from 'uuid-by-string';
+import { Player } from 'react-agents-client/util/player.mjs';
 
 import { Client as TwitterClient } from 'twitter-api-sdk';
+
+//
+
+const makePlayerFromAuthor = (author: any) => {
+  const { id, username } = author.data;
+  const player = new Player(id, {
+    name: username,
+    // previewUrl: displayAvatarURL,
+  });
+  return player;
+};
 
 //
 
@@ -35,7 +47,7 @@ class TwitterBot {
   kv: any;
   codecs: any;
   jwt: string;
-  client: any;
+  client: TwitterClient;
   conversations: Map<string, ConversationObject>; // tweetId -> conversation
 
   constructor(args: TwitterArgs) {
@@ -180,7 +192,7 @@ class TwitterBot {
 
       const _handleTweet = async (tweet: any, author: any) => {
         const { id: tweetId, text, conversation_id } = tweet;
-        // const { username: authorUsername, id: authorId } = author.data;
+        const { id: authorId } = author.data;
 
         // Create or get conversation
         let conversation = this.conversations.get(conversation_id);
@@ -198,29 +210,17 @@ class TwitterBot {
             conversation,
           });
 
-          // Handle outgoing messages
-          conversation.addEventListener('remotemessage', async (e: ActionMessageEvent) => {
-            const { message, metadata } = e.data;
-            const { method, args } = message;
-            const perception = metadata?.perception;
-            const perceptionMetadata = perception?.metadata;
-            const tweet = perceptionMetadata?.tweet;
-
-            console.log('got new twitter message', message, metadata, tweet);
-
-            if (method === 'say') {
-              const { text } = args;
-              // Send the response tweet
-              await this.client.tweets.createTweet({
-                text,
-                // XXX make this in reply to the previous tweet in the conversation
-                // reply: {
-                //   in_reply_to_tweet_id: tweetId,
-                // }
-              });
-            }
+          // add ourself as a player
+          const player = new Player(this.agent.id, {
+            name: this.agent.name,
+            // previewUrl: this.agent.previewUrl,
           });
+          conversation.addAgent(this.agent.id, player);
         }
+
+        // add the author as a player
+        const player = makePlayerFromAuthor(author);
+        conversation.addAgent(authorId, player);
 
         // Add message to conversation
         const rawMessage = {
@@ -232,11 +232,26 @@ class TwitterBot {
         const newMessage = formatConversationMessage(rawMessage, {
           agent: this.agent,
         });
-        await conversation.addLocalMessage(newMessage, {
-          metadata: {
-            tweet,
-          },
-        });
+
+        const steps = await conversation.addLocalMessage(newMessage);
+
+        const actions = steps.map(step => step.action).filter(Boolean);
+        for (const message of actions) {
+          const { method, args } = message;
+
+          console.log('got new twitter message', message, tweet);
+
+          if (method === 'say') {
+            const { text } = args;
+            // Send the response tweet
+            await this.client.tweets.createTweet({
+              text,
+              reply: {
+                in_reply_to_tweet_id: tweetId,
+              }
+            });
+          }
+        }
       };
 
       const queueManager = new QueueManager();
@@ -268,6 +283,10 @@ class TwitterBot {
                 // - source: string (Client used to post tweet)
                 const { author_id } = tweet;
                 const author = await _fetchUserById(author_id);
+                // author:
+                // - id: string (User ID)
+                // - name: string (User's display name)
+                // - username: string (User's Twitter handle)
                 await _handleTweet(tweet, author);
               });
               await Promise.all(tweetPromises);
@@ -294,6 +313,11 @@ class TwitterBot {
       signal.addEventListener('abort', () => {
         clearTimeout(pollTimeout);
         clearInterval(pollInterval);
+
+        // remove all conversations
+        for (const conversation of this.conversations.values()) {
+          this.agent.conversationManager.removeConversation(conversation);
+        }
       });
     };
     
