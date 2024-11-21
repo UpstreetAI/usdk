@@ -5,9 +5,10 @@ import { IconButton } from 'ucom';
 
 interface AgentDeleteProps {
   handleClick: () => void;
+  loading: boolean;
 }
 
-function AgentDelete({ handleClick }: AgentDeleteProps, ref: ForwardedRef<HTMLDivElement>) {
+function AgentDelete({ handleClick, loading }: AgentDeleteProps, ref: ForwardedRef<HTMLDivElement>) {
   return (
     <div ref={ref}>
       <IconButton
@@ -15,7 +16,8 @@ function AgentDelete({ handleClick }: AgentDeleteProps, ref: ForwardedRef<HTMLDi
         icon="Trash"
         size="small"
         variant="primary"
-      />
+        disabled={loading}
+    />
     </div>
   );
 }

@@ -42,6 +42,8 @@ export class Interactor extends EventTarget {
   formatFn;
   messages;
   queueManager;
+  #isProcessing;
+
   constructor({
     systemPrompt,
     userPrompt,
@@ -88,99 +90,125 @@ export class Interactor extends EventTarget {
       });
     }
     this.queueManager = new QueueManager();
+    this.#isProcessing = false;
   }
+
+  get isProcessing() {
+    return this.#isProcessing;
+  }
+
+  #setProcessingState(isProcessing) {
+    this.#isProcessing = isProcessing;
+    this.dispatchEvent(new MessageEvent('processingStateChange', {
+      data: { isProcessing }
+    }));
+  }
+
   async write(text = '') {
     return await this.queueManager.waitForTurn(async () => {
-      const { jwt, objectFormat, object, messages } = this;
+      try {
+        this.#setProcessingState(true);
+        const { jwt, objectFormat, object, messages } = this;
 
-      if (text) {
-        messages.push({
-          role: 'user',
-          content: text,
-        });
-      }
-      const o = await fetchJsonCompletion({
-        model: defaultModels[0],
-        messages,
-      }, z.object({
-        response: z.string(),
-        updateObject: z.union([
-          objectFormat,
-          z.null(),
-        ]),
-        done: z.boolean(),
-      }), {
-        jwt,
-      });
-      const updateObject = this.formatFn(o.updateObject);
-      if (updateObject) {
-        for (const key in updateObject) {
-          object[key] = updateObject[key];
+        if (text) {
+          messages.push({
+            role: 'user',
+            content: text,
+          });
         }
-      }
+        const o = await fetchJsonCompletion({
+          model: defaultModels[0],
+          messages,
+        }, z.object({
+          response: z.string(),
+          updateObject: z.union([
+            objectFormat,
+            z.null(),
+          ]),
+          done: z.boolean(),
+        }), {
+          jwt,
+        });
+        const updateObject = this.formatFn(o.updateObject);
+        if (updateObject) {
+          for (const key in updateObject) {
+            object[key] = updateObject[key];
+          }
+        }
 
-      {
-        const content = JSON.stringify(o, null, 2);
-        const responseMessage = {
-          role: 'assistant',
-          content,
-        };
-        messages.push(responseMessage);
-      }
+        {
+          const content = JSON.stringify(o, null, 2);
+          const responseMessage = {
+            role: 'assistant',
+            content,
+          };
+          messages.push(responseMessage);
+        }
 
-      this.dispatchEvent(new MessageEvent('message', {
-        data: {
-          ...o,
-          object,
-        },
-      }));
+        this.dispatchEvent(new MessageEvent('message', {
+          data: {
+            ...o,
+            object,
+          },
+        }));
+      } finally {
+        this.#setProcessingState(false);
+      }
     });
   }
   async end(text = '') {
     return await this.queueManager.waitForTurn(async () => {
-      const { jwt, objectFormat, object, messages } = this;
+      try {
+        this.#setProcessingState(true);
+        const { jwt, objectFormat, object, messages } = this;
 
-      if (text) {
-        messages.push({
-          role: 'user',
-          content: text,
-        });
-      }
-      let o = await fetchJsonCompletion({
-        model: defaultModels[0],
-        messages,
-      }, z.object({
-        output: objectFormat,
-      }), {
-        jwt,
-      });
-      o = {
-        response: '',
-        updateObject: o.output,
-        done: true,
-      };
-      const updateObject = this.formatFn(o.updateObject);
-      if (updateObject) {
-        for (const key in updateObject) {
-          object[key] = updateObject[key];
+        if (text) {
+          messages.push({
+            role: 'user',
+            content: text,
+          });
         }
-      }
 
-      {
-        const content = JSON.stringify(o, null, 2);
-        const responseMessage = {
-          role: 'assistant',
-          content,
+        let o = await fetchJsonCompletion({
+          model: defaultModels[0],
+          messages,
+        }, z.object({
+          output: objectFormat,
+        }), {
+          jwt,
+        });
+
+        o = {
+          response: '',
+          updateObject: o.output,
+          done: true,
         };
-        messages.push(responseMessage);
-      }
 
-      this.dispatchEvent(new MessageEvent('message', {
-        data: {
-          ...o,
-          object,
-        },
-      }));
+        const updateObject = this.formatFn(o.updateObject);
+        if (updateObject) {
+          for (const key in updateObject) {
+            object[key] = updateObject[key];
+          }
+        }
+
+        {
+          const content = JSON.stringify(o, null, 2);
+          const responseMessage = {
+            role: 'assistant',
+            content,
+          };
+          messages.push(responseMessage);
+        }
+
+        this.dispatchEvent(new MessageEvent('message', {
+          data: {
+            ...o,
+            object,
+          },
+        }));
+      } finally {
+        this.#setProcessingState(false);
+      }
     });
   }
 }

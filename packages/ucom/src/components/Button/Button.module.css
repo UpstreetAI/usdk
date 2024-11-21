@@ -8,7 +8,6 @@
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
-  min-width: 64px;
   line-height: 0;
   padding: 1rem;
 }
@@ -78,15 +77,35 @@ a.ucomButton {
 }
 
 .ucomButton.secondary:hover {
-  background-color: #57F3CC;
-  border: 2px solid #1B4C40;
-  color: #000000;
+  background-color: #FFFFFF;
+  border: 2px solid #0BD19F;
+  color: #0BD19F;
 }
 
 .ucomButton.secondary.active {
-  background-color: #C96AAF;
-  border: 2px solid #7C2E70;
-  color: #FFFFFF;
+  background-color: #000000;
+  border: 2px solid #000000;
+  color: #57F3CC;
+}
+
+/* Accent variant styles */
+
+.ucomButton.accent {
+  background-color: #5765EC;
+  border: 2px solid #131C6B;
+  color: #000000;
+}
+
+.ucomButton.accent:hover {
+  background-color: #FFFFFF;
+  border: 2px solid #3C48C2;
+  color: #3C48C2;
+}
+
+.ucomButton.accent.active {
+  background-color: #000000;
+  border: 2px solid #000000;
+  color: #5765EC;
 }
 
 /* Ghost variant styles */
