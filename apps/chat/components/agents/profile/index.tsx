@@ -31,11 +31,12 @@ interface Agent {
 
 interface AgentProps {
   agent: Agent;
+  isOwner: boolean;
 }
 
 export function AgentProfile({ agent, isOwner }: AgentProps) {
   const { agentJoin } = useMultiplayerActions();
-  const [tab, setTab] = useHash('feed');
+  const [tab, setTab] = useHash('none');
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
   const { supabase } = useSupabase();
   const [rooms, setRooms] = useState<string[]>([]);
@@ -129,9 +130,9 @@ export function AgentProfile({ agent, isOwner }: AgentProps) {
               </Link>
             </h3>
             <div className="flex gap-4">
-              <Button onClick={() => agentJoin(agent.id)}>Chat</Button>
-              <IconButton onClick={() => setTab('feed')} active={tab === 'feed'} icon="Info" size="small" variant="primary" />
-              <IconButton onClick={() => setTab('rooms')} active={tab === 'rooms'} icon="Room" size="small" variant="primary" />
+              <Button onClick={() => agentJoin(agent.id)}>Chat with {agent.name}</Button>
+              {/* <IconButton onClick={() => setTab('feed')} active={tab === 'feed'} icon="Info" size="small" variant="primary" />
+              <IconButton onClick={() => setTab('rooms')} active={tab === 'rooms'} icon="Room" size="small" variant="primary" /> */}
             </div>
           </div>
         </div>
