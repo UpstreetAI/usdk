@@ -8,7 +8,7 @@ import pc from 'picocolors';
 
 export const pull = async (args, opts) => {
   const agentId = args._[0] ?? '';
-  const dstDir = args._[1] ?? cwd;
+  const dstDir = args._[1];
   const force = !!args.force;
   const forceNoConfirm = !!args.forceNoConfirm;
   const noInstall = !!args.noInstall;
@@ -21,11 +21,18 @@ export const pull = async (args, opts) => {
 
   const userId = jwt && (await getUserIdForJwt(jwt));
   if (userId) {
-    // clean the old directory
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
+    if (dstDir) {
+      // clean the old directory
+      await cleanDir(dstDir, {
+        force,
+        forceNoConfirm,
+      });
+    } else {
+      // create the destination directory if not present
+      const dirname = makeId(8);
+      dstDir = path.join(cwd, 'agents', dirname);
+      await mkdirp(dstDir);
+    }
 
     // download the source
     console.log(pc.italic('Downloading source...'));
