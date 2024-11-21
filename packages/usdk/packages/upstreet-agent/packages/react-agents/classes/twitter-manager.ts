@@ -17,9 +17,9 @@ import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
-// import {
-//   QueueManager,
-// } from 'queue-manager';
+import {
+  QueueManager,
+} from 'queue-manager';
 // import uuidByString from 'uuid-by-string';
 
 import { Client as TwitterClient } from 'twitter-api-sdk';
@@ -236,40 +236,42 @@ class TwitterBot {
         await conversation.addLocalMessage(newMessage);
       };
 
+      const queueManager = new QueueManager();
       const _poll = async () => {
         try {
-          // XXX add queueManager.waitForTurn()
-          await _ensureClient();
-          const user = await _fetchLocalUser();
-          const mentions = await _fetchMentions(user.data.id);
-          const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
-          const mentionsData = (mentions.data || [])
-            .filter(tweet => tweet.author_id !== user.data.id) // filter out our own tweets
-            .filter(tweet => !seenTweetIds.includes(tweet.id)); // filter out seen tweets
+          await queueManager.waitForTurn(async () => {
+            await _ensureClient();
+            const user = await _fetchLocalUser();
+            const mentions = await _fetchMentions(user.data.id);
+            const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
+            const mentionsData = (mentions.data || [])
+              .filter(tweet => tweet.author_id !== user.data.id) // filter out our own tweets
+              .filter(tweet => !seenTweetIds.includes(tweet.id)); // filter out seen tweets
 
-          if (mentionsData.length > 0) {
-            const tweetPromises = mentionsData.map(async (tweet) => {
-              // tweet:
-              // - id: string (Tweet ID)
-              // - text: string (Tweet content) 
-              // - author_id: string (User ID who wrote the tweet)
-              // - created_at: string (Tweet creation timestamp)
-              // - edit_history_tweet_ids: string[] (IDs of previous versions if edited)
-              // - in_reply_to_user_id: string | null (User ID tweet is replying to)
-              // - referenced_tweets: Array (Contains info about tweets this tweet references)
-              // - conversation_id: string (Thread ID this tweet belongs to)
-              // - lang: string (Language code of tweet content)
-              // - possibly_sensitive: boolean (If tweet may contain sensitive content)
-              // - reply_settings: string (Who can reply to this tweet)
-              // - source: string (Client used to post tweet)
-              const { author_id } = tweet;
-              const author = await _fetchUserById(author_id);
-              await _handleTweet(tweet, author);
-            });
-            await Promise.all(tweetPromises);
-          } else {
-            console.warn('no new tweets')
-          }
+            if (mentionsData.length > 0) {
+              const tweetPromises = mentionsData.map(async (tweet) => {
+                // tweet:
+                // - id: string (Tweet ID)
+                // - text: string (Tweet content) 
+                // - author_id: string (User ID who wrote the tweet)
+                // - created_at: string (Tweet creation timestamp)
+                // - edit_history_tweet_ids: string[] (IDs of previous versions if edited)
+                // - in_reply_to_user_id: string | null (User ID tweet is replying to)
+                // - referenced_tweets: Array (Contains info about tweets this tweet references)
+                // - conversation_id: string (Thread ID this tweet belongs to)
+                // - lang: string (Language code of tweet content)
+                // - possibly_sensitive: boolean (If tweet may contain sensitive content)
+                // - reply_settings: string (Who can reply to this tweet)
+                // - source: string (Client used to post tweet)
+                const { author_id } = tweet;
+                const author = await _fetchUserById(author_id);
+                await _handleTweet(tweet, author);
+              });
+              await Promise.all(tweetPromises);
+            } else {
+              console.warn('no new tweets')
+            }
+          });
         } catch (err) {
           console.error('Error polling tweets:', err);
         }
