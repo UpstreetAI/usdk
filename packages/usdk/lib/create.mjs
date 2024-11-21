@@ -6,13 +6,6 @@ import pc from 'picocolors';
 import Jimp from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
-import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import {
-  getAgentToken,
-} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
-import {
-  generateMnemonic,
-} from '../util/ethereum-utils.mjs';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
@@ -28,17 +21,21 @@ import {
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import {
   getUserIdForJwt,
-  getUserForJwt,
 } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
+  getAgentAuthSpec,
+} from '../util/agent-auth-util.mjs';
+import {
+  dotenvFormat,
+} from '../util/dotenv-util.mjs';
+import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
-// import { getDirectoryHash } from '../util/hash-util.mjs';
 import {
   aiProxyHost,
 } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
@@ -51,6 +48,8 @@ import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import ora from 'ora';
+import ImagePreviewServer from '../util/image-preview-server.mjs';
+import { imagePreviewPort } from '../util/ports.mjs';
 
 //
 
@@ -97,36 +96,6 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await fs.promises.writeFile(dst, s);
 };
 
-const getAgentAuthSpec = async (jwt) => {
-  const [
-    {
-      guid,
-      agentToken,
-    },
-    userPrivate,
-  ] = await Promise.all([
-    (async () => {
-      const guid = await createAgentGuid({
-        jwt,
-      });
-      const agentToken = await getAgentToken(jwt, guid);
-      return {
-        guid,
-        agentToken,
-      };
-    })(),
-    getUserForJwt(jwt, {
-      private: true,
-    }),
-  ]);
-  const mnemonic = generateMnemonic();
-  return {
-    guid,
-    agentToken,
-    userPrivate,
-    mnemonic,
-  };
-};
 const buildWranglerToml = (
   t,
   { name, agentJson, /* mnemonic, agentToken */ } = {},
@@ -153,6 +122,13 @@ const interview = async (agentJson, {
       ? new StreamStrategy(inputStream, outputStream)
       : new ReadlineStrategy(),
   );
+  const imagePreviewServer = new ImagePreviewServer(imagePreviewPort);
+
+  // setup SIGINT image preview server close handler
+  process.on('SIGINT', () => {
+    imagePreviewServer.stop();
+  })
+  
   const getAnswer = async (question) => {
     // console.log('get answer 1', {
     //   question,
@@ -261,6 +237,16 @@ const interview = async (agentJson, {
       if (signal.aborted) return;
 
       const b = Buffer.from(ab);
+      
+      // start server if not already running and update image
+      if (!imagePreviewServer.server) {
+          imagePreviewServer.start();
+      }
+      
+      // normalize the label to match the server's expectations
+      const normalizedLabel = label.toLowerCase().replace(/\s+updated \(preview\):$/i, '').trim();
+      imagePreviewServer.updateImage(normalizedLabel, b);
+      
       const jimp = await Jimp.read(b);
       if (signal.aborted) return;
 
@@ -270,6 +256,7 @@ const interview = async (agentJson, {
       } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
       logAgentPropertyUpdate(label, '');
       console.log(imageText);
+      console.log(`\nView image at ${imagePreviewServer.getImageUrl(normalizedLabel)}\n`);
     };
     agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
     agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
@@ -280,6 +267,7 @@ const interview = async (agentJson, {
   }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
+  imagePreviewServer.stop();
   return result;
 };
 const makeAgentJsonInit = ({
@@ -303,9 +291,6 @@ const loadAgentJson = (dstDir) => {
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
 };
-const dotenvFormat = (o) => Object.entries(o ?? {})
-  .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-  .join('\n');
 
 //
 
@@ -366,15 +351,18 @@ export const create = async (args, opts) => {
 
   // remove old directory
   const _prepareDirectory = async () => {
+    console.log(pc.italic('Preparing directory...'));
     await cleanDir(dstDir, {
       force,
       forceNoConfirm,
     });
     // bootstrap destination directory
     await mkdirp(dstDir);
+    console.log(pc.italic('Directory prepared...'));
   };
   await _prepareDirectory();
 
+  console.log(pc.italic('Generating Agent...'));
   // generate the agent
   let agentJson = makeAgentJsonInit({
     agentJsonString,
@@ -395,12 +383,10 @@ export const create = async (args, opts) => {
       jwt,
     });
   }
-  else {
-    console.log(pc.italic('Generating agent...'));
-  }
+ 
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
   agentJson = ensureAgentJsonDefaults(agentJson);
-  console.log(pc.italic('Agent generated.'));
+  console.log(pc.italic('Agent generated...'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
   console.log(pc.green('Description:'), agentJson.description);
@@ -541,12 +527,6 @@ export const create = async (args, opts) => {
   console.log(pc.green(`Happy building!`));
 
   return agentJson;
-  // // return the parsed dstWranglerToml
-  // {
-  //   const dstWranglerTomlString = await fs.promises.readFile(path.join(dstDir, 'wrangler.toml'), 'utf8');
-  //   const dstWranglerToml = toml.parse(dstWranglerTomlString);
-  //   return dstWranglerToml;
-  // }
 };
 
 const updateFeatures = (agentJson, {
@@ -636,71 +616,4 @@ export const edit = async (args, opts) => {
     ]);
   };
   await _updateFiles();
-};
-export const pull = async (args, opts) => {
-  const agentId = args._[0] ?? '';
-  const dstDir = args._[1] ?? cwd;
-  const force = !!args.force;
-  const forceNoConfirm = !!args.forceNoConfirm;
-  const noInstall = !!args.noInstall;
-  const events = args.events ?? null;
-  // opts
-  const jwt = opts.jwt;
-  if (!jwt) {
-    throw new Error('You must be logged in to pull.');
-  }
-
-  const userId = jwt && (await getUserIdForJwt(jwt));
-  if (userId) {
-    // clean the old directory
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
-
-    // download the source
-    console.log(pc.italic('Downloading source...'));
-    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
-    try {
-      const req = await fetch(u, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-      if (req.ok) {
-        const zipBuffer = await req.arrayBuffer();
-        // console.log('downloaded source', zipBuffer.byteLength);
-
-        // extract the source
-        console.log(pc.italic('Extracting zip...'));
-        await extractZip(zipBuffer, dstDir);
-
-        events && events.dispatchEvent(new MessageEvent('finalize', {
-          data: {
-            agentJson,
-          },
-        }));
-
-        console.log(pc.italic('Installing dependencies...'));
-        try {
-          if (!noInstall) {
-            await npmInstall(dstDir);
-          }
-        } catch (err) {
-          console.warn('npm install failed:', err.stack);
-          process.exit(1);
-        }
-      } else {
-        const text = await req.text();
-        console.warn('pull request error', text);
-        process.exit(1);
-      }
-    } catch (err) {
-      console.warn('pull request failed', err);
-      process.exit(1);
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
 };
