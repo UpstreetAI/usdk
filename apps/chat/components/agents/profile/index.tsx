@@ -137,9 +137,9 @@ export function AgentProfile({ agent, isOwner }: AgentProps) {
           </div>
         </div>
 
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-opacity-90 p-4 overflow-y-auto">
+        {/* <div className="absolute top-0 right-0 w-1/2 h-full bg-opacity-90 p-4 overflow-y-auto">
           {tab === 'rooms' && (<AgentRooms agent={agent} />)}
-        </div>
+        </div> */}
 
       </div>
     </div>
