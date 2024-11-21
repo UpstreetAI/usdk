@@ -75,18 +75,11 @@ const bindOutgoing = ({
       method,
       args,
     } = message;
-    console.log('e.data: ', e.data);
 
     if (method === 'say') {
       let {
         text,
       } = args as { text: string };
-      console.log('discord manager outgoing message', {
-        text,
-        attachments,
-        channelId,
-        userId,
-      });
       
       if (attachments && Object.keys(attachments).length > 0) {
         text += '\n' + Object.values(attachments)
