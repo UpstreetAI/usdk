@@ -20,9 +20,9 @@ function IconEmbedCode({
       className={cn('size-4', className)}
       {...props}
     >
-      <path d="M2.5 25.2642L20.4474 11L24.5 15.2264L12.3421 25.2642L23.9211 34.2453L20.4474 39L2.5 25.2642Z" fill="white" stroke="black" stroke-width="2" />
-      <path d="M68 25.2642L50.0526 11L46 15.2264L58.1579 25.2642L46.5789 34.2453L50.0526 39L68 25.2642Z" fill="white" stroke="black" stroke-width="2" />
-      <path d="M35.9453 1H35.1431L34.9691 1.78307L24.9691 46.7831L24.6987 48H25.9453H33.9453H34.7475L34.9215 47.2169L44.9215 2.21693L45.1919 1H43.9453H35.9453Z" fill="white" stroke="black" stroke-width="2" />
+      <path d="M2.5 25.2642L20.4474 11L24.5 15.2264L12.3421 25.2642L23.9211 34.2453L20.4474 39L2.5 25.2642Z" fill="white" stroke="black" strokeWidth="2" />
+      <path d="M68 25.2642L50.0526 11L46 15.2264L58.1579 25.2642L46.5789 34.2453L50.0526 39L68 25.2642Z" fill="white" stroke="black" strokeWidth="2" />
+      <path d="M35.9453 1H35.1431L34.9691 1.78307L24.9691 46.7831L24.6987 48H25.9453H33.9453H34.7475L34.9215 47.2169L44.9215 2.21693L45.1919 1H43.9453H35.9453Z" fill="white" stroke="black" strokeWidth="2" />
     </svg>
   )
 }
