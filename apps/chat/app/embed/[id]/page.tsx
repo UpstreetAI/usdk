@@ -2,7 +2,6 @@ import React from 'react';
 import { EmbedChat } from '@/components/chat/embed-chat';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
-import { decrypt } from '@/utils/crypto/cryptouUtils';
 
 type Params = {
   params: {
@@ -20,15 +19,15 @@ async function getAgentData(supabase: any, identifier: string) {
     // Find by ID
     let result = await supabase
       .from('assets')
-      .select('*, author: accounts ( id, name )')
+      .select('*, author: accounts ( id, name ), embed: embed_agents ( trusted_urls )')
       .eq('id', identifier)
       .single();
 
-    // If not found by ID, try username ( revisit this )
+    // If not found by ID, try username
     if (!result.data) {
       result = await supabase
         .from('assets')
-        .select('*, author: accounts ( id, name )')
+        .select('*, author: accounts ( id, name ), embed: embed_agents ( trusted_urls )')
         .eq('name', identifier)
         .single();
     }
@@ -43,7 +42,6 @@ async function getAgentData(supabase: any, identifier: string) {
 export default async function EmbedPage({ params }: Params) {
   // try {
     const id = decodeURIComponent(params.id);
-    // const token = JSON.parse(decrypt(embedToken));
 
     const supabase = makeAnonymousClient(env);
     const identifier = decodeURIComponent(id);
@@ -51,7 +49,7 @@ export default async function EmbedPage({ params }: Params) {
     const result = await getAgentData(supabase, identifier);
     const agentData = result.data as AgentData;
 
-    console.log(id, agentData);
+    // console.log(id, agentData);
 
     return (
       <div className="w-full relative flex h-screen overflow-hidden">
