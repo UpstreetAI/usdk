@@ -79,18 +79,26 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 }
 export function EmbedChat({ className, agent, onConnect }: ChatProps) {
 
-  if(!agent || !agent.embed) {
-    return null;
-  } else {
-    const embed = agent.embed;
-    const trustedUrls = embed.trusted_urls;
-    const currentOrigin = window.location.origin.replace(/\/$/, '');
-    const normalizedTrustedUrls = trustedUrls.map((url: string) => url.replace(/\/$/, ''));
-    const isTrusted = normalizedTrustedUrls.includes(currentOrigin);
+  const embed = agent.embed;
+  const trustedUrls = embed.trusted_urls;
+  const normalizedTrustedUrls = trustedUrls.map((url: string) => url.replace(/\/$/, ''));
+  const ancestorOrigins = window.location.ancestorOrigins;
+  const isTrusted = Array.from(window.location.ancestorOrigins).some(origin => normalizedTrustedUrls.includes(origin));
 
-    console.log('Current Origin:', currentOrigin);
-    console.log('Trusted URLs:', normalizedTrustedUrls);
-    console.log('Is Current Origin Trusted?', isTrusted);
+  console.log('Ancestor Origin URLs:', ancestorOrigins);
+  console.log('Trusted URLs:', normalizedTrustedUrls);
+  console.log('Is Current Origin Trusted?', isTrusted);
+
+  if (!agent) {
+    return <div>No agent data</div>;
+  }
+
+  if (!isTrusted) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl">
+        The url you are using this embed agent code from does not exist in the trusted urls list.
+      </div>
+    );
   }
 
   const { agentJoinRoom, agentGetEmbedRoom } = useMultiplayerActions();
@@ -112,8 +120,12 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   }, [agent]);
 
   useEffect(() => {
-    agentGetEmbedRoom().then(room => setRoom(room));
+    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
   }, [agentGetEmbedRoom]);
+
+  useEffect(() => {
+    console.log('Room: ', room);
+  }, [room]);
 
   useEffect(() => {
     onConnect && onConnect(connected);
@@ -130,22 +142,22 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
     };
   }) as any[];
 
-  useEffect(() => {
-    if (room && user) {
-      const localPlayerSpec: PlayerSpec = {
-        id: (user as any).id as string,
-        name: (user as any).name as string,
-        previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
-        capabilities: [
-          'human',
-        ],
-      };
-      setMultiplayerConnectionParameters({
-        room,
-        localPlayerSpec,
-      });
-    }
-  }, [room, agent.id, user, setMultiplayerConnectionParameters]);
+  // useEffect(() => {
+  //   if (room && user) {
+  //     const localPlayerSpec: PlayerSpec = {
+  //       id: (user as any).id as string,
+  //       name: (user as any).name as string,
+  //       previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
+  //       capabilities: [
+  //         'human',
+  //       ],
+  //     };
+  //     setMultiplayerConnectionParameters({
+  //       room,
+  //       localPlayerSpec,
+  //     });
+  //   }
+  // }, [room, agent.id, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor();
