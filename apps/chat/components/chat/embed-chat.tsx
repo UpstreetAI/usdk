@@ -1,39 +1,22 @@
 'use client'
 
-import React from 'react';
-import { useEffect, useState } from 'react';
-// import Link from 'next/link';
+import React, { useEffect, useState } from 'react';
 import { ChatMessage } from '@/components/chat/chat-message';
-// import { ChatMessageOld } from '@/components/chat/chat-message-old'
-// import { type User } from '@supabase/supabase-js';
-// import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { ChatList } from '@/components/chat/chat-list'
-import { ChatPanel } from '@/components/chat/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
-// import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
-// import { useAIState } from 'ai/rsc'
-// import { Message } from '@/lib/types'
-// import { usePathname, useRouter } from 'next/navigation'
+import { cn } from '@/lib/utils';
+import { ChatList } from '@/components/chat/chat-list';
+import { ChatPanel } from '@/components/chat/chat-panel';
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
-// import { UIState } from '@/lib/chat/actions'
-// import { resolveRelativeUrl } from '@/lib/utils'
-// import { aiHost } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { useSupabase, type User } from '@/lib/hooks/use-supabase';
-import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
+import { PlayerSpec, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/lib/client/hooks/use-sidebar';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-// import { IconButton } from 'ucom';
-import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { environment } from '@/lib/env';
-
 
 //
 
@@ -41,7 +24,6 @@ const openInNewPage = (url: string) => {
   const a = document.createElement('a');
   a.href = url;
   a.target = '_blank';
-  // a.rel = 'noopener noreferrer';
   a.click();
 };
 
@@ -75,10 +57,9 @@ type Message = {
 
 export interface ChatProps extends React.ComponentProps<'div'> {
   agentId?: string
-  room: string
   onConnect?: (connected: boolean) => void
 }
-export function EmbedChat({ className, agentId, room, onConnect }: ChatProps) {
+export function EmbedChat({ className, agentId, onConnect }: ChatProps) {
   const { agentJoinEmbedRoom } = useMultiplayerActions();
   const [input, setInput] = useState('')
   const { user } = useSupabase();
@@ -182,22 +163,6 @@ export function EmbedChat({ className, agentId, room, onConnect }: ChatProps) {
   )
 }
 
-/* const formatAttachment = (attachment?: Attachment): (FormattedAttachment | undefined) => {
-  if (attachment) {
-    const {
-      id,
-      type,
-      alt,
-    } = attachment;
-    return {
-      id,
-      type,
-      alt,
-    };
-  } else {
-    return attachment;
-  }
-}; */
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
 
@@ -240,26 +205,17 @@ function getMessageComponent(room: string, message: Message, id: string, players
     }
 
     case 'addMemory': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
       return (
         <div className="opacity-60 text-xs">{message.name} will rememeber that</div>
       );
     }
     case 'queryMemories': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
       return (
         <div className="opacity-60 text-xs">{message.name} is trying to remember</div>
       );
     }
 
     case 'mediaPerception': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
       return (
         <div className="opacity-60 text-xs">{message.name} checked an attachment</div>
       );
@@ -267,14 +223,9 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
     case 'browserAction': {
       const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
 
       const {
-        // agent:,
-        // method,
         args: messageArgs,
-        // result,
-        // error,
       } = message;
       const {
         method,
@@ -297,9 +248,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
           result,
           error,
         };
-        // console.log('get text 1', o);
         const text = spec.toText(o);
-        // console.log('get text 2', o, { text });
         return (
           <div className="opacity-60 text-xs">{text}</div>
         );
@@ -378,7 +327,6 @@ function getMessageComponent(room: string, message: Message, id: string, players
             jwt,
           });
           const {
-            // id,
             url,
           } = j;
 
