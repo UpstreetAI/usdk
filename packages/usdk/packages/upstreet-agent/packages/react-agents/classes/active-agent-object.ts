@@ -138,16 +138,13 @@ export class ActiveAgentObject extends AgentObject {
   // convert this ActiveAgentObject to a cached GenerativeAgentObject for inference
   generative({
     conversation,
-    perception,
   }: {
     conversation: ConversationObject;
-    perception: ActionMessageEventData;
   }) {
     let generativeAgent = this.generativeAgentsMap.get(conversation);
     if (!generativeAgent) {
       generativeAgent = new GenerativeAgentObject(this, {
         conversation,
-        perception,
       });
       this.generativeAgentsMap.set(conversation, generativeAgent);
     }
@@ -182,7 +179,6 @@ export class ActiveAgentObject extends AgentObject {
     opts?: GetMemoryOpts,
   ) {
     // console.log('getMemory 1', {
-    //   agent: this,
     //   query,
     // });
     const embedding = await this.appContextValue.embed(query);
