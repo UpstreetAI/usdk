@@ -7,7 +7,7 @@ import { getJWT } from '@/lib/jwt';
 import { env } from '@/lib/env';
 
 export default function EmbedModal({agent, close}: {agent: any, close: () => void}) {
-  const [trustedUrls, setTrustedUrls] = useState<string[]>([]);
+  const [trustedUrls, setTrustedUrls] = useState<string[]>(agent?.embed?.trusted_urls ?? []);
   const [embedCode, setEmbedCode] = useState<string>('');
 
   const updateTrustedUrls = async (urls: string[]) => {

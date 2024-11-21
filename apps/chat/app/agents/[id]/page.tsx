@@ -23,7 +23,7 @@ async function getAgentData(supabase: any, identifier: string) {
   // First try to find by ID
   let result = await supabase
     .from('assets')
-    .select('*, author: accounts ( id, name )')
+    .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
     .eq('id', identifier)
     .single();
 
@@ -31,7 +31,7 @@ async function getAgentData(supabase: any, identifier: string) {
   if (!result.data) {
     result = await supabase
       .from('assets')
-      .select('*, author: accounts ( id, name )')
+      .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
       .eq('name', identifier)
       .single();
   }
@@ -100,6 +100,7 @@ export default async function AgentProfilePage({ params }: Params) {
     return <AgentNotFound />;
   }
 
+  // check if the user is the owner of the agent
   const user = await getUser();
   const isOwner = agentData.author.id === user?.id;
 
