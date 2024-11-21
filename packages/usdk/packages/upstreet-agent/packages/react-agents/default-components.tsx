@@ -36,6 +36,7 @@ import type {
   DiscordProps,
   DiscordArgs,
   TwitterProps,
+  TwitterSpacesProps,
   TwitterArgs,
   TelnyxProps,
   TelnyxBotArgs,
@@ -2950,12 +2951,6 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
         const browser = await createBrowser(undefined, {
           jwt: authToken,
         });
-        // const {
-        //   sessionId,
-        //   url,
-        //   browser,
-        //   destroySession,
-        // } = browserResult;
         const destroySession = async () => {
           console.log('destroy browser session 1');
           await browser.destroy();
@@ -3292,6 +3287,976 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
       }
     })();
   }, [token]);
+
+  return null;
+};
+export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpacesProps) => {
+  const { token, url } = props;
+  if (!token) {
+    throw new Error('TwitterSpaces requires a token');
+  }
+  const subcommand = url ? 'connect' : 'create';
+  const jwt = useAuthToken();
+  const startedRef = useRef(false);
+
+  const _start = async () => {
+    function float32ToBase64(f32) {
+      const uint8Array = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+      return uint8ArrayToBase64(uint8Array);
+    }
+    function uint8ArrayToBase64(uint8Array) {
+      let binaryString = '';
+      const chunkSize = 1024; // Process 1 KB chunks at a time
+      for (let i = 0; i < uint8Array.length; i += chunkSize) {
+        const chunk = uint8Array.subarray(i, i + chunkSize);
+        binaryString += String.fromCharCode(...chunk);
+      }
+      return btoa(binaryString);
+    }
+    function base64ToUint8Array(base64) {
+      if (base64) {
+        // console.log('base64ToUint8Array 1', {
+        //   base64,
+        // });
+        const binaryString = atob(base64);
+        const uint8Array = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          uint8Array[i] = binaryString.charCodeAt(i);
+        }
+        return uint8Array;
+      } else {
+        return new Uint8Array(0);
+      }
+    }
+    function base64ToFloat32Array(base64) {
+      const uint8Array = base64ToUint8Array(base64);
+      return new Float32Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / Float32Array.BYTES_PER_ELEMENT);
+    }
+
+    /* const _launchBrowser = async () => {
+      // launch the browser
+      console.log('launch 1');
+      const browser = await chromium.launch({
+        headless: false,
+        devtools: true,
+        // args: ['--disable-web-security'],
+      });
+      console.log('launch 2');
+      return browser;
+    }; */
+    const _decorateBrowser = async (browser) => {
+      // helpers
+      const postDown = async (eventType, args) => {
+        await page.evaluate((opts) => {
+          const {
+            eventType,
+            args,
+          } = opts;
+          if (typeof postDown === 'function') {
+            postDown(eventType, args);
+          } else {
+            throw new Error('postDown() was not found on the page!');
+          }
+        }, {
+          eventType,
+          args,
+        });
+      };
+      const createAudioGenerator = ({
+        sampleRate,
+      }) => {
+        const startTimestamp = Date.now();
+        let lastTimestamp = startTimestamp;
+        const frequency = 440; // Hz
+        const _processAudio = () => {
+          const currentTimestamp = Date.now();
+          const numSamplesOld = Math.floor((lastTimestamp - startTimestamp) / 1000 * sampleRate);
+          const numSamplesNew = Math.floor((currentTimestamp - startTimestamp) / 1000 * sampleRate);
+          const numSamples = numSamplesNew - numSamplesOld;
+
+          // create the audio buffer with the exact number of samples needed
+          const f32 = new Float32Array(numSamples);
+
+          // sine wave continuing from last timestamp
+          const period = sampleRate / frequency;
+          for (let i = 0; i < numSamples; i++) {
+            const sampleIndex = numSamplesOld + i;
+            f32[i] = Math.sin(2 * Math.PI * (sampleIndex / period));
+          }
+
+          const base64 = float32ToBase64(f32);
+          console.log('postDown audio', f32.length);
+          // console.log('postDown audio', {
+          //   sampleRate,
+          //   frequency,
+          //   period,
+          //   f32,
+          //   base64,
+          // });
+          postDown('audio', base64);
+
+          lastTimestamp = currentTimestamp;
+        };
+
+        // start
+        _processAudio();
+        const intervalMs = 1000;
+        const interval = setInterval(() => {
+          _processAudio();
+        }, intervalMs);
+        return {
+          close: () => {
+            clearInterval(interval);
+          },
+        };
+      };
+
+      const context = await browser.newContext({
+        permissions: ['microphone', 'camera'],
+        // serviceWorkers: 'block',
+        bypassCSP: true,
+      });
+
+      // set the auth token cookie
+      await context.addCookies([
+        {
+          name: 'auth_token',
+          value: token,
+          domain: '.x.com',
+          path: '/',
+        },
+      ].filter(Boolean));
+
+      // load the worklet files
+      const workletInputFileName = 'ws-input-worklet.js';
+      const workletOutputFileName = 'ws-output-worklet.js';
+
+      // Intercept worklet requests and serve local files
+      await context.route(`**/${workletInputFileName}`, async (route) => {
+        console.log(`serving ${workletInputFileName}`);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Surrogate-Control': 'no-store',
+            'Service-Worker-Allowed': '/',
+            'Clear-Site-Data': '"cache", "storage"'
+          },
+          body: workletInput,
+        });
+      });
+      await context.route(`**/${workletOutputFileName}`, async (route) => {
+        console.log(`serving ${workletOutputFileName}`);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Surrogate-Control': 'no-store',
+            'Service-Worker-Allowed': '/',
+            'Clear-Site-Data': '"cache", "storage"'
+          },
+          body: workletOutput,
+        });
+      });
+      // context.on('request', request => {
+      //   console.log('Request:', request.url());
+      // });
+
+      const page = await context.newPage();
+      console.log('got page');
+
+      // log the page's console logs
+      page.on('console', msg => {
+        console.log('PAGE LOG:', msg.text());
+      });
+      // log page errors
+      page.on('pageerror', msg => {
+        console.log('PAGE ERROR:', msg.stack);
+      });
+      // log page close
+      page.on('close', () => {
+        console.log('PAGE CLOSE:', new Error().stack);
+      });
+
+      console.log('intercept 1');
+      // Override RTCPeerConnection and trap the methods
+      await page.exposeFunction('postUp', (eventType, args) => {
+        console.log('post up event', {
+          eventType,
+          args,
+        });
+        switch (eventType) {
+          case 'audioInputStreamCreated': {
+            const {
+              sampleRate,
+            } = args;
+            const { close } = createAudioGenerator({
+              sampleRate,
+            });
+            break;
+          }
+          case 'audioStart': {
+            console.log('postUp got audioStart', typeof args, args.length);
+            break;
+          }
+          case 'audio': {
+            console.log('postUp got audio', typeof args, args.length);
+            break;
+          }
+          case 'audioEnd': {
+            console.log('postUp got audioEnd', typeof args, args.length);
+            break;
+          }
+          default: {
+            // console.log('unknown event', eventType, args);
+            console.log(`postUp unhandled ${eventType}:`, JSON.stringify(args, null, 2));
+            break;
+          }
+        }
+      });
+      console.log('intercept 2');
+      await page.addInitScript(() => {
+        console.log('RTCPeerConnection override 1');
+
+        function float32ToBase64(f32) {
+          const uint8Array = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+          return uint8ArrayToBase64(uint8Array);
+        }
+        function uint8ArrayToBase64(uint8Array) {
+          let binaryString = '';
+          const chunkSize = 1024; // Process 1 KB chunks at a time
+          for (let i = 0; i < uint8Array.length; i += chunkSize) {
+            const chunk = uint8Array.subarray(i, i + chunkSize);
+            binaryString += String.fromCharCode(...chunk);
+          }
+          return btoa(binaryString);
+        }
+        function base64ToUint8Array(base64) {
+          if (base64) {
+            // console.log('base64ToUint8Array 2', {
+            //   base64,
+            // });
+            const binaryString = atob(base64);
+            const uint8Array = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              uint8Array[i] = binaryString.charCodeAt(i);
+            }
+            return uint8Array;
+          } else {
+            return new Uint8Array(0);
+          }
+        }
+        function base64ToFloat32Array(base64) {
+          const uint8Array = base64ToUint8Array(base64);
+          return new Float32Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / Float32Array.BYTES_PER_ELEMENT);
+        }
+
+        // Save the original RTCPeerConnection
+        const OriginalRTCPeerConnection = window.RTCPeerConnection;
+        console.log('override RTCPeerConnection', OriginalRTCPeerConnection);
+
+        // Define the custom implementation
+        class CustomRTCPeerConnection {
+          constructor(config) {
+            console.log('Custom RTCPeerConnection created with config:', config);
+            this.original = new OriginalRTCPeerConnection(config);
+            this.original.addEventListener('track', e => {
+              console.log('track added', e.streams.length, e.streams);
+              for (const stream of e.streams) {
+                const audioTracks = stream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                  const id = crypto.randomUUID();
+                  postUp('audioStart', id);
+
+                  const audioNode = globalThis.globalAudioContext.createMediaStreamSource(stream);
+                  console.log('got audio node', audioNode);
+                  // create ws input worklet node
+                  const destination = globalAudioContext.createMediaStreamDestination();
+                  // create ws output worklet node
+                  const wsInputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-input-worklet');
+                  // connect
+                  audioNode.connect(wsInputProcessor);
+                  wsInputProcessor.connect(destination);
+                  // listen for messages
+                  wsInputProcessor.port.onmessage = e => {
+                    // console.log('wsInputProcessor data', e.data);
+                    // post the message up
+                    const f32 = e.data; // Float32Array
+                    // convert to base64
+                    const base64 = float32ToBase64(f32);
+                    postUp('audio', base64);
+                  };
+
+                  const audioTrack = audioTracks[0];
+                  audioTrack.addEventListener('ended', e => {
+                    console.log('audio track ended', e);
+                    postUp('audioEnd', id);
+                    audioNode.disconnect();
+                  });
+                }
+              }
+            });
+
+            postUp('RTCPeerConnection', config);
+          }
+          addEventListener(...args) {
+            // console.log('Custom RTCPeerConnection addEventListener', args);
+            return this.original.addEventListener(...args);
+          }
+          removeEventListener(...args) {
+            // console.log('Custom RTCPeerConnection removeEventListener', args);
+            return this.original.removeEventListener(...args);
+          }
+          addIceCandidate(...args) {
+            // console.log('Custom RTCPeerConnection addIceCandidate', args);
+            return this.original.addIceCandidate(...args);
+          }
+          close() {
+            return this.original.close();
+          }
+          getConfiguration() {
+            return this.original.getConfiguration();
+          }
+          setConfiguration(...args) {
+            return this.original.setConfiguration(...args);
+          }
+          getStats(...args) {
+            return this.original.getStats(...args);
+          }
+          restartIce() {
+            return this.original.restartIce();
+          }
+          get canTrickleIceCandidates() {
+            return this.original.canTrickleIceCandidates;
+          }
+          get connectionState() {
+            return this.original.connectionState;
+          }
+          get currentLocalDescription() {
+            return this.original.currentLocalDescription;
+          }
+          get currentRemoteDescription() {
+            return this.original.currentRemoteDescription;
+          }
+          get iceConnectionState() {
+            return this.original.iceConnectionState;
+          }
+          get iceGatheringState() {
+            return this.original.iceGatheringState;
+          }
+          get localDescription() {
+            return this.original.localDescription;
+          }
+          get peerIdentity() {
+            return this.original.peerIdentity;
+          }
+          get pendingLocalDescription() {
+            return this.original.pendingLocalDescription;
+          }
+          get pendingRemoteDescription() {
+            return this.original.pendingRemoteDescription;
+          }
+          get remoteDescription() {
+            return this.original.remoteDescription;
+          }
+          get sctp() {
+            return this.original.sctp;
+          }
+          get signalingState() {
+            return this.original.signalingState;
+          }
+          set onconnectionstatechange(value) {
+            console.log('set onconnectionstatechange', value);
+            this.original.onconnectionstatechange = value;
+          }
+          get onconnectionstatechange() {
+            return this.original.onconnectionstatechange;
+          }
+          set ondatachannel(value) {
+            console.log('set ondatachannel', value);
+            this.original.ondatachannel = value;
+          }
+          get ondatachannel() {
+            return this.original.ondatachannel;
+          }
+          set onicecandidate(value) {
+            console.log('set onicecandidate', value);
+            this.original.onicecandidate = value;
+          }
+          get onicecandidate() {
+            return this.original.onicecandidate;
+          }
+          set onicecandidateerror(value) {
+            console.log('set onicecandidateerror', value);
+            this.original.onicecandidateerror = value;
+          }
+          get onicecandidateerror() {
+            return this.original.onicecandidateerror;
+          }
+          set oniceconnectionstatechange(value) {
+            console.log('set oniceconnectionstatechange', value);
+            this.original.oniceconnectionstatechange = value;
+          }
+          get oniceconnectionstatechange() {
+            return this.original.oniceconnectionstatechange;
+          }
+          set onicegatheringstatechange(value) {
+            console.log('set onicegatheringstatechange', value);
+            this.original.onicegatheringstatechange = value;
+          }
+          get onicegatheringstatechange() {
+            return this.original.onicegatheringstatechange;
+          }
+          set onnegotiationneeded(value) {
+            console.log('set onnegotiationneeded', value);
+            this.original.onnegotiationneeded = value;
+          }
+          get onnegotiationneeded() {
+            return this.original.onnegotiationneeded;
+          }
+          set onsignalingstatechange(value) {
+            console.log('set onsignalingstatechange', value);
+            this.original.onsignalingstatechange = value;
+          }
+          get onsignalingstatechange() {
+            return this.original.onsignalingstatechange;
+          }
+          set ontrack(value) {
+            // console.log('set ontrack', value);
+            this.original.ontrack = value;
+          }
+          get ontrack() {
+            return this.original.ontrack;
+          }
+          getTransceivers() {
+            return this.original.getTransceivers();
+          }
+          async setLocalDescription(...args) {
+            postUp('setLocalDescription 1', args);
+            const localDescription = await this.original.setLocalDescription(...args);
+            postUp('setLocalDescription 2', { args, localDescription });
+            return localDescription;
+          }
+          async setRemoteDescription(...args) {
+            postUp('setRemoteDescription 1', args);
+            const remoteDescription = await this.original.setRemoteDescription(...args);
+            postUp('setRemoteDescription 2', { args, remoteDescription });
+            return remoteDescription;
+          }
+          addTrack(...args) {
+            console.log('addTrack 1', args, this.original.addTrack);
+            try {
+              const result = this.original.addTrack(...args);
+              console.log('addTrack 2', result);
+              return result;
+            } catch (err) {
+              console.warn('addTrack error', err);
+              throw err;
+            }
+          }
+          removeTrack(...args) {
+            console.log('removeTrack 1', args, this.original.removeTrack);
+            try {
+              const result = this.original.removeTrack(...args);
+              console.log('removeTrack 2', result);
+              return result;
+            } catch (err) {
+              console.warn('removeTrack error', err);
+              throw err;
+            }
+          }
+          async createOffer(...args) {
+            console.log('createOffer 1', JSON.stringify(args), args.map(a => typeof a), JSON.stringify({
+              iceConnectionState: this.original.iceConnectionState,
+              signalingState: this.original.signalingState,
+            }, null, 2));
+            try {
+              const offer = await this.original.createOffer(...args);
+              console.log('createOffer 2');
+              console.log('createOffer 3', { args, offer });
+              return offer;
+            } catch (err) {
+              console.warn('createOffer error', err);
+              throw err;
+            }
+          }
+          async createAnswer(...args) {
+            postUp('createAnswer 1', JSON.stringify(args), args.map(a => typeof a));
+            try {
+              const answer = await this.original.createAnswer(...args);
+              console.log('createAnswer 2');
+              console.log('createAnswer 3', { args, answer });
+              return answer;
+            } catch (err) {
+              console.warn('createAnswer error', err);
+              throw err;
+            }
+          }
+        }
+        console.log('RTCPeerConnection override 2');
+        // Replace the original RTCPeerConnection with the custom one
+        window.RTCPeerConnection = CustomRTCPeerConnection;
+        console.log('RTCPeerConnection override 3');
+
+        // create the global audio context
+        globalThis.globalAudioContext = new AudioContext();
+
+        // ensure the worklets are loaded
+        let workletsLoaded = false;
+        const ensureWorkletsLoaded = async (audioContext) => {
+          if (workletsLoaded) {
+            return;
+          }
+
+          const wsInputText = `\
+            const bufferSize = 4096;
+
+            class WsInputWorklet extends AudioWorkletProcessor {
+              constructor (...args) {
+                super(...args);
+
+                this.buffer = new Float32Array(bufferSize);
+                this.bufferIndex = 0;
+              }
+
+              process(inputs, outputs, parameters) {
+                const channels = inputs[0];
+                const firstChannel = channels[0];
+                // if (channels.length !== 1) {
+                //   console.warn('expected 1 channel', channels.length);
+                // }
+                if (firstChannel) {
+                  for (let i = 0; i < firstChannel.length; i++) {
+                    this.buffer[this.bufferIndex++] = firstChannel[i];
+                    if (this.bufferIndex >= this.buffer.length) {
+                      this.port.postMessage(this.buffer, [this.buffer.buffer]);
+                      this.buffer = new Float32Array(bufferSize);
+                      this.bufferIndex = 0;
+                    }
+                  }
+                }
+                return true;
+              }
+            }
+            registerProcessor('ws-input-worklet', WsInputWorklet);
+          `;
+          const wsInputBlob = new Blob([wsInputText], { type: 'text/javascript' });
+          const wsInputUrl = URL.createObjectURL(wsInputBlob);
+
+          const wsOutputText = `\
+            // const volumeUpdateRate = 20;
+            const volumeUpdateRate = Infinity;
+            const volumeScale = 2;
+            // const audioBufferLength = 30;
+            const audioBufferLength = Infinity;
+            class WsOutputWorklet extends AudioWorkletProcessor {
+              constructor (...args) {
+                super(...args);
+                
+                this.buffers = [];
+                this.lastVolumeTime = 0;
+                this.maxSample = 0;
+                this.numSamples = 0;
+                this.flushed = true;
+                
+                this.port.onmessage = e => {
+                  this.buffers.push(e.data);
+
+                  this.flushed = false;
+
+                  // if the buffer is too big, delete it
+                  // if (this.buffers.length > audioBufferLength) {
+                  //   this.buffers.splice(0, this.buffers.length - audioBufferLength);
+                  // }
+                };
+              }
+
+              process(inputs, outputs, parameters) {
+                const output = outputs[0];
+                // console.log('outputs', outputs.length);
+                let bufferIndex, frameIndex;
+                for (const frames of output) {
+                  bufferIndex = 0;
+                  frameIndex = 0;
+
+                  if (bufferIndex < this.buffers.length) {
+                    for (let i = 0; i < frames.length; i++) {
+                      const buffer = this.buffers[bufferIndex];
+                      if (frameIndex < buffer.length) {
+                        // console.log('set frame', frames, buffer);
+                        const v = buffer[frameIndex++];
+                        frames[i] = v;
+                        this.maxSample = Math.max(Math.abs(v), this.maxSample);
+                        this.numSamples++;
+                      } else {
+                        bufferIndex++;
+                        frameIndex = 0;
+                        if (bufferIndex < this.buffers.length) {
+                          i--;
+                          continue;
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+                if (bufferIndex > 0) {
+                  // console.log('finished buffer', bufferIndex);
+                  this.buffers.splice(0, bufferIndex);
+                }
+                if (frameIndex > 0) {
+                  this.buffers[0] = this.buffers[0].slice(frameIndex);
+                  if (this.buffers[0].length === 0) {
+                    this.buffers.shift();
+                  }
+                }
+
+                // update flushed
+                if (!this.flushed && this.buffers.length === 0) {
+                  this.flushed = true;
+                  this.port.postMessage({
+                    method: 'flush',
+                  });
+                }
+
+                // update volume
+                if (isFinite(volumeUpdateRate)) {
+                  const now = Date.now();
+                  const timeDiff = now - this.lastVolumeTime;
+                  if (timeDiff >= volumeUpdateRate) {
+                    const volume = this.numSamples > 0 ?
+                      Math.min(this.maxSample * volumeScale, 1)
+                    :
+                      0;
+                    this.port.postMessage({
+                      method: 'volume',
+                      args: {
+                        volume,
+                      },
+                    });
+
+                    this.lastVolumeTime = now;
+                    this.maxSample = 0;
+                    this.numSamples = 0;
+                  }
+                }
+                
+                return true;
+              }
+            }
+            registerProcessor('ws-output-worklet', WsOutputWorklet);
+          `;
+          const wsOutputBlob = new Blob([wsOutputText], { type: 'text/javascript' });
+          const wsOutputUrl = URL.createObjectURL(wsOutputBlob);
+
+          await Promise.all([
+            audioContext.audioWorklet.addModule(wsInputUrl),
+            audioContext.audioWorklet.addModule(wsOutputUrl),
+          ]);
+          // await Promise.all([
+          //   audioContext.audioWorklet.addModule(`/ws-input-worklet.js`),
+          //   audioContext.audioWorklet.addModule(`/ws-output-worklet.js`),
+          // ]);
+          workletsLoaded = true;
+        };
+
+        // add audio input stream context
+        globalThis.audioInputStream = null;
+        globalThis.postDown = (eventType, args) => {
+          // console.log('got post down', JSON.stringify({ eventType, args }, null, 2));
+          switch (eventType) {
+            case 'audio': {
+              if (globalThis.audioInputStream) {
+                const base64 = args;
+                const f32 = base64ToFloat32Array(base64);
+                globalThis.audioInputStream.write(f32);
+              }
+              break;
+            }
+          }
+        };
+
+        // intercept the navigator.mediaDevices methods
+        if (window.navigator?.mediaDevices) {
+          const createInputAudioStream = async () => {
+            try {
+              console.log('createFakeAudioStream 1');
+
+              await ensureWorkletsLoaded(globalAudioContext);
+
+              console.log('createFakeAudioStream 2', globalAudioContext.state);
+
+              // Resume the audio context if it's suspended
+              if (globalAudioContext.state === 'suspended') {
+                console.log('resume audiocontext 1');
+                await globalAudioContext.resume();
+                console.log('resume audiocontext 2');
+              }
+
+              console.log('createFakeAudioStream 3', globalAudioContext.state);
+
+              const destination = globalAudioContext.createMediaStreamDestination();
+
+              // create ws output worklet node
+              const wsOutputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-output-worklet');
+              // connect the worklet node to the destination
+              wsOutputProcessor.connect(destination);
+
+              /* // create a fake audio stream
+              const intervalMs = 1000;
+              const interval = setInterval(() => {
+                _processAudio();
+              }, intervalMs);
+              const startTimestamp = Date.now();
+              let lastTimestamp = startTimestamp;
+              const frequency = 440; // Hz
+              const _processAudio = () => {
+                const currentTimestamp = Date.now();
+                const numSamplesOld = Math.floor((lastTimestamp - startTimestamp) / 1000 * sampleRate);
+                const numSamplesNew = Math.floor((currentTimestamp - startTimestamp) / 1000 * sampleRate);
+                const numSamples = numSamplesNew - numSamplesOld;
+
+                // create the audio buffer with the exact number of samples needed
+                const f32 = new Float32Array(numSamples);
+
+                // sine wave continuing from last timestamp
+                const period = sampleRate / frequency;
+                for (let i = 0; i < numSamples; i++) {
+                  const sampleIndex = numSamplesOld + i;
+                  f32[i] = Math.sin(2 * Math.PI * (sampleIndex / period));
+                }
+
+                // console.log('post message', f32);
+                wsOutputProcessor.port.postMessage(f32, [f32.buffer]);
+                lastTimestamp = currentTimestamp;
+              }; */
+              destination.stream.write = (f32) => {
+                wsOutputProcessor.port.postMessage(f32);
+              };
+
+              // return the destination stream
+              console.log('returning destination stream', destination.stream);
+              return destination.stream;
+            } catch (err) {
+              console.warn('createFakeAudioStream error', err);
+              throw err;
+            }
+          };
+          let audioInputStreamPromise = null;
+          const ensureInputAudioStream = async () => {
+            if (!audioInputStreamPromise) {
+              audioInputStreamPromise = await createInputAudioStream();
+              (async () => {
+                globalThis.audioInputStream = await audioInputStreamPromise;
+                postUp('audioInputStreamCreated', {
+                  sampleRate: globalAudioContext.sampleRate,
+                });
+              })();
+            }
+            return audioInputStreamPromise;
+          };
+          navigator.mediaDevices.enumerateDevices = async () => {
+            return [
+              {
+                deviceId: 'default',
+                groupId: 'default',
+                kind: 'audioinput',
+                label: 'Default Audio Device',
+              },
+            ];
+          };
+          navigator.mediaDevices.getUserMedia = async (constraints) => {
+            console.log('get user media 1', JSON.stringify(constraints, null, 2));
+            if (constraints.audio) {
+              console.log('get user media 2', constraints);
+              return await ensureInputAudioStream();
+            }
+            console.log('get user media 3', constraints);
+            throw new Error('Only audio streams are supported in this override');
+          };
+          console.log('RTCPeerConnection override 4');
+        }
+      });
+      console.log('intercept 3');
+
+      return {
+        browser,
+        context,
+        page,
+      };
+    };
+    /* const _makeBrowser = async () => {
+      const browser = await _launchBrowser();
+      const {
+        context,
+        page,
+      } = await _decorateBrowser(browser);
+      const destroySession = async () => {
+        console.log('destroy session 1');
+        await context.close();
+        await browser.close();
+        console.log('destroy session 2');
+      };
+      return {
+        browser,
+        context,
+        page,
+        destroySession,
+      };
+    }; */
+    const _createTs = async () => {
+      // const jwt = await getLoginJwt();
+      const browser = await createBrowser(undefined, {
+        jwt,
+      });
+      const destroySession = async () => {
+        console.log('destroy session 1');
+        await browser.close();
+        console.log('destroy session 2');
+      };
+      console.log('got browser');
+      const {
+        context,
+        page,
+      } = await _decorateBrowser(browser);
+      console.log('got context');
+
+      // const {
+      //   // browser,
+      //   // context,
+      //   page,
+      //   destroySession,
+      // } = await _makeBrowser();
+
+      await page.goto('https://x.com/home');
+      console.log('got to page 1');
+
+      const button = page.locator('button[aria-label="More menu items"]');
+      console.log('got button html 1', await button.innerHTML());
+      await button.click();
+      console.log('got button 2');
+
+      // select this anchor
+      const a = page.locator('a[href="/i/spaces/start"]');
+      console.log('got a html 1', await a.innerHTML());
+      await a.click();
+      console.log('got a html 2');
+
+      // select by the button text
+      // const submitTextEl = page.locator('text="Start now"');
+      // console.log('got submit text el', submitTextEl);
+
+      // Find the nearest parent <button> element
+      //  const parentButton = submitTextEl.locator('closest', 'button');
+      const parentButton = page.locator('button:has-text("Start now")');
+      // console.log('got parent button el', parentButton);
+      // print the html of the button
+      console.log('button html 0', await parentButton.innerHTML());
+
+      console.log('button click 1');
+      await parentButton.click();
+      console.log('button click 2');
+
+      const unmuteButton = page.locator('button[aria-label="Unmute"]');
+      console.log('got unmute button html 1', await unmuteButton.innerHTML({
+        timeout: 60000,
+      }));
+      await unmuteButton.click();
+      console.log('got unmute button 2');
+
+      // console.log('waiting...');
+      // await new Promise((accept, reject) => {
+      //   setTimeout(accept, 30000);
+      // });
+
+      // console.log('destroy session 1');
+      // await destroySession();
+      // console.log('destroy session 2');
+    };
+    const _connectTs = async () => {
+      if (!url) {
+        throw new Error('url argument is required');
+      }
+
+      // const {
+      //   // browser,
+      //   // context,
+      //   page,
+      //   destroySession,
+      // } = await _makeBrowser();
+
+      const browser = await createBrowser(undefined, {
+        jwt,
+      });
+      const {
+        context,
+        page,
+      } = await _decorateBrowser(browser);
+      const destroySession = async () => {
+        console.log('destroy session 1');
+        await context.close();
+        await browser.close();
+        console.log('destroy session 2');
+      };
+
+      console.log('got browser');
+      await page.goto(url);
+
+      if (/status/.test(url)) {
+        const listenButton = page.locator('a[href^="/i/spaces/"][href$="/peek"]');
+        console.log('got button html 1', await listenButton.innerHTML());
+        await listenButton.click();
+        console.log('got button 2');
+      }
+
+      const startListeningButton = page.locator('button[aria-label="Start listening"]');
+      console.log('got start listening button html 1', await startListeningButton.innerHTML());
+      await startListeningButton.click();
+      console.log('got start listening button 2');
+
+      const requestToSpeakButton = page.locator('button[aria-label="Request to speak"]');
+      console.log('got request to speak button html 1', await requestToSpeakButton.innerHTML());
+      await requestToSpeakButton.click();
+      console.log('got request to speak button 2');
+
+      const unmuteButton = page.locator('button[aria-label="Unmute"]');
+      console.log('got unmute button html 1', await unmuteButton.innerHTML({
+        timeout: 60000,
+      }));
+      await unmuteButton.click();
+      console.log('got unmute button 2');
+    };
+
+    switch (subcommand) {
+      case 'create': {
+        await _createTs();
+        break;
+      }
+      case 'connect': {
+        await _connectTs();
+        break;
+      }
+      default: {
+        throw new Error(`unknown subcommand: ${subcommand}`);
+      }
+    }
+  };
+  useEffect(() => {
+    if (!startedRef.current) {
+      startedRef.current = true;
+      console.log('start 1');
+      _start().catch(err => {
+        console.warn('start error', err.stack);
+      });
+    }
+  }, []);
 
   return null;
 };
