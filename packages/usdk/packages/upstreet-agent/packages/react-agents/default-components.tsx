@@ -3960,10 +3960,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
             audioContext.audioWorklet.addModule(wsInputUrl),
             audioContext.audioWorklet.addModule(wsOutputUrl),
           ]);
-          // await Promise.all([
-          //   audioContext.audioWorklet.addModule(`/ws-input-worklet.js`),
-          //   audioContext.audioWorklet.addModule(`/ws-output-worklet.js`),
-          // ]);
           workletsLoaded = true;
         };
 
