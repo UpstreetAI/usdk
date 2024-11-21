@@ -130,7 +130,7 @@ class TwitterBot {
 
           if (res.ok) {
             const data = await res.json();
-            console.log('got new access/refresh tokens', data);
+            // console.log('got new access/refresh tokens', data);
             return data;
           } else {
             const text = await res.text();
@@ -187,68 +187,68 @@ class TwitterBot {
         const { id: tweetId, text, conversation_id } = tweet;
         // const { username: authorUsername, id: authorId } = author.data;
 
-        // Skip if we've already handled this tweet
-        const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
-        if (!seenTweetIds.includes(tweetId)) {
-          // Create or get conversation
-          let conversation = this.conversations.get(conversation_id);
-          if (!conversation) {
-            conversation = new ConversationObject({
-              agent: this.agent,
-              getHash: () => `twitter:conversation:${conversation_id}`,
-            });
-            
-            this.agent.conversationManager.addConversation(conversation);
-            this.conversations.set(conversation_id, conversation);
-
-            bindConversationToAgent({
-              agent: this.agent,
-              conversation,
-            });
-
-            // Handle outgoing messages
-            conversation.addEventListener('remotemessage', async (e: ActionMessageEvent) => {
-              const { message, metadata } = e.data;
-              console.log('got twitter metadata', metadata);
-              const { method, args } = message;
-              if (method === 'say') {
-                const { text } = args;
-                // Send the response tweet
-                await this.client.tweets.createTweet({
-                  text,
-                  // XXX make this in reply to the previous tweet in the conversation
-                  // reply: {
-                  //   in_reply_to_tweet_id: tweetId,
-                  // }
-                });
-              }
-            });
-          }
-
-          // Add message to conversation
-          const rawMessage = {
-            method: 'say',
-            args: {
-              text
-            }
-          };
-          const newMessage = formatConversationMessage(rawMessage, {
+        // Create or get conversation
+        let conversation = this.conversations.get(conversation_id);
+        if (!conversation) {
+          conversation = new ConversationObject({
             agent: this.agent,
+            getHash: () => `twitter:conversation:${conversation_id}`,
           });
-          // XXX might need to pass the metadata referencing the original tweet
-          await conversation.addLocalMessage(newMessage);
+          
+          this.agent.conversationManager.addConversation(conversation);
+          this.conversations.set(conversation_id, conversation);
+
+          bindConversationToAgent({
+            agent: this.agent,
+            conversation,
+          });
+
+          // Handle outgoing messages
+          conversation.addEventListener('remotemessage', async (e: ActionMessageEvent) => {
+            const { message, metadata } = e.data;
+            console.log('got twitter metadata', metadata);
+            const { method, args } = message;
+            if (method === 'say') {
+              const { text } = args;
+              // Send the response tweet
+              await this.client.tweets.createTweet({
+                text,
+                // XXX make this in reply to the previous tweet in the conversation
+                // reply: {
+                //   in_reply_to_tweet_id: tweetId,
+                // }
+              });
+            }
+          });
         }
+
+        // Add message to conversation
+        const rawMessage = {
+          method: 'say',
+          args: {
+            text
+          }
+        };
+        const newMessage = formatConversationMessage(rawMessage, {
+          agent: this.agent,
+        });
+        // XXX might need to pass the metadata referencing the original tweet
+        await conversation.addLocalMessage(newMessage);
       };
 
       const _poll = async () => {
         try {
-          // XXX add queuManager.waitForTurn()
+          // XXX add queueManager.waitForTurn()
           await _ensureClient();
           const user = await _fetchLocalUser();
           const mentions = await _fetchMentions(user.data.id);
+          const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
+          const mentionsData = (mentions.data || [])
+            .filter(tweet => tweet.author_id !== user.data.id) // filter out our own tweets
+            .filter(tweet => !seenTweetIds.includes(tweet.id)); // filter out seen tweets
 
-          if (mentions.data) {
-            const tweetPromises = mentions.data.map(async (tweet) => {
+          if (mentionsData.length > 0) {
+            const tweetPromises = mentionsData.map(async (tweet) => {
               // tweet:
               // - id: string (Tweet ID)
               // - text: string (Tweet content) 
@@ -263,14 +263,12 @@ class TwitterBot {
               // - reply_settings: string (Who can reply to this tweet)
               // - source: string (Client used to post tweet)
               const { author_id } = tweet;
-              // Skip if tweet is from ourselves
-              if (author_id === user.data.id) {
-                return;
-              }
               const author = await _fetchUserById(author_id);
               await _handleTweet(tweet, author);
             });
             await Promise.all(tweetPromises);
+          } else {
+            console.warn('no new tweets')
           }
         } catch (err) {
           console.error('Error polling tweets:', err);
