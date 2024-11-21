@@ -95,8 +95,8 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinRoom: (guid: string, room: string) => Promise<void>
-  agentGetEmbedRoom: () => Promise<string | null>
+  agentJoinRoom: (guid: string, room: string) => Promise<String>
+  agentGetEmbedRoom: (guid: string) => Promise<String>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -552,7 +552,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to false
         setIsAgentLoading(false);
       },
-      agentGetEmbedRoom: async () => {
+      agentGetEmbedRoom: async (guid: string) => {
         try {
           // Get user's IP address
           const response = await fetch('https://api.ipify.org?format=json');
@@ -562,13 +562,13 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           // Url origin ( for chechking trusted urls on the embed )
           const websiteUrl = window.location.origin;
           // Concatenate IP address and website URL to form the "room" key
-          const roomKey = `${ipAddress}${websiteUrl}`;
+          const roomKey = `${ipAddress}${websiteUrl}${guid}`;
           // encrypt the "room" key
           const roomKeyEncrypted = encrypt(roomKey);
 
           const room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
           // set the room to the local storage one if it exists, otherwise use the new one
-          return room;
+          return room.toString();
 
         } catch (error) {
           console.error('Error checking room cookie:', error);
