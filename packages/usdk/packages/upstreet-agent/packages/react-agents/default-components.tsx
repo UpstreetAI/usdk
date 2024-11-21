@@ -152,9 +152,7 @@ const ChatActions = () => {
       <Action
         name="say"
         description={dedent`\
-          A character says something.
-          The given text message is sent literally and should be fully in character.
-          It should not include any placeholders.
+          Say something in the chat.
         `}
         schema={
           z.object({
