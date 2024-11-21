@@ -96,7 +96,7 @@ interface MultiplayerActionsContextType {
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
   agentJoinRoom: (guid: string, room: string) => Promise<String>
-  agentGetEmbedRoom: (guid: string) => Promise<String>
+  agentGetEmbedRoom: (guid: string) => Promise<String | null>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -565,14 +565,14 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           const roomKey = `${ipAddress}${websiteUrl}${guid}`;
           // encrypt the "room" key
           const roomKeyEncrypted = encrypt(roomKey);
-
+          // console.log('roomKeyEncrypted', roomKeyEncrypted);
           const room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
           // set the room to the local storage one if it exists, otherwise use the new one
           return room.toString();
 
         } catch (error) {
           console.error('Error checking room cookie:', error);
-          return ''
+          return null
         }
       },
       agentJoinRoom: async (guid: string, room: string) => {
