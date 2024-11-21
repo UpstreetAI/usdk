@@ -74,10 +74,25 @@ type Message = {
 //
 
 export interface ChatProps extends React.ComponentProps<'div'> {
-  agentId: string
+  agent: any
   onConnect?: (connected: boolean) => void
 }
-export function EmbedChat({ className, agentId, onConnect }: ChatProps) {
+export function EmbedChat({ className, agent, onConnect }: ChatProps) {
+
+  if(!agent || !agent.embed) {
+    return null;
+  } else {
+    const embed = agent.embed;
+    const trustedUrls = embed.trusted_urls;
+    const currentOrigin = window.location.origin.replace(/\/$/, '');
+    const normalizedTrustedUrls = trustedUrls.map((url: string) => url.replace(/\/$/, ''));
+    const isTrusted = normalizedTrustedUrls.includes(currentOrigin);
+
+    console.log('Current Origin:', currentOrigin);
+    console.log('Trusted URLs:', normalizedTrustedUrls);
+    console.log('Is Current Origin Trusted?', isTrusted);
+  }
+
   const { agentJoinRoom, agentGetEmbedRoom } = useMultiplayerActions();
   const [input, setInput] = useState('')
   const [room, setRoom] = useState<string>('');
@@ -91,6 +106,10 @@ export function EmbedChat({ className, agentId, onConnect }: ChatProps) {
     setMultiplayerConnectionParameters,
     // getCrdtDoc
   } = useMultiplayerActions();
+
+  useEffect(() => {
+    console.log('Agent Data: ', agent);
+  }, [agent]);
 
   useEffect(() => {
     agentGetEmbedRoom().then(room => setRoom(room));
@@ -126,7 +145,7 @@ export function EmbedChat({ className, agentId, onConnect }: ChatProps) {
         localPlayerSpec,
       });
     }
-  }, [room, agentId, user, setMultiplayerConnectionParameters]);
+  }, [room, agent.id, user, setMultiplayerConnectionParameters]);
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
     useScrollAnchor();

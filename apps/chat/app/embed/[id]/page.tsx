@@ -19,7 +19,7 @@ async function getAgentData(supabase: any, identifier: string) {
     // Find by ID
     let result = await supabase
       .from('assets')
-      .select('*, author: accounts ( id, name ), embed: embed_agents ( trusted_urls )')
+      .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
       .eq('id', identifier)
       .single();
 
@@ -27,7 +27,7 @@ async function getAgentData(supabase: any, identifier: string) {
     if (!result.data) {
       result = await supabase
         .from('assets')
-        .select('*, author: accounts ( id, name ), embed: embed_agents ( trusted_urls )')
+        .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
         .eq('name', identifier)
         .single();
     }
@@ -53,7 +53,7 @@ export default async function EmbedPage({ params }: Params) {
 
     return (
       <div className="w-full relative flex h-screen overflow-hidden">
-        <EmbedChat agentId={agentData.id} />
+        <EmbedChat agent={agentData} />
       </div>
     );
   // } catch (error) {
