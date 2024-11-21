@@ -90,13 +90,17 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   console.log('Is Current Origin Trusted?', isTrusted);
 
   if (!agent) {
-    return <div>No agent data</div>;
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        Agent Not Found! Please check the url you are using this embed agent code from.
+      </div>
+    );
   }
 
   if (!isTrusted) {
     return (
-      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl">
-        The url you are using this embed agent code from does not exist in the trusted urls list.
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        Url not trusted! Please check the urls set in the agent embed settings.
       </div>
     );
   }
@@ -120,7 +124,7 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   }, [agent]);
 
   useEffect(() => {
-    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
+    agentGetEmbedRoom(agent.id).then(room => setRoom(room ?? ''));
   }, [agentGetEmbedRoom]);
 
   useEffect(() => {
