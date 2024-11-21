@@ -206,8 +206,13 @@ class TwitterBot {
           // Handle outgoing messages
           conversation.addEventListener('remotemessage', async (e: ActionMessageEvent) => {
             const { message, metadata } = e.data;
-            console.log('got twitter metadata', metadata);
             const { method, args } = message;
+            const perception = metadata?.perception;
+            const perceptionMetadata = perception?.metadata;
+            const tweet = perceptionMetadata?.tweet;
+
+            console.log('got new twitter message', message, metadata, tweet);
+
             if (method === 'say') {
               const { text } = args;
               // Send the response tweet
@@ -233,7 +238,11 @@ class TwitterBot {
           agent: this.agent,
         });
         // XXX might need to pass the metadata referencing the original tweet
-        await conversation.addLocalMessage(newMessage);
+        await conversation.addLocalMessage(newMessage, {
+          metadata: {
+            tweet,
+          },
+        });
       };
 
       const queueManager = new QueueManager();
