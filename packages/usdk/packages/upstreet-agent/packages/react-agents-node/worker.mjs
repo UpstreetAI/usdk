@@ -102,17 +102,6 @@ const makeViteServer = (directory) => {
       // jsxFactory: 'React.createElement',
       // jsxFragment: 'React.Fragment',
     },
-    plugins: [{
-      name: 'txt',
-      transform(code, id) {
-        if (id.endsWith('.txt')) {
-          return {
-            code: `export default ${JSON.stringify(code)}`,
-            map: null
-          };
-        }
-      }
-    }],
     optimizeDeps: {
       entries: [
         './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
