@@ -111,7 +111,7 @@ import { getLatestVersion } from './lib/version.mjs';
 //   getDirectoryHash,
 // } from './util/hash-util.mjs';
 
-// import { createBrowser/*, testBrowser*/ } from './packages/upstreet-agent/packages/react-agents/util/create-browser.mjs';
+import { createBrowser/*, testBrowser*/ } from './packages/upstreet-agent/packages/react-agents/util/create-browser.mjs';
 
 // globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
@@ -1636,7 +1636,18 @@ export const main = async () => {
             return new Float32Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / Float32Array.BYTES_PER_ELEMENT);
           }
 
-          const _makeBrowser = async () => {
+          const _launchBrowser = async () => {
+            // launch the browser
+            console.log('launch 1');
+            const browser = await chromium.launch({
+              headless: false,
+              devtools: true,
+              // args: ['--disable-web-security'],
+            });
+            console.log('launch 2');
+            return browser;
+          };
+          const _decorateBrowser = async (browser) => {
             // helpers
             const postDown = async (eventType, args) => {
               await page.evaluate((opts) => {
@@ -1677,6 +1688,7 @@ export const main = async () => {
                 }
   
                 const base64 = float32ToBase64(f32);
+                console.log('postDown audio', f32.length);
                 // console.log('postDown audio', {
                 //   sampleRate,
                 //   frequency,
@@ -1702,23 +1714,11 @@ export const main = async () => {
               };
             };
 
-            // launch the browser
-            console.log('launch 1');
-            const browser = await chromium.launch({
-              headless: false,
-              devtools: true,
-              // args: ['--disable-web-security'],
-            });
-            console.log('launch 2');
             const context = await browser.newContext({
               permissions: ['microphone', 'camera'],
               // serviceWorkers: 'block',
               bypassCSP: true,
             });
-            const destroySession = () => {
-              context.close();
-              browser.close();
-            };
 
             // set the auth token cookie
             await context.addCookies([
@@ -1808,9 +1808,9 @@ export const main = async () => {
                 body: workletOutput,
               });
             });
-            context.on('request', request => {
-              console.log('Request:', request.url());
-            });
+            // context.on('request', request => {
+            //   console.log('Request:', request.url());
+            // });
 
             const page = await context.newPage();
             console.log('got page');
@@ -1823,10 +1823,18 @@ export const main = async () => {
             page.on('pageerror', msg => {
               console.log('PAGE ERROR:', msg.stack);
             });
+            // log page close
+            page.on('close', () => {
+              console.log('PAGE CLOSE:', new Error().stack);
+            });
 
             console.log('intercept 1');
             // Override RTCPeerConnection and trap the methods
             await page.exposeFunction('postUp', (eventType, args) => {
+              console.log('post up event', {
+                eventType,
+                args,
+              });
               switch (eventType) {
                 case 'audioInputStreamCreated': {
                   const {
@@ -1895,6 +1903,7 @@ export const main = async () => {
 
               // Save the original RTCPeerConnection
               const OriginalRTCPeerConnection = window.RTCPeerConnection;
+              console.log('override RTCPeerConnection', OriginalRTCPeerConnection);
 
               // Define the custom implementation
               class CustomRTCPeerConnection {
@@ -1939,6 +1948,33 @@ export const main = async () => {
                   });
 
                   postUp('RTCPeerConnection', config);
+                }
+                addEventListener(...args) {
+                  // console.log('Custom RTCPeerConnection addEventListener', args);
+                  return this.original.addEventListener(...args);
+                }
+                removeEventListener(...args) {
+                  // console.log('Custom RTCPeerConnection removeEventListener', args);
+                  return this.original.removeEventListener(...args);
+                }
+                addIceCandidate(...args) {
+                  // console.log('Custom RTCPeerConnection addIceCandidate', args);
+                  return this.original.addIceCandidate(...args);
+                }
+                close() {
+                  return this.original.close();
+                }
+                getConfiguration() {
+                  return this.original.getConfiguration();
+                }
+                setConfiguration(...args) {
+                  return this.original.setConfiguration(...args);
+                }
+                getStats(...args) {
+                  return this.original.getStats(...args);
+                }
+                restartIce() {
+                  return this.original.restartIce();
                 }
                 get canTrickleIceCandidates() {
                   return this.original.canTrickleIceCandidates;
@@ -2058,8 +2094,26 @@ export const main = async () => {
                   return remoteDescription;
                 }
                 addTrack(...args) {
-                  console.log('addTrack 1', args);
-                  return this.original.addTrack(...args);
+                  console.log('addTrack 1', args, this.original.addTrack);
+                  try {
+                    const result = this.original.addTrack(...args);
+                    console.log('addTrack 2', result);
+                    return result;
+                  } catch (err) {
+                    console.warn('addTrack error', err);
+                    throw err;
+                  }
+                }
+                removeTrack(...args) {
+                  console.log('removeTrack 1', args, this.original.removeTrack);
+                  try {
+                    const result = this.original.removeTrack(...args);
+                    console.log('removeTrack 2', result);
+                    return result;
+                  } catch (err) {
+                    console.warn('removeTrack error', err);
+                    throw err;
+                  }
                 }
                 async createOffer(...args) {
                   console.log('createOffer 1', JSON.stringify(args), args.map(a => typeof a), JSON.stringify({
@@ -2285,7 +2339,9 @@ export const main = async () => {
 
                     // Resume the audio context if it's suspended
                     if (globalAudioContext.state === 'suspended') {
+                      console.log('resume audiocontext 1');
                       await globalAudioContext.resume();
+                      console.log('resume audiocontext 2');
                     }
 
                     console.log('createFakeAudioStream 3', globalAudioContext.state);
@@ -2378,39 +2434,49 @@ export const main = async () => {
               browser,
               context,
               page,
+            };
+          };
+          const _makeBrowser = async () => {
+            const browser = await _launchBrowser();
+            const {
+              context,
+              page,
+            } = await _decorateBrowser(browser);
+            const destroySession = async () => {
+              console.log('destroy session 1');
+              await context.close();
+              await browser.close();
+              console.log('destroy session 2');
+            };
+            return {
+              browser,
+              context,
+              page,
               destroySession,
             };
           };
           const _createTs = async () => {
-            // const jwt = await getLoginJwt();
+            const jwt = await getLoginJwt();
+            const {
+              browser,
+              // page,
+              destroySession,
+            } = await createBrowser(undefined, {
+              jwt,
+            });
+            console.log('got browser');
+            const {
+              context,
+              page,
+            } = await _decorateBrowser(browser);
+            console.log('got context');
 
             // const {
-            //   browser,
+            //   // browser,
+            //   // context,
+            //   page,
             //   destroySession,
-            //  } = await createBrowser(undefined, {
-            //   jwt,
-            // });
-            // console.log('got browser');
-            // const context = await browser.newContext({
-            //   permissions: ['microphone', 'camera'],
-            // });
-            // console.log('got context');
-
-            const {
-              // browser,
-              // context,
-              page,
-              destroySession,
-            } = await _makeBrowser();
-            console.log('got browser');
-
-            // const userDataDir = path.join(os.tmpdir(), `usdk-browser-${Date.now()}`);
-            // const context = await playwright.chromium.launchPersistentContext(userDataDir, {
-            //   channel: 'chrome',
-            //   executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-            //   headless: true,
-            // });
-            // const destroySession = () => context.close();
+            // } = await _makeBrowser();
 
             await page.goto('https://x.com/home');
             console.log('got to page 1');
@@ -2426,7 +2492,7 @@ export const main = async () => {
             await a.click();
             console.log('got a html 2');
 
-            // selecct by the button text
+            // select by the button text
             // const submitTextEl = page.locator('text="Start now"');
             // console.log('got submit text el', submitTextEl);
 
