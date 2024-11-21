@@ -3322,9 +3322,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
     }
     function base64ToUint8Array(base64) {
       if (base64) {
-        // console.log('base64ToUint8Array 1', {
-        //   base64,
-        // });
         const binaryString = atob(base64);
         const uint8Array = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
@@ -3393,13 +3390,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
 
           const base64 = float32ToBase64(f32);
           console.log('postDown audio', f32.length);
-          // console.log('postDown audio', {
-          //   sampleRate,
-          //   frequency,
-          //   period,
-          //   f32,
-          //   base64,
-          // });
           postDown('audio', base64);
 
           lastTimestamp = currentTimestamp;
@@ -3420,7 +3410,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
 
       const context = await browser.newContext({
         permissions: ['microphone', 'camera'],
-        // serviceWorkers: 'block',
         bypassCSP: true,
       });
       if (await _checkAbort(async () => {
@@ -3560,9 +3549,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         }
         function base64ToUint8Array(base64) {
           if (base64) {
-            // console.log('base64ToUint8Array 2', {
-            //   base64,
-            // });
             const binaryString = atob(base64);
             const uint8Array = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -3833,34 +3819,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
               // connect the worklet node to the destination
               wsOutputProcessor.connect(destination);
 
-              /* // create a fake audio stream
-              const intervalMs = 1000;
-              const interval = setInterval(() => {
-                _processAudio();
-              }, intervalMs);
-              const startTimestamp = Date.now();
-              let lastTimestamp = startTimestamp;
-              const frequency = 440; // Hz
-              const _processAudio = () => {
-                const currentTimestamp = Date.now();
-                const numSamplesOld = Math.floor((lastTimestamp - startTimestamp) / 1000 * sampleRate);
-                const numSamplesNew = Math.floor((currentTimestamp - startTimestamp) / 1000 * sampleRate);
-                const numSamples = numSamplesNew - numSamplesOld;
-
-                // create the audio buffer with the exact number of samples needed
-                const f32 = new Float32Array(numSamples);
-
-                // sine wave continuing from last timestamp
-                const period = sampleRate / frequency;
-                for (let i = 0; i < numSamples; i++) {
-                  const sampleIndex = numSamplesOld + i;
-                  f32[i] = Math.sin(2 * Math.PI * (sampleIndex / period));
-                }
-
-                // console.log('post message', f32);
-                wsOutputProcessor.port.postMessage(f32, [f32.buffer]);
-                lastTimestamp = currentTimestamp;
-              }; */
               destination.stream.write = (f32) => {
                 wsOutputProcessor.port.postMessage(f32);
               };
