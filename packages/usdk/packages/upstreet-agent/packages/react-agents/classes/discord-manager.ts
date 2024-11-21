@@ -69,13 +69,25 @@ const bindOutgoing = ({
       message,
     } = e.data;
     const {
+      attachments,
+    } = message;
+    const {
       method,
       args,
     } = message;
     if (method === 'say') {
-      const {
+      let {
         text,
       } = args as { text: string };
+
+      if (attachments && Object.keys(attachments).length > 0) {
+        console.log('attachments: ', attachments);
+        const imageAttachment = Object.values(attachments).find(attachment => 
+          attachment.type.includes('image/')
+        );
+        text += `\n${imageAttachment.url}`;
+      }
+
       discordBotClient.input.writeText(text, {
         channelId,
         userId,
