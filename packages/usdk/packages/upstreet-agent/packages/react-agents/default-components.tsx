@@ -2947,15 +2947,20 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
     if (!browserStatePromise.current) {
       const localPromise = (async () => {
         // console.log('create browser with jwt', authToken);
-        const browserResult = await createBrowser(undefined, {
+        const browser = await createBrowser(undefined, {
           jwt: authToken,
         });
-        const {
-          sessionId,
-          url,
-          browser,
-          destroySession,
-        } = browserResult;
+        // const {
+        //   sessionId,
+        //   url,
+        //   browser,
+        //   destroySession,
+        // } = browserResult;
+        const destroySession = async () => {
+          console.log('destroy browser session 1');
+          await browser.destroy();
+          console.log('destroy browser session 2');
+        };
         if (localPromise === browserStatePromise.current) {
           // if we are still the current browser state promise, latch the state
           const browserState = new BrowserState({

@@ -1,18 +1,6 @@
 import { chromium } from "playwright-core";
 import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
 
-// type CreateSessionOptions = {
-//   browserSettings?: {
-//     viewport?: {
-//       width: number;
-//       height: number;
-//     },
-//     blockAds?: boolean; // false
-//     solveCaptchas?: boolean; // true
-//     recordSession?: boolean; // true
-//     logSession?: boolean; // true
-//   };
-// };
 const createSession = async (opts/*: CreateSessionOptions = {}*/, {
   jwt = '',
 }) => {
@@ -37,7 +25,7 @@ const createSession = async (opts/*: CreateSessionOptions = {}*/, {
     throw new Error(`failed to create session: ${text}`);
   }
 };
-const destroySession = async (sessionId/*: string*/, {
+/* const destroySession = async (sessionId, {
   jwt = '',
 }) => {
   if (!jwt) {
@@ -56,7 +44,7 @@ const destroySession = async (sessionId/*: string*/, {
     const text = await res.text();
     throw new Error(`failed to destroy session: ${text}`);
   }
-};
+}; */
 
 export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
   proxies: false,
@@ -74,18 +62,18 @@ export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
   jwt = '',
 }) => {
   console.log('browser opts', opts);
-  const sessionResult = await createSession(opts, {
-    jwt,
-  });
-  const {
-    sessionId,
-    url,
-  } = sessionResult;
+  // const sessionResult = await createSession(opts, {
+  //   jwt,
+  // });
+  // const {
+  //   sessionId,
+  //   url,
+  // } = sessionResult;
 
   const defaultTimeout = 60 * 1000;
-  const url2 = `wss://ai.upstreet.ai/api/browserless/?apiKey=${jwt}`;
+  const url = `wss://ai.upstreet.ai/api/browserless/?apiKey=${jwt}`;
   const browser = await chromium.connectOverCDP(
-    url2,
+    url,
     {
       timeout: defaultTimeout,
     },
@@ -96,23 +84,25 @@ export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
   //     timeout: defaultTimeout,
   //   },
   // );
-  const _destroySession = async () => {
-    try {
-      await destroySession(sessionId, { jwt });
-    } catch (err) {
-      console.warn('failed to destroy session', sessionId, err);
-    }
-  };
+  // const _destroySession = async () => {
+  //   try {
+  //     // await destroySession(sessionId, { jwt });
+  //     await browser.close();
+  //   } catch (err) {
+  //     console.warn('failed to destroy session', sessionId, err);
+  //   }
+  // };
 
-  return {
-    sessionId,
-    url,
-    browser,
-    destroySession: _destroySession,
-  };
+  // return {
+  //   sessionId,
+  //   url,
+  //   browser,
+  //   destroySession: _destroySession,
+  // };
+  return browser;
 };
 
-export const testBrowser = async ({
+/* export const testBrowser = async ({
   jwt = '',
 }) => {
   if (!jwt) {
@@ -182,22 +172,6 @@ export const testBrowser = async ({
         const text = await res.text();
         throw new Error(`could not upload avatar file: ${text}`);
       }
-
-      /* const img = new Image();
-      img.src = imgSrc;
-      img.style.cssText = `\
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        width: 600px;
-        height: auto;
-        z-index: 100;
-      `;
-      document.body.appendChild(img);
-      await new Promise((accept, reject) => {
-        img.onload = accept;
-        img.onerror = reject;
-      }); */
     }
     await page.close();
     console.log('page closed');
@@ -207,4 +181,4 @@ export const testBrowser = async ({
     destroySession();
     await console.log('session destroyed');
   }
-};
+}; */

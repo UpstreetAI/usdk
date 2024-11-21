@@ -2457,13 +2457,14 @@ export const main = async () => {
           };
           const _createTs = async () => {
             const jwt = await getLoginJwt();
-            const {
-              browser,
-              // page,
-              destroySession,
-            } = await createBrowser(undefined, {
+            const browser = await createBrowser(undefined, {
               jwt,
             });
+            const destroySession = async () => {
+              console.log('destroy session 1');
+              await browser.close();
+              console.log('destroy session 2');
+            };
             console.log('got browser');
             const {
               context,
