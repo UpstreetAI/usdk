@@ -3714,8 +3714,8 @@ Decoder.prototype.output = function() {
     var ok = Module._Decoder_output(this.dec, this.out);
     if (ok) {
         return new Int16Array(Module.HEAPU8.buffer, Module._Int16Array_data(this.out), Module._Int16Array_size(this.out))
-    } else {
-        throw new Error('not ok');
+    // } else {
+    //     throw new Error('not ok');
     }
 };
 Module.Encoder = Encoder;
