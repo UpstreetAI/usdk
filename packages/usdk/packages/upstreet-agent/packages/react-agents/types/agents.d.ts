@@ -21,6 +21,7 @@ export type NetworkRealms = any;
 export type ExtendableMessageEvent<T> = MessageEvent<T> & {
   waitUntil: (promise: Promise<any>) => void;
   waitForFinish: () => Promise<void>;
+  setResult(result: any): void;
 };
 
 // agents
@@ -44,6 +45,7 @@ export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
   generativeQueueManager: QueueManager;
+  thinkCache: Array<ActionStep>;
   
   get location(): URL;
 
@@ -68,6 +70,12 @@ export type GenerativeAgentObject =  {
 export type AgentThinkOptions = {
   forceAction?: string;
   excludeActions?: string[];
+};
+export type ActionStep = {
+  action?: PendingActionMessage,
+  uniforms?: {
+    [key: string]: object,
+  },
 };
 
 // messages
@@ -97,20 +105,35 @@ export type TtsArgs = {
 
 // discord
 
-export type DiscordBotRoomSpec = RegExp | string;
-export type DiscordBotRoomSpecs = DiscordBotRoomSpec | DiscordBotRoomSpec[];
-export type DiscordBotProps = {
+export type DiscordRoomSpec = RegExp | string;
+export type DiscordRoomSpecs = DiscordRoomSpec | DiscordRoomSpec[];
+export type DiscordProps = {
   token: string;
-  channels?: DiscordBotRoomSpecs;
-  dms?: DiscordBotRoomSpecs;
+  channels?: DiscordRoomSpecs;
+  dms?: DiscordRoomSpecs;
   userWhitelist?: string[];
 };
-export type DiscordBotArgs = {
+export type DiscordArgs = {
   token: string;
-  channels: DiscordBotRoomSpec[];
-  dms: DiscordBotRoomSpec[];
+  channels: DiscordRoomSpec[];
+  dms: DiscordRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
+};
+
+// twitter
+
+export type TwitterProps = {
+  token: string;
+};
+export type TwitterArgs = {
+  token: string;
+  agent: ActiveAgentObject;
+  kv: any;
+  codecs: any;
+  jwt: string;
 };
 
 // telnyx
@@ -142,7 +165,7 @@ export type ActionMessage = {
   userId: string;
   name: string;
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   human: boolean; // XXX can be converted to flags
   hidden: boolean;
@@ -150,12 +173,12 @@ export type ActionMessage = {
 };
 export type PendingActionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
 };
 export type PerceptionMessage = {
   method: string;
-  args: object;
+  args: any;
   attachments?: Attachment[];
   timestamp: Date;
 };
@@ -248,7 +271,7 @@ export type ConversationObject = EventTarget & {
   }) => Promise<ActionMessage[]>; */
 
   typing: (handlerAsyncFn: () => Promise<void>) => Promise<void>;
-  addLocalMessage: (message: ActionMessage) => Promise<void>;
+  addLocalMessage: (message: ActionMessage) => Promise<ActionStep[]>;
   addLocalAndRemoteMessage: (message: ActionMessage) => Promise<void>;
 
   addAudioStream: (audioStream: PlayableAudioStream) => void;
@@ -260,6 +283,7 @@ export type ConversationObject = EventTarget & {
   // setAgent: (agent: ActiveAgentObject) => void;
 
   getAgents: () => Player[];
+  getAgentIds: () => string[];
   addAgent: (agentId: string, player: Player) => void;
   removeAgent: (agentId: string) => void;
   getKey: () => string;
@@ -304,12 +328,22 @@ export type ChatsManager = {
   live: () => void;
   destroy: () => void;
 };
-export type DiscordBot = EventTarget & {
+export type Discord = EventTarget & {
   destroy: () => void;
 };
 export type DiscordManager = {
-  addDiscordBot: (args: DiscordBotArgs) => DiscordBot;
-  removeDiscordBot: (client: DiscordBot) => void;
+  addDiscordBot: (args: DiscordArgs) => Discord;
+  removeDiscordBot: (client: Discord) => void;
+  live: () => void;
+  destroy: () => void;
+};
+export type TwitterBot = {
+  token: string;
+  agent: ActiveAgentObject;
+};
+export type TwitterManager = {
+  addTwitterBot: (args: TwitterArgs) => void;
+  removeTwitterBot: (client: TwitterBot) => void;
   live: () => void;
   destroy: () => void;
 };
@@ -354,6 +388,7 @@ export type ActiveAgentObject = AgentObject & {
   conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  twitterManager: TwitterManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
   liveManager: LiveManager;
@@ -709,6 +744,7 @@ export type AppContextValue = {
   subtleAi: SubtleAi;
 
   useAgentJson: () => object;
+  useEnv: () => string;
   useEnvironment: () => string;
   useWallets: () => object[];
   useAuthToken: () => string;

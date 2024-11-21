@@ -213,6 +213,32 @@ export class AgentInterview extends EventTarget {
       // external handling
       agentJson = object;
       if (updateObject) {
+        const hasNonNullValues = obj =>
+          Object.values(obj).some(value => value !== null && value !== undefined);
+
+        const shouldDispatchProperty = (key, value) => {
+          // skip visual/homespace descriptions as they're handled separately
+          if (key === 'visualDescription' || key === 'homespaceDescription') {
+            return false;
+          }
+
+          // For features object, only log if it has any non-null values
+          if (key === 'features' && typeof value === 'object') {
+            return hasNonNullValues(value);
+          }
+
+          // For other properties, log if they're not null/undefined
+          return value !== null && value !== undefined;
+        };
+
+        Object.entries(updateObject)
+          .filter(([key, value]) => shouldDispatchProperty(key, value))
+          .forEach(([key, value]) => {
+            this.dispatchEvent(new MessageEvent(key, {
+              data: value
+            }));
+          });
+
         this.dispatchEvent(new MessageEvent('change', {
           data: {
             updateObject,

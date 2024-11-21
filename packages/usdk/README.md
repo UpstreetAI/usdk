@@ -192,6 +192,6 @@ We're thrilled to have you join the Upstreet community! As you explore and creat
 
 👉 Join our Discord community to log issues and find inspiration: https://upstreet.ai/usdk-discord
 
-👉 Talk to us directly for deeper issues, and commercial usage: support@upstreet.ai 
+👉 Talk to us directly for deeper issues, and commercial usage: hello@upstreet.ai
 
 Happy creating in Upstreet! 🌆🚀

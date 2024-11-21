@@ -11,11 +11,22 @@ export {
 export {
   create,
   edit,
-  pull,
 } from './create.mjs';
+export {
+  runAgent,
+} from './run-agent.mjs';
+export {
+  pull,
+} from './pull.mjs';
 export {
   publish,
 } from './publish.mjs';
+export {
+  update,
+} from './update.mjs';
+export {
+  authenticate,
+} from './authenticate.mjs';
 export {
   chat,
 } from './chat.mjs';

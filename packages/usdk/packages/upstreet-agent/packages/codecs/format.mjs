@@ -1,4 +1,4 @@
-import { convertFloat32ToInt16 } from './resample.mjs';
+import { int16ToFloat32, floatTo16Bit } from './convert.mjs';
 
 const validFormats = ['f32', 'i16'];
 
@@ -24,7 +24,7 @@ export const formatSamples = (samples, dstFormat, srcFormat) => {
       case 'f32': {
         if (srcFormat === 'i16') {
           const i16 = samples;
-          const f32 = convertInt16ToFloat32(i16);
+          const f32 = int16ToFloat32(i16);
           return f32;
         } else {
           return samples;
@@ -33,7 +33,7 @@ export const formatSamples = (samples, dstFormat, srcFormat) => {
       case 'i16': {
         if (srcFormat === 'f32') {
           const f32 = samples;
-          const i16 = convertFloat32ToInt16(f32);
+          const i16 = floatTo16Bit(f32);
           return i16;
         } else {
           return samples;
