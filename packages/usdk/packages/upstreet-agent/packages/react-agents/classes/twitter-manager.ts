@@ -237,7 +237,6 @@ class TwitterBot {
         const newMessage = formatConversationMessage(rawMessage, {
           agent: this.agent,
         });
-        // XXX might need to pass the metadata referencing the original tweet
         await conversation.addLocalMessage(newMessage, {
           metadata: {
             tweet,

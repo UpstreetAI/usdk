@@ -165,7 +165,6 @@ export class GenerativeAgentObject {
     });
   }
 
-  // XXX these methods can be removed since they don't really have anything to do with generation
   async addMessage(message: PendingActionMessage) {
     const newMessage = formatConversationMessage(message, {
       agent: this.agent,
