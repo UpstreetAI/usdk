@@ -99,7 +99,11 @@ export class ConversationObject extends EventTarget {
 
   getAgents() {
     return Array
-      .from(this.agentsMap.values())
+      .from(this.agentsMap.values());
+  }
+  getAgentIds() {
+    return Array
+      .from(this.agentsMap.keys());
   }
   addAgent(agentId: string, player: Player) {
     this.agentsMap.set(agentId, player);
@@ -194,7 +198,7 @@ export class ConversationObject extends EventTarget {
     return [] as ActionMessage[];
   } */
 
-  // pull a message from the network
+  // handle a message from the network
   async addLocalMessage(message: ActionMessage) {
     const {
       hidden,
@@ -220,9 +224,9 @@ export class ConversationObject extends EventTarget {
       },
     });
     this.dispatchEvent(e);
-    await e.waitForFinish();
+    return await e.waitForFinish();
   }
-  // push a message to the network
+  // send a message to the network
   async addLocalAndRemoteMessage(message: ActionMessage) {
     const {
       hidden,
@@ -237,7 +241,7 @@ export class ConversationObject extends EventTarget {
       },
     });
     this.dispatchEvent(e);
-    await e.waitForFinish();
+    return await e.waitForFinish();
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {
