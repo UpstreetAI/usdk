@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
 import { Jimp } from 'jimp';
-const { intToRGBA } = Jimp;
+import { intToRGBA } from '@jimp/utils';
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from 'queue-manager';
