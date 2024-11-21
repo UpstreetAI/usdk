@@ -41,25 +41,25 @@ async function getAgentData(supabase: any, identifier: string) {
 }
 
 export default async function EmbedPage({ params }: Params) {
-  try {
-    const embedToken = decodeURIComponent(params.id);
-    const token = JSON.parse(decrypt(embedToken));
+  // try {
+    const id = decodeURIComponent(params.id);
+    // const token = JSON.parse(decrypt(embedToken));
 
     const supabase = makeAnonymousClient(env);
-    const identifier = decodeURIComponent(token.agentId);
+    const identifier = decodeURIComponent(id);
 
     const result = await getAgentData(supabase, identifier);
     const agentData = result.data as AgentData;
 
-    console.log(token);
+    console.log(id, agentData);
 
     return (
       <div className="w-full relative flex h-screen overflow-hidden">
         <EmbedChat agentId={agentData.id} />
       </div>
     );
-  } catch (error) {
-    console.error('Error in EmbedPage:', error);
-    return <div>Error loading page</div>;
-  }
+  // } catch (error) {
+  //   console.error('Error in EmbedPage:', error);
+  //   return <div>Error loading page</div>;
+  // }
 }
