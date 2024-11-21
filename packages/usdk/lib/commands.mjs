@@ -19,8 +19,8 @@ export {
   pull,
 } from './pull.mjs';
 export {
-  deploy,
-} from './deploy.mjs';
+  publish,
+} from './publish.mjs';
 export {
   update,
 } from './update.mjs';

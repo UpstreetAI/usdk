@@ -80,7 +80,7 @@ import {
   create,
   edit,
   pull,
-  deploy,
+  publish,
   update,
   authenticate,
   chat,
@@ -1499,7 +1499,7 @@ export const main = async () => {
       });
     program
       .command('pull')
-      .description('Download source of deployed agent')
+      .description('Download source of a published agent')
       .argument('<guid>', 'Guid of the agent')
       .argument(`[directory]`, `The directory to create the project in`)
       .option(`-f, --force`, `Overwrite existing files`)
@@ -1640,39 +1640,22 @@ export const main = async () => {
     //       await capture(args);
     //     });
     //   });
-    program
-      .command('deploy')
-      .description('Deploy an agent to the network')
-      .argument(`[guids...]`, `Guids of the agents to deploy`)
-      // .argument(
-      //   `[type]`,
-      //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
-      // )
-      .action(async (agentRefs, opts = {}) => {
-        await handleError(async () => {
-          commandExecuted = true;
-
-          const outputStream = new stream.PassThrough();
-          outputStream.pipe(process.stdout);
-
-          let args;
-          args = {
-            _: [agentRefs],
-            ...opts,
-            outputStream,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await deploy(args, {
-            jwt,
-          });
-        });
-      });
     // const networkOptions = ['baseSepolia', 'opMainnet'];
     program
       .command('agents')
-      .description('List the currently deployed agents')
+      .description('List the currently published agents')
+      // .option(
+      //   `-n, --network <networkId>`,
+      //   `The blockchain network to use for querying agent wallets; one of ${JSON.stringify(networkOptions)}`,
+      // )
+      // .option(
+      //   `-l, --local`,
+      //   `Connect to localhost servers for development instead of remote (requires running local agent backend)`,
+      // )
+      // .option(
+      //   `-d, --dev`,
+      //   `List local development agents instead of account agents (requires running cli dev server)`,
+      // )
       .action(async (opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
@@ -1689,8 +1672,37 @@ export const main = async () => {
         });
       });
     program
+    .command('publish')
+    .description('Publish an agent to the network')
+    .argument(`[guids...]`, `Guids of the agents to publish`)
+    // .argument(
+    //   `[type]`,
+    //   `Type of deployment to perform, one of ${JSON.stringify([deploymentTypes])}`,
+    // )
+    .action(async (agentRefs, opts = {}) => {
+      await handleError(async () => {
+        commandExecuted = true;
+
+        const outputStream = new stream.PassThrough();
+        outputStream.pipe(process.stdout);
+
+        let args;
+        args = {
+          _: [agentRefs],
+          ...opts,
+          outputStream,
+        };
+
+        const jwt = await getLoginJwt();
+
+        await publish(args, {
+          jwt,
+        });
+      });
+    });
+    program
       .command('unpublish')
-      .description('Unpublish a deployed agent from the network')
+      .description('Unpublish an agent from the network')
       .argument(`[guids...]`, `Guids of the agents to unpublish`)
       .action(async (guids = '', opts) => {
         await handleError(async () => {
@@ -1708,31 +1720,11 @@ export const main = async () => {
         });
       });
     program
-      .command('authenticate')
-      .description(`Configure agent's authentication token`)
-      .argument(`[directories...]`, `Path to the agents to authenticate`)
-      .option(`-f, --force`, `Force update even if there are conflicts`)
-      .action(async (directories = '', opts) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await authenticate(args, {
-            jwt,
-          });
-        });
-      });
-    program
       .command('update')
       .description('Update an agent to the latest sdk version')
       .argument(`[directories...]`, `Path to the agents to update`)
       .option(`-f, --force`, `Force update even if there are conflicts`)
-      .action(async (directories = '', opts) => {
+      .action(async (directories = [], opts) => {
         await handleError(async () => {
           commandExecuted = true;
           const args = {
