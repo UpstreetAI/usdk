@@ -59,17 +59,21 @@ const destroySession = async (sessionId/*: string*/, {
 };
 
 export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
+  proxies: false,
   browserSettings: {
     viewport: {
       width: 1280,
       height: 720,
     },
-    blockAds: true,
-    solveCaptchas: true,
+    blockAds: false,
+    solveCaptchas: false,
+    recordSession: false,
+    logSession: false,
   },
 }, {
   jwt = '',
 }) => {
+  console.log('browser opts', opts);
   const sessionResult = await createSession(opts, {
     jwt,
   });
