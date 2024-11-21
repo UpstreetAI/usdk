@@ -3299,7 +3299,14 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
   const jwt = useAuthToken();
   const startedRef = useRef(false);
 
-  const _start = async () => {
+  const _start = async ({
+    signal,
+  }) => {
+    let live = true;
+    signal.addEventListener('abort', () => {
+      live = false;
+    });
+
     function float32ToBase64(f32) {
       const uint8Array = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
       return uint8ArrayToBase64(uint8Array);
@@ -3333,6 +3340,17 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
       return new Float32Array(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength / Float32Array.BYTES_PER_ELEMENT);
     }
 
+    const _checkAbort = async (abortFn = () => {}) => {
+      if (!live) {
+        await abortFn();
+        return true;
+      } else {
+        signal.addEventListener('abort', async () => {
+          await abortFn();
+        });
+        return false;
+      }
+    };
     /* const _launchBrowser = async () => {
       // launch the browser
       console.log('launch 1');
@@ -3416,6 +3434,9 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         // serviceWorkers: 'block',
         bypassCSP: true,
       });
+      if (await _checkAbort(async () => {
+        await context.close();
+      })) return;
 
       // set the auth token cookie
       await context.addCookies([
@@ -3426,6 +3447,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           path: '/',
         },
       ].filter(Boolean));
+      if (await _checkAbort()) return;
 
       // load the worklet files
       const workletInputFileName = 'ws-input-worklet.js';
@@ -3448,6 +3470,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           body: workletInput,
         });
       });
+      if (await _checkAbort()) return;
       await context.route(`**/${workletOutputFileName}`, async (route) => {
         console.log(`serving ${workletOutputFileName}`);
         await route.fulfill({
@@ -3464,12 +3487,16 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           body: workletOutput,
         });
       });
+      if (await _checkAbort()) return;
       // context.on('request', request => {
       //   console.log('Request:', request.url());
       // });
 
       const page = await context.newPage();
       console.log('got page');
+      if (await _checkAbort(async () => {
+        await page.close();
+      })) return;
 
       // log the page's console logs
       page.on('console', msg => {
@@ -3499,6 +3526,9 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
             const { close } = createAudioGenerator({
               sampleRate,
             });
+            signal.addEventListener('abort', () => {
+              close();
+            });
             break;
           }
           case 'audioStart': {
@@ -3520,7 +3550,9 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           }
         }
       });
+      if (await _checkAbort()) return;
       console.log('intercept 2');
+
       await page.addInitScript(() => {
         console.log('RTCPeerConnection override 1');
 
@@ -4080,6 +4112,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           console.log('RTCPeerConnection override 4');
         }
       });
+      if (await _checkAbort()) return;
       console.log('intercept 3');
 
       return {
@@ -4088,61 +4121,38 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         page,
       };
     };
-    /* const _makeBrowser = async () => {
-      const browser = await _launchBrowser();
-      const {
-        context,
-        page,
-      } = await _decorateBrowser(browser);
-      const destroySession = async () => {
-        console.log('destroy session 1');
-        await context.close();
-        await browser.close();
-        console.log('destroy session 2');
-      };
-      return {
-        browser,
-        context,
-        page,
-        destroySession,
-      };
-    }; */
     const _createTs = async () => {
       // const jwt = await getLoginJwt();
       const browser = await createBrowser(undefined, {
         jwt,
       });
-      const destroySession = async () => {
-        console.log('destroy session 1');
+      if (await _checkAbort(async () => {
         await browser.close();
-        console.log('destroy session 2');
-      };
+      })) return;
+
       console.log('got browser');
       const {
         context,
         page,
       } = await _decorateBrowser(browser);
+      if (await _checkAbort()) return;
       console.log('got context');
 
-      // const {
-      //   // browser,
-      //   // context,
-      //   page,
-      //   destroySession,
-      // } = await _makeBrowser();
-
       await page.goto('https://x.com/home');
+      if (await _checkAbort()) return;
       console.log('got to page 1');
 
       const button = page.locator('button[aria-label="More menu items"]');
       console.log('got button html 1', await button.innerHTML());
       await button.click();
+      if (await _checkAbort()) return;
       console.log('got button 2');
 
       // select this anchor
       const a = page.locator('a[href="/i/spaces/start"]');
       console.log('got a html 1', await a.innerHTML());
       await a.click();
+      if (await _checkAbort()) return;
       console.log('got a html 2');
 
       // select by the button text
@@ -4154,10 +4164,9 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
       const parentButton = page.locator('button:has-text("Start now")');
       // console.log('got parent button el', parentButton);
       // print the html of the button
-      console.log('button html 0', await parentButton.innerHTML());
-
-      console.log('button click 1');
+      console.log('button click 1', await parentButton.innerHTML());
       await parentButton.click();
+      if (await _checkAbort()) return;
       console.log('button click 2');
 
       const unmuteButton = page.locator('button[aria-label="Unmute"]');
@@ -4165,6 +4174,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         timeout: 60000,
       }));
       await unmuteButton.click();
+      if (await _checkAbort()) return;
       console.log('got unmute button 2');
 
       // console.log('waiting...');
@@ -4191,35 +4201,38 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
       const browser = await createBrowser(undefined, {
         jwt,
       });
+      if (await _checkAbort(async () => {
+        await browser.close();
+      })) return;
+
       const {
         context,
         page,
       } = await _decorateBrowser(browser);
-      const destroySession = async () => {
-        console.log('destroy session 1');
-        await context.close();
-        await browser.close();
-        console.log('destroy session 2');
-      };
+      if (await _checkAbort()) return;
 
       console.log('got browser');
       await page.goto(url);
+      if (await _checkAbort()) return;
 
       if (/status/.test(url)) {
         const listenButton = page.locator('a[href^="/i/spaces/"][href$="/peek"]');
         console.log('got button html 1', await listenButton.innerHTML());
         await listenButton.click();
+        if (await _checkAbort()) return;
         console.log('got button 2');
       }
 
       const startListeningButton = page.locator('button[aria-label="Start listening"]');
       console.log('got start listening button html 1', await startListeningButton.innerHTML());
       await startListeningButton.click();
+      if (await _checkAbort()) return;
       console.log('got start listening button 2');
 
       const requestToSpeakButton = page.locator('button[aria-label="Request to speak"]');
       console.log('got request to speak button html 1', await requestToSpeakButton.innerHTML());
       await requestToSpeakButton.click();
+      if (await _checkAbort()) return;
       console.log('got request to speak button 2');
 
       const unmuteButton = page.locator('button[aria-label="Unmute"]');
@@ -4227,6 +4240,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         timeout: 60000,
       }));
       await unmuteButton.click();
+      if (await _checkAbort()) return;
       console.log('got unmute button 2');
     };
 
@@ -4247,8 +4261,13 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
   useEffect(() => {
     if (!startedRef.current) {
       startedRef.current = true;
-      console.log('start 1');
-      _start().catch(err => {
+
+      const abortController = new AbortController();
+      const { signal } = abortController;
+
+      _start({
+        signal,
+      }).catch(err => {
         console.warn('start error', err.stack);
       });
     }
