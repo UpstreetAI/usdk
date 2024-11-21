@@ -83,12 +83,19 @@ export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
   } = sessionResult;
 
   const defaultTimeout = 60 * 1000;
+  const url2 = `wss://ai.upstreet.ai/api/browserless/?apiKey=${jwt}`;
   const browser = await chromium.connectOverCDP(
-    url,
+    url2,
     {
       timeout: defaultTimeout,
     },
   );
+  // const browser = await chromium.connectOverCDP(
+  //   url,
+  //   {
+  //     timeout: defaultTimeout,
+  //   },
+  // );
   const _destroySession = async () => {
     try {
       await destroySession(sessionId, { jwt });
