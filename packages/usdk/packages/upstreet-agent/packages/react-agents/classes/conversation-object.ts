@@ -99,7 +99,11 @@ export class ConversationObject extends EventTarget {
 
   getAgents() {
     return Array
-      .from(this.agentsMap.values())
+      .from(this.agentsMap.values());
+  }
+  getAgentIds() {
+    return Array
+      .from(this.agentsMap.keys());
   }
   addAgent(agentId: string, player: Player) {
     this.agentsMap.set(agentId, player);
@@ -195,7 +199,7 @@ export class ConversationObject extends EventTarget {
   } */
 
   // handle a message from the network
-  async addLocalMessage(message: ActionMessage, metadata?: any) {
+  async addLocalMessage(message: ActionMessage) {
     const {
       hidden,
     } = message;
@@ -217,14 +221,13 @@ export class ConversationObject extends EventTarget {
       data: {
         agent: playerSpec,
         message,
-        metadata,
       },
     });
     this.dispatchEvent(e);
-    await e.waitForFinish();
+    return await e.waitForFinish();
   }
   // send a message to the network
-  async addLocalAndRemoteMessage(message: ActionMessage, metadata?: any) {
+  async addLocalAndRemoteMessage(message: ActionMessage) {
     const {
       hidden,
     } = message;
@@ -235,11 +238,10 @@ export class ConversationObject extends EventTarget {
     const e = new ExtendableMessageEvent<ActionMessageEventData>('remotemessage', {
       data: {
         message,
-        metadata,
       },
     });
     this.dispatchEvent(e);
-    await e.waitForFinish();
+    return await e.waitForFinish();
   }
 
   addAudioStream(audioStream: PlayableAudioStream) {
