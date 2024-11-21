@@ -136,6 +136,13 @@ export type TwitterArgs = {
   jwt: string;
 };
 
+// twitter spaces
+
+export type TwitterSpacesProps = {
+  token: string;
+  url?: string;
+};
+
 // telnyx
 
 export type TelnyxProps = {
