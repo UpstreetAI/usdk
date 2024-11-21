@@ -75,17 +75,24 @@ const bindOutgoing = ({
       method,
       args,
     } = message;
+    console.log('e.data: ', e.data);
+
     if (method === 'say') {
       let {
         text,
       } = args as { text: string };
-
+      console.log('discord manager outgoing message', {
+        text,
+        attachments,
+        channelId,
+        userId,
+      });
+      
       if (attachments && Object.keys(attachments).length > 0) {
-        console.log('attachments: ', attachments);
-        const imageAttachment = Object.values(attachments).find(attachment => 
-          attachment.type.includes('image/')
-        );
-        text += `\n${imageAttachment.url}`;
+        text += '\n' + Object.values(attachments)
+          .filter(attachment => attachment && typeof attachment === 'object' && 'url' in attachment)
+          .map(attachment => attachment.url)
+          .join('\n');
       }
 
       discordBotClient.input.writeText(text, {
