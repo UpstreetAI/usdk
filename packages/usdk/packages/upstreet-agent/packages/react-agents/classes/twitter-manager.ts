@@ -30,7 +30,6 @@ class TwitterBot {
   accessToken: string;
   refreshToken: string;
   clientId: string;
-  clientSecret: string;
   abortController: AbortController;
   agent: ActiveAgentObject;
   kv: any;
@@ -51,7 +50,7 @@ class TwitterBot {
     if (!token) {
       throw new Error('Twitter bot requires a token');
     }
-    const [accessToken, refreshToken, clientId, clientSecret] = token.split(':');
+    const [accessToken, refreshToken, clientId] = token.split(':');
     if (!accessToken) {
       throw new Error('Twitter bot requires an access token');
     }
@@ -60,9 +59,6 @@ class TwitterBot {
     }
     if (!clientId) {
       throw new Error('Twitter bot requires a client ID');
-    }
-    if (!clientSecret) {
-      throw new Error('Twitter bot requires a client secret');
     }
     if (!agent) {
       throw new Error('Twitter bot requires an agent');
@@ -76,7 +72,6 @@ class TwitterBot {
 
     this.refreshToken = refreshToken;
     this.clientId = clientId;
-    this.clientSecret = clientSecret;
     this.agent = agent;
     this.kv = kv;
     this.codecs = codecs;
