@@ -37,8 +37,8 @@ export class OpusAudioDecoder {
     this.worker = new codecs.WsOpusCodec();
     const fakeAudioData = new FakeAudioData();
     this.worker.addEventListener('message', e => {
-      if (e.data.data) {
-        fakeAudioData.set(e.data.data);
+      if (e.data) {
+        fakeAudioData.set(e.data);
         output(fakeAudioData);
       } else {
         output(null);

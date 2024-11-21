@@ -1,7 +1,7 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.92",
+  "version": "0.0.93",
   "homepage": "https://upstreet.ai/",
   "author": "Upstreet <hello@upstreet.ai> (https://github.com/UpstreetAI)",
   "contributors": [
@@ -32,7 +32,7 @@
   "bin": {
     "usdk": "./usdk.js"
   },
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "files": [
     "certs-local",
     "packages",

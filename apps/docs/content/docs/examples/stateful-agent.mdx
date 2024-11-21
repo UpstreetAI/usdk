@@ -60,12 +60,14 @@ We can use [`unique-names-generator`](https://www.npmjs.com/package/unique-names
 
 Install this library to your agent:
 
-```
+```bash
 cd <your-agent-directory>
 npm install unique-names-generator
 ```
 
-Note: You can also install any library from `npm`.
+<Callout>
+  When [customizing your Agent](/customize-your-agent), you can install any library from `npm` and use it in your code.
+</Callout>
 
 Edit your `agent.tsx` by adding the following code stub:
 
@@ -99,23 +101,23 @@ const GuessingGame = () => {
   const [secretWord, setSecretWord] = useState(generateRandomName); // [!code ++]
 
   return (
-    {/* [!code highlight] */} 
+    {/* [!code ++] */} 
     <>
-    {/* [!code highlight] */} 
+    {/* [!code ++] */} 
       <Prompt>
-        {/* [!code highlight] */} 
+        {/* [!code ++]  */}
         Play a guessing game with the user.
-        {/* [!code highlight] */} 
+        {/* [!code ++] */} 
         The secret word that the user is must guess is {secretWord}.
-        {/* [!code highlight] */} 
+        {/* [!code ++] */} 
         You can give them very subtle hints about the phrase, e.g. "this animal really likes treats".
-        {/* [!code highlight] */} 
+        {/* [!code ++] */} 
         You can also answer general questions if they don't give too much away.
-        {/* [!code highlight] */} 
+        {/* [!code ++] */} 
         However, be cryptic. Don't make the game so easy.
-        {/* [!code highlight] */} 
+        {/* [!code ++] */} 
         When the user guesses the secret word or gives up, call the "guessingGameDone" action with an apppropriate message to reset the secret word.
-      {/* [!code highlight] */}
+      {/* [!code ++] */}
       </Prompt> 
       <Action // [!code ++]
         name="guessingGameDone" // [!code ++]

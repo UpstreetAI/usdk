@@ -1,11 +1,11 @@
-import packageJson from '../../../package.json' with { type: 'json' };
-import { defaultModels } from '../packages/react-agents/constants.mjs';
+import packageJson from '../../../../../package.json' with { type: 'json' };
+import { defaultModels } from '../constants.mjs';
 import {
   getCloudAgentHost,
-} from '../packages/react-agents/agent-defaults.mjs';
+} from '../agent-defaults.mjs';
 import {
   getWalletFromMnemonic,
-} from '../packages/react-agents/util/ethereum-utils.mjs';
+} from './ethereum-utils.mjs';
 
 export const ensureAgentJsonDefaults = (spec) => {
   spec = {

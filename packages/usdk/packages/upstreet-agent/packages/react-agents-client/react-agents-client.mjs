@@ -150,6 +150,12 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
 
       connected = true;
 
+      this.dispatchEvent(new MessageEvent('join', {
+        data: {
+          player: localPlayer,
+        },
+      }));
+
       realmsConnectResolve();
     };
     realms.addEventListener('connect', onConnect);
@@ -157,6 +163,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     const _trackRemotePlayers = () => {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
+
         const playerSpec = player.getKeyValue('playerSpec');
         if (connected) {
           // this.log('react agents client: remote player joined:', playerId);
@@ -179,14 +186,24 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
             if (!playersMap.has(playerId)) {
-              playersMap.add(playerId, remotePlayer);
+              // dispatch join event when the playerSpec is updated and the player is not already in the playersMap
+              this.dispatchEvent(new MessageEvent('playerSpecUpdate', {
+                data: {
+                  player: remotePlayer,
+                },
+              }));
             }
           }
         });
 
-        this.dispatchEvent(new MessageEvent('join', {
-          data: e.data,
-        }));
+        // Do not add the player or dispatch join event until it has the playerSpec set
+        if (remotePlayer.getPlayerSpec()) {
+          this.dispatchEvent(new MessageEvent('join', {
+            data: {
+              player: remotePlayer,
+            },
+          }));
+        }
       });
       virtualPlayers.addEventListener('leave', e => {
         const { playerId } = e.data;
@@ -207,7 +224,9 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         }
 
         this.dispatchEvent(new MessageEvent('leave', {
-          data: e.data,
+          data: {
+            player: remotePlayer,
+          },
         }));
       });
       // map multimedia events virtualPlayers -> playersMap

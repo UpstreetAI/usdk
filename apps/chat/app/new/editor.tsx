@@ -26,7 +26,7 @@ import {
   Chat,
 } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
-import { ensureAgentJsonDefaults } from 'react-agents/agent-defaults.mjs';
+import { ensureAgentJsonDefaults } from 'react-agents/util/agent-json-util.mjs';
 import {
   generateCharacterImage,
   generateBackgroundImage,
@@ -68,9 +68,12 @@ type FeaturesObject = {
     message: string;
   } | null;
   storeItems: StoreItem[] | null;
-  discordBot: {
+  discord: {
     token: string;
     channels: string;
+  } | null;
+  twitterBot: {
+    token: string;
   } | null;
 };
 type AgentEditorProps = {
@@ -115,7 +118,8 @@ export default function AgentEditor({
     tts: null,
     rateLimit: null,
     storeItems: null,
-    discordBot: null,
+    discord: null,
+    twitterBot: null,
   });
   const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
 
@@ -212,9 +216,12 @@ export default function AgentEditor({
     maxUserMessagesTime: maxUserMessagesTimeDefault,
     message: rateLimitMessageDefault,
   });
-  const makeDefaultDiscordBot = () => ({
+  const makeDefaultDiscord = () => ({
     token: '',
     channels: '',
+  });
+  const makeDefaultTwitterBot = () => ({
+    token: '',
   });
   const makeEmptyStoreItems = () => [
     makeEmptyStoreItem(),
@@ -449,7 +456,7 @@ export default function AgentEditor({
   // render
   return (
     <div className="flex flex-1 h-screen overflow-hidden">
-
+      
       <BackButton className="absolute z-[100] left-8 top-8" />
 
       {/* builder */}
@@ -855,27 +862,27 @@ export default function AgentEditor({
               </label>
             </div>}
           </div>
-          {/* discord bot */}
+          {/* discord */}
           <div className="flex flex-col">
             <label className="flex">
-              <input type="checkbox" checked={!!features.discordBot} onChange={e => {
+              <input type="checkbox" checked={!!features.discord} onChange={e => {
                 setFeatures({
                   ...features,
-                  discordBot: e.target.checked ? makeDefaultDiscordBot() : null,
+                  discord: e.target.checked ? makeDefaultDiscord() : null,
                 });
               }} />
-              <div className="px-2">Discord bot</div>
+              <div className="px-2">Discord</div>
             </label>
-            {features.discordBot && <div className="flex flex-col">
+            {features.discord && <div className="flex flex-col">
               {/* token */}
               <label className="flex">
                 <div className="mr-2 min-w-32">Token</div>
-                <input type="text" value={features.discordBot.token} onChange={e => {
+                <input type="text" value={features.discord.token} onChange={e => {
                   setFeatures(features => ({
                     ...features,
-                    discordBot: {
+                    discord: {
                       token: e.target.value,
-                      channels: features.discordBot?.channels ?? '',
+                      channels: features.discord?.channels ?? '',
                     },
                   }));
                 }} placeholder="<bot token>" required />
@@ -883,15 +890,41 @@ export default function AgentEditor({
               {/* channels */}
               <label className="flex">
                 <div className="mr-2 min-w-32">Channels</div>
-                <input type="text" value={features.discordBot.channels} onChange={e => {
+                <input type="text" value={features.discord.channels} onChange={e => {
                   setFeatures(features => ({
                     ...features,
-                    discordBot: {
-                      token: features.discordBot?.token ?? '',
+                    discord: {
+                      token: features.discord?.token ?? '',
                       channels: e.target.value,
                     },
                   }));
                 }} placeholder="text, voice" required />
+              </label>
+            </div>}
+          </div>
+          {/* twitter bot */}
+          <div className="flex flex-col">
+            <label className="flex">
+              <input type="checkbox" checked={!!features.twitterBot} onChange={e => {
+                setFeatures({
+                  ...features,
+                  twitterBot: e.target.checked ? makeDefaultTwitterBot() : null,
+                });
+              }} />
+              <div className="px-2">Twitter bot</div>
+            </label>
+            {features.twitterBot && <div className="flex flex-col">
+              {/* token */}
+              <label className="flex">
+                <div className="mr-2 min-w-32">Token</div>
+                <input type="text" value={features.twitterBot.token} onChange={e => {
+                  setFeatures(features => ({
+                    ...features,
+                    twitterBot: {
+                      token: e.target.value,
+                    },
+                  }));
+                }} placeholder="<bot token>" required />
               </label>
             </div>}
           </div>
