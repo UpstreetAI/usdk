@@ -1,4 +1,4 @@
-import { chromium } from "playwright-core";
+import { chromium } from 'playwright-core';
 // import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
 
 /* const createSession = async (opts, {
@@ -61,7 +61,7 @@ export const createBrowser = async (opts/*: CreateSessionOptions = {}*/ = {
 }, {
   jwt = '',
 }) => {
-  console.log('browser opts', opts);
+  // console.log('browser opts', opts);
   // const sessionResult = await createSession(opts, {
   //   jwt,
   // });
