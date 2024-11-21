@@ -12,11 +12,10 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
 
   const updateTrustedUrls = async (urls: string[]) => {
     const jwt = await getJWT();
-    const user = await getUserForJwt(jwt);
     const supabase = makeAnonymousClient(env, jwt);
     const { data, error } = await supabase
       .from('embed_agent')
-      .upsert({ user_id: user.id, asset_id: agent.id, trusted_urls: urls }, { onConflict: 'asset_id' });
+      .upsert({ asset_id: agent.id, trusted_urls: urls }, { onConflict: 'asset_id' });
 
     if (error) {
       console.error('Error updating trusted URLs:', error);
