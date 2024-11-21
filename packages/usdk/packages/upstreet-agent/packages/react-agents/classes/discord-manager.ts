@@ -69,13 +69,25 @@ const bindOutgoing = ({
       message,
     } = e.data;
     const {
+      attachments,
+    } = message;
+    const {
       method,
       args,
     } = message;
+
     if (method === 'say') {
-      const {
+      let {
         text,
       } = args as { text: string };
+      
+      if (attachments && Object.keys(attachments).length > 0) {
+        text += '\n' + Object.values(attachments)
+          .filter(attachment => attachment && typeof attachment === 'object' && 'url' in attachment)
+          .map(attachment => attachment.url)
+          .join('\n');
+      }
+
       discordBotClient.input.writeText(text, {
         channelId,
         userId,
