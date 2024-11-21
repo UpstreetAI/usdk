@@ -3351,17 +3351,6 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         return false;
       }
     };
-    /* const _launchBrowser = async () => {
-      // launch the browser
-      console.log('launch 1');
-      const browser = await chromium.launch({
-        headless: false,
-        devtools: true,
-        // args: ['--disable-web-security'],
-      });
-      console.log('launch 2');
-      return browser;
-    }; */
     const _decorateBrowser = async (browser) => {
       // helpers
       const postDown = async (eventType, args) => {
