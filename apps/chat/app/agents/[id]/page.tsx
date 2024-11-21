@@ -2,15 +2,22 @@ import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { AgentNotFound } from '@/components/agents/profile/AgentNotFound';
+import { getJWT } from '@/lib/jwt';
 
 type Params = {
   params: {
     id: string;
   };
 };
+
+async function getUser() {
+  const jwt = await getJWT();
+  const user = await getUserForJwt(jwt);
+  return user;
+}
 
 async function getAgentData(supabase: any, identifier: string) {
   // First try to find by ID
@@ -90,10 +97,13 @@ export default async function AgentProfilePage({ params }: Params) {
   const agentData = result.data as any;
 
   if (!agentData?.id) {
-    return <AgentNotFound />; 
+    return <AgentNotFound />;
   }
 
+  const user = await getUser();
+  const isOwner = agentData.author.id === user?.id;
+
   return (
-    <AgentProfile agent={agentData} />
+    <AgentProfile agent={agentData} isOwner={isOwner} />
   );
 }

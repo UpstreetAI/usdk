@@ -33,7 +33,7 @@ interface AgentProps {
   agent: Agent;
 }
 
-export function AgentProfile({ agent }: AgentProps) {
+export function AgentProfile({ agent, isOwner }: AgentProps) {
   const { agentJoin } = useMultiplayerActions();
   const [tab, setTab] = useHash('feed');
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
@@ -107,12 +107,14 @@ export function AgentProfile({ agent }: AgentProps) {
           <div>
             <div className="text-6xl uppercase flex font-bold text-stroke">
               <div>{agent.name}</div>
-              <div
-                onClick={() => setEmbedModal(true)}
-                className='ml-6'
-              >
-                <IconEmbedCode className='size-14' />
-              </div>
+              {isOwner && (
+                <div
+                  onClick={() => setEmbedModal(true)}
+                  className='ml-6'
+                >
+                  <IconEmbedCode className='size-14' />
+                </div>
+              )}
             </div>
             <div className="flex items-center mb-1">
               <h3 className="text-sm bg-gray-800 px-2 py-1">{agent.id}</h3>
