@@ -10,39 +10,56 @@ type Params = {
   };
 };
 
-async function getAgentData(supabase: any, identifier: string) {
-  // First try to find by ID
-  let result = await supabase
-    .from('assets')
-    .select('*, author: accounts ( id, name )')
-    .eq('id', identifier)
-    .single();
+type AgentData = {
+  id: string;
+  name: string;
+};
 
-  // If not found by ID, try to find by username
-  if (!result.data) {
-    result = await supabase
+async function getAgentData(supabase: any, identifier: string) {
+  try {
+    // Find by ID
+    let result = await supabase
       .from('assets')
       .select('*, author: accounts ( id, name )')
-      .eq('name', identifier)
+      .eq('id', identifier)
       .single();
-  }
 
-  return result;
+    // If not found by ID, try username ( revisit this )
+    if (!result.data) {
+      result = await supabase
+        .from('assets')
+        .select('*, author: accounts ( id, name )')
+        .eq('name', identifier)
+        .single();
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error fetching agent data:', error);
+    throw error;
+  }
 }
 
 export default async function EmbedPage({ params }: Params) {
-  const embedToken = decodeURIComponent(params.id)
-  const token = JSON.parse(decrypt(embedToken));
+  try {
+    const embedToken = decodeURIComponent(params.id);
+    const token = JSON.parse(decrypt(embedToken));
 
-  const supabase = makeAnonymousClient(env);
-  const identifier = decodeURIComponent(token.agentId);
+    const supabase = makeAnonymousClient(env);
+    const identifier = decodeURIComponent(token.agentId);
 
-  const result = await getAgentData(supabase, identifier);
-  const agentData = result.data as any;
+    const result = await getAgentData(supabase, identifier);
+    const agentData = result.data as AgentData;
 
-  return (
-    <div className="w-full relative flex h-screen overflow-hidden">
-      <EmbedChat agentId={agentData.id} room="221a406b-0674-4c30-b072-9503226ac8b4" />
-    </div>
-  );
+    console.log(token);
+
+    return (
+      <div className="w-full relative flex h-screen overflow-hidden">
+        <EmbedChat agentId={agentData.id} />
+      </div>
+    );
+  } catch (error) {
+    console.error('Error in EmbedPage:', error);
+    return <div>Error loading page</div>;
+  }
 }
