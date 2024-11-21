@@ -1720,30 +1720,11 @@ export const main = async () => {
         });
       });
     program
-      .command('unpublish')
-      .description('Unpublish a deployed agent from the network')
-      .argument(`[guids...]`, `Guids of the agents to unpublish`)
-      .action(async (guids = '', opts) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await authenticate(args, {
-            jwt,
-          });
-        });
-      });
-    program
       .command('update')
       .description('Update an agent to the latest sdk version')
       .argument(`[directories...]`, `Path to the agents to update`)
       .option(`-f, --force`, `Force update even if there are conflicts`)
-      .action(async (directories = '', opts) => {
+      .action(async (directories = [], opts) => {
         await handleError(async () => {
           commandExecuted = true;
           const args = {
