@@ -95,7 +95,8 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinEmbedRoom: (guid: string) => Promise<void>
+  agentJoinRoom: (guid: string, room: string) => Promise<void>
+  agentGetEmbedRoom: () => Promise<string | null>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -276,13 +277,13 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 }
                 case 'log': {
                   // if (debug) {
-                    // console.log('got log message', JSON.stringify(args, null, 2));
-                    // const { userId, name, text } = args;
-                    // console.log(`\r${name}: ${text}`);
-                    // replServer.displayPrompt(true);
-                    const { text } = args;
-                    console.log(text);
-                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // console.log('got log message', JSON.stringify(args, null, 2));
+                  // const { userId, name, text } = args;
+                  // console.log(`\r${name}: ${text}`);
+                  // replServer.displayPrompt(true);
+                  const { text } = args;
+                  console.log(text);
+                  // console.log(eraseLine + JSON.stringify(args2, null, 2));
                   // }
                   break;
                 }
@@ -294,25 +295,25 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 case 'join':
                 case 'leave':
                 case 'nudge':
-                {
-                  // nothing
-                  break;
-                }
+                  {
+                    // nothing
+                    break;
+                  }
                 case 'mediaPerception':
                 case 'browserAction':
                 case 'paymentRequest':
-                {
-                  // nothing
-                  break;
-                }
+                  {
+                    // nothing
+                    break;
+                  }
                 default: {
                   // if (debug) {
-                    // console.log('got log message', JSON.stringify(args, null, 2));
-                    // const { userId, name, text } = args;
-                    // console.log(`\r${name}: ${text}`);
-                    // replServer.displayPrompt(true);
-                    console.log('unhandled method', JSON.stringify(message));
-                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // console.log('got log message', JSON.stringify(args, null, 2));
+                  // const { userId, name, text } = args;
+                  // console.log(`\r${name}: ${text}`);
+                  // replServer.displayPrompt(true);
+                  console.log('unhandled method', JSON.stringify(message));
+                  // console.log(eraseLine + JSON.stringify(args2, null, 2));
                   // }
                   break;
                 }
@@ -418,7 +419,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               });
             };
             _trackPlayersCache();
-            
+
             const _trackAudio = () => {
               const audioStreams = new Map();
               const audioQueueManger = new QueueManager();
@@ -551,31 +552,30 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to false
         setIsAgentLoading(false);
       },
-      agentJoinEmbedRoom: async (guid: string) => {
-        let room;
-        
+      agentGetEmbedRoom: async () => {
         try {
           // Get user's IP address
           const response = await fetch('https://api.ipify.org?format=json');
           const data = await response.json();
           const ipAddress = data.ip;
-          
 
-          // Url origin ( for chechking trusted urls )
+          // Url origin ( for chechking trusted urls on the embed )
           const websiteUrl = window.location.origin;
           // Concatenate IP address and website URL to form the "room" key
           const roomKey = `${ipAddress}${websiteUrl}`;
           // encrypt the "room" key
           const roomKeyEncrypted = encrypt(roomKey);
-      
+
+          const room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
           // set the room to the local storage one if it exists, otherwise use the new one
-          room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
-          
+          return room;
+
         } catch (error) {
           console.error('Error checking room cookie:', error);
+          return ''
         }
-
-
+      },
+      agentJoinRoom: async (guid: string, room: string) => {
 
         console.log('agent join', {
           room,
@@ -585,15 +585,16 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to true
         setIsAgentLoading(true);
 
-        // wait for the router to complete the navigation
         await new Promise(resolve => setTimeout(resolve, 1000));
         await join({
           room,
           guid,
         });
-
+        
         // Set loading state to false
         setIsAgentLoading(false);
+
+        return room;
       },
       agentLeave: async (guid: string, room: string) => {
         console.log('agent leave', {
@@ -666,7 +667,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendMediaMessage = multiplayerState.sendMediaMessage;
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
-  const agentJoinEmbedRoom = multiplayerState.agentJoinEmbedRoom;
+  const agentJoinRoom = multiplayerState.agentJoinRoom;
+  const agentGetEmbedRoom = multiplayerState.agentGetEmbedRoom;
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
@@ -689,7 +691,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendMediaMessage,
         sendNudgeMessage,
         agentJoin,
-        agentJoinEmbedRoom,
+        agentJoinRoom,
+        agentGetEmbedRoom,
         agentLeave,
         addAudioSource,
         removeAudioSource,
