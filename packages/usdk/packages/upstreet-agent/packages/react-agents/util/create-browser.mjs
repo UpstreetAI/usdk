@@ -1,7 +1,7 @@
 import { chromium } from "playwright-core";
-import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
+// import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
 
-const createSession = async (opts/*: CreateSessionOptions = {}*/, {
+/* const createSession = async (opts, {
   jwt = '',
 }) => {
   if (!jwt) {
@@ -24,7 +24,7 @@ const createSession = async (opts/*: CreateSessionOptions = {}*/, {
     const text = await res.text();
     throw new Error(`failed to create session: ${text}`);
   }
-};
+}; */
 /* const destroySession = async (sessionId, {
   jwt = '',
 }) => {
