@@ -1,28 +1,48 @@
 'use client';
 
-import { encrypt } from '@/utils/crypto/cryptouUtils';
 import { useState } from 'react';
 import { Button } from 'ucom';
+import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { getJWT } from '@/lib/jwt';
+import { env } from '@/lib/env';
 
 export default function EmbedModal({agent, close}: {agent: any, close: () => void}) {
   const [trustedUrls, setTrustedUrls] = useState<string[]>([]);
   const [embedCode, setEmbedCode] = useState<string>('');
 
-  const addUrl = () => {
-    const urlInput = document.getElementById('trusted-url-input') as HTMLInputElement;
-    const urlValue = urlInput.value.trim();
-    if (urlValue) {
-      setTrustedUrls([...trustedUrls, urlValue]);
-      urlInput.value = '';
+  const updateTrustedUrls = async (urls: string[]) => {
+    const jwt = await getJWT();
+    const user = await getUserForJwt(jwt);
+    const supabase = makeAnonymousClient(env, jwt);
+    const { data, error } = await supabase
+      .from('embed_agent')
+      .upsert({ user_id: user.id, asset_id: agent.id, trusted_urls: urls }, { onConflict: 'asset_id' });
+
+    if (error) {
+      console.error('Error updating trusted URLs:', error);
+    } else {
+      console.log('Trusted URLs updated:', data);
     }
   };
 
-  const removeUrl = (url: string) => {
-    setTrustedUrls(trustedUrls.filter((item) => item !== url));
+  const addUrl = async () => {
+    const urlInput = document.getElementById('trusted-url-input') as HTMLInputElement;
+    const urlValue = urlInput.value.trim();
+    if (urlValue) {
+      const updatedUrls = [...trustedUrls, urlValue];
+      setTrustedUrls(updatedUrls);
+      urlInput.value = '';
+      await updateTrustedUrls(updatedUrls);
+    }
+  };
+
+  const removeUrl = async (url: string) => {
+    const updatedUrls = trustedUrls.filter((item) => item !== url);
+    setTrustedUrls(updatedUrls);
+    await updateTrustedUrls(updatedUrls);
   };
 
   const generateEmbedCode = () => {
-
     const embedCode = `<iframe src="${window.location.origin}/embed/${agent.id}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
     setEmbedCode(embedCode);
   };
