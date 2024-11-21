@@ -3594,242 +3594,49 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
         console.log('override RTCPeerConnection', OriginalRTCPeerConnection);
 
         // Define the custom implementation
-        class CustomRTCPeerConnection {
-          constructor(config) {
-            console.log('Custom RTCPeerConnection created with config:', config);
-            this.original = new OriginalRTCPeerConnection(config);
-            this.original.addEventListener('track', e => {
-              console.log('track added', e.streams.length, e.streams);
-              for (const stream of e.streams) {
-                const audioTracks = stream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                  const id = crypto.randomUUID();
-                  postUp('audioStart', id);
+        function CustomRTCPeerConnection(config) {
+          console.log('Custom RTCPeerConnection created with config:', config);
+          const original = new OriginalRTCPeerConnection(config);
+          original.addEventListener('track', e => {
+            console.log('track added', e.streams.length, e.streams);
+            for (const stream of e.streams) {
+              const audioTracks = stream.getAudioTracks();
+              if (audioTracks.length > 0) {
+                const id = crypto.randomUUID();
+                postUp('audioStart', id);
 
-                  const audioNode = globalThis.globalAudioContext.createMediaStreamSource(stream);
-                  console.log('got audio node', audioNode);
-                  // create ws input worklet node
-                  const destination = globalAudioContext.createMediaStreamDestination();
-                  // create ws output worklet node
-                  const wsInputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-input-worklet');
-                  // connect
-                  audioNode.connect(wsInputProcessor);
-                  wsInputProcessor.connect(destination);
-                  // listen for messages
-                  wsInputProcessor.port.onmessage = e => {
-                    // console.log('wsInputProcessor data', e.data);
-                    // post the message up
-                    const f32 = e.data; // Float32Array
-                    // convert to base64
-                    const base64 = float32ToBase64(f32);
-                    postUp('audio', base64);
-                  };
+                const audioNode = globalThis.globalAudioContext.createMediaStreamSource(stream);
+                console.log('got audio node', audioNode);
+                // create ws input worklet node
+                const destination = globalAudioContext.createMediaStreamDestination();
+                // create ws output worklet node
+                const wsInputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-input-worklet');
+                // connect
+                audioNode.connect(wsInputProcessor);
+                wsInputProcessor.connect(destination);
+                // listen for messages
+                wsInputProcessor.port.onmessage = e => {
+                  // console.log('wsInputProcessor data', e.data);
+                  // post the message up
+                  const f32 = e.data; // Float32Array
+                  // convert to base64
+                  const base64 = float32ToBase64(f32);
+                  postUp('audio', base64);
+                };
 
-                  const audioTrack = audioTracks[0];
-                  audioTrack.addEventListener('ended', e => {
-                    console.log('audio track ended', e);
-                    postUp('audioEnd', id);
-                    audioNode.disconnect();
-                  });
-                }
+                const audioTrack = audioTracks[0];
+                audioTrack.addEventListener('ended', e => {
+                  console.log('audio track ended', e);
+                  postUp('audioEnd', id);
+                  audioNode.disconnect();
+                });
               }
-            });
+            }
+          });
 
-            postUp('RTCPeerConnection', config);
-          }
-          addEventListener(...args) {
-            // console.log('Custom RTCPeerConnection addEventListener', args);
-            return this.original.addEventListener(...args);
-          }
-          removeEventListener(...args) {
-            // console.log('Custom RTCPeerConnection removeEventListener', args);
-            return this.original.removeEventListener(...args);
-          }
-          addIceCandidate(...args) {
-            // console.log('Custom RTCPeerConnection addIceCandidate', args);
-            return this.original.addIceCandidate(...args);
-          }
-          close() {
-            return this.original.close();
-          }
-          getConfiguration() {
-            return this.original.getConfiguration();
-          }
-          setConfiguration(...args) {
-            return this.original.setConfiguration(...args);
-          }
-          getStats(...args) {
-            return this.original.getStats(...args);
-          }
-          restartIce() {
-            return this.original.restartIce();
-          }
-          get canTrickleIceCandidates() {
-            return this.original.canTrickleIceCandidates;
-          }
-          get connectionState() {
-            return this.original.connectionState;
-          }
-          get currentLocalDescription() {
-            return this.original.currentLocalDescription;
-          }
-          get currentRemoteDescription() {
-            return this.original.currentRemoteDescription;
-          }
-          get iceConnectionState() {
-            return this.original.iceConnectionState;
-          }
-          get iceGatheringState() {
-            return this.original.iceGatheringState;
-          }
-          get localDescription() {
-            return this.original.localDescription;
-          }
-          get peerIdentity() {
-            return this.original.peerIdentity;
-          }
-          get pendingLocalDescription() {
-            return this.original.pendingLocalDescription;
-          }
-          get pendingRemoteDescription() {
-            return this.original.pendingRemoteDescription;
-          }
-          get remoteDescription() {
-            return this.original.remoteDescription;
-          }
-          get sctp() {
-            return this.original.sctp;
-          }
-          get signalingState() {
-            return this.original.signalingState;
-          }
-          set onconnectionstatechange(value) {
-            console.log('set onconnectionstatechange', value);
-            this.original.onconnectionstatechange = value;
-          }
-          get onconnectionstatechange() {
-            return this.original.onconnectionstatechange;
-          }
-          set ondatachannel(value) {
-            console.log('set ondatachannel', value);
-            this.original.ondatachannel = value;
-          }
-          get ondatachannel() {
-            return this.original.ondatachannel;
-          }
-          set onicecandidate(value) {
-            console.log('set onicecandidate', value);
-            this.original.onicecandidate = value;
-          }
-          get onicecandidate() {
-            return this.original.onicecandidate;
-          }
-          set onicecandidateerror(value) {
-            console.log('set onicecandidateerror', value);
-            this.original.onicecandidateerror = value;
-          }
-          get onicecandidateerror() {
-            return this.original.onicecandidateerror;
-          }
-          set oniceconnectionstatechange(value) {
-            console.log('set oniceconnectionstatechange', value);
-            this.original.oniceconnectionstatechange = value;
-          }
-          get oniceconnectionstatechange() {
-            return this.original.oniceconnectionstatechange;
-          }
-          set onicegatheringstatechange(value) {
-            console.log('set onicegatheringstatechange', value);
-            this.original.onicegatheringstatechange = value;
-          }
-          get onicegatheringstatechange() {
-            return this.original.onicegatheringstatechange;
-          }
-          set onnegotiationneeded(value) {
-            console.log('set onnegotiationneeded', value);
-            this.original.onnegotiationneeded = value;
-          }
-          get onnegotiationneeded() {
-            return this.original.onnegotiationneeded;
-          }
-          set onsignalingstatechange(value) {
-            console.log('set onsignalingstatechange', value);
-            this.original.onsignalingstatechange = value;
-          }
-          get onsignalingstatechange() {
-            return this.original.onsignalingstatechange;
-          }
-          set ontrack(value) {
-            // console.log('set ontrack', value);
-            this.original.ontrack = value;
-          }
-          get ontrack() {
-            return this.original.ontrack;
-          }
-          getTransceivers() {
-            return this.original.getTransceivers();
-          }
-          async setLocalDescription(...args) {
-            postUp('setLocalDescription 1', args);
-            const localDescription = await this.original.setLocalDescription(...args);
-            postUp('setLocalDescription 2', { args, localDescription });
-            return localDescription;
-          }
-          async setRemoteDescription(...args) {
-            postUp('setRemoteDescription 1', args);
-            const remoteDescription = await this.original.setRemoteDescription(...args);
-            postUp('setRemoteDescription 2', { args, remoteDescription });
-            return remoteDescription;
-          }
-          addTrack(...args) {
-            console.log('addTrack 1', args, this.original.addTrack);
-            try {
-              const result = this.original.addTrack(...args);
-              console.log('addTrack 2', result);
-              return result;
-            } catch (err) {
-              console.warn('addTrack error', err);
-              throw err;
-            }
-          }
-          removeTrack(...args) {
-            console.log('removeTrack 1', args, this.original.removeTrack);
-            try {
-              const result = this.original.removeTrack(...args);
-              console.log('removeTrack 2', result);
-              return result;
-            } catch (err) {
-              console.warn('removeTrack error', err);
-              throw err;
-            }
-          }
-          async createOffer(...args) {
-            console.log('createOffer 1', JSON.stringify(args), args.map(a => typeof a), JSON.stringify({
-              iceConnectionState: this.original.iceConnectionState,
-              signalingState: this.original.signalingState,
-            }, null, 2));
-            try {
-              const offer = await this.original.createOffer(...args);
-              console.log('createOffer 2');
-              console.log('createOffer 3', { args, offer });
-              return offer;
-            } catch (err) {
-              console.warn('createOffer error', err);
-              throw err;
-            }
-          }
-          async createAnswer(...args) {
-            postUp('createAnswer 1', JSON.stringify(args), args.map(a => typeof a));
-            try {
-              const answer = await this.original.createAnswer(...args);
-              console.log('createAnswer 2');
-              console.log('createAnswer 3', { args, answer });
-              return answer;
-            } catch (err) {
-              console.warn('createAnswer error', err);
-              throw err;
-            }
-          }
+          postUp('RTCPeerConnection', config);
+
+          return original;
         }
         console.log('RTCPeerConnection override 2');
         // Replace the original RTCPeerConnection with the custom one
