@@ -142,6 +142,13 @@ export type TwitterSpacesProps = {
   token: string;
   url?: string;
 };
+export type TwitterSpacesArgs = {
+  token: string;
+  url?: string;
+  agent: ActiveAgentObject;
+  codecs: any;
+  jwt: string;
+};
 
 // telnyx
 
@@ -345,14 +352,25 @@ export type DiscordManager = {
   destroy: () => void;
 };
 export type TwitterBot = {
-  token: string;
-  agent: ActiveAgentObject;
+  // token: string;
+  // agent: ActiveAgentObject;
 };
 export type TwitterManager = {
-  addTwitterBot: (args: TwitterArgs) => void;
+  addTwitterBot: (args: TwitterArgs) => TwitterBot;
   removeTwitterBot: (client: TwitterBot) => void;
   live: () => void;
   destroy: () => void;
+};
+export type TwitterSpacesManager = {
+  addTwitterSpacesBot: (args: TwitterSpacesArgs) => TwitterBot;
+  removeTwitterSpacesBot: (client: TwitterSpacesBot) => void;
+  live: () => void;
+  destroy: () => void;
+};
+export type TwitterSpacesBot = {
+  // token: string;
+  // url?: string;
+  // agent: ActiveAgentObject;
 };
 export type TelnyxBot = EventTarget & {
   getPhoneNumber: () => string;
@@ -396,6 +414,7 @@ export type ActiveAgentObject = AgentObject & {
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
   twitterManager: TwitterManager;
+  twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
   liveManager: LiveManager;
