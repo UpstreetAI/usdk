@@ -356,8 +356,6 @@ class TwitterSpacesBot {
               }
             });
 
-            postUp('RTCPeerConnection', config);
-
             return original;
           }
           console.log('RTCPeerConnection override 2');
