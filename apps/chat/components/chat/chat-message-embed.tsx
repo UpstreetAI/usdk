@@ -1,16 +1,11 @@
-import Image from 'next/image'
-import { getAgentUrl, getAgentPreviewImageUrl } from '@/lib/utils'
 import Link from 'next/link'
 import { isValidUrl } from '@/utils/helpers/urls'
-import { useDirectMessageActions } from '@/components/ui/direct-message-actions'
 import { IconChat, IconDownload, IconShare } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import { isImageType, isAudioType, isVideoType, isModelType } from '@/utils/helpers/media-types'
 import { Model } from '../model'
 import ReactMarkdown from 'react-markdown'
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
-
-// import type { User } from '@supabase/supabase-js'
 
 export interface ChatMessageEmbedProps {
   id: string
@@ -22,7 +17,6 @@ export interface ChatMessageEmbedProps {
   timestamp: Date
   isOwnMessage: any
   profileUrl: string
-  // user: User | null
 }
 
 export function ChatMessageEmbed({
@@ -33,63 +27,19 @@ export function ChatMessageEmbed({
   player,
   timestamp,
   isOwnMessage,
-  profileUrl
 }: ChatMessageEmbedProps) {
   if (!player) {
     throw new Error('Player is required')
   }
 
-  const playerSpec = player.getPlayerSpec();
-  // const agentUrl = getAgentUrl(playerSpec);
-  const avatarURL = getAgentPreviewImageUrl(playerSpec);
-
-  const { popoverMessageId, togglePopoverMessageId, dmsOpen, toggleOpenDm } = useDirectMessageActions();
-
   return (
     <div>
       <div className={`relative bt-0 mt-2 ${isOwnMessage ? 'pl-14' : 'pr-14'}`}>
-        {(popoverMessageId === id && !isOwnMessage) && (
-          <div className="absolute top-6 left-16 z-10 p-2 flex flex-col bg-background border rounded">
-            <Link
-              className="flex flex-col w-full"
-              href={profileUrl}
-              onClick={e => {
-                togglePopoverMessageId('');
-              }}
-            >
-              <Button
-                variant="secondary"
-                className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
-              >
-                <IconShare className="mr-2" />
-                <div>Profile</div>
-              </Button>
-            </Link>
-            <Button
-              variant="secondary"
-              className="flex justify-start relative rounded bg-background p-2 overflow-hidden"
-              onClick={(e) => {
-                toggleOpenDm(playerSpec.id);
-                togglePopoverMessageId('');
-              }}
-            >
-              <IconChat className="mr-2" />
-              <div>Direct message</div>
-            </Button>
-          </div>
-        )}
-
         <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
           <div className={`bg-slate-100 py-[11px] px-4 w-fit border border-gray-400 text-black ${isOwnMessage ? 'mr-2 bg-green-50' : 'ml-2'}`}>
             {!isOwnMessage && (
               <span
                 className="font-bold mr-2 cursor-pointer hover:underline"
-                onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-
-                  togglePopoverMessageId(id);
-                }}
               >
                 {name}
               </span>
