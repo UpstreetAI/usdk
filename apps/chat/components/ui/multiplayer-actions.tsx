@@ -22,6 +22,7 @@ import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { QueueManager } from 'queue-manager';
 import { encrypt } from '@/utils/crypto/cryptouUtils';
+import { createHash } from 'crypto';
 
 //
 
@@ -95,8 +96,8 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinRoom: (guid: string, room: string) => Promise<String>
-  agentGetEmbedRoom: (guid: string) => Promise<String | null>
+  agentJoinRoom: (guid: string, room: string) => Promise<void>
+  agentGetEmbedRoom: (guid: string) => Promise<String>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -553,31 +554,35 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         setIsAgentLoading(false);
       },
       agentGetEmbedRoom: async (guid: string) => {
-        try {
-          // Get user's IP address
-          const response = await fetch('https://api.ipify.org?format=json');
+        const response = await fetch('https://api.ipify.org?format=json');
           const data = await response.json();
           const ipAddress = data.ip;
 
-          // Url origin ( for chechking trusted urls on the embed )
-          const websiteUrl = window.location.origin;
-          // Concatenate IP address and website URL to form the "room" key
+          // Url ancestor origin ( for setting a unique room id )
+          const websiteUrl = window.location.ancestorOrigins[0];
+          
+          // Concatenate IP address and website URL, and guid (agent id) 
+          // to form a unique "room" key for the embed
           const roomKey = `${ipAddress}${websiteUrl}${guid}`;
-          // encrypt the "room" key
-          const roomKeyEncrypted = encrypt(roomKey);
-          // console.log('roomKeyEncrypted', roomKeyEncrypted);
-          const room = localStorage.getItem(roomKey) !== roomKeyEncrypted;
-          // set the room to the local storage one if it exists, otherwise use the new one
-          return room.toString();
 
-        } catch (error) {
-          console.error('Error checking room cookie:', error);
-          return null
-        }
+          const hash = createHash('sha256');
+          hash.update(roomKey);
+          const roomKeyUID = `embed:${hash.digest('hex')}`;
+          // console.log('roomKeyUID', roomKeyUID);
+          let room = localStorage.getItem('embed_room_id');
+
+          if (!room) {
+            // If not, store the new roomKeyUID in localstorage
+            localStorage.setItem('embed_room_id', roomKeyUID);
+            room = roomKeyUID;
+          }
+
+          // console.log('local storage room: ', room);
+        
+          return room;
       },
       agentJoinRoom: async (guid: string, room: string) => {
-
-        console.log('agent join', {
+        console.log('agent join room', {
           room,
           guid,
         });
@@ -590,11 +595,11 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
           room,
           guid,
         });
+
+        console.log('agent join room done');
         
         // Set loading state to false
         setIsAgentLoading(false);
-
-        return room;
       },
       agentLeave: async (guid: string, room: string) => {
         console.log('agent leave', {
