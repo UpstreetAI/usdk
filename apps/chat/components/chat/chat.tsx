@@ -154,11 +154,13 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
               className={cn('pb-[200px] pt-20 md:pt-24', className)}
               ref={messagesRef}
             >
-              {messages.length ? (
-                <ChatList messages={messages} />
-              ) : (
-                null
-              )}
+              <div className="relative mx-auto max-w-2xl px-4">
+                {messages.length ? (
+                  <ChatList messages={messages} />
+                ) : (
+                  null
+                )}
+              </div>
 
               <div className="relative mx-auto max-w-2xl px-4">
                 {isAgentLoading && "Loading agent..."}
