@@ -9,6 +9,17 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which product did you find the issue in?
+      options:
+        - USDK (Upstreet Agents SDK)
+        - Chat frontend and/or Landing page
+        - Documentation
+        - Other
+      default: 0
   - type: textarea
     id: what-happened
     attributes:
@@ -22,14 +33,14 @@ body:
     id: version
     attributes:
       label: Version
-      description: What version of the SDK are you running? (Upstreet Agents SDK i.e. `usdk`)
+      description: Which version of `usdk` are you running? (`usdk` is the Upstreet Agents SDK)
       placeholder: x.x.x
   - type: textarea
     id: environment
     attributes:
       label: What is your environment?
       description: Describe your project's environment. This will help us reproduce the issue.
-      placeholder: Node version, NPM version, Browser version, Operating System, etc
+      placeholder: Node version, NPM version, Browser version (if applicable), Operating System, etcetera
   - type: input
     id: chat-url
     attributes:
