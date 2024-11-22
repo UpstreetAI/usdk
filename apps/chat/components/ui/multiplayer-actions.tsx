@@ -21,6 +21,8 @@ import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { QueueManager } from 'queue-manager';
+import { encrypt } from '@/utils/crypto/cryptouUtils';
+import { createHash } from 'crypto';
 
 //
 
@@ -94,7 +96,8 @@ interface MultiplayerActionsContextType {
   sendMediaMessage: (file: File) => Promise<void>
   sendNudgeMessage: (guid: string) => void
   agentJoin: (guid: string) => Promise<void>
-  agentJoinRandom: (agentsArray: { id: string }[]) => Promise<void>
+  agentJoinRoom: (guid: string, room: string) => Promise<void>
+  agentGetEmbedRoom: (guid: string) => Promise<String>
   agentLeave: (guid: string, room: string) => Promise<void>
   addAudioSource: (stream: PlayableAudioStream) => {
     waitForFinish: () => Promise<void>
@@ -275,13 +278,13 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 }
                 case 'log': {
                   // if (debug) {
-                    // console.log('got log message', JSON.stringify(args, null, 2));
-                    // const { userId, name, text } = args;
-                    // console.log(`\r${name}: ${text}`);
-                    // replServer.displayPrompt(true);
-                    const { text } = args;
-                    console.log(text);
-                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // console.log('got log message', JSON.stringify(args, null, 2));
+                  // const { userId, name, text } = args;
+                  // console.log(`\r${name}: ${text}`);
+                  // replServer.displayPrompt(true);
+                  const { text } = args;
+                  console.log(text);
+                  // console.log(eraseLine + JSON.stringify(args2, null, 2));
                   // }
                   break;
                 }
@@ -293,25 +296,25 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 case 'join':
                 case 'leave':
                 case 'nudge':
-                {
-                  // nothing
-                  break;
-                }
+                  {
+                    // nothing
+                    break;
+                  }
                 case 'mediaPerception':
                 case 'browserAction':
                 case 'paymentRequest':
-                {
-                  // nothing
-                  break;
-                }
+                  {
+                    // nothing
+                    break;
+                  }
                 default: {
                   // if (debug) {
-                    // console.log('got log message', JSON.stringify(args, null, 2));
-                    // const { userId, name, text } = args;
-                    // console.log(`\r${name}: ${text}`);
-                    // replServer.displayPrompt(true);
-                    console.log('unhandled method', JSON.stringify(message));
-                    // console.log(eraseLine + JSON.stringify(args2, null, 2));
+                  // console.log('got log message', JSON.stringify(args, null, 2));
+                  // const { userId, name, text } = args;
+                  // console.log(`\r${name}: ${text}`);
+                  // replServer.displayPrompt(true);
+                  console.log('unhandled method', JSON.stringify(message));
+                  // console.log(eraseLine + JSON.stringify(args2, null, 2));
                   // }
                   break;
                 }
@@ -417,7 +420,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
               });
             };
             _trackPlayersCache();
-            
+
             const _trackAudio = () => {
               const audioStreams = new Map();
               const audioQueueManger = new QueueManager();
@@ -550,34 +553,51 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         // Set loading state to false
         setIsAgentLoading(false);
       },
-      agentJoinRandom: async (agentsArray: { id: string }[]) => {
-        const oldRoom = multiplayerState.getRoom();
-        const room = oldRoom || crypto.randomUUID();
-        
-        // Randomly select an agent from the passed array
-        const randomAgent = agentsArray[Math.floor(Math.random() * agentsArray.length)];
-        // Get agent id
-        const guid = randomAgent.id;
+      agentGetEmbedRoom: async (guid: string) => {
+        const response = await fetch('https://api.ipify.org?format=json');
+          const data = await response.json();
+          const ipAddress = data.ip;
 
-        console.log('agent join', {
-          guid,
+          // Url ancestor origin ( for setting a unique room id )
+          const websiteUrl = window.location.ancestorOrigins[0];
+          
+          // Concatenate IP address and website URL, and guid (agent id) 
+          // to form a unique "room" key for the embed
+          const roomKey = `${ipAddress}${websiteUrl}${guid}`;
+
+          const hash = createHash('sha256');
+          hash.update(roomKey);
+          const roomKeyUID = `embed:${hash.digest('hex')}`;
+          // console.log('roomKeyUID', roomKeyUID);
+          let room = localStorage.getItem('embed_room_id');
+
+          if (!room) {
+            // If not, store the new roomKeyUID in localstorage
+            localStorage.setItem('embed_room_id', roomKeyUID);
+            room = roomKeyUID;
+          }
+
+          // console.log('local storage room: ', room);
+        
+          return room;
+      },
+      agentJoinRoom: async (guid: string, room: string) => {
+        console.log('agent join room', {
           room,
+          guid,
         });
 
         // Set loading state to true
         setIsAgentLoading(true);
 
-        // redirect to the room first
-        if (!/\/rooms\//.test(location.pathname)) {
-          router.push(`/rooms/${room}`);
-        }
-        // wait for the router to complete the navigation
         await new Promise(resolve => setTimeout(resolve, 1000));
         await join({
           room,
           guid,
         });
 
+        console.log('agent join room done');
+        
         // Set loading state to false
         setIsAgentLoading(false);
       },
@@ -652,7 +672,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
   const sendMediaMessage = multiplayerState.sendMediaMessage;
   const sendNudgeMessage = multiplayerState.sendNudgeMessage;
   const agentJoin = multiplayerState.agentJoin;
-  const agentJoinRandom = multiplayerState.agentJoinRandom;
+  const agentJoinRoom = multiplayerState.agentJoinRoom;
+  const agentGetEmbedRoom = multiplayerState.agentGetEmbedRoom;
   const agentLeave = multiplayerState.agentLeave;
   const addAudioSource = multiplayerState.addAudioSource;
   const removeAudioSource = multiplayerState.removeAudioSource;
@@ -675,7 +696,8 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         sendMediaMessage,
         sendNudgeMessage,
         agentJoin,
-        agentJoinRandom,
+        agentJoinRoom,
+        agentGetEmbedRoom,
         agentLeave,
         addAudioSource,
         removeAudioSource,
