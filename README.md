@@ -7,15 +7,15 @@
   "MD041": false
 } -->
 
-<div align="center">
+<div align="center" style={{textAlign: "center"}}>
 
-```
+<pre style={{width: 'fit-content', textAlign: 'center', }}>
   ██  ██ ██████  ███████ ████████ ██████  ███████ ███████ ████████
   ██  ██ ██   ██ ██         ██    ██   ██ ██      ██         ██   
   ██  ██ ██████  ███████    ██    ██████  █████   █████      ██   
   ██  ██ ██           ██    ██    ██   ██ ██      ██         ██   
 ██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
-```
+</pre>
 
 <!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
 [![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
