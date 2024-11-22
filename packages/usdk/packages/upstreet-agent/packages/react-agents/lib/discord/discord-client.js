@@ -181,14 +181,14 @@ export class DiscordInput {
 export class DiscordOutputStream extends EventTarget {
   constructor({
     sampleRate,
-    speechQueue,
+    // speechQueue,
     codecs,
     jwt,
   }) {
     super();
 
     this.sampleRate = sampleRate;
-    this.speechQueue = speechQueue;
+    // this.speechQueue = speechQueue;
     this.codecs = codecs;
     this.jwt = jwt;
 
@@ -211,7 +211,6 @@ export class DiscordOutputStream extends EventTarget {
       readableStream: this.opusTransformStream.readable,
       codecs,
     });
-
     this.mp3BuffersOutputPromise = this.mp3Source.output.readAll();
   }
 
@@ -281,15 +280,23 @@ export class DiscordOutputStream extends EventTarget {
       type: 'audio/mpeg',
     });
 
-    await this.speechQueue.waitForTurn(async () => {
-      const text = await transcribe(mp3Blob, {
-        jwt,
-      });
-      // console.log('discord transcribed', {text});
-      this.dispatchEvent(new MessageEvent('speech', {
-        data: text,
-      }));
+
+    const text = await transcribe(mp3Blob, {
+      jwt,
     });
+    this.dispatchEvent(new MessageEvent('speech', {
+      data: text,
+    }));
+
+    // await this.speechQueue.waitForTurn(async () => {
+    //   const text = await transcribe(mp3Blob, {
+    //     jwt,
+    //   });
+    //   // console.log('discord transcribed', {text});
+    //   this.dispatchEvent(new MessageEvent('speech', {
+    //     data: text,
+    //   }));
+    // });
   }
 
   destroy() {
@@ -321,7 +328,7 @@ export class DiscordOutput extends EventTarget {
     this.codecs = codecs;
     this.jwt = jwt;
 
-    this.speechQueue = new QueueManager();
+    // this.speechQueue = new QueueManager();
     this.streams = new Map();
   }
 
@@ -360,12 +367,12 @@ export class DiscordOutput extends EventTarget {
     if (!stream) {
       const {
         sampleRate,
-        speechQueue,
+        // speechQueue,
       } = this;
 
       stream = new DiscordOutputStream({
         sampleRate,
-        speechQueue,
+        // speechQueue,
         codecs,
         jwt,
       });
