@@ -78,9 +78,9 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
               </Button>
             </div>
             <div className="flex gap-4">
-              <Button onClick={generateEmbedCode}>
+              {/* <Button onClick={generateEmbedCode}>
                 Generate Embed Code
-              </Button>
+              </Button> */}
               <Button onClick={close}>
                 Cancel
               </Button>
