@@ -1,9 +1,36 @@
+import uuidByString from 'uuid-by-string';
 import type {
   ActiveAgentObject,
-  ConversationObject,
   TwitterSpacesArgs,
+  PlayableAudioStream,
+  ExtendableMessageEvent,
+  ActionMessageEventData,
 } from './types';
 import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
+import {
+  ConversationObject,
+} from './conversation-object';
+import {
+  bindConversationToAgent,
+} from '../runtime';
+import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
+import {
+  createMp3ReadableStreamSource,
+} from 'codecs/audio-client.mjs';
+import { AudioOutput } from 'codecs/audio-classes.mjs';
+import {
+  transcribe,
+} from 'react-agents/util/audio-perception.mjs';
+import { formatConversationMessage } from 'react-agents/util/message-utils';
+import {
+  QueueManager,
+} from 'queue-manager';
+
+//
+
+const getIdFromUserId = (userId: string) => uuidByString(userId);
+
+//
 
 class TwitterSpacesBot {
   token: string;
@@ -52,6 +79,23 @@ class TwitterSpacesBot {
       let live = true;
       signal.addEventListener('abort', () => {
         live = false;
+      });
+
+      const conversation = new ConversationObject({
+        agent,
+        getHash: () => {
+          return `twitterSpaces:channel:${url}`;
+        },
+      });
+
+      this.agent.conversationManager.addConversation(conversation);
+      signal.addEventListener('abort', () => {
+        this.agent.conversationManager.removeConversation(conversation);
+      });
+
+      bindConversationToAgent({
+        agent,
+        conversation,
       });
 
       function float32ToBase64(f32) {
@@ -113,7 +157,7 @@ class TwitterSpacesBot {
             args,
           });
         };
-        const createAudioGenerator = ({
+        /* const createAudioGenerator = ({
           sampleRate,
         }) => {
           const startTimestamp = Date.now();
@@ -153,7 +197,7 @@ class TwitterSpacesBot {
               clearInterval(interval);
             },
           };
-        };
+        }; */
 
         const context = await browser.newContext({
           permissions: ['microphone', 'camera'],
@@ -238,7 +282,13 @@ class TwitterSpacesBot {
 
         console.log('intercept 1');
         // Override RTCPeerConnection and trap the methods
-        await page.exposeFunction('postUp', (eventType, args) => {
+        const audioStreams = new Map<string, {
+          transformStream: TransformStream,
+          mp3Source: AudioOutput,
+          mp3BuffersOutputPromise: Promise<Uint8Array[]>,
+          writer: WritableStreamDefaultWriter,
+        }>();
+        await page.exposeFunction('postUp', async (eventType, args) => {
           console.log('post up event', {
             eventType,
             args,
@@ -248,24 +298,135 @@ class TwitterSpacesBot {
               const {
                 sampleRate,
               } = args;
-              const { close } = createAudioGenerator({
-                sampleRate,
-              });
+              const _bindOutgoingAudio = () => {
+                const queueManager = new QueueManager();
+                conversation.addEventListener('audiostream', async (e: MessageEvent) => {
+                  await queueManager.waitForTurn(async () => {
+                    const audioStream = e.data.audioStream as PlayableAudioStream;
+                    const { type } = audioStream;
+
+                    const decodeStream = new AudioDecodeStream({
+                      type,
+                      sampleRate,
+                      format: 'f32',
+                      codecs,
+                    }) as TransformStream;
+                    const sampleStream = decodeStream.readable;
+
+                    // read the stream
+                    const reader = sampleStream.getReader();
+                    for (;;) {
+                      const { done, value } = await reader.read();
+                      if (!done) {
+                        const f32 = value;
+                        const base64 = float32ToBase64(f32);
+                        postDown('audio', base64);
+                      } else {
+                        break;
+                      }
+                    }
+                  });
+                });
+              };
+              _bindOutgoingAudio();
+              // const { close } = createAudioGenerator({
+              //   sampleRate,
+              // });
               signal.addEventListener('abort', () => {
                 close();
               });
               break;
             }
+            // input audio from the spaces to the agent
             case 'audioStart': {
               console.log('postUp got audioStart', typeof args, args.length);
+              const { id } = args;
+              const transformStream = new TransformStream();
+
+              const mp3Source = createMp3ReadableStreamSource({
+                readableStream: transformStream.readable,
+                codecs,
+              });
+              const mp3BuffersOutputPromise = mp3Source.output.readAll();
+
+              const writer = transformStream.writable.getWriter();
+              const stream = {
+                transformStream,
+                mp3Source,
+                mp3BuffersOutputPromise,
+                writer,
+              };
+              audioStreams.set(id, stream);
               break;
             }
             case 'audio': {
               console.log('postUp got audio', typeof args, args.length);
+              const { id, base64 } = args;
+              const stream = audioStreams.get(id);
+              if (stream) {
+                const {
+                  // mp3Source,
+                  // mp3BuffersOutputPromise,
+                  writer,
+                } = stream;
+                const f32 = base64ToFloat32Array(base64);
+                writer.write(f32);
+              } else {
+                console.warn('audio: no stream found', { id });
+              }
               break;
             }
             case 'audioEnd': {
               console.log('postUp got audioEnd', typeof args, args.length);
+              const { id } = args;
+              const stream = audioStreams.get(id);
+              if (stream) {
+                const {
+                  // mp3Source,
+                  mp3BuffersOutputPromise,
+                  writer,
+                } = stream;
+
+                //
+
+                writer.close();
+
+                //
+
+                const mp3Buffers = await mp3BuffersOutputPromise;
+                const mp3Blob = new Blob(mp3Buffers, {
+                  type: 'audio/mpeg',
+                });
+
+                const text = await transcribe(mp3Blob, {
+                  jwt,
+                });
+                // XXX need to identify the speaker user from the DOM elements
+                const userId = 'speaker';
+                const username = 'Speaker';
+
+                const rawMessage = {
+                  method: 'say',
+                  args: {
+                    text,
+                  },
+                };
+                const id = getIdFromUserId(userId);
+                const agent = {
+                  id,
+                  name: username,
+                };
+                const newMessage = formatConversationMessage(rawMessage, {
+                  agent,
+                });
+                await conversation.addLocalMessage(newMessage);
+
+                //
+            
+                audioStreams.delete(id);
+              } else {
+                console.warn('audioEnd: no stream found', { id });
+              }
               break;
             }
             default: {
@@ -320,12 +481,13 @@ class TwitterSpacesBot {
             console.log('Custom RTCPeerConnection created with config:', config);
             const original = new OriginalRTCPeerConnection(config);
             original.addEventListener('track', e => {
+              // input audio from the spaces to the agent
               console.log('track added', e.streams.length, e.streams);
               for (const stream of e.streams) {
                 const audioTracks = stream.getAudioTracks();
                 if (audioTracks.length > 0) {
                   const id = crypto.randomUUID();
-                  postUp('audioStart', id);
+                  postUp('audioStart', { id });
 
                   const audioNode = globalThis.globalAudioContext.createMediaStreamSource(stream);
                   console.log('got audio node', audioNode);
@@ -343,13 +505,13 @@ class TwitterSpacesBot {
                     const f32 = e.data; // Float32Array
                     // convert to base64
                     const base64 = float32ToBase64(f32);
-                    postUp('audio', base64);
+                    postUp('audio', { id, base64 });
                   };
 
                   const audioTrack = audioTracks[0];
                   audioTrack.addEventListener('ended', e => {
                     console.log('audio track ended', e);
-                    postUp('audioEnd', id);
+                    postUp('audioEnd', { id });
                     audioNode.disconnect();
                   });
                 }
@@ -527,6 +689,7 @@ class TwitterSpacesBot {
           globalThis.postDown = (eventType, args) => {
             // console.log('got post down', JSON.stringify({ eventType, args }, null, 2));
             switch (eventType) {
+              // output audio from the agent to the spaces
               case 'audio': {
                 if (globalThis.audioInputStream) {
                   const base64 = args;
