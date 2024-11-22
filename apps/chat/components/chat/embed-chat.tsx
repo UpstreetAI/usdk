@@ -68,37 +68,7 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   // console.log('Trusted URLs:', normalizedTrustedUrls);
   // console.log('Is Current Origin Trusted?', isTrusted);
 
-  if (ancestorOrigins.length < 1) {
-    return (
-      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
-        This URL is not to be used directly! Please use the code provided in the agent embed settings.
-      </div>
-    );
-  }
-
-  if (!agent) {
-    return (
-      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
-        Agent Not Found! Please check the url you are using this embed agent code from.
-      </div>
-    );
-  }
-
-  if (!isTrusted) {
-    return (
-      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
-        Url not trusted! Please check the urls set in the agent embed settings.
-      </div>
-    );
-  }
-
-  const { agentJoinRoom, agentGetEmbedRoom } = useMultiplayerActions();
   const [room, setRoom] = useState<any>(null);
-
-  useEffect(() => {
-    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
-  }, []);
-
   const [input, setInput] = useState('');
   const { user } = useSupabase();
 
@@ -107,7 +77,13 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
     playersCache,
     messages: rawMessages,
     setMultiplayerConnectionParameters,
+    agentJoinRoom,
+    agentGetEmbedRoom
   } = useMultiplayerActions();
+
+  useEffect(() => {
+    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
+  }, []);
 
   useEffect(() => {
     onConnect && onConnect(connected);
@@ -143,6 +119,30 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } = useScrollAnchor();
   const { isAgentLoading } = useLoading();
+
+  if (ancestorOrigins.length < 1) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        This URL is not to be used directly! Please use the code provided in the agent embed settings.
+      </div>
+    );
+  }
+
+  if (!agent) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        Agent Not Found! Please check the url you are using this embed agent code from.
+      </div>
+    );
+  }
+
+  if (!isTrusted) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        Url not trusted! Please check the urls set in the agent embed settings.
+      </div>
+    );
+  }
 
   return (
     <div className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in`}>

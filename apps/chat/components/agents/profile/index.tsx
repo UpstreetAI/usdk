@@ -11,7 +11,6 @@ import { IconButton, Button } from 'ucom';
 import useHash from '@/lib/hooks/use-hash';
 import { AgentRooms } from './rooms';
 import Link from 'next/link';
-import { encrypt } from '@/utils/crypto/cryptouUtils';
 import EmbedModal from './embedModal';
 
 interface AgentImage {

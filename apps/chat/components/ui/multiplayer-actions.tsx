@@ -21,7 +21,6 @@ import { useLoading } from '@/lib/client/hooks/use-loading';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
 import { QueueManager } from 'queue-manager';
-import { encrypt } from '@/utils/crypto/cryptouUtils';
 import { createHash } from 'crypto';
 
 //
