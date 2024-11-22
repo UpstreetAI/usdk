@@ -7,7 +7,8 @@ full: false
 In this guide, we build a **simple guessing game** which can maintain its own state, and uses NPM libraries to enhance the game's experience.
 
 <Callout>
-We define a **Stateful Agent** as an Agent which can take maintain its own memory and event lifecycle.
+  We define a **Stateful Agent** as an Agent which can take maintain its own
+  memory and event lifecycle.
 </Callout>
 
 The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/guessingGame).
@@ -33,8 +34,10 @@ This will directly scaffold an agent for you in `<your-agent-directory>`. [Learn
 Your agent directory now contains the Node application and `git` repository for your agent, should you choose to use `git`.
 
 <Callout>
-The `-y` flag means to skip the [Agent Interview](/create-an-agent#step-2-complete-the-agent-interview) process, which we don't need here.
-You can also omit the agent directory. In that case, a directory will be created for you.
+  The `-y` flag means to skip the [Agent
+  Interview](/create-an-agent#step-2-complete-the-agent-interview) process,
+  which we don't need here. You can also omit the agent directory. In that case,
+  a directory will be created for you.
 </Callout>
 
 ### Step 3: Start the agentic developer environment
@@ -60,38 +63,40 @@ We can use [`unique-names-generator`](https://www.npmjs.com/package/unique-names
 
 Install this library to your agent:
 
-```bash
+```
 cd <your-agent-directory>
 npm install unique-names-generator
 ```
 
-<Callout>
-  When [customizing your Agent](/customize-your-agent), you can install any library from `npm` and use it in your code.
-</Callout>
+Note: You can also install any library from `npm`.
 
 Edit your `agent.tsx` by adding the following code stub:
 
 ```tsx
-import { uniqueNamesGenerator, animals } from 'unique-names-generator'; // [!code ++]
-const generateRandomName = () => uniqueNamesGenerator({ // [!code ++]
-  dictionaries: [animals], // [!code ++]
-  separator: ' ', // [!code ++]
-}); // [!code ++]
+import { uniqueNamesGenerator, animals } from 'unique-names-generator' // [!code ++]
+const generateRandomName = () =>
+  uniqueNamesGenerator({
+    // [!code ++]
+    dictionaries: [animals], // [!code ++]
+    separator: ' ' // [!code ++]
+  }) // [!code ++]
 
 const GuessingGame = () => {
-    // Guessing game logic goes here
+  // Guessing game logic goes here
 
-    return (
-        <>
-        </>
-    )
-};
+  return <></>
+}
 ```
 
 Next, let's write up our guessing game logic! To maintain state, we'll use [`useState`](https://react.dev/reference/react/useState) in React - for the sake of simplicity.
 
 ```tsx
-import { uniqueNamesGenerator, animals } from 'unique-names-generator';
+import React from "react";
+import { Agent, Prompt, Action } from "react-agents"; // [!code ++]
+import { useState } from "react"; // [!code ++]
+import { uniqueNamesGenerator, animals } from "unique-names-generator";
+import { z } from "zod"; // [!code ++]
+
 const generateRandomName = () => uniqueNamesGenerator({
   dictionaries: [animals],
   separator: ' ',
@@ -101,24 +106,24 @@ const GuessingGame = () => {
   const [secretWord, setSecretWord] = useState(generateRandomName); // [!code ++]
 
   return (
-    {/* [!code ++] */} 
+    {/* [!code highlight] */}
     <>
-    {/* [!code ++] */} 
+    {/* [!code highlight] */}
       <Prompt>
-        {/* [!code ++]  */}
+        {/* [!code highlight] */}
         Play a guessing game with the user.
-        {/* [!code ++] */} 
+        {/* [!code highlight] */}
         The secret word that the user is must guess is {secretWord}.
-        {/* [!code ++] */} 
+        {/* [!code highlight] */}
         You can give them very subtle hints about the phrase, e.g. "this animal really likes treats".
-        {/* [!code ++] */} 
+        {/* [!code highlight] */}
         You can also answer general questions if they don't give too much away.
-        {/* [!code ++] */} 
+        {/* [!code highlight] */}
         However, be cryptic. Don't make the game so easy.
-        {/* [!code ++] */} 
+        {/* [!code highlight] */}
         When the user guesses the secret word or gives up, call the "guessingGameDone" action with an apppropriate message to reset the secret word.
-      {/* [!code ++] */}
-      </Prompt> 
+      {/* [!code highlight] */}
+      </Prompt>
       <Action // [!code ++]
         name="guessingGameDone" // [!code ++]
         description="The user has guessed the secret word" // [!code ++]
@@ -143,9 +148,27 @@ const GuessingGame = () => {
 };
 ```
 
-### Step 4: (optional) Test the Guessing Game Agent
+### Step 4: Import the GuessingGame component in our agent.
+
+```tsx
+export default function MyAgent() {
+  return (
+    <Agent>
+      {/* [!code highlight] */}
+      <GuessingGame />
+    </Agent>
+  )
+}
+```
+
+### Step 5: (optional) Test the Guessing Game Agent
 
 Run [`usdk chat`](/test-your-agent) to test the Agent in your CLI.
+
+
+You can start playing the game like asking
+> I want to play guessing game, let's start
+
 
 How long does it take you to guess your first animal? Join our [Discord community](https://upstreet.ai/usdk-discord); we'd love to know!
 
