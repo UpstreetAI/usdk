@@ -11,7 +11,7 @@ const CommunityExamples = async () => {
 const threads = await fetchDiscordThreadsWithMessages(process.env.DOCS_DISCORD_CHANNEL_ID!);
 
   const examples = threads.map((thread) => {
-    const firstMessage = thread.messages[0]
+    const firstMessage = thread.messages[thread.messages.length - 1]
     return {
         id: thread.name,
         url: firstMessage.url,

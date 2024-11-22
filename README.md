@@ -25,7 +25,7 @@
 [Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
 
 > We ❤️ Open Source! <br />
-> Star (⭐️) [this repo](https://github.com/upstreetAI/monorepo) to support our development.
+> Star (⭐️) [this repo](https://github.com/upstreetAI/upstreet-core) to support our development.
 
 [Table of Contents](#in-this-repo) •
 [Getting started with USDK](#getting-started-with-usdk) •
@@ -37,17 +37,17 @@
 ## In this repo...
 ### Chat App:
 - 🌐 Link: https://upstreet.ai
-- 📁 Directory: [/apps/chat](https://github.com/UpstreetAI/monorepo/tree/main/apps/chat)
-- 📖 Documentation: [/apps/chat/README.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+- 📁 Directory: [/apps/chat](https://github.com/UpstreetAI/upstreet-core/tree/main/apps/chat)
+- 📖 Documentation: [/apps/chat/README.md](https://github.com/UpstreetAI/upstreet-core/blob/main/apps/chat/README.md)
 
 ### Docs:
 - 🌐 Link: https://docs.upstreet.ai
-- 📁 Directory: [/apps/docs](https://github.com/UpstreetAI/monorepo/tree/main/apps/docs)
-- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+- 📁 Directory: [/apps/docs](https://github.com/UpstreetAI/upstreet-core/tree/main/apps/docs)
+- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/upstreet-core/blob/main/apps/chat/README.md)
 
 ### USDK:
-- 📁 Directory: [/packages/usdk](https://github.com/UpstreetAI/monorepo/tree/main/packages/usdk)
-- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/monorepo/blob/main/packages/usdk/README.md)
+- 📁 Directory: [/packages/usdk](https://github.com/UpstreetAI/upstreet-core/tree/main/packages/usdk)
+- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/upstreet-core/blob/main/packages/usdk/README.md)
 
 ## Getting started with USDK
 
@@ -63,7 +63,7 @@ If you want to dive deeper into `usdk` and Upstreet, you can [set up this reposi
 
 ## Contributing
 
-Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/monorepo/issues/new) on GitHub, or talk to the [community](https://upstreet.ai/usdk-discord) to get help.
+Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/upstreet-core/issues/new) on GitHub, or talk to the [community](https://upstreet.ai/usdk-discord) to get help.
 
 ### Setting up your development environment
 

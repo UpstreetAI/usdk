@@ -20,10 +20,10 @@ export default function AuthorCard({
     variant?: "official" | "community",
 }) {
   return (
-    <div className="max-w-xs w-full group/card">
+    <div className="md:max-w-xs w-full flex flex-grow group/card">
       <div
         className={cn(
-          "cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl  max-w-sm mx-auto backgroundImage flex flex-col justify-between p-4",
+          "w-full cursor-pointer overflow-hidden relative card h-96 rounded-md shadow-xl mx-auto backgroundImage flex flex-col justify-between p-4",
           `bg-cover`
         )}
         style={{
