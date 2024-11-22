@@ -195,7 +195,7 @@ const startMultiplayerRepl = ({
         audioStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming audio');
+          // console.log('start streaming audio');
           const {
             waitForFinish,
           } = realms.addAudioSource(audioStream);
@@ -253,7 +253,7 @@ const startMultiplayerRepl = ({
         cameraStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming video');
+          // console.log('start streaming video');
           const {
             waitForFinish,
           } = realms.addVideoSource(cameraStream);
@@ -312,7 +312,7 @@ const startMultiplayerRepl = ({
         screenStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming video');
+          // console.log('start streaming screen');
           const {
             waitForFinish,
           } = realms.addVideoSource(screenStream);
