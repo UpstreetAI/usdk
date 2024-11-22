@@ -1,93 +1,80 @@
 'use client'
 
-import React from 'react';
-import { useEffect, useState } from 'react';
-// import Link from 'next/link';
-import { ChatMessage } from '@/components/chat/chat-message';
-// import { ChatMessageOld } from '@/components/chat/chat-message-old'
-// import { type User } from '@supabase/supabase-js';
-// import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
-import { ChatList } from '@/components/chat/chat-list'
-import { ChatPanel } from '@/components/chat/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
-// import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
-// import { useAIState } from 'ai/rsc'
-// import { Message } from '@/lib/types'
-// import { usePathname, useRouter } from 'next/navigation'
+import React, { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { ChatList } from '@/components/chat/chat-list';
+import { ChatPanel } from '@/components/chat/chat-panel';
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
-// import { UIState } from '@/lib/chat/actions'
-// import { resolveRelativeUrl } from '@/lib/utils'
-// import { aiHost } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
 import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/lib/client/hooks/use-sidebar';
+import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
 import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-// import { IconButton } from 'ucom';
-import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { environment } from '@/lib/env';
-
-
-//
+import { ChatMessageEmbed } from './chat-message-embed';
 
 const openInNewPage = (url: string) => {
   const a = document.createElement('a');
   a.href = url;
   a.target = '_blank';
-  // a.rel = 'noopener noreferrer';
   a.click();
 };
 
-//
-
 type Alt = {
-  q: string
-  a: string
-}
-type FormattedAttachment = {
-  id: string
-  type: string
-  alt?: Alt[]
-}
-type Attachment = FormattedAttachment & {
-  url?: string
-}
-type Message = {
-  method: string
-  args: {
-    text?: string
-  }
-  attachments: Attachment[]
-  name: string
-  timestamp: Date
-  userId: string
-  human: boolean
-}
+  q: string;
+  a: string;
+};
 
-//
+type FormattedAttachment = {
+  id: string;
+  type: string;
+  alt?: Alt[];
+};
+
+type Attachment = FormattedAttachment & {
+  url?: string;
+};
+
+type Message = {
+  method: string;
+  args: {
+    text?: string;
+  };
+  attachments: Attachment[];
+  name: string;
+  timestamp: Date;
+  userId: string;
+  human: boolean;
+};
 
 export interface ChatProps extends React.ComponentProps<'div'> {
-  agent: any
-  onConnect?: (connected: boolean) => void
+  agent: any;
+  onConnect?: (connected: boolean) => void;
 }
-export function EmbedChat({ className, agent, onConnect }: ChatProps) {
 
+export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   const embed = agent.embed;
   const trustedUrls = embed.trusted_urls;
   const normalizedTrustedUrls = trustedUrls.map((url: string) => url.replace(/\/$/, ''));
   const ancestorOrigins = window.location.ancestorOrigins;
   const isTrusted = Array.from(window.location.ancestorOrigins).some(origin => normalizedTrustedUrls.includes(origin));
 
-  console.log('Ancestor Origin URLs:', ancestorOrigins);
-  console.log('Trusted URLs:', normalizedTrustedUrls);
-  console.log('Is Current Origin Trusted?', isTrusted);
+  // console.log('Ancestor Origin URLs:', ancestorOrigins);
+  // console.log('Trusted URLs:', normalizedTrustedUrls);
+  // console.log('Is Current Origin Trusted?', isTrusted);
+
+  if (ancestorOrigins.length < 1) {
+    return (
+      <div className="flex items-center justify-center h-screen text-center text-zinc-950 text-2xl w-full">
+        This URL is not to be used directly! Please use the code provided in the agent embed settings.
+      </div>
+    );
+  }
 
   if (!agent) {
     return (
@@ -106,30 +93,21 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   }
 
   const { agentJoinRoom, agentGetEmbedRoom } = useMultiplayerActions();
-  const [input, setInput] = useState('')
-  const [room, setRoom] = useState<string>('');
+  const [room, setRoom] = useState<any>(null);
+
+  useEffect(() => {
+    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
+  }, []);
+
+  const [input, setInput] = useState('');
   const { user } = useSupabase();
 
   const {
     connected,
     playersCache,
     messages: rawMessages,
-    playersMap,
     setMultiplayerConnectionParameters,
-    // getCrdtDoc
   } = useMultiplayerActions();
-
-  useEffect(() => {
-    console.log('Agent Data: ', agent);
-  }, [agent]);
-
-  useEffect(() => {
-    agentGetEmbedRoom(agent.id).then(room => setRoom(room ?? ''));
-  }, [agentGetEmbedRoom]);
-
-  useEffect(() => {
-    console.log('Room: ', room);
-  }, [room]);
 
   useEffect(() => {
     onConnect && onConnect(connected);
@@ -146,46 +124,37 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
     };
   }) as any[];
 
-  // useEffect(() => {
-  //   if (room && user) {
-  //     const localPlayerSpec: PlayerSpec = {
-  //       id: (user as any).id as string,
-  //       name: (user as any).name as string,
-  //       previewUrl: (user as any).preview_url as string || defaultUserPreviewUrl,
-  //       capabilities: [
-  //         'human',
-  //       ],
-  //     };
-  //     setMultiplayerConnectionParameters({
-  //       room,
-  //       localPlayerSpec,
-  //     });
-  //   }
-  // }, [room, agent.id, user, setMultiplayerConnectionParameters]);
+  useEffect(() => {
+    if (room) {
+      const localPlayerSpec: PlayerSpec = {
+        id: "anon",
+        name: "GEORGE",
+        previewUrl: defaultUserPreviewUrl,
+        capabilities: ['human'],
+      };
+      setMultiplayerConnectionParameters({
+        room,
+        localPlayerSpec,
+      });
 
-  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor();
+      agentJoinRoom(agent.id, room);
+    }
+  }, [room, user, setMultiplayerConnectionParameters, agent]);
 
+  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } = useScrollAnchor();
   const { isAgentLoading } = useLoading();
 
   return (
-    <div
-      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in`}
-    >
+    <div className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in`}>
       {room && (
         <>
           <div className='h-screen overflow-auto' ref={scrollRef}>
-            <div
-              className={cn('pb-[200px] pt-4', className)}
-              ref={messagesRef}
-            >
-              {messages.length ? (
-                <ChatList messages={messages} />
-              ) : (
-                null
-              )}
+            <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
+              <div className="relative mx-auto px-2">
+                {messages.length ? <ChatList messages={messages} /> : null}
+              </div>
 
-              <div className="relative mx-auto max-w-2xl px-4">
+              <div className="relative mx-auto px-2">
                 {isAgentLoading && "Loading agent..."}
               </div>
 
@@ -200,57 +169,34 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
             room={room}
             messages={messages}
           />
-
         </>
       )}
     </div>
-  )
+  );
 }
 
-/* const formatAttachment = (attachment?: Attachment): (FormattedAttachment | undefined) => {
-  if (attachment) {
-    const {
-      id,
-      type,
-      alt,
-    } = attachment;
-    return {
-      id,
-      type,
-      alt,
-    };
-  } else {
-    return attachment;
-  }
-}; */
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
-
-    // fake client side messages
-    case 'join': return (
-      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
-        <span className='font-bold'>{message.name}</span> joined the room.
-      </div>
-    )
-    case 'leave': return (
-      <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
-        <span className='font-bold'>{message.name}</span> left the room.
-      </div>
-    )
-
-    // server messages
+    case 'join':
+      return (
+        <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+          <span className='font-bold'>{message.name}</span> joined the room.
+        </div>
+      );
+    case 'leave':
+      return (
+        <div className="opacity-60 text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+          <span className='font-bold'>{message.name}</span> left the room.
+        </div>
+      );
     case 'say': {
       const player = playersCache.get(message.userId);
       const media = (message.attachments ?? []).filter(a => !!a.url)[0] ?? null;
-
-      // Check if the message is from the current user
-      const isOwnMessage = user && user.id === message.userId;
-
-      // Get the profile URL according to the user type
+      const isOwnMessage = user && user.id === message.userId || message.userId === 'anon';
       const profileUrl = `/${message.human ? 'accounts' : 'agents'}/${message?.userId}`;
 
       return (
-        <ChatMessage
+        <ChatMessageEmbed
           id={id}
           name={message.name}
           content={message.args.text}
@@ -261,52 +207,23 @@ function getMessageComponent(room: string, message: Message, id: string, players
           room={room}
           timestamp={message.timestamp}
         />
-      )
-    }
-
-    case 'addMemory': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
-      return (
-        <div className="opacity-60 text-xs">{message.name} will rememeber that</div>
       );
     }
-    case 'queryMemories': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
+    case 'addMemory':
+      return (
+        <div className="opacity-60 text-xs">{message.name} will remember that</div>
+      );
+    case 'queryMemories':
       return (
         <div className="opacity-60 text-xs">{message.name} is trying to remember</div>
       );
-    }
-
-    case 'mediaPerception': {
-      // const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
+    case 'mediaPerception':
       return (
         <div className="opacity-60 text-xs">{message.name} checked an attachment</div>
       );
-    }
-
     case 'browserAction': {
       const player = playersCache.get(message.userId);
-      // const media = (message.attachments ?? [])[0] ?? null;
-
-      const {
-        // agent:,
-        // method,
-        args: messageArgs,
-        // result,
-        // error,
-      } = message;
-      const {
-        method,
-        args,
-        result,
-        error,
-      } = messageArgs as {
+      const { method, args, result, error } = message.args as {
         method: string;
         args: any;
         result: any;
@@ -315,16 +232,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
       const spec = webbrowserActionsToText.find((spec) => spec.method === method);
       if (spec) {
         const agent = player?.getPlayerSpec();
-        const o = {
-          agent,
-          method,
-          args,
-          result,
-          error,
-        };
-        // console.log('get text 1', o);
+        const o = { agent, method, args, result, error };
         const text = spec.toText(o);
-        // console.log('get text 2', o, { text });
         return (
           <div className="opacity-60 text-xs">{text}</div>
         );
@@ -332,40 +241,21 @@ function getMessageComponent(room: string, message: Message, id: string, players
         return null;
       }
     }
-
     case 'paymentRequest': {
       const agentId = message.userId;
       const player = playersCache.get(agentId);
-
-      let media = null;
-
-      const {
-        args,
-      } = message;
-      const {
-        type,
-        props,
-        stripeConnectAccountId,
-      } = args as PaymentItem;
-      const {
-        name = '',
-        description = '',
-        amount = 0,
-        currency = currencies[0],
-        interval = intervals[0],
-        intervalCount = 1,
-      } = props as SubscriptionProps;
+      const { args } = message;
+      const { type, props, stripeConnectAccountId } = args as PaymentItem;
+      const { name = '', description = '', amount = 0, currency = currencies[0], interval = intervals[0], intervalCount = 1 } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
         if (user) {
           const targetUserId = user.id;
-
           const jwt = await getJWT();
           if (!jwt) {
             throw new Error('No jwt:' + jwt);
           }
 
-          // create the checkout session
           const success_url = location.href;
           const stripe_connect_account_id = stripeConnectAccountId;
           const opts = {
@@ -398,16 +288,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
             },
             stripe_connect_account_id,
           };
-          const j = await createSession(opts, {
-            environment,
-            jwt,
-          });
-          const {
-            // id,
-            url,
-          } = j;
-
-          // redirect to the checkout page
+          const j = await createSession(opts, { environment, jwt });
+          const { url } = j;
           openInNewPage(url);
         } else {
           throw new Error('No user:' + user);
@@ -416,16 +298,12 @@ function getMessageComponent(room: string, message: Message, id: string, players
 
       const price = (() => {
         const v = amount / 100;
-        if (currency === 'usd') {
-          return `$${v}`;
-        } else {
-          return `${v} ${(currency + '').toUpperCase()}`;
-        }
+        return currency === 'usd' ? `$${v}` : `${v} ${(currency + '').toUpperCase()}`;
       })();
       const subscriptionText = type === 'subscription' ? ` per ${interval}${intervalCount !== 1 ? 's' : ''}` : '';
 
       return (
-        <ChatMessage
+        <ChatMessageEmbed
           id={id}
           content={
             <div className="rounded bg-zinc-950 text-zinc-300 p-4 border">
@@ -436,16 +314,16 @@ function getMessageComponent(room: string, message: Message, id: string, players
             </div>
           }
           name={message.name}
-          media={media}
+          media={null}
           player={player}
           room={room}
           timestamp={message.timestamp}
           isOwnMessage={false}
           profileUrl={''}
         />
-      )
+      );
     }
-
-    default: return null
+    default:
+      return null;
   }
 }
