@@ -1,5 +1,6 @@
 export class ExtendableMessageEvent<T> extends MessageEvent<T> {
   private promises: Array<Promise<any>> = [];
+  private result: any;
   constructor(type: string, opts: object = {}) {
     super(type, opts);
   }
@@ -8,5 +9,9 @@ export class ExtendableMessageEvent<T> extends MessageEvent<T> {
   }
   async waitForFinish() {
     await Promise.all(this.promises);
+    return this.result;
+  }
+  setResult(result: any) {
+    this.result = result;
   }
 }
