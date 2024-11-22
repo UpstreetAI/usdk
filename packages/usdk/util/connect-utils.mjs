@@ -145,6 +145,8 @@ const startMultiplayerRepl = ({
   const toggleMic = async () => {
     await microphoneQueueManager.waitForTurn(async () => {
       if (!microphoneInput) {
+        console.log('* starting mic *');
+
         const jwt = await getLoginJwt();
         if (!jwt) {
           throw new Error('not logged in');
@@ -216,6 +218,8 @@ const startMultiplayerRepl = ({
   const toggleCam = async () => {
     await cameraQueueManager.waitForTurn(async () => {
       if (!cameraInput) {
+        console.log('* starting camera *');
+
         const inputDevices = new InputDevices();
         const devices = await inputDevices.listDevices();
         const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
@@ -236,7 +240,7 @@ const startMultiplayerRepl = ({
           videoRenderer.render();
           renderPrompt();
         });
-        console.log('* cam enabled *');
+        console.log('* camera enabled *');
 
         const cameraStream = new ReadableStream({
           start(controller) {
@@ -275,6 +279,8 @@ const startMultiplayerRepl = ({
   const toggleScreen = async () => {
     await screenQueueManager.waitForTurn(async () => {
       if (!screenInput) {
+        console.log('* starting screen capture *');
+
         const inputDevices = new InputDevices();
         const devices = await inputDevices.listDevices();
         const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
