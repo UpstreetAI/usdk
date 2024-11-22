@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from 'ucom';
 import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { getJWT } from '@/lib/jwt';
@@ -45,6 +45,10 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
     const embedCode = `<iframe src="${window.location.origin}/embed/${agent.id}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
     setEmbedCode(embedCode);
   };
+
+  useEffect(() => {
+    generateEmbedCode();
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-opacity-50 bg-zinc-950 flex justify-center items-center z-50 text-zinc-900">
