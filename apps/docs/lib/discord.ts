@@ -126,8 +126,6 @@ export async function fetchDiscordThreadsWithMessages(
 
           const messages: RawDiscordMessage[] = await threadMessagesResponse.json();
 
-          console.log("messages", messages);
-
           const formattedMessages: DiscordMessage[] = messages.map((msg) => ({
             id: msg.id,
             content: msg.content,
