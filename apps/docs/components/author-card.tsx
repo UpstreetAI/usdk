@@ -13,11 +13,11 @@ export default function AuthorCard({
 }: {
     title: string;
     description: string;
-    src: string;
+    src?: string;
     thumbnailSrc: string;
     authorName: string;
     authorSubtitle: string;
-    variant: "official" | "community",
+    variant?: "official" | "community",
 }) {
   return (
     <div className="max-w-xs w-full group/card">
@@ -39,7 +39,7 @@ export default function AuthorCard({
             height="100"
             width="100"
             alt={authorName + " Avatar"}
-            src={src}
+            src={src ?? '/images/general/default_profile_picture.webp'}
             className="h-10 w-10 rounded-full border-2 object-cover"
           />
           <div className="flex flex-col justify-center">

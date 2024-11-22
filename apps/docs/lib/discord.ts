@@ -5,6 +5,7 @@ export interface DiscordMessage {
   id: string;
   content: string;
   author: {
+    global_name: string;
     username: string;
     avatar?: string;
   };
@@ -21,6 +22,7 @@ interface RawDiscordMessage {
   content: string;
   author: {
     id: string;
+    global_name: string;
     username: string;
     avatar?: string;
   };

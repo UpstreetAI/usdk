@@ -9,8 +9,6 @@ export const revalidate = 3600; // Revalidate every hour
 const CommunityExamples = async () => {
   // Fetch threads during build time
 const threads = await fetchDiscordThreadsWithMessages(process.env.DOCS_DISCORD_CHANNEL_ID!);
-  
-console.log("threads", threads);
 
   const examples = threads.map((thread) => {
     const firstMessage = thread.messages[0]

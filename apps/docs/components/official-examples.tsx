@@ -24,6 +24,8 @@ const parseMdxContent = (mdxContent: string) => {
 };
 
 const OfficialExamples = async () => {
+
+    // @ts-expect-error
     const examples = source?.pageTree?.children?.find((p) => p.name === "Examples of Agents")?.children
 
     const hydratedExamples = await Promise.all(examples.map(async (example: any) => {
