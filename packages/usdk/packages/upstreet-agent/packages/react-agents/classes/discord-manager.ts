@@ -23,7 +23,7 @@ import {
 
 //
 
-const getIdFromUserId = (phoneNumber: string) => uuidByString(phoneNumber);
+const getIdFromUserId = (userId: string) => uuidByString(userId);
 const makePlayerFromMember = (member: any) => {
   const {
     userId,
@@ -37,8 +37,6 @@ const makePlayerFromMember = (member: any) => {
   });
   return player;
 };
-const getDiscordChannelConversationHash = (channelId: string) =>
-  `discord:channel:${channelId}`;
 const testRoomNameMatch = (channelName: string, channelSpec: DiscordRoomSpec) => {
   if (typeof channelSpec === 'string') {
     return channelName.toLowerCase() === channelSpec.toLowerCase();
@@ -212,7 +210,7 @@ export class DiscordBot extends EventTarget {
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
-              return getDiscordChannelConversationHash(channelId);
+              return `discord:channel:${channelId}`;
             },
           });
 

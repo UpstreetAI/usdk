@@ -111,3 +111,43 @@ Twitter integration allows your agent to interact with Twitter by responding to 
    - Twitter API rate limits apply - see Twitter's [developer documentation](https://developer.twitter.com/en/docs/twitter-api/rate-limits) for details
    - The bot requires a stable internet connection to maintain communication with Twitter
    - Note: if you haven't created the agent yet, please follow this [Create an Agent](/create-an-agent) first.
+
+### TwitterSpaces
+
+TwitterSpaces integration allows your agent to create and join Twitter Spaces audio rooms.
+
+1. Get your Twitter auth token:
+   - Log into Twitter in your browser
+   - Open the browser developer tools (F12)
+   - Go to the Application/Storage tab
+   - Find the `auth_token` cookie under Cookies > twitter.com
+   - Copy the value of the `auth_token` cookie
+
+2. Configure your agent:
+   ```json
+   import { TwitterSpaces } from 'react-agents';
+
+   return (
+     <Agent>
+       {/* ... */}
+       <TwitterSpaces
+         token="YOUR_AUTH_TOKEN" // Twitter auth_token cookie value
+         url="OPTIONAL_SPACE_URL" // URL of an existing Space to join (optional)
+       />
+       {/* ... */}
+     </Agent>
+   );
+   ```
+
+   **Additional Notes:**
+   - If no `url` is provided, the bot will create a new Twitter Space
+   - If a `url` is provided, the bot will attempt to join that existing Space
+   - The bot will automatically:
+     - Create/join the Space
+     - Request speaking permissions if joining
+     - Unmute itself when ready
+   - The token should be kept secure and not committed to version control
+     - You can use `.env.txt` and the useEnv() hook to load it at runtime
+   - The bot requires a stable internet connection to maintain the Space connection
+   - Twitter's standard rate limits and Space restrictions apply
+   - Note: if you haven't created the agent yet, please follow this [Create an Agent](/create-an-agent) first.
