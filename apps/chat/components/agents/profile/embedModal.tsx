@@ -81,7 +81,7 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
             <h2 className="text-xl font-semibold mb-4 relative">
               Agent Embed Code
               <div className='absolute right-0 top-0' style={{ zoom: 0.7 }}>
-                <IconButton icon={"Copy"} size='small' onClick={handleCopy} />
+                <IconButton icon={isCopied ? "Check" : "Copy"} size='small' onClick={handleCopy} />
               </div>
             </h2>
             <textarea value={embedCode} className="w-full h-64 p-4 border-[2px] border-[#475461] bg-[#E4E8EF]" readOnly />
