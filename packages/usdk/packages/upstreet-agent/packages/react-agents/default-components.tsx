@@ -3424,7 +3424,9 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         const decision = await targetAgent.completeJson([{
           role: 'assistant',
           content: decisionPrompt,
-        }], decisionSchema);
+        }], decisionSchema,
+        'openai:gpt-4o-mini',
+        );
 
         console.log('decision', decision);
         // console.log(`Agent ${targetAgent.agent.name} decision: ${decision.content.shouldRespond ? 'respond' : 'not respond'} - ${decision.content.reason} (confidence: ${decision.content.confidence})`);
