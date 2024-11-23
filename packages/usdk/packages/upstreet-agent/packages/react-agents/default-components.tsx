@@ -3367,30 +3367,36 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
   const historyLength = props?.historyLength ?? 5;
   const defaultThreshold = props?.defaultThreshold ?? 0.6;
 
-  
   return (
     <PerceptionModifier
     type="say" 
     handler={async (e: AbortablePerceptionEvent) => {
       const { message, sourceAgent, targetAgent } = e.data;
 
-      // console.log('SelfConsciousReplies', {
-      //   message,
-      // });
-
-      const conversationMembers = targetAgent.conversation.getAgents();
-      
-      // Retrieve the most recent messages from conversation history, limited by historyLength,
-      // and extract the relevant fields (name, text, timestamp) for each message
-      const messages = targetAgent.conversation.getCachedMessages()
+      // Get conversation members and recent messages in one pass
+      const [conversationMembers, messages] = await Promise.all([
+        targetAgent.conversation.getAgents(),
+        targetAgent.conversation.getCachedMessages()
           .slice(-historyLength)
-          .map(m => ({
-            name: m.name,
-            text: m.args?.text || '',
-            timestamp: m.timestamp
-          }));
+          .map(({name, args, timestamp}) => ({
+            name,
+            text: args?.text || '',
+            timestamp
+          }))
+      ]);
 
-        // Build decision prompt
+      // Calculate back-and-forth agent conversation count
+      // this is being calculated to determine if the agent is being in the conversation too much
+      const recentMessages = messages.slice(-6);
+      const backAndForthCount = recentMessages.reduce((count, msg, i) => {
+        if (i === 0) return count;
+        const prevMsg = recentMessages[i-1];
+        return (msg.name === targetAgent.agent.name && 
+                prevMsg.name === sourceAgent.name) ? count + 1 : count;
+      }, 0);
+
+      const backAndForthPenalty = Math.min(backAndForthCount * 0.2, 0.8);
+
         const decisionPrompt = `
           You are deciding whether to respond to an incoming message in a conversation.
           
@@ -3409,6 +3415,11 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           
           Other users mentioned in the current message: ${extractMentions(message?.args?.text || '').join(', ')}
           
+          CONVERSATION FATIGUE CONTEXT:
+          - You and ${sourceAgent.name} have had ${backAndForthCount} back-and-forth exchanges recently
+          - Your interest level is reduced by ${(backAndForthPenalty * 100).toFixed()}% due to conversation fatigue
+          - If you've been going back and forth too much, you should naturally lose interest and let the conversation end
+          
           Based on this context, should you respond to this message?
           
           IMPORTANT GUIDELINES:
@@ -3425,10 +3436,11 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
              - Your confidence should be high (> 0.7) as group discussions warrant active participation
              - Consider the value you can add to the group conversation
           
-          4. Message frequency suggestions:
-             - Reduce participation if you've sent 3+ messages in immediate succession
-             - Focus on the value of your contribution rather than how recently you've spoken
-             - Don't worry too much about "dominating" the conversation unless you're the only one talking
+          4. Message frequency and fatigue guidelines:
+             - Show significantly decreased interest after 4+ back-and-forth exchanges
+             - Let conversations naturally end instead of forcing them to continue
+             - If you've been talking frequently with someone, take breaks to avoid conversation fatigue
+             - Consider if someone else should have a chance to speak
           
           Additional considerations:
           - Is the message explicitly directed at you? (Weight: ${defaultThreshold})
@@ -3440,7 +3452,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           Respond with a decision object containing:
           - shouldRespond: boolean (true if confidence > ${defaultThreshold})
           - reason: brief explanation including specific justification if interrupting others' conversation
-          - confidence: number between 0-1
+          - confidence: number between 0-1 (note: this will be reduced by ${(backAndForthPenalty * 100).toFixed()}% due to conversation fatigue)
         `;
 
         const decisionSchema = z.object({
@@ -3453,13 +3465,15 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           role: 'assistant',
           content: decisionPrompt,
         }], decisionSchema,
-        'openai:gpt-4o-mini',
+        // XXX replace with gpt-4o-mini when ai proxy is updated
+        // 'openai:gpt-4o-mini',
+        'openai:gpt-4o',
         );
 
-        // console.log('decision', decision);
-        // console.log(`Agent ${targetAgent.agent.name} decision: ${decision.content.shouldRespond ? 'respond' : 'not respond'} - ${decision.content.reason} (confidence: ${decision.content.confidence})`);
+        // Apply the back-and-forth penalty to the confidence
+        const adjustedConfidence = decision.content.confidence * (1 - backAndForthPenalty);
 
-        if (!decision.content.shouldRespond || decision.content.confidence < defaultThreshold) {
+        if (!decision.content.shouldRespond || adjustedConfidence < defaultThreshold) {
           e.abort();
         }
       }}
