@@ -3,7 +3,7 @@ import fs from 'fs';
 
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
 import { cleanDir } from '../lib/directory-util.mjs';
