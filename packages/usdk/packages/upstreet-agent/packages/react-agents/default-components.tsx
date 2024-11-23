@@ -3357,3 +3357,89 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
 
   return null;
 };
+export type SelfConsciousRepliesProps = {
+  historyLength?: number; // Number of previous messages to consider for context
+  defaultThreshold?: number; // How likely the agent should respond by default (0-1)
+};
+
+export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props: SelfConsciousRepliesProps) => {
+  const historyLength = props?.historyLength ?? 5;
+  const defaultThreshold = props?.defaultThreshold ?? 0.6;
+
+  
+  return (
+    <PerceptionModifier
+    type="say" 
+    handler={async (e: AbortablePerceptionEvent) => {
+      const { message, sourceAgent, targetAgent } = e.data;
+
+      console.log('SelfConsciousReplies', {
+        message,
+
+      });
+
+      // Get conversation history
+      const messages = targetAgent.conversation.getCachedMessages()
+          .slice(-historyLength)
+          .map(m => ({
+            name: m.name,
+            text: m.args?.text || '',
+            timestamp: m.timestamp
+          }));
+
+        // Build decision prompt
+        const decisionPrompt = `
+          You are deciding whether to respond to an incoming message in a conversation.
+          
+          Current message: "${message?.args?.text || ''}"
+          From user: ${sourceAgent.name}
+          
+          Recent conversation history:
+          ${messages.map(m => `${m.name}: ${m.text}`).join('\n')}
+          
+          Your personality: ${targetAgent.agent.bio}
+          Your name: ${targetAgent.agent.name}
+          
+          Other users mentioned in the current message: ${extractMentions(message?.args?.text || '').join(', ')}
+          
+          Based on this context, should you respond to this message?
+          Consider:
+          1. Is the message directed at you specifically? (Weight: ${defaultThreshold})
+          2. Is the conversation active and engaging?
+          3. Would responding align with your personality?
+          4. Are other users being addressed instead of you?
+          
+          Respond with a decision object containing:
+          - shouldRespond: boolean (true if confidence > ${defaultThreshold})
+          - reason: brief explanation
+          - confidence: number between 0-1
+        `;
+
+        const decisionSchema = z.object({
+          shouldRespond: z.boolean(),
+          reason: z.string(),
+          confidence: z.number(),
+        });
+
+        const decision = await targetAgent.completeJson([{
+          role: 'assistant',
+          content: decisionPrompt,
+        }], decisionSchema);
+
+        console.log('decision', decision);
+        // console.log(`Agent ${targetAgent.agent.name} decision: ${decision.content.shouldRespond ? 'respond' : 'not respond'} - ${decision.content.reason} (confidence: ${decision.content.confidence})`);
+
+        if (!decision.content.shouldRespond || decision.content.confidence < defaultThreshold) {
+          e.abort();
+        }
+      }}
+      priority={-defaultPriorityOffset * 2}
+    />
+  );
+};
+
+// Helper function to extract @mentions from text
+const extractMentions = (text: string): string[] => {
+  const mentions = text.match(/@(\w+)/g) || [];
+  return mentions.map(m => m.substring(1));
+};
