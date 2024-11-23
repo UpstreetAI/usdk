@@ -142,6 +142,7 @@ export const DefaultAgentComponents = () => {
       {/* <LiveMode /> */}
       <DefaultPrompts />
       {/* <DefaultServers /> */}
+      <SelfConsciousReplies historyLength={15} defaultThreshold={0.6} />
     </>
   );
 };
