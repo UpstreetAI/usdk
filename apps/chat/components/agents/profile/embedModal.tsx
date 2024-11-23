@@ -5,6 +5,7 @@ import { Button, IconButton } from 'ucom';
 import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { getJWT } from '@/lib/jwt';
 import { env } from '@/lib/env';
+import { useCopyToClipboard } from '@/lib/client/hooks/use-copy-to-clipboard';
 
 export default function EmbedModal({agent, close}: {agent: any, close: () => void}) {
   const [trustedUrls, setTrustedUrls] = useState<string[]>(agent?.embed?.trusted_urls ?? []);
@@ -51,6 +52,13 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
   useEffect(() => {
     generateEmbedCode();
   }, []);
+  
+  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
+  const handleCopy = () => {
+    if (!isCopied) {
+      copyToClipboard(embedCode);
+    }
+  };
 
   return (
     <div 
@@ -64,13 +72,18 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
       <div className="bg-[#C8CFD7] rounded-lg w-full max-w-4xl">
         <div className='bg-zinc-900 px-4 py-3 text-xl font-bold text-center text-white relative'>
           Embed Agent
-          <div className='absolute right-0 top-0 m-1'>
+          <div className='absolute right-0 top-0 m-4' style={{ zoom: 0.7 }}>
             <IconButton icon={"Close"} size='small' onClick={close} />
           </div>
         </div>
         <div className="p-6 md:flex gap-4">
           <div className="w-full md:w-1/2 md:pr-4 mb-4 md:mb-0">
-            <h2 className="text-xl font-semibold mb-4">Generated Embed Code</h2>
+            <h2 className="text-xl font-semibold mb-4 relative">
+              Agent Embed Code
+              <div className='absolute right-0 top-0' style={{ zoom: 0.7 }}>
+                <IconButton icon={"Copy"} size='small' onClick={handleCopy} />
+              </div>
+            </h2>
             <textarea value={embedCode} className="w-full h-64 p-4 border-[2px] border-[#475461] bg-[#E4E8EF]" readOnly />
           </div>
           <div className="w-full md:w-1/2 md:border-l border-zinc-400 md:pl-8">
