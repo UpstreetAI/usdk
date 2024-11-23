@@ -370,7 +370,6 @@ export class DiscordBotClient extends EventTarget {
   }) {
     super();
 
-    // XXX debugging
     if (!codecs) {
       throw new Error('DiscordBotClient: no codecs provided');
     }
