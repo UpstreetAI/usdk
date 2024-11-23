@@ -3378,7 +3378,8 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
 
       });
 
-      // Get conversation history
+      // Retrieve the most recent messages from conversation history, limited by historyLength,
+      // and extract the relevant fields (name, text, timestamp) for each message
       const messages = targetAgent.conversation.getCachedMessages()
           .slice(-historyLength)
           .map(m => ({
@@ -3397,21 +3398,40 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           Recent conversation history:
           ${messages.map(m => `${m.name}: ${m.text}`).join('\n')}
           
-          Your personality: ${targetAgent.agent.bio}
+          Your personality (ONLY use this information to guide your response, do not make assumptions beyond it):
+          ${targetAgent.agent.bio}
           Your name: ${targetAgent.agent.name}
+          Your id: ${targetAgent.agent.id}
           
           Other users mentioned in the current message: ${extractMentions(message?.args?.text || '').join(', ')}
           
           Based on this context, should you respond to this message?
-          Consider:
-          1. Is the message directed at you specifically? (Weight: ${defaultThreshold})
-          2. Is the conversation active and engaging?
-          3. Would responding align with your personality?
-          4. Are other users being addressed instead of you?
+          
+          IMPORTANT GUIDELINES:
+          1. If the message is clearly addressed to someone else (via @mention or context), you should NOT respond UNLESS:
+             - You have critical information that directly relates to the message and would be valuable to share
+             - The information is urgent or important enough to justify interrupting
+             - Not sharing this information could lead to misunderstandings or issues
+          
+          2. Only interrupt conversations between others in rare and justified cases. Your confidence should be very low (< 0.3) 
+             if you're considering responding to a message not directed at you.
+          
+          3. Message frequency control:
+             - Check how many messages you've sent recently in the conversation history
+             - If you've sent multiple messages in the last few exchanges, lower your confidence significantly
+             - Avoid dominating the conversation - others should have space to participate
+             - Consider staying silent if you've been very active recently, unless you have highly relevant or critical information to share
+          
+          Additional considerations:
+          - Is the message explicitly directed at you? (Weight: ${defaultThreshold})
+          - Would responding align with ONLY your defined personality traits?
+          - Is your response truly necessary or would it derail the current conversation?
+          - Are you certain you have unique, valuable information to add if interrupting?
+          - Have you been contributing too frequently to the conversation lately?
           
           Respond with a decision object containing:
           - shouldRespond: boolean (true if confidence > ${defaultThreshold})
-          - reason: brief explanation
+          - reason: brief explanation including specific justification if interrupting others' conversation
           - confidence: number between 0-1
         `;
 
