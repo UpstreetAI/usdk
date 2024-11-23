@@ -63,8 +63,12 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
     >
       <div className="bg-[#C8CFD7] rounded-lg w-full max-w-4xl">
         <div className='bg-zinc-900 px-4 py-3 text-xl font-bold text-center text-white'>Embed Agent</div>
-        <div className="p-6 flex gap-4">
-          <div className="w-1/2 border-r border-zinc-400 pr-6">
+        <div className="p-6 md:flex gap-4">
+          <div className="w-full md:w-1/2 md:pr-4 mb-4 md:mb-0">
+            <h2 className="text-xl font-semibold mb-4">Generated Embed Code</h2>
+            <textarea value={embedCode} className="w-full h-64 p-4 border-[2px] border-[#475461] bg-[#E4E8EF]" readOnly />
+          </div>
+          <div className="w-full md:w-1/2 md:border-l border-zinc-400 md:pl-8">
             <h2 className="text-xl font-semibold mb-4">Settings</h2>
             <div className="mb-6">
               <label className="block font-medium mb-2">Trusted URLs</label>
@@ -86,19 +90,6 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
                 Add URL
               </Button>
             </div>
-            <div className="flex gap-4">
-              {/* <Button onClick={generateEmbedCode}>
-                Generate Embed Code
-              </Button> */}
-              <Button onClick={close}>
-                Close
-              </Button>
-            </div>
-          </div>
-          {/* Generated Code Section */}
-          <div className="w-1/2 pl-6">
-            <h2 className="text-xl font-semibold mb-4">Generated Embed Code</h2>
-            <textarea value={embedCode} className="w-full h-64 p-4 border-[2px] border-[#475461] bg-[#E4E8EF]" readOnly />
           </div>
         </div>
       </div>
