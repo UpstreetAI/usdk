@@ -3395,7 +3395,8 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
                 prevMsg.name === sourceAgent.name) ? count + 1 : count;
       }, 0);
 
-      const backAndForthPenalty = Math.min(backAndForthCount * 0.2, 0.8);
+      // Only apply penalty if more than 2 members in chat
+      const backAndForthPenalty = conversationMembers.length > 2 ? Math.min(backAndForthCount * 0.2, 0.8) : 0;
 
         const decisionPrompt = `
           You are deciding whether to respond to an incoming message in a conversation.
