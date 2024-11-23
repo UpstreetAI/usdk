@@ -3378,6 +3378,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
 
       });
 
+      const conversationMembers = targetAgent.conversation.getAgents();
       // Retrieve the most recent messages from conversation history, limited by historyLength,
       // and extract the relevant fields (name, text, timestamp) for each message
       const messages = targetAgent.conversation.getCachedMessages()
@@ -3394,6 +3395,8 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           
           Current message: "${message?.args?.text || ''}"
           From user: ${sourceAgent.name}
+
+          Conversation members: ${conversationMembers.map(a => `${a.playerSpec.name} (${a.playerSpec.id})`).join(', ')}
           
           Recent conversation history:
           ${messages.map(m => `${m.name}: ${m.text}`).join('\n')}
