@@ -21,7 +21,7 @@ import {
 import {
   bindConversationToAgent,
 } from '../runtime';
-import { Player } from 'react-agents-client/util/player.mjs';
+// import { Player } from 'react-agents-client/util/player.mjs';
 import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
 import {
   ExtendableMessageEvent,
@@ -171,18 +171,19 @@ export class ChatsManager {
       };
       multiplayerConnection.addEventListener('connect', onConnect);
 
+      multiplayerConnection.addEventListener('playerSpecUpdate', (e: any) => {
+        const { player } = e.data;
+        if (player && player.playerId && !conversation.agentsMap.has(player.playerId)) {
+          conversation.addAgent(player.playerId, player);
+        }
+      });
       multiplayerConnection.addEventListener('join', (e: any) => {
-        const { player, playerId } = e.data;
-        // console.log('chats specification: remote player joined:', playerId);h
-
-        const remotePlayer = new Player(playerId, {});
-        conversation.addAgent(playerId, remotePlayer);
+        const { player } = e.data;
+        conversation.addAgent(player.playerId, player);
       });
       multiplayerConnection.addEventListener('leave', async (e: any) => {
         const { player } = e.data;
-        const { playerId } = player;
-        // console.log('chats specification: remote player left:', playerId);
-        conversation.removeAgent(playerId);
+        conversation.removeAgent(player.playerId);
       });
 
       multiplayerConnection.addEventListener('chat', async (e) => {

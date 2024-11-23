@@ -1,25 +1,29 @@
 import uuidByString from 'uuid-by-string';
 import {
-  DiscordBotRoomSpec,
-  DiscordBotArgs,
+  DiscordRoomSpec,
+  DiscordArgs,
   ConversationEventData,
   ActiveAgentObject,
   ExtendableMessageEvent,
   ActionMessageEventData,
+  PlayableAudioStream,
 } from '../types';
 import {
   ConversationObject,
 } from './conversation-object';
 import { Player } from 'react-agents-client/util/player.mjs';
-import { DiscordBotClient } from '../lib/discord/discord-client'; // XXX move this to typescript
+import { DiscordBotClient } from '../lib/discord/discord-client';
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
+import {
+  QueueManager,
+} from 'queue-manager';
 
 //
 
-const getIdFromUserId = (phoneNumber: string) => uuidByString(phoneNumber);
+const getIdFromUserId = (userId: string) => uuidByString(userId);
 const makePlayerFromMember = (member: any) => {
   const {
     userId,
@@ -33,9 +37,7 @@ const makePlayerFromMember = (member: any) => {
   });
   return player;
 };
-const getDiscordChannelConversationHash = (channelId: string) =>
-  `discord:channel:${channelId}`;
-const testRoomNameMatch = (channelName: string, channelSpec: DiscordBotRoomSpec) => {
+const testRoomNameMatch = (channelName: string, channelSpec: DiscordRoomSpec) => {
   if (typeof channelSpec === 'string') {
     return channelName.toLowerCase() === channelSpec.toLowerCase();
   } else if (channelSpec instanceof RegExp) {
@@ -65,13 +67,25 @@ const bindOutgoing = ({
       message,
     } = e.data;
     const {
+      attachments,
+    } = message;
+    const {
       method,
       args,
     } = message;
+
     if (method === 'say') {
-      const {
+      let {
         text,
       } = args as { text: string };
+      
+      if (attachments && Object.keys(attachments).length > 0) {
+        text += '\n' + Object.values(attachments)
+          .filter(attachment => attachment && typeof attachment === 'object' && 'url' in attachment)
+          .map(attachment => attachment.url)
+          .join('\n');
+      }
+
       discordBotClient.input.writeText(text, {
         channelId,
         userId,
@@ -81,17 +95,13 @@ const bindOutgoing = ({
     }
   });
   // audio
+  const queueManager = new QueueManager();
   conversation.addEventListener('audiostream', async (e: MessageEvent) => {
-    // XXX finish this
-    console.log('conversation outgoing audio stream', e.data);
-    // const audioStream = e.data.audioStream as PlayableAudioStream;
-    // (async () => {
-    //   const {
-    //     waitForFinish,
-    //   } = realms.addAudioSource(audioStream);
-    //   await waitForFinish();
-    //   realms.removeAudioSource(audioStream);
-    // })();
+    await queueManager.waitForTurn(async () => {
+      // console.log('conversation outgoing audio stream', e.data);
+      const audioStream = e.data.audioStream as PlayableAudioStream;
+      await discordBotClient.input.pushStream(audioStream);
+    });
   });
   // typing
   conversation.addEventListener('typingstart', (e) => {
@@ -108,14 +118,14 @@ const bindOutgoing = ({
 
 export class DiscordBot extends EventTarget {
   token: string;
-  channels: DiscordBotRoomSpec[];
-  dms: DiscordBotRoomSpec[];
+  channels: DiscordRoomSpec[];
+  dms: DiscordRoomSpec[];
   userWhitelist: string[];
   agent: ActiveAgentObject;
   channelConversations: Map<string, ConversationObject>; // channelId -> conversation
   dmConversations: Map<string, ConversationObject>; // userId -> conversation
   abortController: AbortController;
-  constructor(args: DiscordBotArgs) {
+  constructor(args: DiscordArgs) {
     super();
 
     // arguments
@@ -125,6 +135,8 @@ export class DiscordBot extends EventTarget {
       dms,
       userWhitelist,
       agent,
+      codecs,
+      jwt,
     } = args;
     this.token = token;
     this.channels = channels;
@@ -139,6 +151,8 @@ export class DiscordBot extends EventTarget {
     // initialize discord bot client
     const discordBotClient = new DiscordBotClient({
       token,
+      codecs,
+      jwt,
     });
     // bind discord bot client
     signal.addEventListener('abort', () => {
@@ -201,11 +215,14 @@ export class DiscordBot extends EventTarget {
           id: channelId,
           type,
         } = channel;
-        if (type === 0) { // text channel
+        if (
+          type === 0 || // text channel
+          type === 2 // voice channel
+        ) {
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
-              return getDiscordChannelConversationHash(channelId);
+              return `discord:channel:${channelId}`;
             },
           });
 
@@ -366,7 +383,13 @@ export class DiscordBot extends EventTarget {
   }
 }
 export class DiscordManager {
-  addDiscordBot(args: DiscordBotArgs) {
+  codecs;
+  constructor({
+    codecs,
+  }) {
+    this.codecs = codecs;
+  }
+  addDiscordBot(args: DiscordArgs) {
     const discordBot = new DiscordBot(args);
     return discordBot;
   }

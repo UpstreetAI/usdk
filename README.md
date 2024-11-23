@@ -1,39 +1,103 @@
-# Upstreet Monorepo
+<!-- markdownlint-configure-file {
+  "MD013": {
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD033": false,
+  "MD041": false
+} -->
 
-This repository contains the open source apps for the Upstreet platform.
+<div align="center">
 
-## Workspaces
+```
+  ██  ██ ██████  ███████ ████████ ██████  ███████ ███████ ████████
+  ██  ██ ██   ██ ██         ██    ██   ██ ██      ██         ██   
+  ██  ██ ██████  ███████    ██    ██████  █████   █████      ██   
+  ██  ██ ██           ██    ██    ██   ██ ██      ██         ██   
+██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
+```
 
-#### Chat:
-- Url: https://chat.upstreet.ai
-- Directory: [/apps/chat](https://github.com/UpstreetAI/monorepo/tree/main/apps/chat)
-- Documentation: [/apps/chat/ReadMe.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+<!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
+[![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
+[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
+[![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/upstreetai)
 
-#### Docs:
-- Url: https://docs.upstreet.ai
-- Directory: [/apps/docs](https://github.com/UpstreetAI/monorepo/tree/main/apps/docs)
-- Documentation: [/apps/docs/ReadMe.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+[Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
 
-# Quickstart
+> We ❤️ Open Source! <br />
+> Star (⭐️) [this repo](https://github.com/upstreetAI/monorepo) to support our development.
 
-## Install
+[Table of Contents](#in-this-repo) •
+[Getting started with USDK](#getting-started-with-usdk) •
+[Contributing](#contributing) •
+[Attributions](#usdk-is-built-with)
+
+</div>
+
+## In this repo...
+### Chat App:
+- 🌐 Link: https://upstreet.ai
+- 📁 Directory: [/apps/chat](https://github.com/UpstreetAI/monorepo/tree/main/apps/chat)
+- 📖 Documentation: [/apps/chat/README.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+
+### Docs:
+- 🌐 Link: https://docs.upstreet.ai
+- 📁 Directory: [/apps/docs](https://github.com/UpstreetAI/monorepo/tree/main/apps/docs)
+- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/monorepo/blob/main/apps/chat/README.md)
+
+### USDK:
+- 📁 Directory: [/packages/usdk](https://github.com/UpstreetAI/monorepo/tree/main/packages/usdk)
+- 📖 Documentation: [/apps/docs/README.md](https://github.com/UpstreetAI/monorepo/blob/main/packages/usdk/README.md)
+
+## Getting started with USDK
+
+If you want to get started with Upstreet Agents in general, you can simply install `usdk` from NPM:
+
+```bash
+npm i -g usdk
+```
+
+Read more about how to use `usdk` in the [documentation](https://docs.upstreet.ai/install).
+
+If you want to dive deeper into `usdk` and Upstreet, you can [set up this repository locally.](#Setting-up-your-development-environment)
+
+## Contributing
+
+Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/monorepo/issues/new) on GitHub, or talk to the [community](https://upstreet.ai/usdk-discord) to get help.
+
+### Setting up your development environment
+
+#### Install dependencies
 Run install from the root directory:
 ```bash
 npm install
 ```
 
-## Run
-#### Run Chat
-From the root directory run:
-```bash
-npm run chat dev
-```
-#### Run Docs
-From the root directory run:
-```bash
-npm run docs start
-```
-#### Install SDK
+#### Run Apps
+
+<details>
+   <summary>Run Chat App</summary>
+   <br />
+
+   > From the root directory run:
+   >  ```bash
+   >  npm run chat dev
+   >  ```
+
+</details>
+
+<details>
+   <summary>Run Docs App</summary>
+   <br />
+
+   > From the root directory run:
+   >  ```bash
+   >  npm run docs dev
+   >  ```
+
+</details>
+
+#### Install `usdk` locally
 From the root directory run:
 ```bash
 cd packages/usdk
@@ -42,16 +106,19 @@ npm i -g .
 usdk --version
 ```
 
-# Development
+Editing the `usdk` package will now automatically update your locally-installed version.
 
-## Install New Packages
+---
 
-#### Chat
-```bash
-npm i PACKAGE_NAME --workspace=@upstreet/chat
-```
+<div align="center">
 
-#### Docs
-```bash
-npm i PACKAGE_NAME --workspace=@upstreet/docs
-```
+### USDK is built with
+
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=Cloudflare&logoColor=white)
+![ChatGPT](https://img.shields.io/badge/chatGPT-74aa9c?style=for-the-badge&logo=openai&logoColor=white)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![Turborepo](https://img.shields.io/badge/Turborepo-%230F0813.svg?style=for-the-badge&logo=Turborepo&logoColor=white)
+
+... And many more closed source and open-source projects.
+</div>

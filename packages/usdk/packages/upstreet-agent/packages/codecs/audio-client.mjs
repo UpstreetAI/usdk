@@ -491,8 +491,8 @@ export function createOpusDecodeTransformStream({
   });
 
   const muxAndSend = encodedChunk => {
-    console.log('decode data', encodedChunk.data);
     if (encodedChunk) {
+      // console.log('decode data', encodedChunk.data);
       controller.enqueue(encodedChunk.data);
     } else {
       doneResolve();

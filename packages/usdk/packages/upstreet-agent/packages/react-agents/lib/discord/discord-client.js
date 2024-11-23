@@ -181,88 +181,38 @@ export class DiscordInput {
 export class DiscordOutputStream extends EventTarget {
   constructor({
     sampleRate,
-    speechQueue,
+    // speechQueue,
+    codecs,
+    jwt,
   }) {
     super();
 
     this.sampleRate = sampleRate;
-    this.speechQueue = speechQueue;
-
-    // // XXX decode with opus, encode with mp3 instead of wav
-    // this.decoder = new OpusDecoder();
-    // this.chunks = [];
-    // this.bufferSize = 0;
-
-    // const loadPromise = this.decoder.ready
-    //   .then(() => {});
-    // this.waitForLoad = () => loadPromise;
+    // this.speechQueue = speechQueue;
+    this.codecs = codecs;
+    this.jwt = jwt;
 
     this.opusTransformStream = createOpusDecodeTransformStream({
       sampleRate,
+      codecs,
     });
     this.opusTransformStreamWriter = this.opusTransformStream.writable.getWriter();
 
     this.mp3Source = createMp3ReadableStreamSource({
       readableStream: this.opusTransformStream.readable,
+      codecs,
     });
-
     this.mp3BuffersOutputPromise = this.mp3Source.output.readAll();
   }
 
   update(uint8Array) {
     this.opusTransformStreamWriter.write(uint8Array);
-    /* (async () => {
-      await this.waitForLoad();
-
-      const result = this.decoder.decodeFrame(uint8Array);
-      const {channelData, sampleRate} = result;
-
-      const chunk = {
-        channelData,
-        sampleRate,
-      };
-      this.chunks.push(chunk);
-
-      const firstChannelData = channelData[0];
-      this.bufferSize += firstChannelData.length;
-    })(); */
   }
 
   async end() {
-    /* await this.waitForLoad();
-
-    let sampleRate = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      if (sampleRate === 0) {
-        sampleRate = chunk.sampleRate;
-      } else {
-        if (sampleRate !== chunk.sampleRate) {
-          throw new Error('sample rate mismatch');
-        }
-      }
-    }
-
-    // create audio buffer from chunks
-    const audioBuffer = new AudioBuffer({
-      length: this.bufferSize,
-      sampleRate,
-      numberOfChannels: 1,
-    });
-    let offset = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      const {channelData} = chunk;
-      const firstChannelData = channelData[0];
-      audioBuffer.copyToChannel(firstChannelData, 0, offset);
-      offset += firstChannelData.length;
-    }
-
-    // XXX encode to MP3
-    const wavBuffer = audioBufferToWav(audioBuffer);
-    const wavBlob = new Blob([wavBuffer], {
-      type: 'audio/wav',
-    }); */
+    const {
+      jwt,
+    } = this;
 
     this.opusTransformStreamWriter.close();
 
@@ -271,13 +221,13 @@ export class DiscordOutputStream extends EventTarget {
       type: 'audio/mpeg',
     });
 
-    await this.speechQueue.waitForTurn(async () => {
-      const text = await transcribe(mp3Blob);
-      // console.log('discord transcribed', {text});
-      this.dispatchEvent(new MessageEvent('speech', {
-        data: text,
-      }));
+
+    const text = await transcribe(mp3Blob, {
+      jwt,
     });
+    this.dispatchEvent(new MessageEvent('speech', {
+      data: text,
+    }));
   }
 
   destroy() {
@@ -292,15 +242,24 @@ export class DiscordOutputStream extends EventTarget {
 //
 
 export class DiscordOutput extends EventTarget {
+  sampleRate;
+  codecs;
   constructor({
     sampleRate = 48000,
+    codecs,
+    jwt,
   } = {}) {
     super();
 
+    if (!codecs) {
+      throw new Error('DiscordOutput: no codecs provided');
+    }
+
     this.sampleRate = sampleRate;
+    this.codecs = codecs;
+    this.jwt = jwt;
 
-    this.speechQueue = new QueueManager();
-
+    // this.speechQueue = new QueueManager();
     this.streams = new Map();
   }
 
@@ -318,21 +277,35 @@ export class DiscordOutput extends EventTarget {
 
   pushStreamStart(args) {
     const {
+      codecs,
+      jwt,
+    } = this;
+    if (!codecs) {
+      throw new Error('pushStreamStart: no codecs provided');
+    }
+    if (!jwt) {
+      throw new Error('pushStreamStart: no jwt provided');
+    }
+
+    const {
       userId,
       username,
       channelId,
       streamId,
     } = args;
+    console.log('push stream start', args);
     let stream = this.streams.get(streamId);
     if (!stream) {
       const {
         sampleRate,
-        speechQueue,
+        // speechQueue,
       } = this;
 
       stream = new DiscordOutputStream({
         sampleRate,
-        speechQueue,
+        // speechQueue,
+        codecs,
+        jwt,
       });
       stream.addEventListener('speech', e => {
         const text = e.data;
@@ -362,7 +335,7 @@ export class DiscordOutput extends EventTarget {
       stream.end();
       this.streams.delete(streamId);
     } else {
-      throw new Error('no stream found for streamId: ' + streamId);
+      throw new Error('pushStreamEnd: no stream found for streamId: ' + streamId);
     }
   }
 
@@ -371,7 +344,7 @@ export class DiscordOutput extends EventTarget {
     if (stream) {
       stream.update(uint8Array);
     } else {
-      throw new Error('no stream found for streamId: ' + streamId);
+      throw new Error('pushStreamUpdate: no stream found for streamId: ' + streamId);
     }
   }
 
@@ -386,14 +359,32 @@ export class DiscordOutput extends EventTarget {
 
 export class DiscordBotClient extends EventTarget {
   token;
+  codecs;
   ws = null;
-  input = new DiscordInput();
-  output = new DiscordOutput();
+  input = null; // going from the agent into the discord bot
+  output = null; // coming out of the discord bot to the agent
   constructor({
     token,
+    codecs,
+    jwt,
   }) {
     super();
+
+    // XXX debugging
+    if (!codecs) {
+      throw new Error('DiscordBotClient: no codecs provided');
+    }
+    if (!jwt) {
+      throw new Error('DiscordBotClient: no jwt provided');
+    }
+
     this.token = token;
+    this.codecs = codecs;
+    this.input = new DiscordInput();
+    this.output = new DiscordOutput({
+      codecs,
+      jwt,
+    });
   }
   async status() {
     const res = await fetch(`${discordBotEndpointUrl}/status`, {
@@ -451,6 +442,7 @@ export class DiscordBotClient extends EventTarget {
         } = o;
         switch (method) {
           case 'voicedata': {
+            // console.log('voice data', args);
             const {
               // userId,
               streamId,

@@ -2,9 +2,10 @@ import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { AgentNotFound } from '@/components/agents/profile/AgentNotFound';
+import { getJWT } from '@/lib/jwt';
 
 type Params = {
   params: {
@@ -12,11 +13,17 @@ type Params = {
   };
 };
 
+async function getUser() {
+  const jwt = await getJWT();
+  const user = await getUserForJwt(jwt);
+  return user;
+}
+
 async function getAgentData(supabase: any, identifier: string) {
   // First try to find by ID
   let result = await supabase
     .from('assets')
-    .select('*, author: accounts ( id, name )')
+    .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
     .eq('id', identifier)
     .single();
 
@@ -24,7 +31,7 @@ async function getAgentData(supabase: any, identifier: string) {
   if (!result.data) {
     result = await supabase
       .from('assets')
-      .select('*, author: accounts ( id, name )')
+      .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
       .eq('name', identifier)
       .single();
   }
@@ -90,10 +97,14 @@ export default async function AgentProfilePage({ params }: Params) {
   const agentData = result.data as any;
 
   if (!agentData?.id) {
-    return <AgentNotFound />; 
+    return <AgentNotFound />;
   }
 
+  // check if the user is the owner of the agent
+  const user = await getUser();
+  const isOwner = agentData.author.id === user?.id;
+
   return (
-    <AgentProfile agent={agentData} />
+    <AgentProfile agent={agentData} isOwner={isOwner} />
   );
 }
