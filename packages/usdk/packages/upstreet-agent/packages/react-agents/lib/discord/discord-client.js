@@ -446,7 +446,6 @@ export class DiscordBotClient extends EventTarget {
   }) {
     super();
 
-    // XXX debugging
     if (!codecs) {
       throw new Error('DiscordBotClient: no codecs provided');
     }
@@ -463,13 +462,19 @@ export class DiscordBotClient extends EventTarget {
       jwt,
     });
 
-    // Initialize VAD with same pattern as audio-perception
+    // Create reusable decoder
+    this.initializeDecoder();
+    
+    // Initialize VAD
     this.#initializeVAD();
 
     this.audioChunker = new AudioChunker({
       sampleRate: 16000, // TranscribedVoiceInput.transcribeSampleRate
       chunkSize: 1536,
     });
+
+    // Add queue manager for opus conversion
+    this.conversionQueue = new QueueManager();
   }
 
   #activeVoiceBuffer = {
@@ -536,47 +541,57 @@ export class DiscordBotClient extends EventTarget {
     }
   }
 
-  async #convertOpusToPCM(opusData) {
+  async initializeDecoder() {
     try {
-      const decoder = createOpusDecodeTransformStream({
+      this.decoder = createOpusDecodeTransformStream({
         sampleRate: 48000,
         codecs: this.codecs,
       });
+      console.log('Opus decoder initialized');
+    } catch (err) {
+      console.error('Failed to initialize decoder:', err);
+      this.decoder = null;
+    }
+  }
 
-      return new Promise(async (resolve, reject) => {
-        const writer = decoder.writable.getWriter();
-        const reader = decoder.readable.getReader();
+  async #convertOpusToPCM(opusData) {
+    return await this.conversionQueue.waitForTurn(async () => {
+      try {
+        if (!this.decoder) {
+          await this.initializeDecoder();
+        }
+        
+        const writer = this.decoder.writable.getWriter();
+        const reader = this.decoder.readable.getReader();
         
         try {
           // Start reading first
           const readPromise = reader.read();
           
           // Then write the data
-          console.log('writing opus data', opusData.length);
           await writer.write(opusData);
-          await writer.close();
-
+          
           // Wait for the read to complete
           const { value } = await readPromise;
-          console.log('read pcm value', value?.length);
+          
+          if (!value) {
+            return new Float32Array(0);
+          }
           
           // Resample the PCM data to 16kHz for VAD
-          const resampledPCM = resample(value, 48000, 16000);
-          resolve(resampledPCM);
-        } catch (err) {
-          console.error('Stream error:', err);
-          reject(err);
+          return resample(value, 48000, 16000);
         } finally {
+          // Always release the locks
           writer.releaseLock();
           reader.releaseLock();
-          await decoder.readable.cancel();
-          await decoder.writable.abort();
         }
-      });
-    } catch (err) {
-      console.error('Error in convertOpusToPCM:', err);
-      return new Float32Array(0);
-    }
+      } catch (err) {
+        console.error('Error in convertOpusToPCM:', err);
+        // If we hit an error, null out the decoder so we can try to recreate it
+        this.decoder = null;
+        return new Float32Array(0);
+      }
+    });
   }
 
   #bufferVoiceData(newData) {
@@ -818,6 +833,13 @@ export class DiscordBotClient extends EventTarget {
     
     if (this.vadConnection) {
       this.vadConnection.close();
+    }
+
+    // Clean up the decoder
+    if (this.decoder) {
+      this.decoder.readable.cancel();
+      this.decoder.writable.abort();
+      this.decoder = null;
     }
 
     this.#activeVoiceBuffer = null;
