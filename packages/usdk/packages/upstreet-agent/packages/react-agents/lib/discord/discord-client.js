@@ -23,6 +23,8 @@ import {
   floatTo16Bit,
 } from 'codecs/convert.mjs';
 import { mulaw } from '../alawmulaw/dist/alawmulaw.mjs';
+import { AudioChunker } from '../../util/audio-chunker.mjs';
+import { resample } from '../../../codecs/resample.mjs';
 
 
 //
@@ -463,12 +465,18 @@ export class DiscordBotClient extends EventTarget {
 
     // Initialize VAD with same pattern as audio-perception
     this.#initializeVAD();
+
+    this.audioChunker = new AudioChunker({
+      sampleRate: 16000, // TranscribedVoiceInput.transcribeSampleRate
+      chunkSize: 1536,
+    });
   }
 
   #activeVoiceBuffer = {
     data: [],
     userInfo: null,
     timer: null,
+    collecting: false,
   };
   #VOICE_IDLE_TIMEOUT = 1000;
 
@@ -521,6 +529,7 @@ export class DiscordBotClient extends EventTarget {
     const buffer = this.#activeVoiceBuffer;
     buffer.data = [];
     buffer.userInfo = null;
+    buffer.collecting = false;
     if (buffer.timer) {
       clearTimeout(buffer.timer);
       buffer.timer = null;
@@ -529,8 +538,6 @@ export class DiscordBotClient extends EventTarget {
 
   async #convertOpusToPCM(opusData) {
     try {
-      console.log('converting opus to pcm');
-      
       const decoder = createOpusDecodeTransformStream({
         sampleRate: 48000,
         codecs: this.codecs,
@@ -541,33 +548,29 @@ export class DiscordBotClient extends EventTarget {
         const reader = decoder.readable.getReader();
         
         try {
-          // Set up reading before writing
-          const readPromise = (async () => {
-            try {
-              const { value } = await reader.read();
-              console.log('decoded pcm value', value?.length);
-              return value || new Float32Array(0);
-            } catch (err) {
-              throw err;
-            }
-          })();
-
-          // Write the data
+          // Start reading first
+          const readPromise = reader.read();
+          
+          // Then write the data
+          console.log('writing opus data', opusData.length);
           await writer.write(opusData);
           await writer.close();
 
-          // Wait for read to complete
-          const result = await readPromise;
-          resolve(result);
+          // Wait for the read to complete
+          const { value } = await readPromise;
+          console.log('read pcm value', value?.length);
+          
+          // Resample the PCM data to 16kHz for VAD
+          const resampledPCM = resample(value, 48000, 16000);
+          resolve(resampledPCM);
         } catch (err) {
+          console.error('Stream error:', err);
           reject(err);
         } finally {
-          // Clean up in correct order
           writer.releaseLock();
           reader.releaseLock();
-          decoder.readable.cancel();
-          // Only abort writable after releasing lock
-          decoder.writable.abort();
+          await decoder.readable.cancel();
+          await decoder.writable.abort();
         }
       });
     } catch (err) {
@@ -607,12 +610,22 @@ export class DiscordBotClient extends EventTarget {
     // Convert and send to VAD asynchronously
     this.#convertOpusToPCM(newData).then(pcmData => {
       if (this.vadConnection?.readyState === WebSocket.OPEN) {
-        const i16 = floatTo16Bit(pcmData);
-        const mulawBuffer = mulaw.encode(i16);
-        this.vadConnection.send(mulawBuffer);
+        // Chunk the PCM data like the microphone implementation
+        const frames = this.audioChunker.write(pcmData);
+        
+        // Send each frame to VAD
+        for (const frame of frames) {
+          const i16 = floatTo16Bit(frame);
+          const mulawBuffer = mulaw.encode(i16);
+          console.log('Sending VAD frame:', {
+            frameLength: frame.length,
+            mulawLength: mulawBuffer.length
+          });
+          this.vadConnection.send(mulawBuffer);
+        }
       }
     }).catch(err => {
-      console.error('Error converting PCM:', err);
+      console.error('Error processing voice data:', err);
     });
   }
 
