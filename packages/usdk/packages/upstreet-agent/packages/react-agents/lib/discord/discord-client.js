@@ -192,15 +192,6 @@ export class DiscordOutputStream extends EventTarget {
     this.codecs = codecs;
     this.jwt = jwt;
 
-    // // XXX decode with opus, encode with mp3 instead of wav
-    // this.decoder = new OpusDecoder();
-    // this.chunks = [];
-    // this.bufferSize = 0;
-
-    // const loadPromise = this.decoder.ready
-    //   .then(() => {});
-    // this.waitForLoad = () => loadPromise;
-
     this.opusTransformStream = createOpusDecodeTransformStream({
       sampleRate,
       codecs,
@@ -216,62 +207,12 @@ export class DiscordOutputStream extends EventTarget {
 
   update(uint8Array) {
     this.opusTransformStreamWriter.write(uint8Array);
-    /* (async () => {
-      await this.waitForLoad();
-
-      const result = this.decoder.decodeFrame(uint8Array);
-      const {channelData, sampleRate} = result;
-
-      const chunk = {
-        channelData,
-        sampleRate,
-      };
-      this.chunks.push(chunk);
-
-      const firstChannelData = channelData[0];
-      this.bufferSize += firstChannelData.length;
-    })(); */
   }
 
   async end() {
     const {
       jwt,
     } = this;
-
-    /* await this.waitForLoad();
-
-    let sampleRate = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      if (sampleRate === 0) {
-        sampleRate = chunk.sampleRate;
-      } else {
-        if (sampleRate !== chunk.sampleRate) {
-          throw new Error('sample rate mismatch');
-        }
-      }
-    }
-
-    // create audio buffer from chunks
-    const audioBuffer = new AudioBuffer({
-      length: this.bufferSize,
-      sampleRate,
-      numberOfChannels: 1,
-    });
-    let offset = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      const {channelData} = chunk;
-      const firstChannelData = channelData[0];
-      audioBuffer.copyToChannel(firstChannelData, 0, offset);
-      offset += firstChannelData.length;
-    }
-
-    // XXX encode to MP3
-    const wavBuffer = audioBufferToWav(audioBuffer);
-    const wavBlob = new Blob([wavBuffer], {
-      type: 'audio/wav',
-    }); */
 
     this.opusTransformStreamWriter.close();
 
@@ -287,16 +228,6 @@ export class DiscordOutputStream extends EventTarget {
     this.dispatchEvent(new MessageEvent('speech', {
       data: text,
     }));
-
-    // await this.speechQueue.waitForTurn(async () => {
-    //   const text = await transcribe(mp3Blob, {
-    //     jwt,
-    //   });
-    //   // console.log('discord transcribed', {text});
-    //   this.dispatchEvent(new MessageEvent('speech', {
-    //     data: text,
-    //   }));
-    // });
   }
 
   destroy() {
