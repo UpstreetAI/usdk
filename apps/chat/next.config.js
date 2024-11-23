@@ -90,7 +90,7 @@ module.exports = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        source: "/embed/:id",
         headers: [
           {
             key: "X-Frame-Options",
