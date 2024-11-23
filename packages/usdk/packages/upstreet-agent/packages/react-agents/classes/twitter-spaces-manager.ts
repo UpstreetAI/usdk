@@ -6,7 +6,7 @@ import type {
   ExtendableMessageEvent,
   ActionMessageEventData,
 } from './types';
-import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
+import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 import {
   ConversationObject,
 } from './conversation-object';
@@ -20,8 +20,8 @@ import {
 import { AudioOutput } from 'codecs/audio-classes.mjs';
 import {
   transcribe,
-} from 'react-agents/util/audio-perception.mjs';
-import { formatConversationMessage } from 'react-agents/util/message-utils';
+} from '../util/audio-perception.mjs';
+import { formatConversationMessage } from '../util/message-utils';
 import {
   QueueManager,
 } from 'queue-manager';
