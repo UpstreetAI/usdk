@@ -87,4 +87,17 @@ module.exports = {
 
     return config;
   },
+  async headers() {
+    return [
+      {
+        source: "/embed/:id",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors *;",
+          },
+        ],
+      },
+    ];
+  },
 }
