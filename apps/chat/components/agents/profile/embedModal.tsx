@@ -42,7 +42,9 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
   };
 
   const generateEmbedCode = () => {
-    const embedCode = `<iframe src="${window.location.origin}/embed/${agent.id}" width="600" height="400" style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
+    const defaultWidth = 300;
+    const defaultHeight = 400;
+    const embedCode = `<iframe src="${window.location.origin}/embed/${agent.id}" width=${defaultWidth} height=${defaultHeight} style={{ position: 'fixed', bottom: 0, right: 0, zIndex: 9999, background: 'transparent' }}></iframe>`;
     setEmbedCode(embedCode);
   };
 
@@ -51,7 +53,14 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-opacity-50 bg-zinc-950 flex justify-center items-center z-50 text-zinc-900">
+    <div 
+      className="fixed inset-0 bg-opacity-50 bg-zinc-950 flex justify-center items-center z-50 text-zinc-900"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          close();
+        }
+      }}
+    >
       <div className="bg-[#C8CFD7] rounded-lg w-full max-w-4xl">
         <div className='bg-zinc-900 px-4 py-3 text-xl font-bold text-center text-white'>Embed Agent</div>
         <div className="p-6 flex gap-4">
@@ -82,7 +91,7 @@ export default function EmbedModal({agent, close}: {agent: any, close: () => voi
                 Generate Embed Code
               </Button> */}
               <Button onClick={close}>
-                Cancel
+                Close
               </Button>
             </div>
           </div>
