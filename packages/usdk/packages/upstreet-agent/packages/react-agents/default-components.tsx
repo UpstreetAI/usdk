@@ -3373,12 +3373,12 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
     handler={async (e: AbortablePerceptionEvent) => {
       const { message, sourceAgent, targetAgent } = e.data;
 
-      console.log('SelfConsciousReplies', {
-        message,
-
-      });
+      // console.log('SelfConsciousReplies', {
+      //   message,
+      // });
 
       const conversationMembers = targetAgent.conversation.getAgents();
+      
       // Retrieve the most recent messages from conversation history, limited by historyLength,
       // and extract the relevant fields (name, text, timestamp) for each message
       const messages = targetAgent.conversation.getCachedMessages()
@@ -3418,19 +3418,23 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           
           2. Only interrupt conversations between others in rare and justified cases. Your confidence should be very low (< 0.3) 
              if you're considering responding to a message not directed at you.
+
+          3. If the message appears to be directed to the entire group or is a general statement/question:
+             - You should be highly interested in participating
+             - Your confidence should be high (> 0.7) as group discussions warrant active participation
+             - Consider the value you can add to the group conversation
           
-          3. Message frequency control:
-             - Check how many messages you've sent recently in the conversation history
-             - If you've sent multiple messages in the last few exchanges, lower your confidence significantly
-             - Avoid dominating the conversation - others should have space to participate
-             - Consider staying silent if you've been very active recently, unless you have highly relevant or critical information to share
+          4. Message frequency suggestions:
+             - Reduce participation if you've sent 3+ messages in immediate succession
+             - Focus on the value of your contribution rather than how recently you've spoken
+             - Don't worry too much about "dominating" the conversation unless you're the only one talking
           
           Additional considerations:
           - Is the message explicitly directed at you? (Weight: ${defaultThreshold})
+          - Is the message directed to everyone in the group? (High priority)
           - Would responding align with ONLY your defined personality traits?
           - Is your response truly necessary or would it derail the current conversation?
           - Are you certain you have unique, valuable information to add if interrupting?
-          - Have you been contributing too frequently to the conversation lately?
           
           Respond with a decision object containing:
           - shouldRespond: boolean (true if confidence > ${defaultThreshold})
@@ -3451,7 +3455,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         'openai:gpt-4o-mini',
         );
 
-        console.log('decision', decision);
+        // console.log('decision', decision);
         // console.log(`Agent ${targetAgent.agent.name} decision: ${decision.content.shouldRespond ? 'respond' : 'not respond'} - ${decision.content.reason} (confidence: ${decision.content.confidence})`);
 
         if (!decision.content.shouldRespond || decision.content.confidence < defaultThreshold) {
