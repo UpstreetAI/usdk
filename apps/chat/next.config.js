@@ -86,13 +86,5 @@ module.exports = {
     });
 
     return config;
-  },
-  async headers() {
-  return [
-    {
-      source: "/embed/:id",
-      headers: [],
-    },
-  ];
-}
+  }
 }
