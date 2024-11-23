@@ -82,24 +82,15 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
   } = useMultiplayerActions();
 
   useEffect(() => {
-    agentGetEmbedRoom(agent.id).then(room => setRoom(room));
-  }, []);
-
-  useEffect(() => {
     onConnect && onConnect(connected);
   }, [connected]);
 
-  const messages = rawMessages.map((rawMessage: any, index: number) => {
-    const message = {
-      ...rawMessage,
-      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
-    };
-    return {
-      id: index,
-      display: getMessageComponent(room, message, index + '', playersCache, user),
-    };
-  }) as any[];
-
+  useEffect(() => {
+    if (agent) {
+      agentGetEmbedRoom(agent.id).then(room => setRoom(room));
+    } 
+  }, [agent]);
+  
   useEffect(() => {
     if (room) {
       const localPlayerSpec: PlayerSpec = {
@@ -112,10 +103,20 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
         room,
         localPlayerSpec,
       });
-
       agentJoinRoom(agent.id, room);
-    }
-  }, [room, user, setMultiplayerConnectionParameters, agent]);
+    } 
+  }, [room]);
+
+  const messages = rawMessages.map((rawMessage: any, index: number) => {
+    const message = {
+      ...rawMessage,
+      timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
+    };
+    return {
+      id: index,
+      display: getMessageComponent(room, message, index + '', playersCache, user),
+    };
+  }) as any[];
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } = useScrollAnchor();
   const { isAgentLoading } = useLoading();
