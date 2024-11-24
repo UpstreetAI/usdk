@@ -8,7 +8,7 @@ export class TranscribedVoiceInput extends EventTarget {
   static transcribeSampleRate = 16000;
   abortController;
   constructor({
-    audioInput,
+    audioInput, // EventEmitter
     sampleRate,
     codecs,
     jwt,
