@@ -22,9 +22,8 @@
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
 [![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/upstreetai)
 
-[Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
+[Upstreet.ai](https://upstreet.ai) is an open source framework to build + deploy AI agents with React.
 
-> We ❤️ Open Source! <br />
 > Star (⭐️) [this repo](https://github.com/upstreetAI/upstreet-core) to support our development.
 
 [Table of Contents](#in-this-repo) •
