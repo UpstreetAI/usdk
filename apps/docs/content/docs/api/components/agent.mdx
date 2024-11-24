@@ -1,14 +1,23 @@
 ---
 title: <Agent>
-description: Define a React agent.
+description: What is a Agent component.
 full: true
 ---
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 <InlineTOC defaultOpen items={toc} />
 
+The `Agent` component serves as a high-level wrapper component that provides the core infrastructure for AI agent functionality in a React application. It acts as a container that:
+
+- Establishes the communication context for AI interactions
+- Manages the state and lifecycle of AI agent operations
+- Provides necessary context and configuration to child components
+- Enables action handling and event processing for nested agent functionalities
+
+## Import `Agent` component
 ```javascript
 <Agent>
-...
+  {/* Child components that need access to agent capabilities */}
+  <YourAgentLogic />
 </Agent>
 ```

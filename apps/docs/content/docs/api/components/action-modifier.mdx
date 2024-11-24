@@ -7,11 +7,62 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 <InlineTOC defaultOpen items={toc} />
 
+The `ActionModifier` enables middleware-like modification of actions within your agent system, allowing for pre and post-processing of actions.
+
 ```javascript
 import { ActionModifier } from 'react-agents';
 ```
 
+The `ActionModifier` component serves as a wrapper that intercepts and modifies actions before and after execution.
+
+## Example
+Here's a basic example of using the `ActionModifier`:
+
 ```javascript
-<ActionModifier>
-</ActionModifier>
+
+import { ActionModifier, Action } from 'react-agents';
+
+function MyComponent() {
+  return (
+    <ActionModifier
+      before={(action) => {
+        // Pre-process action
+        console.log('Before action:', action);
+        return action;
+      }}
+      after={(result) => {
+        // Post-process result
+        console.log('After action:', result);
+        return result;
+      }}
+    >
+      <Action name="exampleAction" handler={() => {}} />
+    </ActionModifier>
+  );
+}
 ```
+## Props
+
+The `ActionModifier` component accepts these key props:
+
+**before** Function(action) => action
+
+- Executes before the action is processed
+- Can modify or validate the action
+- Must return the modified action
+
+
+**after** Function(result) => result
+
+- Executes after the action completes
+- Can transform the result
+- Must return the final result
+
+## Best Practices
+
+- Keep modifiers focused on specific concerns
+- Chain multiple modifiers for complex modifications
+- Handle errors appropriately in before/after handlers
+- Avoid heavy computations that might block the main thread
+- Return the modified action/result from handlers
+

@@ -7,11 +7,80 @@ import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
 <InlineTOC defaultOpen items={toc} />
 
+
+## Import the `PerceptionModifier` component
+To use the PerceptionModifier component, import it as follows:
+
 ```javascript
 import { PerceptionModifier } from 'react-agents';
 ```
 
+The `PerceptionModifier` component is used to modify and enhance perception handling within the agent's context. It acts as a middleware layer for perception events, allowing you to transform, filter, or augment incoming perceptions.
+
+## Example
+Here's an example of how to use the `PerceptionModifier` component:
+
 ```javascript
-<PerceptionModifier>
-</PerceptionModifier>
+import { PerceptionModifier, Perception } from 'react-agents';
+
+function MyComponent() {
+  return (
+    <PerceptionModifier
+      before={(perception) => {
+        // Modify perception before processing
+        console.log('Intercepting perception:', perception);
+        return {
+          ...perception,
+          timestamp: Date.now()
+        };
+      }}
+      after={(result) => {
+        // Handle the result after perception processing
+        console.log('Perception handled:', result);
+        return result;
+      }}
+    >
+      <Perception
+        type="visual"
+        handler={(data) => {
+          // Handle perception data
+        }}
+      />
+    </PerceptionModifier>
+  );
+}
 ```
+
+## Props
+The `PerceptionModifier`  component accepts the following props:
+
+**before** Function(perception) => perception
+
+- A function that runs before perception processing
+- Can modify or enhance the perception data
+- Must return the modified perception object
+
+
+**after** Function(result) => result
+
+- A function that runs after perception processing
+- Can transform the result of perception handling
+- Must return the final result
+
+## Best Practices
+
+**Efficient Processing**
+
+- Keep modification logic lightweight
+- Use async functions for heavy processing
+- Implement proper error handling
+
+
+**Proper Chaining**
+
+- Multiple modifiers can be chained
+- Consider the order of modifications
+- Return modified data in the correct format
+
+
+

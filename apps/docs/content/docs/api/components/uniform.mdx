@@ -11,7 +11,77 @@ The `Uniform` component lets you generate additional metadata for _each_ action.
 The concept is borrowed from [Uniforms in a shader](https://en.wikipedia.org/wiki/Shader).
 
 ## Importing the Uniform Component
+
+To use the Uniform component, import it as follows:
 To use the `Uniform` component, import it as follows:
 ```javascript
 import { Uniform } from 'react-agents';
 ```
+
+## Basic Example
+Here's a simple example of using the `Uniform` component
+
+```javascript
+import { Uniform, Agent, Action } from 'react-agents';
+
+function MyComponent() {
+  return (
+    <Agent>
+      <Uniform
+        name="mood"
+        description="Current emotional state of the agent"
+        handler={(message) => {
+          // Analyze message and return mood
+          return {
+            mood: 'positive',
+            confidence: 0.8
+          };
+        }}
+      >
+        <Action name="respond" handler={(data) => {
+          // Access uniform data in action
+          console.log('Current mood:', data.uniform.mood);
+        }} />
+      </Uniform>
+    </Agent>
+  );
+}
+```
+
+## Props
+The `Uniform`  component accepts these props:
+
+**name** string
+
+- Identifier for the uniform
+- Must be unique within the agent context
+
+
+**description** string
+
+- Describes the purpose of the uniform
+- Used for documentation and clarity
+
+
+**handler** Function(message) => any
+
+- Function that generates the uniform data
+- Called for each action
+- Returns metadata to be included
+
+
+## Best Practices:
+
+- Keep handlers lightweight and efficient
+- Use meaningful names for uniforms
+- Implement proper error handling
+- Cache expensive computations when possible
+- Document the uniform's purpose clearly
+
+## Common Use Cases:
+
+- Tracking conversation topics
+- Monitoring agent mood or state
+- Generating consistency metrics
+- Adding timestamps or identifiers
+- Maintaining context across actions
