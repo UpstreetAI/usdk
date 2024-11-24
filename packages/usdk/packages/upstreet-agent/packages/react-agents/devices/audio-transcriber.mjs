@@ -5,7 +5,6 @@ import { AudioChunker } from '../util/audio-chunker.mjs';
 //
 
 export class TranscribedVoiceInput extends EventTarget {
-  // static transcribeSampleRate = 24000;
   static transcribeSampleRate = 16000;
   abortController;
   constructor({
