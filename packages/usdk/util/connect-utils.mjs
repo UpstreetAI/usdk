@@ -446,15 +446,15 @@ const connectRepl = async ({
   debug,
 }) => {
   let profile = await getUserProfile();
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
   profile = {
     ...profile,
     capabilities: [
       'human',
     ],
   };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
 
   let replServer = null;
 
@@ -758,15 +758,15 @@ const connectStream = async ({
   }
 
   let profile = await getUserProfile();
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
   profile = {
     ...profile,
     capabilities: [
       'human',
     ],
   };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
 
   // set up the chat
   const multiplayerConnection = new ReactAgentsMultiplayerConnection({
