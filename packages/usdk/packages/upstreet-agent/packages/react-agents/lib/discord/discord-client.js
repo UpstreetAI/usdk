@@ -239,13 +239,12 @@ export class DiscordOutput extends EventTarget {
         sampleRate,
         timeoutMs: 2000,
       });
-      userStream.addEventListener('end', e => {
+      userStream.on('end', e => {
         this.userStreams.delete(userId);
       });
 
-      const jwt = agent.useAuthToken();
       const transcribedVoiceInput = new TranscribedVoiceInput({
-        audioInput,
+        audioInput: userStream,
         sampleRate,
         codecs,
         jwt,
@@ -297,7 +296,7 @@ export class DiscordOutput extends EventTarget {
       } = stream;
       writer.close();
       
-      this.stream.delete(streamId);
+      this.streams.delete(streamId);
     } else {
       throw new Error('pushStreamEnd: no stream found for streamId: ' + streamId);
     }
