@@ -4,6 +4,8 @@ export class AudioMerger extends EventTarget {
     chunkRateMs = 100,
     timeoutMs = null,
   }) {
+    super();
+
     if (!sampleRate) {
       throw new Error('AudioMerger: no sample rate');
     }
