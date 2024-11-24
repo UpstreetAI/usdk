@@ -2,9 +2,6 @@ import {
   zbencode,
   zbdecode,
 } from 'zjs/encoding.mjs';
-// import {
-//   QueueManager,
-// } from 'queue-manager';
 import {
   transcribe,
 } from '../../util/audio-perception.mjs';
@@ -180,68 +177,6 @@ export class DiscordInput {
 
   destroy() {
     // nothing
-  }
-}
-
-//
-
-// output stream from discord bot to the agent
-export class DiscordOutputStream extends EventTarget {
-  constructor({
-    sampleRate,
-    codecs,
-    jwt,
-  }) {
-    super();
-
-    this.sampleRate = sampleRate;
-    this.codecs = codecs;
-    this.jwt = jwt;
-
-    this.opusTransformStream = createOpusDecodeTransformStream({
-      sampleRate,
-      codecs,
-    });
-    this.opusTransformStreamWriter = this.opusTransformStream.writable.getWriter();
-
-    this.mp3Source = createMp3ReadableStreamSource({
-      readableStream: this.opusTransformStream.readable,
-      codecs,
-    });
-    this.mp3BuffersOutputPromise = this.mp3Source.output.readAll();
-  }
-
-  update(uint8Array) {
-    this.opusTransformStreamWriter.write(uint8Array);
-  }
-
-  async end() {
-    const {
-      jwt,
-    } = this;
-
-    this.opusTransformStreamWriter.close();
-
-    const mp3Buffers = await this.mp3BuffersOutputPromise;
-    const mp3Blob = new Blob(mp3Buffers, {
-      type: 'audio/mpeg',
-    });
-
-
-    const text = await transcribe(mp3Blob, {
-      jwt,
-    });
-    this.dispatchEvent(new MessageEvent('speech', {
-      data: text,
-    }));
-  }
-
-  destroy() {
-    (async () => {
-      await this.waitForLoad();
-
-      this.decoder.free();
-    })();
   }
 }
 
