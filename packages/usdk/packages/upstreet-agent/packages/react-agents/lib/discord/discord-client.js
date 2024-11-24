@@ -2,9 +2,9 @@ import {
   zbencode,
   zbdecode,
 } from 'zjs/encoding.mjs';
-import {
-  QueueManager,
-} from 'queue-manager';
+// import {
+//   QueueManager,
+// } from 'queue-manager';
 import {
   transcribe,
 } from '../../util/audio-perception.mjs';
@@ -13,15 +13,22 @@ import {
   createMp3ReadableStreamSource,
 } from 'codecs/audio-client.mjs';
 import {
+  AudioMerger,
+} from '../../util/audio-merger.mjs';
+import {
   makePromise,
   makeId,
 } from '../../util/util.mjs';
 import {
   discordBotEndpointUrl,
 } from '../../util/endpoints.mjs';
+import {
+  TranscribedVoiceInput,
+} from '../../devices/audio-transcriber.mjs';
 
 //
 
+// input from the agent to the discord bot
 export class DiscordInput {
   constructor({
     ws = null,
@@ -178,17 +185,16 @@ export class DiscordInput {
 
 //
 
+// output stream from discord bot to the agent
 export class DiscordOutputStream extends EventTarget {
   constructor({
     sampleRate,
-    // speechQueue,
     codecs,
     jwt,
   }) {
     super();
 
     this.sampleRate = sampleRate;
-    // this.speechQueue = speechQueue;
     this.codecs = codecs;
     this.jwt = jwt;
 
@@ -241,6 +247,7 @@ export class DiscordOutputStream extends EventTarget {
 
 //
 
+// output from discord bot to the agent
 export class DiscordOutput extends EventTarget {
   sampleRate;
   codecs;
@@ -259,17 +266,11 @@ export class DiscordOutput extends EventTarget {
     this.codecs = codecs;
     this.jwt = jwt;
 
-    // this.speechQueue = new QueueManager();
-    this.streams = new Map();
+    this.streams = new Map(); // streamId -> { stream, writer }
+    this.userStreams = new Map(); // userId -> AudioMerger
   }
 
   pushText(args) {
-    // const {
-    //   userId,
-    //   username,
-    //   text,
-    //   channelId,
-    // } = args;
     this.dispatchEvent(new MessageEvent('text', {
       data: args,
     }));
@@ -293,21 +294,29 @@ export class DiscordOutput extends EventTarget {
       channelId,
       streamId,
     } = args;
-    console.log('push stream start', args);
-    let stream = this.streams.get(streamId);
-    if (!stream) {
-      const {
-        sampleRate,
-        // speechQueue,
-      } = this;
+    const {
+      sampleRate,
+    } = this;
 
-      stream = new DiscordOutputStream({
+    let userStream = this.userStreams.get(userId);
+    if (!userStream) {
+      userStream = new AudioMerger({
         sampleRate,
-        // speechQueue,
+        timeoutMs: 2000,
+      });
+      userStream.addEventListener('end', e => {
+        this.userStreams.delete(userId);
+      });
+
+      const jwt = agent.useAuthToken();
+      const transcribedVoiceInput = new TranscribedVoiceInput({
+        audioInput,
+        sampleRate,
         codecs,
         jwt,
       });
-      stream.addEventListener('speech', e => {
+
+      transcribedVoiceInput.addEventListener('transcription', e => {
         const text = e.data;
 
         this.dispatchEvent(new MessageEvent('text', {
@@ -319,9 +328,25 @@ export class DiscordOutput extends EventTarget {
           },
         }));
       });
+
+      this.userStreams.set(userId, userStream);
+    }
+
+    let stream = this.streams.get(streamId);
+    if (!stream) {
+      const opusTransformStream = createOpusDecodeTransformStream({
+        sampleRate,
+        codecs,
+      });
+      const opusTransformStreamWriter = opusTransformStream.writable.getWriter();
+
+      userStream.add(opusTransformStream.readable);
+
+      const stream = {
+        transformStream: opusTransformStream,
+        writer: opusTransformStreamWriter,
+      };
       this.streams.set(streamId, stream);
-    } else {
-      throw new Error('stream already exists for streamId: ' + streamId);
     }
   }
 
@@ -332,8 +357,12 @@ export class DiscordOutput extends EventTarget {
     } = args;
     const stream = this.streams.get(streamId);
     if (stream) {
-      stream.end();
-      this.streams.delete(streamId);
+      const {
+        writer,
+      } = stream;
+      writer.close();
+      
+      this.stream.delete(streamId);
     } else {
       throw new Error('pushStreamEnd: no stream found for streamId: ' + streamId);
     }
@@ -342,7 +371,10 @@ export class DiscordOutput extends EventTarget {
   pushStreamUpdate(streamId, uint8Array) {
     const stream = this.streams.get(streamId);
     if (stream) {
-      stream.update(uint8Array);
+      const {
+        writer,
+      } = stream;
+      writer.write(uint8Array);
     } else {
       throw new Error('pushStreamUpdate: no stream found for streamId: ' + streamId);
     }
