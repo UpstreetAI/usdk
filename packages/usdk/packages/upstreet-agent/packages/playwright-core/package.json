@@ -1,0 +1,25 @@
+{
+  "name": "playwright-core",
+  "version": "1.48.0-next",
+  "description": "A high-level API to automate web browsers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsoft/playwright.git"
+  },
+  "homepage": "https://playwright.dev",
+  "engines": {
+    "node": ">=18"
+  },
+  "author": {
+    "name": "Microsoft Corporation"
+  },
+  "license": "Apache-2.0",
+  "main": "dist/bundle.mjs",
+  "bin": {
+    "playwright-core": "cli.js"
+  },
+  "scripts": {
+    "build": "npx esbuild ./index.mjs --bundle --outfile=dist/bundle.mjs --format=esm --platform=node --minify"
+  },
+  "types": "types/types.d.ts"
+}

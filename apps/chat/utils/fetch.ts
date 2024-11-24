@@ -164,32 +164,44 @@ export const fetchJsonCompletion = async ({
 }: {
   jwt: string,
 }) => {
-  const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
-    method: 'POST',
+  const match = model.match(/^(.+?):/);
+  if (match) {
+    const modelType = match[1];
+    const modelName = model.slice(match[0].length);
+    
+    if (modelType === 'openai') {
+      const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+        method: 'POST',
 
-    headers: {
-      'Content-Type': 'application/json',
-      // 'OpenAI-Beta': 'assistants=v1',
-      Authorization: `Bearer ${jwt}`,
-    },
+        headers: {
+          'Content-Type': 'application/json',
+          // 'OpenAI-Beta': 'assistants=v1',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-    body: JSON.stringify({
-      model: defaultOpenAIModel,
-      messages,
+        body: JSON.stringify({
+          model: modelName,
+          messages,
 
-      response_format: zodResponseFormat(format, 'result'),
+          response_format: zodResponseFormat(format, 'result'),
 
-      stream,
-    }),
-    signal,
-  });
-  if (res.ok) {
-    const j = await res.json();
-    const s = j.choices[0].message.content as string;
-    const o = JSON.parse(s) as object;
-    return o;
+          stream,
+        }),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        const s = j.choices[0].message.content as string;
+        const o = JSON.parse(s) as object;
+        return o;
+      } else {
+        const text = await res.text();
+        throw new Error('invalid status code: ' + res.status + ': ' + text);
+      }
+    } else {
+      throw new Error('invalid model type: ' + JSON.stringify(modelType));
+    }
   } else {
-    const text = await res.text();
-    throw new Error('invalid status code: ' + res.status + ': ' + text);
+    throw new Error('invalid model: ' + JSON.stringify(model));
   }
 }

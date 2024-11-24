@@ -7,6 +7,8 @@ import type {
   ReadableAudioStream,
   PlayableAudioStream,
   AgentThinkOptions,
+  ActionMessageEventData,
+  ActionStep,
 } from '../types';
 import {
   ConversationObject,
@@ -18,9 +20,7 @@ import {
 import {
   ActiveAgentObject,
 } from './active-agent-object';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
@@ -30,15 +30,20 @@ import { chatEndpointUrl } from '../util/endpoints.mjs';
 export class GenerativeAgentObject {
   // members
   agent: ActiveAgentObject;
-  conversation: ConversationObject;
+  conversation: ConversationObject; // the conversation that this generative agent is bound to
   // state
   generativeQueueManager = new QueueManager();
+  thinkCache: Array<ActionStep> = [];
 
   //
   
   constructor(
     agent: ActiveAgentObject,
-    conversation: ConversationObject,
+    {
+      conversation,
+    }: {
+      conversation: ConversationObject;
+    },
   ) {
     this.agent = agent;
     this.conversation = conversation;
@@ -76,21 +81,19 @@ export class GenerativeAgentObject {
 
   // methods
 
+  // returns the ActionStep that the agent took
   async think(hint?: string, thinkOpts?: AgentThinkOptions) {
     await this.generativeQueueManager.waitForTurn(async () => {
-      // console.log('agent renderer think 1');
       await this.conversation.typing(async () => {
-        // console.log('agent renderer think 2');
         try {
           const step = await generateAgentActionStep(this, hint, thinkOpts);
-          // console.log('agent renderer think 3');
           await executeAgentActionStep(this, step);
-          // console.log('agent renderer think 4');
+
+          this.thinkCache.push(step);
         } catch (err) {
           console.warn('think error', err);
         }
       });
-      // console.log('agent renderer think 5');
     });
   }
   async generate(hint: string, schema?: ZodTypeAny) {
@@ -158,7 +161,6 @@ export class GenerativeAgentObject {
     });
   }
 
-  // XXX these methods can be removed since they don't really have anything to do with generation
   async addMessage(message: PendingActionMessage) {
     const newMessage = formatConversationMessage(message, {
       agent: this.agent,

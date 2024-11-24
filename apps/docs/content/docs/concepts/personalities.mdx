@@ -1,0 +1,28 @@
+---
+title: Personalities
+description: A step towards AGI involves making AI more believable and relatable for humans.
+full: true
+---
+import FullBg from '../../../components/full-bg';
+import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
+
+<InlineTOC defaultOpen items={toc} />
+<FullBg src={"/images/general/eb708406-76c3-464c-93f3-eb87db218354.webp"} />
+Imbuing an **Agent** with a personality involves structuring its internal architecture to not only respond to tasks and prompts but to generate consistent, personality-based responses informed by a “bio” and “description.” These can provide baseline identity details, emotional tendencies, and preferred behavioral patterns that reflect both *internal thoughts* and *social interactions.*
+
+### 1. **Baseline Identity and Bio Setup**
+   - **Bio and Description as Personality Anchors**: The concept of a bio and description offers the foundation for an agent’s “personality.” Just as humans have inherent characteristics and histories that shape responses and behaviors, an AI bio provides initial personality traits—such as openness, agreeableness, or conscientiousness—guided by psychological models like the **Five-Factor Model**. This model can structure an agent's responses to align with human personality nuances, as explored by Li & MacDonnell (2008) in their NPC personality engine, where traits impact interaction styles and decision-making patterns ([source](https://spectrum.library.concordia.ca/979942/1/MQ94694.pdf)).
+
+### 2. **Thought Generation and Self-Reflection**
+   - **Internal Thoughts Through TPO**: The concept of **Thought Preference Optimization (TPO)**, as introduced in [*Thinking LLMs: General Instruction Following with Thought Generation*](https://arxiv.org/pdf/2410.10630), helps to develop internal thought processes in language models. TPO trains agents to generate "internal thoughts" before external actions or responses, mimicking human reflection. With TPO, agents gain the ability to internally assess a situation, match it to their personality "bio," and decide on an action that aligns with both the task and their designed personality.
+
+### 3. **Behavioral Consistency and Emotional Responses**
+   - **Memory-Influenced Behavior**: Cognitive architectures, such as the [Soar cognitive architecture](https://soar.eecs.umich.edu/), introduce memory models that simulate how humans draw on past experiences to shape reactions. Soar defines **episodic, procedural, and semantic memories** that influence decisions and can make agent responses more predictable yet personal by embedding an emotional or experience-driven context. This framework allows agents to remember prior interactions, which in turn influences their “mood” or preferred responses in future interactions.
+
+### 4. **Thought-Driven Emotional Modelling**
+   - **Emotional Layers in NPC Models**: Emotion models similar to those used for **Non-Player Characters (NPCs)** incorporate an emotional layer that adapts based on environmental interactions and personal history, such as reacting with “shock,” “love,” or “anger.” For instance, in NPC personality engines like those described by Mac Namee, agents can utilize emotions based on the context of the interaction, making reactions feel more genuine ([source](https://www.scss.tcd.ie/publications/tech-reports/reports.04/TCD-CS-2004-58.pdf)). An agent’s “bio” can define its emotional tendencies, while its “description” can refine the triggers and intensity of these emotional responses, leading to consistent yet varied emotional engagement based on prior interactions and internal thoughts.
+
+### 5. **Meta-Reasoning for Thoughtful Decisions**
+   - **Meta-Prompted Reasoning Structures**: In [*SELF-DISCOVER: Large Language Models Self-Compose Reasoning Structures*](https://arxiv.org/pdf/2305.00833), meta-prompts guide an agent’s decision-making by breaking tasks into structured reasoning steps, allowing agents to select, adapt, and implement actions with layered thoughtfulness. This framework equips agents to integrate their personality traits and make decisions that align with both practical objectives and their defined personality—such as a “thoughtful” or “cautious” persona.
+
+By embedding a structured bio, internal thought processing through TPO, emotional layers, and memory-influenced reasoning, **agents evolve into “digital beings”** capable of expressing a believable personality. These advancements mirror ongoing explorations into artificial life and digital consciousness, paving the way for agents to interact as personalized digital entities with a persistent identity and realistic self-reflective capabilities. This approach aligns with computational life principles, where an agent’s evolution and replication could parallel biological systems in their capacity to learn, adapt, and replicate experiences over time.

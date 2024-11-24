@@ -152,7 +152,7 @@ export class AgentInterview extends EventTarget {
     this.interactor = new Interactor({
       systemPrompt:
         dedent`\
-          Configure an AI agent character.
+          Configure an AI agent as specified by the user.
           
           \`name\`, \`bio\`, \`description\`, and \`visualDescription\` describe the character.
           \`bio\` describes the personality and character traits of the agent.
@@ -163,6 +163,11 @@ export class AgentInterview extends EventTarget {
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
           
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
+          ${mode == 'auto' ?
+            `When you think the session is over, set the \`done\` flag.`
+          :
+            `When you think the session is over, then set the \`done\` flag. You might want to confirm with the user beforehand.`
+          }
         ` + '\n\n' +
         featuresAvailablePrompt,
       userPrompt: prompt,
@@ -175,10 +180,29 @@ export class AgentInterview extends EventTarget {
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
       }),
+      formatFn: (updateObject) => {
+        updateObject = structuredClone(updateObject);
+        // remove all optional features
+        if (updateObject?.features) {
+          for (const featureName in updateObject.features) {
+            const value = updateObject.features[featureName];
+            if (value === null || value === undefined) {
+              delete updateObject.features[featureName];
+            }
+          }
+        }
+        return updateObject;
+      },
       jwt,
+    });
+    this.interactor.addEventListener('processingStateChange', (event) => {
+      this.dispatchEvent(new MessageEvent('processingStateChange', {
+        data: event.data,
+      }))
     });
     this.interactor.addEventListener('message', async (e) => {
       const o = e.data;
+
       const {
         response,
         updateObject,
@@ -189,6 +213,32 @@ export class AgentInterview extends EventTarget {
       // external handling
       agentJson = object;
       if (updateObject) {
+        const hasNonNullValues = obj =>
+          Object.values(obj).some(value => value !== null && value !== undefined);
+
+        const shouldDispatchProperty = (key, value) => {
+          // skip visual/homespace descriptions as they're handled separately
+          if (key === 'visualDescription' || key === 'homespaceDescription') {
+            return false;
+          }
+
+          // For features object, only log if it has any non-null values
+          if (key === 'features' && typeof value === 'object') {
+            return hasNonNullValues(value);
+          }
+
+          // For other properties, log if they're not null/undefined
+          return value !== null && value !== undefined;
+        };
+
+        Object.entries(updateObject)
+          .filter(([key, value]) => shouldDispatchProperty(key, value))
+          .forEach(([key, value]) => {
+            this.dispatchEvent(new MessageEvent(key, {
+              data: value
+            }));
+          });
+
         this.dispatchEvent(new MessageEvent('change', {
           data: {
             updateObject,
@@ -245,34 +295,22 @@ export class AgentInterview extends EventTarget {
         this.loadPromise.resolve(agentJson);
       }
     });
-    if (mode === 'auto') {
-      // automatically run the interview to completion
-      this.interactor.end();
-    } else if (mode === 'interactive') {
-      /* // XXX debugging hack: listen for the user pressing the tab key
-      {
-        process.stdin.setRawMode(true);
-        process.stdin.setEncoding('utf8');
-        process.stdin.resume();
-        process.stdin.on('data', (key) => {
-          if (key === '\u0009') { // tab
-            console.log('got tab');
-          }
-          if (key === '\u0003') { // ctrl-c
-            console.log('got ctrl-c');
-            process.exit();
-          }
-        });
-      } */
-
-      // initiate the interview
-      this.interactor.write();
-    } else if (mode === 'manual') {
-      // pump the interview loop
-      pumpIo();
-    } else {
-      throw new Error(`invalid mode: ${mode}`)
-    }
+    setTimeout(() => {
+      if (mode === 'auto') {
+        // automatically run the interview to completion
+        this.interactor.end();
+      } else if (mode === 'interactive') {
+        // initiate the interview with an introductory message
+        pumpIo('What do you want your agent to do?');
+      } else if (mode === 'edit') {
+        // initiate the interview with an introductory message
+        pumpIo('What edits do you want to make?');
+      } else if (mode === 'manual') {
+        // wait for external prompting
+      } else {
+        throw new Error(`invalid mode: ${mode}`)
+      }
+    }, 0);
   }
   write(response) {
     this.interactor.write(response);

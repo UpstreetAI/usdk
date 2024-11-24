@@ -1,25 +1,56 @@
 'use client';
 
+import React, { useState } from 'react';
 import { isValidUrl } from "@/utils/helpers/urls";
-import { useMultiplayerActions } from '@/components/ui/multiplayer-actions';
-import Image from "next/image";
-import { IconUser } from "@/components/ui/icons";
-import { useState } from "react";
-import { IconButton } from "ucom";
+import { AgentJoin } from "@/components/cta";
+import { AgentDelete } from "@/components/cta/AgentDelete";
+import { getJWT } from '@/lib/jwt';
+import { deployEndpointUrl } from '@/utils/const/endpoints';
+import { DeleteAgentDialog } from '@/components/delete-agent-dialog';
 
 export interface AgentListProps {
   agent: any
+  user: any
   author: string
 }
 
-export function AgentRow({ agent, author }: AgentListProps) {
+export function AgentRow({ agent, user, author }: AgentListProps) {
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const { agentJoin } = useMultiplayerActions();
+  const deleteAgent = async () => {
+    try {
+      const jwt = await getJWT();
+      const res = await fetch(`${deployEndpointUrl}/agent`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
+        body: JSON.stringify({ guid: agent.id }),
+      });
 
-  const [loadingChat, setLoadingChat] = useState(false);
+      if (!res.ok) {
+        console.warn(`Invalid status code: ${res.status}`);
+      }
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+    }
+  }
+  const handleDeleteConfirmation = async () => {
+    setOpen(false);
+    
+    setLoading(true);
+    await deleteAgent();
+    setLoading(false);
+  };
+
+  const handleDeleteComponentClick = () => {
+    setOpen(true);
+  }
 
   return (
-    <div className="bg-gray-100 border p-4 text-black">
+    <div className={`bg-gray-100 border p-4 text-black ${loading ? 'pointer-events-none opacity-50' : ''}`}>
       <div className="flex">
         <div className="mr-4 size-[120px] min-w-[120px] md:size-[160px] md:min-w-[160px] flex items-center justify-center">
           <div
@@ -43,30 +74,25 @@ export function AgentRow({ agent, author }: AgentListProps) {
         <div className="min-w-40 text-md capitalize w-full relative">
           <a href={`/agents/${agent.id}`} className="block hover:underline">
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
+            <div className="font-italic text-sm">Created by: <span className="font-bold underline">{user ? `You` : `@${author}`}</span></div>
             <div className="line-clamp-2">{agent.description}</div>
           </a>
           <div className="flex absolute bottom-0 right-0">
-            <IconButton
-              onClick={async e => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                setLoadingChat(true);
-
-                await agentJoin(agent.id);
-              }}
-              icon="Chat"
-              size="small"
-              variant="primary" />
+            <AgentJoin agent={agent} />
           </div>
 
-          <div className="text-gray-400 line-clamp-1"><IconUser className="mr-1 align-middle size-4 inline-block" /> {author}</div>
+          {user && (
+            <div className="flex absolute top-0 right-0">
+              <DeleteAgentDialog agent={agent} onDelete={handleDeleteConfirmation} open={open} onCancel={() => setOpen(false)}>
+                <AgentDelete handleClick={handleDeleteComponentClick} loading={loading} />
+              </DeleteAgentDialog>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
 
 export function SkeletonAgentRow() {
   return (

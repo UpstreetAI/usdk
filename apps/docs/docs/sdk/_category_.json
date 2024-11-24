@@ -1,8 +1,0 @@
-{
-  "label": "USDK",
-  "position": 1,
-  "link": {
-    "type": "generated-index",
-    "description": "Upstreet SDK ( usdk ) is the first react-based SDK for building and deploying headless AI agents, locally and in the cloud."
-  }
-}

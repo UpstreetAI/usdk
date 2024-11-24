@@ -31,10 +31,14 @@ import type {
   FormattedAttachment,
   AgentThinkOptions,
   GenerativeAgentObject,
-  DiscordBotRoomSpec,
-  DiscordBotRoomSpecs,
-  DiscordBotProps,
-  DiscordBotArgs,
+  DiscordRoomSpec,
+  DiscordRoomSpecs,
+  DiscordProps,
+  DiscordArgs,
+  TwitterProps,
+  TwitterArgs,
+  TwitterSpacesProps,
+  TwitterSpacesArgs,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -49,11 +53,10 @@ import {
   Formatter,
   Perception,
   PerceptionModifier,
-  Task,
-  // Scheduler,
+  // Task,
   Server,
   Conversation,
-  Defer,
+  DeferConversation,
   Uniform,
 } from './components';
 import {
@@ -151,9 +154,7 @@ const ChatActions = () => {
       <Action
         name="say"
         description={dedent`\
-          A character says something.
-          The given text message is sent literally and should be fully in character.
-          It should not include any placeholders.
+          Say something in the chat.
         `}
         schema={
           z.object({
@@ -225,11 +226,13 @@ const StoreActions = () => {
 type EveryNMessagesOptions = {
   signal: AbortSignal,
 };
-const EveryNMessages = ({
+export const EveryNMessages = ({
   n,
+  firstCallback = true,
   children,
 }: {
   n: number,
+  firstCallback?: boolean,
   children: (opts: EveryNMessagesOptions) => void,
 }) => {
   const numMessages = useNumMessages();
@@ -238,7 +241,7 @@ const EveryNMessages = ({
 
   useEffect(() => {
     const diff = numMessages - startNumMessages;
-    if (diff % n === 0) {
+    if (diff % n === 0 && (diff > 0 || firstCallback)) {
       if (!abortControllerRef.current) {
         abortControllerRef.current = new AbortController();
       }
@@ -330,7 +333,7 @@ const DefaultMemoriesInternal = () => {
           }
         </Prompt>
       )}
-      <Defer>
+      <DeferConversation>
         <EveryNMessages n={10}>{({
           signal,
         }: {
@@ -349,7 +352,7 @@ const DefaultMemoriesInternal = () => {
             signal,
           });
         }}</EveryNMessages>
-      </Defer>
+      </DeferConversation>
     </>
   );
 };
@@ -418,7 +421,7 @@ const MemoryWatcher = ({
           \`\`\`
         `}
       </Prompt>
-      <Defer>
+      <DeferConversation>
         {/* trigger memory watcher refresh */}
         {allMemoryWatchers.map((memoryWatcher, index) => {
           return (
@@ -427,7 +430,7 @@ const MemoryWatcher = ({
             }}</EveryNMessages>
           );
         })}
-      </Defer>
+      </DeferConversation>
     </Conversation>
   );
 };
@@ -2946,15 +2949,14 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
     if (!browserStatePromise.current) {
       const localPromise = (async () => {
         // console.log('create browser with jwt', authToken);
-        const browserResult = await createBrowser(undefined, {
+        const browser = await createBrowser(undefined, {
           jwt: authToken,
         });
-        const {
-          sessionId,
-          url,
-          browser,
-          destroySession,
-        } = browserResult;
+        const destroySession = async () => {
+          console.log('destroy browser session 1');
+          await browser.destroy();
+          console.log('destroy browser session 2');
+        };
         if (localPromise === browserStatePromise.current) {
           // if we are still the current browser state promise, latch the state
           const browserState = new BrowserState({
@@ -3217,7 +3219,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
     />
   );
 };
-export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) => {
+export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   const {
     token,
     channels,
@@ -3225,14 +3227,19 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     userWhitelist,
   } = props;
   const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
 
   useEffect(() => {
-    const args: DiscordBotArgs = {
+    const args: DiscordArgs = {
       token,
       channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
       dms: dms ? (Array.isArray(dms) ? dms : [dms]) : [],
       userWhitelist,
       agent,
+      codecs,
+      jwt: authToken,
     };
     const discordBot = agent.discordManager.addDiscordBot(args);
     return () => {
@@ -3244,6 +3251,79 @@ export const DiscordBot: React.FC<DiscordBotProps> = (props: DiscordBotProps) =>
     JSON.stringify(dms),
     JSON.stringify(userWhitelist),
   ]);
+
+  return null;
+};
+// https://twitter-oauth.upstreet.ai/
+export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
+  const {
+    token,
+  } = props;
+  const agent = useAgent();
+  const kv = useKv();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
+  const ref = useRef(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      return;
+    }
+    ref.current = true;
+
+    (async () => {
+      if (token) {
+        const args: TwitterArgs = {
+          token,
+          agent,
+          kv,
+          codecs,
+          jwt: authToken,
+        };
+        const twitter = agent.twitterManager.addTwitterBot(args);
+        return () => {
+          agent.twitterManager.removeTwitterBot(twitter);
+        };
+      }
+    })();
+  }, [token]);
+
+  return null;
+};
+export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpacesProps) => {
+  const {
+    token,
+    url,
+  } = props;
+  const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
+  const ref = useRef(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      return;
+    }
+    ref.current = true;
+
+    (async () => {
+      if (token) {
+        const args: TwitterSpacesArgs = {
+          token,
+          url,
+          agent,
+          codecs,
+          jwt: authToken,
+        };
+        const twitter = agent.twitterSpacesManager.addTwitterSpacesBot(args);
+        return () => {
+          agent.twitterSpacesManager.removeTwitterSpacesBot(twitter);
+        };
+      }
+    })();
+  }, [token]);
 
   return null;
 };

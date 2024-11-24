@@ -4,9 +4,54 @@ import recursiveReaddir from 'recursive-readdir';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import JSZip from 'jszip';
-import { QueueManager } from './queue-manager.mjs';
+import archiver from 'archiver';
+import { QueueManager } from 'queue-manager';
+
+// Helper function to filter files with regular expressions
+const filterFiles = (files, excludePatterns) => {
+  return files.filter((file) =>
+    !excludePatterns.some((pattern) => pattern.test(file))
+  );
+};
 
 export const packZip = async (dirPath, { exclude = [] } = {}) => {
+  const outputPath = path.join(dirPath, 'output.zip');
+  const output = fs.createWriteStream(outputPath);
+  const archive = archiver('zip', {
+    zlib: { level: 9 }, // Set compression level
+  });
+
+  return new Promise((resolve, reject) => {
+    archive.pipe(output);
+
+    archive.on('error', (err) => {
+      reject(err);
+    });
+
+    output.on('close', () => {
+      const data = fs.readFileSync(outputPath);
+      const uary = new Uint8Array(data)
+      fs.unlinkSync(outputPath); // Remove the temporary zip file after reading it
+      resolve(uary);
+    });
+
+    // Filter files and add to archive
+    recursiveReaddir(dirPath)
+      .then((files) => {
+        const filteredFiles = filterFiles(files, exclude);
+
+        filteredFiles.forEach((file) => {
+          const relativePath = path.relative(dirPath, file);
+          archive.file(file, { name: relativePath });
+        });
+
+        // Finalize the archive once all files are appended
+        archive.finalize().catch((err) => reject(err));
+      })
+      .catch((err) => reject(err));
+  });
+};
+/* export const packZip = async (dirPath, { exclude = [] } = {}) => {
   let files = await recursiveReaddir(dirPath);
   files = files.filter((p) => !exclude.some((re) => re.test(p)));
 
@@ -26,7 +71,7 @@ export const packZip = async (dirPath, { exclude = [] } = {}) => {
   });
   const uint8Array = new Uint8Array(arrayBuffer);
   return uint8Array;
-};
+}; */
 export const extractZip = async (zipBuffer, tempPath) => {
   const cleanup = async () => {
     await rimraf(tempPath);

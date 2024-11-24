@@ -4,6 +4,20 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/usdk-discord',
+        destination: 'https://discord.gg/TfKW36rMj7',
+        permanent: false,
+      },
+      {
+        source: '/agentika-hackathon',
+        destination: 'https://forms.gle/YZgQqW6dXLYCjDwCA',
+        permanent: false,
+      },
+    ]
+  },
   images: {
     remotePatterns: [
       {
@@ -72,5 +86,22 @@ module.exports = {
     });
 
     return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/embed/:id",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "ALLOWALL",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: "frame-ancestors *;",
+          },
+        ],
+      },
+    ];
   },
 }

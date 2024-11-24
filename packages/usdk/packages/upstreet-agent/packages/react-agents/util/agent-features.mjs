@@ -63,10 +63,10 @@ export const defaultVoices = [
     description: 'Waifu girl',
   },
 ];
-const formatDiscordBotChannels = (channels = []) =>
-  channels.split(',').map(c => c.trim()).filter(Boolean);
 
-//
+const formatDiscordBotChannels = (channels = []) => {
+  return channels.map(c => c.trim()).filter(Boolean);
+};
 
 export const featureSpecs = [
   {
@@ -129,9 +129,9 @@ export const featureSpecs = [
     ],
   },
   {
-    name: 'discordBot',
+    name: 'discord',
     description: dedent`\
-      Add a Discord bot to the agent. Add this feature only when the user explicitly requests it and provides a bot token.
+      Add Discord integration to the agent. Add this feature only when the user explicitly requests it and provides a bot token.
 
       The user should follow these instructions to set up their bot (you can instruct them to do this):
       - Create a bot application at https://discord.com/developers/applications and note the CLIENT_ID (also called "application id")
@@ -150,21 +150,56 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
-    imports: (discordBot) => {
-      if (discordBot.token) {
-        return ['DiscordBot'];
+    imports: (discord) => {
+      if (discord.token) {
+        return ['Discord'];
       } else {
         return [];
       }
     },
-    components: (discordBot) => {
-      const channels = formatDiscordBotChannels(discordBot.channels);
-      if (discordBot.token && channels.length > 0) {
+    components: (discord) => {
+      const channels = formatDiscordBotChannels(discord.channels);
+      if (discord.token && channels.length > 0) {
         return [
           dedent`
-            <DiscordBot
-              token=${JSON.stringify(discordBot.token)}
-              ${discordBot.channels ? `channels={${JSON.stringify(channels)}}` : ''}
+            <Discord
+              token=${JSON.stringify(discord.token)}
+              ${discord.channels ? `channels={${JSON.stringify(channels)}}` : ''}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
+    name: 'twitterBot',
+    description: dedent`\
+      Add a Twitter bot to the agent.
+
+      The API token is required.
+    `,
+    schema: z.union([
+      z.object({
+        token: z.string(),
+      }),
+      z.null(),
+    ]),
+    examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
+    imports: (twitterBot) => {
+      if (twitterBot.token) {
+        return ['TwitterBot'];
+      } else {
+        return [];
+      }
+    },
+    components: (twitterBot) => {
+      if (twitterBot.token) {
+        return [
+          dedent`
+            <TwitterBot
+              token=${JSON.stringify(twitterBot.token)}
             />
           `,
         ];

@@ -14,17 +14,14 @@ import {
 } from './conversation-object';
 import {
   MultiQueueManager,
-} from '../util/queue-manager.mjs';
+} from 'queue-manager';
 // import {
 //   Debouncer,
-// } from '../util/debouncer.mjs';
+// } from 'debouncer';
 import {
   bindConversationToAgent,
 } from '../runtime';
-import {
-  makePromise,
-} from '../util/util.mjs';
-import { Player } from 'react-agents-client/util/player.mjs';
+// import { Player } from 'react-agents-client/util/player.mjs';
 import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
 import {
   ExtendableMessageEvent,
@@ -174,20 +171,19 @@ export class ChatsManager {
       };
       multiplayerConnection.addEventListener('connect', onConnect);
 
-      const { playersMap } = multiplayerConnection;
-      playersMap.addEventListener('join', (e: any) => {
+      multiplayerConnection.addEventListener('playerSpecUpdate', (e: any) => {
         const { player } = e.data;
-        const { playerId } = player;
-        console.log('chats specification: remote player joined:', playerId);
-
-        const remotePlayer = new Player(playerId, {});
-        conversation.addAgent(playerId, remotePlayer);
+        if (player && player.playerId && !conversation.agentsMap.has(player.playerId)) {
+          conversation.addAgent(player.playerId, player);
+        }
       });
-      playersMap.addEventListener('leave', async (e: any) => {
+      multiplayerConnection.addEventListener('join', (e: any) => {
         const { player } = e.data;
-        const { playerId } = player;
-        console.log('chats specification: remote player left:', playerId);
-        conversation.removeAgent(playerId);
+        conversation.addAgent(player.playerId, player);
+      });
+      multiplayerConnection.addEventListener('leave', async (e: any) => {
+        const { player } = e.data;
+        conversation.removeAgent(player.playerId);
       });
 
       multiplayerConnection.addEventListener('chat', async (e) => {
@@ -202,8 +198,8 @@ export class ChatsManager {
 
       const _trackAudio = () => {
         const transcriptionStreams = new Map<string, TranscriptionStream>();
-        playersMap.addEventListener('audiostart', async (e: any) => {
-          console.log('got audio start', e.data);
+        multiplayerConnection.addEventListener('audiostart', async (e: any) => {
+          // console.log('got audio start', e.data);
           const { playerId, streamId, type, disposition } = e.data;
           if (disposition === 'text') {
             if (type === 'audio/pcm-f32-48000') {
@@ -253,43 +249,43 @@ export class ChatsManager {
           //   // nothing
           }
         });
-        playersMap.addEventListener('audio', async (e: any) => {
+        multiplayerConnection.addEventListener('audio', async (e: any) => {
           const { playerId, streamId, data } = e.data;
           // console.log('got audio data', playerId, streamId);
           const transcriptionStream = transcriptionStreams.get(streamId);
           if (transcriptionStream) {
             transcriptionStream.audioInput.emit('data', data);
           } else {
-            console.warn('audio data: no transcription stream', e.data);
+            // console.warn('audio data: no transcription stream', e.data);
           }
         });
-        playersMap.addEventListener('audioend', async (e: any) => {
-          console.log('got audio end', e.data);
+        multiplayerConnection.addEventListener('audioend', async (e: any) => {
+          // console.log('got audio end', e.data);
           const { playerId, streamId } = e.data;
           const transcriptionStream = transcriptionStreams.get(streamId);
           if (transcriptionStream) {
             transcriptionStream.audioInput.emit('end');
             transcriptionStreams.delete(streamId);
           } else {
-            console.warn('audio end: no transcription stream', e.data);
+            // console.warn('audio end: no transcription stream', e.data);
           }
         });
       };
       const _trackVideo = () => {
-        playersMap.addEventListener('videostart', async (e: any) => {
-          console.log('got video start', e.data);
+        multiplayerConnection.addEventListener('videostart', async (e: any) => {
+          // console.log('got video start', e.data);
           conversation.dispatchEvent(new MessageEvent('videostart', {
             data: e.data,
           }));
         });
-        playersMap.addEventListener('video', async (e: any) => {
-          console.log('got video data', e.data);
+        multiplayerConnection.addEventListener('video', async (e: any) => {
+          // console.log('got video data', e.data);
           conversation.dispatchEvent(new MessageEvent('video', {
             data: e.data,
           }));
         });
-        playersMap.addEventListener('videoend', async (e: any) => {
-          console.log('got video end', e.data);
+        multiplayerConnection.addEventListener('videoend', async (e: any) => {
+          // console.log('got video end', e.data);
           conversation.dispatchEvent(new MessageEvent('videoend', {
             data: e.data,
           }));
@@ -360,16 +356,16 @@ export class ChatsManager {
       };
       const _bindDisconnect = () => {
         multiplayerConnection.addEventListener('disconnect', async (e: any) => {
-          console.log('realms emitted disconnect');
+          // console.log('realms emitted disconnect');
 
           // clean up the old connection
           cleanup();
 
           // try to reconnect, if applicable
           if (this.chatsSpecification.roomSpecifications.some((spec) => roomsSpecificationEquals(spec, roomSpecification))) {
-            console.log('rejoining room', roomSpecification);
+            // console.log('rejoining room', roomSpecification);
             await this.#join(roomSpecification);
-            console.log('rejoined room', roomSpecification);
+            // console.log('rejoined room', roomSpecification);
           }
         });
       };

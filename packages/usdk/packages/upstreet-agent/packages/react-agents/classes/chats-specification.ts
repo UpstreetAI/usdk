@@ -1,9 +1,7 @@
 import type {
   RoomSpecification,
 } from '../types';
-import {
-  QueueManager,
-} from '../util/queue-manager.mjs';
+import { QueueManager } from 'queue-manager';
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
@@ -70,7 +68,7 @@ export class ChatsSpecification extends EventTarget {
             endpointUrl,
           };
         }) as RoomSpecification[];
-        console.log('initial chat specifications', initialChatSpecifications);
+        // console.log('initial chat specifications', initialChatSpecifications);
         await Promise.all(initialChatSpecifications.map(async (chatSpecification) => {
           const result = await this.#joinInternal(chatSpecification);
           return result;
@@ -125,19 +123,21 @@ export class ChatsSpecification extends EventTarget {
             .single();
 
           if (existing.data) {
-            console.log('chat specification already exists:', existing.data);
+            // console.log('chat specification already exists:', existing.data);
             return;
           }
 
+          const opts = {
+            id: key,
+            user_id: this.userId,
+            data: {
+              room: roomSpecification.room,
+              endpoint_url: roomSpecification.endpointUrl,
+            },
+          };
+          // console.log('upserting chat specification:', opts);
           const result = await this.supabase.from('chat_specifications')
-            .upsert({
-              id: key,
-              user_id: this.userId,
-              data: {
-                room: roomSpecification.room,
-                endpoint_url: roomSpecification.endpointUrl,
-              },
-            });
+            .upsert(opts);
           const {
             error,
           } = result;
@@ -155,7 +155,7 @@ export class ChatsSpecification extends EventTarget {
       // console.log('join room 2');
     } else {
       // throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
-      console.log("chat already joined previously");
+      // console.log('chat already joined previously');
     }
   }
   async leave(roomSpecification: RoomSpecification) {

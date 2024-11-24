@@ -1,10 +1,11 @@
-
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
-import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
+import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
+import { AgentNotFound } from '@/components/agents/profile/AgentNotFound';
+import { getJWT } from '@/lib/jwt';
 
 type Params = {
   params: {
@@ -12,32 +13,52 @@ type Params = {
   };
 };
 
-export async function generateMetadata({
-  params
-}: Params): Promise<Metadata> {
-  // const supabase = createClient();
-  const supabase = makeAnonymousClient(env);
-  // const {
-  //   data: { user }
-  // } = await supabase.auth.getUser();
+async function getUser() {
+  const jwt = await getJWT();
+  const user = await getUserForJwt(jwt);
+  return user;
+}
 
-  // decode the uri for usernames that have spaces in them
-  // const agentName = decodeURIComponent(params.id)
-  const agentId = decodeURIComponent(params.id)
-
-  const { data: agentData } = await supabase
+async function getAgentData(supabase: any, identifier: string) {
+  // First try to find by ID
+  let result = await supabase
     .from('assets')
-    .select('*')
-    .eq('id', agentId)
+    .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
+    .eq('id', identifier)
     .single();
+
+  // If not found by ID, try to find by username
+  if (!result.data) {
+    result = await supabase
+      .from('assets')
+      .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
+      .eq('name', identifier)
+      .single();
+  }
+
+  return result;
+}
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const supabase = makeAnonymousClient(env);
+  const identifier = decodeURIComponent(params.id);
+
+  const result = await getAgentData(supabase, identifier);
+  const agentData = result.data as any;
+
+  if (!agentData) {
+    return {
+      title: 'Agent not found!'
+    };
+  }
 
   const meta = {
     title: agentData?.name ?? 'Agent not found!',
     description: agentData?.description ?? '',
-    cardImage: agentData?.preview_image ?? '',
+    cardImage: agentData?.preview_url ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {
@@ -55,9 +76,8 @@ export async function generateMetadata({
       url: meta.url,
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage],
       type: 'website',
-      siteName: meta.title
+      siteName: `upstreet.ai/${agentData?.author?.name}`
     },
     twitter: {
       card: 'summary_large_image',
@@ -65,45 +85,26 @@ export async function generateMetadata({
       creator: '@upstreetai',
       title: meta.title,
       description: meta.description,
-      images: [meta.cardImage]
     }
   }
 }
 
 export default async function AgentProfilePage({ params }: Params) {
   const supabase = makeAnonymousClient(env);
-  // const {
-  //   data: { user }
-  // } = await supabase.auth.getUser();
+  const identifier = decodeURIComponent(params.id);
 
-  // decode the uri for usernames that have spaces in them
-  // const agentName = decodeURIComponent(params.id)
-  const agentId = decodeURIComponent(params.id);
+  const result = await getAgentData(supabase, identifier);
+  const agentData = result.data as any;
 
-  const { data: agentData } = await supabase
-    .from('assets')
-    .select(`
-      *,
-      author: accounts ( id, name )
-    `)
-    .eq('id', agentId)
-    .single();
+  if (!agentData?.id) {
+    return <AgentNotFound />;
+  }
 
-  if (!agentData?.id) return <div className="w-full max-w-2xl mx-auto p-8 text-center">Agent Not Found</div>;
+  // check if the user is the owner of the agent
+  const user = await getUser();
+  const isOwner = agentData.author.id === user?.id;
 
-  // const response = await fetch(agentData.start_url);
-  // if (response.ok) {
-    // const jsonData = await response.json();
-
-    // const agentInfo = {
-    //   ...agentData,
-    //   npc: jsonData
-    // }
-
-    return (
-      <AgentProfile agent={agentData} />
-    );
-  // } else {
-  //   throw new Error('Failed to fetch agent data: ' + response.status);
-  // }
+  return (
+    <AgentProfile agent={agentData} isOwner={isOwner} />
+  );
 }

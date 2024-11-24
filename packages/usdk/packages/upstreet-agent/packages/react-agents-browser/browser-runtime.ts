@@ -25,7 +25,12 @@ export class ReactAgentsWorker {
       !apiKey ||
       !mnemonic
     ) {
-      throw new Error('missing required options');
+      throw new Error('missing required options: ' + JSON.stringify({
+        agentJson,
+        agentSrc,
+        apiKey,
+        mnemonic,
+      }));
     }
 
     console.log('got agent src', agentSrc);
@@ -42,7 +47,7 @@ export class ReactAgentsWorker {
     };
     console.log('starting worker with env:', env);
     this.worker.postMessage({
-      method: 'initDurableObject',
+      method: 'init',
       args: {
         env,
         agentSrc,

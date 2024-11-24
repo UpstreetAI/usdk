@@ -73,7 +73,8 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                     // .eq('user_id', userId)
                     .eq('type', 'voice')
                     .maybeSingle();
-                  const { error, data } = result;
+                  const error = result.error as any;
+                  const data = result.data as any;
                   if (!error) {
                     // console.log(JSON.stringify(data, null, 2));
                     if (data) {
@@ -194,7 +195,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
               <>
                 {/* Desktop View */}
                 <div className="hidden md:block relative shadow-md sm:rounded-lg">
-                  <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                  <table className="w-full text-sm text-left text-gray-400">
                     <thead className="text-xs text-gray-50 uppercase bg-border">
                       <tr>
                         {/* <th scope="col" className="px-6 w-[60px] py-3 text-[rgba(255,255,255,0.6)]">PFP</th> */}

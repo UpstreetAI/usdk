@@ -27,9 +27,10 @@ import { useAgent } from '../hooks';
 //
 
 export class AppContextValue {
-  // members
   subtleAi: SubtleAi;
   agentJson: object;
+  env: object;
+  environment: string;
   wallets: any;
   authToken: string;
   supabase: any;
@@ -41,6 +42,8 @@ export class AppContextValue {
   constructor({
     subtleAi,
     agentJson,
+    env,
+    environment,
     wallets,
     authToken,
     supabase,
@@ -51,6 +54,8 @@ export class AppContextValue {
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
+    environment: string;
+    env: object;
     wallets: any;
     authToken: string;
     supabase: any;
@@ -61,6 +66,8 @@ export class AppContextValue {
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
+    this.env = env;
+    this.environment = environment;
     this.wallets = wallets;
     this.authToken = authToken;
     this.supabase = supabase;
@@ -74,6 +81,12 @@ export class AppContextValue {
 
   useAgentJson() {
     return this.agentJson;
+  }
+  useEnv() {
+    return this.env;
+  }
+  useEnvironment() {
+    return this.environment;
   }
   useWallets() {
     return this.wallets;

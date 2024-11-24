@@ -8,11 +8,13 @@
     "docs": "npm run -w @upstreet/docs --"
   },
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*",
+    "packages/usdk/packages/*",
+    "packages/usdk/packages/upstreet-agent/packages/*"
   ],
   "devDependencies": {
     "@eslint/js": "^9.4.0",
     "@stylistic/eslint-plugin": "^2.1.0"
   }
 }
- 

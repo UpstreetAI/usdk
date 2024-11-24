@@ -21,6 +21,10 @@ class ReadlineStrategy {
     }
   }
 
+  log(...args) {
+    console.log(...args);
+  }
+
   close() {
     this.rl.close();
   }

@@ -1,0 +1,7 @@
+{
+  "name": "react-agents-wrangler",
+  "main": "wrangler-runtime.mjs",
+  "dependencies": {
+    "wrangler": "^3.60.2"
+  }
+}
