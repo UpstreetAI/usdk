@@ -9,13 +9,8 @@
 
 <div align="center" style="text-align: center">
 
-<pre style="text-align: center; width: fit-content">
-  ██  ██ ██████  ███████ ████████ ██████  ███████ ███████ ████████
-  ██  ██ ██   ██ ██         ██    ██   ██ ██      ██         ██   
-  ██  ██ ██████  ███████    ██    ██████  █████   █████      ██   
-  ██  ██ ██           ██    ██    ██   ██ ██      ██         ██   
-██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
-</pre>
+![upstreet-logo](https://github.com/user-attachments/assets/56a1469a-1a2f-4fd2-a1d3-32fa44d7b02d)
+
 
 <!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
 [![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
