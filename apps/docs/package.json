@@ -21,6 +21,7 @@
     "usdk": "file:../../packages/usdk"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.13",
     "@types/mdx": "^2.0.13",
     "@types/node": "22.7.8",
     "autoprefixer": "^10.4.20",
