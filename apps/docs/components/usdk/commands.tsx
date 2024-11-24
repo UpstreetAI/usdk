@@ -51,12 +51,12 @@ const Commands = () => {
 
   return (
     <div>
-      <table style={{ borderCollapse: "collapse", width: "100%", border: "1px solid #ddd" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", }}>
         <thead>
           <tr>
-            <th style={{ padding: "8px", border: "1px solid #ddd" }}>Command</th>
-            <th style={{ padding: "8px", border: "1px solid #ddd", width: '100%', }}>Description</th>
-            <th style={{ padding: "8px", border: "1px solid #ddd" }}>Subcommands & Switches</th>
+            <th style={{ padding: "8px", }}>Command</th>
+            <th style={{ padding: "8px", width: '100%', }}>Description</th>
+            <th style={{ padding: "8px", }}>Subcommands & Switches</th>
           </tr>
         </thead>
         <tbody>{commandTableRows}</tbody>
