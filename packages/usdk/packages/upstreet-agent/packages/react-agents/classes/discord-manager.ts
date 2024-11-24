@@ -98,9 +98,10 @@ const bindOutgoing = ({
   const queueManager = new QueueManager();
   conversation.addEventListener('audiostream', async (e: MessageEvent) => {
     await queueManager.waitForTurn(async () => {
-      // console.log('conversation outgoing audio stream', e.data);
+      console.log('conversation outgoing audio stream start', e.data);
       const audioStream = e.data.audioStream as PlayableAudioStream;
       await discordBotClient.input.pushStream(audioStream);
+      console.log('conversation outgoing audio stream end', e.data);
     });
   });
   // typing
@@ -217,7 +218,8 @@ export class DiscordBot extends EventTarget {
         } = channel;
         if (
           type === 0 || // text channel
-          type === 2 // voice channel
+          type === 2 || // voice channel
+          type === 13 // stage
         ) {
           const conversation = new ConversationObject({
             agent,
