@@ -457,22 +457,22 @@ export class DiscordBotClient extends EventTarget {
             break;
           }
           case 'text': {
-            console.log('text message', args);
+            // console.log('text message', args);
             this.output.pushText(args);
             break;
           }
           case 'voicestart': {
-            console.log('voice start', args);
+            // console.log('voice start', args);
             this.output.pushStreamStart(args);
             break;
           }
           case 'voiceend': {
-            console.log('voice end', args);
+            // console.log('voice end', args);
             this.output.pushStreamEnd(args);
             break;
           }
           case 'voiceidle': { // feedback that discord is no longer listening
-            console.log('voice idle', args);
+            // console.log('voice idle', args);
             this.input.cancelStream(args);
             break;
           }
