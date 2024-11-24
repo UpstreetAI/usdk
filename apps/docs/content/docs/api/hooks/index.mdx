@@ -5,11 +5,9 @@ full: true
 ---
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
-<InlineTOC defaultOpen items={toc} />
+<InlineTOC defaultOpen={false} items={toc} />
 
 The `react-agents` library provides a few hooks to help you interact with your agent.
-
-## Agent hooks
 
 ### `useAgent()`
 Returns the current `Agent` context.

@@ -1,27 +1,21 @@
 ---
 title: <Uniform>
 description: Generate metadata for each action.
-full: true
+full: false
 ---
-import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
-
-<InlineTOC defaultOpen items={toc} />
-The `Uniform` component lets you generate additional metadata for _each_ action. This is useful for getting continious information out of the agent, e.g. getting the current topic, rating, mood, or other information.
 
 The concept is borrowed from [Uniforms in a shader](https://en.wikipedia.org/wiki/Shader).
 
-## Importing the Uniform Component
+## Import
 
-To use the Uniform component, import it as follows:
-To use the `Uniform` component, import it as follows:
-```javascript
+```tsx
 import { Uniform } from 'react-agents';
 ```
 
-## Basic Example
-Here's a simple example of using the `Uniform` component
+## Usage
+Here's a simple example of using the `Uniform` component:
 
-```javascript
+```tsx
 import { Uniform, Agent, Action } from 'react-agents';
 
 function MyComponent() {
@@ -49,25 +43,36 @@ function MyComponent() {
 ```
 
 ## Props
-The `Uniform`  component accepts these props:
 
-**name** string
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
-- Identifier for the uniform
-- Must be unique within the agent context
+export const uniformProps = {
+  name: {
+    description: 'Identifier for the uniform',
+    type: 'string',
+    typeDescription: 'A string representing the unique identifier for the uniform.',
+    typeDescriptionLink: '', // You can link to further documentation if available
+    default: 'N/A', // You can specify default or leave it as 'N/A'
+  },
+  description: {
+    description: 'Describes the purpose of the uniform',
+    type: 'string',
+    typeDescription: 'A string providing a clear explanation of the uniform’s purpose.',
+    typeDescriptionLink: '',
+    default: 'N/A',
+  },
+  handler: {
+    description: 'Function that generates the uniform data',
+    type: 'Function(message) => any',
+    typeDescription: 'A function that takes a message and returns metadata.',
+    typeDescriptionLink: '',
+    default: 'N/A',
+  },
+};
 
-
-**description** string
-
-- Describes the purpose of the uniform
-- Used for documentation and clarity
-
-
-**handler** Function(message) => any
-
-- Function that generates the uniform data
-- Called for each action
-- Returns metadata to be included
+<TypeTable
+  type={uniformProps}
+/>
 
 
 ## Best Practices:

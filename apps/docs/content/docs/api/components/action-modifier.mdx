@@ -1,24 +1,21 @@
 ---
 title: <ActionModifier>
 description: Intercept and modify agent action handling.
-full: true
+full: false
 ---
-import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 
-<InlineTOC defaultOpen items={toc} />
+The `ActionModifier` enables middleware-like modification of actions within your agent system, allowing for pre and post-processing of actions. The `ActionModifier` component serves as a wrapper that intercepts and modifies actions before and after execution.
 
-The `ActionModifier` enables middleware-like modification of actions within your agent system, allowing for pre and post-processing of actions.
-
-```javascript
+## Import
+```tsx
 import { ActionModifier } from 'react-agents';
 ```
 
-The `ActionModifier` component serves as a wrapper that intercepts and modifies actions before and after execution.
 
-## Example
+## Usage
 Here's a basic example of using the `ActionModifier`:
 
-```javascript
+```tsx
 
 import { ActionModifier, Action } from 'react-agents';
 
@@ -43,20 +40,29 @@ function MyComponent() {
 ```
 ## Props
 
-The `ActionModifier` component accepts these key props:
+import { TypeTable } from 'fumadocs-ui/components/type-table';
 
-**before** Function(action) => action
+export const actionModifierProps = {
+  before: {
+    description: 'A function that executes before the action is processed.',
+    type: 'Function(action) => action',
+    typeDescription: 'A function that can modify or validate the action and must return the modified action.',
+    typeDescriptionLink: '', // Add a link to further documentation if needed
+    default: 'N/A', // This prop is required, so no default value
+  },
+  after: {
+    description: 'A function that executes after the action completes.',
+    type: 'Function(result) => result',
+    typeDescription: 'A function that can transform the result and must return the final result.',
+    typeDescriptionLink: '', // Add a link to further documentation if needed
+    default: 'N/A', // This prop is required, so no default value
+  },
+};
 
-- Executes before the action is processed
-- Can modify or validate the action
-- Must return the modified action
+<TypeTable
+  type={actionModifierProps}
+/>
 
-
-**after** Function(result) => result
-
-- Executes after the action completes
-- Can transform the result
-- Must return the final result
 
 ## Best Practices
 
