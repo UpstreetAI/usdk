@@ -41,10 +41,10 @@ export default async function Page(props: {
 
   // const preview = page.data.preview;
   const {
-    body: Mdx, 
+    body: Mdx,
     toc, 
     // lastModified 
-  } = await page.data.load();
+  } = await page.data;
 
   return (
     <DocsPage toc={toc} full={page.data.full}
