@@ -1,4 +1,6 @@
-export class AudioMerger extends EventTarget {
+import { EventEmitter } from 'events';
+
+export class AudioMerger extends EventEmitter {
   constructor({
     sampleRate,
     chunkRateMs = 100,
@@ -33,7 +35,7 @@ export class AudioMerger extends EventTarget {
 
     // merge all stream buffers
     for (const buffers of this.streamBuffers) {
-      let localOutputIndex = outputIndex;
+      let localOutputIndex = 0;
       while (buffers.length > 0) {
         const f32 = buffers[0];
         if (f32 === null) {
@@ -64,9 +66,7 @@ export class AudioMerger extends EventTarget {
       }
     }
     // emit the chunk
-    this.dispatchEvent(new MessageEvent('data', {
-      data: outputChunk
-    }));
+    this.emit('data', outputChunk);
 
     // if we had stream buffers, update the last data time
     const now = Date.now();
@@ -104,8 +104,6 @@ export class AudioMerger extends EventTarget {
     clearInterval(this.interval);
     this.interval = null;
 
-    this.dispatchEvent(new MessageEvent('end', {
-      data: null,
-    }));
+    this.emit('end');
   }
 }
