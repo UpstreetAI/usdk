@@ -217,7 +217,8 @@ export class DiscordBot extends EventTarget {
         } = channel;
         if (
           type === 0 || // text channel
-          type === 2 // voice channel
+          type === 2 || // voice channel
+          type === 13 // stage
         ) {
           const conversation = new ConversationObject({
             agent,
