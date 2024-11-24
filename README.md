@@ -34,6 +34,8 @@
 
 </div>
 
+[![Tutorial Video](./screenshots/video-thumbnail.png)](https://www.youtube.com/watch?v=Fr78GhpaYB4&t=2s)
+
 ## In this repo...
 ### Chat App:
 - 🌐 Link: https://upstreet.ai
