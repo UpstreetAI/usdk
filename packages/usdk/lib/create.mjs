@@ -273,6 +273,36 @@ const interview = async (agentJson, {
   imagePreviewServer.stop();
   return result;
 };
+const getAgentJsonFromCharacterCard = async (p) => {
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+
+  const ccp = new CharacterCardParser();
+  const parsed = await ccp.parse(fileBlob);
+  const {
+    name,
+    description,
+    personality,
+    scenario,
+    first_mes,
+    mes_example,
+    creator_notes,
+    system_prompt,
+    post_history_instructions,
+    alternate_greetings,
+    character_book,
+    tags,
+    creator,
+    character_version,
+    extensions,
+  } = parsed.data;
+  return {
+    name,
+    description,
+    bio: personality,
+  };
+};
 const addAgentJsonImage = async (agentJson, p, key, {
   jwt,
 }) => {
@@ -398,34 +428,7 @@ export const create = async (args, opts) => {
     if (agentJsonString) {
       return JSON.parse(agentJsonString);
     } else if (inputFile) {
-      const fileBuffer = await fs.promises.readFile(inputFile);
-      const fileBlob = new Blob([fileBuffer]);
-      fileBlob.name = path.basename(inputFile);
-
-      const ccp = new CharacterCardParser();
-      const parsed = await ccp.parse(fileBlob);
-      const {
-        name,
-        description,
-        personality,
-        scenario,
-        first_mes,
-        mes_example,
-        creator_notes,
-        system_prompt,
-        post_history_instructions,
-        alternate_greetings,
-        character_book,
-        tags,
-        creator,
-        character_version,
-        extensions,
-      } = parsed.data;
-      return {
-        name,
-        description,
-        bio: personality,
-      };
+      return await getAgentJsonFromCharacterCard(inputFile);
     } else {
       return null;
     }
