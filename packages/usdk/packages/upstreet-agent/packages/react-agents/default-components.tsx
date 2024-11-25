@@ -3460,7 +3460,6 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         `;
 
         const decisionSchema = z.object({
-          shouldRespond: z.boolean(),
           reason: z.string(),
           confidence: z.number(),
         });
@@ -3491,7 +3490,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         // });
 
         // Use conversation interest to determine if we should respond
-        if (!decision.content.shouldRespond || newInterest < defaultThreshold) {
+        if (newInterest < defaultThreshold) {
           e.abort();
         }
       }}
