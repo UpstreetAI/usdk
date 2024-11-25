@@ -24,6 +24,7 @@ export class ConversationObject extends EventTarget {
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
   messageCache: MessageCache;
   numTyping: number = 0;
+  conversationInterest: number = 1;
 
   constructor({
     agent,
@@ -54,6 +55,15 @@ export class ConversationObject extends EventTarget {
         return messages;
       },
     });
+  }
+
+  //
+
+  getConversationInterest() {
+    return this.conversationInterest;
+  }
+  setConversationInterest(conversationInterest: number) {
+    this.conversationInterest = conversationInterest;
   }
 
   //
