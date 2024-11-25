@@ -279,10 +279,7 @@ export type ConversationObject = EventTarget & {
   getHash: GetHashFn;
   messageCache: MessageCache;
   numTyping: number;
-  conversationInterest: number;
 
-  getConversationInterest: () => number;
-  setConversationInterest: (conversationInterest: number) => void;
   getCachedMessages: (filter?: MessageFilter) => ActionMessage[];
   /* fetchMessages: (filter?: MessageFilter, opts?: {
     supabase: any,
