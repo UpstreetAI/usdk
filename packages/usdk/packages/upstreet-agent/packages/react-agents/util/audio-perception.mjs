@@ -128,13 +128,20 @@ export const transcribeRealtime = ({
     const bs = [];
     let speechStartSampleIndex = 0;
     const queueManager = new QueueManager();
-
+    const vadOptions = {
+      positiveSpeechThreshold: 0.95, // strick speech threshold
+      negativeSpeechThreshold: 0.8, //  strick threshold to be more conservative
+      redemptionFrames: 8, // in case of a false negative, wait for 10 frames before triggering speech end
+      minSpeechFrames: 15, // require 30 frames of speech before triggering speech end (to avoid false positives for speech start)
+    };
     // console.log('connect transcribe realtime 1');
 
     // const u = new URL(`${aiHost.replace(/^http/, 'ws')}/api/ai/realtime`);
     // u.searchParams.set('model', defaultRealtimeModel);
     const u = new URL(vadEndpoint.replace(/^http/, 'ws'));
     u.searchParams.set('apiKey', jwt);
+    u.searchParams.set('vadOptions', JSON.stringify(vadOptions));
+    
     const ws = new WebSocket(u);
     // console.log('connect transcribe realtime 2');
     ws.binaryType = 'arraybuffer';
