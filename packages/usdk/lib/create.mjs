@@ -273,6 +273,20 @@ const interview = async (agentJson, {
   imagePreviewServer.stop();
   return result;
 };
+const addAgentJsonImage = async (agentJson, p, key, {
+  jwt,
+}) => {
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+  const url = await uploadImage(fileBlob, {
+    jwt,
+  });
+  agentJson = {
+    ...agentJson,
+    [key]: url,
+  };
+};
 const addAgentJsonFeatures = (agentJson, features) => {
   agentJson = {
     ...agentJson,
@@ -416,30 +430,17 @@ export const create = async (args, opts) => {
       return null;
     }
   })();
-  // preview image
+  // images
   const previewImageFile = pfpFile || inputFile;
   if (previewImageFile) {
-    const fileBuffer = await fs.promises.readFile(previewImageFile);
-    const fileBlob = new Blob([fileBuffer]);
-    fileBlob.name = path.basename(previewImageFile);
-    const previewUrl = await uploadImage(fileBlob, {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
       jwt,
     });
-    agentJson = {
-      ...agentJson,
-      previewUrl,
-    };
   }
-  // homespace image
   if (hsFile) {
-    const fileBuffer = await fs.promises.readFile(hsFile);
-    const fileBlob = new Blob([fileBuffer]);
-    fileBlob.name = path.basename(homespaceImage);
-    const homespaceUrl = await uploadImage(fileBlob);
-    agentJson = {
-      ...agentJson,
-      homespaceUrl,
-    };
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
   }
   // features
   agentJson = addAgentJsonFeatures(agentJson, features);
