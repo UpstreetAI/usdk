@@ -848,11 +848,34 @@ const connectStream = async ({
     sendChatMessage(text);
   });
 };
+const connectElectron = async ({
+  room,
+  runtimes,
+}) => {
+  // let profile = await getUserProfile();
+  // if (!profile) {
+  //   throw new Error('could not get user profile');
+  // }
+  // profile = {
+  //   ...profile,
+  //   capabilities: [
+  //     'human',
+  //   ],
+  // };
+
+  const openPromises = runtimes.map(async (runtime) => {
+    await runtime.open({
+      room,
+    });
+  });
+  await Promise.all(openPromises);
+};
 export const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
+  const runtimes = args.runtimes ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -863,18 +886,25 @@ export const connect = async (args) => {
         });
         break;
       }
-      case 'repl': {
-        connectRepl({
-          room,
-          debug,
-        });
-        break;
-      }
       case 'stream': {
         connectStream({
           room,
           inputStream,
           outputStream,
+          debug,
+        });
+        break;
+      }
+      case 'electron': {
+        connectElectron({
+          room,
+          runtimes,
+        });
+        break;
+      }
+      case 'repl': {
+        connectRepl({
+          room,
           debug,
         });
         break;
