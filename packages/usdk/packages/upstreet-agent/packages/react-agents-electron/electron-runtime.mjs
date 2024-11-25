@@ -121,11 +121,22 @@ export class ReactAgentsElectronRuntime {
   // open the frontend
   async open({
     room,
+    jwt,
+    debug,
   }) {
+    if (!room) {
+      throw new Error('missing room');
+    }
+    if (!jwt) {
+      throw new Error('missing jwt');
+    }
+
     const res = await fetch(`http://127.0.0.1:${devServerPort + this.agentSpec.portIndex}/open`, {
       method: 'POST',
       body: JSON.stringify({
         room,
+        jwt,
+        debug,
       }),
     });
     if (res.ok) {

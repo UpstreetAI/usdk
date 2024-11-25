@@ -77,6 +77,7 @@ export const chat = async (args, opts) => {
     inputStream,
     outputStream,
     runtimes,
+    jwt,
     debug,
   });
 };

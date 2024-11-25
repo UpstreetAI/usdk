@@ -159,6 +159,7 @@ const createOTP = async (jwt) => {
 const openFrontend = async ({
   room,
   jwt,
+  debug,
 }) => {
   // wait for the electron app to be ready
   await app.whenReady();

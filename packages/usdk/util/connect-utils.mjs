@@ -850,6 +850,8 @@ const connectStream = async ({
 };
 const connectElectron = async ({
   room,
+  jwt,
+  debug,
   runtimes,
 }) => {
   // let profile = await getUserProfile();
@@ -866,6 +868,8 @@ const connectElectron = async ({
   const openPromises = runtimes.map(async (runtime) => {
     await runtime.open({
       room,
+      jwt,
+      debug,
     });
   });
   await Promise.all(openPromises);
@@ -876,6 +880,7 @@ export const connect = async (args) => {
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const runtimes = args.runtimes ?? null;
+  const jwt = args.jwt ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -898,6 +903,8 @@ export const connect = async (args) => {
       case 'electron': {
         connectElectron({
           room,
+          jwt,
+          debug,
           runtimes,
         });
         break;
