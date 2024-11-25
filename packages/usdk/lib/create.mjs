@@ -6,6 +6,8 @@ import pc from 'picocolors';
 import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
+import mime from 'mime/lite';
+import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
@@ -19,9 +21,9 @@ import {
 import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
-import {
-  getUserIdForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+// import {
+//   getUserIdForJwt,
+// } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
@@ -36,9 +38,9 @@ import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
-import {
-  aiProxyHost,
-} from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
+// import {
+//   aiProxyHost,
+// } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
 import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
@@ -47,10 +49,10 @@ import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
-import ora from 'ora';
+import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
-import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
+import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
 
@@ -291,6 +293,17 @@ const loadAgentJson = (dstDir) => {
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
 };
+const uploadImage = async (file, {
+  jwt,
+}) => {
+  const type = mime.getType(file.name);
+  const ext = mime.getExtension(type);
+  const guid = crypto.randomUUID();
+  const p = ['images', guid, `image.${ext}`].join('/');
+  return await uploadBlob(p, file, {
+    jwt,
+  });
+};
 
 //
 
@@ -302,6 +315,8 @@ export const create = async (args, opts) => {
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
   const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -401,6 +416,32 @@ export const create = async (args, opts) => {
       return null;
     }
   })();
+  // preview image
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    const fileBuffer = await fs.promises.readFile(previewImageFile);
+    const fileBlob = new Blob([fileBuffer]);
+    fileBlob.name = path.basename(previewImageFile);
+    const previewUrl = await uploadImage(fileBlob, {
+      jwt,
+    });
+    agentJson = {
+      ...agentJson,
+      previewUrl,
+    };
+  }
+  // homespace image
+  if (hsFile) {
+    const fileBuffer = await fs.promises.readFile(hsFile);
+    const fileBlob = new Blob([fileBuffer]);
+    fileBlob.name = path.basename(homespaceImage);
+    const homespaceUrl = await uploadImage(fileBlob);
+    agentJson = {
+      ...agentJson,
+      homespaceUrl,
+    };
+  }
+  // features
   agentJson = addAgentJsonFeatures(agentJson, features);
   // run the interview, if applicable
   if (!(inputFile || agentJsonString || source || yes)) {
