@@ -1436,6 +1436,7 @@ export const main = async () => {
       .description('Create a new agent, from either a prompt or template')
       .argument(`[directory]`, `Directory to create the project in`)
       .option(`-p, --prompt <string>`, `Creation prompt`)
+      .option(`-i, --input <file>`, `Initialize from file (character card)`)
       .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
       .option(`-y, --yes`, `Non-interactive mode`)
       .option(`-f, --force`, `Overwrite existing files`)

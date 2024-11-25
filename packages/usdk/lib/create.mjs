@@ -50,6 +50,7 @@ import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/ut
 import ora from 'ora';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
+import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 
 //
 
@@ -270,18 +271,17 @@ const interview = async (agentJson, {
   imagePreviewServer.stop();
   return result;
 };
-const makeAgentJsonInit = ({
-  agentJsonString,
-  features,
-}) => {
-  const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+const addAgentJsonFeatures = (agentJson, features) => {
+  agentJson = {
+    ...agentJson,
+  };
   // Add user specified features to agentJsonInit being passed to the interview process for context
   if (Object.keys(features).length > 0) {
-    agentJsonInit.features = {
+    agentJson.features = {
       ...features,
     };
   }
-  return agentJsonInit;
+  return agentJson;
 };
 const loadAgentJson = (dstDir) => {
   const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
@@ -301,6 +301,7 @@ export const create = async (args, opts) => {
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
+  const inputFile = args.input ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -364,12 +365,45 @@ export const create = async (args, opts) => {
 
   console.log(pc.italic('Generating Agent...'));
   // generate the agent
-  let agentJson = makeAgentJsonInit({
-    agentJsonString,
-    features,
-  });
+  let agentJson = await (async () => {
+    if (agentJsonString) {
+      return JSON.parse(agentJsonString);
+    } else if (inputFile) {
+      const fileBuffer = await fs.promises.readFile(inputFile);
+      const fileBlob = new Blob([fileBuffer]);
+      fileBlob.name = path.basename(inputFile);
+
+      const ccp = new CharacterCardParser();
+      const parsed = await ccp.parse(fileBlob);
+      const {
+        name,
+        description,
+        personality,
+        scenario,
+        first_mes,
+        mes_example,
+        creator_notes,
+        system_prompt,
+        post_history_instructions,
+        alternate_greetings,
+        character_book,
+        tags,
+        creator,
+        character_version,
+        extensions,
+      } = parsed.data;
+      return {
+        name,
+        description,
+        bio: personality,
+      };
+    } else {
+      return null;
+    }
+  })();
+  agentJson = addAgentJsonFeatures(agentJson, features);
   // run the interview, if applicable
-  if (!(agentJsonString || source || yes)) {
+  if (!(inputFile || agentJsonString || source || yes)) {
     const interviewMode = prompt ? 'auto' : 'interactive';
     if (interviewMode !== 'auto') {
       console.log(pc.italic('Starting the Interview process...\n'));
