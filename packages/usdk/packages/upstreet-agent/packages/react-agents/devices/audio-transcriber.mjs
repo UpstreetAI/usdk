@@ -5,11 +5,10 @@ import { AudioChunker } from '../util/audio-chunker.mjs';
 //
 
 export class TranscribedVoiceInput extends EventTarget {
-  // static transcribeSampleRate = 24000;
   static transcribeSampleRate = 16000;
   abortController;
   constructor({
-    audioInput,
+    audioInput, // EventEmitter
     sampleRate,
     codecs,
     jwt,
@@ -91,10 +90,15 @@ export class TranscribedVoiceInput extends EventTarget {
         }
       };
       audioInput.on('data', ondata);
+      const onend = () => {
+        this.close();
+      };
+      audioInput.on('end', onend);
 
       const cleanup = () => {
         signal.addEventListener('abort', () => {
           audioInput.removeListener('data', ondata);
+          audioInput.removeListener('end', onend);
         });
       };
       signal.addEventListener('abort', () => {
@@ -104,8 +108,8 @@ export class TranscribedVoiceInput extends EventTarget {
   }
   close() {
     this.abortController.abort();
-    this.dispatchEvent(new MessageEvent('close', {
-      data: null,
-    }));
+    // this.dispatchEvent(new MessageEvent('close', {
+    //   data: null,
+    // }));
   }
 }
