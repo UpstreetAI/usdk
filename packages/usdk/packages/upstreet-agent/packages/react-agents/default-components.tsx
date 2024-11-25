@@ -3373,7 +3373,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
       const { message, sourceAgent, targetAgent } = e.data;
 
       // Get conversation members and recent messages in one pass
-      const [conversationMembers, messages, conversationInterest] = await Promise.all([
+      const [conversationMembers, messages] = await Promise.all([
         targetAgent.conversation.getAgents(),
         targetAgent.conversation.getCachedMessages()
           .slice(-historyLength)
@@ -3381,10 +3381,8 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
             name,
             text: args?.text || '',
             timestamp
-          })),
-          targetAgent.conversation.getConversationInterest(),
-        ]);
-
+          }))
+      ]);
       // Calculate back-and-forth agent conversation count
       // this is being calculated to determine if the agent is being in the conversation too much
       const recentMessages = messages.slice(-6);
@@ -3419,9 +3417,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           CONVERSATION FATIGUE CONTEXT:
           - You and ${sourceAgent.name} have had ${backAndForthCount} back-and-forth exchanges recently
           - Your interest level is reduced by ${(backAndForthPenalty * 100).toFixed()}% due to conversation fatigue
-          - Your current interest level in the conversation is ${conversationInterest.toFixed(2)} out of 1.0
           - If you've been going back and forth too much, you should naturally lose interest and let the conversation end
-          - Your interest level will affect your likelihood of responding
           
           Based on this context, should you respond to this message?
           
@@ -3433,7 +3429,6 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           
           2. Only interrupt conversations between others in rare and justified cases. Your confidence should be very low (< 0.3) 
              if you're considering responding to a message not directed at you.
-
           3. If the message appears to be directed to the entire group or is a general statement/question:
              - You should be highly interested in participating
              - Your confidence should be high (> 0.7) as group discussions warrant active participation
@@ -3451,19 +3446,17 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           - Would responding align with ONLY your defined personality traits?
           - Is your response truly necessary or would it derail the current conversation?
           - Are you certain you have unique, valuable information to add if interrupting?
-          - How does your current interest level (${conversationInterest.toFixed(2)}) affect your desire to respond?
           
           Respond with a decision object containing:
           - shouldRespond: boolean (true if confidence > ${defaultThreshold})
           - reason: brief explanation including specific justification if interrupting others' conversation
           - confidence: number between 0-1 (note: this will be reduced by ${(backAndForthPenalty * 100).toFixed()}% due to conversation fatigue)
         `;
-
         const decisionSchema = z.object({
+          shouldRespond: z.boolean(),
           reason: z.string(),
           confidence: z.number(),
         });
-
         const decision = await targetAgent.completeJson([{
           role: 'assistant',
           content: decisionPrompt,
@@ -3472,25 +3465,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         // 'openai:gpt-4o-mini',
         'openai:gpt-4o',
         );
-
-        // console.log('current conversation interest', conversationInterest);
-        // console.log('back and forth penalty', backAndForthPenalty);
-        // console.log('decision confidence', decision.content.confidence);
-
-        const calc = conversationInterest - backAndForthPenalty;
-        const blendedInterest = (calc + decision.content.confidence) / 2;
-        const newInterest = Math.max(0, Math.min(1, blendedInterest));
-        
-        // console.log('new interest', newInterest);
-        targetAgent.conversation.setConversationInterest(newInterest);
-
-        // console.log('decision', {
-        //   decision,
-        //   conversationInterest: newInterest,
-        // });
-
-        // Use conversation interest to determine if we should respond
-        if (newInterest < defaultThreshold) {
+        if (!decision.content.shouldRespond) {
           e.abort();
         }
       }}
