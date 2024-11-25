@@ -129,10 +129,18 @@ export const transcribeRealtime = ({
     let speechStartSampleIndex = 0;
     const queueManager = new QueueManager();
     const vadOptions = {
-      positiveSpeechThreshold: 0.95, // strick speech threshold
-      negativeSpeechThreshold: 0.8, //  strick threshold to be more conservative
-      redemptionFrames: 8, // in case of a false negative, wait for 10 frames before triggering speech end
-      minSpeechFrames: 15, // require 30 frames of speech before triggering speech end (to avoid false positives for speech start)
+      // Confidence threshold to classify a frame as speech (0-1). Higher = stricter, fewer false positives
+      positiveSpeechThreshold: 0.7,
+      // Confidence threshold to classify a frame as non-speech (0-1). Higher = stricter, fewer false negatives
+      negativeSpeechThreshold: 0.6,
+      // Number of frames to include before speech is detected
+      preSpeechPadFrames: 1,
+      // Number of consecutive non-speech frames before triggering speech end
+      redemptionFrames: 5,
+      // Minimum frames needed for speech detection - fewer frames trigger onVADMisfire instead of onSpeechEnd
+      minSpeechFrames: 8,
+      // Whether to submit speech segments when a pause is detected
+      submitUserSpeechOnPause: false,
     };
     // console.log('connect transcribe realtime 1');
 
