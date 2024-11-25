@@ -21,6 +21,8 @@ console.log('electron start script!');
   });
 });
 
+// electron doesn't provide a native WebSocket
+// this is needed for needed for the multiplayer library
 globalThis.WebSocket = WebSocket;
 
 // agent code
