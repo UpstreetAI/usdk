@@ -4,10 +4,16 @@ import React from "react";
 import { createProgram } from "usdk/cli";
 
 const Commands = () => {
-  const program = createProgram();
+  let program;
+  try {
+    program = createProgram();
+  }
+  catch (error) {
+    console.error("Could not create program in NextJS:", error);
+  }
 
   // Generate table rows with subcommands and switches
-  const commandTableRows = program.commands.map((cmd) => {
+  const commandTableRows = program?.commands.map((cmd) => {
     const subcommands = cmd.commands.length > 0 ? (
       <div>
         <strong>Subcommands:</strong>
