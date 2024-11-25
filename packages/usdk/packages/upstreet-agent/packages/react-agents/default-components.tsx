@@ -3362,12 +3362,9 @@ export type SelfConsciousRepliesProps = {
   historyLength?: number; // Number of previous messages to consider for context
   defaultThreshold?: number; // How likely the agent should respond by default (0-1)
 };
-
 export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props: SelfConsciousRepliesProps) => {
   const historyLength = props?.historyLength ?? 5;
   const defaultThreshold = props?.defaultThreshold ?? 0.6;
-
-  const [conversationInterest, setConversationInterest] = useState(1);
 
   return (
     <PerceptionModifier
@@ -3375,12 +3372,8 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
     handler={async (e: AbortablePerceptionEvent) => {
       const { message, sourceAgent, targetAgent } = e.data;
 
-      console.log('self conscious replies', {
-        conversationInterest,
-      });
-
       // Get conversation members and recent messages in one pass
-      const [conversationMembers, messages] = await Promise.all([
+      const [conversationMembers, messages, conversationInterest] = await Promise.all([
         targetAgent.conversation.getAgents(),
         targetAgent.conversation.getCachedMessages()
           .slice(-historyLength)
@@ -3388,8 +3381,9 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
             name,
             text: args?.text || '',
             timestamp
-          }))
-      ]);
+          })),
+          targetAgent.conversation.getConversationInterest(),
+        ]);
 
       // Calculate back-and-forth agent conversation count
       // this is being calculated to determine if the agent is being in the conversation too much
@@ -3480,16 +3474,24 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         'openai:gpt-4o',
         );
 
-        // Apply both the back-and-forth penalty and current interest level to the confidence
-        const adjustedConfidence = decision.content.confidence * (1 - backAndForthPenalty) * conversationInterest;
-        setConversationInterest(adjustedConfidence);
+        console.log('current conversation interest', conversationInterest);
+        console.log('back and forth penalty', backAndForthPenalty);
+        console.log('decision confidence', decision.content.confidence);
+
+        const calc = conversationInterest - backAndForthPenalty;
+        const blendedInterest = (calc + decision.content.confidence) / 2;
+        const newInterest = Math.max(0, Math.min(1, blendedInterest));
+        
+        console.log('new interest', newInterest);
+        targetAgent.conversation.setConversationInterest(newInterest);
 
         console.log('decision', {
           decision,
-          adjustedConfidence,
+          conversationInterest: newInterest,
         });
 
-        if (!decision.content.shouldRespond || adjustedConfidence < defaultThreshold) {
+        // Use conversation interest to determine if we should respond
+        if (!decision.content.shouldRespond || newInterest < defaultThreshold) {
           e.abort();
         }
       }}
