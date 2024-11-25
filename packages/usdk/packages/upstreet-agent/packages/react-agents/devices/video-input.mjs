@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import child_process from 'child_process';
-import Jimp from 'jimp';
-const { intToRGBA } = Jimp;
+import { Jimp } from 'jimp';
+import { intToRGBA } from '@jimp/utils';
 import chalk from 'chalk';
 import ansiEscapeSequences from 'ansi-escape-sequences';
 import { QueueManager } from 'queue-manager';
@@ -79,7 +79,7 @@ export class ImageRenderer {
 
       const {width, height} = calculateWidthHeight(bitmap.width, bitmap.height, inputWidth, inputHeight, preserveAspectRatio);
 
-      image.resize(width, height);
+      image.resize({w: width, h: height});
 
       let result = '';
       for (let y = 0; y < image.bitmap.height - 1; y += 2) {
@@ -95,7 +95,7 @@ export class ImageRenderer {
       return result;
     }
 
-    const image = new Jimp(imageData.width, imageData.height);
+    const image = new Jimp({width: imageData.width, height: imageData.height});
     image.bitmap.data.set(imageData.data);
     const text = render(image, {
       width,

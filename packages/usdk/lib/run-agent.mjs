@@ -1,6 +1,7 @@
 import { ReactAgentsNodeRuntime } from '../packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 import { devServerPort } from '../packages/upstreet-agent/packages/react-agents-wrangler/util/ports.mjs';
 import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+import { ReactAgentsElectronRuntime } from '../packages/upstreet-agent/packages/react-agents-electron/electron-runtime.mjs';
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
 
 export const runAgent = async (args, opts) => {
@@ -19,6 +20,8 @@ export const runAgent = async (args, opts) => {
       return ReactAgentsNodeRuntime;
     } else if (runtime === 'wrangler') {
       return ReactAgentsWranglerRuntime;
+    } else if (runtime === 'electron') {
+      return ReactAgentsElectronRuntime
     } else {
       throw new Error('unknown runtime: ' + runtime);
     }
