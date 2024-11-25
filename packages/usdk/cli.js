@@ -1255,7 +1255,8 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-export const main = async () => {
+
+export const createProgram = () => {
   try {
 
     const ver = version();
@@ -1988,8 +1989,17 @@ export const main = async () => {
           await withdraw(args);
         });
       });*/
-    await program.parseAsync();
   } catch (error) {
-    console.error(error);
+    console.error("Error creating program:", error);
   }
+  return program
+};
+
+export const main = async () => {
+    createProgram();
+    try {
+      await program.parseAsync();
+    } catch (error) {
+      console.error("Error running program:", error);
+    }
 };
