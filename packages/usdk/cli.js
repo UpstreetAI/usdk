@@ -1580,6 +1580,7 @@ export const main = async () => {
     const runtimes = [
       'node',
       'wrangler',
+      'electron',
     ];
     program
       .command('chat')
@@ -1588,7 +1589,7 @@ export const main = async () => {
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
-      .option(`-run, --runtime <room>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .option(`-g, --debug`, `Enable debug logging`)
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {
