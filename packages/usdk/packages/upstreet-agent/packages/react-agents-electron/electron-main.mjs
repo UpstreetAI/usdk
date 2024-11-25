@@ -126,13 +126,6 @@ const runAgent = async (directory, opts) => {
     ip,
     port,
   });
-
-  // console.log('worker send 1');
-  process.send({
-    method: 'ready',
-    args: [],
-  });
-  // console.log('worker send 2');
 };
 const makeViteServer = (directory) => {
   return createViteServer({
