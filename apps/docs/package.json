@@ -19,6 +19,7 @@
     "fumadocs-ui": "14.0.2",
     "next": "14.2.14",
     "postinstall": "0.7.5",
+    "speaker": "^0.5.5",
     "tailwind-merge": "^2.5.4",
     "usdk": "file:../../packages/usdk"
   },
