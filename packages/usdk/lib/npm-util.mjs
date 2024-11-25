@@ -25,6 +25,7 @@ export const npmInstall = async (dstDir) => {
       cwd: dstDir,
       stdio: 'inherit',
     });
+
     child.on('close', (code) => {
       if (code !== 0) {
         reject(new Error(`npm install failed with code ${code}`));
@@ -32,7 +33,6 @@ export const npmInstall = async (dstDir) => {
         resolve();
       }
     });
-    child.on('error', reject);
   });
 };
 

@@ -214,7 +214,7 @@ export class ConversationObject extends EventTarget {
       console.log('got local message for unknown agent', {
         message,
         agentsMap: this.agentsMap,
-      });
+      }, new Error().stack);
     }
 
     const e = new ExtendableMessageEvent<ActionMessageEventData>('localmessage', {

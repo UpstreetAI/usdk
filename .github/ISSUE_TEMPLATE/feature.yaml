@@ -1,0 +1,22 @@
+name: Suggest an improvement!
+description: Do you want to see something better in the SDK or Chat App?
+title: "[Feature-Request]: "
+labels: ["enhancement", "triage"]
+assignees:
+  - SaadBazaz
+body:
+  - type: textarea
+    id: enhancement-description
+    attributes:
+      label: What do you want to see?
+      description: Also tell us, what alternatives have you tried?
+      placeholder: Tell us what you want!
+      value: "Better developer experience!"
+    validations:
+      required: true
+  - type: input
+    id: chat-url
+    attributes:
+      label: Link to original discussion
+      description: Relevant chat URL, such as a Discord message link, GitHub Issue, etc.
+      placeholder: https://discord.com/channels/1299433782348091514/1307370687090135111/1307383201928318986

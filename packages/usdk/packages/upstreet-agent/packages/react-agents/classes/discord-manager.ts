@@ -23,7 +23,7 @@ import {
 
 //
 
-const getIdFromUserId = (phoneNumber: string) => uuidByString(phoneNumber);
+const getIdFromUserId = (userId: string) => uuidByString(userId);
 const makePlayerFromMember = (member: any) => {
   const {
     userId,
@@ -37,8 +37,6 @@ const makePlayerFromMember = (member: any) => {
   });
   return player;
 };
-const getDiscordChannelConversationHash = (channelId: string) =>
-  `discord:channel:${channelId}`;
 const testRoomNameMatch = (channelName: string, channelSpec: DiscordRoomSpec) => {
   if (typeof channelSpec === 'string') {
     return channelName.toLowerCase() === channelSpec.toLowerCase();
@@ -69,13 +67,25 @@ const bindOutgoing = ({
       message,
     } = e.data;
     const {
+      attachments,
+    } = message;
+    const {
       method,
       args,
     } = message;
+
     if (method === 'say') {
-      const {
+      let {
         text,
       } = args as { text: string };
+      
+      if (attachments && Object.keys(attachments).length > 0) {
+        text += '\n' + Object.values(attachments)
+          .filter(attachment => attachment && typeof attachment === 'object' && 'url' in attachment)
+          .map(attachment => attachment.url)
+          .join('\n');
+      }
+
       discordBotClient.input.writeText(text, {
         channelId,
         userId,
@@ -88,9 +98,10 @@ const bindOutgoing = ({
   const queueManager = new QueueManager();
   conversation.addEventListener('audiostream', async (e: MessageEvent) => {
     await queueManager.waitForTurn(async () => {
-      // console.log('conversation outgoing audio stream', e.data);
+      console.log('conversation outgoing audio stream start', e.data);
       const audioStream = e.data.audioStream as PlayableAudioStream;
       await discordBotClient.input.pushStream(audioStream);
+      console.log('conversation outgoing audio stream end', e.data);
     });
   });
   // typing
@@ -207,12 +218,13 @@ export class DiscordBot extends EventTarget {
         } = channel;
         if (
           type === 0 || // text channel
-          type === 2 // voice channel
+          type === 2 || // voice channel
+          type === 13 // stage
         ) {
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
-              return getDiscordChannelConversationHash(channelId);
+              return `discord:channel:${channelId}`;
             },
           });
 

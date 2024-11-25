@@ -76,9 +76,10 @@ type Message = {
 export interface ChatProps extends React.ComponentProps<'div'> {
   id?: string
   room: string
+  desktop?: boolean
   onConnect?: (connected: boolean) => void
 }
-export function Chat({ className, /* user, missingKeys, */ room, onConnect }: ChatProps) {
+export function Chat({ className, /* user, missingKeys, */ room, desktop, onConnect }: ChatProps) {
   const [input, setInput] = useState('')
   const { user } = useSupabase();
 
@@ -154,11 +155,13 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
               className={cn('pb-[200px] pt-20 md:pt-24', className)}
               ref={messagesRef}
             >
-              {messages.length ? (
-                <ChatList messages={messages} />
-              ) : (
-                null
-              )}
+              <div className="relative mx-auto max-w-2xl px-4">
+                {messages.length ? (
+                  <ChatList messages={messages} />
+                ) : (
+                  null
+                )}
+              </div>
 
               <div className="relative mx-auto max-w-2xl px-4">
                 {isAgentLoading && "Loading agent..."}
@@ -173,6 +176,7 @@ export function Chat({ className, /* user, missingKeys, */ room, onConnect }: Ch
             isAtBottom={isAtBottom}
             scrollToBottom={scrollToBottom}
             room={room}
+            desktop={desktop}
             messages={messages}
           />
 

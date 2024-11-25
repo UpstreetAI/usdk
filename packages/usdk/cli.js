@@ -4,7 +4,7 @@ import fs from 'fs';
 import https from 'https';
 
 import { program } from 'commander';
-import WebSocket from 'ws';
+// import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import open from 'open';
 import pc from 'picocolors';
@@ -12,10 +12,8 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 
 import Table from 'cli-table3';
-// import * as ethers from 'ethers';
 
 import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
-// import { lembed } from './packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { parseAgentSpecs } from './lib/agent-spec-utils.mjs';
 import {
   getAgentPublicUrl,
@@ -37,8 +35,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
-import { ReactAgentsNodeRuntime } from './packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
+// import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -86,9 +83,9 @@ import {
   chat,
   runAgent,
 } from './lib/commands.mjs';
-import {
-  makeRoomName,
-} from './util/connect-utils.mjs';
+// import {
+//   makeRoomName,
+// } from './util/connect-utils.mjs';
 // import {
 //   env,
 // } from './lib/env.mjs';
@@ -97,7 +94,7 @@ import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/ut
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
 import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
-import { runJest } from './lib/jest-util.mjs';
+// import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 // import {
@@ -108,8 +105,6 @@ import { getLatestVersion } from './lib/version.mjs';
 // import {
 //   getDirectoryHash,
 // } from './util/hash-util.mjs';
-
-globalThis.WebSocket = WebSocket; // polyfill for multiplayer library
 
 //
 
@@ -593,7 +588,7 @@ const withdraw = async (args) => {
     throw new Error('not logged in');
   }
 }; */
-const test = async (args, opts) => {
+/* const test = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const debug = !!args.debug;
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
@@ -622,7 +617,7 @@ const test = async (args, opts) => {
 
     runtime.terminate();
   }
-};
+}; */
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
@@ -986,6 +981,33 @@ const unpublish = async (args, opts) => {
     }
   }
 };
+const voiceSubCommands = [
+  {
+    name: 'ls',
+    description: 'Lists all available voices for the current user.',
+    usage: 'usdk voice ls'
+  },
+  {
+    name: 'get',
+    description: 'Retrieves details about a specific voice.',
+    usage: 'usdk voice get <voice_name>'
+  },
+  {
+    name: 'play',
+    description: 'Plays the given text using the specified voice.',
+    usage: 'usdk voice play <voice_name> <text>'
+  },
+  {
+    name: 'add',
+    description: 'Adds new audio files to create or update a voice.',
+    usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
+  },
+  {
+    name: 'remove',
+    description: 'Removes a voice from the user\'s account.',
+    usage: 'usdk voice remove <voice_id>'
+  }
+];
 const voice = async (args) => {
   const subcommand = args._[0] ?? '';
   const subcommandArgs = args._[1] ?? [];
@@ -1209,7 +1231,15 @@ const voice = async (args) => {
         break;
       }
       default: {
-        console.warn(`unknown subcommand: ${subcommand}`);
+        if (subcommand) {
+          console.warn(`unknown subcommand${subcommand}`);
+        }
+        console.log('Available subcommands:');
+        const maxNameLength = Math.max(...voiceSubCommands.map(cmd => cmd.name.length));
+        voiceSubCommands.forEach(cmd => {
+          const paddedName = cmd.name.padEnd(maxNameLength);
+          console.log(`  ${paddedName}  ${cmd.description}`);
+        });
         process.exit(1);
       }
     }
@@ -1528,10 +1558,16 @@ export const createProgram = () => {
           });
         });
       });
+    const runtimes = [
+      'node',
+      'wrangler',
+      'electron',
+    ];
     program
       .command('run')
       .description('Run an agent')
       .argument('[agentDirs...]', 'Directory of the agent(s)')
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .action(async (agentDirs = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
@@ -1548,10 +1584,6 @@ export const createProgram = () => {
           });
         });
       });
-    const runtimes = [
-      'node',
-      'wrangler',
-    ];
     program
       .command('chat')
       // .alias('c')
@@ -1559,7 +1591,7 @@ export const createProgram = () => {
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
-      .option(`-run, --runtime <room>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .option(`-g, --debug`, `Enable debug logging`)
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {
@@ -1599,26 +1631,26 @@ export const createProgram = () => {
     //       await search(args);
     //     });
     //   });
-    program
-      .command('test')
-      .description('Run agent tests')
-      .argument(`[directories...]`, `Directories containing the agent projects to test`)
-      .option('-g, --debug', 'Enable debug logging')
-      .action(async (directories = [], opts = {}) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
+    // program
+    //   .command('test')
+    //   .description('Run agent tests')
+    //   .argument(`[directories...]`, `Directories containing the agent projects to test`)
+    //   .option('-g, --debug', 'Enable debug logging')
+    //   .action(async (directories = [], opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       const args = {
+    //         _: [directories],
+    //         ...opts,
+    //       };
 
-          const jwt = await getLoginJwt();
+    //       const jwt = await getLoginJwt();
 
-          await test(args, {
-            jwt,
-          });
-        });
-      });
+    //       await test(args, {
+    //         jwt,
+    //       });
+    //     });
+    //   });
     // program
     //   .command('capture')
     //   .description('Test display functionality; with no arguments, list available devices')
@@ -1821,57 +1853,30 @@ export const createProgram = () => {
           await disable(args);
         });
       }); */
-    const voiceSubCommands = [
-      {
-        name: 'ls',
-        description: 'Lists all available voices for the current user.',
-        usage: 'usdk voice ls'
-      },
-      {
-        name: 'get',
-        description: 'Retrieves details about a specific voice.',
-        usage: 'usdk voice get <voice_name>'
-      },
-      {
-        name: 'play',
-        description: 'Plays the given text using the specified voice.',
-        usage: 'usdk voice play <voice_name> <text>'
-      },
-      {
-        name: 'add',
-        description: 'Adds new audio files to create or update a voice.',
-        usage: 'usdk voice add <voice_name> <file1.mp3> [file2.mp3] ...'
-      },
-      {
-        name: 'remove',
-        description: 'Removes a voice from the user\'s account.',
-        usage: 'usdk voice remove <voice_id>'
-      }
-    ];
-    // program
-    //   .command('voice')
-    //   .description(
-    //     'Manage agent voices',
-    //   )
-    //   .argument(
-    //     `[subcommand]`,
-    //     `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
-    //   )
-    //   .argument(
-    //     `[args...]`,
-    //     `Arguments to pass to the subcommand`,
-    //   )
-    //   .action(async (subcommand = '', args = [], opts = {}) => {
-    //     await handleError(async () => {
-    //       commandExecuted = true;
-    //       args = {
-    //         _: [subcommand, args],
-    //         ...opts,
-    //       };
-    //       await voice(args);
-    //     });
-    //   })
-    //   .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
+    program
+      .command('voice')
+      .description(
+        'Manage agent voices',
+      )
+      .argument(
+        `[subcommand]`,
+        `What voice action to perform; one of [${voiceSubCommands.map(cmd => cmd.name).join(', ')}]`,
+      )
+      .argument(
+        `[args...]`,
+        `Arguments to pass to the subcommand`,
+      )
+      .action(async (subcommand = '', args = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          args = {
+            _: [subcommand, args],
+            ...opts,
+          };
+          await voice(args);
+        });
+      })
+      .addHelpText('after', `\nSubcommands:\n${voiceSubCommands.map(cmd => `  ${cmd.name}\t${cmd.description}\n\t\t${cmd.usage}`).join('\n')}`);
     // program
     //   .command('logs')
     //   .description(`Stream an agent's logs`)
