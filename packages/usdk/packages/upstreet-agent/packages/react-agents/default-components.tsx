@@ -3474,21 +3474,21 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         'openai:gpt-4o',
         );
 
-        console.log('current conversation interest', conversationInterest);
-        console.log('back and forth penalty', backAndForthPenalty);
-        console.log('decision confidence', decision.content.confidence);
+        // console.log('current conversation interest', conversationInterest);
+        // console.log('back and forth penalty', backAndForthPenalty);
+        // console.log('decision confidence', decision.content.confidence);
 
         const calc = conversationInterest - backAndForthPenalty;
         const blendedInterest = (calc + decision.content.confidence) / 2;
         const newInterest = Math.max(0, Math.min(1, blendedInterest));
         
-        console.log('new interest', newInterest);
+        // console.log('new interest', newInterest);
         targetAgent.conversation.setConversationInterest(newInterest);
 
-        console.log('decision', {
-          decision,
-          conversationInterest: newInterest,
-        });
+        // console.log('decision', {
+        //   decision,
+        //   conversationInterest: newInterest,
+        // });
 
         // Use conversation interest to determine if we should respond
         if (!decision.content.shouldRespond || newInterest < defaultThreshold) {
