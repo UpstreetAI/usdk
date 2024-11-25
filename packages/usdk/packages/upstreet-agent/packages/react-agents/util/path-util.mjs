@@ -5,7 +5,10 @@ export const getCurrentDirname = (importMeta = import.meta, _process = process) 
     return importMeta.dirname;
   } else if (importMeta.url) {
     return path.dirname(new URL(importMeta.url).pathname);
-  } else { // we default to this, and pray to God it works.
-    return _process.cwd()
+  } else if (_process) { // In some environments, importMeta is not defined. So we revert to process.
+    return _process.cwd() 
+  } else { // We default to this, and pray to God it works.
+    console.info("[getCurrentDirname] Defaulting to '.'.")
+    return "."
   }
 };

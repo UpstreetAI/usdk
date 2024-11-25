@@ -1989,12 +1989,17 @@ export const createProgram = () => {
           await withdraw(args);
         });
       });*/
-    } catch (error) {
-      console.error(error);
-    }
-    return program // always return the program
-}
+  } catch (error) {
+    console.error("Error creating program:", error);
+  }
+  return program // always return the program
+};
 
 export const main = async () => {
-    await program.parseAsync();
+    createProgram();
+    try {
+      await program.parseAsync();
+    } catch (error) {
+      console.error("Error running program:", error);
+    }
 };
