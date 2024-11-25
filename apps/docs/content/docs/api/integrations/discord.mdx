@@ -1,0 +1,103 @@
+---
+title: Discord
+description: Integrate your Agent with Discord, the popular chatting app.
+full: false
+---
+
+
+import Wrapper from 'components/preview/wrapper';
+import Image from 'next/image';
+
+Add Discord integration to your agent by following these steps:
+
+## Step 1: Create a Discord bot application
+   - Go to https://discord.com/developers/applications
+   - Click "New Application" and give it a name
+
+  <Image src="/images/integrations/discord-new-app.png" width={740} height={300} className='rounded-md'/>
+
+
+## Step 2: Configure bot settings
+   - Go to **bot** section to get the Token.
+   - Click on **Reset Token** to  get your token and save it somewhere securely.
+  <Image src="/images/integrations/bot-section.png" width={740} height={300} className='rounded-md'/>
+ 
+  Make sure to enable all the three options here.
+  - Presence Intent
+  - Server Members Intent
+  - Message Content Intent
+
+  <Image src="/images/integrations/bot-perm.png" width={740} height={300} className='rounded-md'/>
+
+
+
+
+## Step 3: Add the bot to your server
+
+  - Go to **OAuth2** section
+
+  - At **OAuth2 URL Generator** check the **bot** option
+
+  <Image src="/images/integrations/bot-mark.png" width={740} height={300} className='rounded-md'/>
+
+
+
+  - Now give the relevant permissions to the bot
+  <Image src="/images/integrations/auth-perm.png" width={740} height={300} className='rounded-md'/>
+
+
+  - Scroll down a bit to copy the URL
+  <Image src="/images/integrations/Copy-url.png" width={740} height={300} className='rounded-md'/>
+
+  - **Paste** this URL in a new tab where you will have to:
+
+   1) Select the server you want to add the bot to
+   2) Authorize the bot
+
+## Step 4: Create and Configure your agent
+
+    Run this command to create an Upstreet agent
+    ```tsx
+    usdk create
+    ```
+
+   - Add the following component to your agent:
+   ```tsx
+   import { Discord } from 'react-agents';
+
+   return (
+    <Agent>
+      {/* ... */}
+      <Discord
+        token="YOUR_BOT_TOKEN" // The bot token from step 4
+        channels={[
+          "general", // Text channel names the bot should listen to
+          "voice-chat" // Voice channel names the bot should listen to
+        ]}
+        dms={true} // Enable direct messages with the bot
+        userWhitelist={[ // Optional: restrict which users can interact
+          "user1#1234",
+          "user2#5678"
+        ]}
+      />
+      {/* ... */}
+    </Agent>
+   );
+   ```
+
+    By running the below command your bot is up and running, you can test it in the discord server
+
+    ```tsx
+    usdk chat
+    ```
+
+   ## Additional Notes
+   - The bot will only respond in the specified channels and to whitelisted users (if configured)
+   - Voice channel support requires additional Discord permissions (see above)
+   - Channel names are case-sensitive and should match exactly
+   - For DMs, users must share a server with the bot
+   - The bot token should be kept secure and not committed to version control.
+     - You can use `.env.txt` and the useEnv() hook to load it at runtime.
+   - If you need to reset the token for security reasons, you can do so in the Discord Developer Portal
+   - The bot requires a stable internet connection to maintain WebSocket connection with Discord
+   - Rate limits apply to bot actions - see Discord's [developer documentation](https://discord.com/developers/docs/topics/rate-limits) for details

@@ -25,6 +25,9 @@ import {
   TwitterManager,
 } from './twitter-manager';
 import {
+  TwitterSpacesManager,
+} from './twitter-spaces-manager';
+import {
   TelnyxManager,
 } from './telnyx-manager';
 import {
@@ -48,6 +51,7 @@ export class ActiveAgentObject extends AgentObject {
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
   twitterManager: TwitterManager;
+  twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
   liveManager: LiveManager;
   pingManager: PingManager;
@@ -86,6 +90,9 @@ export class ActiveAgentObject extends AgentObject {
       codecs: appContextValue.useCodecs(),
     });
     this.twitterManager = new TwitterManager({
+      codecs: appContextValue.useCodecs(),
+    });
+    this.twitterSpacesManager = new TwitterSpacesManager({
       codecs: appContextValue.useCodecs(),
     });
     this.telnyxManager = new TelnyxManager();

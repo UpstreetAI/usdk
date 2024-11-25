@@ -37,6 +37,8 @@ import type {
   DiscordArgs,
   TwitterProps,
   TwitterArgs,
+  TwitterSpacesProps,
+  TwitterSpacesArgs,
   TelnyxProps,
   TelnyxBotArgs,
 } from './types';
@@ -2947,15 +2949,14 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
     if (!browserStatePromise.current) {
       const localPromise = (async () => {
         // console.log('create browser with jwt', authToken);
-        const browserResult = await createBrowser(undefined, {
+        const browser = await createBrowser(undefined, {
           jwt: authToken,
         });
-        const {
-          sessionId,
-          url,
-          browser,
-          destroySession,
-        } = browserResult;
+        const destroySession = async () => {
+          console.log('destroy browser session 1');
+          await browser.destroy();
+          console.log('destroy browser session 2');
+        };
         if (localPromise === browserStatePromise.current) {
           // if we are still the current browser state promise, latch the state
           const browserState = new BrowserState({
@@ -3283,6 +3284,42 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
         const twitter = agent.twitterManager.addTwitterBot(args);
         return () => {
           agent.twitterManager.removeTwitterBot(twitter);
+        };
+      }
+    })();
+  }, [token]);
+
+  return null;
+};
+export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpacesProps) => {
+  const {
+    token,
+    url,
+  } = props;
+  const agent = useAgent();
+  const appContextValue = useContext(AppContext);
+  const codecs = appContextValue.useCodecs();
+  const authToken = useAuthToken();
+  const ref = useRef(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      return;
+    }
+    ref.current = true;
+
+    (async () => {
+      if (token) {
+        const args: TwitterSpacesArgs = {
+          token,
+          url,
+          agent,
+          codecs,
+          jwt: authToken,
+        };
+        const twitter = agent.twitterSpacesManager.addTwitterSpacesBot(args);
+        return () => {
+          agent.twitterSpacesManager.removeTwitterSpacesBot(twitter);
         };
       }
     })();

@@ -7,24 +7,18 @@
   "MD041": false
 } -->
 
-<div align="center" style={{textAlign: "center"}}>
+<div align="center" style="text-align: center">
 
-<pre style={{width: 'fit-content', textAlign: 'center', }}>
-  ██  ██ ██████  ███████ ████████ ██████  ███████ ███████ ████████
-  ██  ██ ██   ██ ██         ██    ██   ██ ██      ██         ██   
-  ██  ██ ██████  ███████    ██    ██████  █████   █████      ██   
-  ██  ██ ██           ██    ██    ██   ██ ██      ██         ██   
-██████ ██      ███████    ██    ██   ██ ███████ ███████    ██ 
-</pre>
+[![upstreet-logo](https://github.com/user-attachments/assets/56a1469a-1a2f-4fd2-a1d3-32fa44d7b02d)](https://upstreet.ai)
+
 
 <!-- [![](https://dcbadge.limes.pink/api/server/TfKW36rMj7)](https://discord.gg/TfKW36rMj7) -->
 [![NPM](https://img.shields.io/badge/NPM-%23CB3837.svg?style=for-the-badge&logo=npm&logoColor=white)](https://npmjs.org/package/usdk)
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://upstreet.ai/usdk-discord)
 [![X](https://img.shields.io/badge/X-%23000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://x.com/upstreetai)
 
-[Upstreet.ai](https://upstreet.ai) provides the tooling and infrastructure to build and scale AI Agents, fast.
+[Upstreet.ai](https://upstreet.ai) is an open source framework to build + deploy AI agents with React.
 
-> We ❤️ Open Source! <br />
 > Star (⭐️) [this repo](https://github.com/upstreetAI/upstreet-core) to support our development.
 
 [Table of Contents](#in-this-repo) •
@@ -33,6 +27,8 @@
 [Attributions](#usdk-is-built-with)
 
 </div>
+
+[![Tutorial Video](./screenshots/video-thumbnail.png)](https://www.youtube.com/watch?v=Fr78GhpaYB4&t=2s)
 
 ## In this repo...
 ### Chat App:

@@ -21,7 +21,7 @@ import {
 import {
   bindConversationToAgent,
 } from '../runtime';
-import { Player } from 'react-agents-client/util/player.mjs';
+// import { Player } from 'react-agents-client/util/player.mjs';
 import { ReactAgentsMultiplayerConnection } from 'react-agents-client/react-agents-client.mjs';
 import {
   ExtendableMessageEvent,

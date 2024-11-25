@@ -32,24 +32,12 @@ const startAgentMainServer = async ({
   ip,
   port,
 }) => {
-  // console.log('startAgentMainServer', { agentMain, ip, port });
-
   const app = new Hono();
 
   app.all('*', (c) => {
     const req = c.req.raw;
-    // console.log('got fetch', {
-    //   url: req.url,
-    //   method: req.method,
-    //   headers: Object.fromEntries(req.headers),
-    // });
     return agentMain.fetch(req);
   });
-
-  // console.log('create server', {
-  //   hostname: ip,
-  //   port: parseInt(port, 10),
-  // });
 
   // create server
   const server = serve({
