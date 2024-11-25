@@ -1561,6 +1561,7 @@ export const main = async () => {
       .command('run')
       .description('Run an agent')
       .argument('[agentDirs...]', 'Directory of the agent(s)')
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .action(async (agentDirs = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
