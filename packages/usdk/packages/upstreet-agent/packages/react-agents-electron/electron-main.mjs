@@ -5,6 +5,7 @@ import { createServer as createViteServer } from 'vite';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { app, screen, session, BrowserWindow, desktopCapturer } from 'electron';
+import { WebSocket } from 'ws';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
 
 //
@@ -19,6 +20,8 @@ console.log('electron start script!');
     });
   });
 });
+
+globalThis.WebSocket = WebSocket;
 
 // agent code
 
