@@ -642,6 +642,9 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
@@ -654,6 +657,28 @@ export const edit = async (args, opts) => {
   }
 
   let agentJson = loadAgentJson(dstDir);
+
+  // update character card
+  if (inputFile) {
+    const update = await getAgentJsonFromCharacterCard(inputFile);
+    agentJson = {
+      ...agentJson,
+      ...update,
+    };
+  };
+
+  // update images
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
+      jwt,
+    });
+  }
+  if (hsFile) {
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
+  }
 
   // update features
   agentJson = updateFeatures(agentJson, {

@@ -1495,6 +1495,9 @@ export const main = async () => {
       .description('Edit an existing agent')
       .argument(`[directory]`, `Directory containing the agent to edit`)
       .option(`-p, --prompt <string>`, `Edit prompt`)
+      .option(`-i, --input <file>`, `Update from file (character card)`)
+      .option(`-pfp, --profile-picture <file>`, `Set the profile picture`)
+      .option(`-hs, --home-space <file>`, `Set the home space`)
       .option(
         `-af, --add-feature <feature...>`,
         `Add a feature`,
