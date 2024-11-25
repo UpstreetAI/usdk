@@ -324,12 +324,12 @@ exports.backfillV2WithObsolescenceNotice = backfillV2WithObsolescenceNotice;
  * @category Zod parsers
  */
 exports.v1 = zod_1.z.object({
-    name: zod_1.z.string(),
-    description: zod_1.z.string(),
-    personality: zod_1.z.string(),
-    scenario: zod_1.z.string(),
-    first_mes: zod_1.z.string(),
-    mes_example: zod_1.z.string(),
+    name: zod_1.z.coerce.string(),
+    description: zod_1.z.coerce.string(),
+    personality: zod_1.z.coerce.string(),
+    scenario: zod_1.z.coerce.string(),
+    first_mes: zod_1.z.coerce.string(),
+    mes_example: zod_1.z.coerce.string(),
 });
 /**
  * A parser object made with the {@link https://www.npmjs.com/package/zod | zod} library which can be used to validate
@@ -353,20 +353,23 @@ exports.v1 = zod_1.z.object({
  * @category Zod parsers
  */
 exports.entry = zod_1.z.object({
-    keys: zod_1.z.array(zod_1.z.string()),
-    content: zod_1.z.string(),
-    extensions: zod_1.z.record(zod_1.z.any()),
-    enabled: zod_1.z.boolean(),
-    insertion_order: zod_1.z.number(),
-    case_sensitive: zod_1.z.boolean().optional(),
-    name: zod_1.z.string().optional(),
-    priority: zod_1.z.number().optional(),
-    id: zod_1.z.number().optional(),
-    comment: zod_1.z.string().optional(),
-    selective: zod_1.z.boolean().optional(),
-    secondary_keys: zod_1.z.array(zod_1.z.string()).optional(),
-    constant: zod_1.z.boolean().optional(),
-    position: zod_1.z.union([zod_1.z.literal('before_char'), zod_1.z.literal('after_char')]).optional(),
+    keys: zod_1.z.array(zod_1.z.coerce.string()), // Cast elements to strings in the array
+    content: zod_1.z.coerce.string(),             // Cast to string
+    extensions: zod_1.z.record(zod_1.z.any()),   // Allow any record
+    enabled: zod_1.z.coerce.boolean(),            // Cast to boolean
+    insertion_order: zod_1.z.coerce.number(),     // Cast to number
+    case_sensitive: zod_1.z.coerce.boolean().optional(), // Optional boolean cast
+    name: zod_1.z.coerce.string().optional(),            // Optional string cast
+    priority: zod_1.z.coerce.number().optional(),        // Optional number cast
+    id: zod_1.z.coerce.number().optional(),              // Optional number cast
+    comment: zod_1.z.coerce.string().optional(),         // Optional string cast
+    selective: zod_1.z.coerce.boolean().optional(),      // Optional boolean cast
+    secondary_keys: zod_1.z.array(zod_1.z.coerce.string()).optional(), // Optional array of strings cast
+    constant: zod_1.z.coerce.boolean().optional(),       // Optional boolean cast
+    position: zod_1.z.union([
+        zod_1.z.literal('before_char'),
+        zod_1.z.literal('after_char'),
+    ]).optional(),                                 // Keep union unchanged since it does not need coercion
 });
 /**
  * A parser object made with the {@link https://www.npmjs.com/package/zod | zod} library which can be used to validate
@@ -390,11 +393,11 @@ exports.entry = zod_1.z.object({
  * @category Zod parsers
  */
 exports.book = zod_1.z.object({
-    name: zod_1.z.string().optional(),
-    description: zod_1.z.string().optional(),
-    scan_depth: zod_1.z.number().optional(),
-    token_budget: zod_1.z.number().optional(),
-    recursive_scanning: zod_1.z.boolean().optional(),
+    name: zod_1.z.coerce.string().optional(),
+    description: zod_1.z.coerce.string().optional(),
+    scan_depth: zod_1.z.coerce.number().optional(),
+    token_budget: zod_1.z.coerce.number().optional(),
+    recursive_scanning: zod_1.z.coerce.boolean().optional(),
     extensions: zod_1.z.record(zod_1.z.any()),
     entries: zod_1.z.array(exports.entry),
 });
@@ -427,16 +430,16 @@ exports.v2 = zod_1.z.object({
     /** Identifier for the Character Card spec used. Can only be 'chara_card_v2'. */
     spec: zod_1.z.literal('chara_card_v2'),
     /** Non-breaking minor spec version. Expected to be '2.0' at this time. */
-    spec_version: zod_1.z.string(),
+    spec_version: zod_1.z.coerce.string(),
     data: exports.v1.merge(zod_1.z.object({
-        creator_notes: zod_1.z.string(),
-        system_prompt: zod_1.z.string(),
-        post_history_instructions: zod_1.z.string(),
-        alternate_greetings: zod_1.z.array(zod_1.z.string()),
+        creator_notes: zod_1.z.coerce.string(),
+        system_prompt: zod_1.z.coerce.string(),
+        post_history_instructions: zod_1.z.coerce.string(),
+        alternate_greetings: zod_1.z.array(zod_1.z.coerce.string()),
         character_book: exports.book.optional(),
-        tags: zod_1.z.array(zod_1.z.string()),
-        creator: zod_1.z.string(),
-        character_version: zod_1.z.string(),
+        tags: zod_1.z.array(zod_1.z.coerce.string()),
+        creator: zod_1.z.coerce.string(),
+        character_version: zod_1.z.coerce.string(),
         extensions: zod_1.z.record(zod_1.z.any()),
     })),
 });
