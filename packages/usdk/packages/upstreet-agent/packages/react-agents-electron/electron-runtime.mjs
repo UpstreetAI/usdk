@@ -1,6 +1,8 @@
-import child_process from 'child_process';
+// import child_process from 'child_process';
+import crossSpawn from 'cross-spawn';
 import { electronBinPath, electronStartScriptPath } from './util/locations.mjs';
-import { cwd } from './util/directory-utils.mjs';
+// import { cwd } from './util/directory-utils.mjs';
+
 
 //
 
@@ -80,52 +82,87 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 //
 
 export class ReactAgentsElectronRuntime {
-  room;
-  jwt;
+  agentSpec;
   cp = null;
-  constructor({
-    room,
-    jwt,
-  }) {
-    if (!room || !jwt) {
-      throw new Error('invalid args');
-    }
-
-    this.room = room;
-    this.jwt = jwt;
+  constructor(agentSpec) {
+    this.agentSpec = agentSpec;
   }
   async start({
     debug = false,
   } = {}) {
+    const {
+      directory,
+      portIndex,
+    } = this.agentSpec;
+
     // spawn the wrangler child process
-    const cp = child_process.spawn(
+    const cp = crossSpawn(
       electronBinPath,
       [
         electronStartScriptPath,
-      ]
-        .concat([this.room])
-        .concat([this.jwt])
-        .concat([
-          debug ? '1' : '0',
-        ]),
+        'run',
+        '--var', 'WORKER_ENV:development',
+        '--ip', '0.0.0.0',
+        '--port', devServerPort + portIndex,
+      ],
       {
         stdio: 'pipe',
-        cwd,
+        cwd: directory,
       },
     );
     bindProcess(cp);
-    console.log('electron runtime wait for process io 1');
     await waitForProcessIo(cp, /electron main ready/i);
-    console.log('electron runtime wait for process io 2');
     if (debug) {
       cp.stdout.pipe(process.stdout);
       cp.stderr.pipe(process.stderr);
     }
     this.cp = cp;
   }
-  terminate() {
-    if (this.cp) {
-      this.cp.kill('SIGINT');
+  // open the frontend
+  async open({
+    room,
+  }) {
+    const res = await fetch(`http://127.0.0.1:${devServerPort + this.agentSpec.portIndex}/open`, {
+      method: 'POST',
+      body: JSON.stringify({
+        room,
+      }),
+    });
+    if (res.ok) {
+      const j = await res.json();
+    } else {
+      const text = await res.text();
+      throw new Error(`failed to open frontend: ${res.status}: ${text}`);
     }
+  }
+  async terminate() {
+    await new Promise((accept, reject) => {
+      const { cp } = this;
+      if (cp === null) {
+        accept(null);
+      } else {
+        if (cp.exitCode !== null) {
+          // Process already terminated
+          accept(cp.exitCode);
+        } else {
+          // Process is still running
+          const exit = (code) => {
+            accept(code);
+            cleanup();
+          };
+          cp.on('exit', exit);
+          const error = (err) => {
+            reject(err);
+            cleanup();
+          };
+          cp.on('error', error);
+          const cleanup = () => {
+            cp.removeListener('exit', exit);
+            cp.removeListener('error', error);
+          };
+          cp.kill('SIGTERM');
+        }
+      }
+    });
   }
 }
