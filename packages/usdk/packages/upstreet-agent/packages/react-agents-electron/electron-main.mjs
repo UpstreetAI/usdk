@@ -43,25 +43,40 @@ const startAgentMainServer = async ({
     if (!opened) {
       opened = true;
       
-      const req = c.req.raw;
-      const j = await req.json();
-      const {
-        room,
-        jwt,
-      } = j;
+      try {
+        const req = c.req.raw;
+        const j = await req.json();
+        const {
+          room,
+          jwt,
+          debug,
+        } = j;
 
-      await openFrontend({
-        room,
-        jwt,
-      });
+        await openFrontend({
+          room,
+          jwt,
+          debug,
+        });
 
-      return new Response(JSON.stringify({
-        ok: true,
-      }), {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+        return new Response(JSON.stringify({
+          ok: true,
+        }), {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (err) {
+        console.warn(err);
+
+        return new Response(JSON.stringify({
+          error: err.stack,
+        }), {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
     } else {
       return new Response(JSON.stringify({
         error: 'already opened',
