@@ -3367,11 +3367,17 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
   const historyLength = props?.historyLength ?? 5;
   const defaultThreshold = props?.defaultThreshold ?? 0.6;
 
+  const [conversationInterest, setConversationInterest] = useState(1);
+
   return (
     <PerceptionModifier
     type="say" 
     handler={async (e: AbortablePerceptionEvent) => {
       const { message, sourceAgent, targetAgent } = e.data;
+
+      console.log('self conscious replies', {
+        conversationInterest,
+      });
 
       // Get conversation members and recent messages in one pass
       const [conversationMembers, messages] = await Promise.all([
@@ -3419,7 +3425,9 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           CONVERSATION FATIGUE CONTEXT:
           - You and ${sourceAgent.name} have had ${backAndForthCount} back-and-forth exchanges recently
           - Your interest level is reduced by ${(backAndForthPenalty * 100).toFixed()}% due to conversation fatigue
+          - Your current interest level in the conversation is ${conversationInterest.toFixed(2)} out of 1.0
           - If you've been going back and forth too much, you should naturally lose interest and let the conversation end
+          - Your interest level will affect your likelihood of responding
           
           Based on this context, should you respond to this message?
           
@@ -3449,6 +3457,7 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
           - Would responding align with ONLY your defined personality traits?
           - Is your response truly necessary or would it derail the current conversation?
           - Are you certain you have unique, valuable information to add if interrupting?
+          - How does your current interest level (${conversationInterest.toFixed(2)}) affect your desire to respond?
           
           Respond with a decision object containing:
           - shouldRespond: boolean (true if confidence > ${defaultThreshold})
@@ -3471,8 +3480,14 @@ export const SelfConsciousReplies: React.FC<SelfConsciousRepliesProps> = (props:
         'openai:gpt-4o',
         );
 
-        // Apply the back-and-forth penalty to the confidence
-        const adjustedConfidence = decision.content.confidence * (1 - backAndForthPenalty);
+        // Apply both the back-and-forth penalty and current interest level to the confidence
+        const adjustedConfidence = decision.content.confidence * (1 - backAndForthPenalty) * conversationInterest;
+        setConversationInterest(adjustedConfidence);
+
+        console.log('decision', {
+          decision,
+          adjustedConfidence,
+        });
 
         if (!decision.content.shouldRespond || adjustedConfidence < defaultThreshold) {
           e.abort();
