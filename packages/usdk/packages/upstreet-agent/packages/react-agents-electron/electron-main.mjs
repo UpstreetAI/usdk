@@ -14,10 +14,7 @@ console.log('electron start script!');
 
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
-    process.send({
-      method: 'error',
-      args: [err.stack],
-    });
+    console.warn(err.stack);
   });
 });
 
