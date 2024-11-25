@@ -1557,6 +1557,11 @@ export const main = async () => {
           });
         });
       });
+    const runtimes = [
+      'node',
+      'wrangler',
+      'electron',
+    ];
     program
       .command('run')
       .description('Run an agent')
@@ -1578,11 +1583,6 @@ export const main = async () => {
           });
         });
       });
-    const runtimes = [
-      'node',
-      'wrangler',
-      'electron',
-    ];
     program
       .command('chat')
       // .alias('c')
