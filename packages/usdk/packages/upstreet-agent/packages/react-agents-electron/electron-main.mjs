@@ -182,7 +182,7 @@ const openFrontend = async ({
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
     // construct the destination url
-    const dstUrl = new URL(`${host}/rooms/${room}`);
+    const dstUrl = new URL(`${host}/desktop/${room}`);
     dstUrl.searchParams.set('desktop', 1 + '');
     // construct the final url
     const u = new URL(`${host}/login`);
