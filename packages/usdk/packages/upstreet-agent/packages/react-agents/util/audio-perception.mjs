@@ -128,13 +128,28 @@ export const transcribeRealtime = ({
     const bs = [];
     let speechStartSampleIndex = 0;
     const queueManager = new QueueManager();
-
+    const vadOptions = {
+      // Confidence threshold to classify a frame as speech (0-1). Higher = stricter, fewer false positives
+      positiveSpeechThreshold: 0.7,
+      // Confidence threshold to classify a frame as non-speech (0-1). Higher = stricter, fewer false negatives
+      negativeSpeechThreshold: 0.6,
+      // Number of frames to include before speech is detected
+      preSpeechPadFrames: 1,
+      // Number of consecutive non-speech frames before triggering speech end
+      redemptionFrames: 5,
+      // Minimum frames needed for speech detection - fewer frames trigger onVADMisfire instead of onSpeechEnd
+      minSpeechFrames: 8,
+      // Whether to submit speech segments when a pause is detected
+      submitUserSpeechOnPause: false,
+    };
     // console.log('connect transcribe realtime 1');
 
     // const u = new URL(`${aiHost.replace(/^http/, 'ws')}/api/ai/realtime`);
     // u.searchParams.set('model', defaultRealtimeModel);
     const u = new URL(vadEndpoint.replace(/^http/, 'ws'));
     u.searchParams.set('apiKey', jwt);
+    u.searchParams.set('vadOptions', JSON.stringify(vadOptions));
+    
     const ws = new WebSocket(u);
     // console.log('connect transcribe realtime 2');
     ws.binaryType = 'arraybuffer';

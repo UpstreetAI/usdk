@@ -1,0 +1,28 @@
+---
+title: Import an Agent
+description: Import an agent from other platforms to use in USDK.
+full: false
+---
+ 
+import Wrapper from '../../../components/preview/wrapper';
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+ 
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { formatNodeVersion } from '../../../lib/utils';
+ 
+## Tavern Character Card
+
+You can import an agent from a Tavern Character Card using the `-i` or `--input` flag with `usdk create`:
+
+```bash
+usdk create -i ./character-card.png
+```
+
+This will skip the interview process and import the character's:
+- Name
+- Personality traits
+- Description and background
+- Profile picture
+- Other metadata like scenario and example conversations
+
+The SDK will automatically configure these attributes.

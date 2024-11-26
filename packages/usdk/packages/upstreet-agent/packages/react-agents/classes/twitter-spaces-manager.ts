@@ -784,7 +784,11 @@ class TwitterSpacesBot {
         };
       };
       const _createTs = async () => {
-        // const jwt = await getLoginJwt();
+        // const browser = await chromium.launch({
+        //   headless: false,
+        //   devtools: true,
+        //   // args: ['--disable-web-security'],
+        // });
         const browser = await createBrowser(undefined, {
           jwt,
         });

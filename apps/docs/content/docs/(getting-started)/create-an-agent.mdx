@@ -19,12 +19,12 @@ import pkgJson from 'usdk/package.json';
   </Accordion>
 </Accordions>
 
-Upstreet AI Agents are fully customizable digital entities that autonomously handle tasks, communicate, and interact according to your configuration.
+Upstreet AI Agents are persistent digital entities that can autonomously handle tasks, interact with you and your users over chat or social media, and can be customized according to your configuration.
 
 **New to designing Agents?** Explore how to define effective Agent objectives and strategies in our [Agent Design Concepts](/concepts/defining-agent-objectives).
 
 ## Quickstart: Creating an Agent
-With Upstreet, getting started is easy. Here’s how to set up your first Agent.
+Here’s how to set up your first Agent.
 
 ### Step 1: Running the command
 
@@ -53,9 +53,14 @@ The `usdk create` command initiates an interactive “interview” process with 
    Once all required fields are captured, the interview concludes, setting up all the Agent features and initialising the necessary files in your directory.
 
 <Callout>
-Want to **skip the interview** and jump right in the action? You can use the `-y` flag to skip the Agent Interview process.
+Want to **skip the interview** and jump right in with coding your agent?
+You can use the `-p` flag to pass a single creation prompt, or the `-y` to skip the interview process and create a default agent.
 You can also omit the agent directory. In that case, a directory will be created for you.
 </Callout>
+
+To import your agent from other platforms, `usdk create` also supports [Tavern character cards](https://github.com/malfoyslastname/character-card-spec-v2) and more.
+
+See [Importing an Agent](/import-an-agent) for more information.
 
 ### File Structure
 
@@ -69,6 +74,7 @@ Assuming you’ve named your project directory “my-agent,” here’s the stru
     <Folder name="packages" />
     <Folder name="codecs" />
     <Folder name="tests" />
+    <File name=".gitignore" />
     <File name="agent.tsx" />
     <File name="jest.config.mjs" />
     <File name="jest.setup.mjs" />
@@ -81,10 +87,10 @@ Assuming you’ve named your project directory “my-agent,” here’s the stru
 </Files>
 </Wrapper>
 
-For a breakdown of these files, see our [Agent Structure guide](/concepts/agents-sdk/agent-structure).
+For a breakdown of these files, see our [Agent Structure guide](/concepts/usdk/agent-structure).
 
 <Callout>
-Remember to keep your Agent’s configuration secure. Avoid making this repository public on platforms like GitHub, as sensitive keys could be exposed.
+Remember to keep your Agent's configuration secure. Avoid committing your secret keys to GitHub, and use [Environment Variables](/customize-your-agent#using-environment-variables) to store secrets.
 </Callout>
 
 ---

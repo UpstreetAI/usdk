@@ -35,7 +35,7 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+// import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -83,9 +83,9 @@ import {
   chat,
   runAgent,
 } from './lib/commands.mjs';
-import {
-  makeRoomName,
-} from './util/connect-utils.mjs';
+// import {
+//   makeRoomName,
+// } from './util/connect-utils.mjs';
 // import {
 //   env,
 // } from './lib/env.mjs';
@@ -94,7 +94,7 @@ import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/ut
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
 import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
-import { runJest } from './lib/jest-util.mjs';
+// import { runJest } from './lib/jest-util.mjs';
 import { logUpstreetBanner } from './util/logger/log-utils.mjs';
 import { makeCorsHeaders, getServerOpts } from './util/server-utils.mjs';
 // import {
@@ -588,7 +588,7 @@ const withdraw = async (args) => {
     throw new Error('not logged in');
   }
 }; */
-const test = async (args, opts) => {
+/* const test = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const debug = !!args.debug;
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
@@ -617,7 +617,7 @@ const test = async (args, opts) => {
 
     runtime.terminate();
   }
-};
+}; */
 const ensureWebpEncoder = (() => {
   let webpEncoder = null;
   return () => {
@@ -1255,7 +1255,8 @@ const handleError = async (fn) => {
     process.exit(1);
   }
 };
-export const main = async () => {
+
+export const createProgram = () => {
   try {
 
     const ver = version();
@@ -1436,6 +1437,9 @@ export const main = async () => {
       .description('Create a new agent, from either a prompt or template')
       .argument(`[directory]`, `Directory to create the project in`)
       .option(`-p, --prompt <string>`, `Creation prompt`)
+      .option(`-i, --input <file>`, `Initialize from file (character card)`)
+      .option(`-pfp, --profile-picture <file>`, `Set the profile picture`)
+      .option(`-hs, --home-space <file>`, `Set the home space`)
       .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
       .option(`-y, --yes`, `Non-interactive mode`)
       .option(`-f, --force`, `Overwrite existing files`)
@@ -1492,6 +1496,9 @@ export const main = async () => {
       .description('Edit an existing agent')
       .argument(`[directory]`, `Directory containing the agent to edit`)
       .option(`-p, --prompt <string>`, `Edit prompt`)
+      .option(`-i, --input <file>`, `Update from file (character card)`)
+      .option(`-pfp, --profile-picture <file>`, `Set the profile picture`)
+      .option(`-hs, --home-space <file>`, `Set the home space`)
       .option(
         `-af, --add-feature <feature...>`,
         `Add a feature`,
@@ -1557,10 +1564,16 @@ export const main = async () => {
           });
         });
       });
+    const runtimes = [
+      'node',
+      'wrangler',
+      'electron',
+    ];
     program
       .command('run')
       .description('Run an agent')
       .argument('[agentDirs...]', 'Directory of the agent(s)')
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .action(async (agentDirs = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
@@ -1577,10 +1590,6 @@ export const main = async () => {
           });
         });
       });
-    const runtimes = [
-      'node',
-      'wrangler',
-    ];
     program
       .command('chat')
       // .alias('c')
@@ -1588,7 +1597,7 @@ export const main = async () => {
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
-      .option(`-run, --runtime <room>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
+      .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
       .option(`-g, --debug`, `Enable debug logging`)
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {
@@ -1628,26 +1637,26 @@ export const main = async () => {
     //       await search(args);
     //     });
     //   });
-    program
-      .command('test')
-      .description('Run agent tests')
-      .argument(`[directories...]`, `Directories containing the agent projects to test`)
-      .option('-g, --debug', 'Enable debug logging')
-      .action(async (directories = [], opts = {}) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
+    // program
+    //   .command('test')
+    //   .description('Run agent tests')
+    //   .argument(`[directories...]`, `Directories containing the agent projects to test`)
+    //   .option('-g, --debug', 'Enable debug logging')
+    //   .action(async (directories = [], opts = {}) => {
+    //     await handleError(async () => {
+    //       commandExecuted = true;
+    //       const args = {
+    //         _: [directories],
+    //         ...opts,
+    //       };
 
-          const jwt = await getLoginJwt();
+    //       const jwt = await getLoginJwt();
 
-          await test(args, {
-            jwt,
-          });
-        });
-      });
+    //       await test(args, {
+    //         jwt,
+    //       });
+    //     });
+    //   });
     // program
     //   .command('capture')
     //   .description('Test display functionality; with no arguments, list available devices')
@@ -1986,8 +1995,17 @@ export const main = async () => {
           await withdraw(args);
         });
       });*/
-    await program.parseAsync();
   } catch (error) {
-    console.error(error);
+    console.error("Error creating program:", error);
   }
+  return program // always return the program
+};
+
+export const main = async () => {
+    createProgram();
+    try {
+      await program.parseAsync();
+    } catch (error) {
+      console.error("Error running program:", error);
+    }
 };

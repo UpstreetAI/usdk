@@ -184,19 +184,31 @@ export const deploy = async (args, opts) => {
               outputStream.write(s);
             }
           } else if (event.event === 'result') {
-            const data = JSON.parse(event.data);
-            result = data;
+            (async () => {
+              const data = JSON.parse(event.data);
+              result = data;
 
-            const agentJsonString = data.vars.AGENT_JSON;
-            const agentJson = JSON.parse(agentJsonString);
-            const guid = agentJson.id;
-            const url = getAgentHost(guid);
+              const agentJsonString = data.vars.AGENT_JSON;
+              const agentJson = JSON.parse(agentJsonString);
+              const guid = agentJson.id;
+              const url = getAgentHost(guid);
 
-            console.log();
-            console.group(pc.green('Agent Deployed Successfully:'), '\n');
-            console.log(pc.cyan('✓ Host:'), url, '\n');
-            console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
-            console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
+              // we need to hit the host url at least once to start the durable object
+              await (async () => {
+                try {
+                  const res = await fetch(url);
+                  const blob = await res.blob();
+                } catch (err) {
+                  console.error('error bootstrapping agent, it might not work:', err.stack);
+                }
+              })();
+
+              console.log();
+              console.group(pc.green('Agent Deployed Successfully:'), '\n');
+              console.log(pc.cyan('✓ Host:'), url, '\n');
+              console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
+              console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
+            })();
           } else {
             console.error('unknown event', event);
           }
