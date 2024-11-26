@@ -895,7 +895,7 @@ class TwitterSpacesBot {
         console.log('got unmute button 2');
 
         // poll for participants
-        _pollForParticipants(page);
+        // _pollForParticipants(page);
 
         // handle requests to speak
         (async () => {
@@ -980,7 +980,7 @@ class TwitterSpacesBot {
         console.log('got unmute button 2');
 
         // poll for participants
-        _pollForParticipants(page);
+        // _pollForParticipants(page);
       };
 
       switch (subcommand) {
