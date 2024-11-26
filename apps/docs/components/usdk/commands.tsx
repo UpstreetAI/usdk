@@ -1,11 +1,11 @@
 "use server";
 
 import React from "react";
-import { createProgram } from "usdk/cli";
 
-const Commands = () => {
+const Commands = async () => {
   let program;
   try {
+    const createProgram = (await import('usdk/cli')).createProgram
     program = createProgram();
   }
   catch (error) {
