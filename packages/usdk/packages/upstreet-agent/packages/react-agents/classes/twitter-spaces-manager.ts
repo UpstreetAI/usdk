@@ -800,6 +800,27 @@ class TwitterSpacesBot {
           page,
         };
       };
+      const _pollForParticipants = async (page) => {
+        for (;;) {
+          try {
+            let participantsEl = page.locator('[id="ParticipantsWrapper"]');
+            await participantsEl.waitFor();
+            console.log('found participants element');
+
+            const participants = await participantsEl.locator('> div > div > div > div:nth-child(2) > div').all();
+            const participantNamesPromise = participants.map(async participant => {
+              const nameEl = participant.locator('> div > div:nth-child(2)');
+              const text = await nameEl.textContent();
+              return text;
+            });
+            const participantNames = await Promise.all(participantNamesPromise);
+            console.log('got participants', participantNames);
+          } catch (err) {
+            console.warn('error polling participants', err);
+          }
+          await new Promise(accept => setTimeout(accept, 1000));
+        }
+      };
       const _createTs = async () => {
         // const browser = await chromium.launch({
         //   headless: false,
