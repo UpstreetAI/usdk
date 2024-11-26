@@ -801,6 +801,7 @@ class TwitterSpacesBot {
         };
       };
       const _pollForParticipants = async (page) => {
+        // XXX hook this up to agents tracking
         for (;;) {
           try {
             let participantsEl = page.locator('[id="ParticipantsWrapper"]');
