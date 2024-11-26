@@ -893,14 +893,32 @@ class TwitterSpacesBot {
         if (await _checkAbort()) return;
         console.log('got unmute button 2');
 
-        // console.log('waiting...');
-        // await new Promise((accept, reject) => {
-        //   setTimeout(accept, 30000);
-        // });
+        // poll for participants
+        _pollForParticipants(page);
 
-        // console.log('destroy session 1');
-        // await destroySession();
-        // console.log('destroy session 2');
+        // handle requests to speak
+        (async () => {
+          for (;;) {
+            const requestedEl = page.locator('text=/Requested/i');
+            const parentButton = requestedEl.locator('closest', 'button');
+            console.log('got requested button html 1', await parentButton.innerHTML());
+            await parentButton.click({
+              timeout: 0, // no timeout
+            });
+            if (await _checkAbort()) return;
+
+            const approveElements = page.locator('text=/Approve/i');
+            const approveButton = approveElements.locator('closest', 'button');
+            console.log('got approve button html 1', await approveButton.innerHTML());
+            await approveButton.click();
+            if (await _checkAbort()) return;
+
+            const backButton = page.locator('button[aria-label="Back"]');
+            console.log('got back button html 1', await backButton.innerHTML());
+            await backButton.click();
+            if (await _checkAbort()) return;
+          }
+        })();
       };
       const _connectTs = async () => {
         if (!url) {
@@ -958,6 +976,9 @@ class TwitterSpacesBot {
         await unmuteButton.click();
         if (await _checkAbort()) return;
         console.log('got unmute button 2');
+
+        // poll for participants
+        _pollForParticipants(page);
       };
 
       switch (subcommand) {
