@@ -222,39 +222,39 @@ class TwitterSpacesBot {
         const workletOutputFileName = 'ws-output-worklet.js';
 
         // Intercept worklet requests and serve local files
-        await context.route(`**/${workletInputFileName}`, async (route) => {
-          console.log(`serving ${workletInputFileName}`);
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/javascript',
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-              'Surrogate-Control': 'no-store',
-              'Service-Worker-Allowed': '/',
-              'Clear-Site-Data': '"cache", "storage"'
-            },
-            body: workletInput,
-          });
-        });
-        if (await _checkAbort()) return;
-        await context.route(`**/${workletOutputFileName}`, async (route) => {
-          console.log(`serving ${workletOutputFileName}`);
-          await route.fulfill({
-            status: 200,
-            contentType: 'application/javascript',
-            headers: {
-              'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0',
-              'Surrogate-Control': 'no-store',
-              'Service-Worker-Allowed': '/',
-              'Clear-Site-Data': '"cache", "storage"'
-            },
-            body: workletOutput,
-          });
-        });
+        // await context.route(`**/${workletInputFileName}`, async (route) => {
+        //   console.log(`serving ${workletInputFileName}`);
+        //   await route.fulfill({
+        //     status: 200,
+        //     contentType: 'application/javascript',
+        //     headers: {
+        //       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        //       'Pragma': 'no-cache',
+        //       'Expires': '0',
+        //       'Surrogate-Control': 'no-store',
+        //       'Service-Worker-Allowed': '/',
+        //       'Clear-Site-Data': '"cache", "storage"'
+        //     },
+        //     body: workletInput,
+        //   });
+        // });
+        // if (await _checkAbort()) return;
+        // await context.route(`**/${workletOutputFileName}`, async (route) => {
+        //   console.log(`serving ${workletOutputFileName}`);
+        //   await route.fulfill({
+        //     status: 200,
+        //     contentType: 'application/javascript',
+        //     headers: {
+        //       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        //       'Pragma': 'no-cache',
+        //       'Expires': '0',
+        //       'Surrogate-Control': 'no-store',
+        //       'Service-Worker-Allowed': '/',
+        //       'Clear-Site-Data': '"cache", "storage"'
+        //     },
+        //     body: workletOutput,
+        //   });
+        // });
         if (await _checkAbort()) return;
         // context.on('request', request => {
         //   console.log('Request:', request.url());
