@@ -14,17 +14,16 @@ import {
   bindConversationToAgent,
 } from '../runtime';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
-import {
-  createMp3ReadableStreamSource,
-} from 'codecs/audio-client.mjs';
-import { AudioOutput } from 'codecs/audio-classes.mjs';
-import {
-  transcribe,
-} from '../util/audio-perception.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import {
   QueueManager,
 } from 'queue-manager';
+import {
+  AudioMerger,
+} from '../util/audio-merger.mjs';
+import {
+  TranscribedVoiceInput,
+} from '../devices/audio-transcriber.mjs';
 
 //
 
@@ -284,20 +283,76 @@ class TwitterSpacesBot {
         // Override RTCPeerConnection and trap the methods
         const audioStreams = new Map<string, {
           transformStream: TransformStream,
-          mp3Source: AudioOutput,
-          mp3BuffersOutputPromise: Promise<Uint8Array[]>,
           writer: WritableStreamDefaultWriter,
         }>();
+        let globalSampleRate = null;
+        let audioMerger = null;
         await page.exposeFunction('postUp', async (eventType, args) => {
           console.log('post up event', {
             eventType,
             args,
           });
           switch (eventType) {
-            case 'audioInputStreamCreated': {
-              const {
+            case 'globalAudioContextInit': {
+              if (!live) return;
+
+              const { sampleRate } = args;
+              globalSampleRate = sampleRate;
+
+              audioMerger = new AudioMerger({
                 sampleRate,
-              } = args;
+                // timeoutMs: 2000,
+              });
+              signal.addEventListener('abort', () => {
+                audioMerger.end();
+              });
+
+              const transcribedVoiceInput = new TranscribedVoiceInput({
+                audioInput: audioMerger,
+                sampleRate,
+                codecs,
+                jwt,
+              });
+              transcribedVoiceInput.addEventListener('transcription', async (e) => {
+                const text = e.data;
+                console.log('got transcription text', text);
+                // this.dispatchEvent(new MessageEvent('text', {
+                //   data: {
+                //     userId,
+                //     username,
+                //     text,
+                //     channelId,
+                //   },
+                // }));
+
+                // XXX need to identify the speaker user from the DOM elements
+                const userId = 'speaker';
+                const username = 'Speaker';
+
+                const rawMessage = {
+                  method: 'say',
+                  args: {
+                    text,
+                  },
+                };
+                const id = getIdFromUserId(userId);
+                const agent = {
+                  id,
+                  name: username,
+                };
+                const newMessage = formatConversationMessage(rawMessage, {
+                  agent,
+                });
+                await conversation.addLocalMessage(newMessage);
+              });
+              break;
+            }
+            case 'audioInputStreamCreated': {
+              if (!globalSampleRate) {
+                throw new Error('globalSampleRate not set');
+              }
+              const sampleRate = globalSampleRate;
+
               const _bindOutgoingAudio = () => {
                 const queueManager = new QueueManager();
                 conversation.addEventListener('audiostream', async (e: MessageEvent) => {
@@ -340,20 +395,19 @@ class TwitterSpacesBot {
             // input audio from the spaces to the agent
             case 'audioStart': {
               console.log('postUp got audioStart', typeof args, args.length);
-              const { id } = args;
+              if (!audioMerger) {
+                throw new Error('audioMerger not set');
+              }
+              const {
+                id,
+              } = args;
+
               const transformStream = new TransformStream();
-
-              const mp3Source = createMp3ReadableStreamSource({
-                readableStream: transformStream.readable,
-                codecs,
-              });
-              const mp3BuffersOutputPromise = mp3Source.output.readAll();
-
+              audioMerger.add(transformStream.readable);
               const writer = transformStream.writable.getWriter();
+
               const stream = {
                 transformStream,
-                mp3Source,
-                mp3BuffersOutputPromise,
                 writer,
               };
               audioStreams.set(id, stream);
@@ -365,8 +419,6 @@ class TwitterSpacesBot {
               const stream = audioStreams.get(id);
               if (stream) {
                 const {
-                  // mp3Source,
-                  // mp3BuffersOutputPromise,
                   writer,
                 } = stream;
                 const f32 = base64ToFloat32Array(base64);
@@ -382,47 +434,9 @@ class TwitterSpacesBot {
               const stream = audioStreams.get(id);
               if (stream) {
                 const {
-                  // mp3Source,
-                  mp3BuffersOutputPromise,
                   writer,
                 } = stream;
-
-                //
-
                 writer.close();
-
-                //
-
-                const mp3Buffers = await mp3BuffersOutputPromise;
-                const mp3Blob = new Blob(mp3Buffers, {
-                  type: 'audio/mpeg',
-                });
-
-                const text = await transcribe(mp3Blob, {
-                  jwt,
-                });
-                // XXX need to identify the speaker user from the DOM elements
-                const userId = 'speaker';
-                const username = 'Speaker';
-
-                const rawMessage = {
-                  method: 'say',
-                  args: {
-                    text,
-                  },
-                };
-                const id = getIdFromUserId(userId);
-                const agent = {
-                  id,
-                  name: username,
-                };
-                const newMessage = formatConversationMessage(rawMessage, {
-                  agent,
-                });
-                await conversation.addLocalMessage(newMessage);
-
-                //
-            
                 audioStreams.delete(id);
               } else {
                 console.warn('audioEnd: no stream found', { id });
@@ -487,7 +501,9 @@ class TwitterSpacesBot {
                 const audioTracks = stream.getAudioTracks();
                 if (audioTracks.length > 0) {
                   const id = crypto.randomUUID();
-                  postUp('audioStart', { id });
+                  postUp('audioStart', {
+                    id,
+                  });
 
                   const audioNode = globalThis.globalAudioContext.createMediaStreamSource(stream);
                   console.log('got audio node', audioNode);
@@ -527,6 +543,9 @@ class TwitterSpacesBot {
 
           // create the global audio context
           globalThis.globalAudioContext = new AudioContext();
+          postUp('globalAudioContextInit', {
+            sampleRate: globalAudioContext.sampleRate,
+          });
 
           // ensure the worklets are loaded
           let workletsLoaded = false;
@@ -745,9 +764,7 @@ class TwitterSpacesBot {
                 audioInputStreamPromise = await createInputAudioStream();
                 (async () => {
                   globalThis.audioInputStream = await audioInputStreamPromise;
-                  postUp('audioInputStreamCreated', {
-                    sampleRate: globalAudioContext.sampleRate,
-                  });
+                  postUp('audioInputStreamCreated');
                 })();
               }
               return audioInputStreamPromise;
