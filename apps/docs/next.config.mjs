@@ -56,6 +56,7 @@ const config = {
     // This issue arose because "speaker" module is optional, and doesn't install in Vercel environment
     config.resolve.alias['../packages/upstreet-agent/packages/react-agents/devices/audio-output.mjs'] = false;
     config.resolve.alias['./lib/locations.mjs'] = false;
+    config.resolve.alias['../lib/locations.mjs'] = false;
 
     return config;
   },
