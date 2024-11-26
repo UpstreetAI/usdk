@@ -186,6 +186,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           if (key === 'playerSpec') {
             remotePlayer.setPlayerSpec(val);
             if (!playersMap.has(playerId)) {
+              playersMap.add(playerId, remotePlayer);
               // dispatch join event when the playerSpec is updated and the player is not already in the playersMap
               this.dispatchEvent(new MessageEvent('playerSpecUpdate', {
                 data: {
@@ -219,8 +220,8 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
         if (remotePlayer) {
           playersMap.remove(playerId);
         } else {
-          this.log('remote player not found', playerId);
-          throw new Error('remote player not found');
+          this.log('remote player not found during player remove', playerId);
+          throw new Error('remote player not found during player remove');
         }
 
         this.dispatchEvent(new MessageEvent('leave', {

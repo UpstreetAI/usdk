@@ -14,10 +14,7 @@ console.log('electron start script!');
 
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
-    process.send({
-      method: 'error',
-      args: [err.stack],
-    });
+    console.warn(err.stack);
   });
 });
 
@@ -180,12 +177,15 @@ const openFrontend = async ({
   // create the window
   {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
+
+    const localWidth = 300;
+    const localHeight = 400;
 
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
     // construct the destination url
-    const dstUrl = new URL(`${host}/rooms/${room}`);
+    const dstUrl = new URL(`${host}/desktop/${room}`);
     dstUrl.searchParams.set('desktop', 1 + '');
     // construct the final url
     const u = new URL(`${host}/login`);
@@ -194,13 +194,22 @@ const openFrontend = async ({
 
     // main window
     const win = new BrowserWindow({
-      width,
-      height,
-      x: 0,
-      y: 0,
+      // width,
+      // height,
+      width: localWidth,
+      height: localHeight,
+      x: displayWidth - localWidth, // Position at right edge
+      y: displayHeight - localHeight, // Position at bottom edge
+      transparent: true,
       frame: false,
+      hasShadow: false,
+      alwaysOnTop: true,
+      resizable: false,
+      titleBarStyle: 'none',
+      roundedCorners: false,
       webPreferences: {
         session: session.fromPartition('login'),
+        // nodeIntegration: true,
       },
     });
     if (debug) {
