@@ -842,6 +842,18 @@ class TwitterSpacesBot {
         if (await _checkAbort()) return;
         console.log('got context');
 
+        // detech logout (bad token)
+        page.on('framenavigated', frame => {
+          if (frame === page.mainFrame()) {
+            const url = frame.url();
+            console.log('navigated to', url);
+            if (/logout/i.test(url)) {
+              console.log('logout detected, aborting -- you might need to update your twitter auth token');
+              this.abortController.abort();
+            }
+          }
+        });
+
         await page.goto('https://x.com/home');
         if (await _checkAbort()) return;
         console.log('got to page 1');
