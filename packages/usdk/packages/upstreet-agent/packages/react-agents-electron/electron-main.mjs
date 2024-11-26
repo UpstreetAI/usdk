@@ -206,6 +206,7 @@ const openFrontend = async ({
       alwaysOnTop: true,
       resizable: false,
       titleBarStyle: 'none',
+      roundedCorners: false,
       webPreferences: {
         session: session.fromPartition('login'),
         // nodeIntegration: true,
