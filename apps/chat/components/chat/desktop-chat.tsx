@@ -61,31 +61,6 @@ type AgentData = {
   name: string;
 };
 
-async function getAgentData(supabase: any, identifier: string) {
-  try {
-    // Find by ID
-    let result = await supabase
-      .from('assets')
-      .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
-      .eq('id', identifier)
-      .single();
-
-    // If not found by ID, try username
-    if (!result.data) {
-      result = await supabase
-        .from('assets')
-        .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
-        .eq('name', identifier)
-        .single();
-    }
-
-    return result;
-  } catch (error) {
-    console.error('Error fetching agent data:', error);
-    throw error;
-  }
-}
-
 export function DesktopChat({ className, room }: ChatProps) {
   const [input, setInput] = useState('');
   const [agents, setAgents] = useState<AgentData[]>([]);
