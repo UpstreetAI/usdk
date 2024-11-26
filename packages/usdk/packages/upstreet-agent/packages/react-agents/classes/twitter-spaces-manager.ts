@@ -901,24 +901,28 @@ class TwitterSpacesBot {
         (async () => {
           // XXX make the allowed speakers configurable via props
           for (;;) {
-            const requestedEl = page.locator('text=/Requested/i');
-            const parentButton = requestedEl.locator('closest', 'button');
-            console.log('got requested button html 1', await parentButton.innerHTML());
-            await parentButton.click({
-              timeout: 0, // no timeout
-            });
-            if (await _checkAbort()) return;
+            try {
+              const requestedEl = page.locator('text=/Requested/i');
+              const parentButton = requestedEl.locator('closest', 'button');
+              console.log('got requested button html 1', await parentButton.innerHTML());
+              await parentButton.click({
+                // timeout: 0, // no timeout
+              });
+              if (await _checkAbort()) return;
 
-            const approveElements = page.locator('text=/Approve/i');
-            const approveButton = approveElements.locator('closest', 'button');
-            console.log('got approve button html 1', await approveButton.innerHTML());
-            await approveButton.click();
-            if (await _checkAbort()) return;
+              const approveElements = page.locator('text=/Approve/i');
+              const approveButton = approveElements.locator('closest', 'button');
+              console.log('got approve button html 1', await approveButton.innerHTML());
+              await approveButton.click();
+              if (await _checkAbort()) return;
 
-            const backButton = page.locator('button[aria-label="Back"]');
-            console.log('got back button html 1', await backButton.innerHTML());
-            await backButton.click();
-            if (await _checkAbort()) return;
+              const backButton = page.locator('button[aria-label="Back"]');
+              console.log('got back button html 1', await backButton.innerHTML());
+              await backButton.click();
+              if (await _checkAbort()) return;
+            } catch (err) {
+              console.warn('error handling request to speak', err);
+            }
           }
         })();
       };
