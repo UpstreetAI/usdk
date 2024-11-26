@@ -177,7 +177,10 @@ const openFrontend = async ({
   // create the window
   {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
+
+    const localWidth = 300;
+    const localHeight = 400;
 
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
@@ -191,13 +194,21 @@ const openFrontend = async ({
 
     // main window
     const win = new BrowserWindow({
-      width,
-      height,
-      x: 0,
-      y: 0,
+      // width,
+      // height,
+      width: localWidth,
+      height: localHeight,
+      x: displayWidth - localWidth, // Position at right edge
+      y: displayHeight - localHeight, // Position at bottom edge
+      transparent: true,
       frame: false,
+      hasShadow: false,
+      alwaysOnTop: true,
+      resizable: false,
+      titleBarStyle: 'none',
       webPreferences: {
         session: session.fromPartition('login'),
+        // nodeIntegration: true,
       },
     });
     if (debug) {
