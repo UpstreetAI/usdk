@@ -899,6 +899,7 @@ class TwitterSpacesBot {
 
         // handle requests to speak
         (async () => {
+          // XXX make the allowed speakers configurable via props
           for (;;) {
             const requestedEl = page.locator('text=/Requested/i');
             const parentButton = requestedEl.locator('closest', 'button');
