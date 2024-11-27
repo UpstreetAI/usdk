@@ -231,6 +231,7 @@ const main = async () => {
     .option('--var <vars...>', 'Environment variables in format KEY:VALUE')
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
+    .requiredOption('--init <json>', 'Initialization data')
     .action(async (directory, opts) => {
       commandExecuted = true;
 
