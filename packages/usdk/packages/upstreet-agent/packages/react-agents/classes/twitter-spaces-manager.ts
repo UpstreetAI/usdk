@@ -6,7 +6,7 @@ import type {
   ExtendableMessageEvent,
   ActionMessageEventData,
 } from './types';
-import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
+// import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 import {
   ConversationObject,
 } from './conversation-object';
@@ -37,6 +37,7 @@ class TwitterSpacesBot {
   abortController: AbortController;
   agent: ActiveAgentObject;
   codecs: any;
+  init: any;
   jwt: string;
   conversations: Map<string, ConversationObject>; // tweetId -> conversation
 
@@ -46,6 +47,7 @@ class TwitterSpacesBot {
       url,
       agent,
       codecs,
+      init,
       jwt,
     } = args;
 
@@ -58,6 +60,9 @@ class TwitterSpacesBot {
     if (!codecs) {
       throw new Error('Twitter bot requires codecs');
     }
+    if (!init) {
+      throw new Error('Twitter bot requires init');
+    }
     if (!jwt) {
       throw new Error('Twitter bot requires a jwt');
     }
@@ -66,6 +71,7 @@ class TwitterSpacesBot {
     this.url = url;
     this.agent = agent;
     this.codecs = codecs;
+    this.init = init;
     this.jwt = jwt;
     this.conversations = new Map();
 
@@ -823,14 +829,17 @@ class TwitterSpacesBot {
         }
       };
       const _createTs = async () => {
-        // const browser = await chromium.launch({
-        //   headless: false,
-        //   devtools: true,
-        //   // args: ['--disable-web-security'],
-        // });
-        const browser = await createBrowser(undefined, {
-          jwt,
+        console.log('create ts init', {
+          init,
         });
+        const browser = await init.chromium.launch({
+          headless: false,
+          devtools: true,
+          // args: ['--disable-web-security'],
+        });
+        // const browser = await createBrowser(undefined, {
+        //   jwt,
+        // });
         if (await _checkAbort(async () => {
           await browser.close();
         })) return;
@@ -931,16 +940,14 @@ class TwitterSpacesBot {
           throw new Error('url argument is required');
         }
 
-        // const {
-        //   // browser,
-        //   // context,
-        //   page,
-        //   destroySession,
-        // } = await _makeBrowser();
-
-        const browser = await createBrowser(undefined, {
-          jwt,
+        const browser = await init.chromium.launch({
+          headless: false,
+          devtools: true,
+          // args: ['--disable-web-security'],
         });
+        // const browser = await createBrowser(undefined, {
+        //   jwt,
+        // });
         if (await _checkAbort(async () => {
           await browser.close();
         })) return;
