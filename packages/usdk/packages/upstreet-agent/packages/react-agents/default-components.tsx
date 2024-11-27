@@ -3299,6 +3299,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
   const agent = useAgent();
   const appContextValue = useContext(AppContext);
   const codecs = appContextValue.useCodecs();
+  const init = appContextValue.useInit();
   const authToken = useAuthToken();
   const ref = useRef(false);
 
@@ -3315,6 +3316,7 @@ export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpaces
           url,
           agent,
           codecs,
+          init,
           jwt: authToken,
         };
         const twitter = agent.twitterSpacesManager.addTwitterSpacesBot(args);
