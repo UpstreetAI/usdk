@@ -15,9 +15,6 @@
   },
   "license": "Apache-2.0",
   "main": "dist/bundle.mjs",
-  "bin": {
-    "playwright-core": "cli.js"
-  },
   "scripts": {
     "build": "npx esbuild ./index.mjs --bundle --outfile=dist/bundle.mjs --format=esm --platform=node --minify"
   },
