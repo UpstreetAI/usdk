@@ -8,8 +8,6 @@ import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/ui/sonner'
 import { Body } from '@/components/body'
-import Footer from '@/components/ui/Footer';
-import Header from '@/components/ui/Header';
 
 export const metadata = {
   title: {
