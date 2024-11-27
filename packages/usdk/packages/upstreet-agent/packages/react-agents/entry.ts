@@ -45,8 +45,10 @@ export class AgentMain extends EventTarget {
     const {
       userRender,
       codecs,
-      init,
     } = state;
+    const {
+      init,
+    } = env;
     this.agentRenderer = new AgentRenderer({
       env,
       auth,

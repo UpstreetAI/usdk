@@ -107,7 +107,7 @@ export class ReactAgentsWranglerRuntime {
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
-        '--init', JSON.stringify(init),
+        '--var', `INIT:${JSON.stringify(init)}`,
       ],
       {
         stdio: 'pipe',
