@@ -91,14 +91,6 @@ export const useConversation = () => {
   }
   return conversation;
 };
-/* export const useScene: () => SceneObject = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useScene();
-};
-export const useAgents: () => Array<AgentObject> = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useAgents();
-}; */
 
 export const useActions: () => ActionPropsAux[] = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
