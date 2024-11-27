@@ -14,6 +14,7 @@ import {
   ConversationObject,
   TaskEventData,
   AgentThinkOptions,
+  ActionStep,
 } from './types';
 import {
   PendingActionEvent,
@@ -78,12 +79,6 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   return prompts;
 };
 
-type ActionStep = {
-  action?: PendingActionMessage,
-  uniforms?: {
-    [key: string]: object,
-  },
-};
 export async function generateAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   hint?: string,
@@ -347,7 +342,7 @@ export async function executeAgentActionStep(
     }
   }
 
-  if (uniformsArgs) {
+  if (!aborted && uniformsArgs) {
     const uniformPromises: Promise<void>[] = [];
     for (const method in uniformsArgs) {
       const args = uniformsArgs[method];
@@ -419,8 +414,8 @@ const handleChatPerception = async (data: ActionMessageEventData, {
   }
 
   // if no aborts, run the perceptions
+  const perceptionPromises = [];
   if (!aborted) {
-    const perceptionPromises = [];
     for (const perception of perceptions) {
       if (perception.type === message.method) {
         const targetAgent = agent.generative({
@@ -431,13 +426,18 @@ const handleChatPerception = async (data: ActionMessageEventData, {
           sourceAgent,
           message,
         });
-        const p = perception.handler(e);
-        perceptionPromises.push(p);
+        perceptionPromises.push((async () => {
+          await perception.handler(e);
+          const steps = Array.from(targetAgent.thinkCache.values());
+          return steps;
+        })());
       }
     }
-    await Promise.all(perceptionPromises);
   }
+  const perceptionSteps = await Promise.all(perceptionPromises);
+  const steps = perceptionSteps.flat();
   return {
+    steps,
     aborted,
   };
 };
@@ -448,22 +448,24 @@ export const bindConversationToAgent = ({
   agent: ActiveAgentObject;
   conversation: ConversationObject;
 }) => {
+  // handle incoming perceptions
   conversation.addEventListener('localmessage', (e: ActionMessageEvent) => {
     const { message } = e.data;
     e.waitUntil((async () => {
       try {
         // handle the perception
         const {
+          steps,
           aborted,
         } = await handleChatPerception(e.data, {
           agent,
           conversation,
         });
+        // if applicable, save the perception to the databaase
         const {
           hidden,
         } = message;
         if (!aborted && !hidden) {
-          // save the perception to the databaase
           (async () => {
             const supabase = agent.useSupabase();
             const jwt = agent.useAuthToken();
@@ -476,11 +478,13 @@ export const bindConversationToAgent = ({
             });
           })();
         }
+        e.setResult(steps);
       } catch (err) {
         console.warn('caught new message error', err);
       }
     })());
   });
+  // handle committed messages
   conversation.addEventListener('remotemessage', async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
     const { message } = e.data;
     const {

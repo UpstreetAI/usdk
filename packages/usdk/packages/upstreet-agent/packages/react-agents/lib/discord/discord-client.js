@@ -2,16 +2,16 @@ import {
   zbencode,
   zbdecode,
 } from 'zjs/encoding.mjs';
-import {
-  QueueManager,
-} from 'queue-manager';
-import {
-  transcribe,
-} from '../../util/audio-perception.mjs';
+// import {
+//   transcribe,
+// } from '../../util/audio-perception.mjs';
 import {
   createOpusDecodeTransformStream,
-  createMp3ReadableStreamSource,
+  // createMp3ReadableStreamSource,
 } from 'codecs/audio-client.mjs';
+import {
+  AudioMerger,
+} from '../../util/audio-merger.mjs';
 import {
   makePromise,
   makeId,
@@ -19,9 +19,13 @@ import {
 import {
   discordBotEndpointUrl,
 } from '../../util/endpoints.mjs';
+import {
+  TranscribedVoiceInput,
+} from '../../devices/audio-transcriber.mjs';
 
 //
 
+// input from the agent to the discord bot
 export class DiscordInput {
   constructor({
     ws = null,
@@ -178,131 +182,7 @@ export class DiscordInput {
 
 //
 
-export class DiscordOutputStream extends EventTarget {
-  constructor({
-    sampleRate,
-    speechQueue,
-    codecs,
-    jwt,
-  }) {
-    super();
-
-    this.sampleRate = sampleRate;
-    this.speechQueue = speechQueue;
-    this.codecs = codecs;
-    this.jwt = jwt;
-
-    // // XXX decode with opus, encode with mp3 instead of wav
-    // this.decoder = new OpusDecoder();
-    // this.chunks = [];
-    // this.bufferSize = 0;
-
-    // const loadPromise = this.decoder.ready
-    //   .then(() => {});
-    // this.waitForLoad = () => loadPromise;
-
-    this.opusTransformStream = createOpusDecodeTransformStream({
-      sampleRate,
-      codecs,
-    });
-    this.opusTransformStreamWriter = this.opusTransformStream.writable.getWriter();
-
-    this.mp3Source = createMp3ReadableStreamSource({
-      readableStream: this.opusTransformStream.readable,
-      codecs,
-    });
-
-    this.mp3BuffersOutputPromise = this.mp3Source.output.readAll();
-  }
-
-  update(uint8Array) {
-    this.opusTransformStreamWriter.write(uint8Array);
-    /* (async () => {
-      await this.waitForLoad();
-
-      const result = this.decoder.decodeFrame(uint8Array);
-      const {channelData, sampleRate} = result;
-
-      const chunk = {
-        channelData,
-        sampleRate,
-      };
-      this.chunks.push(chunk);
-
-      const firstChannelData = channelData[0];
-      this.bufferSize += firstChannelData.length;
-    })(); */
-  }
-
-  async end() {
-    const {
-      jwt,
-    } = this;
-
-    /* await this.waitForLoad();
-
-    let sampleRate = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      if (sampleRate === 0) {
-        sampleRate = chunk.sampleRate;
-      } else {
-        if (sampleRate !== chunk.sampleRate) {
-          throw new Error('sample rate mismatch');
-        }
-      }
-    }
-
-    // create audio buffer from chunks
-    const audioBuffer = new AudioBuffer({
-      length: this.bufferSize,
-      sampleRate,
-      numberOfChannels: 1,
-    });
-    let offset = 0;
-    for (let i = 0; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i];
-      const {channelData} = chunk;
-      const firstChannelData = channelData[0];
-      audioBuffer.copyToChannel(firstChannelData, 0, offset);
-      offset += firstChannelData.length;
-    }
-
-    // XXX encode to MP3
-    const wavBuffer = audioBufferToWav(audioBuffer);
-    const wavBlob = new Blob([wavBuffer], {
-      type: 'audio/wav',
-    }); */
-
-    this.opusTransformStreamWriter.close();
-
-    const mp3Buffers = await this.mp3BuffersOutputPromise;
-    const mp3Blob = new Blob(mp3Buffers, {
-      type: 'audio/mpeg',
-    });
-
-    await this.speechQueue.waitForTurn(async () => {
-      const text = await transcribe(mp3Blob, {
-        jwt,
-      });
-      // console.log('discord transcribed', {text});
-      this.dispatchEvent(new MessageEvent('speech', {
-        data: text,
-      }));
-    });
-  }
-
-  destroy() {
-    (async () => {
-      await this.waitForLoad();
-
-      this.decoder.free();
-    })();
-  }
-}
-
-//
-
+// output from discord bot to the agent
 export class DiscordOutput extends EventTarget {
   sampleRate;
   codecs;
@@ -321,17 +201,11 @@ export class DiscordOutput extends EventTarget {
     this.codecs = codecs;
     this.jwt = jwt;
 
-    this.speechQueue = new QueueManager();
-    this.streams = new Map();
+    this.streams = new Map(); // streamId -> { stream, writer }
+    this.userStreams = new Map(); // userId -> AudioMerger
   }
 
   pushText(args) {
-    // const {
-    //   userId,
-    //   username,
-    //   text,
-    //   channelId,
-    // } = args;
     this.dispatchEvent(new MessageEvent('text', {
       data: args,
     }));
@@ -355,21 +229,28 @@ export class DiscordOutput extends EventTarget {
       channelId,
       streamId,
     } = args;
-    console.log('push stream start', args);
-    let stream = this.streams.get(streamId);
-    if (!stream) {
-      const {
-        sampleRate,
-        speechQueue,
-      } = this;
+    const {
+      sampleRate,
+    } = this;
 
-      stream = new DiscordOutputStream({
+    let userStream = this.userStreams.get(userId);
+    if (!userStream) {
+      userStream = new AudioMerger({
         sampleRate,
-        speechQueue,
+        timeoutMs: 2000,
+      });
+      userStream.on('end', e => {
+        this.userStreams.delete(userId);
+      });
+
+      const transcribedVoiceInput = new TranscribedVoiceInput({
+        audioInput: userStream,
+        sampleRate,
         codecs,
         jwt,
       });
-      stream.addEventListener('speech', e => {
+
+      transcribedVoiceInput.addEventListener('transcription', e => {
         const text = e.data;
 
         this.dispatchEvent(new MessageEvent('text', {
@@ -381,9 +262,25 @@ export class DiscordOutput extends EventTarget {
           },
         }));
       });
+
+      this.userStreams.set(userId, userStream);
+    }
+
+    let stream = this.streams.get(streamId);
+    if (!stream) {
+      const opusTransformStream = createOpusDecodeTransformStream({
+        sampleRate,
+        codecs,
+      });
+      const opusTransformStreamWriter = opusTransformStream.writable.getWriter();
+
+      userStream.add(opusTransformStream.readable);
+
+      const stream = {
+        transformStream: opusTransformStream,
+        writer: opusTransformStreamWriter,
+      };
       this.streams.set(streamId, stream);
-    } else {
-      throw new Error('stream already exists for streamId: ' + streamId);
     }
   }
 
@@ -394,7 +291,11 @@ export class DiscordOutput extends EventTarget {
     } = args;
     const stream = this.streams.get(streamId);
     if (stream) {
-      stream.end();
+      const {
+        writer,
+      } = stream;
+      writer.close();
+      
       this.streams.delete(streamId);
     } else {
       throw new Error('pushStreamEnd: no stream found for streamId: ' + streamId);
@@ -404,7 +305,10 @@ export class DiscordOutput extends EventTarget {
   pushStreamUpdate(streamId, uint8Array) {
     const stream = this.streams.get(streamId);
     if (stream) {
-      stream.update(uint8Array);
+      const {
+        writer,
+      } = stream;
+      writer.write(uint8Array);
     } else {
       throw new Error('pushStreamUpdate: no stream found for streamId: ' + streamId);
     }
@@ -432,7 +336,6 @@ export class DiscordBotClient extends EventTarget {
   }) {
     super();
 
-    // XXX debugging
     if (!codecs) {
       throw new Error('DiscordBotClient: no codecs provided');
     }
@@ -554,22 +457,22 @@ export class DiscordBotClient extends EventTarget {
             break;
           }
           case 'text': {
-            console.log('text message', args);
+            // console.log('text message', args);
             this.output.pushText(args);
             break;
           }
           case 'voicestart': {
-            console.log('voice start', args);
+            // console.log('voice start', args);
             this.output.pushStreamStart(args);
             break;
           }
           case 'voiceend': {
-            console.log('voice end', args);
+            // console.log('voice end', args);
             this.output.pushStreamEnd(args);
             break;
           }
           case 'voiceidle': { // feedback that discord is no longer listening
-            console.log('voice idle', args);
+            // console.log('voice idle', args);
             this.input.cancelStream(args);
             break;
           }

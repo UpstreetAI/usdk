@@ -22,7 +22,6 @@ const HeroImages = [
 
 export default function Home() {
 
-  const { agentJoinRandom } = useMultiplayerActions();
   const { supabase } = useSupabase();
   const [agents, setAgents] = useState([]);
 

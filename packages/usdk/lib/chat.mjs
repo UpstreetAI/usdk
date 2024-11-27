@@ -1,6 +1,7 @@
 import { parseAgentSpecs } from './agent-spec-utils.mjs';
 import { ReactAgentsNodeRuntime } from '../packages/upstreet-agent/packages/react-agents-node/node-runtime.mjs';
 import { ReactAgentsWranglerRuntime } from '../packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
+import { ReactAgentsElectronRuntime } from '../packages/upstreet-agent/packages/react-agents-electron/electron-runtime.mjs';
 import {
   makeRoomName,
   connect,
@@ -18,6 +19,7 @@ export const chat = async (args, opts) => {
   const runtime = args.runtime ?? 'node';
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
+  const init = args.init ?? {};
   const debug = !!args.debug;
   // opts
   const jwt = opts.jwt;
@@ -31,19 +33,26 @@ export const chat = async (args, opts) => {
       return ReactAgentsNodeRuntime;
     } else if (runtime === 'wrangler') {
       return ReactAgentsWranglerRuntime;
+    } else if (runtime === 'electron') {
+      return ReactAgentsElectronRuntime;
     } else {
       throw new Error('unknown runtime: ' + runtime);
     }
   })();
-  const startPromises = agentSpecs.map(async (agentSpec) => {
+  const runtimePromises = agentSpecs.map(async (agentSpec) => {
     if (agentSpec.directory) {
       const runtime = new Runtime(agentSpec);
       await runtime.start({
+        init,
         debug,
       });
+      return runtime;
+    } else {
+      return null;
     }
   });
-  await Promise.all(startPromises);
+  let runtimes = await Promise.all(runtimePromises);
+  runtimes = runtimes.filter(Boolean);
 
   // wait for agents to join the multiplayer room
   const agentRefs = agentSpecs.map((agentSpec) => agentSpec.ref);
@@ -58,6 +67,8 @@ export const chat = async (args, opts) => {
       return 'browser';
     } else if (inputStream && outputStream) {
       return 'stream';
+    } else if (runtime === 'electron') {
+      return 'electron';
     } else {
       return 'repl';
     }
@@ -67,6 +78,8 @@ export const chat = async (args, opts) => {
     mode,
     inputStream,
     outputStream,
+    runtimes,
+    jwt,
     debug,
   });
 };

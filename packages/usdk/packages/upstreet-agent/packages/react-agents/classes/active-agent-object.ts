@@ -1,6 +1,4 @@
 import { useEffect } from 'react';
-// import { z } from 'zod';
-// import dedent from 'dedent';
 import {
   AgentObject,
 } from './agent-object';
@@ -8,7 +6,8 @@ import type {
   AppContextValue,
   GetMemoryOpts,
   Memory,
-  LiveTriggerEvent,
+  ActionMessageEventData,
+  // LiveTriggerEvent,
 } from '../types';
 import {
   ConversationObject,
@@ -22,6 +21,12 @@ import {
 import {
   DiscordManager,
 } from './discord-manager';
+import {
+  TwitterManager,
+} from './twitter-manager';
+import {
+  TwitterSpacesManager,
+} from './twitter-spaces-manager';
 import {
   TelnyxManager,
 } from './telnyx-manager';
@@ -45,6 +50,8 @@ export class ActiveAgentObject extends AgentObject {
   conversationManager: ConversationManager;
   chatsManager: ChatsManager;
   discordManager: DiscordManager;
+  twitterManager: TwitterManager;
+  twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
   liveManager: LiveManager;
   pingManager: PingManager;
@@ -80,6 +87,12 @@ export class ActiveAgentObject extends AgentObject {
       chatsSpecification,
     });
     this.discordManager = new DiscordManager({
+      codecs: appContextValue.useCodecs(),
+    });
+    this.twitterManager = new TwitterManager({
+      codecs: appContextValue.useCodecs(),
+    });
+    this.twitterSpacesManager = new TwitterSpacesManager({
       codecs: appContextValue.useCodecs(),
     });
     this.telnyxManager = new TelnyxManager();
@@ -137,7 +150,9 @@ export class ActiveAgentObject extends AgentObject {
   }) {
     let generativeAgent = this.generativeAgentsMap.get(conversation);
     if (!generativeAgent) {
-      generativeAgent = new GenerativeAgentObject(this, conversation);
+      generativeAgent = new GenerativeAgentObject(this, {
+        conversation,
+      });
       this.generativeAgentsMap.set(conversation, generativeAgent);
     }
     return generativeAgent;
@@ -171,7 +186,6 @@ export class ActiveAgentObject extends AgentObject {
     opts?: GetMemoryOpts,
   ) {
     // console.log('getMemory 1', {
-    //   agent: this,
     //   query,
     // });
     const embedding = await this.appContextValue.embed(query);

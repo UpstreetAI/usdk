@@ -1,0 +1,30 @@
+---
+title: Tavern
+description: Learn the difference between Upstreet and Tavern, and how to migrate from it if you choose to do so.
+full: false
+---
+ 
+import Wrapper from '../../../components/preview/wrapper';
+import { File, Folder, Files } from 'fumadocs-ui/components/files';
+ 
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { formatNodeVersion } from '../../../lib/utils';
+ 
+Tavern is a LLM frontend for power-users. You can create "Character Cards", a way to share AI-generated Characters and personalities.
+
+## Create an Upstreet Agent from a Tavern Character Card
+
+You can import an agent from a Tavern Character Card using the `-i` or `--input` flag with `usdk create`:
+
+```bash
+usdk create -i ./character-card.png
+```
+
+This will skip the interview process and import the character's:
+- Name
+- Personality traits
+- Description and background
+- Profile picture
+- Other metadata like scenario and example conversations
+
+The SDK will automatically configure these attributes.

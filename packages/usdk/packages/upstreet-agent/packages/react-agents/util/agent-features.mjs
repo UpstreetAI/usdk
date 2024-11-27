@@ -64,8 +64,8 @@ export const defaultVoices = [
   },
 ];
 
-const formatDiscordBotChannels = (channels = '') => {
-  return channels.split(',').map(c => c.trim()).filter(Boolean);
+const formatDiscordBotChannels = (channels = []) => {
+  return channels.map(c => c.trim()).filter(Boolean);
 };
 
 export const featureSpecs = [
@@ -162,9 +162,44 @@ export const featureSpecs = [
       if (discord.token && channels.length > 0) {
         return [
           dedent`
-            <DiscordBot
+            <Discord
               token=${JSON.stringify(discord.token)}
               ${discord.channels ? `channels={${JSON.stringify(channels)}}` : ''}
+            />
+          `,
+        ];
+      } else {
+        return [];
+      }
+    },
+  },
+  {
+    name: 'twitterBot',
+    description: dedent`\
+      Add a Twitter bot to the agent.
+
+      The API token is required.
+    `,
+    schema: z.union([
+      z.object({
+        token: z.string(),
+      }),
+      z.null(),
+    ]),
+    examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
+    imports: (twitterBot) => {
+      if (twitterBot.token) {
+        return ['TwitterBot'];
+      } else {
+        return [];
+      }
+    },
+    components: (twitterBot) => {
+      if (twitterBot.token) {
+        return [
+          dedent`
+            <TwitterBot
+              token=${JSON.stringify(twitterBot.token)}
             />
           `,
         ];

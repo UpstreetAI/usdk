@@ -3,9 +3,11 @@ import fs from 'fs';
 
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
+import mime from 'mime/lite';
+import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
@@ -19,9 +21,9 @@ import {
 import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
-import {
-  getUserIdForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+// import {
+//   getUserIdForJwt,
+// } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
@@ -36,9 +38,9 @@ import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
-import {
-  aiProxyHost,
-} from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
+// import {
+//   aiProxyHost,
+// } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
 import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
@@ -47,7 +49,10 @@ import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
-import ora from 'ora';
+import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
+import ImagePreviewServer from '../util/image-preview-server.mjs';
+import { imagePreviewPort } from '../util/ports.mjs';
+import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
 
@@ -120,6 +125,13 @@ const interview = async (agentJson, {
       ? new StreamStrategy(inputStream, outputStream)
       : new ReadlineStrategy(),
   );
+  const imagePreviewServer = new ImagePreviewServer(imagePreviewPort);
+
+  // setup SIGINT image preview server close handler
+  process.on('SIGINT', () => {
+    imagePreviewServer.stop();
+  })
+  
   const getAnswer = async (question) => {
     // console.log('get answer 1', {
     //   question,
@@ -228,6 +240,16 @@ const interview = async (agentJson, {
       if (signal.aborted) return;
 
       const b = Buffer.from(ab);
+      
+      // start server if not already running and update image
+      if (!imagePreviewServer.server) {
+          imagePreviewServer.start();
+      }
+      
+      // normalize the label to match the server's expectations
+      const normalizedLabel = label.toLowerCase().replace(/\s+updated \(preview\):$/i, '').trim();
+      imagePreviewServer.updateImage(normalizedLabel, b);
+      
       const jimp = await Jimp.read(b);
       if (signal.aborted) return;
 
@@ -237,6 +259,7 @@ const interview = async (agentJson, {
       } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
       logAgentPropertyUpdate(label, '');
       console.log(imageText);
+      console.log(`\nView image at ${imagePreviewServer.getImageUrl(normalizedLabel)}\n`);
     };
     agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
     agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
@@ -247,20 +270,64 @@ const interview = async (agentJson, {
   }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
+  imagePreviewServer.stop();
   return result;
 };
-const makeAgentJsonInit = ({
-  agentJsonString,
-  features,
+const getAgentJsonFromCharacterCard = async (p) => {
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+
+  const ccp = new CharacterCardParser();
+  const parsed = await ccp.parse(fileBlob);
+  const {
+    name,
+    description,
+    personality,
+    scenario,
+    first_mes,
+    mes_example,
+    creator_notes,
+    system_prompt,
+    post_history_instructions,
+    alternate_greetings,
+    character_book,
+    tags,
+    creator,
+    character_version,
+    extensions,
+  } = parsed.data;
+  return {
+    name,
+    description,
+    bio: personality,
+  };
+};
+const addAgentJsonImage = async (agentJson, p, key, {
+  jwt,
 }) => {
-  const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+  const url = await uploadImage(fileBlob, {
+    jwt,
+  });
+  agentJson = {
+    ...agentJson,
+    [key]: url,
+  };
+};
+const addAgentJsonFeatures = (agentJson, features) => {
+  agentJson = {
+    ...agentJson,
+  };
   // Add user specified features to agentJsonInit being passed to the interview process for context
   if (Object.keys(features).length > 0) {
-    agentJsonInit.features = {
+    agentJson.features = {
       ...features,
     };
   }
-  return agentJsonInit;
+  return agentJson;
 };
 const loadAgentJson = (dstDir) => {
   const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
@@ -269,6 +336,17 @@ const loadAgentJson = (dstDir) => {
   const agentJsonString = wranglerToml.vars.AGENT_JSON;
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
+};
+const uploadImage = async (file, {
+  jwt,
+}) => {
+  const type = mime.getType(file.name);
+  const ext = mime.getExtension(type);
+  const guid = crypto.randomUUID();
+  const p = ['images', guid, `image.${ext}`].join('/');
+  return await uploadBlob(p, file, {
+    jwt,
+  });
 };
 
 //
@@ -280,6 +358,9 @@ export const create = async (args, opts) => {
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
+  const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -343,12 +424,31 @@ export const create = async (args, opts) => {
 
   console.log(pc.italic('Generating Agent...'));
   // generate the agent
-  let agentJson = makeAgentJsonInit({
-    agentJsonString,
-    features,
-  });
+  let agentJson = await (async () => {
+    if (agentJsonString) {
+      return JSON.parse(agentJsonString);
+    } else if (inputFile) {
+      return await getAgentJsonFromCharacterCard(inputFile);
+    } else {
+      return null;
+    }
+  })();
+  // images
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
+      jwt,
+    });
+  }
+  if (hsFile) {
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
+  }
+  // features
+  agentJson = addAgentJsonFeatures(agentJson, features);
   // run the interview, if applicable
-  if (!(agentJsonString || source || yes)) {
+  if (!(inputFile || agentJsonString || source || yes)) {
     const interviewMode = prompt ? 'auto' : 'interactive';
     if (interviewMode !== 'auto') {
       console.log(pc.italic('Starting the Interview process...\n'));
@@ -542,6 +642,9 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
@@ -554,6 +657,28 @@ export const edit = async (args, opts) => {
   }
 
   let agentJson = loadAgentJson(dstDir);
+
+  // update character card
+  if (inputFile) {
+    const update = await getAgentJsonFromCharacterCard(inputFile);
+    agentJson = {
+      ...agentJson,
+      ...update,
+    };
+  };
+
+  // update images
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
+      jwt,
+    });
+  }
+  if (hsFile) {
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
+  }
 
   // update features
   agentJson = updateFeatures(agentJson, {

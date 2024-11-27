@@ -11,6 +11,7 @@ import {
 
 const defaultTranscriptionModel = 'whisper-1';
 // const defaultRealtimeModel = 'gpt-4o-realtime-preview-2024-10-01';
+const vadEndpoint = `https://vad.fly.dev/`;
 
 const mergeUint8Arrays = (arrays) => {
   let totalLength = 0;
@@ -37,34 +38,34 @@ const encodeMp3 = async (f32, {
     throw new Error('no codecs');
   }
 
-  console.log('encoding 1');
+  // console.log('encoding 1');
   try {
     const encodeTransformStream = new AudioEncodeStream({
       type: 'audio/mpeg',
       sampleRate,
       codecs,
     });
-    console.log('encoding 2');
+    // console.log('encoding 2');
 
     (async () => {
       const writer = encodeTransformStream.writable.getWriter();
-      console.log('write 1');
+      // console.log('write 1');
       await writer.write(f32);
-      console.log('write 2');
+      // console.log('write 2');
       await writer.close();
-      console.log('write 3');
+      // console.log('write 3');
     })();
 
     // read the encoded mp3 from the readable end of the web stream
     const reader = encodeTransformStream.readable.getReader();
     const chunks = [];
     for (;;) {
-      console.log('read 1');
+      // console.log('read 1');
       const { done, value } = await reader.read();
-      console.log('read 2', {
-        done,
-        value,
-      });
+      // console.log('read 2', {
+      //   done,
+      //   value,
+      // });
       if (done) {
         break;
       }
@@ -72,11 +73,9 @@ const encodeMp3 = async (f32, {
     }
     console.log('read 3');
 
-    // XXX terminate the encoder
-
-    console.log('got chunks 1', chunks);
+    // console.log('got chunks 1', chunks);
     const uint8Array = mergeUint8Arrays(chunks);
-    console.log('got chunks 2', uint8Array);
+    // console.log('got chunks 2', uint8Array);
     return uint8Array;
   } catch (error) {
     console.warn('error encoding mp3', error);
@@ -129,20 +128,35 @@ export const transcribeRealtime = ({
     const bs = [];
     let speechStartSampleIndex = 0;
     const queueManager = new QueueManager();
-
-    console.log('connect transcribe realtime 1');
+    const vadOptions = {
+      // Confidence threshold to classify a frame as speech (0-1). Higher = stricter, fewer false positives
+      positiveSpeechThreshold: 0.7,
+      // Confidence threshold to classify a frame as non-speech (0-1). Higher = stricter, fewer false negatives
+      negativeSpeechThreshold: 0.6,
+      // Number of frames to include before speech is detected
+      preSpeechPadFrames: 1,
+      // Number of consecutive non-speech frames before triggering speech end
+      redemptionFrames: 5,
+      // Minimum frames needed for speech detection - fewer frames trigger onVADMisfire instead of onSpeechEnd
+      minSpeechFrames: 8,
+      // Whether to submit speech segments when a pause is detected
+      submitUserSpeechOnPause: false,
+    };
+    // console.log('connect transcribe realtime 1');
 
     // const u = new URL(`${aiHost.replace(/^http/, 'ws')}/api/ai/realtime`);
     // u.searchParams.set('model', defaultRealtimeModel);
-    const u = new URL(`https://vad.fly.dev/`.replace(/^http/, 'ws'));
+    const u = new URL(vadEndpoint.replace(/^http/, 'ws'));
     u.searchParams.set('apiKey', jwt);
+    u.searchParams.set('vadOptions', JSON.stringify(vadOptions));
+    
     const ws = new WebSocket(u);
-    console.log('connect transcribe realtime 2');
+    // console.log('connect transcribe realtime 2');
     ws.binaryType = 'arraybuffer';
-    console.log('connect transcribe realtime 3');
+    // console.log('connect transcribe realtime 3');
     
     ws.addEventListener('open', () => {
-      console.log('transcribe ws open');
+      // console.log('transcribe ws open');
       transcription.dispatchEvent(new MessageEvent('open', {
         data: null,
       }));
@@ -184,7 +198,7 @@ export const transcribeRealtime = ({
       const { type, sampleIndex } = message;
       switch (type) {
         case 'speechstart': {
-          console.log('speech start');
+          // console.log('speech start');
           speechStartSampleIndex = sampleIndex;
 
           transcription.dispatchEvent(new MessageEvent('speechstart', {
@@ -220,14 +234,14 @@ export const transcribeRealtime = ({
             }
             return f32Result;
           })();
-          console.log('speech stop', f32Result);
+          // console.log('speech stop', f32Result);
 
           // encode as mp3 so we can transcribe it
           const mp3Buffer = await encodeMp3(f32Result, {
             sampleRate,
             codecs,
           });
-          console.log('encoded', mp3Buffer);
+          // console.log('encoded', mp3Buffer);
 
           await queueManager.waitForTurn(async () => {
             // console.log('transcribe 1', mp3Buffer);
@@ -331,7 +345,7 @@ export const transcribeRealtime = ({
       // }));
     });
     ws.addEventListener('close', (e) => {
-      console.log('transcribe ws close');
+      // console.log('transcribe ws close');
       transcription.dispatchEvent(new MessageEvent('close', {
         data: null,
       }));
