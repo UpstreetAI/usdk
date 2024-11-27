@@ -34,6 +34,7 @@ const makePlayerFromMember = (member: any) => {
   const player = new Player(id, {
     name: displayName,
     previewUrl: displayAvatarURL,
+    discordId: userId,
   });
   return player;
 };

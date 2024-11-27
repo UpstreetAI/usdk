@@ -3357,3 +3357,21 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
 
   return null;
 };
+
+const getUserMentions = (mentions: string[], conversationMembers: any[]) => {
+  return mentions.map((mention) => {
+    if (/^\d+$/.test(mention)) { // if the mention is a numerical string (i.e discord user id)
+      const user = conversationMembers.find(a => a.playerSpec?.discordId === mention);
+      if (user) {
+        return user.playerSpec.name; // replace the numerical mention with the user name
+      }
+    }
+    return mention; // return the original mention if no replacement is made
+  });
+};
+
+// helper function to extract @mentions from incoming text
+const extractMentions = (text: string): string[] => {
+  const mentions = text.match(/@(\w+)/g) || [];
+  return mentions.map(m => m.substring(1));
+};
