@@ -16,6 +16,10 @@ import { serve } from '@hono/node-server';
   });
 });
 
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
+
 //
 
 const homeDir = os.homedir();

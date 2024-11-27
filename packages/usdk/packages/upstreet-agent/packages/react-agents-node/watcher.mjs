@@ -9,9 +9,13 @@ import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 
 const dirname = getCurrentDirname(import.meta, process);
 
+// watch SIGTERM
+process.on('SIGTERM', () => {
+  process.exit(0);
+});
+
 const bindProcess = (cp) => {
   process.on('exit', () => {
-    // console.log('got exit', cp.pid);
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
