@@ -9,9 +9,11 @@ const localDirectory = getCurrentDirname(import.meta, process);
 
 //
 
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
 const bindProcess = (cp) => {
   process.on('exit', () => {
-    // console.log('got exit', cp.pid);
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {

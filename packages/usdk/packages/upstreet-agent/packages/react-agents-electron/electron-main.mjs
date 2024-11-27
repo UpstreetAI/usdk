@@ -17,6 +17,9 @@ console.log('electron start script!');
     console.warn(err.stack);
   });
 });
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
 
 // electron doesn't provide a native WebSocket
 // this is needed for needed for the multiplayer library
