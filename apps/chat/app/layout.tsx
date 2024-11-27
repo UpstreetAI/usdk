@@ -67,12 +67,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
         >
             <div className="flex flex-col min-h-screen">
               <Body>
-                {/* <Header /> */}
                 {children}
               </Body>
             </div>
           <TailwindIndicator/>
-          {/* <Footer /> */}
         </Providers>
       </body>
     </html>
