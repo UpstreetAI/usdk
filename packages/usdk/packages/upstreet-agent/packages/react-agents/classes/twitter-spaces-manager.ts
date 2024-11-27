@@ -1005,7 +1005,7 @@ class TwitterSpacesBot {
     (async () => {
       await _start();
     })().catch(err => {
-      console.warn('twitter bot error', err);
+      console.warn('twitter spaces bot error', err);
     });
   }
 
