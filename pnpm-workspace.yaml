@@ -1,0 +1,6 @@
+# pnpm-workspace.yaml
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "packages/usdk/packages/*"
+  - "packages/usdk/packages/upstreet-agent/packages/*"
