@@ -1,4 +1,4 @@
-import { chromium } from 'playwright-core';
+import { chromium } from 'playwright-core-lite';
 // import { aiProxyHost, r2EndpointUrl } from './endpoints.mjs';
 
 /* const createSession = async (opts, {
