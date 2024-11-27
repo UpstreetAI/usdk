@@ -4,6 +4,7 @@ import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { chromium } from 'playwright-core';
 
 //
 
@@ -68,7 +69,10 @@ const runAgent = async (directory, opts) => {
   const main = await loadModule(directory, p);
   // console.log('worker loaded module', main);
   const agentMain = await main({
-    init,
+    init: {
+      ...init,
+      chromium,
+    },
   });
   // console.log('agentMain', agentMain);
 
