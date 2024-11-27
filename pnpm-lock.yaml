@@ -726,6 +726,9 @@ importers:
       png-chunks-extract:
         specifier: ^1.0.0
         version: 1.0.0
+      pnpm:
+        specifier: ^9.12.3
+        version: 9.14.2
       pretty-bytes:
         specifier: ^6.1.1
         version: 6.1.1
@@ -10943,6 +10946,11 @@ packages:
   pngjs@7.0.0:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
     engines: {node: '>=14.19.0'}
+
+  pnpm@9.14.2:
+    resolution: {integrity: sha512-biuvd9Brk2IpQVLIUcTyeO3jerHro6Vf2jF6SheyCfTbuXP7JQp3q8Rjo0H8sfF/F8+iQJHE6zGc2g2bhCeDhw==}
+    engines: {node: '>=18.12'}
+    hasBin: true
 
   polished@4.3.1:
     resolution: {integrity: sha512-OBatVyC/N7SCW/FaDHrSd+vn0o5cS855TOmYi4OkdWUMSJCET/xip//ch8xGUvtr3i44X9LVyWwQlRMTN3pwSA==}
@@ -26475,6 +26483,8 @@ snapshots:
 
   pngjs@7.0.0: {}
 
+  pnpm@9.14.2: {}
+
   polished@4.3.1:
     dependencies:
       '@babel/runtime': 7.26.0
@@ -29226,6 +29236,7 @@ snapshots:
       picocolors: 1.1.1
       png-chunk-text: 1.0.0
       png-chunks-extract: 1.0.0
+      pnpm: 9.14.2
       pretty-bytes: 6.1.1
       queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
       react-agents-electron: file:packages/usdk/packages/upstreet-agent/packages/react-agents-electron
