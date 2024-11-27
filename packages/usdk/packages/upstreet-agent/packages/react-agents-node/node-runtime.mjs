@@ -31,6 +31,7 @@ export class ReactAgentsNodeRuntime {
     this.agentSpec = agentSpec;
   }
   async start({
+    init = {},
   } = {}) {
     const {
       directory,
@@ -51,6 +52,7 @@ export class ReactAgentsNodeRuntime {
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
+        '--init', JSON.stringify(init),
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],

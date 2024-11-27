@@ -57,16 +57,21 @@ const startAgentMainServer = async ({
   // console.log(`Agent server listening on http://${ip}:${port}`);
 };
 const runAgent = async (directory, opts) => {
-  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const main = await loadModule(directory, p);
-  // console.log('worker loaded module', main);
-  const agentMain = await main();
-  // console.log('agentMain', agentMain);
-
   const {
     ip,
     port,
+    init: initString,
   } = opts;
+  const init = initString && JSON.parse(initString);
+
+  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
+  const main = await loadModule(directory, p);
+  // console.log('worker loaded module', main);
+  const agentMain = await main({
+    init,
+  });
+  // console.log('agentMain', agentMain);
+
   await startAgentMainServer({
     agentMain,
     ip,
@@ -108,6 +113,7 @@ const main = async () => {
     .option('--var <vars...>', 'Environment variables in format KEY:VALUE')
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
+    .requiredOption('--init <json>', 'Initialization data')
     .action(async (directory, opts) => {
       commandExecuted = true;
 

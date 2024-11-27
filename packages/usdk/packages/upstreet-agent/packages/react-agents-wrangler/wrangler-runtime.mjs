@@ -88,6 +88,7 @@ export class ReactAgentsWranglerRuntime {
     this.agentSpec = agentSpec;
   }
   async start({
+    init = {},
     debug = false,
   } = {}) {
     const {
@@ -103,6 +104,7 @@ export class ReactAgentsWranglerRuntime {
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
+        '--init', JSON.stringify(init),
       ],
       {
         stdio: 'pipe',
