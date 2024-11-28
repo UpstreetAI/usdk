@@ -359,13 +359,15 @@ export class DiscordBotClient extends EventTarget {
     this.isReconnecting = false;
   }
   async status() {
-    const res = await fetch(`${discordBotEndpointUrl}/status`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-      },
-    });
-    const j = await res.json();
-    return j;
+    return await delayedRetry(async () => {
+      const res = await fetch(`${discordBotEndpointUrl}/status`, {
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+        },
+      });
+      const j = await res.json();
+      return j;
+    }, 2000);
   }
   async connect({
     channels = [],
