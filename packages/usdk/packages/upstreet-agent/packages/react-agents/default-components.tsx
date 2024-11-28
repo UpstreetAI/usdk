@@ -170,6 +170,21 @@ const ChatActions = () => {
         //   await e.commit();
         // }}
       />
+      <Action
+        name="null"
+        description={dedent`\
+          Choose this if you don't want to say anything in response.
+        `}
+        schema={
+          z.object({})
+        }
+        examples={[
+          {},
+        ]}
+        // handler={async (e: PendingActionEvent) => {
+        //   await e.commit();
+        // }}
+      />
     </>
   );
 };
@@ -891,6 +906,20 @@ export const InstructionsPrompt = () => {
         # Instructions
         Respond with the next action taken by your character: ${agent.name}
         The method/args of your response must match one of the allowed actions.
+
+        Before choosing an action, decide if you should respond at all:
+        - Return null (no action) if:
+          * Message is clearly meant for others (unless you have crucial information)
+          * Your input wouldn't add value to the conversation
+          * The conversation is naturally concluding
+          * You've already responded frequently in the last few messages
+        
+        Prioritize responding when:
+        - You're directly mentioned or addressed
+        - It's a group discussion where you can contribute meaningfully
+        - Your personality traits are relevant to the topic
+
+        Stay socially aware - let others speak and avoid unnecessary interruptions.
       `}
     </Prompt>
   );
