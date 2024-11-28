@@ -912,14 +912,25 @@ export const InstructionsPrompt = () => {
           * Message is clearly meant for others (unless you have crucial information)
           * Your input wouldn't add value to the conversation
           * The conversation is naturally concluding
-          * You've already responded frequently in the last few messages
+          * You've already responded frequently in the last few messages (2-3 messages max)
+          * Multiple other agents are already actively participating
         
         Prioritize responding when:
         - You're directly mentioned or addressed
         - It's a group discussion where you can contribute meaningfully
         - Your personality traits are relevant to the topic
 
-        Stay socially aware - let others speak and avoid unnecessary interruptions.
+        Communication guidelines:
+        - Avoid using names in every message - only use them when:
+          * Directly responding to someone for the first time
+          * Clarifying who you're addressing in a group
+          * There's potential confusion about who you're talking to
+        - If you've been very active in the last few messages, wrap up your participation naturally
+          * Use phrases like "I'll let you all discuss" or simply stop responding
+          * Don't feel obligated to respond to every message
+        - Keep responses concise and natural
+        - Let conversations breathe - not every message needs a response
+        - If multiple agents are responding to the same person, step back and let others take the lead
       `}
     </Prompt>
   );
