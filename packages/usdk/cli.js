@@ -1437,6 +1437,9 @@ export const createProgram = () => {
       .description('Create a new agent, from either a prompt or template')
       .argument(`[directory]`, `Directory to create the project in`)
       .option(`-p, --prompt <string>`, `Creation prompt`)
+      .option(`-i, --input <file>`, `Initialize from file (character card)`)
+      .option(`-pfp, --profile-picture <file>`, `Set the profile picture`)
+      .option(`-hs, --home-space <file>`, `Set the home space`)
       .option(`-j, --json <string>`, `Agent JSON string to initialize with (e.g '{"name": "Ally", "description": "She is cool"}')`)
       .option(`-y, --yes`, `Non-interactive mode`)
       .option(`-f, --force`, `Overwrite existing files`)
@@ -1493,6 +1496,9 @@ export const createProgram = () => {
       .description('Edit an existing agent')
       .argument(`[directory]`, `Directory containing the agent to edit`)
       .option(`-p, --prompt <string>`, `Edit prompt`)
+      .option(`-i, --input <file>`, `Update from file (character card)`)
+      .option(`-pfp, --profile-picture <file>`, `Set the profile picture`)
+      .option(`-hs, --home-space <file>`, `Set the home space`)
       .option(
         `-af, --add-feature <feature...>`,
         `Add a feature`,

@@ -1,0 +1,9 @@
+.tsd-signature,
+.tsd-returns-title,
+.tsd-parameters {
+  display: none;
+}
+
+h4 {
+  margin-top: 1em !important;
+}

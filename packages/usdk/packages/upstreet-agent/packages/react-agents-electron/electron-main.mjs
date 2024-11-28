@@ -17,6 +17,9 @@ console.log('electron start script!');
     console.warn(err.stack);
   });
 });
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
 
 // electron doesn't provide a native WebSocket
 // this is needed for needed for the multiplayer library
@@ -113,10 +116,17 @@ const startAgentMainServer = async ({
   // console.log(`Agent server listening on http://${ip}:${port}`);
 };
 const runAgent = async (directory, opts) => {
+  const {
+    init: initString,
+  } = opts;
+  const init = initString && JSON.parse(initString);
+
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
   // console.log('worker loaded module', main);
-  const agentMain = await main();
+  const agentMain = await main({
+    init,
+  });
   // console.log('agentMain', agentMain);
 
   const {
@@ -177,7 +187,10 @@ const openFrontend = async ({
   // create the window
   {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width, height } = primaryDisplay.workAreaSize;
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
+
+    const localWidth = 300;
+    const localHeight = 400;
 
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
@@ -191,13 +204,22 @@ const openFrontend = async ({
 
     // main window
     const win = new BrowserWindow({
-      width,
-      height,
-      x: 0,
-      y: 0,
+      // width,
+      // height,
+      width: localWidth,
+      height: localHeight,
+      x: displayWidth - localWidth, // Position at right edge
+      y: displayHeight - localHeight, // Position at bottom edge
+      transparent: true,
       frame: false,
+      hasShadow: false,
+      alwaysOnTop: true,
+      resizable: false,
+      titleBarStyle: 'none',
+      roundedCorners: false,
       webPreferences: {
         session: session.fromPartition('login'),
+        // nodeIntegration: true,
       },
     });
     if (debug) {
@@ -219,6 +241,7 @@ const main = async () => {
     .option('--var <vars...>', 'Environment variables in format KEY:VALUE')
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
+    .requiredOption('--init <json>', 'Initialization data')
     .action(async (directory, opts) => {
       commandExecuted = true;
 

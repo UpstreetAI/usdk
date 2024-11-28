@@ -12,7 +12,7 @@ import Image from 'next/image';
 import { Discord } from 'react-agents';
 ```
 
-## Usage
+## Setup
 
 <Callout>
   We highly recommend reading the [Discord Developers documentation](https://discord.com/developers/docs/intro) for in-depth help, and navigating through Discord's API.
@@ -24,48 +24,47 @@ Add Discord integration to your agent by following these steps:
    - Go to https://discord.com/developers/applications
    - Click **"New Application"** and give it a name
 
+<Wrapper>
   <Image src="/images/integrations/discord-new-app.png" width={740} height={300} className='rounded-md'/>
-
+</Wrapper>
 
 ### Step 2: Configure bot settings
    - From the sidebar, go to the **Bot** section to get the **Token**.
    - Click on **Reset Token** to get your Token and save it somewhere securely.
+  <Wrapper>
   <Image src="/images/integrations/bot-section.png" width={740} height={300} className='rounded-md'/>
- 
+ </Wrapper>
   Make sure to enable all three options here.
   - **Presence Intent** ✓
   - **Server Members Intent** ✓
   - **Message Content Intent** ✓
-
+<Wrapper>
   <Image src="/images/integrations/bot-perm.png" width={740} height={300} className='rounded-md'/>
-
+</Wrapper>
 ### Step 3: Add the bot to your server
 
   - From the sidebar, go to the **OAuth2** section
   - At the **OAuth2 URL Generator**, check the `bot` option
-
+<Wrapper>
   <Image src="/images/integrations/bot-mark.png" width={740} height={300} className='rounded-md'/>
-
+</Wrapper>
 
 
   - In the **Bot Permissions**, give the relevant permissions to the bot. To enable the bot to talk in the server and respond to messages, you should check **"Send Messages"**. You can check other permissions based on what you want your bot to do.
+  <Wrapper>
   <Image src="/images/integrations/auth-perm.png" width={740} height={300} className='rounded-md'/>
-
+</Wrapper>
 
   - Scroll down a bit to copy the URL:
+  <Wrapper>
   <Image src="/images/integrations/Copy-url.png" width={740} height={300} className='rounded-md'/>
-
+</Wrapper>
   - **Paste** this URL in a new tab where you will have to:
 
    1) Select the server you want to add the bot to
    2) Authorize the bot
 
-### Step 4: Create and Configure your Agent
-
-Run this command to create an Upstreet Agent:
-```bash
-usdk create
-```
+## Usage
 
 Add the following Component to your Agent:
 ```tsx
@@ -92,7 +91,7 @@ return (
 );
 ```
 
-Run the following command to get your Discord Agent up and running.
+When you run the following command to get your Discord Agent up and running:
 
 ```bash
 usdk chat
