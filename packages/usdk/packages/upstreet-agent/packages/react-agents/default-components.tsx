@@ -674,6 +674,7 @@ export const DefaultPrompts = () => {
       <StorePrompt />
       <ConversationMessagesPrompt />
       <InstructionsPrompt />
+      <DefaultCommunicationGuidelinesPrompt />
     </>
   );
 };
@@ -914,23 +915,30 @@ export const InstructionsPrompt = () => {
           * The conversation is naturally concluding
           * You've already responded frequently in the last few messages (2-3 messages max)
           * Multiple other agents are already actively participating
-        
+      `}
+    </Prompt>
+  );
+};
+export const DefaultCommunicationGuidelinesPrompt = () => {
+  return (
+    <Prompt>
+      {dedent`
         Prioritize responding when:
-        - You're directly mentioned or addressed
-        - It's a group discussion where you can contribute meaningfully
-        - Your personality traits are relevant to the topic
+          - You're directly mentioned or addressed
+          - It's a group discussion where you can contribute meaningfully
+          - Your personality traits are relevant to the topic
 
         Communication guidelines:
-        - Avoid using names in every message - only use them when:
-          * Directly responding to someone for the first time
-          * Clarifying who you're addressing in a group
-          * There's potential confusion about who you're talking to
-        - If you've been very active in the last few messages, wrap up your participation naturally
-          * Use phrases like "I'll let you all discuss" or simply stop responding
-          * Don't feel obligated to respond to every message
-        - Keep responses concise and natural
-        - Let conversations breathe - not every message needs a response
-        - If multiple agents are responding to the same person, step back and let others take the lead
+          - Avoid using names in every message - only use them when:
+            * Directly responding to someone for the first time
+            * Clarifying who you're addressing in a group
+            * There's potential confusion about who you're talking to
+          - If you've been very active in the last few messages, wrap up your participation naturally
+            * Use phrases like "I'll let you all discuss" or simply stop responding
+            * Don't feel obligated to respond to every message
+          - Keep responses concise and natural
+          - Let conversations breathe - not every message needs a response
+          - If multiple agents are responding to the same person, step back and let others take the lead
       `}
     </Prompt>
   );
