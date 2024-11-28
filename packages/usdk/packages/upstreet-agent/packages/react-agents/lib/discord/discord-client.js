@@ -333,6 +333,8 @@ export class DiscordBotClient extends EventTarget {
     token,
     codecs,
     jwt,
+    maxReconnectAttempts = 10,
+    reconnectDelay = 2000,
   }) {
     super();
 
@@ -350,6 +352,11 @@ export class DiscordBotClient extends EventTarget {
       codecs,
       jwt,
     });
+
+    this.maxReconnectAttempts = maxReconnectAttempts;
+    this.reconnectDelay = reconnectDelay;
+    this.reconnectAttempts = 0;
+    this.isReconnecting = false;
   }
   async status() {
     const res = await fetch(`${discordBotEndpointUrl}/status`, {
@@ -365,6 +372,14 @@ export class DiscordBotClient extends EventTarget {
     dms = [],
     userWhitelist = [],
   }) {
+    try {
+      await this._attemptConnect({ channels, dms, userWhitelist });
+    } catch (err) {
+      await this._handleReconnect({ channels, dms, userWhitelist });
+    }
+  }
+
+  async _attemptConnect({ channels, dms, userWhitelist }) {
     const channelSpecs = channels.map((channel) => {
       if (typeof channel === 'string') {
         return channel;
@@ -392,6 +407,9 @@ export class DiscordBotClient extends EventTarget {
     };
     ws.onclose = () => {
       console.warn('discord client closed');
+      if (!this.isReconnecting) {
+        this._handleReconnect({ channels, dms, userWhitelist }).catch(console.error);
+      }
     };
     ws.onmessage = e => {
       // console.log('got message', e.data);
@@ -494,7 +512,32 @@ export class DiscordBotClient extends EventTarget {
     await readyPromise;
   }
 
+  async _handleReconnect(connectionParams) {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      this.isReconnecting = false;
+      this.reconnectAttempts = 0;
+      throw new Error(`Failed to connect after ${this.maxReconnectAttempts} attempts`);
+    }
+
+    this.isReconnecting = true;
+    this.reconnectAttempts++;
+
+    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+    
+    await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
+
+    try {
+      await this._attemptConnect(connectionParams);
+      console.log('Reconnection successful');
+      this.isReconnecting = false;
+      this.reconnectAttempts = 0;
+    } catch (err) {
+      await this._handleReconnect(connectionParams);
+    }
+  }
+
   destroy() {
+    this.isReconnecting = false;  // Stop any reconnection attempts
     this.ws && this.ws.close();
     this.input.destroy();
     this.output.destroy();
