@@ -6,7 +6,7 @@ import type {
   ExtendableMessageEvent,
   ActionMessageEventData,
 } from './types';
-// import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
+import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 import {
   ConversationObject,
 } from './conversation-object';
@@ -24,12 +24,16 @@ import {
 import {
   TranscribedVoiceInput,
 } from '../devices/audio-transcriber.mjs';
+import { Player } from 'react-agents-client/util/player.mjs';
 
 //
 
 const getIdFromUserId = (userId: string) => uuidByString(userId);
-
 //
+
+const userId = 'speaker';
+const username = 'Speaker';
+const id = getIdFromUserId(userId);
 
 class TwitterSpacesBot {
   token: string;
@@ -92,6 +96,19 @@ class TwitterSpacesBot {
           return `twitterSpaces:channel:${url}`;
         },
       });
+      conversation.addEventListener('remotemessage', (e) => {
+        console.log('got e.data', e.data);
+      });
+
+      conversation.addEventListener('audiostream', (e) => {
+        console.log('got audiostream', e.data);
+      });
+      const player = new Player(id, {
+        name: username,
+        // previewUrl: displayAvatarURL,
+      });
+      
+      conversation.addAgent(player.playerId, player);
 
       this.agent.conversationManager.addConversation(conversation);
       signal.addEventListener('abort', () => {
@@ -294,10 +311,10 @@ class TwitterSpacesBot {
         let globalSampleRate = null;
         let audioMerger = null;
         await page.exposeFunction('postUp', async (eventType, args) => {
-          console.log('post up event', {
-            eventType,
-            args,
-          });
+          // console.log('post up event', {
+          //   eventType,
+          //   args,
+          // });
           switch (eventType) {
             case 'globalAudioContextInit': {
               if (!live) return;
@@ -332,8 +349,7 @@ class TwitterSpacesBot {
                 // }));
 
                 // XXX need to identify the speaker user from the DOM elements
-                const userId = 'speaker';
-                const username = 'Speaker';
+                
 
                 const rawMessage = {
                   method: 'say',
@@ -341,14 +357,17 @@ class TwitterSpacesBot {
                     text,
                   },
                 };
-                const id = getIdFromUserId(userId);
+                
+                console.log('got id', id);
                 const agent = {
                   id,
                   name: username,
                 };
+                console.log('got agent', agent);
                 const newMessage = formatConversationMessage(rawMessage, {
                   agent,
                 });
+                console.log('adding local message', newMessage);
                 await conversation.addLocalMessage(newMessage);
               });
               break;
@@ -365,6 +384,8 @@ class TwitterSpacesBot {
                   await queueManager.waitForTurn(async () => {
                     const audioStream = e.data.audioStream as PlayableAudioStream;
                     const { type } = audioStream;
+                    console.log('got audiostream', audioStream);
+                    
 
                     const decodeStream = new AudioDecodeStream({
                       type,
@@ -373,7 +394,7 @@ class TwitterSpacesBot {
                       codecs,
                     }) as TransformStream;
                     const sampleStream = decodeStream.readable;
-
+                    audioStream.pipeTo(decodeStream.writable);
                     // read the stream
                     const reader = sampleStream.getReader();
                     for (;;) {
@@ -382,6 +403,7 @@ class TwitterSpacesBot {
                         const f32 = value;
                         const base64 = float32ToBase64(f32);
                         postDown('audio', base64);
+                        console.log('posted audio', base64.length);
                       } else {
                         break;
                       }
@@ -597,6 +619,7 @@ class TwitterSpacesBot {
 
             const wsOutputText = `\
               // const volumeUpdateRate = 20;
+              console.log("WORKLET STARTING");
               const volumeUpdateRate = Infinity;
               const volumeScale = 2;
               // const audioBufferLength = 30;
@@ -612,6 +635,7 @@ class TwitterSpacesBot {
                   this.flushed = true;
                   
                   this.port.onmessage = e => {
+                    console.log('got message', e.data);
                     this.buffers.push(e.data);
 
                     this.flushed = false;
@@ -694,6 +718,8 @@ class TwitterSpacesBot {
                     }
                   }
                   
+                  console.log("process funtion called");
+                  console.log('outputs', outputs.length);
                   return true;
                 }
               }
@@ -716,6 +742,8 @@ class TwitterSpacesBot {
             switch (eventType) {
               // output audio from the agent to the spaces
               case 'audio': {
+                console.log("globalThis.audioInputStream: ", globalThis.audioInputStream)
+                console.log('posted audio', args.length);
                 if (globalThis.audioInputStream) {
                   const base64 = args;
                   const f32 = base64ToFloat32Array(base64);
@@ -745,19 +773,53 @@ class TwitterSpacesBot {
 
                 console.log('createFakeAudioStream 3', globalAudioContext.state);
 
+                // // const destination = globalAudioContext.createMediaStreamDestination();
+
+                // // create ws output worklet node
+                // const wsOutputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-output-worklet');
+                // // connect the worklet node to the destination
+                // wsOutputProcessor.connect(destination);
+
+                // destination.stream.write = (f32) => {
+                //   wsOutputProcessor.port.postMessage(f32);
+                // };
+
+                // // return the destination stream
+                // console.log('returning destination stream', destination.stream);
+                // return destination.stream;
+
                 const destination = globalAudioContext.createMediaStreamDestination();
 
                 // create ws output worklet node
                 const wsOutputProcessor = new AudioWorkletNode(globalAudioContext, 'ws-output-worklet');
-                // connect the worklet node to the destination
+                console.log('wsOutputProcessor', wsOutputProcessor);
+                wsOutputProcessor.addEventListener("processorerror", (error) => {
+                  console.error("There was an error!", error);
+                })
+                // Create and setup oscillator
+                const oscillator = globalAudioContext.createOscillator();
+                console.log('oscillator', oscillator);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, globalAudioContext.currentTime);
+
+                // Create a gain node to control volume
+                const gainNode = globalAudioContext.createGain();
+                gainNode.gain.value = 0.1; // Set volume to 10%
+
+                // Connect the nodes properly
+                oscillator.connect(gainNode);
+                gainNode.connect(wsOutputProcessor);
                 wsOutputProcessor.connect(destination);
 
+                // Start the oscillator
+                oscillator.start();
+
+                // Add write method to the stream
                 destination.stream.write = (f32) => {
-                  wsOutputProcessor.port.postMessage(f32);
+                    wsOutputProcessor.port.postMessage(f32);
                 };
 
-                // return the destination stream
-                console.log('returning destination stream', destination.stream);
+                console.log('returning destination stream MediaStream');
                 return destination.stream;
               } catch (err) {
                 console.warn('createFakeAudioStream error', err);
@@ -786,6 +848,7 @@ class TwitterSpacesBot {
               ];
             };
             navigator.mediaDevices.getUserMedia = async (constraints) => {
+              console.log('getUserMedia', constraints);
               console.log('get user media 1', JSON.stringify(constraints, null, 2));
               if (constraints.audio) {
                 console.log('get user media 2', constraints);
@@ -832,14 +895,14 @@ class TwitterSpacesBot {
         console.log('create ts init', {
           init,
         });
-        const browser = await init.chromium.launch({
-          headless: false,
-          devtools: true,
-          // args: ['--disable-web-security'],
-        });
-        // const browser = await createBrowser(undefined, {
-        //   jwt,
+        // const browser = await init.chromium.launch({
+        //   headless: false,
+        //   devtools: true,
+        //   // args: ['--disable-web-security'],
         // });
+        const browser = await createBrowser(undefined, {
+          jwt,
+        });
         if (await _checkAbort(async () => {
           await browser.close();
         })) return;
@@ -908,29 +971,102 @@ class TwitterSpacesBot {
 
         // handle requests to speak
         (async () => {
-          // XXX make the allowed speakers configurable via props
+          let lastRequestId = null;
+          
           for (;;) {
             try {
-              const requestedEl = page.locator('text=/Requested/i');
-              const parentButton = requestedEl.locator('closest', 'button');
-              console.log('got requested button html 1', await parentButton.innerHTML());
-              await parentButton.click({
-                // timeout: 0, // no timeout
+              // Wait for either the Requested text or button
+              const requestedEl = await page.waitForSelector([
+                'span:has-text("Requested")',
+                'span.css-1jxf684:has-text("Requested")',
+                '[role="button"]:has-text("Requested")',
+                'button:has-text("Requested")'
+              ].join(','), {
+                timeout: 30000,
+                state: 'visible'
               });
-              if (await _checkAbort()) return;
 
-              const approveElements = page.locator('text=/Approve/i');
-              const approveButton = approveElements.locator('closest', 'button');
-              console.log('got approve button html 1', await approveButton.innerHTML());
-              await approveButton.click();
-              if (await _checkAbort()) return;
+              // Get a unique identifier for this request (e.g., parent element ID or position)
+              const requestId = await page.evaluate(el => {
+                return el.parentElement?.getAttribute('data-testid') || 
+                       el.closest('button')?.getAttribute('data-testid') || 
+                       Date.now().toString();
+              }, requestedEl);
 
-              const backButton = page.locator('button[aria-label="Back"]');
-              console.log('got back button html 1', await backButton.innerHTML());
-              await backButton.click();
-              if (await _checkAbort()) return;
+              // Skip if we've already handled this request
+              if (requestId === lastRequestId) {
+                console.log('Already handled this request, waiting for new ones...');
+                await page.waitForTimeout(2000);
+                continue;
+              }
+
+              console.log('Found new request:', requestId);
+              lastRequestId = requestId;
+
+              // Get the parent button
+              const parentButton = await page.evaluateHandle(el => {
+                let current = el;
+                while (current && current.tagName !== 'BUTTON' && !current.getAttribute('role')?.includes('button')) {
+                  current = current.parentElement;
+                }
+                return current;
+              }, requestedEl);
+
+              if (parentButton) {
+                console.log('Found parent button, attempting to click');
+                await parentButton.click({ force: true });
+                
+                // Wait for and click the Approve button with retry logic
+                for (let attempt = 0; attempt < 3; attempt++) {
+                  try {
+                    const approveButton = await page.waitForSelector([
+                      'button:has-text("Approve")',
+                      '[role="button"]:has-text("Approve")',
+                      'span:has-text("Approve")'
+                    ].join(','), {
+                      timeout: 5000,
+                      state: 'visible'
+                    });
+
+                    if (approveButton) {
+                      console.log('Found approve button, clicking (attempt', attempt + 1, ')');
+                      await approveButton.click({ force: true });
+                      console.log('Successfully clicked approve button');
+                      break;
+                    }
+                  } catch (err) {
+                    console.log('Approve button click failed, attempt', attempt + 1);
+                    if (attempt === 2) throw err;
+                  }
+                }
+
+                // Wait briefly to let the UI update
+                await page.waitForTimeout(1000);
+
+                // Try to click the Back button
+                try {
+                  const backButton = await page.waitForSelector('button[aria-label="Back"]', {
+                    timeout: 5000,
+                    state: 'visible'
+                  });
+
+                  if (backButton) {
+                    console.log('Found back button, clicking');
+                    await backButton.click();
+                    await page.waitForTimeout(1000); // Wait for UI to settle
+                  }
+                } catch (err) {
+                  console.log('Back button not found or not clickable, continuing...');
+                }
+              }
+
             } catch (err) {
-              console.warn('error handling request to speak', err);
+              if (err.message.includes('Timeout')) {
+                console.log('No new requests found, continuing to poll...');
+              } else {
+                console.warn('Error handling request to speak:', err.message);
+              }
+              await page.waitForTimeout(2000);
             }
           }
         })();
@@ -940,14 +1076,14 @@ class TwitterSpacesBot {
           throw new Error('url argument is required');
         }
 
-        const browser = await init.chromium.launch({
-          headless: false,
-          devtools: true,
-          // args: ['--disable-web-security'],
-        });
-        // const browser = await createBrowser(undefined, {
-        //   jwt,
+        // const browser = await init.chromium.launch({
+        //   headless: false,
+        //   devtools: true,
+        //   // args: ['--disable-web-security'],
         // });
+        const browser = await createBrowser(undefined, {
+          jwt,
+        });
         if (await _checkAbort(async () => {
           await browser.close();
         })) return;
