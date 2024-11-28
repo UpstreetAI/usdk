@@ -73,9 +73,13 @@ After defining the useState, the useEffect is being used to display a greeting f
 
 ```tsx
  useEffect(() => {
-    agent.say("Hello! I'm here to assist you.");
-    setMessage("The agent has sent a greeting.");
-  }, [agent]);
+    const greet = async () => {
+      const simulatedAgentResponse = "Hello! I'm here to assist you.";
+      setMessage(simulatedAgentResponse);
+    };
+
+    greet(); 
+  }, []);
 
 ```
 This code runs after the component renders, triggering the agent to say "Hello! I'm here to assist you," 
@@ -95,7 +99,7 @@ Give agent a customized `Prompt`
 Display the message here 
 
 ```tsx
-  <div>{message && <p>{message}</p>}</div>
+  {message && <p>{message}</p>}
 ```
 
 The final state of `SimpleAgentEffect` look like this.
@@ -109,9 +113,13 @@ const SimpleGreetingAgent = () => {
   const [message, setMessage] = useState("Initializing...");
 
    useEffect(() => {
-    agent.say("Hello! I'm here to assist you.");
-    setMessage("The agent has sent a greeting.");
-  }, [agent]);
+    const greet = async () => {
+      const simulatedAgentResponse = "Hello! I'm here to assist you.";
+      setMessage(simulatedAgentResponse);
+    };
+
+    greet(); // Call the simulated greeting
+  }, []);
 
   return (
     <>
