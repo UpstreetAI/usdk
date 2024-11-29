@@ -9,14 +9,12 @@ on:
 
 jobs:
   test-usdk:
-    runs-on: ubuntu-latest
-    build:
-      runs-on: ubuntu-22.04
-      strategy:
-        matrix:
-          node-version: [20]
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        node-version: [20]
 
-      steps:
+    steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
         uses: pnpm/action-setup@v4
