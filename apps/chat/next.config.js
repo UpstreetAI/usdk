@@ -4,6 +4,16 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  // experimental: {
+  //   externalDir: true,
+  // },
+  transpilePackages: [
+    'ucom',
+    'react-agents',
+    'react-agents-browser',
+    'react-agents-builder',
+    'react-agents-client',
+  ],
   async redirects() {
     return [
       {
@@ -50,21 +60,21 @@ module.exports = {
     // noParse
     // config.module.noParse = /typescript\/lib\/typescript\.js$/;
 
-    config.module.rules.push({
-      test: /\.(ts|tsx|js|jsx)$/,
-      include: [
-        /\/ucom/,
-        /\/react-agents.*/,
-      ],
-      use: [
-        {
-          loader: 'babel-loader',
-          options: {
-            presets: ['next/babel'],
-          },
-        },
-      ],
-    });
+    // config.module.rules.push({
+    //   test: /\.(ts|tsx|js|jsx)$/,
+    //   include: [
+    //     /\/ucom/,
+    //     /\/react-agents.*/,
+    //   ],
+    //   use: [
+    //     {
+    //       loader: 'babel-loader',
+    //       options: {
+    //         presets: ['next/babel'],
+    //       },
+    //     },
+    //   ],
+    // });
 
     /* // Add transpilation of local packages
     config.module.rules.push({
