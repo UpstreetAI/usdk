@@ -524,7 +524,8 @@ export const create = async (args, opts) => {
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
         dependencies: {
-          // 'upstreet-agent': 'file:./packages/upstreet-agent'
+          'react': '19.0.0-rc-df5f2736-20240712',
+          'react-agents': 'file:./packages/upstreet-agent/packages/react-agents'
         },
       }, null, 2)),
       // package.json
