@@ -7,6 +7,7 @@ import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
 import mime from 'mime/lite';
+import dedent from 'dedent';
 import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
@@ -496,6 +497,7 @@ export const create = async (args, opts) => {
     const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
     const dstPackageJsonPath = path.join(dstDir, 'package.json');
+    const pnpmYamlPath = path.join(dstDir, 'pnpm-workspace.yaml');
 
     const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
 
@@ -523,8 +525,17 @@ export const create = async (args, opts) => {
         name: 'my-agent',
         dependencies: {
           'upstreet-agent': 'file:./packages/upstreet-agent',
+          'react-agents': 'file:./packages/upstreet-agent/packages/react-agents',
         },
       }, null, 2)),
+      // package.json
+      writeFile(pnpmYamlPath, dedent`\
+        packages:
+          - 'packages/*'
+          - 'packages/upstreet-agent/packages/*'
+          - 'packages/upstreet-agent/packages/codecs/*'
+          - 'packages/upstreet-agent/packages/codecs/*/packages/*'
+      `),
       // root tsconfig
       recursiveCopyAll(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
