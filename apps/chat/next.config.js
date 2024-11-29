@@ -48,9 +48,36 @@ module.exports = {
   },
   webpack: (config, options) => {
     // noParse
-    config.module.noParse = /typescript\/lib\/typescript\.js$/;
+    // config.module.noParse = /typescript\/lib\/typescript\.js$/;
 
-    // fix react resolution in sdk subpackage
+    config.module.rules.push({
+      test: /\.(ts|tsx|js|jsx)$/,
+      include: [
+        /\/ucom/,
+        /\/react-agents.*/,
+      ],
+      use: [
+        {
+          loader: 'babel-loader',
+          options: {
+            presets: ['next/babel'],
+          },
+        },
+      ],
+    });
+
+    /* // Add transpilation of local packages
+    config.module.rules.push({
+      test: /\.(tsx|ts|js|jsx)$/,
+      include: [
+        /\/(ucom)/,
+        // path.resolve(__dirname, '../../packages/ucom'),
+        // Add other local packages that need transpilation here
+      ],
+      use: [options.defaultLoaders.babel],
+    }); */
+
+    /* // fix react resolution in sdk subpackage
     const usdkPath = path.resolve(__dirname, '../../packages/usdk');
     const upstreetAgentPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent');
     const reactAgentsPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent/packages/react-agents');
@@ -72,7 +99,7 @@ module.exports = {
       replacePlugin(reactAgentsBrowserPath, /^react/),
       replacePlugin(upstreetAgentPath, /^react/),
       replacePlugin(usdkPath, /^react/),
-    );
+    ); */
 
     // config.experiments = {
     //   ...config.experiments,
