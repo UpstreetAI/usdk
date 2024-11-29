@@ -2,18 +2,12 @@ import path from 'path';
 import fs from 'fs';
 
 import { mkdirp } from 'mkdirp';
-import recursiveCopy from 'recursive-copy';
 import pc from 'picocolors';
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
 import toml from '@iarna/toml';
-import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import {
-  getAgentToken,
-} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
-import {
-  generateMnemonic,
-} from '../util/ethereum-utils.mjs';
+import mime from 'mime/lite';
+import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
 import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
@@ -27,35 +21,38 @@ import {
 import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
-import {
-  getUserIdForJwt,
-  getUserForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-import {
-  // providers,
-  getWalletFromMnemonic,
-  // getConnectedWalletsFromMnemonic,
-} from '../packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
+// import {
+//   getUserIdForJwt,
+// } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
 import {
   getAgentName,
-  ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
-  aiProxyHost,
-} from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
+  getAgentAuthSpec,
+} from '../util/agent-auth-util.mjs';
+import {
+  dotenvFormat,
+} from '../util/dotenv-util.mjs';
+import {
+  updateAgentJsonAuth,
+  ensureAgentJsonDefaults,
+} from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
+// import {
+//   aiProxyHost,
+// } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import { makeAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
-import { consoleImagePreviewWidth, consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
+import { recursiveCopyAll } from '../util/copy-utils.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
-import ora from 'ora';
-
-//
-
-const agentJsonSrcFilename = 'agent.json';
+import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
+import ImagePreviewServer from '../util/image-preview-server.mjs';
+import { imagePreviewPort } from '../util/ports.mjs';
+import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
 
@@ -102,73 +99,15 @@ const copyWithStringTransform = async (src, dst, transformFn) => {
   await fs.promises.writeFile(dst, s);
 };
 
-const getAgentAuthSpec = async (jwt) => {
-  const [
-    {
-      guid,
-      agentToken,
-    },
-    userPrivate,
-  ] = await Promise.all([
-    (async () => {
-      const guid = await createAgentGuid({
-        jwt,
-      });
-      const agentToken = await getAgentToken(jwt, guid);
-      return {
-        guid,
-        agentToken,
-      };
-    })(),
-    getUserForJwt(jwt, {
-      private: true,
-    }),
-  ]);
-  const mnemonic = generateMnemonic();
-  return {
-    guid,
-    agentToken,
-    userPrivate,
-    mnemonic,
-  };
-};
-/* const generateTemplateFromAgentJson = async (agentJson) => {
-  // create a temporary directory
-  const templateDirectory = await makeTempDir();
-
-  // copy over the basic template
-  const template = 'basic';
-  const basicTemplateDirectory = path.join(templatesDirectory, template);
-  await recursiveCopy(basicTemplateDirectory, templateDirectory);
-
-  // write the agent jsx
-  const agentJSXPath = path.join(templateDirectory, 'agent.tsx');
-  const agentJSX = makeAgentSourceCode(agentJson.features ?? []);
-  await fs.promises.writeFile(agentJSXPath, agentJSX);
-
-  // write the agent json
-  await fs.promises.writeFile(
-    path.join(templateDirectory, agentJsonSrcFilename),
-    JSON.stringify(agentJson, null, 2),
-  );
-
-  return templateDirectory;
-}; */
 const buildWranglerToml = (
   t,
-  { name, agentJson, mnemonic, agentToken } = {},
+  { name, agentJson, /* mnemonic, agentToken */ } = {},
 ) => {
   if (name !== undefined) {
     t.name = name;
   }
   if (agentJson !== undefined) {
     t.vars.AGENT_JSON = JSON.stringify(agentJson);
-  }
-  if (mnemonic !== undefined) {
-    t.vars.WALLET_MNEMONIC = mnemonic;
-  }
-  if (agentToken !== undefined) {
-    t.vars.AGENT_TOKEN = agentToken;
   }
   return t;
 };
@@ -186,6 +125,13 @@ const interview = async (agentJson, {
       ? new StreamStrategy(inputStream, outputStream)
       : new ReadlineStrategy(),
   );
+  const imagePreviewServer = new ImagePreviewServer(imagePreviewPort);
+
+  // setup SIGINT image preview server close handler
+  process.on('SIGINT', () => {
+    imagePreviewServer.stop();
+  })
+  
   const getAnswer = async (question) => {
     // console.log('get answer 1', {
     //   question,
@@ -294,6 +240,16 @@ const interview = async (agentJson, {
       if (signal.aborted) return;
 
       const b = Buffer.from(ab);
+      
+      // start server if not already running and update image
+      if (!imagePreviewServer.server) {
+          imagePreviewServer.start();
+      }
+      
+      // normalize the label to match the server's expectations
+      const normalizedLabel = label.toLowerCase().replace(/\s+updated \(preview\):$/i, '').trim();
+      imagePreviewServer.updateImage(normalizedLabel, b);
+      
       const jimp = await Jimp.read(b);
       if (signal.aborted) return;
 
@@ -303,6 +259,7 @@ const interview = async (agentJson, {
       } = imageRenderer.render(jimp.bitmap, consoleImagePreviewWidth, undefined);
       logAgentPropertyUpdate(label, '');
       console.log(imageText);
+      console.log(`\nView image at ${imagePreviewServer.getImageUrl(normalizedLabel)}\n`);
     };
     agentInterview.addEventListener('preview', imageLogger('Avatar updated (preview):'));
     agentInterview.addEventListener('homespace', imageLogger('Homespace updated (preview):'));
@@ -313,20 +270,64 @@ const interview = async (agentJson, {
   }
   const result = await agentInterview.waitForFinish();
   questionLogger.close();
+  imagePreviewServer.stop();
   return result;
 };
-const makeAgentJsonInit = ({
-  agentJsonString,
-  features,
+const getAgentJsonFromCharacterCard = async (p) => {
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+
+  const ccp = new CharacterCardParser();
+  const parsed = await ccp.parse(fileBlob);
+  const {
+    name,
+    description,
+    personality,
+    scenario,
+    first_mes,
+    mes_example,
+    creator_notes,
+    system_prompt,
+    post_history_instructions,
+    alternate_greetings,
+    character_book,
+    tags,
+    creator,
+    character_version,
+    extensions,
+  } = parsed.data;
+  return {
+    name,
+    description,
+    bio: personality,
+  };
+};
+const addAgentJsonImage = async (agentJson, p, key, {
+  jwt,
 }) => {
-  const agentJsonInit = agentJsonString ? JSON.parse(agentJsonString) : {};
+  const fileBuffer = await fs.promises.readFile(p);
+  const fileBlob = new Blob([fileBuffer]);
+  fileBlob.name = path.basename(p);
+  const url = await uploadImage(fileBlob, {
+    jwt,
+  });
+  agentJson = {
+    ...agentJson,
+    [key]: url,
+  };
+};
+const addAgentJsonFeatures = (agentJson, features) => {
+  agentJson = {
+    ...agentJson,
+  };
   // Add user specified features to agentJsonInit being passed to the interview process for context
   if (Object.keys(features).length > 0) {
-    agentJsonInit.features = {
+    agentJson.features = {
       ...features,
     };
   }
-  return agentJsonInit;
+  return agentJson;
 };
 const loadAgentJson = (dstDir) => {
   const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
@@ -336,23 +337,16 @@ const loadAgentJson = (dstDir) => {
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
 };
-const updateAgentJsonAuth = (agentJsonInit, agentAuthSpec) => {
-  const {
-    guid,
-    // agentToken,
-    userPrivate,
-    mnemonic,
-  } = agentAuthSpec;
-
-  const wallet = getWalletFromMnemonic(mnemonic);
-
-  return {
-    ...agentJsonInit,
-    id: guid,
-    ownerId: userPrivate.id,
-    address: wallet.address.toLowerCase(),
-    stripeConnectAccountId: userPrivate.stripe_connect_account_id,
-  };
+const uploadImage = async (file, {
+  jwt,
+}) => {
+  const type = mime.getType(file.name);
+  const ext = mime.getExtension(type);
+  const guid = crypto.randomUUID();
+  const p = ['images', guid, `image.${ext}`].join('/');
+  return await uploadBlob(p, file, {
+    jwt,
+  });
 };
 
 //
@@ -364,6 +358,9 @@ export const create = async (args, opts) => {
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
+  const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const agentJsonString = args.json;
   const source = args.source;
   const features = typeof args.feature === 'string' ? JSON.parse(args.feature) : (args.feature || {});
@@ -414,22 +411,44 @@ export const create = async (args, opts) => {
 
   // remove old directory
   const _prepareDirectory = async () => {
+    console.log(pc.italic('Preparing directory...'));
     await cleanDir(dstDir, {
       force,
       forceNoConfirm,
     });
     // bootstrap destination directory
     await mkdirp(dstDir);
+    console.log(pc.italic('Directory prepared...'));
   };
   await _prepareDirectory();
 
+  console.log(pc.italic('Generating Agent...'));
   // generate the agent
-  let agentJson = makeAgentJsonInit({
-    agentJsonString,
-    features,
-  });
+  let agentJson = await (async () => {
+    if (agentJsonString) {
+      return JSON.parse(agentJsonString);
+    } else if (inputFile) {
+      return await getAgentJsonFromCharacterCard(inputFile);
+    } else {
+      return null;
+    }
+  })();
+  // images
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
+      jwt,
+    });
+  }
+  if (hsFile) {
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
+  }
+  // features
+  agentJson = addAgentJsonFeatures(agentJson, features);
   // run the interview, if applicable
-  if (!(agentJsonString || source || yes)) {
+  if (!(inputFile || agentJsonString || source || yes)) {
     const interviewMode = prompt ? 'auto' : 'interactive';
     if (interviewMode !== 'auto') {
       console.log(pc.italic('Starting the Interview process...\n'));
@@ -443,12 +462,10 @@ export const create = async (args, opts) => {
       jwt,
     });
   }
-  else {
-    console.log(pc.italic('Generating agent...'));
-  }
+ 
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
-  ensureAgentJsonDefaults(agentJson);
-  console.log(pc.italic('Agent generated.'));
+  agentJson = ensureAgentJsonDefaults(agentJson);
+  console.log(pc.italic('Agent generated...'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);
   console.log(pc.green('Description:'), agentJson.description);
@@ -488,17 +505,19 @@ export const create = async (args, opts) => {
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
 
-    const srcGitignorePath = path.join(upstreetAgentSrcDir, '.gitignore');
+    const srcGitignorePath = path.join(upstreetAgentSrcDir, 'gitignore.template');
     const dstGitignorePath = path.join(dstDir, '.gitignore');
 
-    const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
-    const dstJestPath = dstDir;
+    const dstEnvTxt = path.join(dstDir, '.env.txt');
+
+    // const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
+    // const dstJestPath = dstDir;
 
     // copy over the template files
     console.log(pc.italic('Copying files...'));
     await Promise.all([
       // agent.tsx
-      fs.promises.writeFile(dstAgentTsxPath, agentJSX),
+      writeFile(dstAgentTsxPath, agentJSX),
       // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
@@ -507,24 +526,29 @@ export const create = async (args, opts) => {
         },
       }, null, 2)),
       // root tsconfig
-      recursiveCopy(srcTsconfigPath, dstTsconfigPath),
+      recursiveCopyAll(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
-      recursiveCopy(srcGitignorePath, dstGitignorePath),
-      // root jest config
-      recursiveCopy(srcJestPath, dstJestPath),
-      // root wrangler.toml
+      recursiveCopyAll(srcGitignorePath, dstGitignorePath),
+      /* // root jest config
+      recursiveCopyAll(srcJestPath, dstJestPath), */
+      // wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
         t = buildWranglerToml(t, {
           name: getAgentName(guid),
           agentJson,
-          agentToken,
-          mnemonic,
+          // agentToken,
+          // mnemonic,
         });
         return toml.stringify(t);
       }),
+      // env.txt
+      writeFile(dstEnvTxt, dotenvFormat({
+        AGENT_TOKEN: agentToken,
+        WALLET_MNEMONIC: mnemonic,
+      })),
       // upstreet-agent directory
-      recursiveCopy(upstreetAgentSrcDir, upstreetAgentDstDir),
+      recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir),
     ]);
   };
   await _copyFiles();
@@ -582,12 +606,6 @@ export const create = async (args, opts) => {
   console.log(pc.green(`Happy building!`));
 
   return agentJson;
-  // // return the parsed dstWranglerToml
-  // {
-  //   const dstWranglerTomlString = await fs.promises.readFile(path.join(dstDir, 'wrangler.toml'), 'utf8');
-  //   const dstWranglerToml = toml.parse(dstWranglerTomlString);
-  //   return dstWranglerToml;
-  // }
 };
 
 const updateFeatures = (agentJson, {
@@ -624,6 +642,9 @@ export const edit = async (args, opts) => {
   // args
   const dstDir = args._[0] ?? cwd;
   const prompt = args.prompt ?? '';
+  const inputFile = args.input ?? null;
+  const pfpFile = args.profilePicture ?? null;
+  const hsFile = args.homeSpace ?? null;
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
   const events = args.events ?? null;
@@ -636,6 +657,28 @@ export const edit = async (args, opts) => {
   }
 
   let agentJson = loadAgentJson(dstDir);
+
+  // update character card
+  if (inputFile) {
+    const update = await getAgentJsonFromCharacterCard(inputFile);
+    agentJson = {
+      ...agentJson,
+      ...update,
+    };
+  };
+
+  // update images
+  const previewImageFile = pfpFile || inputFile;
+  if (previewImageFile) {
+    agentJson = await addAgentJsonImage(agentJson, previewImageFile, 'previewUrl', {
+      jwt,
+    });
+  }
+  if (hsFile) {
+    agentJson = await addAgentJsonImage(agentJson, hsFile, 'homespaceUrl', {
+      jwt,
+    });
+  }
 
   // update features
   agentJson = updateFeatures(agentJson, {
@@ -677,71 +720,4 @@ export const edit = async (args, opts) => {
     ]);
   };
   await _updateFiles();
-};
-export const pull = async (args, opts) => {
-  const agentId = args._[0] ?? '';
-  const dstDir = args._[1] ?? cwd;
-  const force = !!args.force;
-  const forceNoConfirm = !!args.forceNoConfirm;
-  const noInstall = !!args.noInstall;
-  const events = args.events ?? null;
-  // opts
-  const jwt = opts.jwt;
-  if (!jwt) {
-    throw new Error('You must be logged in to pull.');
-  }
-
-  const userId = jwt && (await getUserIdForJwt(jwt));
-  if (userId) {
-    // clean the old directory
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
-
-    // download the source
-    console.log(pc.italic('Downloading source...'));
-    const u = `https://${aiProxyHost}/agents/${agentId}/source`;
-    try {
-      const req = await fetch(u, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-      if (req.ok) {
-        const zipBuffer = await req.arrayBuffer();
-        // console.log('downloaded source', zipBuffer.byteLength);
-
-        // extract the source
-        console.log(pc.italic('Extracting zip...'));
-        await extractZip(zipBuffer, dstDir);
-
-        events && events.dispatchEvent(new MessageEvent('finalize', {
-          data: {
-            agentJson,
-          },
-        }));
-
-        console.log(pc.italic('Installing dependencies...'));
-        try {
-          if (!noInstall) {
-            await npmInstall(dstDir);
-          }
-        } catch (err) {
-          console.warn('npm install failed:', err.stack);
-          process.exit(1);
-        }
-      } else {
-        const text = await req.text();
-        console.warn('pull request error', text);
-        process.exit(1);
-      }
-    } catch (err) {
-      console.warn('pull request failed', err);
-      process.exit(1);
-    }
-  } else {
-    console.log('not logged in');
-    process.exit(1);
-  }
 };

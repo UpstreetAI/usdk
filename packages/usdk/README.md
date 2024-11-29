@@ -177,9 +177,9 @@ For a full command reference, use `usdk --help` or `usdk <command> --help`.
 
 Dive deeper into Upstreet SDK with our comprehensive guides:
 
-- [What is an Upstreet Agent?](https://docs.upstreet.ai/concepts/agents-sdk/architecture#what-are-upstreet-agents)
+- [What is an Upstreet Agent?](https://docs.upstreet.ai/concepts/usdk/architecture#what-are-upstreet-agents)
 - [Getting Started](https://docs.upstreet.ai/install)
-- [Command Reference](https://docs.upstreet.ai/concepts/agents-sdk/architecture#available-commands)
+- [Command Reference](https://docs.upstreet.ai/concepts/usdk/architecture#available-commands)
 - [Tutorials and Examples](https://docs.upstreet.ai/examples)
 
 ## License
@@ -192,6 +192,6 @@ We're thrilled to have you join the Upstreet community! As you explore and creat
 
 👉 Join our Discord community to log issues and find inspiration: https://upstreet.ai/usdk-discord
 
-👉 Talk to us directly for deeper issues, and commercial usage: support@upstreet.ai 
+👉 Talk to us directly for deeper issues, and commercial usage: hello@upstreet.ai
 
 Happy creating in Upstreet! 🌆🚀

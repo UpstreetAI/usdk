@@ -50,7 +50,7 @@ import {
 import {
   getLocalAgentHost,
 } from '../packages/upstreet-agent/packages/react-agents-wrangler/util/hosts.mjs';
-import Jimp from 'jimp';
+import { Jimp } from 'jimp';
 import { consoleImageWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 
 //
@@ -85,7 +85,6 @@ const getUserProfile = async () => {
       name: makeName(),
       description: '',
     };
-    // ensureAgentJsonDefaults(userAsset);
   }
 
   return user;
@@ -146,6 +145,8 @@ const startMultiplayerRepl = ({
   const toggleMic = async () => {
     await microphoneQueueManager.waitForTurn(async () => {
       if (!microphoneInput) {
+        console.log('* starting mic *');
+
         const jwt = await getLoginJwt();
         if (!jwt) {
           throw new Error('not logged in');
@@ -196,7 +197,7 @@ const startMultiplayerRepl = ({
         audioStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming audio');
+          // console.log('start streaming audio');
           const {
             waitForFinish,
           } = realms.addAudioSource(audioStream);
@@ -217,6 +218,8 @@ const startMultiplayerRepl = ({
   const toggleCam = async () => {
     await cameraQueueManager.waitForTurn(async () => {
       if (!cameraInput) {
+        console.log('* starting camera *');
+
         const inputDevices = new InputDevices();
         const devices = await inputDevices.listDevices();
         const cameraDevice = inputDevices.getDefaultCameraDevice(devices.video);
@@ -237,7 +240,7 @@ const startMultiplayerRepl = ({
           videoRenderer.render();
           renderPrompt();
         });
-        console.log('* cam enabled *');
+        console.log('* camera enabled *');
 
         const cameraStream = new ReadableStream({
           start(controller) {
@@ -254,7 +257,7 @@ const startMultiplayerRepl = ({
         cameraStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming video');
+          // console.log('start streaming video');
           const {
             waitForFinish,
           } = realms.addVideoSource(cameraStream);
@@ -276,6 +279,8 @@ const startMultiplayerRepl = ({
   const toggleScreen = async () => {
     await screenQueueManager.waitForTurn(async () => {
       if (!screenInput) {
+        console.log('* starting screen capture *');
+
         const inputDevices = new InputDevices();
         const devices = await inputDevices.listDevices();
         const screenDevice = inputDevices.getDefaultScreenDevice(devices.video);
@@ -313,7 +318,7 @@ const startMultiplayerRepl = ({
         screenStream.disposition = 'text';
 
         (async () => {
-          console.log('start streaming video');
+          // console.log('start streaming screen');
           const {
             waitForFinish,
           } = realms.addVideoSource(screenStream);
@@ -441,15 +446,15 @@ const connectRepl = async ({
   debug,
 }) => {
   let profile = await getUserProfile();
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
   profile = {
     ...profile,
     capabilities: [
       'human',
     ],
   };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
 
   let replServer = null;
 
@@ -753,15 +758,15 @@ const connectStream = async ({
   }
 
   let profile = await getUserProfile();
+  if (!profile) {
+    throw new Error('could not get user profile');
+  }
   profile = {
     ...profile,
     capabilities: [
       'human',
     ],
   };
-  if (!profile) {
-    throw new Error('could not get user profile');
-  }
 
   // set up the chat
   const multiplayerConnection = new ReactAgentsMultiplayerConnection({
@@ -843,11 +848,39 @@ const connectStream = async ({
     sendChatMessage(text);
   });
 };
+const connectElectron = async ({
+  room,
+  jwt,
+  debug,
+  runtimes,
+}) => {
+  // let profile = await getUserProfile();
+  // if (!profile) {
+  //   throw new Error('could not get user profile');
+  // }
+  // profile = {
+  //   ...profile,
+  //   capabilities: [
+  //     'human',
+  //   ],
+  // };
+
+  const openPromises = runtimes.map(async (runtime) => {
+    await runtime.open({
+      room,
+      jwt,
+      debug,
+    });
+  });
+  await Promise.all(openPromises);
+};
 export const connect = async (args) => {
   const room = args._[0] ?? '';
   const mode = args.mode ?? 'repl';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
+  const runtimes = args.runtimes ?? null;
+  const jwt = args.jwt ?? null;
   const debug = !!args.debug;
 
   if (room) {
@@ -858,18 +891,27 @@ export const connect = async (args) => {
         });
         break;
       }
-      case 'repl': {
-        connectRepl({
-          room,
-          debug,
-        });
-        break;
-      }
       case 'stream': {
         connectStream({
           room,
           inputStream,
           outputStream,
+          debug,
+        });
+        break;
+      }
+      case 'electron': {
+        connectElectron({
+          room,
+          jwt,
+          debug,
+          runtimes,
+        });
+        break;
+      }
+      case 'repl': {
+        connectRepl({
+          room,
           debug,
         });
         break;

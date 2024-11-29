@@ -1,0 +1,54 @@
+name: Bug Report
+description: File a bug report.
+labels: ["bug", "triage"]
+title: "[Bug]: "
+assignees:
+  - SaadBazaz
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which product did you find the issue in?
+      options:
+        - USDK (Upstreet Agents SDK)
+        - Chat frontend and/or Landing page
+        - Documentation
+        - Other
+      default: 0
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Version
+      description: Which version of `usdk` are you running? (`usdk` is the Upstreet Agents SDK)
+      placeholder: x.x.x
+  - type: textarea
+    id: environment
+    attributes:
+      label: What is your environment?
+      description: Describe your project's environment. This will help us reproduce the issue.
+      placeholder: Node version, NPM version, Browser version (if applicable), Operating System, etcetera
+  - type: input
+    id: chat-url
+    attributes:
+      label: Link to original discussion
+      description: Relevant chat URL, such as a Discord message link, GitHub Issue, etc.
+      placeholder: https://discord.com/channels/1299433782348091514/1299433782985756805/1308828379574702151
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. You can also add screenshots of your browser console, network requests, etcetera.

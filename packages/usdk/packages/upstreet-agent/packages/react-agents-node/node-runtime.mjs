@@ -1,16 +1,19 @@
 import path from 'path';
 import crossSpawn from 'cross-spawn';
 import { devServerPort } from './util/ports.mjs';
+import { getCurrentDirname} from '../react-agents/util/path-util.mjs'
 
 //
 
-const localDirectory = new URL('.', import.meta.url).pathname;
+const localDirectory = getCurrentDirname(import.meta, process);
 
 //
 
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
 const bindProcess = (cp) => {
   process.on('exit', () => {
-    // console.log('got exit', cp.pid);
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
@@ -30,11 +33,14 @@ export class ReactAgentsNodeRuntime {
     this.agentSpec = agentSpec;
   }
   async start({
+    init = {},
   } = {}) {
     const {
       directory,
       portIndex,
     } = this.agentSpec;
+
+    const watcherPath = path.join(localDirectory, 'watcher.mjs');
 
     const cp = crossSpawn(
       'node',
@@ -42,12 +48,13 @@ export class ReactAgentsNodeRuntime {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
-        path.join(localDirectory, 'watcher.mjs'),
+        watcherPath,
         'run',
         directory,
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
+        '--init', JSON.stringify(init),
       ],
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],

@@ -13,7 +13,7 @@ export function HeaderNavigation({ user }: HeaderNavigationProps) {
 
   const pathname = usePathname();
   // HIDE NAVIGATION WHEN USER IS ON FOLLOWING PAGES
-  if(pathname.startsWith('/new') || pathname.startsWith('/rooms/') || pathname === '/account') return null;
+  if(pathname.startsWith('/new') || pathname.startsWith('/rooms/') || pathname.startsWith('/embed') || pathname === '/account') return null;
 
   return (
     <header className="sticky top-0 z-[10] flex items-center justify-between h-12 pt-6 shrink-0 bg-zinc-950">

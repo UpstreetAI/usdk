@@ -29,6 +29,7 @@ import { useAgent } from '../hooks';
 export class AppContextValue {
   subtleAi: SubtleAi;
   agentJson: object;
+  env: object;
   environment: string;
   wallets: any;
   authToken: string;
@@ -36,11 +37,13 @@ export class AppContextValue {
   conversationManager: ConversationManager;
   chatsSpecification: ChatsSpecification;
   codecs: any;
+  init: any;
   registry: RenderRegistry;
 
   constructor({
     subtleAi,
     agentJson,
+    env,
     environment,
     wallets,
     authToken,
@@ -48,21 +51,25 @@ export class AppContextValue {
     conversationManager,
     chatsSpecification,
     codecs,
+    init,
     registry,
   }: {
     subtleAi: SubtleAi;
     agentJson: object;
     environment: string;
+    env: object;
     wallets: any;
     authToken: string;
     supabase: any;
     conversationManager: ConversationManager;
     chatsSpecification: ChatsSpecification;
     codecs: any;
+    init: any;
     registry: RenderRegistry;
   }) {
     this.subtleAi = subtleAi;
     this.agentJson = agentJson;
+    this.env = env;
     this.environment = environment;
     this.wallets = wallets;
     this.authToken = authToken;
@@ -70,6 +77,7 @@ export class AppContextValue {
     this.conversationManager = conversationManager;
     this.chatsSpecification = chatsSpecification;
     this.codecs = codecs;
+    this.init = init;
     this.registry = registry;
   }
 
@@ -77,6 +85,9 @@ export class AppContextValue {
 
   useAgentJson() {
     return this.agentJson;
+  }
+  useEnv() {
+    return this.env;
   }
   useEnvironment() {
     return this.environment;
@@ -98,6 +109,9 @@ export class AppContextValue {
   }
   useCodecs() {
     return this.codecs;
+  }
+  useInit() {
+    return this.init;
   }
   useRegistry() {
     return this.registry;

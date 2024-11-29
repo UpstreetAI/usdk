@@ -1,7 +1,10 @@
 ---
 title: Informative Agent
-description: This section describes how to build an Agent with Upstreet, with custom Components.
+description: This section describes how to build an Agent with with custom Components.
 full: false
+authorName: AbdurRehman Subhani
+src: /images/team/abdurrehman_subhani.jpeg
+thumbnailSrc: /images/example-thumbnails/informative-agent.png
 ---
 
 In this guide, we build an **Informative Agent** inspired by the [Pokédex](https://www.pokemon.com/us/pokedex) in the Pokémon franchise, an encyclopedia device capable of retrieving Pokémon information and having conversations with its user.
@@ -16,13 +19,13 @@ The source code for this example is available on [GitHub](https://github.com/Ups
 
 You can follow along this example by watching the video below:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Guide
 
 ### Step 1: Setup `usdk`
 
-Follow the _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
 
 ### Step 2: Create an Agent (shortcut)
 
@@ -40,7 +43,7 @@ As of November 12, 2024, there are **1,025** Pokémon in the National Pokédex. 
 
 So instead of keeping the Pokédex database in memory, we'll use [PokéAPI](https://pokeapi.co/) - an open-source (and free) Pokémon API - to retrieve Pokémon information at runtime.
 
-We'll have to create a [custom Component](/concepts/agents-sdk/creating-custom-components) to retrieve Pokémon information from the PokéAPI. For the sake of this example, we'll keep it simple:
+We'll have to create a [custom Component](/concepts/usdk/creating-custom-components) to retrieve Pokémon information from the PokéAPI. For the sake of this example, we'll keep it simple:
 
 ```tsx
 const PokemonDexAssistant = () => {
@@ -94,6 +97,9 @@ To say that simply, we want the Agent to know that it can fetch Pokémon details
 
 
 ```tsx
+
+import { z } from 'zod'; // [!code ++]
+
 const PokemonDexAssistant = () => {
 
     const fetchPokemonDetails = async (pokemonName: string) => { 
@@ -229,7 +235,21 @@ You can define multiple `<Action>` components, each tailored to a specific purpo
 
 ---
 
-You can see this code on GitHub [here](https://github.com/UpstreetAI/usdk-examples/blob/5d1e2299ff4a518c0791f8e3c8a49143eb1fecc2/pokedex/agent.tsx#L13).
+Finally, we call `<PokeDexAssistant />` in our Agent's main code:
+```tsx title="agent.tsx"
+// ...
+
+export default function MyAgent() {
+  return (
+    <Agent>
+        {/* [!code ++] */} 
+      <PokemonDexAssistant />
+    </Agent>
+  );
+}
+```
+
+You can see the complete code for this component on GitHub [here](https://github.com/UpstreetAI/usdk-examples/blob/5d1e2299ff4a518c0791f8e3c8a49143eb1fecc2/pokedex/agent.tsx#L13).
 
 ### Step 4: Test out your Pokédex-like Agent!
 

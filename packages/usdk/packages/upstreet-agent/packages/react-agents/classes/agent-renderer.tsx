@@ -131,10 +131,12 @@ const logDetailedError = (errorType: string, error: Error, containerState) => {
 //
 
 export class AgentRenderer {
-  env: object;
+  env: any;
+  auth: any;
   userRender: UserHandler;
   chatsSpecification: ChatsSpecification;
   codecs: any;
+  init: any;
 
   registry: RenderRegistry;
   conversationManager: ConversationManager;
@@ -150,20 +152,26 @@ export class AgentRenderer {
 
   constructor({
     env,
+    auth,
     userRender,
     chatsSpecification,
     codecs,
+    init,
   }: {
-    env: object;
+    env: any;
+    auth: any;
     userRender: UserHandler;
     chatsSpecification: ChatsSpecification;
     codecs: any;
+    init: any;
   }) {
     // latch arguments
     this.env = env;
+    this.auth = auth;
     this.userRender = userRender;
     this.chatsSpecification = chatsSpecification;
     this.codecs = codecs;
+    this.init = init;
 
     // create the app context
     this.registry = new RenderRegistry();
@@ -172,24 +180,27 @@ export class AgentRenderer {
     });
     const subtleAi = new SubtleAi();
     const useAgentJson = () => {
-      const agentJsonString = (env as any).AGENT_JSON as string;
+      const agentJsonString = this.env.AGENT_JSON as string;
       const agentJson = JSON.parse(agentJsonString);
       return agentJson;
     };
+    const useEnv = () => {
+      return this.auth;
+    }
     const useEnvironment = () => {
-      return (env as any).WORKER_ENV as string;
+      return this.env.WORKER_ENV as string;
     };
     const useWallets = () => {
-      const mnemonic = (env as any).WALLET_MNEMONIC as string;
+      const mnemonic = this.auth.WALLET_MNEMONIC as string;
       const wallets = getConnectedWalletsFromMnemonic(mnemonic);
       return wallets;
     };
     const useAuthToken = () => {
-      return (this.env as any).AGENT_TOKEN;
+      return this.auth.AGENT_TOKEN;
     };
     const useSupabase = () => {
       const jwt = useAuthToken();
-      const supabase = makeAnonymousClient(env, jwt);
+      const supabase = makeAnonymousClient(jwt);
       return supabase;
     };
     const useConversationManager = () => {
@@ -201,12 +212,16 @@ export class AgentRenderer {
     const useCodecs = () => {
       return this.codecs;
     };
+    const useInit = () => {
+      return this.init;
+    };
     const useRegistry = () => {
       return this.registry;
     };
     this.appContextValue = new AppContextValue({
       subtleAi,
       agentJson: useAgentJson(),
+      env: useEnv(),
       environment: useEnvironment(),
       wallets: useWallets(),
       authToken: useAuthToken(),
@@ -214,6 +229,7 @@ export class AgentRenderer {
       conversationManager: useConversationManager(),
       chatsSpecification: useChatsSpecification(),
       codecs: useCodecs(),
+      init: useInit(),
       registry: useRegistry(),
     });
 

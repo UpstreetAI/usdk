@@ -199,7 +199,7 @@ export function createOpusReadableStreamSource({
 
   const {sampleRate} = readableStream;
   if (!sampleRate) {
-    debugger;
+    throw new Error('createOpusReadableStreamSource: missing sample rate on readable stream');
   }
 
   // create output
@@ -271,7 +271,7 @@ export function createMp3ReadableStreamSource({
 
   const {sampleRate} = readableStream;
   if (!sampleRate) {
-    debugger;
+    throw new Error('createMp3ReadableStreamSource: missing sample rate on stream');
   }
 
   // create output
@@ -491,8 +491,8 @@ export function createOpusDecodeTransformStream({
   });
 
   const muxAndSend = encodedChunk => {
-    console.log('decode data', encodedChunk.data);
     if (encodedChunk) {
+      // console.log('decode data', encodedChunk.data);
       controller.enqueue(encodedChunk.data);
     } else {
       doneResolve();

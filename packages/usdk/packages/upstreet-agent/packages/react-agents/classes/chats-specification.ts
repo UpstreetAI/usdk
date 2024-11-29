@@ -155,7 +155,7 @@ export class ChatsSpecification extends EventTarget {
       // console.log('join room 2');
     } else {
       // throw new Error('chat already joined: ' + JSON.stringify(roomSpecification));
-      console.log("chat already joined previously");
+      // console.log('chat already joined previously');
     }
   }
   async leave(roomSpecification: RoomSpecification) {

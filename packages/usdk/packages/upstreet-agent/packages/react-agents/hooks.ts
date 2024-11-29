@@ -44,13 +44,29 @@ import {
 
 //
 
+// get the .env.txt content (parsed as an object)
+// note: this contains keys and must not be exposed to the user (such as by including it in prompts)
+export const useEnv: () => string = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useEnv();
+};
+// get the 'development' or 'production' environment variable
+// not to be confused with useEnv()
 export const useEnvironment: () => string = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useEnvironment();
 };
+// get the agent's authentication token
+// note: this contains keys and must not be exposed to the user (such as by including it in prompts)
+// not to be confused with useEnv()
 export const useAuthToken: () => string = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useAuthToken();
+};
+// get the passed-down agent initialization json
+export const useInit: () => any = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useInit();
 };
 
 //
@@ -75,14 +91,6 @@ export const useConversation = () => {
   }
   return conversation;
 };
-/* export const useScene: () => SceneObject = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useScene();
-};
-export const useAgents: () => Array<AgentObject> = () => {
-  const agentContextValue = useContext(AgentContext);
-  return agentContextValue.useAgents();
-}; */
 
 export const useActions: () => ActionPropsAux[] = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
