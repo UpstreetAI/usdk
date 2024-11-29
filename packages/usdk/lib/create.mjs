@@ -524,8 +524,7 @@ export const create = async (args, opts) => {
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
         dependencies: {
-          'upstreet-agent': 'file:./packages/upstreet-agent',
-          'react-agents': 'file:./packages/upstreet-agent/packages/react-agents',
+          // 'upstreet-agent': 'file:./packages/upstreet-agent'
         },
       }, null, 2)),
       // package.json
@@ -534,7 +533,7 @@ export const create = async (args, opts) => {
           - 'packages/*'
           - 'packages/upstreet-agent/packages/*'
           - 'packages/upstreet-agent/packages/codecs/*'
-          - 'packages/upstreet-agent/packages/codecs/*/packages/*'
+          - 'packages/upstreet-agent/packages/codecs/packages/*'
       `),
       // root tsconfig
       recursiveCopyAll(srcTsconfigPath, dstTsconfigPath),
