@@ -170,21 +170,6 @@ const ChatActions = () => {
         //   await e.commit();
         // }}
       />
-      <Action
-        name="null"
-        description={dedent`\
-          Choose this if you don't want to say anything in response.
-        `}
-        schema={
-          z.object({})
-        }
-        examples={[
-          {},
-        ]}
-        // handler={async (e: PendingActionEvent) => {
-        //   await e.commit();
-        // }}
-      />
     </>
   );
 };
@@ -973,11 +958,12 @@ export const JsonFormatter = () => {
           const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, thinkOpts)
             .map(action => makeActionSchema(action.name, action.schema));
           if (actionSchemas.length >= 2) {
-            return z.union(
-              actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
-            );
+            return z.union([
+              z.null(),
+              ...actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
+            ]);
           } else if (actionSchemas.length === 1) {
-            return actionSchemas[0];
+            return z.union([z.null(), actionSchemas[0]]);
           } else {
             return null;
           }
