@@ -558,7 +558,12 @@ export const create = async (args, opts) => {
         WALLET_MNEMONIC: mnemonic,
       })),
       // upstreet-agent directory
-      recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir),
+      recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir, {
+        filter: (src) => {
+          // filter out \/node_modules
+          return !src.includes('/node_modules');
+        },
+      }),
     ]);
   };
   await _copyFiles();
