@@ -550,10 +550,10 @@ export class DiscordBotClient extends EventTarget {
       console.log('update username', name);
       this.updateUsername(name);
     }
-    if (previewUrl && previewUrl !== avatarUrl) {
-      console.log('update avatar', previewUrl);
-      this.updateAvatar(previewUrl);
-    }
+    // if (previewUrl && previewUrl !== avatarUrl) {
+    //   console.log('update avatar', previewUrl);
+    //   this.updateAvatar(previewUrl);
+    // }
   }
 
   destroy() {
