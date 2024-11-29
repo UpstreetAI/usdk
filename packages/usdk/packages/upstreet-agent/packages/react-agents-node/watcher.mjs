@@ -48,6 +48,7 @@ const reloadAgentWorker = async (directory, opts) => {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
+        '--experimental-import-meta-resolve',
         workerPath,
         'run',
         directory,
