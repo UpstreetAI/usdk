@@ -866,8 +866,8 @@ importers:
         specifier: file:./packages/queue-manager
         version: link:packages/queue-manager
       react:
-        specifier: ^19.0.0-rc-df5f2736-20240712
-        version: 19.0.0-rc-fb9a90fa48-20240614
+        specifier: 19.0.0-rc-df5f2736-20240712
+        version: 19.0.0-rc-df5f2736-20240712
       react-agents:
         specifier: file:./packages/react-agents
         version: link:packages/react-agents
@@ -875,8 +875,8 @@ importers:
         specifier: file:./packages/react-agents-client
         version: link:packages/react-agents-client
       react-reconciler:
-        specifier: ^0.31.0-rc-df5f2736-20240712
-        version: 0.31.0-rc-fb9a90fa48-20240614(react@19.0.0-rc-fb9a90fa48-20240614)
+        specifier: 0.31.0-rc-df5f2736-20240712
+        version: 0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712)
       stripe:
         specifier: ^16.10.0
         version: 16.12.0
@@ -11583,11 +11583,11 @@ packages:
     peerDependencies:
       react: ^18.0.0
 
-  react-reconciler@0.31.0-rc-fb9a90fa48-20240614:
-    resolution: {integrity: sha512-j0nUAM0rHMQ8AsxriC5wfyv1cxbvFeTc4DCmUB6uHdTiLegD5PuXeYdAMJJZdYBCgUoai5El8Ph7ElYwOhEncA==}
+  react-reconciler@0.31.0-rc-df5f2736-20240712:
+    resolution: {integrity: sha512-dISmKM+MEZ0jRpE+jXkqLR+mTpYRhQuMLJNyYRcieECYmR3ka3c8XTyo/U0iTueSJltzUM4p59VnBm42jLbkqQ==}
     engines: {node: '>=0.10.0'}
     peerDependencies:
-      react: 19.0.0-rc-fb9a90fa48-20240614
+      react: 19.0.0-rc-df5f2736-20240712
 
   react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -11661,6 +11661,10 @@ packages:
 
   react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+    engines: {node: '>=0.10.0'}
+
+  react@19.0.0-rc-df5f2736-20240712:
+    resolution: {integrity: sha512-EskZQiyMOtoyC5P22HjB2vfLywcdko3TxknC6c+NBmlqjWxi4P70iR5/79PD6xj5f49jljuV9+/CH0N0brSxJg==}
     engines: {node: '>=0.10.0'}
 
   react@19.0.0-rc-fb9a90fa48-20240614:
@@ -12010,6 +12014,9 @@ packages:
 
   scheduler@0.23.2:
     resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
+
+  scheduler@0.25.0-rc-df5f2736-20240712:
+    resolution: {integrity: sha512-3qtBdd7ACjA/UuRYvn7rltaMRsnSCtycf3bO8sepp+L4cyPP3k6knBl7hqybdkczmXKWHkxyYAuzX61nXKEP1g==}
 
   scheduler@0.25.0-rc-fb9a90fa48-20240614:
     resolution: {integrity: sha512-HHqQ/SqbeiDfXXVKgNxTpbQTD4n7IUb4hZATvHjp03jr3TF7igehCyHdOjeYTrzIseLO93cTTfSb5f4qWcirMQ==}
@@ -27138,10 +27145,10 @@ snapshots:
       react: 19.0.0-rc-fb9a90fa48-20240614
       scheduler: 0.21.0
 
-  react-reconciler@0.31.0-rc-fb9a90fa48-20240614(react@19.0.0-rc-fb9a90fa48-20240614):
+  react-reconciler@0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712):
     dependencies:
-      react: 19.0.0-rc-fb9a90fa48-20240614
-      scheduler: 0.25.0-rc-fb9a90fa48-20240614
+      react: 19.0.0-rc-df5f2736-20240712
+      scheduler: 0.25.0-rc-df5f2736-20240712
 
   react-refresh@0.14.2: {}
 
@@ -27255,6 +27262,8 @@ snapshots:
   react@18.2.0:
     dependencies:
       loose-envify: 1.4.0
+
+  react@19.0.0-rc-df5f2736-20240712: {}
 
   react@19.0.0-rc-fb9a90fa48-20240614: {}
 
@@ -27771,6 +27780,8 @@ snapshots:
   scheduler@0.23.2:
     dependencies:
       loose-envify: 1.4.0
+
+  scheduler@0.25.0-rc-df5f2736-20240712: {}
 
   scheduler@0.25.0-rc-fb9a90fa48-20240614: {}
 
@@ -29142,10 +29153,10 @@ snapshots:
       openai: 4.72.0(zod@3.23.8)
       playwright-core-lite: file:packages/usdk/packages/upstreet-agent/packages/playwright-core-lite
       queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
-      react: 19.0.0-rc-fb9a90fa48-20240614
+      react: 19.0.0-rc-df5f2736-20240712
       react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
       react-agents-client: file:packages/usdk/packages/upstreet-agent/packages/react-agents-client
-      react-reconciler: 0.31.0-rc-fb9a90fa48-20240614(react@19.0.0-rc-fb9a90fa48-20240614)
+      react-reconciler: 0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712)
       stripe: 16.12.0
       together-ai: 0.6.0
       ts-jest: 29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.9.2(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.6.3)))(typescript@5.6.3)
