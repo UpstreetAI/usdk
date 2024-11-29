@@ -21,7 +21,7 @@ jobs:
         node-version: '22' # Specify the Node.js version you are using
 
     - name: Install dependencies
-      run: cd packages/usdk && npm install --no-optional
+      run: cd packages/usdk && npm install --omit=optional
 
     - name: Run USDK command
       run: cd packages/usdk && ./usdk.js --version
