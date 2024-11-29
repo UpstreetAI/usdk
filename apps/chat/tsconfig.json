@@ -4,7 +4,9 @@
     "outDir": "dist",
     "rootDir": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "plugins": [
       {
@@ -17,6 +19,11 @@
     "next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../../packages/**/*.ts",
+    "../../packages/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
