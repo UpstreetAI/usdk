@@ -8,11 +8,12 @@ module.exports = {
   //   externalDir: true,
   // },
   transpilePackages: [
-    'ucom',
     'react-agents',
     'react-agents-browser',
     'react-agents-builder',
     'react-agents-client',
+    'ecctrl',
+    'ucom',
   ],
   async redirects() {
     return [
