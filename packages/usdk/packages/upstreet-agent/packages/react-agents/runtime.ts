@@ -130,8 +130,13 @@ async function _generateAgentActionStepFromMessages(
   const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
   if (completionMessage) {
     const result = {} as ActionStep;
+    const action = (completionMessage.content as any).action as PendingActionMessage | null;
+    
+    // if the agent decided to do nothing (choose null), return an empty action step
+    if (action === null) {
+      return result;
+    }
 
-    const action = (completionMessage.content as any).action as PendingActionMessage;
     if (action) {
       const { method } = action;
       const actionHandlers = actions.filter((action) => action.name === method);

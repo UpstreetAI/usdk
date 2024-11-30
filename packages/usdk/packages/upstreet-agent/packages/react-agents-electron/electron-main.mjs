@@ -116,10 +116,17 @@ const startAgentMainServer = async ({
   // console.log(`Agent server listening on http://${ip}:${port}`);
 };
 const runAgent = async (directory, opts) => {
+  const {
+    init: initString,
+  } = opts;
+  const init = initString && JSON.parse(initString);
+
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
   // console.log('worker loaded module', main);
-  const agentMain = await main();
+  const agentMain = await main({
+    init,
+  });
   // console.log('agentMain', agentMain);
 
   const {

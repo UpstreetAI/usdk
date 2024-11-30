@@ -66,7 +66,7 @@ const getAuth = async () => {
 const main = async ({
   init = {},
 } = {}) => {
-  const [
+  let [
     env,
     auth,
   ] = await Promise.all([
@@ -78,7 +78,6 @@ const main = async ({
   const state = {
     userRender,
     codecs,
-    init,
     storage: {
       async getAlarm() {
         return alarmTimestamp;
@@ -87,6 +86,10 @@ const main = async ({
         alarmTimestamp = timestamp;
       },
     },
+  };
+  env = {
+    ...env,
+    init,
   };
   const agentMain = new AgentMain(state, env, auth);
   return agentMain;
