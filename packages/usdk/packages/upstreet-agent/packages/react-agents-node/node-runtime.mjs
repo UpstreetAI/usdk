@@ -48,6 +48,7 @@ export class ReactAgentsNodeRuntime {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
+        '--experimental-import-meta-resolve',
         watcherPath,
         'run',
         directory,
