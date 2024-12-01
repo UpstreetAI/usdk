@@ -30,7 +30,10 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html 
+      lang="en" 
+      suppressHydrationWarning
+    >
       <head>
         <link rel="apple-touch-icon" sizes="57x57" href="/favicons/apple-icon-57x57.png" />
         <link rel="apple-touch-icon" sizes="60x60" href="/favicons/apple-icon-60x60.png" />
@@ -46,18 +49,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="icon" type="image/png" sizes="96x96" href="/favicons/favicon-96x96.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
       </head>
-      <body
-        className={cn(
-          'font-[Aller-Regular] antialiased',
-          GeistSans.variable,
-          GeistMono.variable
-        )}
-        style={{
-          backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-        }}
-      >
+      <body>
         <Toaster position="top-center" />
         <Providers
           attribute="class"
@@ -65,12 +57,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-            <div className="flex flex-col min-h-screen">
-              <Body>
-                {children}
-              </Body>
-            </div>
-          <TailwindIndicator/>
+          <div 
+            className="flex flex-col min-h-screen"
+          >
+            {children}
+          </div>
+          <TailwindIndicator />
         </Providers>
       </body>
     </html>

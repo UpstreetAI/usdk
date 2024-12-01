@@ -8,20 +8,8 @@ interface EmbedLayoutProps {
 
 export default async function EmbedLayout({ children }: EmbedLayoutProps) {
   return (
-    <body
-      className={cn(
-        'font-[Aller-Regular] antialiased',
-        GeistSans.variable,
-        GeistMono.variable
-      )}
-      style={{
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-      }}
-    >
       <div className="relative flex h-full w-full">
         {children}
       </div>
-    </body>
   );
 }

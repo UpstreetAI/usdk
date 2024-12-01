@@ -105,7 +105,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground min-h-screen;
+    @apply text-foreground min-h-screen;
+  }
+  html {
+    color-scheme: light !important;
+    background: transparent !important;
   }
   .markdown {
     color: #000000;
