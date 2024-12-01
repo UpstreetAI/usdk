@@ -124,6 +124,8 @@ export class ReactAgentsElectronRuntime {
   // open the frontend
   async open({
     room,
+    width,
+    height,
     jwt,
     debug,
   }) {
@@ -139,6 +141,8 @@ export class ReactAgentsElectronRuntime {
       body: JSON.stringify({
         room,
         jwt,
+        width,
+        height,
         debug,
       }),
     });

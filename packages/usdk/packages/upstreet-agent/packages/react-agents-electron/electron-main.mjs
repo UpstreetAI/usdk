@@ -53,12 +53,16 @@ const startAgentMainServer = async ({
         const j = await req.json();
         const {
           room,
+          width,
+          height,
           jwt,
           debug,
         } = j;
 
         await openFrontend({
           room,
+          width,
+          height,
           jwt,
           debug,
         });
@@ -179,8 +183,10 @@ const createOTP = async (jwt) => {
 
 const openFrontend = async ({
   room,
-  jwt,
   debug,
+  width,
+  height,
+  jwt,
 }) => {
   // wait for the electron app to be ready
   await app.whenReady();
@@ -188,10 +194,20 @@ const openFrontend = async ({
   // create the window
   {
     const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
+    // console.log('primary display', primaryDisplay, primaryDisplay.workAreaSize);
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize; // primaryDisplay.bounds;
 
-    const localWidth = 600;
-    const localHeight = 800;
+    if (!debug) {
+      if (width === undefined) {
+        width = 600;
+      }
+      if (height === undefined) {
+        height = 800;
+      }
+    } else {
+      width = displayWidth;
+      height = displayHeight;
+    }
 
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
@@ -207,10 +223,10 @@ const openFrontend = async ({
     const win = new BrowserWindow({
       // width,
       // height,
-      width: localWidth,
-      height: localHeight,
-      x: displayWidth - localWidth, // Position at right edge
-      y: displayHeight - localHeight, // Position at bottom edge
+      width: width,
+      height: height,
+      x: displayWidth - width, // Position at right edge
+      y: displayHeight - height, // Position at bottom edge
       transparent: true,
       backgroundColor: '#00000000',
       frame: false,
