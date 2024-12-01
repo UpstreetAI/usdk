@@ -338,7 +338,7 @@ export function PromptForm({
             <Button
               variant="ghost"
               size="icon"
-              className={cn(`absolute left-0 md:left-4 top-[14px] size-8 rounded-full p-0`, mediaPickerOpen && `bg-slate-900 text-slate-100`)}
+              className={cn(`absolute left-0 md:left-4 top-[4px] size-8 rounded-full p-0`, mediaPickerOpen && `bg-slate-900 text-slate-100`)}
               onClick={() => {
                 toggleMediaPicker();
               }}
@@ -367,7 +367,7 @@ export function PromptForm({
           tabIndex={0}
           onKeyDown={onKeyDown}
           placeholder="Send a message"
-          className="min-h-[60px] w-full resize-none bg-transparent px-4 pl-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
+          className="min-h-[40px] w-full resize-none bg-transparent px-4 pl-4 focus-within:outline-none sm:text-sm"
           // autoFocus
           spellCheck={false}
           autoComplete="off"
@@ -378,7 +378,7 @@ export function PromptForm({
           onChange={e => setInput(e.target.value)}
           disabled={!connected}
         />
-        <div className="absolute right-0 top-[13px] sm:right-4">
+        <div className="absolute right-0 top-[4px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button type="submit" size="icon" className='shadow-none text-xl bg-transparent' disabled={input === ''}>
