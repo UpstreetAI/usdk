@@ -65,7 +65,7 @@ type AgentData = {
 function AgentAvatar({ agent }: { agent: AgentData }) {
   console.log('agent', agent);
   return <div className='relative flex rounded'>
-    <img src={agent.previewUrl} alt={agent.name} className='w-[200px] h-[200px] mt-auto rounded object-cover' />
+    <img src={agent.previewUrl} alt={agent.name} className='w-[80px] h-[80px] mt-auto rounded object-cover' />
   </div>;
 }
 
@@ -140,8 +140,12 @@ export function DesktopChat({ className, room }: ChatProps) {
   const { isAgentLoading } = useLoading();
 
   return (
-    <div className='flex w-full'>
-      {agents[0] && <AgentAvatar agent={agents[0]} />}
+    <div className='w-full'>
+      <div className='absolute flex top-0 left-0 w-full h-20 bg-zinc-950 z-10'>
+        {agents[0] && <AgentAvatar agent={agents[0]} />}
+        <button id="minimize-btn pl-4">Minimize</button>
+<button id="maximize-btn pl-4">Maximize</button>
+      </div>
       <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
         <div className='w-full h-screen overflow-auto' ref={scrollRef}>
           <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
