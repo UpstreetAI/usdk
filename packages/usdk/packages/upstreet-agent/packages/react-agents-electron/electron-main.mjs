@@ -159,7 +159,8 @@ const makeViteServer = (directory) => {
 
 // frontend code
 
-const host = 'https://chat.upstreet.ai';
+// const host = 'https://chat.upstreet.ai';
+const host = 'http://127.0.0.1:3000';
 
 const createOTP = async (jwt) => {
   const res = await fetch(
