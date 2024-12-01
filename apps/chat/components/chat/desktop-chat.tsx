@@ -62,6 +62,13 @@ type AgentData = {
   previewUrl: string;
 };
 
+function AgentAvatar({ agent }: { agent: AgentData }) {
+  console.log('agent', agent);
+  return <div className='relative flex rounded'>
+    <img src={agent.previewUrl} alt={agent.name} className='w-[200px] h-[200px] mt-auto rounded object-cover' />
+  </div>;
+}
+
 export function DesktopChat({ className, room }: ChatProps) {
   const [input, setInput] = useState('');
   const [agents, setAgents] = useState<AgentData[]>([]);
@@ -93,7 +100,7 @@ export function DesktopChat({ className, room }: ChatProps) {
       agentsData = agentsData.filter(Boolean);
       if (!live) return;
 
-      console.log('agents data', agentsData);
+      // console.log('agents data', agentsData);
 
       setAgents(agentsData);
     })();
@@ -133,28 +140,30 @@ export function DesktopChat({ className, room }: ChatProps) {
   const { isAgentLoading } = useLoading();
 
   return (
-    <div className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in`}>
-      <div className='h-screen overflow-auto' ref={scrollRef}>
-        <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
-          <div className="relative mx-auto px-2">
-            {messages.length ? <ChatList messages={messages} /> : null}
-          </div>
+    <div className='flex w-full'>
+      {agents[0] && <AgentAvatar agent={agents[0]} />}
+      <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
+        <div className='w-full h-screen overflow-auto' ref={scrollRef}>
+          <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
+            <div className="relative mx-auto px-2">
+              {messages.length ? <ChatList messages={messages} /> : null}
+            </div>
 
-          <div className="relative mx-auto px-2">
-            {isAgentLoading && "Loading agent..."}
-          </div>
+            <div className="relative mx-auto px-2">
+              {isAgentLoading && "Loading agent..."}
+            </div>
 
-          <div className="w-full h-px" ref={visibilityRef} />
+            <div className="w-full h-px" ref={visibilityRef} />
+          </div>
         </div>
+        <ChatPanel
+          input={input}
+          setInput={setInput}
+          isAtBottom={isAtBottom}
+          scrollToBottom={scrollToBottom}
+          room={room}
+        />
       </div>
-      <ChatPanel
-        input={input}
-        setInput={setInput}
-        isAtBottom={isAtBottom}
-        scrollToBottom={scrollToBottom}
-        room={room}
-        messages={messages}
-      />
     </div>
   );
 }
