@@ -59,6 +59,7 @@ export interface ChatProps extends React.ComponentProps<'div'> {
 type AgentData = {
   id: string;
   name: string;
+  previewUrl: string;
 };
 
 export function DesktopChat({ className, room }: ChatProps) {
