@@ -212,6 +212,7 @@ const openFrontend = async ({
       x: displayWidth - localWidth, // Position at right edge
       y: displayHeight - localHeight, // Position at bottom edge
       transparent: true,
+      backgroundColor: '#00000000',
       frame: false,
       hasShadow: false,
       alwaysOnTop: true,
