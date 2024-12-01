@@ -63,9 +63,8 @@ type AgentData = {
 };
 
 function AgentAvatar({ agent }: { agent: AgentData }) {
-  console.log('agent', agent);
-  return <div className='relative flex rounded'>
-    <img src={agent.previewUrl} alt={agent.name} className='w-[200px] h-[200px] mt-auto rounded object-cover' />
+  return <div className='relative flex w-[200px] h-full rounded'>
+    {agent && <img src={agent.previewUrl} alt={agent.name} className='w-[200px] h-[200px] mt-auto rounded object-cover' />}
   </div>;
 }
 
@@ -141,7 +140,7 @@ export function DesktopChat({ className, room }: ChatProps) {
 
   return (
     <div className='flex w-full'>
-      {agents[0] && <AgentAvatar agent={agents[0]} />}
+      <AgentAvatar agent={agents[0]} />
       <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
         <div className='w-full h-screen overflow-auto' ref={scrollRef}>
           <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
