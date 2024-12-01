@@ -40,7 +40,7 @@ export function ChatPanel({
         scrollToBottom={scrollToBottom}
       />
 
-      <div className="relative mx-auto border-t bg-gray-300 sm:px-4">
+      <div className="relative mx-auto border-t sm:px-4">
         {room && (<>
 
           <div className="space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative">
