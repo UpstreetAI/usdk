@@ -47,10 +47,10 @@
 
 ## Getting started with USDK
 
-If you want to get started with Upstreet Agents in general, you can simply install `usdk` from NPM:
+If you want to get started with Upstreet Agents in general, you can simply install `usdk` via `pnpm`:
 
 ```bash
-npm i -g usdk
+pnpm i -g usdk
 ```
 
 > ⚠️ Please ensure you have Node version 22.9.0 or above, otherwise `usdk` will not work.
@@ -68,7 +68,7 @@ Found a bug? Want a new feature? [Open an issue](https://github.com/upstreetAI/u
 #### Install dependencies
 Run install from the root directory:
 ```bash
-npm install
+pnpm install
 ```
 
 #### Run Apps
@@ -79,7 +79,7 @@ npm install
 
    > From the root directory run:
    >  ```bash
-   >  npm run chat dev
+   >  pnpm run chat dev
    >  ```
 
 </details>
@@ -90,7 +90,7 @@ npm install
 
    > From the root directory run:
    >  ```bash
-   >  npm run docs dev
+   >  pnpm run docs dev
    >  ```
 
 </details>
@@ -99,8 +99,8 @@ npm install
 From the root directory run:
 ```bash
 cd packages/usdk
-npm i
-npm i -g .
+pnpm i
+pnpm i -g .
 usdk --version
 ```
 
