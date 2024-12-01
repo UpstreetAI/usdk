@@ -189,8 +189,8 @@ const openFrontend = async ({
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
 
-    const localWidth = 300;
-    const localHeight = 400;
+    const localWidth = 600;
+    const localHeight = 800;
 
     // trade the jwt for an otp auth token
     const authToken = await createOTP(jwt);
