@@ -291,7 +291,7 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
-        <div className="mt-2 px-4 pl-2 w-full">
+        <div className="mt-2 px-2 w-full">
           <Textarea
             ref={inputRef}
             tabIndex={0}
