@@ -201,10 +201,10 @@ const openFrontend = async ({
 
     if (!debug) {
       if (width === undefined) {
-        width = 600;
+        width = 300;
       }
       if (height === undefined) {
-        height = 800;
+        height = 400;
       }
     } else {
       width = displayWidth;

@@ -104,12 +104,12 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply text-foreground min-h-screen;
-  }
   html {
     color-scheme: light !important;
     background: transparent !important;
+  }
+  body {
+    @apply text-foreground min-h-screen font-[Aller-Regular];
   }
   .markdown {
     color: #000000;
