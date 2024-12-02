@@ -148,7 +148,7 @@ export function DesktopChat({ className, room }: ChatProps) {
 
   return (
     <div className={`w-full relative transition-all duration-300 ${isChatExpanded ? 'h-screen' : 'h-20'}`}>
-      <div className={`absolute cursor-pointer flex top-0 right-2 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'} scale-[0.6]`}>
+      <div className={`absolute cursor-pointer flex top-0 right-1 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'} scale-[0.6]`}>
         {isChatExpanded && <IconButton icon="Minus" size="small" onClick={() => setIsChatExpanded(false)} className="" />}
       </div>
       {isChatExpanded && (
