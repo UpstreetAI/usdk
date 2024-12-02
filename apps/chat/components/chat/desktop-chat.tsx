@@ -233,15 +233,15 @@ function getMessageComponent(room: string, message: Message, id: string, players
     }
     case 'addMemory':
       return (
-        <div className="opacity-60 text-xs">{message.name} will remember that</div>
+        <div className="text-xs">{message.name} will remember that</div>
       );
     case 'queryMemories':
       return (
-        <div className="opacity-60 text-xs">{message.name} is trying to remember</div>
+        <div className="text-xs">{message.name} is trying to remember</div>
       );
     case 'mediaPerception':
       return (
-        <div className="opacity-60 text-xs">{message.name} checked an attachment</div>
+        <div className="text-xs">{message.name} checked an attachment</div>
       );
     case 'browserAction': {
       const player = playersCache.get(message.userId);
