@@ -172,6 +172,7 @@ export function DesktopChat({ className, room }: ChatProps) {
             isAtBottom={isAtBottom}
             scrollToBottom={scrollToBottom}
             room={room}
+            mode="desktop"
           />
         </div>
       )}

@@ -13,6 +13,8 @@ export interface ChatPanelProps {
   scrollToBottom: () => void
   room?: string
   desktop?: boolean
+  mode?: "web" | "desktop" | "embed"
+  messages?: Array<{ id: string; display: React.ReactNode }>
   // messages: Array<{ id: string; display: React.ReactNode }>
   // sendChatMessage: (message: string) => void
 }
@@ -26,8 +28,8 @@ export function ChatPanel({
   scrollToBottom,
   room,
   desktop,
-  // messages,
-  // sendChatMessage,
+  messages,
+  mode
 }: ChatPanelProps) {
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
