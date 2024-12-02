@@ -72,6 +72,9 @@ const reloadAgentWorker = async (directory, opts) => {
       if (opts.init) {
         args.push('--init', opts.init);
       }
+      if (opts.debug) {
+        args.push('--debug');
+      }
 
       // create the worker
       let live = true;
@@ -199,6 +202,7 @@ const main = async () => {
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
     .requiredOption('--init <init>', 'Initialization data')
+    .option('--debug', 'Enable debug mode')
     .action(async (directory, opts) => {
       commandExecuted = true;
 

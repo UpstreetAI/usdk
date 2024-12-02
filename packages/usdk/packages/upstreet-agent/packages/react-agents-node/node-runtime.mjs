@@ -34,6 +34,7 @@ export class ReactAgentsNodeRuntime {
   }
   async start({
     init = {},
+    debug = false,
   } = {}) {
     const {
       directory,
@@ -56,7 +57,9 @@ export class ReactAgentsNodeRuntime {
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
         '--init', JSON.stringify(init),
-      ],
+      ].concat(debug ? [
+        '--debug',
+      ] : []),
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       },

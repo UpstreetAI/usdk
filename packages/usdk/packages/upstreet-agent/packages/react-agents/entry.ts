@@ -48,6 +48,7 @@ export class AgentMain extends EventTarget {
     } = state;
     const {
       init,
+      debug,
     } = env;
     this.agentRenderer = new AgentRenderer({
       env,

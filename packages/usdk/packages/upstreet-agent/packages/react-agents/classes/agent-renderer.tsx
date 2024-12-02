@@ -185,6 +185,9 @@ export class AgentRenderer {
     const useInit = () => {
       return this.init;
     };
+    const useDebug = () => {
+      return !!this.env.debug;
+    };
     const useRegistry = () => {
       return this.registry;
     };
@@ -200,6 +203,7 @@ export class AgentRenderer {
       chatsSpecification: useChatsSpecification(),
       codecs: useCodecs(),
       init: useInit(),
+      debug: useDebug(),
       registry: useRegistry(),
     });
 
