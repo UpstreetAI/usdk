@@ -389,3 +389,71 @@ export const transcribeRealtime = ({
     throw error;
   }
 };
+
+export const transcribeRealtimeSTT = ({}) => {
+  try {
+    const stt = new RealtimeSTT();
+    const transcription = new EventTarget();
+
+    stt.dataSocket.addEventListener('message', (e) => {
+      try {
+        const result = JSON.parse(e.data.toString());
+        if (result.type === 'realtime') {
+          transcription.dispatchEvent(new MessageEvent('partial', {
+            data: {
+              transcript: result.text,
+            },
+          }));
+        } else if (result.type === 'fullSentence') {
+          transcription.dispatchEvent(new MessageEvent('transcription', {
+            data: {
+              transcript: result.text,
+            },
+          }));
+        }
+      } catch (err) {
+        console.warn('Error parsing STT message:', err);
+      }
+    });
+
+    stt.controlSocket.addEventListener('open', () => {
+      transcription.dispatchEvent(new MessageEvent('open', {
+        data: null,
+      }));
+    });
+
+    stt.controlSocket.addEventListener('error', (e) => {
+      console.warn('STT error:', e);
+      transcription.dispatchEvent(new MessageEvent('error', {
+        data: e,
+      }));
+    });
+
+    stt.controlSocket.addEventListener('close', () => {
+      transcription.dispatchEvent(new MessageEvent('close', {
+        data: null,
+      }));
+    });
+
+    // Start the STT service
+    stt.start().catch(err => {
+      console.error('Failed to start STT:', err);
+      throw err;
+    });
+
+    // Add write and close methods to transcription
+    transcription.write = async (f32) => {
+      const i16 = floatTo16Bit(f32);
+      stt.handleIncomingData(Buffer.from(i16.buffer));
+    };
+
+    transcription.close = () => {
+      stt.stop();
+    };
+
+    return transcription;
+  } catch (error) {
+    console.warn('error creating STT transcription:', error);
+    throw error;
+  }
+};
