@@ -390,14 +390,53 @@ export const transcribeRealtime = ({
   }
 };
 
-export const transcribeRealtimeSTT = ({}) => {
+export const transcribeRealtimeSTT = async ({ sampleRate }) => {
+  const serverConfig = {
+    host: 'xxxxx',
+    controlPort: 8011,
+    dataPort: 8012,
+  };
+
+  if (!sampleRate) {
+    throw new Error('no sample rate');
+  }
+
   try {
-    const stt = new RealtimeSTT();
+    const controlUrl = `ws://${serverConfig.host}:${serverConfig.controlPort}`;
+    const dataUrl = `ws://${serverConfig.host}:${serverConfig.dataPort}`;
+
+    const controlSocket = new WebSocket(controlUrl);
+    const dataSocket = new WebSocket(dataUrl);
+
     const transcription = new EventTarget();
 
-    stt.dataSocket.addEventListener('message', (e) => {
+    controlSocket.addEventListener('open', () => {
+      console.log('Control socket connected to:', controlUrl);
+      const configs = [
+        {
+          command: "set_parameter",
+          parameter: "language",
+          value: "en"
+        },
+      ];
+      configs.forEach(config => {
+        controlSocket.send(JSON.stringify(config));
+        console.log(`Configured ${config.parameter}: ${config.value}`);
+      });
+      transcription.dispatchEvent(new MessageEvent('open', { data: null }));
+    });
+
+    controlSocket.addEventListener('message', (data) => {
+      console.log('Control message:', data);
+    });
+
+    dataSocket.addEventListener('open', () => {
+      console.log('Data socket connected to:', dataUrl);
+    });
+
+    dataSocket.addEventListener('message', (data) => {
       try {
-        const result = JSON.parse(e.data.toString());
+        const result = JSON.parse(data.data);
         if (result.type === 'realtime') {
           transcription.dispatchEvent(new MessageEvent('partial', {
             data: {
@@ -412,43 +451,49 @@ export const transcribeRealtimeSTT = ({}) => {
           }));
         }
       } catch (err) {
-        console.warn('Error parsing STT message:', err);
+        console.log('Raw message:', data.data);
       }
     });
 
-    stt.controlSocket.addEventListener('open', () => {
-      transcription.dispatchEvent(new MessageEvent('open', {
-        data: null,
-      }));
+    controlSocket.addEventListener('error', (e) => {
+      console.warn('Control socket error:', e);
+      transcription.dispatchEvent(new MessageEvent('error', { data: e }));
     });
 
-    stt.controlSocket.addEventListener('error', (e) => {
-      console.warn('STT error:', e);
-      transcription.dispatchEvent(new MessageEvent('error', {
-        data: e,
-      }));
+    dataSocket.addEventListener('error', (e) => {
+      console.warn('Data socket error:', e);
+      transcription.dispatchEvent(new MessageEvent('error', { data: e }));
     });
 
-    stt.controlSocket.addEventListener('close', () => {
-      transcription.dispatchEvent(new MessageEvent('close', {
-        data: null,
-      }));
-    });
-
-    // Start the STT service
-    stt.start().catch(err => {
-      console.error('Failed to start STT:', err);
-      throw err;
-    });
-
-    // Add write and close methods to transcription
-    transcription.write = async (f32) => {
+    transcription.write = (f32) => {
       const i16 = floatTo16Bit(f32);
-      stt.handleIncomingData(Buffer.from(i16.buffer));
+      const metadata = {
+        sampleRate: sampleRate,
+        channels: 1,
+        encoding: 'PCM16'
+      };
+      const metadataStr = JSON.stringify(metadata);
+      const metadataLength = Buffer.alloc(4);
+      metadataLength.writeUInt32LE(metadataStr.length);
+
+      const message = Buffer.concat([
+        metadataLength,
+        Buffer.from(metadataStr),
+        Buffer.from(i16.buffer)
+      ]);
+
+      if (dataSocket.readyState === WebSocket.OPEN) {
+        dataSocket.send(message);
+      }
     };
 
     transcription.close = () => {
-      stt.stop();
+      if (controlSocket.readyState === WebSocket.OPEN) {
+        controlSocket.close();
+      }
+      if (dataSocket.readyState === WebSocket.OPEN) {
+        dataSocket.close();
+      }
     };
 
     return transcription;

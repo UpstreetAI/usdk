@@ -141,7 +141,7 @@ export class RealtimeTranscribedVoiceInput extends EventTarget {
     } = this.abortController;
 
     (async () => {
-      const transcription = transcribeRealtimeSTT({
+      const transcription = await transcribeRealtimeSTT({
         sampleRate: RealtimeTranscribedVoiceInput.transcribeSampleRate,
       });
 
