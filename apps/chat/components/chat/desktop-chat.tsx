@@ -66,7 +66,7 @@ type AgentData = {
 function AgentAvatar({ agent, className }: { agent: AgentData, className?: string }) {
   console.log('agent', agent);
   return <div className={cn('relative flex overflow-hidden', className)}>
-    <img src={agent.previewUrl} alt={agent.name} className='w-[80px] h-[80px] mt-auto rounded object-cover' />
+    <img src={agent.previewUrl} alt={agent.name} className='w-[80px] h-[80px] mt-auto object-cover' />
   </div>;
 }
 
@@ -173,9 +173,9 @@ export function DesktopChat({ className, room }: ChatProps) {
       {!isChatExpanded && agents[0] && (
         <button
           onClick={() => setIsChatExpanded(!isChatExpanded)}
-          className="fixed bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-105"
+          className="fixed cursor-pointer bottom-4 right-4 w-16 h-16 rounded-full flex items-center justify-center transition-transform duration-300 transform hover:scale-105"
         >
-          <AgentAvatar agent={agents[0]} className="w-full h-full rounded-full" />
+          <AgentAvatar agent={agents[0]} className="w-full h-full border-2 border-zinc-950" />
         </button>
       )}
     </div>
