@@ -17,6 +17,7 @@ import { currencies, intervals } from 'react-agents/constants.mjs';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { environment } from '@/lib/env';
 import { ChatMessageEmbed } from './chat-message-embed';
+import { IconButton } from 'ucom';
 
 const openInNewPage = (url: string) => {
   const a = document.createElement('a');
@@ -72,6 +73,7 @@ function AgentAvatar({ agent }: { agent: AgentData }) {
 export function DesktopChat({ className, room }: ChatProps) {
   const [input, setInput] = useState('');
   const [agents, setAgents] = useState<AgentData[]>([]);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const { user, supabase } = useSupabase();
 
   const {
@@ -140,34 +142,42 @@ export function DesktopChat({ className, room }: ChatProps) {
   const { isAgentLoading } = useLoading();
 
   return (
-    <div className='w-full'>
-      <div className='absolute flex top-0 left-0 w-full h-20 bg-zinc-950 z-10'>
-        {agents[0] && <AgentAvatar agent={agents[0]} />}
-        <button id="minimize-btn pl-4">Minimize</button>
-<button id="maximize-btn pl-4">Maximize</button>
+    <div className={`w-full relative transition-all duration-300 ${isChatExpanded ? 'h-screen' : 'h-20'}`}>
+      <div className={`absolute flex top-0 right-2 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'}`}>
+        {isChatExpanded && <IconButton icon="Minus" size="small" onClick={() => setIsChatExpanded(false)} />}
       </div>
-      <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
-        <div className='w-full h-screen overflow-auto' ref={scrollRef}>
-          <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
-            <div className="relative mx-auto px-2">
-              {messages.length ? <ChatList messages={messages} /> : null}
-            </div>
+      {isChatExpanded && (
+        <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
+          <div className='w-full h-screen overflow-auto' ref={scrollRef}>
+            <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
+              <div className="relative mx-auto px-2">
+                {messages.length ? <ChatList messages={messages} /> : null}
+              </div>
 
-            <div className="relative mx-auto px-2">
-              {isAgentLoading && "Loading agent..."}
-            </div>
+              <div className="relative mx-auto px-2">
+                {isAgentLoading && "Loading agent..."}
+              </div>
 
-            <div className="w-full h-px" ref={visibilityRef} />
+              <div className="w-full h-px" ref={visibilityRef} />
+            </div>
           </div>
+          <ChatPanel
+            input={input}
+            setInput={setInput}
+            isAtBottom={isAtBottom}
+            scrollToBottom={scrollToBottom}
+            room={room}
+          />
         </div>
-        <ChatPanel
-          input={input}
-          setInput={setInput}
-          isAtBottom={isAtBottom}
-          scrollToBottom={scrollToBottom}
-          room={room}
-        />
-      </div>
+      )}
+      {!isChatExpanded && agents[0] && (
+      <button
+        onClick={() => setIsChatExpanded(!isChatExpanded)}
+        className="fixed bottom-4 right-4 w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center transition-transform duration-300 transform hover:scale-105"
+      >
+        <AgentAvatar agent={agents[0]} />
+        </button>
+      )}
     </div>
   );
 }
