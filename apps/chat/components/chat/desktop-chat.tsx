@@ -201,13 +201,13 @@ function getMessageComponent(room: string, message: Message, id: string, players
   switch (message.method) {
     case 'join':
       return (
-        <div className="text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+        <div className="text-center text-xs text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-4">
           <span className='font-bold'>{message.name}</span> joined the room.
         </div>
       );
     case 'leave':
       return (
-        <div className="text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
+        <div className="text-center text-xs text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-4">
           <span className='font-bold'>{message.name}</span> left the room.
         </div>
       );
