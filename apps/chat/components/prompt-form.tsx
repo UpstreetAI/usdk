@@ -191,7 +191,7 @@ export function PromptForm({
                     audioStream.disposition = 'text';
           
                     (async () => {
-                      console.log('start streaming');
+                      console.log('start audio streaming');
                       const {
                         waitForFinish,
                       } = addAudioSource(audioStream);
