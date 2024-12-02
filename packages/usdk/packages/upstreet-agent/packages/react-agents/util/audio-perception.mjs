@@ -7,6 +7,9 @@ import { AudioEncodeStream } from 'codecs/audio-encode.mjs';
 import { QueueManager } from 'queue-manager';
 import {
   aiHost,
+  realtimeSTTHost,
+  realtimeSTTControlPort,
+  realtimeSTTDataPort,
 } from './endpoints.mjs';
 
 const defaultTranscriptionModel = 'whisper-1';
@@ -391,19 +394,14 @@ export const transcribeRealtime = ({
 };
 
 export const transcribeRealtimeSTT = async ({ sampleRate }) => {
-  const serverConfig = {
-    host: 'xxxxx',
-    controlPort: 8011,
-    dataPort: 8012,
-  };
 
   if (!sampleRate) {
     throw new Error('no sample rate');
   }
 
   try {
-    const controlUrl = `ws://${serverConfig.host}:${serverConfig.controlPort}`;
-    const dataUrl = `ws://${serverConfig.host}:${serverConfig.dataPort}`;
+    const controlUrl = `ws://${realtimeSTTHost}:${realtimeSTTControlPort}`;
+    const dataUrl = `ws://${realtimeSTTHost}:${realtimeSTTDataPort}`;
 
     const controlSocket = new WebSocket(controlUrl);
     const dataSocket = new WebSocket(dataUrl);
@@ -411,7 +409,7 @@ export const transcribeRealtimeSTT = async ({ sampleRate }) => {
     const transcription = new EventTarget();
 
     controlSocket.addEventListener('open', () => {
-      console.log('Control socket connected to:', controlUrl);
+      console.log('Control socket connected');
       const configs = [
         {
           command: "set_parameter",
@@ -431,7 +429,7 @@ export const transcribeRealtimeSTT = async ({ sampleRate }) => {
     });
 
     dataSocket.addEventListener('open', () => {
-      console.log('Data socket connected to:', dataUrl);
+      console.log('Data socket connected');
     });
 
     dataSocket.addEventListener('message', (data) => {
