@@ -51,6 +51,7 @@ type Message = {
   timestamp: Date;
   userId: string;
   human: boolean;
+  isAgent: boolean;
 };
 
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -131,6 +132,7 @@ export function DesktopChat({ className, room }: ChatProps) {
     const message = {
       ...rawMessage,
       timestamp: rawMessage.timestamp ? new Date(rawMessage.timestamp) : new Date(),
+      isAgent: rawMessage.userId === user?.id,
     };
     return {
       id: index,
@@ -140,6 +142,9 @@ export function DesktopChat({ className, room }: ChatProps) {
 
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } = useScrollAnchor();
   const { isAgentLoading } = useLoading();
+
+  const agentMessages = messages.filter(message => message.display && !message.display.props.isOwnMessage && message.display.props.name);
+  console.log('latestMessage', agentMessages);
 
   return (
     <div className={`w-full relative transition-all duration-300 ${isChatExpanded ? 'h-screen' : 'h-20'}`}>
@@ -168,6 +173,11 @@ export function DesktopChat({ className, room }: ChatProps) {
             scrollToBottom={scrollToBottom}
             room={room}
           />
+        </div>
+      )}
+      {!isChatExpanded && (
+        <div className="fixed bottom-20 right-4 bg-white p-2 rounded shadow-md max-w-xs">
+          <p className="text-sm text-gray-800 truncate">{agentMessages[0]}</p>
         </div>
       )}
       {!isChatExpanded && agents[0] && (
