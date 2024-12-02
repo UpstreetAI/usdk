@@ -65,6 +65,7 @@ const getAuth = async () => {
 
 const main = async ({
   init = {},
+  debug = false,
 } = {}) => {
   let [
     env,
@@ -90,6 +91,7 @@ const main = async ({
   env = {
     ...env,
     init,
+    debug,
   };
   const agentMain = new AgentMain(state, env, auth);
   return agentMain;

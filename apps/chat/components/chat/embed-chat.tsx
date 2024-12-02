@@ -168,7 +168,6 @@ export function EmbedChat({ className, agent, onConnect }: ChatProps) {
             isAtBottom={isAtBottom}
             scrollToBottom={scrollToBottom}
             room={room}
-            messages={messages}
           />
         </>
       )}

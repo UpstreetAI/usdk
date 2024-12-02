@@ -14,6 +14,7 @@ import {
   ConversationObject,
   TaskEventData,
   AgentThinkOptions,
+  DebugOptions,
   ActionStep,
 } from './types';
 import {
@@ -83,6 +84,7 @@ export async function generateAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   hint?: string,
   thinkOpts?: AgentThinkOptions,
+  debugOpts?: DebugOptions,
 ) {
   // wait for the conversation to be loaded
   {
@@ -105,13 +107,17 @@ export async function generateAgentActionStep(
       content: promptString,
     },
   ];
+  if (debugOpts?.debug) {
+    console.info('prompt: ' + generativeAgent.agent.name + ':\n' + promptString);
+  }
   // perform inference
-  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts);
+  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts, debugOpts);
 }
 async function _generateAgentActionStepFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
   thinkOpts?: AgentThinkOptions,
+  debugOpts?: DebugOptions,
 ) {
   const { agent, conversation } = generativeAgent;
   const {
@@ -131,7 +137,15 @@ async function _generateAgentActionStepFromMessages(
   if (completionMessage) {
     const result = {} as ActionStep;
     const action = (completionMessage.content as any).action as PendingActionMessage | null;
-    
+
+    if (debugOpts?.debug) {
+      if (action !== null) {
+        console.info('action: ' + generativeAgent.agent.name + ':\n' + JSON.stringify(action, null, 2));
+      } else {
+        console.info('action: ' + generativeAgent.agent.name + ': skipped');
+      }
+    }
+
     // if the agent decided to do nothing (choose null), return an empty action step
     if (action === null) {
       return result;

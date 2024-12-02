@@ -67,6 +67,9 @@ export type GenerativeAgentObject =  {
   addMessage: (m: PendingActionMessage) => Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
+export type DebugOptions = {
+  debug?: false;
+};
 export type AgentThinkOptions = {
   forceAction?: string;
   excludeActions?: string[];
@@ -780,6 +783,7 @@ export type AppContextValue = {
   useChatsSpecification: () => ChatsSpecification;
   useCodecs: () => any;
   useInit: () => any;
+  useDebug: () => boolean;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;
