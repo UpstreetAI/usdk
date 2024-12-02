@@ -98,13 +98,13 @@ export function PromptForm({
     if (event.key === 'Enter' && !event.shiftKey) {
       // formRef.current?.requestSubmit()
       event.preventDefault();
-  
+
       // Blur focus on mobile
       if (window.innerWidth < 600) {
         const target = event.target as HTMLTextAreaElement;
         target.blur();
       }
-  
+
       submitMessage();
     }
   };
@@ -189,7 +189,7 @@ export function PromptForm({
                     audioStream.id = crypto.randomUUID();
                     audioStream.type = 'audio/pcm-f32-48000';
                     audioStream.disposition = 'text';
-          
+
                     (async () => {
                       console.log('start streaming');
                       const {
@@ -248,7 +248,7 @@ export function PromptForm({
                     videoStream.id = crypto.randomUUID();
                     videoStream.type = 'image/webp';
                     videoStream.disposition = 'text';
-          
+
                     (async () => {
                       console.log('start streaming');
                       const {
@@ -302,7 +302,7 @@ export function PromptForm({
                   videoStream.id = crypto.randomUUID();
                   videoStream.type = 'image/webp';
                   videoStream.disposition = 'text';
-        
+
                   (async () => {
                     console.log('start streaming');
                     const {
@@ -362,22 +362,24 @@ export function PromptForm({
             <IconTriangleSmallDown />
           </div>
         )}
-        <Textarea
-          ref={inputRef}
-          tabIndex={0}
-          onKeyDown={onKeyDown}
-          placeholder="Send a message"
-          className="min-h-[40px] w-full resize-none bg-transparent px-4 pl-4 focus-within:outline-none sm:text-sm"
-          // autoFocus
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          name="message"
-          rows={1}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          disabled={!connected}
-        />
+        <div className="mt-2 px-4 pl-2 w-full">
+          <Textarea
+            ref={inputRef}
+            tabIndex={0}
+            onKeyDown={onKeyDown}
+            placeholder="Send a message"
+            className="min-h-[26px] w-full resize-none bg-transparent focus-within:outline-none"
+            // autoFocus
+            spellCheck={false}
+            autoComplete="off"
+            autoCorrect="off"
+            name="message"
+            rows={1}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            disabled={!connected}
+          />
+        </div>
         <div className="absolute right-0 top-[4px] sm:right-4">
           <Tooltip>
             <TooltipTrigger asChild>
