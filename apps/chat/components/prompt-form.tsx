@@ -103,11 +103,11 @@ export function PromptForm({
               className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
             >
               <input className="absolute -top-12 bottom-0 -left-12 right-0 cursor-pointer" type="file" onChange={e => {
-                const files: File[] = Array.from((e.target as any).files)
-                const file = files[0]
-                sendMediaMessage(file)
-                toggleMediaPicker()
-                (e.target as any).value = null
+                const files: File[] = Array.from((e.target as any).files);
+                const file = files[0];
+                sendMediaMessage(file);
+                toggleMediaPicker();
+                (e.target as any).value = null;
               }} />
               <IconImage className="mr-2" />
               <div>Image</div>
@@ -144,19 +144,16 @@ export function PromptForm({
                           controller.close()
                         })
                       },
-                    }) as PlayableAudioStream;
-                    audioStream.id = crypto.randomUUID();
-                    audioStream.type = 'audio/pcm-f32-48000';
-                    audioStream.disposition = 'text';
-          
-                    (async () => {
-                      console.log('start audio streaming');
-                      const {
-                        waitForFinish,
-                      } = addAudioSource(audioStream);
-                      await waitForFinish();
-                      removeAudioSource(audioStream);
-                    })();
+                    }) as PlayableAudioStream
+                    audioStream.id = crypto.randomUUID()
+                    audioStream.type = 'audio/pcm-f32-48000'
+                    audioStream.disposition = 'text'
+
+                    ;(async () => {
+                      const { waitForFinish } = addAudioSource(audioStream)
+                      await waitForFinish()
+                      removeAudioSource(audioStream)
+                    })()
                   } else {
                     console.warn('no audio input device found')
                   }
