@@ -175,9 +175,11 @@ export function DesktopChat({ className, room }: ChatProps) {
           />
         </div>
       )}
-      {!isChatExpanded && (
-        <div className="fixed bottom-20 right-4 bg-white p-2 rounded shadow-md max-w-xs">
-          <p className="text-sm text-gray-800 truncate">{agentMessages[0]}</p>
+      {!isChatExpanded && agentMessages.length > 0 && (
+        <div className={`fixed bottom-20 right-4 max-w-xs bg-slate-100 py-[11px] pl-12 w-fit border border-gray-400 text-black mb-2`}>
+          <p className="text-sm text-gray-800 truncate">
+            {agentMessages[0].display.props.content}
+          </p>
         </div>
       )}
       {!isChatExpanded && agents[0] && (
