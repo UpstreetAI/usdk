@@ -10,8 +10,79 @@ The goal of [Fetch.ai](https://fetch.ai/) is to create hiveminds of AI agents al
 
 | | Upstreet                      | Fetch.ai                      |
 |-|---------------------------|---------------------------|
-| **Languages** | JavaScript (React)         | Python  |
-| **Ease of use** | Easy to use               | Limited customization      |
-| **Performance** | Fast performance           | Requires learning curve    |
-| **Learning curve** | Good documentation         | May not fit all use cases  |
+| **Languages** | Natively in JavaScript (React)         | Natively in Python |
+| **Client-side Integrations** | React Agents Client | [Client-side JavaScript SDK](https://fetch.ai/docs/guides/ai-engine-sdk/javascript)
+| **Ease of use** | Easy to use for web developers               | Easy to use for data scientists      |
+| **Performance** | Good performance           |  Good performance   |
+| **Learning curve** | Low         | Medium  |
 | **Pricing** | Flexible         | Fixed  |
+
+## The Landscape: Fetch.ai vs. Upstreet
+
+**Where They Differ**
+
+1. **Language & Development**
+   - Fetch.ai is Python-centric, great for data scientists and machine learning engineers
+   - Upstreet embraces JavaScript and React, making it more accessible to web developers and frontend teams
+
+2. **Complexity**
+   - Fetch.ai offers deep, academic-level agent interactions
+   - Upstreet aims for simplicity and rapid prototyping, with an easier learning curve
+
+3. **Performance**
+   - Fetch.ai: Robust for complex, computational tasks
+   - Upstreet: Faster iteration, smoother developer experience
+
+## Migration Considerations
+
+### When to Move
+
+Consider migrating if you:
+- Want faster development cycles
+- Prefer JavaScript ecosystem
+- Need more intuitive agent creation
+- Desire a more straightforward SDK
+
+### Potential Challenges
+
+Be prepared for:
+- Rewriting Python logic in JavaScript
+- Adapting to a different agent interaction model
+- Learning Upstreet's CLI and SDK conventions
+
+## Practical Migration Steps
+
+1. **Assessment**
+   - Inventory your existing Fetch.ai agents
+   - Map out core functionalities
+   - Identify which components need reimplementation
+
+2. **Tooling**
+   ```bash
+   # Install Upstreet SDK
+   npm install -g usdk
+
+   # Authenticate
+   usdk login
+   ```
+
+3. **Agent Conversion**
+   - Start small: migrate one agent at a time
+   - Use Upstreet's `usdk create` with your existing agent's logic
+   - Leverage Upstreet's template system for faster bootstrapping
+
+## Real Talk
+
+Upstreet isn't a perfect replacement. It's different. Some Fetch.ai capabilities might require creative workarounds. But that's okay—innovation happens at the edges of comfort.
+
+Our recommendation? Experiment. Build a prototype. See how it feels.
+
+> "The best tool is the one that gets out of your way and lets you create." - Someone wise, probably
+
+---
+
+Need more guidance? Our community is always ready to help:
+- Discord: https://upstreet.ai/usdk-discord
+- Email: hello@upstreet.ai
+
+Happy building! 🚀
