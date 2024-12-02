@@ -16,11 +16,15 @@ import { Icon } from 'ucom'
 
 export function PromptForm({
   input,
+  embed,
   desktop,
+  mode,
   setInput
 }: {
   input: string
+  embed?: boolean
   desktop?: boolean
+  mode?: "web" | "desktop" | "embed"
   setInput: (value: string) => void
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false)

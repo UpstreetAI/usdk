@@ -145,7 +145,6 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
     <div
       className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
-
       {room && (
         <>
           <ChatMenu players={players} roomName={roomName} />

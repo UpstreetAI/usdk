@@ -148,8 +148,8 @@ export function DesktopChat({ className, room }: ChatProps) {
 
   return (
     <div className={`w-full relative transition-all duration-300 ${isChatExpanded ? 'h-screen' : 'h-20'}`}>
-      <div className={`absolute flex top-0 right-2 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'}`}>
-        {isChatExpanded && <IconButton icon="Minus" size="small" onClick={() => setIsChatExpanded(false)} />}
+      <div className={`absolute cursor-pointer flex top-0 right-2 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'} scale-[0.6]`}>
+        {isChatExpanded && <IconButton icon="Minus" size="small" onClick={() => setIsChatExpanded(false)} className="" />}
       </div>
       {isChatExpanded && (
         <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>

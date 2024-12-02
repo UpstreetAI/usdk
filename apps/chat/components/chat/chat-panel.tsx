@@ -50,6 +50,7 @@ export function ChatPanel({
               input={input}
               setInput={setInput}
               desktop={desktop}
+              mode={mode}
             />
           </div>
           <DirectMessages />
