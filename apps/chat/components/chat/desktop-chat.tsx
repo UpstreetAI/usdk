@@ -149,7 +149,7 @@ export function DesktopChat({ className, room }: ChatProps) {
       {isChatExpanded && (
         <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>
           <div className='w-full h-screen overflow-auto' ref={scrollRef}>
-            <div className={cn('pb-[200px] pt-4', className)} ref={messagesRef}>
+            <div className={cn('pb-[80px] pt-4', className)} ref={messagesRef}>
               <div className="relative mx-auto px-2">
                 {messages.length ? <ChatList messages={messages} /> : null}
               </div>
