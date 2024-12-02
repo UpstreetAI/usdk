@@ -308,7 +308,7 @@ export function PromptForm({
             disabled={!connected}
           />
         </div>
-        <div className="absolute right-0 top-[2px] sm:right-4">
+        <div className="absolute right-0 top-[2px] sm:right-2">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button type="submit" size="icon" className='shadow-none text-xl bg-transparent' disabled={input === ''}>
