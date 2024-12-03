@@ -287,14 +287,6 @@ export function PromptForm({
         {typing && (
           <div className="absolute -top-12 text-slate-900 left-0 text-muted-foreground text-sm">{typing}</div>
         )}
-        {canContinue && (
-          <div
-            className="absolute -top-12 right-7 text-sm cursor-pointer animate-[blink_1s_steps(1)_infinite]"
-            onClick={nudgeContinue}
-          >
-            <IconTriangleSmallDown />
-          </div>
-        )}
         <div className="mt-2 px-2 w-full">
           <Textarea
             ref={inputRef}
