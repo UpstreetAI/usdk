@@ -1,4 +1,4 @@
-import * as Icons from '../../icons';
+import * as Icons from '../../icons'
 
 export interface SVGIconProps extends React.SVGAttributes<HTMLElement> {
   icon: string;
