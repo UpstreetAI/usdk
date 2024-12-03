@@ -4,42 +4,44 @@ import { Loading } from '@/components/loading'
 import { useSupabase } from '@/lib/hooks/use-supabase'
 import { cn } from '@/lib/utils'
 import { usePathname } from 'next/navigation'
-import React from 'react'
-
+import React, { useMemo } from 'react'
 
 interface MainProps {
   children: React.ReactNode
 }
 
+export function Body({ children }: MainProps) {
+  const pathname = usePathname();
+  const { isFetchingUser } = useSupabase();
 
-export function Body( {children}: MainProps) {
-
-  const pathname = usePathname()
-
-  let mode = 'web';
-
-  const getWrapperClass = () => {
-    // Wrapper class is used to set a main background for now in different use cases
+  const { mode, wrapperClass } = useMemo(() => {
     if (pathname.startsWith('/embed')) {
-      // Embed route styles
-      mode = 'embed'
-      return 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover'
+      return {
+        mode: 'embed',
+        wrapperClass: 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover',
+      };
     } else if (pathname.startsWith('/desktop')) {
-      // Desktop route styles
-      return 'desktop'
+      return {
+        mode: 'desktop',
+        wrapperClass: 'desktop',
+      };
     } else {
-      // Web route styles
-      mode = 'web'
-      return 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover'
+      return {
+        mode: 'web',
+        wrapperClass: 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover',
+      };
     }
-  }
-  const {isFetchingUser} = useSupabase();
+  }, [pathname]);
 
   return (
-    <main className={cn("flex flex-col flex-1", getWrapperClass())}>
+    <main className={cn("flex flex-col flex-1", wrapperClass)}>
       {isFetchingUser ? (
         <Loading mode={mode} />
-      ) : children}
+      ) : (
+        React.Children.map(children, child =>
+          React.isValidElement(child) ? React.cloneElement(child, { ...child.props, mode }) : child
+        )
+      )}
     </main>
-  )
+  );
 }
