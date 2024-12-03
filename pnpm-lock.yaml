@@ -372,9 +372,15 @@ importers:
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
+      unified:
+        specifier: 10.1.2
+        version: 10.1.2
       usdk:
         specifier: workspace:*
         version: link:../../packages/usdk
+      vfile:
+        specifier: 5.3.7
+        version: 5.3.7
       zod:
         specifier: ^3.23.8
         version: 3.23.8
