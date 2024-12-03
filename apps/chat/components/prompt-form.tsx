@@ -315,12 +315,12 @@ export function PromptForm({
         <div className="absolute right-0 top-[2px] sm:right-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button type="submit" size="icon" className='shadow-none text-xl bg-transparent' disabled={input === ''}>
-                <Icon icon="Send" />
-                <span className="sr-only">Send message</span>
+              <Button size="icon" className='shadow-none text-xl bg-transparent cursor-pointer' onClick={input !== '' ? submitMessage : nudgeContinue}>
+                <Icon icon={ input !== '' ? "Send" : "Nudge" } />
+                <span className="sr-only">{ input !== '' ? "Send Message" : "Nudge to Continue" }</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Send message</TooltipContent>
+            <TooltipContent>{ input !== '' ? "Send Message" : "Nudge to Continue" }</TooltipContent>
           </Tooltip>
         </div>
       </div>
