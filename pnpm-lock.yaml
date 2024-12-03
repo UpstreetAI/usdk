@@ -318,6 +318,18 @@ importers:
 
   apps/docs:
     dependencies:
+      '@types/lodash':
+        specifier: ^4.17.13
+        version: 4.17.13
+      '@types/mdx':
+        specifier: ^2.0.13
+        version: 2.0.13
+      '@types/node':
+        specifier: 22.7.8
+        version: 22.7.8
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.20(postcss@8.4.49)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -330,6 +342,9 @@ importers:
       framer-motion:
         specifier: ^11.11.9
         version: 11.13.0(@emotion/is-prop-valid@1.3.1)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.2.0
       fumadocs-core:
         specifier: ^14.5.3
         version: 14.5.5(@types/react@18.3.12)(algoliasearch@4.24.0)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.1))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -348,12 +363,21 @@ importers:
       next:
         specifier: 14.2.14
         version: 14.2.14(babel-plugin-macros@3.1.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.1)
+      postcss:
+        specifier: ^8.4.47
+        version: 8.4.49
       postinstall:
         specifier: 0.7.5
         version: 0.7.5
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.5
+      tailwindcss:
+        specifier: ^3.4.14
+        version: 3.4.15(ts-node@10.9.1(@types/node@22.7.8)(typescript@5.7.2))
+      typescript:
+        specifier: ^5.6.3
+        version: 5.7.2
       usdk:
         specifier: workspace:*
         version: link:../../packages/usdk
@@ -391,31 +415,6 @@ importers:
       '@next/swc-win32-x64-msvc':
         specifier: 15.0.1
         version: 15.0.1
-    devDependencies:
-      '@types/lodash':
-        specifier: ^4.17.13
-        version: 4.17.13
-      '@types/mdx':
-        specifier: ^2.0.13
-        version: 2.0.13
-      '@types/node':
-        specifier: 22.7.8
-        version: 22.7.8
-      autoprefixer:
-        specifier: ^10.4.20
-        version: 10.4.20(postcss@8.4.49)
-      fs-extra:
-        specifier: ^11.2.0
-        version: 11.2.0
-      postcss:
-        specifier: ^8.4.47
-        version: 8.4.49
-      tailwindcss:
-        specifier: ^3.4.14
-        version: 3.4.15(ts-node@10.9.1(@types/node@22.7.8)(typescript@5.7.2))
-      typescript:
-        specifier: ^5.6.3
-        version: 5.7.2
 
   packages/ecctrl:
     dependencies:
@@ -3604,19 +3603,16 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.3':
     resolution: {integrity: sha512-9Cigcyl1285uJtQ3srt2eJQB6+yF16Bu/BN6szmP7GG/K3JZeNOR5g2SYzS0jPuFUe1uY6MMuW5m+HSps4R3RQ==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.3':
     resolution: {integrity: sha512-6Sb5CVee+Av+8JtHOmn0+xlS8czivSt/ZVGttErondobBLTbrUZcVg/OEcxTMGWq5tM4hIYYsYlqEOSj3hapQw==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.3':
     resolution: {integrity: sha512-3HDHgX6IuZ8vYJYocvYQiHrsiAFInVl6ad7/I7Woy43on67UGVX0jrCPxUqzNqcAcnPga0oJJ7Ktjjj9jqb3Dg==}
     engines: {node: '>=10.15.3'}
-    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.2':
@@ -3630,7 +3626,6 @@ packages:
   '@nut-tree-fork/nut-js@4.2.2':
     resolution: {integrity: sha512-QA3UM47/XI7CWhR03MtZ93QPdO0GQRa3DbqfRF+3PcO8rrEk29lmC+c9BDf8X8uK4D+SVJUEF5VEbYwDeV55qA==}
     engines: {node: '>=16'}
-    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.2':
