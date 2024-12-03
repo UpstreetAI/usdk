@@ -372,7 +372,8 @@ export const create = async (args, opts) => {
   // opts
   const jwt = opts.jwt;
   if (!jwt) {
-    throw new Error('You must be logged in to create an agent.');
+    console.error('You must be logged in to create an agent.');
+    return;
   }
 
   // auth
