@@ -41,6 +41,7 @@ import type {
   TwitterSpacesArgs,
   TelnyxProps,
   TelnyxBotArgs,
+  TelnyxBot,
 } from './types';
 import {
   AppContext,
@@ -53,7 +54,6 @@ import {
   Formatter,
   Perception,
   PerceptionModifier,
-  // Task,
   Server,
   Conversation,
   DeferConversation,
@@ -137,7 +137,6 @@ export const DefaultAgentComponents = () => {
       <DefaultPerceptions />
       <DefaultGenerators />
       <DefaultSenses />
-      <DefaultDrivers />
       <RAGMemory />
       {/* <LiveMode /> */}
       <DefaultPrompts />
@@ -1700,150 +1699,6 @@ export const DefaultSenses = () => {
     </>
   );
 };
-export const TelnyxDriver = () => {
-  const agent = useAgent();
-  const [telnyxEnabled, setTelnyxEnabled] = useState(false);
-
-  const { telnyxManager } = agent;
-  useEffect(() => {
-    const updateTelnyxEnabled = () => {
-      const telnyxBots = telnyxManager.getTelnyxBots();
-      setTelnyxEnabled(telnyxBots.length > 0);
-    };
-    const botadd = (e: any) => {
-      updateTelnyxEnabled();
-    };
-    const botremove = (e: any) => {
-      updateTelnyxEnabled();
-    };
-    telnyxManager.addEventListener('botadd', botadd);
-    telnyxManager.addEventListener('botremove', botremove);
-    return () => {
-      telnyxManager.removeEventListener('botadd', botadd);
-      telnyxManager.removeEventListener('botremove', botremove);
-    };
-  }, [telnyxManager]);
-
-  return telnyxEnabled && (
-    <>
-      <Action
-        name="callPhone"
-        description={
-          dedent`\
-            Start a phone call with a phone number.
-            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
-          `
-        }
-        schema={
-          z.object({
-            phoneNumber: z.string(),
-          })
-        }
-        examples={[
-          {
-            phoneNumber: '+15551234567',
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const {
-            agent,
-            message: {
-              args,
-            },
-          } = e.data;
-          const {
-            phoneNumber: toPhoneNumber,
-          } = args as {
-            phoneNumber: string;
-          };
-          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
-          const telnyxBot = telnyxBots[0];
-          if (telnyxBot) {
-            const fromPhoneNumber = telnyxBot.getPhoneNumber();
-            if (fromPhoneNumber) {
-              await telnyxBot.call({
-                fromPhoneNumber,
-                toPhoneNumber,
-              });
-
-              (e.data.message.args as any).result = 'ok';
-
-              await e.commit();
-            } else {
-              console.warn('no local phone number found');
-              (e.data.message.args as any).error = `no local phone number found`;
-              await e.commit();
-            }
-          } else {
-            console.warn('no telnyx bot found');
-            (e.data.message.args as any).error = `no telnyx bot found`;
-            await e.commit();
-          }
-        }}
-      />
-      <Action
-        name="textPhone"
-        description={
-          dedent`\
-            Text message (SMS/MMS) a phone number.
-            The phone number must be in +E.164 format.
-          `
-        }
-        schema={
-          z.object({
-            phoneNumber: z.string(),
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            phoneNumber: '+15551234567',
-            text: `Hey what's up?`
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const {
-            agent,
-            message: {
-              args,
-            },
-          } = e.data;
-          const {
-            phoneNumber: toPhoneNumber,
-            text,
-          } = args as {
-            phoneNumber: string;
-            text: string;
-          };
-          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
-          const telnyxBot = telnyxBots[0];
-          if (telnyxBot) {
-            const fromPhoneNumber = telnyxBot.getPhoneNumber();
-            if (fromPhoneNumber) {
-              await telnyxBot.text(text, undefined, {
-                fromPhoneNumber,
-                toPhoneNumber,
-              });
-
-              (e.data.message.args as any).result = 'ok';
-
-              await e.commit();
-            } else {
-              console.warn('no local phone number found');
-              (e.data.message.args as any).error = `no local phone number found`;
-              await e.commit();
-            }
-          }
-        }}
-      />
-    </>
-  );
-};
-export const DefaultDrivers = () => {
-  return (
-    <TelnyxDriver />
-  );
-};
 
 // server
 
@@ -1851,98 +1706,15 @@ export const DefaultDrivers = () => {
  * Renders the default server components.
  * @returns The JSX elements representing the default server components.
  */
-export const DefaultServers = () => {
-  return <StaticServer />;
-};
+// export const DefaultServers = () => {
+//   return <StaticServer />;
+// };
 
 // const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const printRequest = (request: Request) => {
   const { method, url } = request;
   return `${method} ${url}`;
 };
-// const generateWebServerCode = async (
-//   request: Request,
-//   prompt: string,
-//   context: AppContextValue,
-// ) => {
-//   const messages = [
-//     {
-//       role: 'system',
-//       content: dedent`
-//         You are an programmatic web server.
-//         Take the user's specifcation of an in-flight web Request and write the Typescript code to generate a Response.
-//         i.e. your task is to write a JavaScript function with the following signature:
-//         \`\`\`
-//         handle: (request: Request) => Promise<Response>;
-//         \`\`\`
-
-//         Do not write any comments, only the code. Use JavaScript, not TypeScript. Wrap your response on triple backticks.
-//         e.g.
-//         \`\`\`js
-//         async function handle(request) {
-//           return new Response('Hello, world!', { status: 200 });
-//         }
-//         \`\`\`
-
-//         The APIs available to you are as follows:
-
-//         /**
-//          * Generate fully functional HTML page source from the given prompt.
-//          * @param {string} prompt - The user prompt to generate the HTML page source from.
-//          * @returns {Response} - Response that resolves to the HTML page source.
-//          * @example
-//          * const googleHtmlRes = await generateHtml('A fake version of the simple Google web page. It should include the classig Google header image, the search bar, and the two buttons "Search" and "I'm Feeling Lucky".');
-//          * const googleHtml = await googleHtmlRes.text();
-//          */
-//         generateHtml: (prompt: string) => Promise<Response>;
-//         \`\`\`
-
-//         /**
-//          * Generate a JSON response to a request.
-//          * @param {string} prompt - The prompt to generate the JSON response from.
-//          * @returns {Promise<Response>} - Response that resolves to the JSON response.
-//          * @example
-//          * const searchResultsRes = await generateJson(\`
-//          * Object representing search results for the query "cats". It should match the schema:
-//          * { results: [{ name: string, description: string, imgUrl: string }] }');
-//          * \`);
-//          * const searchResults = await searchResultsRes.json();
-//          */
-//         generateJson: (prompt: string) => Promise<Response>;
-
-//         /**
-//          * Generate an image response to a request.
-//          * @param {string} prompt - The prompt to generate the image response from.
-//          * @returns {Promise<Response>} - Response that resolves to the image data.
-//          * @example
-//          * const catImageRes = await generateImage('A cute cat image.');
-//          * const catImageBlob = await catImageRes.blob();
-//          */
-//         generateImage: (prompt: string) => Promise<Response>;
-//       `,
-//     },
-//     {
-//       role: 'user',
-//       content: dedent`
-//         HTTP request being handled:
-//         \`\`\`
-//         ${printRequest(request)}
-//         \`\`\`
-//         Generate code to do the following:
-//         ${prompt}
-//       `,
-//     },
-//   ];
-//   const newMessage = await context.subtleAi.complete(messages);
-//   const responseString = newMessage.content;
-//   const codeBlock = parseCodeBlock(responseString);
-//   return new Response(codeBlock, {
-//     status: 200,
-//     headers: {
-//       'Content-Type': 'application/javascript',
-//     },
-//   });
-// };
 const generateHtml = async (prompt: string, context: AppContextValue) => {
   // const { method, url } = request;
   // const headers = Array.from(request.headers.entries())
@@ -2456,10 +2228,7 @@ export const generativeImageFetchHandler =
 export const generativeFarcasterFrameFetchHandler =
   generativeFarcasterFrameFetchHandlerHook.getHookFn();
 
-// XXX support serving the public directory
-// XXX support rendering custom react UIs
-// XXX support API perception endpoints
-export const StaticServer = () => {
+/* export const StaticServer = () => {
   return (
     <Server>
       {() => {
@@ -2480,8 +2249,8 @@ export const StaticServer = () => {
       }}
     </Server>
   );
-};
-export const GenerativeServer = ({
+}; */
+/* export const GenerativeServer = ({
   children,
 }: {
   children: React.ReactNode | (() => void);
@@ -2519,7 +2288,7 @@ export const GenerativeServer = ({
       }}
     </Server>
   );
-};
+}; */
 
 //
 
@@ -3370,6 +3139,8 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
   } = props;
   const agent = useAgent();
 
+  const [telnyxBot, setTelnyxBot] = useState<TelnyxBot | null>(null);
+
   useEffect(() => {
     const args: TelnyxBotArgs = {
       apiKey,
@@ -3379,8 +3150,10 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
       agent,
     };
     const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
+    setTelnyxBot(telnyxBot);
     return () => {
       agent.telnyxManager.removeTelnyxBot(telnyxBot);
+      setTelnyxBot(null);
     };
   }, [
     apiKey,
@@ -3389,5 +3162,118 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
     voice,
   ]);
 
-  return null;
+  return telnyxBot && (
+    <>
+      <Action
+        name="callPhone"
+        description={
+          dedent`\
+            Start a phone call.
+            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+          } = args as {
+            phoneNumber: string;
+          };
+          // const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          // const telnyxBot = telnyxBots[0];
+          // if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.call({
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          // } else {
+          //   console.warn('no telnyx bot found');
+          //   (e.data.message.args as any).error = `no telnyx bot found`;
+          //   await e.commit();
+          // }
+        }}
+      />
+      <Action
+        name="textPhone"
+        description={
+          dedent`\
+            Text message (SMS/MMS) a phone number.
+            The phone number must be in +E.164 format.
+          `
+        }
+        schema={
+          z.object({
+            phoneNumber: z.string(),
+            text: z.string(),
+          })
+        }
+        examples={[
+          {
+            phoneNumber: '+15551234567',
+            text: `Hey what's up?`
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          const {
+            agent,
+            message: {
+              args,
+            },
+          } = e.data;
+          const {
+            phoneNumber: toPhoneNumber,
+            text,
+          } = args as {
+            phoneNumber: string;
+            text: string;
+          };
+          // const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
+          // const telnyxBot = telnyxBots[0];
+          // if (telnyxBot) {
+            const fromPhoneNumber = telnyxBot.getPhoneNumber();
+            if (fromPhoneNumber) {
+              await telnyxBot.text(text, undefined, {
+                fromPhoneNumber,
+                toPhoneNumber,
+              });
+
+              (e.data.message.args as any).result = 'ok';
+
+              await e.commit();
+            } else {
+              console.warn('no local phone number found');
+              (e.data.message.args as any).error = `no local phone number found`;
+              await e.commit();
+            }
+          // }
+        }}
+      />
+    </>
+  );
 };

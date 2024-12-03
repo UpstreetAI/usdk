@@ -517,8 +517,6 @@ export type MessageCacheUpdateArgs = null;
 
 export type TaskObject = {
   id: any;
-  // name: string;
-  // description: string;
   timestamp: Date,
 };
 export type TaskEventData = {
