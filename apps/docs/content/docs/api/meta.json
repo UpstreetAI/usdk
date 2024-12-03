@@ -1,5 +1,5 @@
 {
-    "title": "📚 API Reference",
-    "pages": ["overview", "components", "hooks", "generators", "contexts", "cognition", "integrations", "command-reference"],
+    "title": "📚 react-agents docs",
+    "pages": ["overview", "components", "hooks", "generators", "context", "cognition", "integrations", "command-reference"],
     "defaultOpen": false
 }
