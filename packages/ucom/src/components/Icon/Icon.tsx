@@ -9,6 +9,12 @@ const Icon: React.FC<SVGIconProps> = ({
   ...props
 }) => {
   const SVG = (Icons as any)[icon];
+
+  if (!SVG) {
+    console.error(`Icon "${icon}" does not exist in the Icons object.`);
+    return null; // or return a default icon or placeholder
+  }
+
   return <SVG {...props} />;
 };
 
