@@ -8,6 +8,7 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "usdk": "workspace:*",
     "clsx": "^2.1.1",
     "discord.js": "^14.16.3",
     "esbuild": "0.24.0",
@@ -20,7 +21,6 @@
     "next": "14.2.14",
     "postinstall": "0.7.5",
     "tailwind-merge": "^2.5.4",
-    "usdk": "file:../../packages/usdk",
     "zod": "^3.23.8"
   },
   "devDependencies": {
