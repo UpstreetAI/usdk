@@ -71,11 +71,12 @@ interface DiscordThreadWithMessages extends DiscordThread {
 
 export async function fetchDiscordThreadsWithMessages(
   channelId: string
-): Promise<DiscordThreadWithMessages[]> {
+): Promise<DiscordThreadWithMessages[] | null> {
   const token = process.env.DOCS_DISCORD_BOT_TOKEN;
 
   if (!token) {
-    throw new Error('DOCS_DISCORD_BOT_TOKEN is not set in environment variables');
+    console.error('DOCS_DISCORD_BOT_TOKEN is not set in environment variables');
+    return null;
   }
 
   try {
