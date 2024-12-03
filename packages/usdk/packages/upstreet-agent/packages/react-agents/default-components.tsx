@@ -3138,23 +3138,27 @@ export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
     voice,
   } = props;
   const agent = useAgent();
-
   const [telnyxBot, setTelnyxBot] = useState<TelnyxBot | null>(null);
 
   useEffect(() => {
-    const args: TelnyxBotArgs = {
-      apiKey,
-      phoneNumber,
-      message,
-      voice,
-      agent,
-    };
-    const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
-    setTelnyxBot(telnyxBot);
-    return () => {
-      agent.telnyxManager.removeTelnyxBot(telnyxBot);
-      setTelnyxBot(null);
-    };
+    const telnyxBots = agent.telnyxManager.getTelnyxBots();
+    if (telnyxBots.length === 0) {
+      const args: TelnyxBotArgs = {
+        apiKey,
+        phoneNumber,
+        message,
+        voice,
+        agent,
+      };
+      const telnyxBot = agent.telnyxManager.addTelnyxBot(args);
+      setTelnyxBot(telnyxBot);
+      return () => {
+        agent.telnyxManager.removeTelnyxBot(telnyxBot);
+        setTelnyxBot(null);
+      };
+    } else {
+      console.warn('only one telnyx instance is supported; skipping');
+    }
   }, [
     apiKey,
     phoneNumber,
