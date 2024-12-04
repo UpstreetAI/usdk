@@ -42,6 +42,8 @@ import type {
   TelnyxBotArgs,
   TelnyxBot,
   VideoPerceptionProps,
+  Evaluator,
+  LoopProps,
 } from './types';
 import {
   AppContext,
@@ -113,6 +115,8 @@ import {
   generateVideo,
 } from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
+import { ChatLoop } from './loops/chat-loop.tsx';
+import { InfiniteLoop } from './loops/infinite-loop.tsx';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
 
@@ -126,97 +130,6 @@ const defaultPriorityOffset = 100;
 const maxDefaultMemoryValues = 8;
 const maxMemoryQueries = 8;
 const maxMemoryQueryValues = 3;
-
-// loops
-
-type Evaluator = {
-  handle: (e: Event, opts?: {
-    signal?: AbortSignal,
-  }) => Promise<void>;
-};
-
-type LoopProps = {
-  evaluator?: Evaluator;
-}
-const ChatLoop = (props: LoopProps) => {
-  const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new BasicEvaluator());
-  return (
-    <>
-      <Perception
-        type="say"
-        handler={async (e) => {
-          await evaluator.handle(e);
-          // await e.data.targetAgent.think();
-        }}
-      />
-      <Perception
-        type="nudge"
-        handler={async (e) => {
-          const { message } = e.data;
-          const {
-            args,
-          } = message;
-          const targetUserId = (args as any)?.targetUserId;
-          // if the nudge is for us
-          if (targetUserId === e.data.targetAgent.agent.id) {
-            await evaluator.handle(e);
-            // await e.data.targetAgent.think();
-          }
-        }}
-      />
-    </>
-  );
-};
-
-const InfiniteLoop = (props: LoopProps) => {
-  const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new ReACTEvaluator());
-  const agent = useAgent();
-  const contextConversation = useConversation();
-  const [conversation, setConversation] = useState(() => contextConversation || new ConversationObject());
-
-  useEffect(() => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-
-    const recurse = async () => {
-      const targetAgent = agent.generative({
-        conversation,
-      });
-      const e = new PerceptionEvent({
-        targetAgent,
-        sourceAgent: null,
-        message: null,
-      });
-      await evaluator.handle(e, {
-        signal,
-      });
-      if (signal.aborted) return;
-
-      await recurse();
-    };
-    recurse();
-
-    return () => {
-      abortController.abort();
-    };
-  }, []);
-
-  return null;
-};
-
-// evaluators
-
-class BasicEvaluator implements Evaluator {
-  async handle(e: Event) {
-    await (e as any).data.targetAgent.think();
-  }
-}
-class ReACTEvaluator implements Evaluator {
-  async handle(e: Event) {
-    // XXX finish this
-    // await (e as any).data.targetAgent.think();
-  }
-}
 
 // defaults
 
