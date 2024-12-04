@@ -211,7 +211,7 @@ async function _generateAgentActionStepFromMessages(
   }
 }
 
-export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
+/* export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -246,8 +246,8 @@ export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAn
     const parsedJson = schema.parse(rawJson);
     return parsedJson;
   }, numRetries);
-}
-export async function generateString(hint: string) {
+} */
+/* export async function generateString(hint: string) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -268,7 +268,7 @@ export async function generateString(hint: string) {
     })();
     return completionMessage.content;
   }, numRetries);
-}
+} */
 
 interface PriorityModifier {
   priority?: number;
