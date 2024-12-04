@@ -44,8 +44,8 @@ export type AgentSpec = {
 export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
-  generativeQueueManager: QueueManager;
-  thinkCache: Array<ActionStep>;
+  // generativeQueueManager: QueueManager;
+  // thinkCache: Array<ActionStep>;
   
   get location(): URL;
 
@@ -58,16 +58,22 @@ export type GenerativeAgentObject =  {
     format: ZodTypeAny,
   ) => Promise<ChatMessage>;
 
-  think: (hint?: string, thinkOpts?: AgentThinkOptions) => Promise<any>;
-  generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
-  generateImage: (prompt: string, opts?: SubtleAiImageOpts) => Promise<Blob>;
+  act: (hint?: string, actOpts?: ActOpts) => Promise<any>;
+  evaluate: (evaluator: Evaluator, opts?: {
+    signal: AbortSignal,
+  }) => Promise<any>;
+  // generate: (hint: string, schema?: ZodTypeAny) => Promise<any>;
+  // generateImage: (prompt: string, opts?: SubtleAiImageOpts) => Promise<Blob>;
   say: (text: string) => Promise<any>;
   monologue: (text: string) => Promise<any>;
 
   addMessage: (m: PendingActionMessage) => Promise<void>;
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
-export type AgentThinkOptions = {
+export type DebugOptions = {
+  debug?: number;
+};
+export type ActOpts = {
   forceAction?: string;
   excludeActions?: string[];
 };
@@ -76,6 +82,8 @@ export type ActionStep = {
   uniforms?: {
     [key: string]: object,
   },
+  observation?: string;
+  thought?: string;
 };
 
 // messages
@@ -147,6 +155,7 @@ export type TwitterSpacesArgs = {
   url?: string;
   agent: ActiveAgentObject;
   codecs: any;
+  init: any;
   jwt: string;
 };
 
@@ -165,6 +174,31 @@ export type TelnyxBotArgs = {
   voice: boolean;
   agent: ActiveAgentObject;
 };
+
+// video perception
+
+export type VideoPerceptionProps = {
+  hint?: string;
+};
+
+// loops
+
+export type EvaluatorOpts = {
+  hint?: string;
+  actOpts?: ActOpts;
+  debugOpts?: DebugOptions;
+};
+export type EvaluateOpts = {
+  generativeAgent: GenerativeAgentObject,
+  signal?: AbortSignal,
+};
+export type Evaluator = {
+  evaluate: (opts: EvaluateOpts) => Promise<ActionStep>;
+};
+export type LoopProps = {
+  hint?: string;
+  evaluator?: Evaluator;
+}
 
 // actions
 
@@ -609,7 +643,7 @@ export type UniformPropsAux = UniformProps & {
   conversation: ConversationObject;
 };
 export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => ZodTypeAny;
+  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => ZodTypeAny;
   formatFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject) => string;
 };
 export type DeferProps = {
@@ -770,7 +804,7 @@ export type AppContextValue = {
   subtleAi: SubtleAi;
 
   useAgentJson: () => object;
-  useEnv: () => string;
+  useEnv: () => object;
   useEnvironment: () => string;
   useWallets: () => object[];
   useAuthToken: () => string;
@@ -778,6 +812,8 @@ export type AppContextValue = {
   useConversationManager: () => ConversationManager;
   useChatsSpecification: () => ChatsSpecification;
   useCodecs: () => any;
+  useInit: () => any;
+  useDebug: () => number;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;

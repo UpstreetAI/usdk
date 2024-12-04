@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
 import { ZodTypeAny, ZodUnion, z } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
-import type { Browser, BrowserContext, Page } from 'playwright-core';
+import type { Browser, BrowserContext, Page } from 'playwright-core-lite';
 import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
 
@@ -24,12 +24,10 @@ import type {
   ConversationObject,
   PendingActionEvent,
   ActionEvent,
-  PerceptionEvent,
   ActionMessage,
   PlayableAudioStream,
   Attachment,
   FormattedAttachment,
-  AgentThinkOptions,
   GenerativeAgentObject,
   DiscordRoomSpec,
   DiscordRoomSpecs,
@@ -41,6 +39,11 @@ import type {
   TwitterSpacesArgs,
   TelnyxProps,
   TelnyxBotArgs,
+  TelnyxBot,
+  VideoPerceptionProps,
+  Evaluator,
+  LoopProps,
+  ActOpts,
 } from './types';
 import {
   AppContext,
@@ -59,6 +62,9 @@ import {
   DeferConversation,
   Uniform,
 } from './components';
+import {
+  PerceptionEvent,
+} from './classes/perception-event';
 import {
   AbortableActionEvent,
 } from './classes/abortable-action-event';
@@ -109,6 +115,8 @@ import {
   generateVideo,
 } from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
+import { ChatLoop } from './loops/chat-loop.tsx';
+// import { InfiniteLoop } from './loops/infinite-loop.tsx';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
 
@@ -134,14 +142,9 @@ export const DefaultAgentComponents = () => {
     <>
       <DefaultFormatters />
       <DefaultActions />
-      <DefaultPerceptions />
-      <DefaultGenerators />
-      <DefaultSenses />
-      <DefaultDrivers />
-      <RAGMemory />
-      {/* <LiveMode /> */}
       <DefaultPrompts />
-      {/* <DefaultServers /> */}
+      <ChatLoop />
+      {/* <InfiniteLoop /> */}
     </>
   );
 };
@@ -620,7 +623,7 @@ const MemoryQueries = () => {
     </Conversation>
   );
 };
-const RAGMemory = () => {
+export const RAGMemory = () => {
   return (
     <>
       <AddMemoryAction />
@@ -638,8 +641,8 @@ export const DefaultActions = () => {
   return (
     <>
       <ChatActions />
-      <SocialMediaActions />
-      <StoreActions />
+      {/* <SocialMediaActions />
+      <StoreActions /> */}
     </>
   );
 };
@@ -659,6 +662,7 @@ export const DefaultPrompts = () => {
       <StorePrompt />
       <ConversationMessagesPrompt />
       <InstructionsPrompt />
+      <DefaultCommunicationGuidelinesPrompt />
     </>
   );
 };
@@ -891,30 +895,63 @@ export const InstructionsPrompt = () => {
         # Instructions
         Respond with the next action taken by your character: ${agent.name}
         The method/args of your response must match one of the allowed actions.
+
+        Before choosing an action, decide if you should respond at all:
+        - Return null (no action) if:
+          * Message is clearly meant for others (unless you have crucial information)
+          * Your input wouldn't add value to the conversation
+          * The conversation is naturally concluding
+          * You've already responded frequently in the last few messages (2-3 messages max)
+          * Multiple other agents are already actively participating
+      `}
+    </Prompt>
+  );
+};
+export const DefaultCommunicationGuidelinesPrompt = () => {
+  return (
+    <Prompt>
+      {dedent`
+        Prioritize responding when:
+          - You're directly mentioned or addressed
+          - It's a group discussion where you can contribute meaningfully
+          - Your personality traits are relevant to the topic
+
+        Communication guidelines:
+          - Avoid using names in every message - only use them when:
+            * Directly responding to someone for the first time
+            * Clarifying who you're addressing in a group
+            * There's potential confusion about who you're talking to
+          - If you've been very active in the last few messages, wrap up your participation naturally
+            * Use phrases like "I'll let you all discuss" or simply stop responding
+            * Don't feel obligated to respond to every message
+          - Keep responses concise and natural
+          - Let conversations breathe - not every message needs a response
+          - If multiple agents are responding to the same person, step back and let others take the lead
       `}
     </Prompt>
   );
 };
 
 // formatters
+// XXX can get rid of this
 export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
 export const JsonFormatter = () => {
-  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-    const forceAction = thinkOpts?.forceAction ?? null;
-    const excludeActions = thinkOpts?.excludeActions ?? [];
+  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, actOpts?: ActOpts) => {
+    const forceAction = actOpts?.forceAction ?? null;
+    const excludeActions = actOpts?.excludeActions ?? [];
     return (!action.conversation || action.conversation === conversation) &&
       (forceAction === null || action.name === forceAction) &&
       !excludeActions.includes(action.name);
   };
-  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-    return actions.filter(action => isAllowedAction(action, conversation, thinkOpts));
+  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
+    return actions.filter(action => isAllowedAction(action, conversation, actOpts));
   };
   return (
     <Formatter
       /* actions to zod schema */
-      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
         const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
           return z.object({
             method: z.literal(method),
@@ -922,20 +959,21 @@ export const JsonFormatter = () => {
           });
         };
         const makeUnionSchema = (actions: ActionPropsAux[]) => {
-          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, thinkOpts)
+          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, actOpts)
             .map(action => makeActionSchema(action.name, action.schema));
           if (actionSchemas.length >= 2) {
-            return z.union(
-              actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
-            );
+            return z.union([
+              z.null(),
+              ...actionSchemas as [ZodTypeAny, ZodTypeAny, ...ZodTypeAny[]]
+            ]);
           } else if (actionSchemas.length === 1) {
-            return actionSchemas[0];
+            return z.union([z.null(), actionSchemas[0]]);
           } else {
             return null;
           }
         };
         const makeObjectSchema = (uniforms: ActionPropsAux[]) => {
-          const filteredUniforms = getFilteredActions(uniforms, conversation, thinkOpts);
+          const filteredUniforms = getFilteredActions(uniforms, conversation, actOpts);
           if (filteredUniforms.length > 0) {
             const o = {};
             for (const uniform of filteredUniforms) {
@@ -959,7 +997,7 @@ export const JsonFormatter = () => {
         return z.object(o);
       }}
       /* actions to instruction prompt */
-      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
         const formatAction = (action: ActionPropsAux) => {
           const {
             name,
@@ -1004,10 +1042,10 @@ export const JsonFormatter = () => {
           );
         };
         
-        const actionsString = getFilteredActions(actions, conversation, thinkOpts)
+        const actionsString = getFilteredActions(actions, conversation, actOpts)
           .map(formatAction)
           .join('\n\n');
-        const uniformsString = getFilteredActions(uniforms, conversation, thinkOpts)
+        const uniformsString = getFilteredActions(uniforms, conversation, actOpts)
           .map(formatAction)
           .join('\n\n');
         return [
@@ -1024,41 +1062,6 @@ export const JsonFormatter = () => {
         ].filter(Boolean).join('\n\n');
       }}
     />
-  );
-};
-
-// perceptions
-
-/**
- * Renders the default perceptions components.
- * @returns The JSX elements representing the default perceptions components.
- */
-export const DefaultPerceptions = () => {
-  // const agent = useAgent();
-
-  return (
-    <>
-      <Perception
-        type="say"
-        handler={async (e) => {
-          await e.data.targetAgent.think();
-        }}
-      />
-      <Perception
-        type="nudge"
-        handler={async (e) => {
-          const { message } = e.data;
-          const {
-            args,
-          } = message;
-          const targetUserId = (args as any)?.targetUserId;
-          // if the nudge is for us
-          if (targetUserId === e.data.targetAgent.agent.id) {
-            await e.data.targetAgent.think();
-          }
-        }}
-      />
-    </>
   );
 };
 
@@ -1276,7 +1279,7 @@ const mediaGeneratorSpecs = [
     }
   },
 ];
-const MediaGenerator = () => {
+export const MediaGenerator = () => {
   const authToken = useAuthToken();
   const types = mediaGeneratorSpecs.flatMap(spec => spec.types) as [string, ...string[]];
   const generationSchemas = mediaGeneratorSpecs.map(spec => {
@@ -1422,11 +1425,6 @@ const MediaGenerator = () => {
     </>
   );
 };
-export const DefaultGenerators = () => {
-  return (
-    <MediaGenerator />
-  );
-};
 
 // senses
 
@@ -1476,7 +1474,16 @@ const collectAttachments = (messages: ActionMessage[]) => {
   }
   return result;
 };
-export const MultimediaSense = () => {
+export const VideoPerception = (props: VideoPerceptionProps) => {
+  return (
+    <>
+      <Conversation>
+        <VideoPerceptionInner {...props} />
+      </Conversation>
+    </>
+  );
+};
+export const VideoPerceptionInner = (props: VideoPerceptionProps) => {
   const conversation = useConversation();
   const authToken = useAuthToken();
   const randomId = useMemo(getRandomId, []);
@@ -1655,160 +1662,6 @@ export const MultimediaSense = () => {
       }}
     />
   )
-};
-export const DefaultSenses = () => {
-  return (
-    <>
-      <Conversation>
-        <MultimediaSense />
-      </Conversation>
-      <WebBrowser />
-    </>
-  );
-};
-export const TelnyxDriver = () => {
-  const agent = useAgent();
-  const [telnyxEnabled, setTelnyxEnabled] = useState(false);
-
-  const { telnyxManager } = agent;
-  useEffect(() => {
-    const updateTelnyxEnabled = () => {
-      const telnyxBots = telnyxManager.getTelnyxBots();
-      setTelnyxEnabled(telnyxBots.length > 0);
-    };
-    const botadd = (e: any) => {
-      updateTelnyxEnabled();
-    };
-    const botremove = (e: any) => {
-      updateTelnyxEnabled();
-    };
-    telnyxManager.addEventListener('botadd', botadd);
-    telnyxManager.addEventListener('botremove', botremove);
-    return () => {
-      telnyxManager.removeEventListener('botadd', botadd);
-      telnyxManager.removeEventListener('botremove', botremove);
-    };
-  }, [telnyxManager]);
-
-  return telnyxEnabled && (
-    <>
-      <Action
-        name="callPhone"
-        description={
-          dedent`\
-            Start a phone call with a phone number.
-            The phone number must be in +E.164 format. If the country code is not known, you can assume +1.
-          `
-        }
-        schema={
-          z.object({
-            phoneNumber: z.string(),
-          })
-        }
-        examples={[
-          {
-            phoneNumber: '+15551234567',
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const {
-            agent,
-            message: {
-              args,
-            },
-          } = e.data;
-          const {
-            phoneNumber: toPhoneNumber,
-          } = args as {
-            phoneNumber: string;
-          };
-          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
-          const telnyxBot = telnyxBots[0];
-          if (telnyxBot) {
-            const fromPhoneNumber = telnyxBot.getPhoneNumber();
-            if (fromPhoneNumber) {
-              await telnyxBot.call({
-                fromPhoneNumber,
-                toPhoneNumber,
-              });
-
-              (e.data.message.args as any).result = 'ok';
-
-              await e.commit();
-            } else {
-              console.warn('no local phone number found');
-              (e.data.message.args as any).error = `no local phone number found`;
-              await e.commit();
-            }
-          } else {
-            console.warn('no telnyx bot found');
-            (e.data.message.args as any).error = `no telnyx bot found`;
-            await e.commit();
-          }
-        }}
-      />
-      <Action
-        name="textPhone"
-        description={
-          dedent`\
-            Text message (SMS/MMS) a phone number.
-            The phone number must be in +E.164 format.
-          `
-        }
-        schema={
-          z.object({
-            phoneNumber: z.string(),
-            text: z.string(),
-          })
-        }
-        examples={[
-          {
-            phoneNumber: '+15551234567',
-            text: `Hey what's up?`
-          },
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const {
-            agent,
-            message: {
-              args,
-            },
-          } = e.data;
-          const {
-            phoneNumber: toPhoneNumber,
-            text,
-          } = args as {
-            phoneNumber: string;
-            text: string;
-          };
-          const telnyxBots = agent.agent.telnyxManager.getTelnyxBots();
-          const telnyxBot = telnyxBots[0];
-          if (telnyxBot) {
-            const fromPhoneNumber = telnyxBot.getPhoneNumber();
-            if (fromPhoneNumber) {
-              await telnyxBot.text(text, undefined, {
-                fromPhoneNumber,
-                toPhoneNumber,
-              });
-
-              (e.data.message.args as any).result = 'ok';
-
-              await e.commit();
-            } else {
-              console.warn('no local phone number found');
-              (e.data.message.args as any).error = `no local phone number found`;
-              await e.commit();
-            }
-          }
-        }}
-      />
-    </>
-  );
-};
-export const DefaultDrivers = () => {
-  return (
-    <TelnyxDriver />
-  );
 };
 
 // server

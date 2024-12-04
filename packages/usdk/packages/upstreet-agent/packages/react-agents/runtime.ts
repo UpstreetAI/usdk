@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { ZodTypeAny } from 'zod';
-import { printNode, zodToTs } from 'zod-to-ts';
+// import type { ZodTypeAny } from 'zod';
+// import { printNode, zodToTs } from 'zod-to-ts';
 import dedent from 'dedent';
 import {
   ChatMessages,
@@ -13,7 +13,8 @@ import {
   ActionMessageEventData,
   ConversationObject,
   TaskEventData,
-  AgentThinkOptions,
+  ActOpts,
+  DebugOptions,
   ActionStep,
 } from './types';
 import {
@@ -25,12 +26,12 @@ import {
 import {
   ActionEvent,
 } from './classes/action-event';
-import {
-  retry,
-} from './util/util.mjs';
-import {
-  parseCodeBlock,
-} from './util/util.mjs';
+// import {
+//   retry,
+// } from './util/util.mjs';
+// import {
+//   parseCodeBlock,
+// } from './util/util.mjs';
 import {
   PerceptionEvent,
 } from './classes/perception-event';
@@ -43,6 +44,11 @@ import {
 import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
+import {
+  formatBasicSchema,
+  formatReactSchema,
+} from './util/format-schema';
+import * as debugLevels from './util/debug-levels.mjs';
 
 //
 
@@ -79,12 +85,20 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   return prompts;
 };
 
-export async function generateAgentActionStep(
+export async function generateAgentActionStep({
+  generativeAgent,
+  hint,
+  mode,
+  actOpts,
+  debugOpts,
+}: {
   generativeAgent: GenerativeAgentObject,
+  mode: 'basic' | 'react',
   hint?: string,
-  thinkOpts?: AgentThinkOptions,
-) {
-  // wait for the conversation to be loaded
+  actOpts?: ActOpts,
+  debugOpts?: DebugOptions,
+}) {
+  // wait for the conversation to be loaded so that we can use its conversation history in the prompts
   {
     const { agent, conversation } = generativeAgent;
     const { appContextValue } = agent;
@@ -105,33 +119,97 @@ export async function generateAgentActionStep(
       content: promptString,
     },
   ];
+  if (debugOpts?.debug >= debugLevels.DEBUG) {
+    console.info('prompt: ' + generativeAgent.agent.name + ':\n' + promptString);
+  }
   // perform inference
-  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts);
+  return await _generateAgentActionStepFromMessages({
+    generativeAgent,
+    promptMessages,
+    mode,
+    actOpts,
+    debugOpts,
+  });
 }
-async function _generateAgentActionStepFromMessages(
+async function _generateAgentActionStepFromMessages({
+  generativeAgent,
+  promptMessages,
+  mode,
+  actOpts,
+  debugOpts,
+}: {
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
-  thinkOpts?: AgentThinkOptions,
-) {
+  mode: 'basic' | 'react',
+  actOpts?: ActOpts,
+  debugOpts?: DebugOptions,
+}) {
   const { agent, conversation } = generativeAgent;
   const {
-    formatters,
+    // formatters,
     actions,
     uniforms,
   } = agent.registry;
-  const formatter = formatters[0];
-  if (!formatter) {
-    throw new Error('cannot generate action: no formatter registered');
-  }
+  // const formatter = formatters[0];
+  // if (!formatter) {
+  //   throw new Error('cannot generate action: no formatter registered');
+  // }
 
   // resultSchema has { action, uniforms } schema
-  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, thinkOpts);
+  const resultSchema = (() => {
+    // formatter.schemaFn(actions, uniforms, conversation, actOpts);
+    switch (mode) {
+      case 'basic':
+        return formatBasicSchema({
+          actions,
+          uniforms,
+          conversation,
+          actOpts,
+        });
+      case 'react':
+        return formatReactSchema({
+          actions,
+          uniforms,
+          conversation,
+          actOpts,
+        });
+      default:
+        throw new Error('invalid mode: ' + mode);
+    }
+  })();
 
   const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
   if (completionMessage) {
     const result = {} as ActionStep;
+    const observation = (completionMessage.content as any).observation as string | null;
+    const thought = (completionMessage.content as any).thought as string | null;
+    const action = (completionMessage.content as any).action as PendingActionMessage | null;
+    const uniformObject = (completionMessage.content as any).uniforms as object | null;
 
-    const action = (completionMessage.content as any).action as PendingActionMessage;
+    // logging
+    if (debugOpts?.debug >= debugLevels.INFO) {
+      if (observation) {
+        console.info(`[•observation: ${generativeAgent.agent.name}: ${observation}]`);
+      }
+      if (thought) {
+        console.info(`[•thought: ${generativeAgent.agent.name}: ${thought}]`);
+      }
+    }
+    if (debugOpts?.debug >= debugLevels.INFO) {
+      if (action !== null) {
+        const jsonString = [
+          generativeAgent.agent.name,
+          ...JSON.stringify(action, null, 2).split('\n'),
+        ]
+          .map((line) => '  ' + line)
+          .join('\n');
+        console.info(`[•action\n${jsonString}\n]`);
+      } else {
+        console.info(`[•skip action: ${generativeAgent.agent.name}]`);
+      }
+    }
+
+    // parse action
     if (action) {
       const { method } = action;
       const actionHandlers = actions.filter((action) => action.name === method);
@@ -154,7 +232,7 @@ async function _generateAgentActionStepFromMessages(
       }
     }
 
-    const uniformObject = (completionMessage.content as any).uniforms as object;
+    // parse uniforms
     if (uniformObject) {
       const uniformsResult = {} as {
         [key: string]: object,
@@ -186,13 +264,21 @@ async function _generateAgentActionStepFromMessages(
       result.uniforms = uniformsResult;
     }
 
+    // parse reasonig
+    if (observation) {
+      result.observation = observation;
+    }
+    if (thought) {
+      result.thought = thought;
+    }
+
     return result;
   } else {
     throw new Error('failed to generate action completion: invalid schema?');
   }
 }
 
-export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
+/* export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -227,8 +313,8 @@ export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAn
     const parsedJson = schema.parse(rawJson);
     return parsedJson;
   }, numRetries);
-}
-export async function generateString(hint: string) {
+} */
+/* export async function generateString(hint: string) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -249,7 +335,7 @@ export async function generateString(hint: string) {
     })();
     return completionMessage.content;
   }, numRetries);
-}
+} */
 
 interface PriorityModifier {
   priority?: number;
@@ -426,11 +512,13 @@ const handleChatPerception = async (data: ActionMessageEventData, {
           sourceAgent,
           message,
         });
-        perceptionPromises.push((async () => {
-          await perception.handler(e);
-          const steps = Array.from(targetAgent.thinkCache.values());
-          return steps;
-        })());
+        const p = perception.handler(e);
+        perceptionPromises.push(p);
+        // perceptionPromises.push((async () => {
+        //   await perception.handler(e);
+        //   const steps = Array.from(targetAgent.thinkCache.values());
+        //   return steps;
+        // })());
       }
     }
   }

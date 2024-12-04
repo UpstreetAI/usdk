@@ -1574,6 +1574,7 @@ export const createProgram = () => {
       .description('Run an agent')
       .argument('[agentDirs...]', 'Directory of the agent(s)')
       .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
+      .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
       .action(async (agentDirs = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
@@ -1598,7 +1599,7 @@ export const createProgram = () => {
       .option(`-b, --browser`, `Open the chat room in a browser window`)
       .option(`-r, --room <room>`, `The room name to join`)
       .option(`-run, --runtime <runtime>`, `The runtime to use; one of ${JSON.stringify(runtimes)}`)
-      .option(`-g, --debug`, `Enable debug logging`)
+      .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
       .action(async (guids = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;

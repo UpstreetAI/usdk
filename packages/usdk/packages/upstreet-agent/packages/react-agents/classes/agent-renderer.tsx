@@ -100,36 +100,6 @@ const AppComponent = ({
 
 //
 
-const logError =
-  typeof reportError === 'function'
-    ? // In modern browsers, reportError will dispatch an error event,
-      // emulating an uncaught JavaScript error.
-      reportError
-    : // In older browsers and test environments, fallback to console.error.
-      console.error;
-
-//
-
-const serializeError = (error: Error) => {
-  return {
-    name: error.name,
-    message: error.message,
-    stack: error.stack,
-  };
-};
-
-const logDetailedError = (errorType: string, error: Error, containerState) => {
-  const errorInfo = {
-    type: errorType,
-    error: serializeError(error),
-    containerState: containerState,
-    timestamp: new Date().toISOString(),
-  };
-  console.error('[Reconciler Error]:', JSON.stringify(errorInfo, null, 2));
-};
-
-//
-
 export class AgentRenderer {
   env: any;
   auth: any;
@@ -208,6 +178,12 @@ export class AgentRenderer {
     const useCodecs = () => {
       return this.codecs;
     };
+    const useInit = () => {
+      return this.env.init ?? {};
+    };
+    const useDebug = () => {
+      return this.env.debug ?? 0;
+    };
     const useRegistry = () => {
       return this.registry;
     };
@@ -222,6 +198,8 @@ export class AgentRenderer {
       conversationManager: useConversationManager(),
       chatsSpecification: useChatsSpecification(),
       codecs: useCodecs(),
+      init: useInit(),
+      debug: useDebug(),
       registry: useRegistry(),
     });
 
@@ -337,9 +315,12 @@ export class AgentRenderer {
       env['WORKER_ENV'] !== 'production', // isStrictMode
       null, // concurrentUpdatesByDefaultOverride
       '', // identifierPrefix
-      (error: Error) => logDetailedError('Recoverable Error', error, this.container),
+      (error: Error) => console.warn('Uncaught error', error.stack), // onUncaughtError
+      (error: Error) => console.warn('Caught error', error.stack), // onCaughtError
+      (error: Error) => console.warn('Recoverable error', error.stack), // onRecoverableError
       null // transitionCallbacks
     );
+
     this.root = root;
     this.renderLoader = new RenderLoader();
 
@@ -380,7 +361,7 @@ export class AgentRenderer {
     try {
       await this.renderProps(props);
     } catch (error) {
-      logDetailedError('Error during render', error, this.container);
+      console.warn('Error during render', error.stack);
       throw error;
     }
   }

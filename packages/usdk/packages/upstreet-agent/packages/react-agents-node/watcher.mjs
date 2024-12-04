@@ -9,9 +9,13 @@ import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 
 const dirname = getCurrentDirname(import.meta, process);
 
+// watch SIGTERM
+process.on('SIGTERM', () => {
+  process.exit(0);
+});
+
 const bindProcess = (cp) => {
   process.on('exit', () => {
-    // console.log('got exit', cp.pid);
     try {
       process.kill(cp.pid, 'SIGTERM');
     } catch (err) {
@@ -44,9 +48,11 @@ const reloadAgentWorker = async (directory, opts) => {
         '--no-warnings',
         '--experimental-wasm-modules',
         '--experimental-transform-types',
+        '--experimental-import-meta-resolve',
         workerPath,
         'run',
         directory,
+        '--',
       ];
       // pass the opts
       if (opts.var) {
@@ -63,6 +69,12 @@ const reloadAgentWorker = async (directory, opts) => {
       }
       if (opts.port) {
         args.push('--port', opts.port);
+      }
+      if (opts.init) {
+        args.push('--init', opts.init);
+      }
+      if (opts.debug) {
+        args.push('--debug', opts.debug);
       }
 
       // create the worker
@@ -190,6 +202,8 @@ const main = async () => {
     .option('--var <vars...>', 'Environment variables in format KEY:VALUE')
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
+    .requiredOption('--init <init>', 'Initialization data')
+    .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
     .action(async (directory, opts) => {
       commandExecuted = true;
 
@@ -197,7 +211,8 @@ const main = async () => {
       listenForChanges(directory, opts);
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv);
 
   if (!commandExecuted) {
     console.error('Command missing');

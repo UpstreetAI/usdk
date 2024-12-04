@@ -4,6 +4,9 @@ import { electronBinPath, electronStartScriptPath } from './util/locations.mjs';
 
 //
 
+process.addListener('SIGTERM', () => {
+  process.exit(0);
+});
 const bindProcess = (cp) => {
   process.on('exit', () => {
     // console.log('got exit', cp.pid);
@@ -86,7 +89,8 @@ export class ReactAgentsElectronRuntime {
     this.agentSpec = agentSpec;
   }
   async start({
-    debug = false,
+    init = {},
+    debug = 0,
   } = {}) {
     const {
       directory,
@@ -99,10 +103,14 @@ export class ReactAgentsElectronRuntime {
       [
         electronStartScriptPath,
         'run',
-        '--var', 'WORKER_ENV:development',
+        '--',
+        // '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
-      ],
+        '--init', JSON.stringify(init),
+      ].concat(debug ? [
+        '--debug', JSON.stringify(debug),
+      ] : []),
       {
         stdio: 'pipe',
         cwd: directory,
@@ -119,6 +127,8 @@ export class ReactAgentsElectronRuntime {
   // open the frontend
   async open({
     room,
+    width,
+    height,
     jwt,
     debug,
   }) {
@@ -134,6 +144,8 @@ export class ReactAgentsElectronRuntime {
       body: JSON.stringify({
         room,
         jwt,
+        width,
+        height,
         debug,
       }),
     });
