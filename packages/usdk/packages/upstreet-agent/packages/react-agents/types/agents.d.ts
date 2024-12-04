@@ -82,6 +82,8 @@ export type ActionStep = {
   uniforms?: {
     [key: string]: object,
   },
+  observation?: string;
+  thought?: string;
 };
 
 // messages

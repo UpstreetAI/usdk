@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { ZodTypeAny } from 'zod';
-import { printNode, zodToTs } from 'zod-to-ts';
+// import type { ZodTypeAny } from 'zod';
+// import { printNode, zodToTs } from 'zod-to-ts';
 import dedent from 'dedent';
 import {
   ChatMessages,
@@ -44,6 +44,10 @@ import {
 import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
+import {
+  formatBasicSchema,
+  formatReactSchema,
+} from './util/format-schema';
 import * as debugLevels from './util/debug-levels.mjs';
 
 //
@@ -81,12 +85,19 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
   return prompts;
 };
 
-export async function generateAgentActionStep(
+export async function generateAgentActionStep({
+  generativeAgent,
+  hint,
+  mode,
+  actOpts,
+  debugOpts,
+}: {
   generativeAgent: GenerativeAgentObject,
+  mode: 'basic' | 'react',
   hint?: string,
   actOpts?: ActOpts,
   debugOpts?: DebugOptions,
-) {
+}) {
   // wait for the conversation to be loaded so that we can use its conversation history in the prompts
   {
     const { agent, conversation } = generativeAgent;
@@ -112,46 +123,93 @@ export async function generateAgentActionStep(
     console.info('prompt: ' + generativeAgent.agent.name + ':\n' + promptString);
   }
   // perform inference
-  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, actOpts, debugOpts);
+  return await _generateAgentActionStepFromMessages({
+    generativeAgent,
+    promptMessages,
+    mode,
+    actOpts,
+    debugOpts,
+  });
 }
-async function _generateAgentActionStepFromMessages(
+async function _generateAgentActionStepFromMessages({
+  generativeAgent,
+  promptMessages,
+  mode,
+  actOpts,
+  debugOpts,
+}: {
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
+  mode: 'basic' | 'react',
   actOpts?: ActOpts,
   debugOpts?: DebugOptions,
-) {
+}) {
   const { agent, conversation } = generativeAgent;
   const {
-    formatters,
+    // formatters,
     actions,
     uniforms,
   } = agent.registry;
-  const formatter = formatters[0];
-  if (!formatter) {
-    throw new Error('cannot generate action: no formatter registered');
-  }
+  // const formatter = formatters[0];
+  // if (!formatter) {
+  //   throw new Error('cannot generate action: no formatter registered');
+  // }
 
   // resultSchema has { action, uniforms } schema
-  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, actOpts);
+  const resultSchema = (() => {
+    // formatter.schemaFn(actions, uniforms, conversation, actOpts);
+    switch (mode) {
+      case 'basic':
+        return formatBasicSchema({
+          actions,
+          uniforms,
+          conversation,
+          actOpts,
+        });
+      case 'react':
+        return formatReactSchema({
+          actions,
+          uniforms,
+          conversation,
+          actOpts,
+        });
+      default:
+        throw new Error('invalid mode: ' + mode);
+    }
+  })();
 
   const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
   if (completionMessage) {
     const result = {} as ActionStep;
+    const observation = (completionMessage.content as any).observation as string | null;
+    const thought = (completionMessage.content as any).thought as string | null;
     const action = (completionMessage.content as any).action as PendingActionMessage | null;
+    const uniformObject = (completionMessage.content as any).uniforms as object | null;
 
-    if (debugOpts?.debug >= debugLevels.DEBUG) {
+    // logging
+    if (debugOpts?.debug >= debugLevels.INFO) {
+      if (observation) {
+        console.info(`[•observation: ${generativeAgent.agent.name}: ${observation}]`);
+      }
+      if (thought) {
+        console.info(`[•thought: ${generativeAgent.agent.name}: ${thought}]`);
+      }
+    }
+    if (debugOpts?.debug >= debugLevels.INFO) {
       if (action !== null) {
-        console.info('action: ' + generativeAgent.agent.name + ':\n' + JSON.stringify(action, null, 2));
+        const jsonString = [
+          generativeAgent.agent.name,
+          ...JSON.stringify(action, null, 2)
+            .split('\n')
+            .map((line) => '  ' + line),
+        ].join('\n');
+        console.info(`[•action\n${jsonString}\n]`);
       } else {
-        console.info('action: ' + generativeAgent.agent.name + ': skipped');
+        console.info(`[•action: ${generativeAgent.agent.name}: skipped]`);
       }
     }
 
-    // if the agent decided to do nothing (choose null), return an empty action step
-    if (action === null) {
-      return result;
-    }
-
+    // parse action
     if (action) {
       const { method } = action;
       const actionHandlers = actions.filter((action) => action.name === method);
@@ -174,7 +232,7 @@ async function _generateAgentActionStepFromMessages(
       }
     }
 
-    const uniformObject = (completionMessage.content as any).uniforms as object;
+    // parse uniforms
     if (uniformObject) {
       const uniformsResult = {} as {
         [key: string]: object,
@@ -204,6 +262,14 @@ async function _generateAgentActionStepFromMessages(
         }
       }
       result.uniforms = uniformsResult;
+    }
+
+    // parse reasonig
+    if (observation) {
+      result.observation = observation;
+    }
+    if (thought) {
+      result.thought = thought;
     }
 
     return result;

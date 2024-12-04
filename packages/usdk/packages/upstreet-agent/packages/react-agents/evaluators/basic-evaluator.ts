@@ -15,12 +15,18 @@ export class BasicEvaluator implements Evaluator {
       generativeAgent,
       signal,
     } = opts;
-    const step = await generateAgentActionStep(
+    const {
+      hint,
+      actOpts,
+      debugOpts,
+    } = this;
+    const step = await generateAgentActionStep({
       generativeAgent,
-      this.hint,
-      this.actOpts,
-      this.debugOpts,
-    );
+      hint,
+      mode: 'basic',
+      actOpts,
+      debugOpts,
+    });
     return step;
   }
 }
