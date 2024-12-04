@@ -28,7 +28,6 @@ import type {
   PlayableAudioStream,
   Attachment,
   FormattedAttachment,
-  AgentThinkOptions,
   GenerativeAgentObject,
   DiscordRoomSpec,
   DiscordRoomSpecs,
@@ -44,6 +43,7 @@ import type {
   VideoPerceptionProps,
   Evaluator,
   LoopProps,
+  ActOpts,
 } from './types';
 import {
   AppContext,
@@ -938,20 +938,20 @@ export const DefaultFormatters = () => {
   return <JsonFormatter />;
 };
 export const JsonFormatter = () => {
-  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-    const forceAction = thinkOpts?.forceAction ?? null;
-    const excludeActions = thinkOpts?.excludeActions ?? [];
+  const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, actOpts?: ActOpts) => {
+    const forceAction = actOpts?.forceAction ?? null;
+    const excludeActions = actOpts?.excludeActions ?? [];
     return (!action.conversation || action.conversation === conversation) &&
       (forceAction === null || action.name === forceAction) &&
       !excludeActions.includes(action.name);
   };
-  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
-    return actions.filter(action => isAllowedAction(action, conversation, thinkOpts));
+  const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
+    return actions.filter(action => isAllowedAction(action, conversation, actOpts));
   };
   return (
     <Formatter
       /* actions to zod schema */
-      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+      schemaFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
         const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})) => {
           return z.object({
             method: z.literal(method),
@@ -959,7 +959,7 @@ export const JsonFormatter = () => {
           });
         };
         const makeUnionSchema = (actions: ActionPropsAux[]) => {
-          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, thinkOpts)
+          const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, actOpts)
             .map(action => makeActionSchema(action.name, action.schema));
           if (actionSchemas.length >= 2) {
             return z.union([
@@ -973,7 +973,7 @@ export const JsonFormatter = () => {
           }
         };
         const makeObjectSchema = (uniforms: ActionPropsAux[]) => {
-          const filteredUniforms = getFilteredActions(uniforms, conversation, thinkOpts);
+          const filteredUniforms = getFilteredActions(uniforms, conversation, actOpts);
           if (filteredUniforms.length > 0) {
             const o = {};
             for (const uniform of filteredUniforms) {
@@ -997,7 +997,7 @@ export const JsonFormatter = () => {
         return z.object(o);
       }}
       /* actions to instruction prompt */
-      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, thinkOpts?: AgentThinkOptions) => {
+      formatFn={(actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
         const formatAction = (action: ActionPropsAux) => {
           const {
             name,
@@ -1042,10 +1042,10 @@ export const JsonFormatter = () => {
           );
         };
         
-        const actionsString = getFilteredActions(actions, conversation, thinkOpts)
+        const actionsString = getFilteredActions(actions, conversation, actOpts)
           .map(formatAction)
           .join('\n\n');
-        const uniformsString = getFilteredActions(uniforms, conversation, thinkOpts)
+        const uniformsString = getFilteredActions(uniforms, conversation, actOpts)
           .map(formatAction)
           .join('\n\n');
         return [
