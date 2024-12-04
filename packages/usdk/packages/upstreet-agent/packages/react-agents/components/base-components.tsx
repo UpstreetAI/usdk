@@ -34,43 +34,12 @@ const makeSymbol = () => Symbol('propsKey');
 
 const ConversationInstance = (props: ConversationInstanceProps) => {
   const {
-    // agent,
     conversation,
   } = props;
-  // const renderLoader = useMemo(() => new RenderLoader(), []);
-  // const [renderPromises, setRenderPromises] = useState<any[]>([]);
-
-  // events
-  /* const waitForRender = () => {
-    const p = makePromise();
-    renderLoader.useLoad(p);
-    setRenderPromises((renderPromises) => renderPromises.concat([p]));
-    return renderLoader.waitForLoad();
-  };
-  useEffect(() => {
-    const onmessagesupdate = (e: MessagesUpdateEvent) => {
-      e.waitUntil(waitForRender());
-    };
-    agent.addEventListener('messagesupdate', onmessagesupdate);
-
-    return () => {
-      agent.removeEventListener('messagesupdate', onmessagesupdate);
-    };
-  }, [agent]);
-  useEffect(() => {
-    if (renderPromises.length > 0) {
-      for (const renderPromise of renderPromises) {
-        renderPromise.resolve(null);
-      }
-      setRenderPromises([]);
-    }
-  }, [renderPromises.length]); */
 
   return (
     <ConversationContext.Provider value={{conversation}}>
-      {/* <RenderLoaderProvider renderLoader={renderLoader}> */}
-        {props.children}
-      {/* </RenderLoaderProvider> */}
+      {props.children}
     </ConversationContext.Provider>
   );
 };
