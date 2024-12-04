@@ -4,28 +4,48 @@ import { LoopProps } from './types';
 import { BasicEvaluator } from '../evaluators/basic-evaluator';
 
 export const ChatLoop = (props: LoopProps) => {
-  const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new BasicEvaluator());
+  if (props.evaluator && (props.hint || props.actOpts)) {
+    throw new Error('Cannot provide both evaluator and hint/actOpts');
+  }
+
+  const hint = props.hint;
+  const actOpts = props.actOpts;
+  const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new BasicEvaluator({
+    hint,
+    actOpts,
+  }));
+
   return (
     <>
       <Perception
         type="say"
         handler={async (e) => {
-          await evaluator.handle(e);
-          // await e.data.targetAgent.think();
+          const { targetAgent } = e.data;
+
+          const abortController = new AbortController();
+          const { signal } = abortController;
+          
+          await targetAgent.evaluate(evaluator, {
+            signal,
+          });
         }}
       />
       <Perception
         type="nudge"
         handler={async (e) => {
-          const { message } = e.data;
+          const { targetAgent, message } = e.data;
           const {
             args,
           } = message;
           const targetUserId = (args as any)?.targetUserId;
           // if the nudge is for us
           if (targetUserId === e.data.targetAgent.agent.id) {
-            await evaluator.handle(e);
-            // await e.data.targetAgent.think();
+            const abortController = new AbortController();
+            const { signal } = abortController;
+
+            await targetAgent.evaluate(evaluator, {
+              signal,
+            });
           }
         }}
       />
