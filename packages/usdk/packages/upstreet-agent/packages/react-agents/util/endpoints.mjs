@@ -10,6 +10,6 @@ export const telnyxEndpointUrl = 'https://telnyx.isekaichat.workers.dev';
 export const workersHost = `isekaichat.workers.dev`;
 export const usdkDiscordUrl = `https://upstreet.ai/usdk-discord`;
 
-export const realtimeSTTHost = `xxxxx`;
+export const realtimeSTTHost = `g8cgs1qznz533i`;
 export const realtimeSTTControlPort = 8011;
 export const realtimeSTTDataPort = 8012;

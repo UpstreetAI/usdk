@@ -394,14 +394,17 @@ export const transcribeRealtime = ({
 };
 
 export const transcribeRealtimeSTT = async ({ sampleRate }) => {
-
   if (!sampleRate) {
     throw new Error('no sample rate');
   }
 
   try {
-    const controlUrl = `ws://${realtimeSTTHost}:${realtimeSTTControlPort}`;
-    const dataUrl = `ws://${realtimeSTTHost}:${realtimeSTTDataPort}`;
+    // const controlUrl = `ws://${serverConfig.host}:${serverConfig.controlPort}`;
+    // const dataUrl = `ws://${serverConfig.host}:${serverConfig.dataPort}`;
+
+    const controlUrl = `wss://${realtimeSTTHost}-${realtimeSTTControlPort}.proxy.runpod.net`;
+    const dataUrl = `wss://${realtimeSTTHost}-${realtimeSTTDataPort}.proxy.runpod.net`;
+
 
     const controlSocket = new WebSocket(controlUrl);
     const dataSocket = new WebSocket(dataUrl);
