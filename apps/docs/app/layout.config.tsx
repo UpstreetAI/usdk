@@ -21,7 +21,7 @@ export const baseOptions = {
           {
             title: `v${pkgJson.version}`,
             description: 'Latest',
-            url: '/',
+            url: 'https://www.npmjs.com/package/usdk',
           }
           // {
           //   title: 'Folder 2',
