@@ -86,7 +86,7 @@ export async function generateAgentActionStep(
   thinkOpts?: AgentThinkOptions,
   debugOpts?: DebugOptions,
 ) {
-  // wait for the conversation to be loaded
+  // wait for the conversation to be loaded so that we can use its conversation history in the prompts
   {
     const { agent, conversation } = generativeAgent;
     const { appContextValue } = agent;
