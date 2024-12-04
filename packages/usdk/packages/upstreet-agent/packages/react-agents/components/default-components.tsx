@@ -44,10 +44,10 @@ import type {
   Evaluator,
   LoopProps,
   ActOpts,
-} from './types';
+} from '../types';
 import {
   AppContext,
-} from './context';
+} from '../context';
 import {
   // Agent,
   Action,
@@ -61,16 +61,16 @@ import {
   Conversation,
   DeferConversation,
   Uniform,
-} from './components';
-import {
-  PerceptionEvent,
-} from './classes/perception-event';
+} from './base-components';
+// import {
+//   PerceptionEvent,
+// } from '../classes/perception-event';
 import {
   AbortableActionEvent,
-} from './classes/abortable-action-event';
+} from '../classes/abortable-action-event';
 import {
   AbortablePerceptionEvent,
-} from './classes/abortable-perception-event';
+} from '../classes/abortable-perception-event';
 import {
   useAgent,
   useAuthToken,
@@ -88,40 +88,37 @@ import {
   useConversation,
   useCachedMessages,
   useNumMessages,
-} from './hooks';
-import { shuffle, parseCodeBlock } from './util/util.mjs';
+} from '../hooks';
+import { shuffle, parseCodeBlock } from '../util/util.mjs';
 import {
   storeItemType,
-} from './util/agent-features.mjs';
+} from '../util/agent-features.mjs';
 import {
   currencies,
   intervals,
-} from './constants.mjs';
+} from '../constants.mjs';
 import {
   // describe,
   describeJson,
-} from './util/vision.mjs';
+} from '../util/vision.mjs';
 import {
   imageSizes,
   fetchImageGeneration,
-} from './util/generate-image.mjs';
+} from '../util/generate-image.mjs';
 import {
   generateSound,
-} from './util/generate-sound.mjs';
+} from '../util/generate-sound.mjs';
 import {
   generateModel,
-} from './util/generate-model.mjs';
+} from '../util/generate-model.mjs';
 import {
   generateVideo,
-} from './util/generate-video.mjs';
-import { r2EndpointUrl } from './util/endpoints.mjs';
-import { ChatLoop } from './loops/chat-loop.tsx';
+} from '../util/generate-video.mjs';
+import { r2EndpointUrl } from '../util/endpoints.mjs';
+import { ChatLoop } from '../loops/chat-loop.tsx';
 // import { InfiniteLoop } from './loops/infinite-loop.tsx';
-import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
-import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
-
-// Note: this comment is used to remove imports before running tsdoc
-// END IMPORTS
+import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
+import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 
 // utils
 

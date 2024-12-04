@@ -24,20 +24,20 @@ import type {
   SubscriptionProps,
   ConversationEventData,
   UniformProps,
-} from './types';
+} from '../types';
 import {
   AppContext,
   AgentContext,
   ConversationContext,
   ConversationsContext,
   AgentRegistryContext,
-} from './context';
+} from '../context';
 import {
   DefaultAgentComponents,
 } from './default-components';
 import {
   AgentRegistry,
-} from './classes/render-registry';
+} from '../classes/render-registry';
 // import {
 //   SceneObject,
 // } from './classes/scene-object';
@@ -46,11 +46,11 @@ import {
 // } from './classes/agent-object';
 import {
   ActiveAgentObject,
-} from './classes/active-agent-object';
+} from '../classes/active-agent-object';
 import {
   makePromise,
   printZodSchema,
-} from './util/util.mjs';
+} from '../util/util.mjs';
 // import {
 //   GenerativeAgentObject,
 // } from './classes/generative-agent-object';
@@ -61,10 +61,7 @@ import {
 //   RenderLoader,
 //   RenderLoaderProvider,
 // } from './classes/render-loader';
-import { ExtendableMessageEvent } from './util/extendable-message-event';
-
-// Note: this comment is used to remove imports before running tsdoc
-// END IMPORTS
+import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
 //
 
