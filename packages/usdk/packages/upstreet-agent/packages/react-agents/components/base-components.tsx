@@ -1,8 +1,5 @@
 import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
-import type { Ref } from 'react';
 import type {
-  AgentProps,
-  RawAgentProps,
   ActionProps,
   ActionModifierProps,
   PromptProps,
@@ -14,12 +11,10 @@ import type {
   NameProps,
   PersonalityProps,
   ServerProps,
-  ConversationObject,
   ConversationProps,
   ConversationInstanceProps,
   PaymentProps,
   SubscriptionProps,
-  ConversationEventData,
   UniformProps,
 } from '../types';
 import {
@@ -30,18 +25,8 @@ import {
   AgentRegistryContext,
 } from '../context';
 import {
-  DefaultAgentComponents,
-} from './default-components';
-import {
-  AgentRegistry,
-} from '../classes/render-registry';
-import {
-  ActiveAgentObject,
-} from '../classes/active-agent-object';
-import {
   printZodSchema,
 } from '../util/util.mjs';
-import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
 //
 
