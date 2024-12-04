@@ -1,26 +1,25 @@
-import { Evaluator, EvaluatorOpts, EvaluateOpts } from '../types';
+import { Evaluator, EvaluatorOpts, EvaluateOpts, ActOpts, DebugOptions } from '../types';
 import { generateAgentActionStep } from '../runtime';
 
 export class ReACTEvaluator implements Evaluator {
-  hint;
-  thinkOpts;
+  hint?: string;
+  actOpts?: ActOpts;
+  debugOpts?: DebugOptions;
   constructor(opts?: EvaluatorOpts) {
     this.hint = opts?.hint;
-    this.thinkOpts = opts?.thinkOpts;
+    this.actOpts = opts?.actOpts;
+    this.debugOpts = opts?.debugOpts;
   }
   async evaluate(opts: EvaluateOpts) {
     const {
       generativeAgent,
       signal,
     } = opts;
-    const debug = generativeAgent.agent.appContextValue.useDebug();
     const step = await generateAgentActionStep(
       generativeAgent,
       this.hint,
-      this.thinkOpts,
-      {
-        debug,
-      },
+      this.actOpts,
+      this.debugOpts,
     );
     return step;
   }

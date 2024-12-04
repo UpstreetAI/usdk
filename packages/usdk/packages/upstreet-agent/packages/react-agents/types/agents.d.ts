@@ -184,6 +184,7 @@ export type VideoPerceptionProps = {
 export type EvaluatorOpts = {
   hint?: string;
   actOpts?: ActOpts;
+  debugOpts?: DebugOptions;
 };
 export type EvaluateOpts = {
   generativeAgent: GenerativeAgentObject,
@@ -810,7 +811,7 @@ export type AppContextValue = {
   useChatsSpecification: () => ChatsSpecification;
   useCodecs: () => any;
   useInit: () => any;
-  useDebug: () => boolean;
+  useDebug: () => number;
   useRegistry: () => RenderRegistry;
 
   useKv: (opts?: KvArgs) => Kv;
