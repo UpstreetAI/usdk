@@ -132,7 +132,8 @@ const main = async () => {
       }
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv);
 
   if (!commandExecuted) {
     console.error('Command missing');
