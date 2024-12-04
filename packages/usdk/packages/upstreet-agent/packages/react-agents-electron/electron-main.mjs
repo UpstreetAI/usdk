@@ -126,7 +126,7 @@ const runAgent = async (directory, opts) => {
     init: initString,
   } = opts;
   const init = initString && JSON.parse(initString);
-  const debug = !!opts.debug;
+  const debug = parseInt(opts.debug, 10);
 
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
