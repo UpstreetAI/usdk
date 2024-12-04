@@ -162,19 +162,19 @@ export class GenerativeAgentObject {
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      const thinkOpts = {
+      const actOpts = {
         forceAction: 'say',
       };
       const debugOpts = {
         debug: this.agent.appContextValue.useDebug(),
       };
-      const step = await generateAgentActionStep(
-        this,
-        'Comment on the following:' + '\n' +
+      const step = await generateAgentActionStep({
+        generativeAgent: this,
+        hint: 'Comment on the following:' + '\n' +
           text,
-        thinkOpts,
+        actOpts,
         debugOpts,
-      );
+      });
       await executeAgentActionStep(this, step);
     });
   }

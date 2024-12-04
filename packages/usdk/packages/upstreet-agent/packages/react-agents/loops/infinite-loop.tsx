@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAgent, useConversation } from 'react-agents';
+import { useAgent, useConversation } from '../hooks';
 import { LoopProps } from './types';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
 // import { PerceptionEvent } from '../classes/perception-event';
@@ -10,13 +10,17 @@ export const InfiniteLoop = (props: LoopProps) => {
     throw new Error('Cannot provide both evaluator and hint/actOpts');
   }
 
+  const agent = useAgent();
   const hint = props.hint;
   const actOpts = props.actOpts;
+  const debugOpts = {
+    debug: agent.appContextValue.useDebug(),
+  };
   const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new ReACTEvaluator({
     hint,
     actOpts,
+    debugOpts
   }));
-  const agent = useAgent();
   const contextConversation = useConversation();
   const [conversation, setConversation] = useState(() => {
     if (contextConversation) {

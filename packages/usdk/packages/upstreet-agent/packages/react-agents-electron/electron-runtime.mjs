@@ -103,6 +103,7 @@ export class ReactAgentsElectronRuntime {
       [
         electronStartScriptPath,
         'run',
+        '--',
         // '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,

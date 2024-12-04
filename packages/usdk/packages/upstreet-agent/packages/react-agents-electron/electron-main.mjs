@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { app, screen, session, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { WebSocket } from 'ws';
+import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
 import { fileURLToPath } from 'url';
 
@@ -127,7 +128,7 @@ const runAgent = async (directory, opts) => {
     init: initString,
   } = opts;
   const init = initString && JSON.parse(initString);
-  const debug = !!opts.debug;
+  const debug = parseInt(opts.debug, 10);
 
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
@@ -202,16 +203,16 @@ const openFrontend = async ({
     // console.log('primary display', primaryDisplay, primaryDisplay.workAreaSize);
     const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
 
-    if (!debug) {
+    if (debug >= debugLevels.SILLY) {
+      width = displayWidth;
+      height = displayHeight;
+    } else {
       if (width === undefined) {
         width = 300;
       }
       if (height === undefined) {
         height = 400;
       }
-    } else {
-      width = displayWidth;
-      height = displayHeight;
     }
 
     // trade the jwt for an otp auth token
@@ -244,7 +245,7 @@ const openFrontend = async ({
         preload: path.join(__dirname, 'preload.mjs'),
       },
     });
-    if (debug) {
+    if (debug >= debugLevels.SILLY) {
       win.webContents.openDevTools();
     }
     win.loadURL(u.href);
@@ -278,7 +279,10 @@ const main = async () => {
       }
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv, {
+    from: 'electron',
+  });
 
   if (!commandExecuted) {
     console.error('Command missing');
