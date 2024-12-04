@@ -30,64 +30,10 @@ import {
 
 //
 
-const makeSymbol = () => Symbol('propsKey');
-
-const ConversationInstance = (props: ConversationInstanceProps) => {
-  const {
-    conversation,
-  } = props;
-
-  return (
-    <ConversationContext.Provider value={{conversation}}>
-      {props.children}
-    </ConversationContext.Provider>
-  );
-};
-// XXX rename this to ConversationProvider (?)
-export const Conversation = (props: ConversationProps) => {
-  const agent = useContext(AgentContext);
-  const conversations = useContext(ConversationsContext).conversations;
-  return conversations.map((conversation) => {
-    return (
-      <ConversationInstance
-        agent={agent}
-        conversation={conversation}
-        key={conversation.getKey()}
-      >
-        {props.children}
-      </ConversationInstance>
-    );
-  });
-};
-// use this to defer rendering until the conversation is actually used
-export const DeferConversation = (props: DeferProps) => {
-  const appContextValue = useContext(AppContext);
-  const conversationManager = appContextValue.useConversationManager();
-  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const conversation = useContext(ConversationContext).conversation;
-  if (!conversation) {
-    throw new Error('DeferConversation can only be used within a conversation');
-  }
-  const symbol = useMemo(makeSymbol, []);
-  const deferRender = conversationManager.useDeferRender(conversation);
-
-  useEffect(() => {
-    const props2 = {
-      ...props,
-      conversation,
-    };
-    agentRegistry.registerDefer(symbol, props2);
-    return () => {
-      agentRegistry.unregisterDefer(symbol);
-    };
-  }, []);
-
-  return deferRender && props.children;
-};
 export const Uniform = (props: UniformProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
@@ -117,7 +63,7 @@ export const Uniform = (props: UniformProps) => {
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
@@ -149,7 +95,7 @@ export const Action = /*memo(*/(props: ActionProps) => {
 export const ActionModifier = /*memo(*/(props: ActionModifierProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
@@ -192,7 +138,7 @@ export const Prompt = /*memo(*/(props: PromptProps) => {
 export const Formatter = /*memo(*/(props: FormatterProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.schemaFn.toString(),
@@ -214,7 +160,7 @@ export const Formatter = /*memo(*/(props: FormatterProps) => {
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
@@ -241,7 +187,7 @@ export const Perception = /*memo(*/(props: PerceptionProps) => {
 export const PerceptionModifier = /*memo(*/(props: PerceptionModifierProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
@@ -270,7 +216,7 @@ export const PerceptionModifier = /*memo(*/(props: PerceptionModifierProps) => {
 export const Task = /*memo(*/(props: TaskProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.handler.toString(),
@@ -295,7 +241,7 @@ export const Task = /*memo(*/(props: TaskProps) => {
 export const Name = /*memo(*/(props: NameProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.children,
@@ -316,7 +262,7 @@ export const Name = /*memo(*/(props: NameProps) => {
 export const Personality = /*memo(*/(props: PersonalityProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.children,
@@ -340,7 +286,7 @@ export const Personality = /*memo(*/(props: PersonalityProps) => {
 export const Payment = (props: PaymentProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.amount,
@@ -364,7 +310,7 @@ export const Payment = (props: PaymentProps) => {
 export const Subscription = (props: SubscriptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.amount,
@@ -391,7 +337,7 @@ export const Subscription = (props: SubscriptionProps) => {
 export const Server = /*memo(*/(props: ServerProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(makeSymbol, []);
+  const symbol = useMemo(Symbol, []);
 
   const deps = [
     props.children.toString(),
