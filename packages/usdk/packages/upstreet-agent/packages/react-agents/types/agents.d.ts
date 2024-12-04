@@ -71,7 +71,7 @@ export type GenerativeAgentObject =  {
   addAudioStream: (stream: PlayableAudioStream) => void;
 };
 export type DebugOptions = {
-  debug?: boolean;
+  debug?: number;
 };
 export type ActOpts = {
   forceAction?: string;
