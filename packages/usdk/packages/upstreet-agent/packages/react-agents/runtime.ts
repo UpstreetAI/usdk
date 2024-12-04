@@ -26,12 +26,12 @@ import {
 import {
   ActionEvent,
 } from './classes/action-event';
-import {
-  retry,
-} from './util/util.mjs';
-import {
-  parseCodeBlock,
-} from './util/util.mjs';
+// import {
+//   retry,
+// } from './util/util.mjs';
+// import {
+//   parseCodeBlock,
+// } from './util/util.mjs';
 import {
   PerceptionEvent,
 } from './classes/perception-event';
@@ -44,6 +44,7 @@ import {
 import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
+import * as debugLevels from './util/debug-levels.mjs';
 
 //
 
@@ -107,7 +108,7 @@ export async function generateAgentActionStep(
       content: promptString,
     },
   ];
-  if (debugOpts?.debug) {
+  if (debugOpts?.debug >= debugLevels.DEBUG) {
     console.info('prompt: ' + generativeAgent.agent.name + ':\n' + promptString);
   }
   // perform inference
@@ -138,7 +139,7 @@ async function _generateAgentActionStepFromMessages(
     const result = {} as ActionStep;
     const action = (completionMessage.content as any).action as PendingActionMessage | null;
 
-    if (debugOpts?.debug) {
+    if (debugOpts?.debug >= debugLevels.DEBUG) {
       if (action !== null) {
         console.info('action: ' + generativeAgent.agent.name + ':\n' + JSON.stringify(action, null, 2));
       } else {

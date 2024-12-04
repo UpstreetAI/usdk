@@ -34,7 +34,7 @@ export class ReactAgentsNodeRuntime {
   }
   async start({
     init = {},
-    debug = false,
+    debug = 0,
   } = {}) {
     const {
       directory,
@@ -53,12 +53,11 @@ export class ReactAgentsNodeRuntime {
         watcherPath,
         'run',
         directory,
-        '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
         '--init', JSON.stringify(init),
       ].concat(debug ? [
-        '--debug',
+        '--debug', JSON.stringify(debug),
       ] : []),
       {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],

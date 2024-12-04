@@ -92,7 +92,7 @@ export class ReactAgentsWranglerRuntime {
   }
   async start({
     init = {},
-    debug = false,
+    debug = 0,
   } = {}) {
     const {
       directory,
@@ -111,7 +111,7 @@ export class ReactAgentsWranglerRuntime {
         '--var', `init:${JSON.stringify(init)}`,
       ]: [])
       .concat(debug ? [
-        '--var', `debug:${!!debug}`,
+        '--var', `debug:${JSON.stringify(debug)}`,
       ]: []),
       {
         stdio: 'pipe',

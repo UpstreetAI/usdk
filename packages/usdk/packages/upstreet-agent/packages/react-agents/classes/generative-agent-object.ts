@@ -6,10 +6,11 @@ import type {
   PendingActionMessage,
   ReadableAudioStream,
   PlayableAudioStream,
-  AgentThinkOptions,
+  ActOpts,
   ActionMessageEventData,
   ActionStep,
   Evaluator,
+  DebugOptions,
 } from '../types';
 import {
   ConversationObject,
@@ -22,7 +23,7 @@ import {
   ActiveAgentObject,
 } from './active-agent-object';
 // import { QueueManager } from 'queue-manager';
-import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
+// import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
@@ -83,13 +84,14 @@ export class GenerativeAgentObject {
   // methods
 
   // returns the ActionStep that the agent took
-  async act(hint?: string, thinkOpts?: AgentThinkOptions) {
+  async act(hint?: string, actOpts?: ActOpts, debugOpts?: DebugOptions) {
     // await this.generativeQueueManager.waitForTurn(async () => {
       return await this.conversation.typing(async () => {
         try {
           const evaluator = new ReACTEvaluator({
             hint,
-            thinkOpts,
+            actOpts,
+            debugOpts,
           });
           return await this.evaluate(evaluator);
         } catch (err) {
@@ -100,12 +102,8 @@ export class GenerativeAgentObject {
   }
   async evaluate(evaluator: Evaluator) {
     return await this.conversation.typing(async () => {
-      const debugOpts = {
-        debug: this.agent.appContextValue.useDebug(),
-      };
       const step = await evaluator.evaluate({
         generativeAgent: this,
-        debugOpts,
       });
       await executeAgentActionStep(this, step);
       return step;

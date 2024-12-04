@@ -121,6 +121,8 @@ const startAgentMainServer = async ({
 };
 const runAgent = async (directory, opts) => {
   const {
+    ip,
+    port,
     init: initString,
   } = opts;
   const init = initString && JSON.parse(initString);
@@ -135,10 +137,6 @@ const runAgent = async (directory, opts) => {
   });
   // console.log('agentMain', agentMain);
 
-  const {
-    ip,
-    port,
-  } = opts;
   await startAgentMainServer({
     agentMain,
     ip,
@@ -258,11 +256,10 @@ const main = async () => {
     .command('run')
     .description('Run the agent')
     .argument(`[directory]`, `Agent directory`)
-    .option('--var <vars...>', 'Environment variables in format KEY:VALUE')
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
     .requiredOption('--init <json>', 'Initialization data')
-    .option('--debug', 'Enable debug mode')
+    .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
     .action(async (directory, opts) => {
       commandExecuted = true;
 
