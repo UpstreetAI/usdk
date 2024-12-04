@@ -1,0 +1,10 @@
+{
+  "steps": [
+    {
+      "from": "node-lint"
+    },
+    {
+      "from": "prettify"
+    }
+  ]
+}
