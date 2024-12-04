@@ -13,7 +13,7 @@ import {
   ActionMessageEventData,
   ConversationObject,
   TaskEventData,
-  AgentThinkOptions,
+  ActOpts,
   DebugOptions,
   ActionStep,
 } from './types';
@@ -26,12 +26,12 @@ import {
 import {
   ActionEvent,
 } from './classes/action-event';
-import {
-  retry,
-} from './util/util.mjs';
-import {
-  parseCodeBlock,
-} from './util/util.mjs';
+// import {
+//   retry,
+// } from './util/util.mjs';
+// import {
+//   parseCodeBlock,
+// } from './util/util.mjs';
 import {
   PerceptionEvent,
 } from './classes/perception-event';
@@ -44,6 +44,7 @@ import {
 import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
+import * as debugLevels from './util/debug-levels.mjs';
 
 //
 
@@ -83,10 +84,10 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
 export async function generateAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   hint?: string,
-  thinkOpts?: AgentThinkOptions,
+  actOpts?: ActOpts,
   debugOpts?: DebugOptions,
 ) {
-  // wait for the conversation to be loaded
+  // wait for the conversation to be loaded so that we can use its conversation history in the prompts
   {
     const { agent, conversation } = generativeAgent;
     const { appContextValue } = agent;
@@ -107,16 +108,16 @@ export async function generateAgentActionStep(
       content: promptString,
     },
   ];
-  if (debugOpts?.debug) {
+  if (debugOpts?.debug >= debugLevels.DEBUG) {
     console.info('prompt: ' + generativeAgent.agent.name + ':\n' + promptString);
   }
   // perform inference
-  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, thinkOpts, debugOpts);
+  return await _generateAgentActionStepFromMessages(generativeAgent, promptMessages, actOpts, debugOpts);
 }
 async function _generateAgentActionStepFromMessages(
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
-  thinkOpts?: AgentThinkOptions,
+  actOpts?: ActOpts,
   debugOpts?: DebugOptions,
 ) {
   const { agent, conversation } = generativeAgent;
@@ -131,14 +132,14 @@ async function _generateAgentActionStepFromMessages(
   }
 
   // resultSchema has { action, uniforms } schema
-  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, thinkOpts);
+  const resultSchema = formatter.schemaFn(actions, uniforms, conversation, actOpts);
 
   const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
   if (completionMessage) {
     const result = {} as ActionStep;
     const action = (completionMessage.content as any).action as PendingActionMessage | null;
 
-    if (debugOpts?.debug) {
+    if (debugOpts?.debug >= debugLevels.DEBUG) {
       if (action !== null) {
         console.info('action: ' + generativeAgent.agent.name + ':\n' + JSON.stringify(action, null, 2));
       } else {
@@ -211,7 +212,7 @@ async function _generateAgentActionStepFromMessages(
   }
 }
 
-export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
+/* export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -246,8 +247,8 @@ export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAn
     const parsedJson = schema.parse(rawJson);
     return parsedJson;
   }, numRetries);
-}
-export async function generateString(hint: string) {
+} */
+/* export async function generateString(hint: string) {
   const numRetries = 5;
   return await retry(async () => {
     const prompts = [
@@ -268,7 +269,7 @@ export async function generateString(hint: string) {
     })();
     return completionMessage.content;
   }, numRetries);
-}
+} */
 
 interface PriorityModifier {
   priority?: number;
@@ -445,11 +446,13 @@ const handleChatPerception = async (data: ActionMessageEventData, {
           sourceAgent,
           message,
         });
-        perceptionPromises.push((async () => {
-          await perception.handler(e);
-          const steps = Array.from(targetAgent.thinkCache.values());
-          return steps;
-        })());
+        const p = perception.handler(e);
+        perceptionPromises.push(p);
+        // perceptionPromises.push((async () => {
+        //   await perception.handler(e);
+        //   const steps = Array.from(targetAgent.thinkCache.values());
+        //   return steps;
+        // })());
       }
     }
   }

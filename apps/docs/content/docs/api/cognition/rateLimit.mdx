@@ -1,0 +1,50 @@
+---
+title: <RateLimit>
+description: Let your agent plan and execute tasks.
+full: false
+---
+import Wrapper from 'components/preview/wrapper';
+import Image from 'next/image';
+
+## Import
+
+```tsx
+import { RateLimit } from 'react-agents';
+```
+
+## RateLimit
+
+The RateLimit component allows you to control how frequently users can send messages to your agent. This helps prevent spam and abuse while maintaining a smooth user experience.
+
+1. Add the component to your agent:
+   ```json
+   import { RateLimit } from 'react-agents';
+
+   return (
+     <Agent>
+       {/* ... */}
+       <RateLimit 
+         maxUserMessages={5}
+         maxUserMessagesTime={86400000} 
+         message="Please wait before sending another message"
+       />
+       {/* ... */}
+     </Agent>
+   );
+   ```
+
+### Props
+
+- **maxUserMessages** (number)
+  - Maximum number of messages a user can send within the time window
+  - Default: 5
+  - Set to 0 or Infinity to disable rate limiting
+
+- **maxUserMessagesTime** (number) 
+  - Time window in milliseconds for rate limiting
+  - Default: 86400000 (24 hours)
+  - Set to 0 or Infinity to disable rate limiting
+
+- **message** (string)
+  - Custom message shown when rate limit is exceeded
+  - Default: "You are sending messages too quickly. Please wait a moment before sending another message."

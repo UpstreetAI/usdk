@@ -67,7 +67,7 @@ export class AppContextValue {
     chatsSpecification: ChatsSpecification;
     codecs: any;
     init: any;
-    debug: boolean;
+    debug: number;
     registry: RenderRegistry;
   }) {
     this.subtleAi = subtleAi;

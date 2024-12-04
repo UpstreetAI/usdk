@@ -6,9 +6,11 @@ import type {
   PendingActionMessage,
   ReadableAudioStream,
   PlayableAudioStream,
-  AgentThinkOptions,
+  ActOpts,
   ActionMessageEventData,
   ActionStep,
+  Evaluator,
+  DebugOptions,
 } from '../types';
 import {
   ConversationObject,
@@ -20,10 +22,11 @@ import {
 import {
   ActiveAgentObject,
 } from './active-agent-object';
-import { QueueManager } from 'queue-manager';
-import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
+// import { QueueManager } from 'queue-manager';
+// import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
+import { ReACTEvaluator } from '../evaluators/react-evaluator';
 
 //
 
@@ -32,8 +35,7 @@ export class GenerativeAgentObject {
   agent: ActiveAgentObject;
   conversation: ConversationObject; // the conversation that this generative agent is bound to
   // state
-  generativeQueueManager = new QueueManager();
-  thinkCache: Array<ActionStep> = [];
+  // generativeQueueManager = new QueueManager();
 
   //
   
@@ -75,31 +77,39 @@ export class GenerativeAgentObject {
       model: this.agent.model,
     });
   }
-  async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
-    return await this.agent.appContextValue.generateImage(prompt, opts);
-  }
+  // async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
+  //   return await this.agent.appContextValue.generateImage(prompt, opts);
+  // }
 
   // methods
 
   // returns the ActionStep that the agent took
-  async think(hint?: string, thinkOpts?: AgentThinkOptions) {
-    await this.generativeQueueManager.waitForTurn(async () => {
-      await this.conversation.typing(async () => {
+  async act(hint?: string, actOpts?: ActOpts, debugOpts?: DebugOptions) {
+    // await this.generativeQueueManager.waitForTurn(async () => {
+      return await this.conversation.typing(async () => {
         try {
-          const debugOpts = {
-            debug: this.agent.appContextValue.useDebug(),
-          };
-          const step = await generateAgentActionStep(this, hint, thinkOpts, debugOpts);
-          await executeAgentActionStep(this, step);
-
-          this.thinkCache.push(step);
+          const evaluator = new ReACTEvaluator({
+            hint,
+            actOpts,
+            debugOpts,
+          });
+          return await this.evaluate(evaluator);
         } catch (err) {
           console.warn('think error', err);
         }
       });
+    // });
+  }
+  async evaluate(evaluator: Evaluator) {
+    return await this.conversation.typing(async () => {
+      const step = await evaluator.evaluate({
+        generativeAgent: this,
+      });
+      await executeAgentActionStep(this, step);
+      return step;
     });
   }
-  async generate(hint: string, schema?: ZodTypeAny) {
+  /* async generate(hint: string, schema?: ZodTypeAny) {
     // console.log('agent renderer generate 1');
     await this.conversation.typing(async () => {
       // console.log('agent renderer generate 2');
@@ -131,7 +141,7 @@ export class GenerativeAgentObject {
       }
     });
     // console.log('agent renderer think 5');
-  }
+  } */
   async say(text: string) {
     await this.conversation.typing(async () => {
       // console.log('say text', {

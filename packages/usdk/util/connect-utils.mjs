@@ -881,7 +881,7 @@ export const connect = async (args) => {
   const outputStream = args.outputStream ?? null;
   const runtimes = args.runtimes ?? null;
   const jwt = args.jwt ?? null;
-  const debug = !!args.debug;
+  const debug = parseInt(args.debug, 10);
 
   if (room) {
     switch (mode) {
