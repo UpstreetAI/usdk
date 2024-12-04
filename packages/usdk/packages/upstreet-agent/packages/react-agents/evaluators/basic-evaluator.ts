@@ -8,7 +8,7 @@ export class BasicEvaluator implements Evaluator {
   constructor(opts?: EvaluatorOpts) {
     this.hint = opts?.hint;
     this.actOpts = opts?.actOpts;
-    this.debugOpts = opts?.debugOpts
+    this.debugOpts = opts?.debugOpts;
   }
   async evaluate(opts: EvaluateOpts) {
     const {
