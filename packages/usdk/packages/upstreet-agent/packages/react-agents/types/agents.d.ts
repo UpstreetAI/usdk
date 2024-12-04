@@ -176,6 +176,17 @@ export type VideoPerceptionProps = {
   hint?: string;
 };
 
+// loops
+
+export type Evaluator = {
+  handle: (e: Event, opts?: {
+    signal?: AbortSignal,
+  }) => Promise<void>;
+};
+export type LoopProps = {
+  evaluator?: Evaluator;
+}
+
 // actions
 
 export type FormattedAttachment = {
