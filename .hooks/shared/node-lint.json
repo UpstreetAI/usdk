@@ -1,4 +1,4 @@
 {
   "name": "[Shared] Linting Node app 🧹",
-  "command": "npx pnpm lint --fix"
+  "command": "npx lint-staged"
 }

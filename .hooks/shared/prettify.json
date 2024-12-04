@@ -1,4 +1,0 @@
-{
-  "name": "[Shared] Prettification 💅",
-  "command": "npx lint-staged"
-}
