@@ -25,6 +25,8 @@ import { fetchChatCompletion, fetchJsonCompletion } from '../util/fetch.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
 
+import { NotEnoughCreditsError } from '../util/error-utils.mjs';
+
 //
 
 export class GenerativeAgentObject {
@@ -94,7 +96,11 @@ export class GenerativeAgentObject {
 
           this.thinkCache.push(step);
         } catch (err) {
-          console.warn('think error', err);
+          if (err instanceof NotEnoughCreditsError) {
+            this.say('Not enough credits');
+          } else {
+            console.warn('think error', err);
+          }
         }
       });
     });
