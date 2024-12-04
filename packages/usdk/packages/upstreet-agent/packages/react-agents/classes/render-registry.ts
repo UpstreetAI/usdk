@@ -6,7 +6,7 @@ import type {
   // PromptProps,
   PromptPropsAux,
   UniformPropsAux,
-  FormatterProps,
+  // FormatterProps,
   DeferProps,
   DeferPropsAux,
   // ParserProps,
@@ -71,7 +71,7 @@ export class AgentRegistry {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   uniformsMap: Map<symbol, UniformPropsAux | null> = new Map();
-  formattersMap: Map<symbol, FormatterProps | null> = new Map();
+  // formattersMap: Map<symbol, formatterProps | null> = new Map();
   deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
 
@@ -88,9 +88,9 @@ export class AgentRegistry {
   get actionModifiers() {
     return Array.from(this.actionModifiersMap.values()).filter(Boolean);
   }
-  get formatters() {
-    return Array.from(this.formattersMap.values()).filter(Boolean);
-  }
+  // get formatters() {
+  //   return Array.from(this.formattersMap.values()).filter(Boolean);
+  // }
   get perceptions() {
     return Array.from(this.perceptionsMap.values()).filter(Boolean);
   }
@@ -156,15 +156,15 @@ export class AgentRegistry {
   unregisterPerceptionModifier(key: symbol) {
     this.perceptionModifiersMap.set(key, null);
   }
-  registerFormatter(key: symbol, formatter: FormatterProps) {
-    const formatterExists = Array.from(this.formattersMap.values())
-      .some(Boolean);
-    if (!formatterExists) {
-      this.formattersMap.set(key, formatter);
-    } else {
-      throw new Error(`Multiple formatters`); 
-    }
-  }
+  // registerFormatter(key: symbol, formatter: FormatterProps) {
+  //   const formatterExists = Array.from(this.formattersMap.values())
+  //     .some(Boolean);
+  //   if (!formatterExists) {
+  //     this.formattersMap.set(key, formatter);
+  //   } else {
+  //     throw new Error(`Multiple formatters`);
+  //   }
+  // }
   registerUniform(key: symbol, uniform: ActionPropsAux) {
     if (!uniform.conversation) {
       this.uniformsMap.set(key, uniform);
@@ -187,9 +187,9 @@ export class AgentRegistry {
   unregisterUniform(key: symbol) {
     this.uniformsMap.set(key, null);
   }
-  unregisterFormatter(key: symbol) {
-    this.formattersMap.set(key, null);
-  }
+  // unregisterFormatter(key: symbol) {
+  //   this.formattersMap.set(key, null);
+  // }
   registerDefer(key: symbol, defer: DeferPropsAux) {
     this.deferMap.set(key, defer);
   }

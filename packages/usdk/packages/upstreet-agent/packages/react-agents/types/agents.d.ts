@@ -642,10 +642,6 @@ export type UniformProps = {
 export type UniformPropsAux = UniformProps & {
   conversation: ConversationObject;
 };
-export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject) => string;
-};
 export type DeferProps = {
   children: ReactNode;
 };
@@ -747,7 +743,7 @@ export type AgentRegistry = {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
-  formattersMap: Map<symbol, FormatterProps | null>;
+  // formattersMap: Map<symbol, FormatterProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
@@ -762,7 +758,7 @@ export type AgentRegistry = {
   get perceptions(): PerceptionPropsAux[];
   get perceptionModifiers(): PerceptionModifierPropsAux[];
   get uniforms(): UniformPropsAux[];
-  get formatters(): FormatterProps[];
+  // get formatters(): FormatterProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];

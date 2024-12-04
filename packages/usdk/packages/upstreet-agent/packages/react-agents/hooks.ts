@@ -105,10 +105,10 @@ export const useUniforms: () => Array<UniformPropsAux> = () => {
   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
   return agentRegistryValue.uniforms;
 };
-export const useFormatters: () => Array<FormatterProps> = () => {
-  const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
-  return agentRegistryValue.formatters;
-};
+// export const useFormatters: () => Array<FormatterProps> = () => {
+//   const agentRegistryValue = useContext(AgentRegistryContext).agentRegistry;
+//   return agentRegistryValue.formatters;
+// };
 
 export const useName: () => string = () => {
   const agent = useContext(AgentContext);
