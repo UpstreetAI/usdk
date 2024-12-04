@@ -354,16 +354,16 @@ importers:
         version: 14.5.4(@types/react@18.2.37)(algoliasearch@4.24.0)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       fumadocs-docgen:
         specifier: ^1.3.2
-        version: 1.3.2(typescript@5.6.3)
+        version: 1.3.2(typescript@5.7.2)
       fumadocs-mdx:
         specifier: 11.0.0
         version: 11.0.0(acorn@8.14.0)(fumadocs-core@14.5.4(@types/react@18.2.37)(algoliasearch@4.24.0)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))
       fumadocs-twoslash:
         specifier: ^2.0.1
-        version: 2.0.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(shiki@1.23.1)(typescript@5.6.3)
+        version: 2.0.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(shiki@1.23.1)(typescript@5.7.2)
       fumadocs-ui:
         specifier: 14.0.2
-        version: 14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
+        version: 14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
@@ -388,6 +388,9 @@ importers:
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
+      typescript:
+        specifier: ^5.7.2
+        version: 5.7.2
       unified:
         specifier: 10.1.2
         version: 10.1.2
@@ -464,10 +467,7 @@ importers:
         version: 8.4.49
       tailwindcss:
         specifier: ^3.4.14
-        version: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
-      typescript:
-        specifier: ^5.6.3
-        version: 5.6.3
+        version: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
 
   packages/ecctrl:
     dependencies:
@@ -3761,16 +3761,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.3':
     resolution: {integrity: sha512-9Cigcyl1285uJtQ3srt2eJQB6+yF16Bu/BN6szmP7GG/K3JZeNOR5g2SYzS0jPuFUe1uY6MMuW5m+HSps4R3RQ==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.3':
     resolution: {integrity: sha512-6Sb5CVee+Av+8JtHOmn0+xlS8czivSt/ZVGttErondobBLTbrUZcVg/OEcxTMGWq5tM4hIYYsYlqEOSj3hapQw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.3':
     resolution: {integrity: sha512-3HDHgX6IuZ8vYJYocvYQiHrsiAFInVl6ad7/I7Woy43on67UGVX0jrCPxUqzNqcAcnPga0oJJ7Ktjjj9jqb3Dg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.2':
@@ -3784,6 +3787,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.2':
     resolution: {integrity: sha512-QA3UM47/XI7CWhR03MtZ93QPdO0GQRa3DbqfRF+3PcO8rrEk29lmC+c9BDf8X8uK4D+SVJUEF5VEbYwDeV55qA==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.2':
@@ -13379,6 +13383,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.7.2:
+    resolution: {integrity: sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   ucom@file:packages/ucom/src:
     resolution: {directory: packages/ucom/src, type: directory}
 
@@ -18801,11 +18810,11 @@ snapshots:
     dependencies:
       shiki: 1.23.1
 
-  '@shikijs/twoslash@1.23.1(typescript@5.6.3)':
+  '@shikijs/twoslash@1.23.1(typescript@5.7.2)':
     dependencies:
       '@shikijs/core': 1.23.1
       '@shikijs/types': 1.23.1
-      twoslash: 0.2.12(typescript@5.6.3)
+      twoslash: 0.2.12(typescript@5.7.2)
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -19774,13 +19783,13 @@ snapshots:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.1(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@20.11.5)(typescript@5.6.3))
 
-  '@tailwindcss/typography@0.5.15(tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)))':
+  '@tailwindcss/typography@0.5.15(tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)))':
     dependencies:
       lodash.castarray: 4.4.0
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
+      tailwindcss: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
 
   '@testing-library/dom@9.3.4':
     dependencies:
@@ -20099,7 +20108,7 @@ snapshots:
 
   '@types/react-dom@18.2.18':
     dependencies:
-      '@types/react': 18.3.12
+      '@types/react': 18.2.37
 
   '@types/react-reconciler@0.26.7':
     dependencies:
@@ -20288,10 +20297,10 @@ snapshots:
       '@typescript-eslint/types': 8.15.0
       eslint-visitor-keys: 4.2.0
 
-  '@typescript/vfs@1.6.0(typescript@5.6.3)':
+  '@typescript/vfs@1.6.0(typescript@5.7.2)':
     dependencies:
       debug: 4.3.7
-      typescript: 5.6.3
+      typescript: 5.7.2
     transitivePeerDependencies:
       - supports-color
 
@@ -23666,10 +23675,10 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  fumadocs-docgen@1.3.2(typescript@5.6.3):
+  fumadocs-docgen@1.3.2(typescript@5.7.2):
     dependencies:
       estree-util-value-to-estree: 3.2.1
-      fumadocs-typescript: 3.0.2(typescript@5.6.3)
+      fumadocs-typescript: 3.0.2(typescript@5.7.2)
       hast-util-to-estree: 3.1.0
       npm-to-yarn: 3.0.0
       ts-morph: 24.0.0
@@ -23696,11 +23705,11 @@ snapshots:
       - acorn
       - supports-color
 
-  fumadocs-twoslash@2.0.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(shiki@1.23.1)(typescript@5.6.3):
+  fumadocs-twoslash@2.0.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(shiki@1.23.1)(typescript@5.7.2):
     dependencies:
       '@radix-ui/react-popover': 1.1.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@shikijs/twoslash': 1.23.1(typescript@5.6.3)
-      fumadocs-ui: 14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
+      '@shikijs/twoslash': 1.23.1(typescript@5.7.2)
+      fumadocs-ui: 14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
       mdast-util-from-markdown: 2.0.2
       mdast-util-gfm: 3.0.0
       mdast-util-to-hast: 13.2.0
@@ -23714,7 +23723,7 @@ snapshots:
       - supports-color
       - typescript
 
-  fumadocs-typescript@3.0.2(typescript@5.6.3):
+  fumadocs-typescript@3.0.2(typescript@5.7.2):
     dependencies:
       '@types/node': 22.8.1
       fast-glob: 3.3.2
@@ -23724,11 +23733,11 @@ snapshots:
       mdast-util-to-hast: 13.2.0
       shiki: 1.23.1
       ts-morph: 24.0.0
-      typescript: 5.6.3
+      typescript: 5.7.2
     transitivePeerDependencies:
       - supports-color
 
-  fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)):
+  fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)):
     dependencies:
       '@radix-ui/react-accordion': 1.2.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-collapsible': 1.1.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -23739,7 +23748,7 @@ snapshots:
       '@radix-ui/react-scroll-area': 1.2.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@radix-ui/react-slot': 1.1.0(@types/react@18.2.37)(react@18.2.0)
       '@radix-ui/react-tabs': 1.1.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@tailwindcss/typography': 0.5.15(tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)))
+      '@tailwindcss/typography': 0.5.15(tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)))
       class-variance-authority: 0.7.0
       cmdk: 1.0.4(@types/react-dom@18.2.18)(@types/react@18.2.37)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       fumadocs-core: 14.0.2(@types/react@18.2.37)(sass@1.81.0)
@@ -23752,7 +23761,7 @@ snapshots:
     optionalDependencies:
       '@algolia/client-search': 4.24.0
       algoliasearch: 4.24.0
-      tailwindcss: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
+      tailwindcss: 3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
     transitivePeerDependencies:
       - '@babel/core'
       - '@opentelemetry/api'
@@ -27357,13 +27366,13 @@ snapshots:
       postcss: 8.4.49
       ts-node: 10.9.1(@swc/core@1.9.2)(@types/node@20.11.5)(typescript@5.6.3)
 
-  postcss-load-config@4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)):
+  postcss-load-config@4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)):
     dependencies:
       lilconfig: 3.1.2
       yaml: 2.6.1
     optionalDependencies:
       postcss: 8.4.49
-      ts-node: 10.9.1(@swc/core@1.9.2(@swc/helpers@0.5.13))(@types/node@22.7.8)(typescript@5.6.3)
+      ts-node: 10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)
 
   postcss-merge-longhand@5.1.7(postcss@8.4.49):
     dependencies:
@@ -29253,7 +29262,7 @@ snapshots:
     transitivePeerDependencies:
       - ts-node
 
-  tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3)):
+  tailwindcss@3.4.15(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -29272,7 +29281,7 @@ snapshots:
       postcss: 8.4.49
       postcss-import: 15.1.0(postcss@8.4.49)
       postcss-js: 4.0.1(postcss@8.4.49)
-      postcss-load-config: 4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.6.3))
+      postcss-load-config: 4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2))
       postcss-nested: 6.2.0(postcss@8.4.49)
       postcss-selector-parser: 6.1.2
       resolve: 1.22.8
@@ -29625,6 +29634,27 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.9.2(@swc/helpers@0.5.13)
 
+  ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.7.8)(typescript@5.7.2):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 22.7.8
+      acorn: 8.14.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.7.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.9.2(@swc/helpers@0.5.13)
+    optional: true
+
   ts-node@10.9.1(@swc/core@1.9.2)(@types/node@22.8.1)(typescript@5.6.3):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
@@ -29710,11 +29740,11 @@ snapshots:
 
   twoslash-protocol@0.2.12: {}
 
-  twoslash@0.2.12(typescript@5.6.3):
+  twoslash@0.2.12(typescript@5.7.2):
     dependencies:
-      '@typescript/vfs': 1.6.0(typescript@5.6.3)
+      '@typescript/vfs': 1.6.0(typescript@5.7.2)
       twoslash-protocol: 0.2.12
-      typescript: 5.6.3
+      typescript: 5.7.2
     transitivePeerDependencies:
       - supports-color
 
@@ -29793,6 +29823,8 @@ snapshots:
   typescript@4.9.5: {}
 
   typescript@5.6.3: {}
+
+  typescript@5.7.2: {}
 
   ucom@file:packages/ucom/src: {}
 
