@@ -25,7 +25,6 @@ function Card({
           backgroundImage: `url(${bgSrc})`,
           backgroundSize: 'cover'
         }}
-        // Set the hover gif background via inline style
         onMouseEnter={e => {
           if (gifSrc) {
             ;(e.currentTarget as HTMLElement).style.backgroundImage =
@@ -37,7 +36,6 @@ function Card({
             `url(${bgSrc})`
         }}
       >
-        {/* Dark overlay for initial background */}
         <div className="absolute inset-0 bg-fd-card-foreground dark:bg-fd-background opacity-60 z-0"></div>
 
         <div className="text relative z-[1]">
