@@ -116,7 +116,7 @@ import {
 } from './util/generate-video.mjs';
 import { r2EndpointUrl } from './util/endpoints.mjs';
 import { ChatLoop } from './loops/chat-loop.tsx';
-import { InfiniteLoop } from './loops/infinite-loop.tsx';
+// import { InfiniteLoop } from './loops/infinite-loop.tsx';
 import { webbrowserActionsToText } from './util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from 'react-agents/util/create-browser.mjs';
 
@@ -144,7 +144,7 @@ export const DefaultAgentComponents = () => {
       <DefaultActions />
       <DefaultPrompts />
       <ChatLoop />
-      <InfiniteLoop />
+      {/* <InfiniteLoop /> */}
     </>
   );
 };
