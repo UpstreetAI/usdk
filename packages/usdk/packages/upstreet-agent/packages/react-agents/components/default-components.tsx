@@ -120,9 +120,6 @@ import { ChatLoop } from '../loops/chat-loop.tsx';
 import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 
-// Note: this comment is used to remove imports before running tsdoc
-// END IMPORTS
-
 // utils
 
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions

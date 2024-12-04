@@ -63,9 +63,6 @@ import {
 // } from './classes/render-loader';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
 
-// Note: this comment is used to remove imports before running tsdoc
-// END IMPORTS
-
 //
 
 const makeSymbol = () => Symbol('propsKey');
