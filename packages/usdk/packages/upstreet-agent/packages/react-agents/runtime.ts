@@ -199,13 +199,13 @@ async function _generateAgentActionStepFromMessages({
       if (action !== null) {
         const jsonString = [
           generativeAgent.agent.name,
-          ...JSON.stringify(action, null, 2)
-            .split('\n')
-            .map((line) => '  ' + line),
-        ].join('\n');
+          ...JSON.stringify(action, null, 2).split('\n'),
+        ]
+          .map((line) => '  ' + line)
+          .join('\n');
         console.info(`[•action\n${jsonString}\n]`);
       } else {
-        console.info(`[•action: ${generativeAgent.agent.name}: skipped]`);
+        console.info(`[•skip action: ${generativeAgent.agent.name}]`);
       }
     }
 
