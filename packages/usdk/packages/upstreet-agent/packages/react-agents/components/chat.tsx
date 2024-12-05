@@ -1,4 +1,5 @@
 import React from 'react';
+import dedent from 'dedent';
 import { Action } from './action';
 
 export const ChatActions = () => {

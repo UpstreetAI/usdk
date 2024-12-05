@@ -57,6 +57,7 @@ import {
 } from '../hooks';
 import { Prompt } from './prompt';
 import { ChatLoop } from '../loops/chat-loop.tsx';
+import { ChatActions } from './chat';
 import {
   formatActionsPrompt,
 } from '../util/format-schema';
