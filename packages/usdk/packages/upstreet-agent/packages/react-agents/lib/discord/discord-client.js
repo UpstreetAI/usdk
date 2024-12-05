@@ -360,7 +360,6 @@ export class DiscordBotClient extends EventTarget {
 
     this.maxReconnectAttempts = maxReconnectAttempts;
     this.reconnectDelay = reconnectDelay;
-    this.reconnectAttempts = 0;
     this.isReconnecting = false;
   }
   async status() {
@@ -523,26 +522,28 @@ export class DiscordBotClient extends EventTarget {
   }
 
   async _handleReconnect(connectionParams) {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.isReconnecting = false;
-      this.reconnectAttempts = 0;
-      throw new Error(`Failed to connect after ${this.maxReconnectAttempts} attempts`);
-    }
-
     this.isReconnecting = true;
-    this.reconnectAttempts++;
-
-    console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
     
-    await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
-
     try {
-      await this._attemptConnect(connectionParams);
-      console.log('Reconnection successful');
-      this.isReconnecting = false;
-      this.reconnectAttempts = 0;
-    } catch (err) {
-      await this._handleReconnect(connectionParams);
+        for (let attempt = 1; attempt <= this.maxReconnectAttempts; attempt++) {
+            console.log(`Attempting to reconnect (${attempt}/${this.maxReconnectAttempts})...`);
+            
+            await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
+            
+            try {
+                await this._attemptConnect(connectionParams);
+                console.log('Reconnection successful');
+                return; // Successfully reconnected
+            } catch (err) {
+                if (attempt === this.maxReconnectAttempts) {
+                    throw new Error(`Failed to reconnect after ${this.maxReconnectAttempts} attempts: ${err.message}`);
+                }
+                // Log the error but continue trying
+                console.warn(`Reconnection attempt ${attempt} failed:`, err.message);
+            }
+        }
+    } finally {
+        this.isReconnecting = false;
     }
   }
 
