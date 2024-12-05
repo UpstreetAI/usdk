@@ -23,6 +23,7 @@ export const baseOptions = {
             description: 'Latest',
             url: '',
             'props': {
+              // @ts-expect-error
               'href': 'https://www.npmjs.com/package/usdk'
             }
           }
@@ -59,6 +60,7 @@ export const baseOptions = {
             url: '',
             icon: <Image alt="product logo" src="/images/general/USDK_Logo.png" width={30} height={30} className="rounded-md" />,
             'props': {
+              // @ts-expect-error
               'href': '/'
             }
           },
