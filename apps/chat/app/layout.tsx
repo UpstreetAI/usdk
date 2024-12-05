@@ -1,6 +1,4 @@
 import React from 'react'
-import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 
 import '@/app/globals.css'
 import { cn } from '@/lib/utils'
@@ -29,6 +27,7 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -46,18 +45,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="icon" type="image/png" sizes="96x96" href="/favicons/favicon-96x96.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
       </head>
-      <body
-        className={cn(
-          'font-[Aller-Regular] antialiased',
-          GeistSans.variable,
-          GeistMono.variable
-        )}
-        style={{
-          backgroundImage: 'url(/images/backgrounds/main-background.jpg)',
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-        }}
-      >
+    <body>
         <Toaster position="top-center" />
         <Providers
           attribute="class"
@@ -65,11 +53,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-            <div className="flex flex-col min-h-screen">
-              <Body>
-                {children}
-              </Body>
-            </div>
+          <Body>
+            {children}
+          </Body>
           <TailwindIndicator/>
         </Providers>
       </body>

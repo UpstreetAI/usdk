@@ -8,7 +8,7 @@ export const runAgent = async (args, opts) => {
   const agentSpecs = await parseAgentSpecs(args._[0]);
   const runtime = args.runtime ?? 'node';
   const init = args.init ?? {};
-  const debug = !!args.debug;
+  const debug = typeof args.debug === 'number' ? parseInt(args.debug, 10) : +args.debug;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {

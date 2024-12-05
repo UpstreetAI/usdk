@@ -68,6 +68,11 @@ export const useInit: () => any = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useInit();
 };
+// get the passed-down agent debug flag
+export const useDebug: () => boolean = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useDebug();
+};
 
 //
 
@@ -86,9 +91,9 @@ export const useConversations = () => {
 export const useConversation = () => {
   const conversationContextValue = useContext(ConversationContext);
   const { conversation } = conversationContextValue;
-  if (conversation === null) {
-    throw new Error('useConversation() can only be used within a conversation context');
-  }
+  // if (conversation === null) {
+  //   throw new Error('useConversation() can only be used within a conversation context');
+  // }
   return conversation;
 };
 

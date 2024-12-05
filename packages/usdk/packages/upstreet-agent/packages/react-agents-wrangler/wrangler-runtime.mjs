@@ -92,7 +92,7 @@ export class ReactAgentsWranglerRuntime {
   }
   async start({
     init = {},
-    debug = false,
+    debug = 0,
   } = {}) {
     const {
       directory,
@@ -107,8 +107,12 @@ export class ReactAgentsWranglerRuntime {
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
-        '--var', `INIT:${JSON.stringify(init)}`,
-      ],
+      ].concat(init ? [
+        '--var', `init:${JSON.stringify(init)}`,
+      ]: [])
+      .concat(debug ? [
+        '--var', `debug:${JSON.stringify(debug)}`,
+      ]: []),
       {
         stdio: 'pipe',
         // stdio: 'inherit',

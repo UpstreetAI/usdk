@@ -90,7 +90,7 @@ export class ReactAgentsElectronRuntime {
   }
   async start({
     init = {},
-    debug = false,
+    debug = 0,
   } = {}) {
     const {
       directory,
@@ -103,11 +103,14 @@ export class ReactAgentsElectronRuntime {
       [
         electronStartScriptPath,
         'run',
-        '--var', 'WORKER_ENV:development',
+        '--',
+        // '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
         '--init', JSON.stringify(init),
-      ],
+      ].concat(debug ? [
+        '--debug', JSON.stringify(debug),
+      ] : []),
       {
         stdio: 'pipe',
         cwd: directory,
@@ -124,6 +127,8 @@ export class ReactAgentsElectronRuntime {
   // open the frontend
   async open({
     room,
+    width,
+    height,
     jwt,
     debug,
   }) {
@@ -139,6 +144,8 @@ export class ReactAgentsElectronRuntime {
       body: JSON.stringify({
         room,
         jwt,
+        width,
+        height,
         debug,
       }),
     });

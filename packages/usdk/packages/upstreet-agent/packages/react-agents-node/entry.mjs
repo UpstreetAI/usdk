@@ -1,3 +1,4 @@
+import path from 'path';
 import fs from 'fs';
 import toml from '@iarna/toml';
 import dotenv from 'dotenv';
@@ -5,7 +6,6 @@ import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
 import userRender from './agent.tsx';
 import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
-import path from 'path';
 
 //
 
@@ -65,6 +65,7 @@ const getAuth = async () => {
 
 const main = async ({
   init = {},
+  debug = 0,
 } = {}) => {
   let [
     env,
@@ -90,6 +91,7 @@ const main = async ({
   env = {
     ...env,
     init,
+    debug,
   };
   const agentMain = new AgentMain(state, env, auth);
   return agentMain;
