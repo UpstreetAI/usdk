@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "postinstall": "npx mookme init --only-hook",
+    "postinstall": "echo -e '\\033[31mPlease run npx mookme init --only-hook to enable commit hooks.\\033[0m'",
     "chat": "npm run -w @upstreet/chat --",
     "docs": "npm run -w @upstreet/docs --"
   },
