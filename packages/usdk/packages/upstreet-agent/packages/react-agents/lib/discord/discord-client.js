@@ -15,6 +15,7 @@ import {
 import {
   makePromise,
   makeId,
+  retry,
 } from '../../util/util.mjs';
 import {
   discordBotEndpointUrl,
@@ -363,7 +364,7 @@ export class DiscordBotClient extends EventTarget {
     this.isReconnecting = false;
   }
   async status() {
-    return await delayedRetry(async () => {
+    return await retry(async () => {
       const res = await fetch(`${discordBotEndpointUrl}/status`, {
         headers: {
           'Authorization': `Bearer ${this.token}`,
