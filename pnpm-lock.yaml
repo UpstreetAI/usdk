@@ -345,12 +345,18 @@ importers:
       fumadocs-twoslash:
         specifier: ^2.0.1
         version: 2.0.1(@types/react-dom@18.2.18)(@types/react@18.2.37)(fumadocs-ui@14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2(@swc/helpers@0.5.13))(@types/node@22.7.8)(typescript@5.6.3)))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(shiki@1.24.0)(typescript@5.6.3)
+      fumadocs-typescript:
+        specifier: ^3.0.2
+        version: 3.0.2(typescript@5.6.3)
       fumadocs-ui:
         specifier: 14.0.2
         version: 14.0.2(@types/react-dom@18.2.18)(@types/react@18.2.37)(next@14.2.14(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)(ts-node@10.9.1(@swc/core@1.9.2(@swc/helpers@0.5.13))(@types/node@22.7.8)(typescript@5.6.3))
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       next:
         specifier: 14.2.14
         version: 14.2.14(babel-plugin-macros@3.1.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.81.0)
@@ -431,6 +437,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.49)
+      doctrine:
+        specifier: ^3.0.0
+        version: 3.0.0
       fs-extra:
         specifier: ^11.2.0
         version: 11.2.0
@@ -3667,16 +3676,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.3':
     resolution: {integrity: sha512-9Cigcyl1285uJtQ3srt2eJQB6+yF16Bu/BN6szmP7GG/K3JZeNOR5g2SYzS0jPuFUe1uY6MMuW5m+HSps4R3RQ==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.3':
     resolution: {integrity: sha512-6Sb5CVee+Av+8JtHOmn0+xlS8czivSt/ZVGttErondobBLTbrUZcVg/OEcxTMGWq5tM4hIYYsYlqEOSj3hapQw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.3':
     resolution: {integrity: sha512-3HDHgX6IuZ8vYJYocvYQiHrsiAFInVl6ad7/I7Woy43on67UGVX0jrCPxUqzNqcAcnPga0oJJ7Ktjjj9jqb3Dg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.2':
@@ -3690,6 +3702,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.2':
     resolution: {integrity: sha512-QA3UM47/XI7CWhR03MtZ93QPdO0GQRa3DbqfRF+3PcO8rrEk29lmC+c9BDf8X8uK4D+SVJUEF5VEbYwDeV55qA==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.2':

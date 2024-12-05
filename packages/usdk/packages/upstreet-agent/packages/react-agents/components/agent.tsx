@@ -26,20 +26,34 @@ import { ExtendableMessageEvent } from '../util/extendable-message-event';
 //
 
 /**
- * Represents an agent component.
+ * @summary
+ * Lays out the foundation of your Agent.
  *
- * The `Agent` component is used to register an agent with the application context.
- * It takes an `AgentProps` object as its props and registers the agent with the app context.
- * The `Agent` component should be used as a parent component for other components that need access to the agent.
+ * @description
+ * The `Agent` component serves as a high-level wrapper component that provides the core infrastructure for AI agent functionality in a React application. It acts as a container that:
+ * - Establishes the communication context for AI interactions
+ * - Manages the state and lifecycle of AI agent operations
+ * - Provides necessary context and configuration to child components
+ * - Enables action handling and event processing for nested agent functionalities
  *
- * @param props The props for the `Agent` component.
+ * @param AgentProps The props for the `Agent` component.
  * @returns The rendered `Agent` component.
  *
  * @example
+ * 
+ * The `Agent` class has represents a currently running agent. It corresponds 1:1 to an `<Agent>` tag in your code.
+ * 
  * ```tsx
- * <Agent>
- *   {/* child components *\/}
- * </Agent>
+ * import { Agent } from 'react-agents'
+ * 
+ * const MyAgent = () => {
+ *   return (
+ *     <Agent>
+ *       {/* Child components that need access to agent capabilities *\/}
+ *       <YourAgentLogic />
+ *     </Agent>
+ *   )
+ * }
  * ```
  */
 export const Agent = forwardRef(({

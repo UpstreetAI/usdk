@@ -21,6 +21,10 @@ import defaultComponents from 'fumadocs-ui/mdx';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { createTypeTable } from 'fumadocs-typescript/ui';
+
+const { AutoTypeTable } = createTypeTable();
+
 // import { AutoTypeTable } from '@/components/type-table';
 
 // function PreviewRenderer({ preview }: { preview: string }): ReactNode {
@@ -85,7 +89,7 @@ export default async function Page(props: {
             Tabs,
             Tab,
             TypeTable,
-            // AutoTypeTable,
+            AutoTypeTable,
             Accordion,
             Accordions,
             // Wrapper,
