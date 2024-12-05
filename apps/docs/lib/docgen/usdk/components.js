@@ -1,6 +1,7 @@
 /*
  * @author SaadBazaz, ChatGPT
  * @link https://chatgpt.com/share/6751b4e9-ce8c-8011-bbff-b6aa094040c1 
+ * @tutorial https://github.com/UpstreetAI/upstreet-core/pull/731
  * @description
  * Simply annotate each Component with a JSDoc string, with the following tags:
  * - @summary
@@ -163,34 +164,34 @@ full: false
   const explanation = longDescription ? `\n\n${longDescription}` : '';
 
   const propsTable = `
-  ## Props
-  
-  <AutoTypeTable path="node_modules/usdk/packages/upstreet-agent/packages/react-agents/types/agents.d.ts" name="${componentName}Props" />  
-  
-  // OR
-  
-  import { TypeTable } from 'fumadocs-ui/components/type-table';
-  import type { ${componentName}Props } from 'react-agents/types';
-  
-  export const ${componentName}Props = ${JSON.stringify(
-      Object.fromEntries(
-      props.map((prop) => [
-          prop.name,
-          {
-          description: prop.description,
-          type: prop.type,
-          typeDescription: 'N/A', // Adjust type descriptions dynamically if needed
-          typeDescriptionLink: '',
-          default: prop.default,
-          },
-      ])
-      ),
-      null,
-      2
-  )};
-  
-  <TypeTable type={${componentName}Props} />
-    `;
+## Props
+
+<AutoTypeTable path="node_modules/usdk/packages/upstreet-agent/packages/react-agents/types/agents.d.ts" name="${componentName}Props" />  
+
+// OR
+
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+import type { ${componentName}Props } from 'react-agents/types';
+
+export const ${componentName}Props = ${JSON.stringify(
+    Object.fromEntries(
+    props.map((prop) => [
+        prop.name,
+        {
+        description: prop.description,
+        type: prop.type,
+        typeDescription: 'N/A', // Adjust type descriptions dynamically if needed
+        typeDescriptionLink: '',
+        default: prop.default,
+        },
+    ])
+    ),
+    null,
+    2
+)};
+
+<TypeTable type={${componentName}Props} />
+`;
 
   const sourceCode = `## Source code
 
