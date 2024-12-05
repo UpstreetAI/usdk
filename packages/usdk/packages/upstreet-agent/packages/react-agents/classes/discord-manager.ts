@@ -372,6 +372,48 @@ export class DiscordBot extends EventTarget {
           });
         }
       });
+      // audio messages (transcribed audio messages)
+      // XXX thinking of adding audio message to conversation context but not invoke "main" thinking process for every message
+      discordBotClient.addEventListener('audiomessage', async (e: MessageEvent) => {
+        const {
+          userId,
+          username,
+          text,
+          channelId, // if there is no channelId, it's a DM
+          // XXX discord channel/dm distinction can be made more explicit with a type: string field...
+        } = e.data;
+
+        // look up conversation
+        let conversation: ConversationObject | null = null;
+        if (channelId) {
+          conversation = this.channelConversations.get(channelId) ?? null;
+        } else {
+          conversation = this.dmConversations.get(userId) ?? null;
+        }
+        if (conversation) {
+          const rawMessage = {
+            method: 'audiomessage',
+            args: {
+              text,
+            },
+          };
+          const id = getIdFromUserId(userId);
+          const agent = {
+            id,
+            name: username,
+          };
+          const newMessage = formatConversationMessage(rawMessage, {
+            agent,
+          });
+          await conversation.addLocalMessage(newMessage);
+        } else {
+          console.warn('got message for unknown conversation', {
+            data: e.data,
+            channelConversations: this.channelConversations,
+            dmConversations: this.dmConversations,
+          });
+        }
+      });
     };
 
     (async () => {

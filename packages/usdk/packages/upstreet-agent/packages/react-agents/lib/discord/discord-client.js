@@ -258,7 +258,7 @@ export class DiscordOutput extends EventTarget {
       transcribedVoiceInput.addEventListener('transcription', e => {
         const text = e.data;
 
-        this.dispatchEvent(new MessageEvent('text', {
+        this.dispatchEvent(new MessageEvent('audiomessage', {
           data: {
             userId,
             username,
