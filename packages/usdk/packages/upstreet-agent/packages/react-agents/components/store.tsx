@@ -1,3 +1,59 @@
+import React, { useEffect, useContext, useMemo } from 'react';
+import {
+  PaymentProps,
+} from '../types';
+import { Action } from './action';
+
+export const Payment = (props: PaymentProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(Symbol, []);
+
+  const deps = [
+    props.amount,
+    props.currency,
+    props.name,
+    props.description,
+    props.previewUrl,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerPayment(symbol, props);
+    return () => {
+      agentRegistry.unregisterPayment(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
+};
+export const Subscription = (props: SubscriptionProps) => {
+  const agent = useContext(AgentContext);
+  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
+  const symbol = useMemo(Symbol, []);
+
+  const deps = [
+    props.amount,
+    props.currency,
+    props.name,
+    props.description,
+    props.previewUrl,
+  ];
+
+  useEffect(() => {
+    agentRegistry.registerSubscription(symbol, props);
+    return () => {
+      agentRegistry.unregisterSubscription(symbol);
+    };
+  }, deps);
+
+  agent.useEpoch(deps);
+
+  return null;
+};
+
+// XXX this needs to be run whenever there is a store item
 const StoreActions = () => {
   const agent = useAgent();
   const storeItems = useStoreItems();
