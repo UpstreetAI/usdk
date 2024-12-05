@@ -21,7 +21,10 @@ export const baseOptions = {
           {
             title: `v${pkgJson.version}`,
             description: 'Latest',
-            url: 'https://www.npmjs.com/package/usdk',
+            url: '',
+            'props': {
+              'href': 'https://www.npmjs.com/package/usdk'
+            }
           }
           // {
           //   title: 'Folder 2',
@@ -39,22 +42,25 @@ export const baseOptions = {
         defaultChecked={true}
         options={[
           {
-            title: 'USDK',
-            description: 'Upstreet Agents SDK',
-            url: '/',
-            icon: <Image alt="product logo" src="/images/general/USDK_Logo.png" width={30} height={30} className="rounded-md" />,
-          },
-          {
             title: 'Scillia',
-            description: 'Your personal assistant Agent',
-            url: '/',
+            description: 'Your personal assistant',
+            url: '/scillia',
             icon: <Image alt="product logo" src="/images/general/Scillia_Logo.png" width={30} height={30} className="rounded-md" />,
           },
           {
             title: 'Platform',
-            description: 'The Upstreet Platform',
-            url: '/platform/',
+            description: 'The Agent Platform',
+            url: '/platform',
             icon: <Image alt="product logo" src="/images/general/Platform_Logo.png" width={30} height={30} className="rounded-md" />,
+          },
+          {
+            title: 'USDK',
+            description: 'Upstreet Agents SDK',
+            url: '',
+            icon: <Image alt="product logo" src="/images/general/USDK_Logo.png" width={30} height={30} className="rounded-md" />,
+            'props': {
+              'href': '/'
+            }
           },
         ]}
       />
