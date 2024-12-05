@@ -372,7 +372,7 @@ export class DiscordBotClient extends EventTarget {
       });
       const j = await res.json();
       return j;
-    }, 2000);
+    }, 3);
   }
   async connect({
     channels = [],
@@ -534,6 +534,7 @@ export class DiscordBotClient extends EventTarget {
             try {
                 await this._attemptConnect(connectionParams);
                 console.log('Reconnection successful');
+                this.isReconnecting = false;
                 return; // Successfully reconnected
             } catch (err) {
                 if (attempt === this.maxReconnectAttempts) {
