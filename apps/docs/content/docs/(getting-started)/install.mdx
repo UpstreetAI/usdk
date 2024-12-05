@@ -59,57 +59,25 @@ Once you've installed NodeJS, you'll have access to both `node` and `npm` comman
 
 ## Install from NPM
 
-NPM (Node Package Manager) is how you can download Node packages. It comes installed alongside NodeJS. 
-
-**Not familiar with NodeJS or NPM?** Read the [prerequisites](#prerequisites).
-
 To install the `usdk` command-line tool, use the following command:
 
-  {/* "pnpm (recommended)", */}
 <Tabs items={[
+  "pnpm (recommended)",
   "npm",
 ]}>
-  {/* "yarn" */}
  
-{/* ```bash tab="pnpm (recommended)"
+```bash tab="pnpm (recommended)"
 pnpm install -g usdk
-``` */}
+```
 
 ```bash tab="npm"
 npm install -g usdk
 ```
 
-{/* ```bash tab="yarn"
-yarn add -g usdk
-``` */}
-
 </Tabs>
 
-{/* We recommend using the [`pnpm`](https://pnpm.io/installation`) (Performant Node Package Manager) package manager with `usdk`. */}
-
-### Verify Installation (optional)
-
-To confirm a successful installation, check your SDK version:
-
-<Wrapper>
-<div className="bg-transparent prose-no-margin px-20 w-full">
-
-<div className="bg-fd-background rounded-lg">
-```bash title="Terminal"
-usdk version
-```
-<CodeBlock className='-mt-8' icon={"bash"} keepBackground allowCopy={false}>
-        <Pre>{pkgJson.version}</Pre>
-</CodeBlock>
-</div>
-
-</div>
-</Wrapper>
-
-This command should return the installed version number. You can view all available versions of `usdk` on [NPM](https://www.npmjs.com/package/usdk?activeTab=versions).
-
 <Callout>
-**Tip:** While you can use `npx usdk@latest <subcommand>` to run `usdk` directly, we recommend specifying a fixed version for consistency.
+We recommend using the [`pnpm`](https://pnpm.io/installation`) (Performant Node Package Manager) package manager with `usdk`.
 </Callout>
 
 ## Log into the SDK
