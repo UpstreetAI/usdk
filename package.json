@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "npx mookme init --only-hook",
     "chat": "npm run -w @upstreet/chat --",
     "docs": "npm run -w @upstreet/docs --"
   },
