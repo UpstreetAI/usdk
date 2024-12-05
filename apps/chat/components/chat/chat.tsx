@@ -2,24 +2,12 @@
 
 import React from 'react';
 import { useEffect, useState } from 'react';
-// import Link from 'next/link';
 import { ChatMessage } from '@/components/chat/chat-message';
-// import { ChatMessageOld } from '@/components/chat/chat-message-old'
-// import { type User } from '@supabase/supabase-js';
-// import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat/chat-list'
 import { ChatPanel } from '@/components/chat/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
-// import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { defaultUserPreviewUrl } from 'react-agents/defaults.mjs';
-// import { useAIState } from 'ai/rsc'
-// import { Message } from '@/lib/types'
-// import { usePathname, useRouter } from 'next/navigation'
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
-// import { UIState } from '@/lib/chat/actions'
-// import { resolveRelativeUrl } from '@/lib/utils'
-// import { aiHost } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { useSupabase, type User } from '@/lib/hooks/use-supabase';
 import { PlayerSpec, Player, useMultiplayerActions } from '@/components/ui/multiplayer-actions';
@@ -29,11 +17,9 @@ import { PaymentItem, SubscriptionProps } from 'react-agents/types';
 import { createSession } from '@/lib/stripe';
 import { webbrowserActionsToText } from 'react-agents/util/browser-action-utils.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
-// import { IconButton } from 'ucom';
 import { ChatMenu } from './chat-menu';
 import { useLoading } from '@/lib/client/hooks/use-loading';
 import { environment } from '@/lib/env';
-
 
 //
 
@@ -185,25 +171,8 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
   )
 }
 
-/* const formatAttachment = (attachment?: Attachment): (FormattedAttachment | undefined) => {
-  if (attachment) {
-    const {
-      id,
-      type,
-      alt,
-    } = attachment;
-    return {
-      id,
-      type,
-      alt,
-    };
-  } else {
-    return attachment;
-  }
-}; */
 function getMessageComponent(room: string, message: Message, id: string, playersCache: Map<string, Player>, user: User | null) {
   switch (message.method) {
-
     // fake client side messages
     case 'join': return (
       <div className="text-center text-white bg-gray-400 border-gray-600 border mt-2 p-1 mx-14">
