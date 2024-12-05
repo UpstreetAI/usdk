@@ -52,6 +52,7 @@ const reloadAgentWorker = async (directory, opts) => {
         workerPath,
         'run',
         directory,
+        '--',
       ];
       // pass the opts
       if (opts.var) {
@@ -73,7 +74,7 @@ const reloadAgentWorker = async (directory, opts) => {
         args.push('--init', opts.init);
       }
       if (opts.debug) {
-        args.push('--debug');
+        args.push('--debug', opts.debug);
       }
 
       // create the worker
@@ -202,7 +203,7 @@ const main = async () => {
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
     .requiredOption('--init <init>', 'Initialization data')
-    .option('--debug', 'Enable debug mode')
+    .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
     .action(async (directory, opts) => {
       commandExecuted = true;
 
@@ -210,7 +211,8 @@ const main = async () => {
       listenForChanges(directory, opts);
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv);
 
   if (!commandExecuted) {
     console.error('Command missing');

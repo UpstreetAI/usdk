@@ -106,7 +106,6 @@ export class AgentRenderer {
   userRender: UserHandler;
   chatsSpecification: ChatsSpecification;
   codecs: any;
-  init: any;
 
   registry: RenderRegistry;
   conversationManager: ConversationManager;
@@ -126,14 +125,12 @@ export class AgentRenderer {
     userRender,
     chatsSpecification,
     codecs,
-    init,
   }: {
     env: any;
     auth: any;
     userRender: UserHandler;
     chatsSpecification: ChatsSpecification;
     codecs: any;
-    init: any;
   }) {
     // latch arguments
     this.env = env;
@@ -141,7 +138,6 @@ export class AgentRenderer {
     this.userRender = userRender;
     this.chatsSpecification = chatsSpecification;
     this.codecs = codecs;
-    this.init = init;
 
     // create the app context
     this.registry = new RenderRegistry();
@@ -183,10 +179,10 @@ export class AgentRenderer {
       return this.codecs;
     };
     const useInit = () => {
-      return this.init;
+      return this.env.init ?? {};
     };
     const useDebug = () => {
-      return !!this.env.debug;
+      return this.env.debug ?? 0;
     };
     const useRegistry = () => {
       return this.registry;

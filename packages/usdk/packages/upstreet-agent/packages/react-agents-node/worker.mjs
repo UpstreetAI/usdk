@@ -67,7 +67,7 @@ const runAgent = async (directory, opts) => {
     init: initString,
   } = opts;
   const init = initString && JSON.parse(initString);
-  const debug = !!opts.debug;
+  const debug = parseInt(opts.debug, 10);
 
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
@@ -120,7 +120,7 @@ const main = async () => {
     .requiredOption('--ip <ip>', 'IP address to bind to')
     .requiredOption('--port <port>', 'Port to bind to')
     .requiredOption('--init <json>', 'Initialization data')
-    .option('--debug', 'Enable debug mode')
+    .option('-g, --debug [level]', 'Set debug level (default: 0)', '0')
     .action(async (directory, opts) => {
       commandExecuted = true;
 
@@ -132,7 +132,8 @@ const main = async () => {
       }
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv);
 
   if (!commandExecuted) {
     console.error('Command missing');

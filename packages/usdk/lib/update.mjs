@@ -121,8 +121,8 @@ export const update = async (args, opts) => {
           console.warn('failed to install dependencies:', err.stack);
         }
       } else {
-        console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
-        console.warn('To install dependencies, run `npm install` in the agent directory.');
+        console.warn('pnpm not found; skipping dependency install. Your agent may not work correctly.');
+        console.warn('To install dependencies, run `pnpm install` in the agent directory.');
       }
 
       console.log(pc.green(`Agent ${directory} updated to version ${packageJson.version}`));

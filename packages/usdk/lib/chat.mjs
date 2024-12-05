@@ -20,7 +20,7 @@ export const chat = async (args, opts) => {
   const inputStream = args.inputStream;
   const outputStream = args.outputStream;
   const init = args.init ?? {};
-  const debug = !!args.debug;
+  const debug = typeof args.debug === 'number' ? parseInt(args.debug, 10) : +args.debug;
   // opts
   const jwt = opts.jwt;
   if (!jwt) {

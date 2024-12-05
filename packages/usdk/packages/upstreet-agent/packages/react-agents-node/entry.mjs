@@ -65,7 +65,7 @@ const getAuth = async () => {
 
 const main = async ({
   init = {},
-  debug = false,
+  debug = 0,
 } = {}) => {
   let [
     env,

@@ -3,7 +3,9 @@ title: Previous USDK versions
 description: Learn how to update and migrate from previous Upstreet Agents SDK versions.
 full: false
 ---
- 
+
+import pkgJson from 'usdk/package.json';
+
 ## Updating USDK
 
 Simply run the [installation script](/install#install-from-npm) again, in order to update `usdk`:
@@ -14,4 +16,18 @@ npm i -g usdk@latest
 
 See all versions [here](https://www.npmjs.com/package/usdk?activeTab=versions).
 
-<Callout>Note: Updating `usdk` **will not** update any Agents you created with older versions of USDK. Rather, it may even break some functionality with older Agents. We are working on an update mechanism for Agents, stay tuned!</Callout>
+<Callout>Note: Updating `usdk` **will not** update any Agents you created with older versions of USDK. Rather, it may even break some functionality with older Agents. To update Agents, check out [this section](#updating-an-old-agent).</Callout>
+
+## Updating an old Agent
+
+You can update an Agent's code from an older version by simply running:
+
+```bash
+cd <your-agent-directory>
+usdk update
+```
+
+This will update the Agent's code from the previous version of `usdk` it was created from, to your **current version of `usdk`**.
+
+For example, if your Agent was created with `usdk` version **0.0.80**, and you want it to update to **{pkgJson.version}**, you should first [update `usdk` itself](#updating-usdk) to that particular version, and then run the above command.
+
