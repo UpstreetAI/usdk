@@ -13,7 +13,7 @@ import type {
   ActionPropsAux,
   UniformPropsAux,
   // PromptProps,
-  FormatterProps,
+  // FormatterProps,
   // ParserProps,
   // PerceptionProps,
   // SchedulerProps,
@@ -49,22 +49,9 @@ import {
   AppContext,
 } from '../context';
 import {
-  // Agent,
-  // Action,
-  // ActionModifier,
-  // Prompt,
-  // Formatter,
-  // Perception,
   PerceptionModifier,
-  // Task,
   Server,
-  // Conversation,
-  // DeferConversation,
-  // Uniform,
 } from './base-components';
-// import {
-//   PerceptionEvent,
-// } from '../classes/perception-event';
 import {
   AbortableActionEvent,
 } from '../classes/abortable-action-event';
@@ -74,11 +61,8 @@ import {
 import {
   useAgent,
   useAuthToken,
-  // useAgents,
-  // useScene,
   useActions,
   useUniforms,
-  // useFormatters,
   useName,
   usePersonality,
   useStoreItems,
@@ -116,7 +100,6 @@ import {
 } from '../util/generate-video.mjs';
 import { r2EndpointUrl } from '../util/endpoints.mjs';
 import { ChatLoop } from '../loops/chat-loop.tsx';
-// import { InfiniteLoop } from './loops/infinite-loop.tsx';
 import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
 import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 import {
