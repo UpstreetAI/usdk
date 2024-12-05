@@ -1,9 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
-// import { ZodTypeAny, ZodUnion, z } from 'zod';
-// import { printNode, zodToTs } from 'zod-to-ts';
-// import type { Browser, BrowserContext, Page } from 'playwright-core-lite';
-// import { minimatch } from 'minimatch';
 import { timeAgo } from 'react-agents/util/time-ago.mjs';
 
 import type {
@@ -44,19 +40,6 @@ import type {
   LoopProps,
   ActOpts,
 } from '../types';
-// import {
-//   AppContext,
-// } from '../context';
-// import {
-//   PerceptionModifier,
-//   Server,
-// } from './base-components';
-// import {
-//   AbortableActionEvent,
-// } from '../classes/abortable-action-event';
-// import {
-//   AbortablePerceptionEvent,
-// } from '../classes/abortable-perception-event';
 import {
   useAgent,
   useAuthToken,
@@ -72,36 +55,8 @@ import {
   useCachedMessages,
   useNumMessages,
 } from '../hooks';
-// import { shuffle, parseCodeBlock } from '../util/util.mjs';
-// import {
-//   storeItemType,
-// } from '../util/agent-features.mjs';
-// import {
-//   currencies,
-//   intervals,
-// } from '../constants.mjs';
-// import {
-//   // describe,
-//   describeJson,
-// } from '../util/vision.mjs';
-// import {
-//   imageSizes,
-//   fetchImageGeneration,
-// } from '../util/generate-image.mjs';
-// import {
-//   generateSound,
-// } from '../util/generate-sound.mjs';
-// import {
-//   generateModel,
-// } from '../util/generate-model.mjs';
-// import {
-//   generateVideo,
-// } from '../util/generate-video.mjs';
 import { Prompt } from './prompt';
-// import { r2EndpointUrl } from '../util/endpoints.mjs';
 import { ChatLoop } from '../loops/chat-loop.tsx';
-// import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
-// import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 import {
   formatActionsPrompt,
 } from '../util/format-schema';
