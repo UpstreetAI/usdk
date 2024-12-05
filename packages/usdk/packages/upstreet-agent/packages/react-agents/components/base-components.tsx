@@ -5,7 +5,6 @@ import type {
   PromptProps,
   PerceptionProps,
   PerceptionModifierProps,
-  FormatterProps,
   DeferProps,
   TaskProps,
   NameProps,
@@ -27,28 +26,6 @@ import {
 
 //
 
-export const Formatter = /*memo(*/(props: FormatterProps) => {
-  const agent = useContext(AgentContext);
-  const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
-  const symbol = useMemo(Symbol, []);
-
-  const deps = [
-    props.schemaFn.toString(),
-    props.formatFn.toString(),
-  ];
-
-  useEffect(() => {
-    agentRegistry.registerFormatter(symbol, props);
-    return () => {
-      agentRegistry.unregisterFormatter(symbol);
-    };
-  }, deps);
-
-  agent.useEpoch(deps);
-
-  // return <formatter value={props} />;
-  return null;
-}//);
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;

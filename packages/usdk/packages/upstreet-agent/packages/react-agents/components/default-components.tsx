@@ -13,7 +13,6 @@ import type {
   ActionPropsAux,
   UniformPropsAux,
   // PromptProps,
-  // FormatterProps,
   // ParserProps,
   // PerceptionProps,
   // SchedulerProps,
