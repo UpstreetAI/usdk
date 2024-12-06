@@ -1,3 +1,16 @@
+import React, { useContext, useRef, useEffect } from 'react';
+import type {
+  TwitterSpacesProps,
+  TwitterSpacesArgs,
+} from '../types';
+import {
+  useAgent,
+  useAuthToken,
+} from '../hooks';
+import {
+  AppContext,
+} from '../context';
+
 export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpacesProps) => {
   const {
     token,

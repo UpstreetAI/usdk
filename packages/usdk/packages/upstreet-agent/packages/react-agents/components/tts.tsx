@@ -1,3 +1,13 @@
+import React from 'react';
+import { useTts } from 'react-agents';
+import {
+  AbortableActionEvent,
+  PlayableAudioStream,
+} from '../types';
+import {
+  ActionModifier,
+} from './action';
+
 export type TTSProps = {
   voiceEndpoint?: string; // voice to use
 };

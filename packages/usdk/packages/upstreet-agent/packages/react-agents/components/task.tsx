@@ -1,3 +1,12 @@
+import React, { useContext, useMemo, useEffect } from 'react';
+import type {
+  TaskProps,
+} from '../types';
+import {
+  AgentContext,
+  AgentRegistryContext,
+} from '../context';
+
 export const Task = /*memo(*/(props: TaskProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;

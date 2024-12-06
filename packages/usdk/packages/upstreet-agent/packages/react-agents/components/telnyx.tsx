@@ -1,3 +1,12 @@
+import React, { useEffect } from 'react';
+import {
+  useAgent,
+} from 'react-agents';
+import {
+  TelnyxProps,
+  TelnyxBotArgs,
+} from '../types';
+
 export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
   const {
     apiKey,
