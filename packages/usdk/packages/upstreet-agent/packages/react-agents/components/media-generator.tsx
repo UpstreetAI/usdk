@@ -284,7 +284,7 @@ export const MediaGenerator = () => {
           // console.log('send media args', e.data.message.args);
 
           const retry = () => {
-            agent.think();
+            agent.act();
           };
 
           const mediaGeneratorSpec = mediaGeneratorSpecs.find(spec => spec.types.includes(type));
