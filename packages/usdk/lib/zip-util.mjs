@@ -35,8 +35,17 @@ export const packZip = async (dirPath, { exclude = [] } = {}) => {
       resolve(uary);
     });
 
-    // Filter files and add to archive
-    recursiveReaddir(dirPath)
+    // use ignore function with recursive-readdir to filter out node_modules
+    const ignoreFunc = (file, stats) => {
+      // ignore node_modules directories
+      if (stats.isDirectory() && file.includes('node_modules')) {
+        return true;
+      }
+      // apply other exclude patterns
+      return exclude.some(pattern => pattern.test(file));
+    };
+    
+    recursiveReaddir(dirPath, [ignoreFunc])
       .then((files) => {
         const filteredFiles = filterFiles(files, exclude);
 
