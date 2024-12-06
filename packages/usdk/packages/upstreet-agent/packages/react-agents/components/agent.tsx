@@ -9,12 +9,16 @@ import type {
 import {
   AppContext,
   AgentContext,
+  ConversationContext,
   ConversationsContext,
   AgentRegistryContext,
 } from '../context';
 import {
   DefaultAgentComponents,
 } from './default-components';
+import {
+  ConversationProvider,
+} from './conversation';
 import {
   AgentRegistry,
 } from '../classes/render-registry';
@@ -104,10 +108,12 @@ export const Agent = forwardRef(({
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={{conversations}}>
-          <AgentRegistryContext.Provider value={{agentRegistry}}>
-            {!raw && <DefaultAgentComponents />}
-            {children}
-          </AgentRegistryContext.Provider>
+          <ConversationProvider>
+            <AgentRegistryContext.Provider value={{agentRegistry}}>
+              {!raw && <DefaultAgentComponents />}
+              {children}
+            </AgentRegistryContext.Provider>
+          </ConversationProvider>
         </ConversationsContext.Provider>
       </AgentContext.Provider>
     </agent>
