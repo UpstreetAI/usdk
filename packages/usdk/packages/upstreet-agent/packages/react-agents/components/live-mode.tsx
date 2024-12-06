@@ -1,3 +1,12 @@
+import React from 'react';
+import {
+  ActionEvent,
+} from '../types';
+import dedent from 'dedent';
+import { z } from 'zod';
+import { useAgent, useConversation } from 'react-agents';
+import { Uniform } from './uniform';
+
 export const LiveModeInner = (props) => {
   const agent = useAgent();
   const conversation = useConversation();
@@ -93,7 +102,7 @@ export const LiveModeInner = (props) => {
         console.log('got next action time: ', nextMessageWaitArgs, timeout - Date.now());
         const nextAction = async () => {
           console.log('live action 1');
-          await agent.think();
+          await agent.act();
           console.log('live action 2');
         };
         agent.agent.liveManager.setTimeout(nextAction, conversation, timeout);
@@ -103,8 +112,6 @@ export const LiveModeInner = (props) => {
 };
 export const LiveMode = (props) => {
   return (
-    <Conversation>
-      <LiveModeInner {...props} />
-    </Conversation>
+    <LiveModeInner {...props} />
   );
 };
