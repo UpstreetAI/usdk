@@ -1,3 +1,13 @@
+import { useContext, useEffect } from 'react';
+import { useAgent, useAuthToken } from 'react-agents';
+import type {
+  DiscordArgs,
+  DiscordProps,
+} from '../types';
+import {
+  AppContext,
+} from '../context';
+
 export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   const {
     token,

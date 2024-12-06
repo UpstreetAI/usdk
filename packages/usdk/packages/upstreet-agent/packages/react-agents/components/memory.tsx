@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAgent, useConversation } from 'react-agents';
 import dedent from 'dedent';
+import {
+  ActiveAgentObject,
+} from '../types';
 import { Prompt } from './prompt';
 import { DeferConversation } from './conversation';
 import { EveryNMessages } from './message-utils';
