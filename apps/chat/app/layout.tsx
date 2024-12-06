@@ -2,10 +2,10 @@ import React from 'react'
 
 import '@/app/globals.css'
 import { cn } from '@/lib/utils'
-import { TailwindIndicator } from '@/components/tailwind-indicator'
+// import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 import { Toaster } from '@/components/ui/sonner'
-import { Body } from '@/components/body'
+import { MainWrap } from '@/components/main-wrap'
 
 export const metadata = {
   title: {
@@ -53,9 +53,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
-          <Body>
+          <MainWrap>
             {children}
-          </Body>
+          </MainWrap>
           {/* <TailwindIndicator/> */}
         </Providers>
       </body>

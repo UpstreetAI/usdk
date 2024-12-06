@@ -10,7 +10,7 @@ interface MainProps {
   children: React.ReactNode
 }
 
-export function Body({ children }: MainProps) {
+export function MainWrap({ children }: MainProps) {
   const { isFetchingUser } = useSupabase();
   const [globalState] = useGlobalState();
 
