@@ -1,11 +1,9 @@
 import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
 import dedent from 'dedent';
-import { timeAgo } from 'react-agents/util/time-ago.mjs';
-
 import type {
   Attachment,
   FormattedAttachment,
-} from '../types';
+} from '../../types';
 import {
   useAgent,
   useActions,
@@ -16,13 +14,14 @@ import {
   usePurchases,
   useConversation,
   useCachedMessages,
-} from '../hooks';
-import { Prompt } from './prompt';
-import { ChatLoop } from '../loops/chat-loop';
-import { ChatActions } from './chat';
+} from '../../hooks';
+import { Prompt } from '../core/prompt';
+import { ChatLoop } from '../../loops/chat-loop';
+import { ChatActions } from '../core/chat';
 import {
   formatActionsPrompt,
-} from '../util/format-schema';
+} from '../../util/format-schema';
+import { timeAgo } from '../../util/time-ago.mjs';
 
 // defaults
 

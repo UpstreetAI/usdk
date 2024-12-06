@@ -3,10 +3,10 @@ import { useAgent, useConversation } from 'react-agents';
 import dedent from 'dedent';
 import {
   ActiveAgentObject,
-} from '../types';
-import { Prompt } from './prompt';
-import { DeferConversation } from './conversation';
-import { EveryNMessages } from './message-utils';
+} from '../../types';
+import { Prompt } from '../core/prompt';
+import { DeferConversation } from '../core/conversation';
+import { EveryNMessages } from '../util/message-utils';
 
 const maxDefaultMemoryValues = 8;
 const maxMemoryQueries = 8;

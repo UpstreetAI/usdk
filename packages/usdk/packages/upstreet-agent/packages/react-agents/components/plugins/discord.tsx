@@ -3,10 +3,10 @@ import { useAgent, useAuthToken } from 'react-agents';
 import type {
   DiscordArgs,
   DiscordProps,
-} from '../types';
+} from '../../types';
 import {
   AppContext,
-} from '../context';
+} from '../../context';
 
 export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
   const {

@@ -7,11 +7,11 @@ import {
   Attachment,
   VideoPerceptionProps,
   PendingActionEvent,
-} from '../types';
-import { AgentObject } from '../classes/agent-object';
-import { Action } from './action';
-import { describeJson } from '../util/vision.mjs';
-import { collectAttachments } from './message-utils';
+} from '../../types';
+import { AgentObject } from '../../classes/agent-object';
+import { Action } from '../core/action';
+import { describeJson } from '../../util/vision.mjs';
+import { collectAttachments } from '../util/message-utils';
 
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 

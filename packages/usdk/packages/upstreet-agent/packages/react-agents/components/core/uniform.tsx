@@ -1,15 +1,15 @@
 import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
 import type {
   UniformProps,
-} from '../types';
+} from '../../types';
 import {
   AgentContext,
   ConversationContext,
   AgentRegistryContext,
-} from '../context';
+} from '../../context';
 import {
   printZodSchema,
-} from '../util/util.mjs';
+} from '../../util/util.mjs';
 
 //
 

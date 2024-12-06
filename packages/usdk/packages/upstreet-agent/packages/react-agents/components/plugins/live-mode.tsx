@@ -1,11 +1,11 @@
 import React from 'react';
-import {
-  ActionEvent,
-} from '../types';
+import { useAgent, useConversation } from 'react-agents';
 import dedent from 'dedent';
 import { z } from 'zod';
-import { useAgent, useConversation } from 'react-agents';
-import { Uniform } from './uniform';
+import {
+  ActionEvent,
+} from '../../types';
+import { Uniform } from '../core/uniform';
 
 export const LiveModeInner = (props) => {
   const agent = useAgent();

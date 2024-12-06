@@ -2,15 +2,15 @@ import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperat
 import type {
   ActionProps,
   ActionModifierProps,
-} from '../types';
+} from '../../types';
 import {
   AgentContext,
   ConversationContext,
   AgentRegistryContext,
-} from '../context';
+} from '../../context';
 import {
   printZodSchema,
-} from '../util/util.mjs';
+} from '../../util/util.mjs';
 
 export const Action = /*memo(*/(props: ActionProps) => {
   const agent = useContext(AgentContext);

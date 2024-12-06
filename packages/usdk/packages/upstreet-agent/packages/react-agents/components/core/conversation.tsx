@@ -3,14 +3,14 @@ import type {
   DeferProps,
   ConversationProps,
   ConversationInstanceProps,
-} from '../types';
+} from '../../types';
 import {
   AppContext,
   AgentContext,
   ConversationContext,
   ConversationsContext,
   AgentRegistryContext,
-} from '../context';
+} from '../../context';
 
 const ConversationInstance = (props: ConversationInstanceProps) => {
   const {

@@ -44,7 +44,7 @@ import type {
   // Evaluator,
   // LoopProps,
   // ActOpts,
-} from '../types';
+} from '../../types';
 // import {
 //   AppContext,
 // } from '../context';
@@ -72,7 +72,7 @@ import {
   // useConversation,
   // useCachedMessages,
   // useNumMessages,
-} from '../hooks';
+} from '../../hooks';
 // import { shuffle, parseCodeBlock } from '../util/util.mjs';
 // import {
 //   storeItemType,
@@ -88,25 +88,25 @@ import {
 import {
   imageSizes,
   fetchImageGeneration,
-} from '../util/generate-image.mjs';
+} from '../../util/generate-image.mjs';
 import {
   generateSound,
-} from '../util/generate-sound.mjs';
+} from '../../util/generate-sound.mjs';
 import {
   generateModel,
-} from '../util/generate-model.mjs';
+} from '../../util/generate-model.mjs';
 import {
   generateVideo,
-} from '../util/generate-video.mjs';
+} from '../../util/generate-video.mjs';
 // import { Prompt } from './prompt';
-import { r2EndpointUrl } from '../util/endpoints.mjs';
+import { r2EndpointUrl } from '../../util/endpoints.mjs';
 // import { ChatLoop } from '../loops/chat-loop.tsx';
 // import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
 // import { createBrowser/*, testBrowser*/ } from '../util/create-browser.mjs';
 // import {
 //   formatActionsPrompt,
 // } from '../util/format-schema';
-import { Action } from './action';
+import { Action } from '../core/action';
 
 //
 

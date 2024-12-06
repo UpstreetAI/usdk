@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
-import type { AbortablePerceptionEvent } from '../types';
-import { useKv } from '../hooks';
-import { PerceptionModifier } from './perception';
+import type { AbortablePerceptionEvent } from '../../types';
+import { useKv } from '../../hooks';
+import { PerceptionModifier } from '../core/perception';
 
 const defaultPriorityOffset = 100;
 

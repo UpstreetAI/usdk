@@ -1,11 +1,11 @@
 import React, { useMemo, useRef, useEffect } from 'react';
-import {
-  useNumMessages,
-} from '../hooks';
 import type {
   Attachment,
   ActionMessage,
-} from '../types';
+} from '../../types';
+import {
+  useNumMessages,
+} from '../../hooks';
 
 export const collectAttachments = (messages: ActionMessage[]) => {
   const result: Attachment[] = [];

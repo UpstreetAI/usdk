@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import dedent from 'dedent';
 import { z } from 'zod';
-import { useConversation } from '../hooks';
-import { Action } from './action';
-import { collectAttachments } from './message-utils';
 import type {
   PendingActionEvent,
-} from '../types';
+} from '../../types';
+import { Action } from '../core/action';
+import { useConversation } from '../../hooks';
+import { collectAttachments } from '../util/message-utils';
 
 export const StatusUpdates = () => {
   return (

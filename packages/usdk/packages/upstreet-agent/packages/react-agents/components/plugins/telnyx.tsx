@@ -5,7 +5,7 @@ import {
 import {
   TelnyxProps,
   TelnyxBotArgs,
-} from '../types';
+} from '../../types';
 
 export const Telnyx: React.FC<TelnyxProps> = (props: TelnyxProps) => {
   const {

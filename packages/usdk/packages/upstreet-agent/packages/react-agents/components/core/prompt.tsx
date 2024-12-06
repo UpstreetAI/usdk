@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import type {
   PromptProps,
-} from '../types';
+} from '../../types';
 import {
   ConversationContext,
-} from '../context';
+} from '../../context';
 
 export const Prompt = /*memo(*/(props: PromptProps) => {
   // const agent = useContext(AgentContext);
