@@ -18,7 +18,7 @@ import {
   useCachedMessages,
 } from '../hooks';
 import { Prompt } from './prompt';
-import { ChatLoop } from '../loops/chat-loop.tsx';
+import { ChatLoop } from '../loops/chat-loop';
 import { ChatActions } from './chat';
 import {
   formatActionsPrompt,
