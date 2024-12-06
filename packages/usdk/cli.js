@@ -1260,6 +1260,14 @@ export const createProgram = () => {
   try {
 
     const ver = version();
+    const latestVersion = getLatestVersion();
+
+    const isLatestVersion = latestVersion === ver;
+
+    if (!isLatestVersion) {
+      console.log(pc.yellow(`Notice: You are currently using version ${ver}, a newer version (${latestVersion}) is available.`));
+      console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.`));
+    }
 
     program.version(ver);
 
@@ -1280,7 +1288,7 @@ export const createProgram = () => {
       .action(async () => {
         await handleError(async () => {
           commandExecuted = true;
-          console.log(pc.cyan(version()));
+          console.log(pc.cyan(ver));
         });
       });
     /* program

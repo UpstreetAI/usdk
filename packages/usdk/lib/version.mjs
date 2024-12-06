@@ -1,22 +1,16 @@
-import { versionManager } from "../classes/version-manager.mjs";
+import { execSync } from 'child_process';
+import pc from 'picocolors';
+import packageJson from '../package.json' with { type: 'json' };
 
-/**
- * Get the current version
- */
-export const version = () => versionManager.getCurrentVersion();
-
-/**
- * Check for the latest version
- * @returns {Promise<string|null>} Latest version or null if check fails
- */
-export async function getLatestVersion() {
+// Get the current version
+export const version = () => packageJson.version;
+// Get the latest version
+export function getLatestVersion() {
   try {
-    const update = await versionManager.checkNow();
-    return update?.latest || null;
+    const latestVersion = execSync(`npm show ${packageJson.name} version`).toString().trim();
+    return latestVersion;
   } catch (error) {
-    if (process.env.DEBUG) {
-      console.error('Version check error:', error);
-    }
-    return null;
+   // console.log(pc.red('Error checking version. '), error.message);
+    console.log(pc.red('Error checking latest usdk version on the registry.'));
   }
 }
