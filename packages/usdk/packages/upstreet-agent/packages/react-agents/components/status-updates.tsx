@@ -8,7 +8,7 @@ import type {
   PendingActionEvent,
 } from '../types';
 
-const StatusUpdates = () => {
+export const StatusUpdates = () => {
   return (
     <StatusUpdateAction />
   );
