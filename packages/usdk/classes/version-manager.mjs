@@ -37,7 +37,8 @@ class VersionManager {
         align: 'center',
         borderColor: 'yellow',
         borderStyle: 'round'
-      }
+      },
+      defer: false,
     });
   }
 
