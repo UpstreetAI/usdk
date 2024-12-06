@@ -1,12 +1,8 @@
 import { createContext } from 'react';
 import {
   AppContextValue,
-  // AgentContextValue,
   ActiveAgentObject,
-  // GenerativeAgentObject,
   ConversationObject,
-  // ConfigurationContextValue,
-  // AgentRegistry,
 } from './types';
 import {
   AgentRegistry,
