@@ -1,3 +1,22 @@
+import React, { useMemo, useRef, useEffect } from 'react';
+import {
+  useNumMessages,
+} from '../hooks';
+import type {
+  Attachment,
+  ActionMessage,
+} from '../types';
+
+export const collectAttachments = (messages: ActionMessage[]) => {
+  const result: Attachment[] = [];
+  for (const message of messages) {
+    if (message.attachments) {
+      result.push(...message.attachments);
+    }
+  }
+  return result;
+};
+
 type EveryNMessagesOptions = {
   signal: AbortSignal,
 };

@@ -3,9 +3,7 @@ import dedent from 'dedent';
 import { z } from 'zod';
 import { useConversation } from '../hooks';
 import { Action } from './action';
-import {
-  collectAttachments,
-} from './video-perception';
+import { collectAttachments } from './message-utils';
 import type {
   PendingActionEvent,
 } from '../types';

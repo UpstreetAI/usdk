@@ -51,15 +51,6 @@ const videoPerceptionSpecs = [
   },
 ];
 const supportedVideoPerceptionTypes = videoPerceptionSpecs.flatMap(mediaPerceptionSpec => mediaPerceptionSpec.types);
-const collectAttachments = (messages: ActionMessage[]) => {
-  const result: Attachment[] = [];
-  for (const message of messages) {
-    if (message.attachments) {
-      result.push(...message.attachments);
-    }
-  }
-  return result;
-};
 export const VideoPerception = (props: VideoPerceptionProps) => {
   return (
     <VideoPerceptionInner {...props} />
