@@ -1,77 +1,73 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import pc from 'picocolors';
+import updateNotifier from 'update-notifier';
 import packageJson from '../package.json' with { type: 'json' };
-
-// cache configuration
-const VERSION_CACHE_DURATION = 1000 * 60 * 60; // 1 hour in milliseconds
-
-const execAsync = promisify(exec);
 
 class VersionManager {
   constructor() {
-    this.cachedVersion = null;
-    this.lastChecked = null;
-    this.checkPromise = null;
+    // Initialize the notifier with package info and options
+    this.notifier = updateNotifier({
+      pkg: packageJson,
+      updateCheckInterval: 0,
+      shouldNotifyInNpmScript: true, // Show notifications in npm scripts
+      distTag: process.env.CI ? false : 'latest', // Don't check in CI
+    });
+
+    // Perform initial check in background
+    this.checkInBackground();
   }
 
-  // get the current package version
+  /**
+   * Get the current installed version
+   * @returns {string} Current version
+   */
   getCurrentVersion() {
     return packageJson.version;
   }
 
-  // check if cache is still valid
-  isCacheValid() {
-    return (
-      this.cachedVersion && 
-      this.lastChecked && 
-      (Date.now() - this.lastChecked) < VERSION_CACHE_DURATION
-    );
+  /**
+   * Perform background version check without blocking
+   * @private
+   */
+  checkInBackground() {
+    // This runs in an unref'd child process
+    this.notifier.notify({
+      isGlobal: true,
+      boxenOptions: {
+        padding: 1,
+        margin: 1,
+        align: 'center',
+        borderColor: 'yellow',
+        borderStyle: 'round'
+      }
+    });
   }
 
-  // get latest version with caching
-  async getLatestVersion() {
-    // return cached version if valid
-    if (this.isCacheValid()) {
-      return this.cachedVersion;
-    }
-
-    // return existing promise if check is in progress
-    if (this.checkPromise) {
-      return this.checkPromise;
-    }
-
-    // start new version check
-    this.checkPromise = this._fetchLatestVersion()
-      .finally(() => {
-        this.checkPromise = null;
-      });
-
-    return this.checkPromise;
-  }
-
-  // internal method to fetch latest version
-  async _fetchLatestVersion() {
+  /**
+   * Force an immediate version check
+   * @returns {Promise<{current: string, latest: string, type: string, name: string}|null>}
+   */
+  async checkNow() {
     try {
-      const { stdout } = await execAsync(`npm show ${packageJson.name} version`);
-      const version = stdout.trim();
-
-      // update cache
-      this.cachedVersion = version;
-      this.lastChecked = Date.now();
-      
-      return version;
+      const update = await this.notifier.fetchInfo();
+      return update;
     } catch (error) {
-      console.log(pc.yellow('Unable to check for updates.'));
-      // return current version as fallback
-      return this.getCurrentVersion();
+      if (process.env.DEBUG) {
+        console.error('Version check error:', error);
+      }
+      return null;
     }
+  }
+
+  /**
+   * Get update information if available
+   * @returns {Object|undefined} Update information or undefined if no update
+   */
+  getUpdateInfo() {
+    return this.notifier.update;
   }
 }
 
-// export singleton instance
+// Export singleton instance
 export const versionManager = new VersionManager();
 
-// maintain existing API
+// Maintain existing API
 export const version = () => versionManager.getCurrentVersion();
-export const getLatestVersion = () => versionManager.getLatestVersion();

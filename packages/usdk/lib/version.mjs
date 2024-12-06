@@ -1,12 +1,22 @@
 import { versionManager } from "../classes/version-manager.mjs";
 
-// get the current version
+/**
+ * Get the current version
+ */
 export const version = () => versionManager.getCurrentVersion();
-// get the latest version
-export function getLatestVersion() {
+
+/**
+ * Check for the latest version
+ * @returns {Promise<string|null>} Latest version or null if check fails
+ */
+export async function getLatestVersion() {
   try {
-    return versionManager.getLatestVersion();
+    const update = await versionManager.checkNow();
+    return update?.latest || null;
   } catch (error) {
-    console.log(pc.red('Error checking latest usdk version on the registry.'));
+    if (process.env.DEBUG) {
+      console.error('Version check error:', error);
+    }
+    return null;
   }
 }
