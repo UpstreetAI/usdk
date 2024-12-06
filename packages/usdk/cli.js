@@ -1269,6 +1269,8 @@ export const createProgram = () => {
       console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.`));
     }
 
+    program.version(ver);
+    
     let commandExecuted = false;
     program
       .name('usdk')
