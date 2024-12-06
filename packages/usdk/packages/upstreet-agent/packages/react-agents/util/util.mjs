@@ -1,5 +1,6 @@
 import { zodToTs, printNode } from 'zod-to-ts';
 import { r2EndpointUrl } from './endpoints.mjs';
+import { NotEnoughCreditsError } from './error-utils.mjs';
 
 const codeBlockRegexA = /^[^\n]*?(\{[\s\S]*})[^\n]*?$/
 const codeBlockRegexB = /^[\s\S]*?```\S*\s*([\s\S]*?)\s*```[\s\S]*?$/
@@ -68,8 +69,11 @@ export const retry = async (fn/*: (() => any) | (() => Promise<any>)*/, numRetri
       const result = await fn();
       return result;
     } catch (err) {
-      console.warn('retry error', err);
-      continue;
+      if (err instanceof NotEnoughCreditsError) {
+        throw err;
+      } else {
+        console.warn('retry error', err);
+      }
     }
   }
   throw new Error(`failed after ${numRetries} retries`);

@@ -28,6 +28,8 @@ import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
 
+import { NotEnoughCreditsError } from '../util/error-utils.mjs';
+
 //
 
 export class GenerativeAgentObject {
@@ -95,7 +97,11 @@ export class GenerativeAgentObject {
           });
           return await this.evaluate(evaluator);
         } catch (err) {
-          console.warn('think error', err);
+          if (err instanceof NotEnoughCreditsError) {
+            this.say('Not enough credits');
+          } else {
+            console.warn('think error', err);
+          }
         }
       });
     // });
