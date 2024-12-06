@@ -503,7 +503,7 @@ const handleChatPerception = async (data: ActionMessageEventData, {
   const perceptionPromises = [];
   if (!aborted) {
     for (const perception of perceptions) {
-      if (perception.type === message.method) {
+      if (perception.type === message.method && perception.conversation === conversation) {
         const targetAgent = agent.generative({
           conversation,
         });
