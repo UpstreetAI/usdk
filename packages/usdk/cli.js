@@ -1260,14 +1260,16 @@ export const createProgram = () => {
   try {
 
     const ver = version();
-    const latestVersion = getLatestVersion();
-
-    const isLatestVersion = latestVersion === ver;
-
-    if (!isLatestVersion) {
-      console.log(pc.yellow(`Notice: You are currently using version ${ver}, a newer version (${latestVersion}) is available.`));
-      console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.`));
-    }
+    
+    // initialize non-blocking version check
+    getLatestVersion().then(latestVersion => {
+      const isLatestVersion = latestVersion === ver;
+      
+      if (!isLatestVersion) {
+        console.log(pc.yellow(`\nNotice: You are currently using version ${ver}, a newer version (${latestVersion}) is available.`));
+        console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.\n`));
+      }
+    });
 
     program.version(ver);
 
