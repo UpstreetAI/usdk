@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAgent } from '../hooks';
-import { Perception } from '../components/base-components';
+import { Perception } from '../components/perception';
 import { LoopProps } from './types';
 import { BasicEvaluator } from '../evaluators/basic-evaluator';
 
