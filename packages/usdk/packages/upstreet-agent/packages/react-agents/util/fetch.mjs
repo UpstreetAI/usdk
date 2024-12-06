@@ -3,6 +3,7 @@ import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
+import { NotEnoughCreditsError } from './error-utils.mjs';
 
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, stream, signal }, {
@@ -354,6 +355,9 @@ export const fetchJsonCompletion = async ({
       const o = JSON.parse(s);
       return o;
     } else {
+      if (res.status === 402) {
+        throw new NotEnoughCreditsError();
+      }
       const text = await res.text();
       throw new Error('invalid status code: ' + res.status + ': ' + text);
     }
