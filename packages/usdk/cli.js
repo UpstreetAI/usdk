@@ -1270,7 +1270,7 @@ export const createProgram = () => {
     }
 
     program.version(ver);
-    
+
     let commandExecuted = false;
     program
       .name('usdk')

@@ -109,7 +109,6 @@
     "simple-yenc": "^1.0.4",
     "together-ai": "^0.6.0-alpha.4",
     "unique-names-generator": "^4.7.1",
-    "update-notifier": "^7.3.1",
     "vercel": "^34.2.6",
     "vite": "^5.4.11",
     "web-worker": "1.2.0",
