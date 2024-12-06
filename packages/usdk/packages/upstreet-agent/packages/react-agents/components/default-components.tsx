@@ -122,10 +122,10 @@ export const DefaultHeaderPrompt = () => {
 };
 export const ConversationEnvironmentPrompt = () => {
   return (
-    <Conversation>
+    <>
       <ScenePrompt />
       <CharactersPrompt />
-    </Conversation>
+    </>
   );
 };
 export const ScenePrompt = () => {
@@ -203,9 +203,7 @@ const ActionsPromptInternal = () => {
 };
 export const ActionsPrompt = () => {
   return (
-    <Conversation>
-      <ActionsPromptInternal />
-    </Conversation>
+    <ActionsPromptInternal />
   );
 };
 const StoreItemsPrompt = () => {
@@ -253,17 +251,13 @@ export const StorePrompt = () => {
   return (
     <>
       <StoreItemsPrompt />
-      <Conversation>
-        <PurchasesPrompt />
-      </Conversation>
+      <PurchasesPrompt />
     </>
   );
 };
 export const ConversationMessagesPrompt = () => {
   return (
-    <Conversation>
-      <CachedMessagesPrompt />
-    </Conversation>
+    <CachedMessagesPrompt />
   );
 }
 export const CachedMessagesPrompt = () => {
