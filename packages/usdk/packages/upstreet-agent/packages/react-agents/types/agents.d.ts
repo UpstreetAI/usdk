@@ -155,7 +155,6 @@ export type TwitterSpacesArgs = {
   url?: string;
   agent: ActiveAgentObject;
   codecs: any;
-  init: any;
   jwt: string;
 };
 
