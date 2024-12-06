@@ -15,7 +15,7 @@ export function Body({ children }: MainProps) {
   const [globalState] = useGlobalState();
 
   return (
-    <main className={cn("flex flex-col flex-1", globalState.mode && globalState.mode.mainBackgroundClass)}>
+    <main className={cn("flex flex-col min-h-screen flex-1", globalState.mode && globalState.mode.mainBackgroundClass)}>
       {isFetchingUser ? (
         <Loading />
       ) : (
