@@ -76,8 +76,29 @@ npm install -g usdk
 
 </Tabs>
 
+### Verify Installation (optional)
+
+To confirm a successful installation, check your SDK version:
+
+<Wrapper>
+<div className="bg-transparent prose-no-margin px-20 w-full">
+
+<div className="bg-fd-background rounded-lg">
+```bash title="Terminal"
+usdk version
+```
+<CodeBlock className='-mt-8' icon={"bash"} keepBackground allowCopy={false}>
+        <Pre>{pkgJson.version}</Pre>
+</CodeBlock>
+</div>
+
+</div>
+</Wrapper>
+
+This command should return the installed version number. You can view all available versions of `usdk` on [NPM](https://www.npmjs.com/package/usdk?activeTab=versions).
+
 <Callout>
-We recommend using the [`pnpm`](https://pnpm.io/installation`) (Performant Node Package Manager) package manager with `usdk`.
+**Tip:** While you can use `npx usdk@latest <subcommand>` to run `usdk` directly, we recommend specifying a fixed version for consistency.
 </Callout>
 
 ## Log into the SDK
