@@ -45,7 +45,7 @@ export const DefaultAgentComponents = () => {
  * Renders the default actions components.
  * @returns The JSX elements representing the default actions components.
  */
-export const DefaultActions = () => {
+const DefaultActions = () => {
   return (
     <>
       <ChatActions />
@@ -59,7 +59,7 @@ export const DefaultActions = () => {
  * Renders the default prompts components.
  * @returns The JSX elements representing the default prompts components.
  */
-export const DefaultPrompts = () => {
+const DefaultPrompts = () => {
   return (
     <>
       <DefaultHeaderPrompt />
@@ -72,7 +72,7 @@ export const DefaultPrompts = () => {
     </>
   );
 };
-export const DefaultHeaderPrompt = () => {
+const DefaultHeaderPrompt = () => {
   return (
     <Prompt>
       {dedent`
@@ -82,7 +82,7 @@ export const DefaultHeaderPrompt = () => {
     </Prompt>
   );
 };
-export const ConversationEnvironmentPrompt = () => {
+const ConversationEnvironmentPrompt = () => {
   return (
     <>
       <ScenePrompt />
@@ -90,7 +90,7 @@ export const ConversationEnvironmentPrompt = () => {
     </>
   );
 };
-export const ScenePrompt = () => {
+const ScenePrompt = () => {
   const conversation = useConversation();
   const scene = conversation.getScene();
   return (
@@ -102,7 +102,7 @@ export const ScenePrompt = () => {
     </Prompt>
   );
 };
-export const CharactersPrompt = () => {
+const CharactersPrompt = () => {
   const conversation = useConversation();
   const agents = conversation.getAgents();
   const name = useName();
@@ -163,7 +163,7 @@ const ActionsPromptInternal = () => {
     <Prompt>{s}</Prompt>
   );
 };
-export const ActionsPrompt = () => {
+const ActionsPrompt = () => {
   return (
     <ActionsPromptInternal />
   );
@@ -209,7 +209,7 @@ const PurchasesPrompt = () => {
     </Prompt>
   )
 };
-export const StorePrompt = () => {
+const StorePrompt = () => {
   return (
     <>
       <StoreItemsPrompt />
@@ -217,12 +217,12 @@ export const StorePrompt = () => {
     </>
   );
 };
-export const ConversationMessagesPrompt = () => {
+const ConversationMessagesPrompt = () => {
   return (
     <CachedMessagesPrompt />
   );
 }
-export const CachedMessagesPrompt = () => {
+const CachedMessagesPrompt = () => {
   const cachedMessages = useCachedMessages();
 
   const formatAttachments = (attachments?: Attachment[]) => {
@@ -282,7 +282,7 @@ export const CachedMessagesPrompt = () => {
     </Prompt>
   );
 };
-export const InstructionsPrompt = () => {
+const InstructionsPrompt = () => {
   const agent = useAgent();
 
   return (
@@ -303,7 +303,7 @@ export const InstructionsPrompt = () => {
     </Prompt>
   );
 };
-export const DefaultCommunicationGuidelinesPrompt = () => {
+const DefaultCommunicationGuidelinesPrompt = () => {
   return (
     <Prompt>
       {dedent`
