@@ -1,8 +1,18 @@
+import React, { useMemo } from 'react';
+import dedent from 'dedent';
+import { z } from 'zod';
+import { useConversation } from '../hooks';
+import { Action } from './action';
+import {
+  collectAttachments,
+} from './video-perception';
+import type {
+  PendingActionEvent,
+} from '../types';
+
 const StatusUpdates = () => {
   return (
-    <Conversation>
-      <StatusUpdateAction />
-    </Conversation>
+    <StatusUpdateAction />
   );
 };
 export type StatusUpdateActionProps = {

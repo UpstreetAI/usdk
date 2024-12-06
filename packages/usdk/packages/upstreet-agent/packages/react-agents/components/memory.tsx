@@ -1,4 +1,9 @@
+import React, { useState } from 'react';
+import { useAgent, useConversation } from 'react-agents';
 import dedent from 'dedent';
+import { Prompt } from './prompt';
+import { DeferConversation } from './conversation';
+import { EveryNMessages } from './message-utils';
 
 const maxDefaultMemoryValues = 8;
 const maxMemoryQueries = 8;
@@ -98,9 +103,7 @@ const DefaultMemoriesInternal = () => {
 };
 const DefaultMemories = () => {
   return (
-    <Conversation>
-      <DefaultMemoriesInternal />
-    </Conversation>
+    <DefaultMemoriesInternal />
   );
 };
 const MemoryWatcher = ({
@@ -148,7 +151,7 @@ const MemoryWatcher = ({
   }, [JSON.stringify(memoryQueries)]);
   
   return allMemoryWatchers.length > 0 && (
-    <Conversation>
+    <>
       {/* Memory prompt injection */}
       <Prompt>
         {dedent`\
@@ -171,7 +174,7 @@ const MemoryWatcher = ({
           );
         })}
       </DeferConversation>
-    </Conversation>
+    </>
   );
 };
 
@@ -353,9 +356,7 @@ const MemoryQueriesInternal = () => {
 };
 const MemoryQueries = () => {
   return (
-    <Conversation>
-      <MemoryQueriesInternal />
-    </Conversation>
+    <MemoryQueriesInternal />
   );
 };
 export const RAGMemory = () => {
