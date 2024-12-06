@@ -23,8 +23,7 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
     </ConversationContext.Provider>
   );
 };
-// XXX rename this to ConversationProvider (?)
-export const Conversation = (props: ConversationProps) => {
+export const ConversationProvider = (props: ConversationProps) => {
   const agent = useContext(AgentContext);
   const conversations = useContext(ConversationsContext).conversations;
   return conversations.map((conversation) => {
