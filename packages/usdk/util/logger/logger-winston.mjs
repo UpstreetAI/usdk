@@ -36,15 +36,6 @@ class WinstonLogger extends Logger {
   }
 
   error(...args) {
-    // const message = args.join(' ');
-    // const stack = new Error().stack;
-
-    // // Only bypass Winston if it's specifically the update notification
-    // // update-notifier uses console.error to log the message
-    // if (stack.includes('update-notifier') && 
-    //   (message.includes('Update available') || message.includes('╭─'))) {
-    //   return;
-    // }
     this.logger.error(...args);
   }
 }
