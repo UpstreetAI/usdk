@@ -4,10 +4,11 @@ import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { app, screen, session, BrowserWindow, desktopCapturer } from 'electron';
+import { app, screen, session, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { WebSocket } from 'ws';
 import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
+import { fileURLToPath } from 'url';
 
 //
 
@@ -182,6 +183,10 @@ const createOTP = async (jwt) => {
   }
 };
 
+// Convert import.meta.url to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const openFrontend = async ({
   room,
   debug,
@@ -196,7 +201,7 @@ const openFrontend = async ({
   {
     const primaryDisplay = screen.getPrimaryDisplay();
     // console.log('primary display', primaryDisplay, primaryDisplay.workAreaSize);
-    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize; // primaryDisplay.bounds;
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
 
     if (debug >= debugLevels.SILLY) {
       width = displayWidth;
@@ -222,8 +227,6 @@ const openFrontend = async ({
 
     // main window
     const win = new BrowserWindow({
-      // width,
-      // height,
       width: width,
       height: height,
       x: displayWidth - width, // Position at right edge
@@ -239,6 +242,7 @@ const openFrontend = async ({
       webPreferences: {
         session: session.fromPartition('login'),
         // nodeIntegration: true,
+        preload: path.join(__dirname, 'preload.mjs'),
       },
     });
     if (debug >= debugLevels.SILLY) {
@@ -285,7 +289,15 @@ const main = async () => {
     process.exit(1);
   }
 };
+
 main().catch(err => {
   console.error(err);
   process.exit(1);
 });
+
+//
+
+ipcMain.on('app:quit', (_) => {
+  console.log('Shutdown message received');
+  app.quit();
+})

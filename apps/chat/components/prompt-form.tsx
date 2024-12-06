@@ -12,7 +12,7 @@ import { shuffle } from 'react-agents/util/util.mjs'
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs'
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs'
 import { ensureAudioContext } from '@/lib/audio/audio-context-output'
-import { Icon } from 'ucom'
+import { Icon, IconButton } from 'ucom'
 
 export function PromptForm({
   input,
@@ -94,6 +94,7 @@ export function PromptForm({
     <form onSubmit={async (e: any) => {
       e.preventDefault()
     }}>
+      <div className="flex w-full">
       <div className="relative flex max-h-60 w-full grow flex-col px-8 bg-slate-100 sm:border sm:px-12">
         {mediaPickerOpen && (
           <div className="absolute left-0 bottom-16 py-2 flex flex-col border rounded">
@@ -315,6 +316,11 @@ export function PromptForm({
             <TooltipContent>{ input !== '' ? "Send Message" : "Nudge to Continue" }</TooltipContent>
           </Tooltip>
         </div>
+      </div>
+
+      <div>
+        <IconButton icon="Heaset" />
+      </div>
       </div>
     </form>
   )
