@@ -1,3 +1,22 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { useAuthToken } from 'react-agents';
+import type {
+  PendingActionEvent,
+} from '../types';
+import dedent from 'dedent';
+import { z, ZodTypeAny } from 'zod';
+import { printNode, zodToTs } from 'zod-to-ts';
+import type { Browser, BrowserContext, Page } from 'playwright-core-lite';
+import { createBrowser } from '../util/create-browser.mjs';
+import {
+  GenerativeAgentObject,
+} from '../classes/generative-agent-object';
+import {
+  Action,
+} from './action';
+import { r2EndpointUrl } from '../util/endpoints.mjs';
+import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
+
 type AgentBrowser = Browser & {
   // sessionId: string;
   context: BrowserContext,
@@ -442,7 +461,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
         const { method, args } = webBrowserActionArgs;
 
         const retry = () => {
-          agent.think();
+          agent.act();
         };
 
         const webbrowserAction = webbrowserActions.find((action) => action.method === method);
@@ -508,7 +527,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
             return;
 
             // console.log('add browser action message 2', m);
-            agent.think();
+            agent.act();
           } catch (err) {
             console.warn('Failed to perform web browser action: ' + err);
             retry();
