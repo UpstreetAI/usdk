@@ -1,16 +1,16 @@
 import React, { useContext, useRef, useEffect } from 'react';
+import type {
+  TwitterProps,
+  TwitterArgs,
+} from '../../types';
 import {
   useAgent,
   useKv,
   useAuthToken,
-} from '../hooks';
-import type {
-  TwitterProps,
-  TwitterArgs,
-} from '../types';
+} from '../../hooks';
 import {
   AppContext,
-} from '../context';
+} from '../../context';
 
 // https://twitter-oauth.upstreet.ai/
 export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {

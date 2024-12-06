@@ -4,23 +4,23 @@ import {
   PaymentProps,
   SubscriptionProps,
   PendingActionEvent,
-} from '../types';
+} from '../../types';
 import {
   useAgent,
   useStoreItems,
-} from '../hooks';
-import { Action } from './action';
+} from '../../hooks';
+import { Action } from '../core/action';
 import {
   AgentContext,
   AgentRegistryContext,
-} from '../context';
+} from '../../context';
 import {
   storeItemType,
-} from '../util/agent-features.mjs';
+} from '../../util/agent-features.mjs';
 import {
   currencies,
   intervals,
-} from '../constants.mjs';
+} from '../../constants.mjs';
 
 export const Payment = (props: PaymentProps) => {
   const agent = useContext(AgentContext);

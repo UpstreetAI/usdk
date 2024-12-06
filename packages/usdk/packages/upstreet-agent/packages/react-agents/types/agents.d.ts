@@ -197,6 +197,7 @@ export type Evaluator = {
 export type LoopProps = {
   hint?: string;
   evaluator?: Evaluator;
+  actOpts?: ActOpts;
 }
 
 // actions

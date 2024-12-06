@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useMemo } from 'react';
-import { AgentContext, AgentRegistryContext } from '../context';
+import { AgentContext, AgentRegistryContext } from '../../context';
 import type {
   PersonalityProps,
-} from '../types';
+} from '../../types';
 
 export const Personality = /*memo(*/(props: PersonalityProps) => {
   const agent = useContext(AgentContext);

@@ -1,21 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuthToken } from 'react-agents';
-import type {
-  PendingActionEvent,
-} from '../types';
 import dedent from 'dedent';
 import { z, ZodTypeAny } from 'zod';
 import { printNode, zodToTs } from 'zod-to-ts';
+import type {
+  PendingActionEvent,
+} from '../../types';
 import type { Browser, BrowserContext, Page } from 'playwright-core-lite';
-import { createBrowser } from '../util/create-browser.mjs';
+import { createBrowser } from '../../util/create-browser.mjs';
 import {
   GenerativeAgentObject,
-} from '../classes/generative-agent-object';
+} from '../../classes/generative-agent-object';
 import {
   Action,
-} from './action';
-import { r2EndpointUrl } from '../util/endpoints.mjs';
-import { webbrowserActionsToText } from '../util/browser-action-utils.mjs';
+} from '../core/action';
+import { r2EndpointUrl } from '../../util/endpoints.mjs';
+import { webbrowserActionsToText } from '../../util/browser-action-utils.mjs';
+
+//
 
 type AgentBrowser = Browser & {
   // sessionId: string;

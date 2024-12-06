@@ -2,14 +2,14 @@ import React, { useContext, useRef, useEffect } from 'react';
 import type {
   TwitterSpacesProps,
   TwitterSpacesArgs,
-} from '../types';
+} from '../../types';
 import {
   useAgent,
   useAuthToken,
-} from '../hooks';
+} from '../../hooks';
 import {
   AppContext,
-} from '../context';
+} from '../../context';
 
 export const TwitterSpaces: React.FC<TwitterSpacesProps> = (props: TwitterSpacesProps) => {
   const {

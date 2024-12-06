@@ -1,31 +1,30 @@
-import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
-import type { Ref } from 'react';
+import React, { Ref, useState, useMemo, useEffect, useContext, forwardRef, useImperativeHandle, memo } from 'react';
 import type {
   AgentProps,
   RawAgentProps,
   ConversationObject,
   ConversationEventData,
-} from '../types';
+} from '../../types';
 import {
   AppContext,
   AgentContext,
   ConversationContext,
   ConversationsContext,
   AgentRegistryContext,
-} from '../context';
+} from '../../context';
 import {
   DefaultAgentComponents,
-} from './default-components';
+} from '../util/default-components';
 import {
   ConversationProvider,
 } from './conversation';
 import {
   AgentRegistry,
-} from '../classes/render-registry';
+} from '../../classes/render-registry';
 import {
   ActiveAgentObject,
-} from '../classes/active-agent-object';
-import { ExtendableMessageEvent } from '../util/extendable-message-event';
+} from '../../classes/active-agent-object';
+import { ExtendableMessageEvent } from '../../util/extendable-message-event';
 
 //
 
