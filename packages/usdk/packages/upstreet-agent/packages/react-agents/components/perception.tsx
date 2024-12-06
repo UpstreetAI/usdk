@@ -1,3 +1,14 @@
+import React, { useContext, useMemo, useEffect } from 'react';
+import type {
+  PerceptionProps,
+  PerceptionModifierProps,
+} from './types';
+import {
+  AgentContext,
+  AgentRegistryContext,
+  ConversationContext,
+} from '../context';
+
 export const Perception = /*memo(*/(props: PerceptionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
