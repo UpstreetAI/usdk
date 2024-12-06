@@ -11,6 +11,7 @@ import {
 import { AgentObject } from '../classes/agent-object';
 import { Action } from './action';
 import { describeJson } from '../util/vision.mjs';
+import { collectAttachments } from './message-utils';
 
 const getRandomId = () => crypto.randomUUID(); // used for schema substitutions
 
