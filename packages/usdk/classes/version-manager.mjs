@@ -6,7 +6,7 @@ class VersionManager {
     // Initialize the notifier with package info and options
     this.notifier = updateNotifier({
       pkg: packageJson,
-      updateCheckInterval: 0,
+      updateCheckInterval: 1000 * 60 * 60 * 6, // 6 hours in milliseconds
       shouldNotifyInNpmScript: true, // Show notifications in npm scripts
       distTag: process.env.CI ? false : 'latest', // Don't check in CI
     });
