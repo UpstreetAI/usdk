@@ -14,27 +14,27 @@ export function Body({ children }: MainProps) {
   const pathname = usePathname();
   const { isFetchingUser } = useSupabase();
 
-  const { mode, wrapperClass } = useMemo(() => {
+  console.log('pathname', pathname);
+  console.log('isFetchingUser', isFetchingUser);
+
+  const { mode } = useMemo(() => {
     if (pathname.startsWith('/embed')) {
       return {
         mode: 'embed',
-        wrapperClass: 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover',
       };
     } else if (pathname.startsWith('/desktop')) {
       return {
         mode: 'desktop',
-        wrapperClass: 'desktop',
       };
     } else {
       return {
         mode: 'web',
-        wrapperClass: 'bg-[url("/images/backgrounds/main-background.jpg")] bg-center bg-cover',
       };
     }
   }, [pathname]);
 
   return (
-    <main className={cn("flex flex-col flex-1", wrapperClass)}>
+    <main className={cn("flex flex-col flex-1")}>
       {isFetchingUser ? (
         <Loading mode={mode} />
       ) : (
