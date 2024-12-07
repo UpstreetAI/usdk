@@ -3,9 +3,9 @@ import type {
   Attachment,
   ActionMessage,
 } from '../../types';
-import {
-  useNumMessages,
-} from '../../hooks';
+// import { Action } from '../core/action';
+import { Perception } from '../core/perception';
+import { ActionModifier } from '../core/action';
 
 export const collectAttachments = (messages: ActionMessage[]) => {
   const result: Attachment[] = [];
@@ -18,40 +18,84 @@ export const collectAttachments = (messages: ActionMessage[]) => {
 };
 
 type EveryNMessagesOptions = {
-  signal: AbortSignal,
+  // signal: AbortSignal,
+  abort: () => void,
 };
 export const EveryNMessages = ({
   n,
   firstCallback = true,
+  priority = 1,
   children,
 }: {
   n: number,
   firstCallback?: boolean,
-  children: (opts: EveryNMessagesOptions) => void,
+  priority?: number,
+  children: ((opts: EveryNMessagesOptions) => void) | ((opts: EveryNMessagesOptions) => Promise<void>),
 }) => {
-  const numMessages = useNumMessages();
-  const startNumMessages = useMemo(() => numMessages, []);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // const numMessages = useNumMessages();
+  // const startNumMessages = useMemo(() => numMessages, []);
+  // const abortControllerRef = useRef<AbortController | null>(null);
 
-  useEffect(() => {
-    const diff = numMessages - startNumMessages;
-    if (diff % n === 0 && (diff > 0 || firstCallback)) {
-      if (!abortControllerRef.current) {
-        abortControllerRef.current = new AbortController();
-      }
-      const { signal } = abortControllerRef.current;
+  // useEffect(() => {
+  //   const diff = numMessages - startNumMessages;
+  //   if (diff % n === 0 && (diff > 0 || firstCallback)) {
+  //     if (!abortControllerRef.current) {
+  //       abortControllerRef.current = new AbortController();
+  //     }
+  //     const { signal } = abortControllerRef.current;
 
-      const fn = children;
-      fn({
-        signal,
-      });
+  //     const fn = children;
+  //     fn({
+  //       signal,
+  //     });
 
-      return () => {
-        abortControllerRef.current?.abort();
-        abortControllerRef.current = null;
-      };
-    }
-  }, [numMessages, startNumMessages, n]);
+  //     return () => {
+  //       abortControllerRef.current?.abort();
+  //       abortControllerRef.current = null;
+  //     };
+  //   }
+  // }, [numMessages, startNumMessages, n]);
 
-  return null;
+  return (
+    <>
+      <Perception
+        type="*"
+        handler={async (e) => {
+          // const { targetAgent } = e.data;
+
+          // const abortController = new AbortController();
+          // const { signal } = abortController;
+          
+          // await targetAgent.evaluate(evaluator, {
+          //   signal,
+          // });
+
+          const abortController = new AbortController();
+          const { signal } = abortController;
+
+          children(e);
+        }}
+        priority={priority}
+      />
+      <ActionModifier
+        type="*"
+        handler={async (e) => {
+          // const { targetAgent } = e.data;
+
+          // const abortController = new AbortController();
+          // const { signal } = abortController;
+          
+          // await targetAgent.evaluate(evaluator, {
+          //   signal,
+          // });
+
+          const abortController = new AbortController();
+          const { signal } = abortController;
+
+          children(e);
+        }}
+        priority={priority}
+      />
+    </>
+  );
 };
