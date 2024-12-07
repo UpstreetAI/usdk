@@ -168,7 +168,7 @@ const makeViteServer = (directory) => {
 // const host = 'https://chat.upstreet.ai';
 const host = 'http://127.0.0.1:3000';
 
-const createOTP = async (jwt) => {
+/* const createOTP = async (jwt) => {
   const res = await fetch(
     `https://ai.upstreet.ai/api/register-otp?token=${jwt}`,
     {
@@ -181,7 +181,7 @@ const createOTP = async (jwt) => {
   } else {
     throw new Error('Failed to create a one-time password.');
   }
-};
+}; */
 
 // Convert import.meta.url to a file path
 const __filename = fileURLToPath(import.meta.url);
