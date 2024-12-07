@@ -14,14 +14,12 @@ import type {
 import {
   Prompt,
 } from '../core/prompt';
+import {
+  ActionLoop,
+} from '../../loops/action-loop';
 
 //
 
-// type Task = {
-//   id: string;
-//   goal: string;
-//   steps: string[];
-// };
 class Task {
   id: string;
   goal: string;
@@ -44,21 +42,36 @@ class Task {
 //
 
 export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
-  // const agent = useAgent();
-  // const appContextValue = useContext(AppContext);
-  // const codecs = appContextValue.useCodecs();
-  // const authToken = useAuthToken();
+  const hint = props.hint;
+
   const [uuid, setUuid] = useState(() => crypto.randomUUID());
   const [tasks, setTasks] = useState(new Map<string, Task>());
 
-  const hint = props.hint;
+  console.log('render tasks', tasks);
 
   return (
     <>
+      {/* tasks */}
+      {Array.from(tasks.values()).map(task => (
+        <ActionLoop
+          hint={
+            dedent`\
+              Perform work on the following task:
+              \`\`\`
+            ` + '\n' +
+            JSON.stringify(task, null, 2) + '\n' +
+            dedent`\
+              \`\`\`
+            `
+          }
+          key={task.id}
+        />
+      ))}
+      {/* prompts */}
       <Prompt>
         {
           dedent`\
-            # Task Manager
+            # Active Tasks
 
             You are currently managing the following tasks:
 
@@ -67,12 +80,15 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           (
             hint ?
               dedent`\
-                Follow this user-provided hint:
-                ${hint}
-              ` : ''
+                When managing tasks, it is important to follow the user-provided hint:
+              ` + '\n' +
+              hint
+            :
+              ''
           )
         }
       </Prompt>
+      {/* actions */}
       <Action
         type="startTask"
         description={dedent`\
@@ -100,12 +116,16 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
         handler={async (e: PendingActionEvent) => {
           // await e.commit();
           console.log('startTask', e.data);
+          const { message } = e.data;
+          const { args } = message;
           const task = new Task({
             id: crypto.randomUUID(),
-            goal: e.data.goal,
-            steps: e.data.steps,
+            goal: args.goal,
+            steps: args.steps,
           });
           setTasks(tasks => new Map([...tasks, [task.id, task]]));
+
+          await e.commit();
         }}
       />
       <Action
@@ -147,6 +167,8 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
             }
             return newTasks;
           });
+
+          await e.commit();
         }}
       />
       <Action
@@ -177,11 +199,15 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
         handler={async (e: PendingActionEvent) => {
           // await e.commit();
           console.log('endTask', e.data);
+          const { message } = e.data;
+          const { args } = message;
           setTasks(tasks => {
             const newTasks = new Map(tasks);
-            newTasks.delete(e.data.taskId);
+            newTasks.delete(args.taskId);
             return newTasks;
           });
+
+          await e.commit();
         }}
       />
     </>
