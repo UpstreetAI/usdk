@@ -416,9 +416,8 @@ export const RAGMemory = () => {
       <EveryNMessages n={writeEveryN} firstCallback={false}>{(e) => {
         (async () => {
           await queueManager.waitForTurn(async () => {
-            // XXX get the summary string from the last N messages
-            const messages = conversation.messageCache.getMessages();
-            const memories = messages.map(m => {
+            const cachedMessages = conversation.messageCache.getMessages();
+            const memories = cachedMessages.map(m => {
               const {
                 name,
                 method,
@@ -431,16 +430,9 @@ export const RAGMemory = () => {
               };
             });
 
-            // async complete(
-            //   messages: ChatMessages,
-            //   opts: SubtleAiCompleteOpts = {
-            //     model: this.agent.model,
-            //   },
-            // ) {
-
-            const last2NMessages = memories.slice(-(maxDefaultMemoryValues + writeEveryN));
-            const oldContextMessages = last2NMessages.slice(0, -writeEveryN);
-            const newContextMessages = last2NMessages.slice(-writeEveryN);
+            const lastMessages = memories.slice(-(maxDefaultMemoryValues + writeEveryN));
+            const oldContextMessages = lastMessages.slice(0, -writeEveryN);
+            const newContextMessages = lastMessages.slice(-writeEveryN);
 
             const summary = await generativeAgent.complete([
               {
