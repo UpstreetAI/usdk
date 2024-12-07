@@ -99,11 +99,11 @@ export const RAGMemory = (props: RAGMemoryProps) => {
               },
             ]);
 
-            console.log('memorize', {
-              oldContextMessages,
-              newContextMessages,
-              summary,
-            });
+            // console.log('memorize', {
+            //   oldContextMessages,
+            //   newContextMessages,
+            //   summary,
+            // });
             const text = summary.content as string;
             await agent.addMemory(text);
           });
