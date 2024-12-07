@@ -8,9 +8,8 @@ import { useCachedMessages, useAgent, useConversation } from '../../hooks';
 import { EveryNMessages } from '../util/message-utils';
 import { QueueManager } from '../../../queue-manager';
 
+const memoryPriority = -1;
 const maxDefaultMemoryValues = 8;
-const maxMemoryQueries = 8;
-const maxMemoryQueryValues = 3;
 const writeEveryN = 1;
 
 export const RAGMemory = () => {
@@ -36,8 +35,8 @@ export const RAGMemory = () => {
           }
         </Prompt>
       )}
-      {/* read memories */}
-      <EveryNMessages n={1}>{async (e) => {
+      {/* read memories synchronously */}
+      <EveryNMessages n={1} priority={memoryPriority}>{async (e) => {
         const embeddingString = conversation.getEmbeddingString();
         // const embedding = await agent.appContextValue.embed(embeddingString);
 
@@ -48,8 +47,8 @@ export const RAGMemory = () => {
         // console.log('load memories', memories);
         setMemories(memories);
       }}</EveryNMessages>
-      {/* write memories */}
-      <EveryNMessages n={writeEveryN} firstCallback={false}>{(e) => {
+      {/* write memories asynchronously */}
+      <EveryNMessages n={writeEveryN} priority={memoryPriority} firstCallback={false}>{(e) => {
         (async () => {
           await queueManager.waitForTurn(async () => {
             const cachedMessages = conversation.messageCache.getMessages();
