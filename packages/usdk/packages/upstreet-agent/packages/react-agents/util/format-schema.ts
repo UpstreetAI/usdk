@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import dedent from 'dedent';
 import type { ZodTypeAny } from 'zod';
 import {
   ChatMessages,
@@ -35,6 +36,49 @@ const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})
     method: z.literal(method),
     args,
   });
+};
+const formatAction = (action: ActionPropsAux) => {
+  const {
+    name,
+    description,
+    state,
+    examples,
+  } = action;
+
+  const examplesJsonString = (examples ?? []).map((args) => {
+    return JSON.stringify(
+      {
+        method: name,
+        args,
+      }
+    );
+  }).join('\n');
+
+  return (
+    name ? (
+      dedent`
+        * ${name}
+      ` +
+      '\n'
+    ) : ''
+  ) +
+  (description ? (description + '\n') : '') +
+  (state ? (state + '\n') : '') +
+  (examplesJsonString
+    ? (
+      dedent`
+        Examples:
+        \`\`\`
+      ` +
+      '\n' +
+      examplesJsonString +
+      '\n' +
+      dedent`
+        \`\`\`
+      `
+    )
+    : ''
+  );
 };
 
 //
@@ -101,4 +145,25 @@ export const formatReactSchema = ({
   actOpts?: ActOpts,
 }) => {
   throw new Error('formatReactSchema not implemented');
+};
+
+export const formatActionsPrompt = (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
+  const actionsString = getFilteredActions(actions, conversation, actOpts)
+    .map(formatAction)
+    .join('\n\n');
+  const uniformsString = getFilteredActions(uniforms, conversation, actOpts)
+    .map(formatAction)
+    .join('\n\n');
+  return [
+    actionsString && (dedent`\
+      ## Actions
+      Here are the available actions you can take:
+    ` + '\n\n' +
+    actionsString),
+    uniformsString && (dedent`\
+      ## Uniforms
+      Each action must also include the following additional keys (uniforms):
+    ` + '\n\n' +
+    uniformsString),
+  ].filter(Boolean).join('\n\n');
 };

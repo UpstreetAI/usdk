@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAgent } from '../hooks';
-import { Perception } from '../components';
-import { LoopProps } from './types';
+import { Perception } from '../components/core/perception';
+import { LoopProps } from '../types';
 import { BasicEvaluator } from '../evaluators/basic-evaluator';
 
 export const ChatLoop = (props: LoopProps) => {

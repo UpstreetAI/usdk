@@ -155,7 +155,6 @@ export type TwitterSpacesArgs = {
   url?: string;
   agent: ActiveAgentObject;
   codecs: any;
-  init: any;
   jwt: string;
 };
 
@@ -198,6 +197,7 @@ export type Evaluator = {
 export type LoopProps = {
   hint?: string;
   evaluator?: Evaluator;
+  actOpts?: ActOpts;
 }
 
 // actions
@@ -460,7 +460,6 @@ export type ActiveAgentObject = AgentObject & {
   useSupabase: () => any;
 
   // useActions: () => Array<ActionProps>;
-  // useFormatters: () => Array<FormatterProps>;
   // useName: () => string;
   // usePersonality: () => string;
 
@@ -642,10 +641,6 @@ export type UniformProps = {
 export type UniformPropsAux = UniformProps & {
   conversation: ConversationObject;
 };
-export type FormatterProps = {
-  schemaFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => ZodTypeAny;
-  formatFn: (actions: ActionPropsAux[], uniforms: UniformPropsAux[], conversation?: ConversationObject) => string;
-};
 export type DeferProps = {
   children: ReactNode;
 };
@@ -747,7 +742,6 @@ export type AgentRegistry = {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
   perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
-  formattersMap: Map<symbol, FormatterProps | null>;
   tasksMap: Map<symbol, TaskProps | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
@@ -762,7 +756,6 @@ export type AgentRegistry = {
   get perceptions(): PerceptionPropsAux[];
   get perceptionModifiers(): PerceptionModifierPropsAux[];
   get uniforms(): UniformPropsAux[];
-  get formatters(): FormatterProps[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];
@@ -777,8 +770,6 @@ export type AgentRegistry = {
   unregisterPerception(key: symbol): void;
   registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux): void;
   unregisterPerceptionModifier(key: symbol): void;
-  registerFormatter(key: symbol, formatter: FormatterProps): void;
-  unregisterFormatter(key: symbol): void;
   registerDefer(key: symbol, defer: DeferPropsAux): void;
   unregisterDefer(key: symbol): void
   registerTask(key: symbol, task: TaskProps): void;
