@@ -47,8 +47,6 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
   const [uuid, setUuid] = useState(() => crypto.randomUUID());
   const [tasks, setTasks] = useState(new Map<string, Task>());
 
-  console.log('render tasks', tasks);
-
   return (
     <>
       {/* tasks */}
@@ -114,8 +112,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           },
         ]}
         handler={async (e: PendingActionEvent) => {
-          // await e.commit();
-          console.log('startTask', e.data);
+          // console.log('startTask', e.data);
           const { message } = e.data;
           const { args } = message;
           const task = new Task({
@@ -154,8 +151,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           },
         ]}
         handler={async (e: PendingActionEvent) => {
-          // await e.commit();
-          console.log('updateTask', e.data);
+          // console.log('updateTask', e.data);
           const { message } = e.data;
           const { args } = message;
           setTasks(tasks => {
@@ -197,8 +193,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           },
         ]}
         handler={async (e: PendingActionEvent) => {
-          // await e.commit();
-          console.log('endTask', e.data);
+          // console.log('endTask', e.data);
           const { message } = e.data;
           const { args } = message;
           setTasks(tasks => {

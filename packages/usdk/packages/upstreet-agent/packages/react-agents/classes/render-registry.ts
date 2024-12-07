@@ -179,12 +179,6 @@ export class AgentRegistry {
   unregisterDefer(key: symbol) {
     this.deferMap.set(key, null);
   }
-  registerTask(key: symbol, task: TaskProps) {
-    this.tasksMap.set(key, task);
-  }
-  unregisterTask(key: symbol) {
-    this.tasksMap.set(key, null);
-  }
   registerName(key: symbol, name: NameProps) {
     this.namesMap.set(key, name);
   }

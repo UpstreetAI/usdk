@@ -544,18 +544,6 @@ export type ConversationEventData = {
 
 export type MessageCacheUpdateArgs = null;
 
-export type TaskObject = {
-  id: any;
-  // name: string;
-  // description: string;
-  timestamp: Date,
-};
-export type TaskEventData = {
-  agent: ActiveAgentObject;
-  task: TaskObject;
-};
-export type TaskEvent = ExtendableMessageEvent<TaskEventData>;
-
 // task
 
 export type AutoTaskProps = {
@@ -650,20 +638,6 @@ export type DeferProps = {
 export type DeferPropsAux = DeferProps & {
   conversation?: ConversationObject;
 };
-export enum TaskResultEnum {
-  Schedule = 'schedule',
-  Idle = 'idle',
-  Done = 'done',
-}
-export type TaskResult = {
-  type: TaskResultEnum;
-  args: object;
-};
-export type TaskProps = {
-  // id: any;
-  handler: ((e: TaskEvent) => TaskResult) | ((e: TaskEvent) => Promise<TaskResult>);
-  onDone?: (e: TaskEvent) => void | Promise<void>;
-};
 
 //
 
@@ -745,7 +719,6 @@ export type AgentRegistry = {
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
   // perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
-  tasksMap: Map<symbol, TaskProps | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
   
@@ -758,7 +731,6 @@ export type AgentRegistry = {
   get actionModifiers(): ActionModifierPropsAux[];
   get perceptions(): PerceptionPropsAux[];
   get uniforms(): UniformPropsAux[];
-  get tasks(): TaskProps[];
   get names(): NameProps[];
   get personalities(): PersonalityProps[];
   get storeItems(): StoreItem[];
@@ -772,8 +744,6 @@ export type AgentRegistry = {
   unregisterPerception(key: symbol): void;
   registerDefer(key: symbol, defer: DeferPropsAux): void;
   unregisterDefer(key: symbol): void
-  registerTask(key: symbol, task: TaskProps): void;
-  unregisterTask(key: symbol): void;
   registerName(key: symbol, name: NameProps): void;
   unregisterName(key: symbol): void;
   registerPersonality(key: symbol, personality: PersonalityProps): void;
