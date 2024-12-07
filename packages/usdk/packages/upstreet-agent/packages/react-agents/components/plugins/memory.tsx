@@ -36,7 +36,10 @@ export const RAGMemory = (props: RAGMemoryProps) => {
             You remember the following:
             \`\`\`
           ` + '\n' +
-          JSON.stringify(memories, null, 2)
+          JSON.stringify(memories, null, 2) + '\n' +
+          dedent`\
+            \`\`\`
+          `
           }
         </Prompt>
       )}
