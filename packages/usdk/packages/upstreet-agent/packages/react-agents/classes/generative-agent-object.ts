@@ -66,20 +66,22 @@ export class GenerativeAgentObject {
   }
   async complete(
     messages: ChatMessages,
-    opts: SubtleAiCompleteOpts = {
-      model: this.agent.model,
-    },
+    opts?: SubtleAiCompleteOpts,
   ) {
-    return await this.agent.appContextValue.complete(messages, opts);
+    const model = opts?.model ?? this.agent.model;
+    return await this.agent.appContextValue.complete(messages, {
+      model,
+    });
   }
   async completeJson(
     messages: ChatMessages,
     format: ZodTypeAny,
-    opts: SubtleAiCompleteOpts = {
-      model: this.agent.model,
-    },
+    opts?: SubtleAiCompleteOpts,
   ) {
-    return await this.agent.appContextValue.completeJson(messages, format, opts);
+    const model = opts?.model ?? this.agent.model;
+    return await this.agent.appContextValue.completeJson(messages, format, {
+      model,
+    });
   }
   // async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
   //   return await this.agent.appContextValue.generateImage(prompt, opts);

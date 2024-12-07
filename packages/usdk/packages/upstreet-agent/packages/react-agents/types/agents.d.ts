@@ -54,10 +54,12 @@ export type GenerativeAgentObject =  {
   embed: (text: string) => Promise<Array<number>>;
   complete: (
     messages: ChatMessages,
+    opts?: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
   completeJson: (
     messages: ChatMessages,
     format: ZodTypeAny,
+    opts?: SubtleAiCompleteOpts,
   ) => Promise<ChatMessage>;
 
   act: (hint?: string, actOpts?: ActOpts) => Promise<any>;

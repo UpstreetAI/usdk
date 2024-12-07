@@ -100,7 +100,9 @@ export const RAGMemory = (props: RAGMemoryProps) => {
                   Summarize the new messages in a sentence or few. Include in your summary the interesting information that occurs in the new messages list above.
                 `,
               },
-            ]);
+            ], {
+              model: generativeAgent.agent.smallModel,
+            });
 
             // console.log('memorize', {
             //   oldContextMessages,
