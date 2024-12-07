@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { useAgent, useConversation } from 'react-agents';
-import dedent from 'dedent';
-import {
-  ActiveAgentObject,
-} from '../../types';
-import { Prompt } from '../core/prompt';
-import { DeferConversation } from '../core/conversation';
+import { useCachedMessages, useAgent, useConversation } from '../../hooks';
+// import dedent from 'dedent';
+// import {
+//   ActiveAgentObject,
+// } from '../../types';
+// import { Prompt } from '../core/prompt';
+// import { DeferConversation } from '../core/conversation';
 import { EveryNMessages } from '../util/message-utils';
 
-const maxDefaultMemoryValues = 8;
-const maxMemoryQueries = 8;
-const maxMemoryQueryValues = 3;
+// const maxDefaultMemoryValues = 8;
+// const maxMemoryQueries = 8;
+// const maxMemoryQueryValues = 3;
 
-const DefaultMemoriesInternal = () => {
+/* const DefaultMemoriesInternal = () => {
   const agent = useAgent();
   const conversation = useConversation();
   const [recentMemoriesValue, setRecentMemoriesValue] = useState<string[]>([]);
@@ -155,7 +155,6 @@ const MemoryWatcher = ({
   
   return allMemoryWatchers.length > 0 && (
     <>
-      {/* Memory prompt injection */}
       <Prompt>
         {dedent`\
           # Memory Watchers
@@ -168,7 +167,6 @@ const MemoryWatcher = ({
         `}
       </Prompt>
       <DeferConversation>
-        {/* trigger memory watcher refresh */}
         {allMemoryWatchers.map((memoryWatcher, index) => {
           return (
             <EveryNMessages n={1} key={memoryWatcher.query}>{() => {
@@ -227,7 +225,7 @@ const AddMemoryAction = () => {
   const agent = useAgent();
   return (
     <Action
-      name="addMemory"
+      type="addMemory"
       description={dedent`\
         Save a memory to the database in the form of a question and answer.
         Use this whenever there there is a new fact or detail that you want to remember.
@@ -294,7 +292,7 @@ const QueryMemoriesAction = ({
 }) => {
   return (
     <Action
-      name="queryMemories"
+      type="queryMemories"
       description={
         dedent`\
           This action lets you remember specific details better by focusing your attention on a question.
@@ -369,5 +367,14 @@ export const RAGMemory = () => {
       <DefaultMemories />
       <MemoryQueries />
     </>
+  );
+}; */
+
+export const RAGMemory = () => {
+  const messages = useCachedMessages();
+  return (
+    <EveryNMessages n={1}>{async (e) => {
+      console.log('got rag message', (e as any).data, messages);
+    }}</EveryNMessages>
   );
 };
