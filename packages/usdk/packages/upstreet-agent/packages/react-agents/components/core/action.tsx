@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useContext, forwardRef, useImperat
 import type {
   ActionProps,
   ActionModifierProps,
+  PendingActionEvent,
 } from '../../types';
 import {
   AgentContext,
@@ -18,12 +19,17 @@ export const Action = /*memo(*/(props: ActionProps) => {
   const symbol = useMemo(Symbol, []);
   const conversation = useContext(ConversationContext).conversation;
 
+  // default handler just commits the event
+  const handler = props.handler ?? (async (e: PendingActionEvent) => {
+    e.commit();
+  });
+
   const deps = [
-    props.name,
+    props.type,
     props.description,
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
-    props.handler?.toString() ?? '',
+    handler?.toString() ?? '',
     conversation,
   ];
 
@@ -31,6 +37,7 @@ export const Action = /*memo(*/(props: ActionProps) => {
     const props2 = {
       ...props,
       conversation,
+      handler,
     };
     agentRegistry.registerAction(symbol, props2);
     return () => {
@@ -51,7 +58,7 @@ export const ActionModifier = /*memo(*/(props: ActionModifierProps) => {
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
-    props.name,
+    props.type,
     props.handler.toString(),
     props.priority ?? null,
   ];

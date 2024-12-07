@@ -20,10 +20,11 @@ export const Uniform = (props: UniformProps) => {
   const conversation = useContext(ConversationContext).conversation;
 
   const deps = [
-    props.name,
+    props.type,
     props.description,
     printZodSchema(props.schema),
     JSON.stringify(props.examples),
+    props.priority ?? null,
     props.handler?.toString() ?? '',
     conversation,
   ];
