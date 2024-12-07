@@ -96,7 +96,7 @@ export const formatBasicSchema = ({
 }) => {
   const makeUnionSchema = (actions: ActionPropsAux[]) => {
     const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, actOpts)
-      .map(action => makeActionSchema(action.name, action.schema));
+      .map(action => makeActionSchema(action.type, action.schema));
     if (actionSchemas.length >= 2) {
       return z.union([
         z.null(),
@@ -113,7 +113,7 @@ export const formatBasicSchema = ({
     if (filteredUniforms.length > 0) {
       const o = {};
       for (const uniform of filteredUniforms) {
-        o[uniform.name] = uniform.schema;
+        o[uniform.type] = uniform.schema;
         // console.log('set uniform', uniform.name, printNode(zodToTs(uniform.schema).node));
       }
       return z.object(o);
