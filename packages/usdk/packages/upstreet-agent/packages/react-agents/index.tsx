@@ -7,7 +7,7 @@ export * from './components/util/default-components';
 export * from './components/plugins/discord';
 export * from './components/plugins/live-mode';
 export * from './components/plugins/media-generator';
-export * from './components/plugins/memory';
+export * from './components/plugins/rag-memory';
 export * from './components/util/message-utils';
 export * from './components/core/name';
 export * from './components/core/perception';
