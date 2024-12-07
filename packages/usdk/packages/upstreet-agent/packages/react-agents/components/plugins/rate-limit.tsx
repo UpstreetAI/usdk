@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
 import type { AbortablePerceptionEvent } from '../../types';
 import { useKv } from '../../hooks';
-import { PerceptionModifier } from '../core/perception';
+import { Perception } from '../core/perception';
 
-const defaultPriorityOffset = 100;
+const defaultPriorityOffset = -100;
 
 export type RateLimitProps = {
   maxUserMessages: number;
@@ -22,7 +22,7 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
   const kv = useKv();
 
   return (
-    <PerceptionModifier
+    <Perception
       type="say"
       handler={async (e: AbortablePerceptionEvent) => {
         const rateLimitingEnabled =
@@ -74,7 +74,7 @@ export const RateLimit: React.FC<RateLimitProps> = (props: RateLimitProps) => {
           }
         }
       }}
-      priority={-defaultPriorityOffset}
+      priority={defaultPriorityOffset}
     />
   );
 };

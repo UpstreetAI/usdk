@@ -20,7 +20,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
 
   return (
     <ActionModifier
-      name="say"
+      type="say"
       handler={async (e: AbortableActionEvent) => {
         const { message, agent } = e.data;
         const args = message.args as any;

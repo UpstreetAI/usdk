@@ -79,7 +79,7 @@ const StoreActions = () => {
     <>
       {!!agent.stripeConnectAccountId && storeItems.length > 0 && (
         <Action
-          name="paymentRequest"
+          type="paymentRequest"
           description={dedent`\
             Request payment or a subscription for an item available in the store.
           `}

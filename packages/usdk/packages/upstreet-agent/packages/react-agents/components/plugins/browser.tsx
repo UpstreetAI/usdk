@@ -422,7 +422,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const browserAction = 'browserAction';
   return (
     <Action
-      name={browserAction}
+      type={browserAction}
       description={
         dedent`\
           Perform a web browsing action.

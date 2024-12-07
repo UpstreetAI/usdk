@@ -73,7 +73,7 @@ const VideoPerceptionInner = (props: VideoPerceptionProps) => {
 
     return attachments.length > 0 && (
       <Action
-        name="mediaPerception"
+        type="mediaPerception"
         description={
           dedent`\
             Query multimedia content using natural language questions + answers.
