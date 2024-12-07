@@ -459,10 +459,6 @@ export type ActiveAgentObject = AgentObject & {
   useAuthToken: () => string;
   useSupabase: () => any;
 
-  // useActions: () => Array<ActionProps>;
-  // useName: () => string;
-  // usePersonality: () => string;
-
   useWallets: () => object[];
 
   useEpoch: (deps: any[]) => void;
@@ -488,7 +484,7 @@ export type ActiveAgentObject = AgentObject & {
 
 // abstract events
 
-export type PendingMessageEvent<T> = MessageEvent<T> & {
+export type PendingMessageEvent = MessageEvent & {
   commit: () => Promise<void>;
 };
 export type AbortableMessageEvent<T> = MessageEvent<T> & {
@@ -502,15 +498,15 @@ export type PendingActionEventData = {
   agent: GenerativeAgentObject;
   message: PendingActionMessage;
 };
-export type PendingActionEvent = PendingMessageEvent<PendingActionEventData>;
-export type AbortableActionEvent = AbortableMessageEvent<PendingActionEventData>;
 export type ActionEvent = MessageEvent<PendingActionEventData>;
+export type PendingActionEvent = AbortableMessageEvent<PendingActionEventData> & PendingMessageEvent;
+export type PendingUniformEvent = AbortableMessageEvent<PendingActionEventData>;
 
 export type LiveTriggerEventData = {
   agent: AgentObject;
   conversation: ConversationObject;
 };
-export type LiveTriggerEvent = PendingMessageEvent<LiveTriggerEventData>;
+export type LiveTriggerEvent = PendingMessageEvent;
 
 export type AgentEventData = {
   agent: AgentObject;
@@ -590,7 +586,7 @@ export type ConversationInstanceProps = {
 };
 
 export type ActionProps = {
-  name: string;
+  type: string;
   description: string;
   state?: string;
   schema: ZodTypeAny;
@@ -599,10 +595,11 @@ export type ActionProps = {
 };
 export type ActionPropsAux = ActionProps & {
   conversation: ConversationObject;
+  handler: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
 };
 export type ActionModifierProps = {
-  name: string;
-  handler: ((e: AbortableActionEvent) => void) | ((e: AbortableActionEvent) => Promise<void>);
+  type: string;
+  handler: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
   priority?: number;
 };
 export type ActionModifierPropsAux = ActionModifierProps & {
@@ -617,29 +614,25 @@ export type PromptPropsAux = PromptProps & {
 export type PerceptionProps = {
   type: string;
   state?: string;
-  handler: ((e: PerceptionEvent) => void) | ((e: PerceptionEvent) => Promise<void>);
+  priority?: number;
+  handler: ((e: AbortablePerceptionEvent) => void) | ((e: AbortablePerceptionEvent) => Promise<void>);
 };
 export type PerceptionPropsAux = PerceptionProps & {
   conversation: ConversationObject;
-};
-export type PerceptionModifierProps = {
-  type: string;
-  handler: ((e: AbortablePerceptionEvent) => void) | ((e: AbortablePerceptionEvent) => Promise<void>);
   priority?: number;
 };
-export type PerceptionModifierPropsAux = PerceptionModifierProps & {
-  conversation?: ConversationObject;
-};
 export type UniformProps = {
-  name: string;
+  type: string;
   description: string;
   state?: string;
   schema: ZodTypeAny;
   examples: Array<object>,
-  handler?: ((e: ActionEvent) => void) | ((e: ActionEvent) => Promise<void>);
+  priority?: number;
+  handler: ((e: ActionEvent) => void) | ((e: ActionEvent) => Promise<void>);
 };
 export type UniformPropsAux = UniformProps & {
   conversation: ConversationObject;
+  priority?: number;
 };
 export type DeferProps = {
   children: ReactNode;
@@ -740,7 +733,7 @@ export type AgentRegistry = {
   actionsMap: Map<symbol, ActionPropsAux | null>;
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null>;
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
-  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
+  // perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
   tasksMap: Map<symbol, TaskProps | null>;
 
@@ -754,7 +747,6 @@ export type AgentRegistry = {
   get actions(): ActionPropsAux[];
   get actionModifiers(): ActionModifierPropsAux[];
   get perceptions(): PerceptionPropsAux[];
-  get perceptionModifiers(): PerceptionModifierPropsAux[];
   get uniforms(): UniformPropsAux[];
   get tasks(): TaskProps[];
   get names(): NameProps[];
@@ -768,8 +760,6 @@ export type AgentRegistry = {
   unregisterActionModifier(key: symbol): void;
   registerPerception(key: symbol, perception: PerceptionPropsAux): void;
   unregisterPerception(key: symbol): void;
-  registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux): void;
-  unregisterPerceptionModifier(key: symbol): void;
   registerDefer(key: symbol, defer: DeferPropsAux): void;
   unregisterDefer(key: symbol): void
   registerTask(key: symbol, task: TaskProps): void;
