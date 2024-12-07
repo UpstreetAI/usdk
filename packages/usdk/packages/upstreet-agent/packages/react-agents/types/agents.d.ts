@@ -556,6 +556,12 @@ export type TaskEventData = {
 };
 export type TaskEvent = ExtendableMessageEvent<TaskEventData>;
 
+// task
+
+export type AutoTaskProps = {
+  hint: string;
+};
+
 // scenes
 
 export interface SceneObject extends EventTarget {
