@@ -10,12 +10,17 @@ import { QueueManager } from '../../../queue-manager';
 
 const memoryPriority = -1;
 const maxDefaultMemoryValues = 8;
-const writeEveryN = 1;
+const defaultChunkMessages = 4;
 
-export const RAGMemory = () => {
+type RAGMemoryProps = {
+  chunkMessages: number;
+};
+
+export const RAGMemory = (props: RAGMemoryProps) => {
+  const chunkMessages = props.chunkMessages ?? defaultChunkMessages;
+
   const agent = useAgent();
   const conversation = useConversation();
-  // const messages = useCachedMessages();
   const [generativeAgent, setGenerativeAgent] = useState(() => agent.generative({
     conversation,
   }));
@@ -48,7 +53,7 @@ export const RAGMemory = () => {
         setMemories(memories);
       }}</EveryNMessages>
       {/* write memories asynchronously */}
-      <EveryNMessages n={writeEveryN} priority={memoryPriority} firstCallback={false}>{(e) => {
+      <EveryNMessages n={chunkMessages} priority={memoryPriority} firstCallback={false}>{(e) => {
         (async () => {
           await queueManager.waitForTurn(async () => {
             const cachedMessages = conversation.messageCache.getMessages();
@@ -65,9 +70,9 @@ export const RAGMemory = () => {
               };
             });
 
-            const lastMessages = memories.slice(-(maxDefaultMemoryValues + writeEveryN));
-            const oldContextMessages = lastMessages.slice(0, -writeEveryN);
-            const newContextMessages = lastMessages.slice(-writeEveryN);
+            const lastMessages = memories.slice(-(maxDefaultMemoryValues + chunkMessages));
+            const oldContextMessages = lastMessages.slice(0, -chunkMessages);
+            const newContextMessages = lastMessages.slice(-chunkMessages);
 
             const summary = await generativeAgent.complete([
               {
