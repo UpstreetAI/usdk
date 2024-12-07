@@ -8,9 +8,9 @@ import type {
   AutoTaskProps,
   PendingActionEvent,
 } from '../../types';
-import {
-  AppContext,
-} from '../../context';
+// import {
+//   AppContext,
+// } from '../../context';
 import {
   Prompt,
 } from '../core/prompt';
@@ -45,7 +45,7 @@ class Task {
 
 export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
   // const agent = useAgent();
-  const appContextValue = useContext(AppContext);
+  // const appContextValue = useContext(AppContext);
   // const codecs = appContextValue.useCodecs();
   // const authToken = useAuthToken();
   const [uuid, setUuid] = useState(() => crypto.randomUUID());
@@ -62,16 +62,15 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
 
             You are currently managing the following tasks:
 
-            ${JSON.stringify(tasks, null, 2)}
-
-            ${
-              hint ?
-                dedent`
-                  Follow this user-provided hint:
-                  ${hint}
-                ` : ''
-            }
-          `
+          ` + '\n' +
+          JSON.stringify(tasks, null, 2) + '\n' +
+          (
+            hint ?
+              dedent`\
+                Follow this user-provided hint:
+                ${hint}
+              ` : ''
+          )
         }
       </Prompt>
       <Action
