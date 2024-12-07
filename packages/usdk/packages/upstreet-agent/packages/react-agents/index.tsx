@@ -23,5 +23,7 @@ export * from './components/plugins/twitter-spaces';
 export * from './components/plugins/twitter';
 export * from './components/core/uniform';
 export * from './components/plugins/video-perception';
+export * from './loops/chat-loop';
+export * from './loops/action-loop';
 
 export * from './hooks';
