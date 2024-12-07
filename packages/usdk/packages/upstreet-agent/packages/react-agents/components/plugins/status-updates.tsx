@@ -26,7 +26,7 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
 
   return (
     <Action
-      name="statusUpdate"
+      type="statusUpdate"
       description={
         dedent`\
           Post to social media about what interesting things you are up to.

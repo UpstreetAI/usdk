@@ -5,7 +5,7 @@ import { ReACTEvaluator } from '../evaluators/react-evaluator';
 // import { PerceptionEvent } from '../classes/perception-event';
 import { ConversationObject } from '../classes/conversation-object';
 
-export const InfiniteLoop = (props: LoopProps) => {
+export const ActionLoop = (props: LoopProps) => {
   if (props.evaluator && (props.hint || props.actOpts)) {
     throw new Error('Cannot provide both evaluator and hint/actOpts');
   }

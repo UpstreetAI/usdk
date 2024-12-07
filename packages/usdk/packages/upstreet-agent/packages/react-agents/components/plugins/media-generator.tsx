@@ -228,7 +228,7 @@ export const MediaGenerator = () => {
   return (
     <>
       <Action
-        name="sendMedia"
+        type="sendMedia"
         description={dedent`\
           Send simulated multimedia content as a media attachment.
 
