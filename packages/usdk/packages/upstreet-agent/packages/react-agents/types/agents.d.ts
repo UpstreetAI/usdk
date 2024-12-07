@@ -34,6 +34,8 @@ export type AgentObject = EventTarget & {
   bio: string;
   previewUrl: string;
   model: string;
+  smallModel: string;
+  largeModel: string;
   address: string;
   stripeConnectAccountId: string;
 };

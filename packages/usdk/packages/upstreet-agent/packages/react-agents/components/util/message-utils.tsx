@@ -70,10 +70,10 @@ export const EveryNMessages = ({
           //   signal,
           // });
 
-          const abortController = new AbortController();
-          const { signal } = abortController;
+          // const abortController = new AbortController();
+          // const { signal } = abortController;
 
-          children(e);
+          await children(e);
         }}
         priority={priority}
       />
@@ -89,10 +89,10 @@ export const EveryNMessages = ({
           //   signal,
           // });
 
-          const abortController = new AbortController();
-          const { signal } = abortController;
+          // const abortController = new AbortController();
+          // const { signal } = abortController;
 
-          children(e);
+          await children(e);
         }}
         priority={priority}
       />
