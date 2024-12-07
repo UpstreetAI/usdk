@@ -118,7 +118,7 @@ export class AgentRegistry {
       const conversationActionExists = Array.from(this.actionsMap.values())
         .some((a) => {
           if (a) {
-            return a.name === action.name && a.conversation === action.conversation;
+            return a.type === action.type && a.conversation === action.conversation;
           } else {
             return false;
           }
