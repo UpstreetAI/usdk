@@ -133,5 +133,9 @@
     "tar": "7.2.0",
     "undici": "6.18.2",
     "whatwg-url": "14.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "@types/node": "^18.0.0"
   }
 }
