@@ -1,11 +1,23 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAgent, useConversation } from '../hooks';
 import { LoopProps } from './types';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
 // import { PerceptionEvent } from '../classes/perception-event';
 import { ConversationObject } from '../classes/conversation-object';
+import { DeferConversation } from '../components/core/conversation';
 
-export const InfiniteLoop = (props: LoopProps) => {
+export const ActionLoop = (props: LoopProps) => {
+  return (
+    // XXX this defer is here because otherwise the agent will try to send messages before a multiplayer connection is established
+    // XXX we can remove this if we wait for multiplayer connection before sending new messages
+    <DeferConversation>
+      <ActionLoopInner {...props}>
+        {props.children}
+      </ActionLoopInner>
+    </DeferConversation>
+  );
+};
+const ActionLoopInner = (props: LoopProps) => {
   if (props.evaluator && (props.hint || props.actOpts)) {
     throw new Error('Cannot provide both evaluator and hint/actOpts');
   }

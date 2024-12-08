@@ -17,6 +17,7 @@ import {
 } from '../../hooks';
 import { Prompt } from '../core/prompt';
 import { ChatLoop } from '../../loops/chat-loop';
+// import { ActionLoop } from '../../loops/action-loop';
 import { ChatActions } from '../core/chat';
 import {
   formatActionsPrompt,
@@ -35,7 +36,7 @@ export const DefaultAgentComponents = () => {
       <DefaultActions />
       <DefaultPrompts />
       <ChatLoop />
-      {/* <InfiniteLoop /> */}
+      {/* <ActionLoop /> */}
     </>
   );
 };

@@ -7,7 +7,7 @@ export const ChatActions = () => {
   return (
     <>
       <Action
-        name="say"
+        type="say"
         description={dedent`\
           Say something in the chat.
         `}
