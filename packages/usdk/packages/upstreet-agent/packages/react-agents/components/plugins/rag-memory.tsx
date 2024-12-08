@@ -6,7 +6,7 @@ import {
 import { Prompt } from '../core/prompt';
 import { useCachedMessages, useAgent, useConversation } from '../../hooks';
 import { EveryNMessages } from '../util/message-utils';
-import { QueueManager } from '../../../queue-manager';
+import { QueueManager } from 'queue-manager';
 
 const memoryPriority = -1;
 const maxDefaultMemoryValues = 8;
