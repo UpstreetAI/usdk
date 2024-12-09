@@ -116,7 +116,7 @@ export class Interactor extends EventTarget {
             content: text,
           });
         }
-        const o = await fetchJsonCompletion({
+        const o = JSON.parse(await fetchJsonCompletion({
           model: defaultModels[0],
           messages,
         }, z.object({
@@ -128,7 +128,7 @@ export class Interactor extends EventTarget {
           done: z.boolean(),
         }), {
           jwt,
-        });
+        }));
         const updateObject = this.formatFn(o.updateObject);
         if (updateObject) {
           for (const key in updateObject) {
@@ -169,14 +169,14 @@ export class Interactor extends EventTarget {
           });
         }
 
-        let o = await fetchJsonCompletion({
+        let o = JSON.parse(await fetchJsonCompletion({
           model: defaultModels[0],
           messages,
         }, z.object({
           output: objectFormat,
         }), {
           jwt,
-        });
+        }));
 
         o = {
           response: '',
