@@ -1,9 +1,19 @@
 import { zodResponseFormat } from 'openai/helpers/zod';
+import dedent from 'dedent';
 // import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
 import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 import { NotEnoughCreditsError } from './error-utils.mjs';
+import zodToJsonSchemaImpl from 'zod-to-json-schema';
+
+const jsonParse = (s) => {
+  try {
+    return JSON.parse(s);
+  } catch (e) {
+    return null;
+  }
+};
 
 const fetchChatCompletionFns = {
   openai: async ({ model, messages, format, stream, signal }, {
@@ -80,7 +90,7 @@ const fetchChatCompletionFns = {
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  together: async ({ model, messages, format, stream, signal }, {
+  /* together: async ({ model, messages, format, stream, signal }, {
     jwt,
   }) => {
     if (!jwt) {
@@ -115,7 +125,7 @@ const fetchChatCompletionFns = {
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  lambda: async ({ model, messages, format, stream, signal }, {
+  lambdalabs: async ({ model, messages, format, stream, signal }, {
     jwt,
   }) => {
     if (!jwt) {
@@ -124,7 +134,7 @@ const fetchChatCompletionFns = {
 
     const response_format = format && zodResponseFormat(format, 'result');
 
-    const lambdaEndpointUrl = `https://${aiProxyHost}/api/lambda`;
+    const lambdaEndpointUrl = `https://${aiProxyHost}/api/lambdalabs`;
     const res = await fetch(`${lambdaEndpointUrl}/chat/completions`, {
       method: 'POST',
 
@@ -149,7 +159,7 @@ const fetchChatCompletionFns = {
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
-  },
+  }, */
   openrouter: async ({ model, messages, format, stream, signal }, {
     jwt,
   }) => {
@@ -157,10 +167,99 @@ const fetchChatCompletionFns = {
       throw new Error('no jwt');
     }
 
-    const response_format = format && zodResponseFormat(format, 'result');
+    const o = {
+      model,
+      messages,
+      stream,
+    };
+    const mode = (() => {
+      if (format) {
+        if (/hermes-3/.test(model)) {
+          return 'prompt';
+        } else {
+          return 'structuredOutput';
+        }
+      } else {
+        return 'none';
+      }
+    })();
+    switch (mode) {
+      case 'prompt': {
+        // const omit = (o, keys) => {
+        //   const r = {};
+        //   for (const k in o) {
+        //     if (!keys.includes(k)) {
+        //       r[k] = o[k];
+        //     }
+        //   }
+        //   return r;
+        // };
+        // const zodToJsonSchema = (schema) => {
+        //   return omit(
+        //     zodToJsonSchemaImpl(schema, { $refStrategy: 'none' }),
+        //     [
+        //       '$ref',
+        //       '$schema',
+        //       'default',
+        //       'definitions',
+        //       'description',
+        //       'markdownDescription',
+        //     ],
+        //   );
+        // };
+
+        const jsonSchema = zodToJsonSchemaImpl(format);
+        // console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
+        o.messages = messages.slice().concat([
+          {
+            role: 'user',
+            content: dedent`\
+              Your output must match the following JSON schema:
+              \`\`\`
+            ` + '\n' + JSON.stringify(jsonSchema, null, 2) + '\n' + dedent`\
+              \`\`\`
+            `,
+          },
+        ]);
+        o.response_format = 'json';
+        // process.exit(1);
+        break;
+      }
+      case 'tool': {
+        const jsonSchema = zodToJsonSchemaImpl(format);
+        const tools = jsonSchema.properties.action.anyOf.map(schema => {
+          const { type } = schema;
+          if (type === 'object') {
+            const name = schema.properties.method.const;
+            const description = schema.description || `Execute the ${name} action`;
+            const parameters = schema.properties.args;
+            return {
+              type: 'function',
+              function: {
+                name,
+                description,
+                parameters,
+              },
+            };
+          } else {
+            return null;
+          }
+        }).filter(Boolean);
+        // console.log('got json schema', tools);
+        o.tools = tools;
+        o.tool_choice = 'required';
+        break;
+      }
+      case 'structuredOutput': {
+        const response_format = format && zodResponseFormat(format, 'result');
+        o.response_format = response_format;
+        break;
+      }
+    }
 
     const openrouterEndpointUrl = `https://${aiProxyHost}/api/openrouter`;
-    const res = await fetch(`${openrouterEndpointUrl}/chat/completions`, {
+    const u = `${openrouterEndpointUrl}/chat/completions`;
+    const res = await fetch(u, {
       method: 'POST',
 
       headers: {
@@ -168,24 +267,36 @@ const fetchChatCompletionFns = {
         Authorization: `Bearer ${jwt}`,
       },
 
-      body: JSON.stringify({
-        model,
-        messages,
-        response_format,
-        stream,
-      }),
+      body: JSON.stringify(o),
       signal,
     });
     if (res.ok) {
       const j = await res.json();
-      const content = j.choices[0].message.content;
-      return content;
+      // console.log('got response content', JSON.stringify(j, null, 2));
+      const contentString = j.choices[0].message.content;
+      if (mode === 'prompt') {
+        let content = jsonParse(contentString);
+        // try to parse with the zod schema, format
+        // try {
+        if (content !== null) {
+          content = format.parse(content);
+        }
+        // } catch (e) {
+        //   console.error('error parsing content with zod schema', e);
+        // }
+        return content;
+      } else {
+        return contentString;
+      }
     } else {
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
 };
+
+//
+
 export const fetchChatCompletion = async ({
   model = defaultModel,
   messages,
