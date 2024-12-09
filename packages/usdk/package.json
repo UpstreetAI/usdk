@@ -134,7 +134,7 @@
     "whatwg-url": "14.0.0"
   },
   "devDependencies": {
-    "jest": "^29.0.0",
-    "@types/node": "^18.0.0"
+    "@types/node": "^18.0.0",
+    "jest": "^29.0.0"
   }
 }
