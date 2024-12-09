@@ -18,30 +18,49 @@ export class TwitterScraperClient extends TwitterBase {
   }
 
   async start() {
-    // const cookiesKey = `twitter:cookies:${this.auth.username}`;
+    const cookiesKey = `twitter:cookies:${this.auth.username}`;
     
-    // const cookies = await this.kv.get(cookiesKey);
-    // if (cookies) {
-    //   await this.scraper.setCookies(cookies);
-    //   if (await this.scraper.isLoggedIn()) {
-    //     return;
-    //   }
-    // }
+    const cookies = await this.kv.get(cookiesKey);
+    if (cookies) {
+      const cookieStrings = cookies.map(cookie => {
+        const domain = cookie.domain?.startsWith('.') ? cookie.domain : `.${cookie.domain}`;
+        const expires = cookie.expires ? new Date(cookie.expires).toUTCString() : undefined;
+        
+        return `${cookie.name || cookie.key}=${cookie.value}; Domain=${domain}; Path=${cookie.path || '/'}${expires ? `; Expires=${expires}` : ''}${cookie.httpOnly ? '; HttpOnly' : ''}${cookie.secure ? '; Secure' : ''}; SameSite=${cookie.sameSite || 'Lax'}`;
+      });
+      
+      await this.scraper.setCookies(cookieStrings);
+      if (await this.scraper.isLoggedIn()) {
+        console.log('Already logged in with cookies');
+        this.startTweetHandlingAndPolling();
+        return;
+      }
+    }
 
     const { username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret } = this.auth;
-    
-    console.log('logging in with api key');
+
+
+    if (!username || !password) {
+      throw new Error('Username and password are required');
+    }
+
     if (apiKey && apiSecretKey && accessToken && accessTokenSecret) {
+      console.log('logging in with api key');
       await this.scraper.login(username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret);
     } else {
-      await this.scraper.login(username, password);
+      console.log('logging in with username and password');
+      await this.scraper.login(username, password, email);
     }
 
     console.log('logged in');
 
     const newCookies = await this.scraper.getCookies();
-    // await this.kv.set(cookiesKey, newCookies);
+    await this.kv.set(cookiesKey, newCookies);
 
+    this.startTweetHandlingAndPolling();
+  }
+
+  private startTweetHandlingAndPolling() {
     const _handleTweet = async (tweet: any, author: any) => {
       const { id: tweetId, text, conversation_id } = tweet;
       const { id: authorId } = author.data;
@@ -112,7 +131,8 @@ export class TwitterScraperClient extends TwitterBase {
 
           if (mentionsData.length > 0) {
             const tweetPromises = mentionsData.map(async (tweet) => {
-              const author = await this.scraper.getProfile(tweet.author_id);
+              console.log('tweet', tweet);
+              const author = await this.scraper.getProfile(tweet.author.username);
               await _handleTweet(tweet, author);
             });
             await Promise.all(tweetPromises);
