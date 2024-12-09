@@ -59,6 +59,7 @@ const ActionLoopInner = (props: LoopProps) => {
         signal,
       });
       console.log('infinite loop tick 2');
+      if (signal.aborted) return;
 
       await recurse();
     };
