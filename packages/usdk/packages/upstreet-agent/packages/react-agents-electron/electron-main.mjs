@@ -243,6 +243,8 @@ const openFrontend = async ({
         session: session.fromPartition('login'),
         // nodeIntegration: true,
         preload: path.join(__dirname, 'preload.mjs'),
+        contextIsolation: true,
+        enableRemoteModule: false,
       },
     });
     if (debug >= debugLevels.SILLY) {
