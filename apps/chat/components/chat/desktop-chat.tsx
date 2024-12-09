@@ -146,7 +146,7 @@ export function DesktopChat({ className, room }: ChatProps) {
   const agentMessages = messages.filter(message => message.display && !message.display.props.isOwnMessage && message.display.props.name);
 
   const appQuit = () => {
-    (window as any).electron.ipcRenderer.send('app:quit');
+    (window as any).electron.send('app:quit');
   }
   
   return (
