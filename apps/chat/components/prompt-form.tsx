@@ -19,12 +19,14 @@ export function PromptForm({
   embed,
   desktop,
   mode,
+  scrollToBottom,
   setInput
 }: {
   input: string
   embed?: boolean
   desktop?: boolean
   mode?: "web" | "desktop" | "embed"
+  scrollToBottom: () => void
   setInput: (value: string) => void
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false)
@@ -69,6 +71,7 @@ export function PromptForm({
     setInput('')
     if (value) {
       sendChatMessage(value)
+      scrollToBottom()
     } else if (canContinue) {
       nudgeContinue()
     }
