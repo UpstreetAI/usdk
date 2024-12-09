@@ -67,7 +67,7 @@ type AgentData = {
 function AgentAvatar({ agent, className }: { agent: AgentData, className?: string }) {
   console.log('agent', agent);
   return <div className={cn('relative flex overflow-hidden', className)}>
-    {agent && <img src={agent.previewUrl} alt={agent.name} className='w-[80px] h-[80px] mt-auto object-cover' />}
+    {agent && <img src={agent.previewUrl || '/images/user.png'} alt={agent.name} className='w-full h-full' />}
   </div>;
 }
 
