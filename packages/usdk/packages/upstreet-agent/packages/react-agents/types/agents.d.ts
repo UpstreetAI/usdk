@@ -138,10 +138,13 @@ export type DiscordArgs = {
 // twitter
 
 export type TwitterProps = {
-  token: string;
-};
+  type: 'api' | 'scraper';
+} & (
+  | { type: 'api'; token: string }
+  | TwitterScraperAuth
+);
 export type TwitterArgs = {
-  token: string;
+  auth: TwitterApiAuth | TwitterScraperAuth;
   agent: ActiveAgentObject;
   kv: any;
   codecs: any;

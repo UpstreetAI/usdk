@@ -18,25 +18,29 @@ export class TwitterScraperClient extends TwitterBase {
   }
 
   async start() {
-    const cookiesKey = `twitter:cookies:${this.auth.username}`;
+    // const cookiesKey = `twitter:cookies:${this.auth.username}`;
     
-    const cookies = await this.kv.get(cookiesKey);
-    if (cookies) {
-      await this.scraper.setCookies(cookies);
-      if (await this.scraper.isLoggedIn()) {
-        return;
-      }
-    }
+    // const cookies = await this.kv.get(cookiesKey);
+    // if (cookies) {
+    //   await this.scraper.setCookies(cookies);
+    //   if (await this.scraper.isLoggedIn()) {
+    //     return;
+    //   }
+    // }
 
     const { username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret } = this.auth;
+    
+    console.log('logging in with api key');
     if (apiKey && apiSecretKey && accessToken && accessTokenSecret) {
       await this.scraper.login(username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret);
     } else {
       await this.scraper.login(username, password);
     }
 
+    console.log('logged in');
+
     const newCookies = await this.scraper.getCookies();
-    await this.kv.set(cookiesKey, newCookies);
+    // await this.kv.set(cookiesKey, newCookies);
 
     const _handleTweet = async (tweet: any, author: any) => {
       const { id: tweetId, text, conversation_id } = tweet;
@@ -94,9 +98,17 @@ export class TwitterScraperClient extends TwitterBase {
       try {
         await queueManager.waitForTurn(async () => {
           const user = await this.scraper.getProfile(this.auth.username);
-          const mentions = await this.scraper.getTweetsAndReplies(user.username);
+          const mentions = this.scraper.getTweetsAndReplies(user.username);
+
+          console.log('mentions', mentions);
+          console.log('user', user);
+
           const seenTweetIds = await this.kv.get(`twitter:seenTweetIds`, []);
-          const mentionsData = mentions.filter(tweet => !seenTweetIds.includes(tweet.id));
+          const mentionsArray = [];
+          for await (const tweet of mentions) {
+            mentionsArray.push(tweet);
+          }
+          const mentionsData = mentionsArray.filter(tweet => !seenTweetIds.includes(tweet.id));
 
           if (mentionsData.length > 0) {
             const tweetPromises = mentionsData.map(async (tweet) => {
