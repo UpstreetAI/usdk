@@ -424,7 +424,8 @@ export const fetchJsonCompletion = async ({
       }, {
         jwt,
       });
-      return result;
+      const response = JSON.parse(result);
+      return response;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
