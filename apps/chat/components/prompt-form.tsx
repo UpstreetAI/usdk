@@ -323,7 +323,7 @@ export function PromptForm({
       </div>
 
       <div>
-        <IconButton icon="Heaset" />
+        <IconButton icon="Headset" size="small" className="p-4" active={mode === "desktop"} />
       </div>
       </div>
     </form>
