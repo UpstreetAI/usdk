@@ -23,7 +23,7 @@ export abstract class TwitterBase {
   }
 
   protected makePlayerFromAuthor(author: any): Player {
-    const { id, username } = author.data;
+    const { id, username } = author;
     return new Player(id, {
       name: username,
     });

@@ -22,6 +22,7 @@ export class TwitterScraperClient extends TwitterBase {
     
     const cookies = await this.kv.get(cookiesKey);
     if (cookies) {
+      console.log('cookies', cookies);
       const cookieStrings = cookies.map(cookie => {
         const domain = cookie.domain?.startsWith('.') ? cookie.domain : `.${cookie.domain}`;
         const expires = cookie.expires ? new Date(cookie.expires).toUTCString() : undefined;
@@ -62,18 +63,17 @@ export class TwitterScraperClient extends TwitterBase {
 
   private startTweetHandlingAndPolling() {
     const _handleTweet = async (tweet: any, author: any) => {
-      const { id: tweetId, text, conversation_id } = tweet;
-      const { id: authorId } = author.data;
+      const { id: tweetId, text, conversationId, userId } = tweet;
 
-      let conversation = this.conversations.get(conversation_id);
+      let conversation = this.conversations.get(conversationId);
       if (!conversation) {
         conversation = new ConversationObject({
           agent: this.agent,
-          getHash: () => `twitter:conversation:${conversation_id}`,
+          getHash: () => `twitter:conversation:${conversationId}`,
         });
 
         this.agent.conversationManager.addConversation(conversation);
-        this.conversations.set(conversation_id, conversation);
+        this.conversations.set(conversationId, conversation);
 
         bindConversationToAgent({
           agent: this.agent,
@@ -87,7 +87,7 @@ export class TwitterScraperClient extends TwitterBase {
       }
 
       const player = this.makePlayerFromAuthor(author);
-      conversation.addAgent(authorId, player);
+      conversation.addAgent(userId, player);
 
       const rawMessage = {
         method: 'say',
@@ -99,8 +99,10 @@ export class TwitterScraperClient extends TwitterBase {
         agent: this.agent,
       });
 
+      console.log('newMessage', newMessage);
       const steps = await conversation.addLocalMessage(newMessage);
-
+      console.log('steps', steps);
+      
       const actions = steps.map(step => step.action).filter(Boolean);
       for (const message of actions) {
         const { method, args } = message;
@@ -132,7 +134,8 @@ export class TwitterScraperClient extends TwitterBase {
           if (mentionsData.length > 0) {
             const tweetPromises = mentionsData.map(async (tweet) => {
               console.log('tweet', tweet);
-              const author = await this.scraper.getProfile(tweet.author.username);
+              const author = await this.scraper.getProfile(tweet.username);
+              console.log('author', author);
               await _handleTweet(tweet, author);
             });
             await Promise.all(tweetPromises);
