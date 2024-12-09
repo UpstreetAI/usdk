@@ -93,6 +93,8 @@ export function PromptForm({
     }
   }
 
+  const buttonClass = cn("flex justify-start relative border rounded-none border-1 mb-1 bg-zinc-100 text-zinc-900 overflow-hidden")
+
   return (
     <form onSubmit={async (e: any) => {
       e.preventDefault()
@@ -100,10 +102,10 @@ export function PromptForm({
       <div className="flex w-full">
       <div className="relative flex max-h-60 w-full grow flex-col px-8 bg-slate-100 sm:border sm:px-12">
         {mediaPickerOpen && (
-          <div className="absolute left-0 bottom-16 py-2 flex flex-col border rounded">
+          <div className="absolute left-0 bottom-full flex flex-col bg-background p-1 pb-0">
             <Button
               variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              className={buttonClass}
             >
               <input className="absolute -top-12 bottom-0 -left-12 right-0 cursor-pointer" type="file" onChange={e => {
                 const files: File[] = Array.from((e.target as any).files);
@@ -117,7 +119,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!microphoneSource) {
                   const audioContext = await ensureAudioContext()
@@ -171,7 +173,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!cameraSource) {
                   const devices = await navigator.mediaDevices.enumerateDevices()
@@ -221,7 +223,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!screenSource) {
                   const mediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -263,7 +265,7 @@ export function PromptForm({
             </Button>
             {desktop && <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 console.log('control click')
               }}
