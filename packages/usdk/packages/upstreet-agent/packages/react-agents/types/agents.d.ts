@@ -148,6 +148,22 @@ export type TwitterArgs = {
   jwt: string;
 };
 
+export type TwitterScraperAuth = {
+  type: 'scraper';
+  username: string;
+  password: string;
+  email: string;
+  apiKey?: string;
+  apiSecretKey?: string;
+  accessToken?: string;
+  accessTokenSecret?: string;
+};
+
+export type TwitterApiAuth = {
+  type: 'api';
+  token: string;
+};
+
 // twitter spaces
 
 export type TwitterSpacesProps = {
