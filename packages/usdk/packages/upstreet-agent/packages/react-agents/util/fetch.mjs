@@ -105,7 +105,8 @@ const fetchChatCompletionFns = {
       messages,
       // response_format,
       stream,
-      max_tokens: 8192, // maximum allowed for claude
+      // max_tokens: 8192, // maximum allowed for claude
+      max_tokens: 2000,
     };
 
     const jsonSchema = zodToJsonSchemaImpl(format);
