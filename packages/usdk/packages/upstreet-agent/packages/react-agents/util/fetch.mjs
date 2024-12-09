@@ -108,13 +108,8 @@ const fetchChatCompletionFns = {
       max_tokens: 8192, // maximum allowed for claude
     };
 
-    const response_format = format && zodResponseFormat(format, 'result');
-    // if (response_format) {
-    //   throw new Error('response_format not supported for anthropic');
-    // }
-
     const jsonSchema = zodToJsonSchemaImpl(format);
-    console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
+    // console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
     let tools = jsonSchemaToTools(jsonSchema);
     tools = toolsToAnthropic(tools);
     tools = tools.concat([
@@ -145,16 +140,8 @@ const fetchChatCompletionFns = {
     });
     if (res.ok) {
       const j = await res.json();
-      console.log('got anthropic response', JSON.stringify(j, null, 2));
+      // console.log('got anthropic response', JSON.stringify(j, null, 2));
       const toolJson = j.content[0];
-      // = {
-      //   "type": "tool_use",
-      //   "id": "toolu_01M8EPHvpZDfaFvYgEm9WtCv",
-      //   "name": "say",
-      //   "input": {
-      //     "text": "Ah, the eternal question of \"what's new?\" Well, since we've been circling this topic for a while, let's dive into something more profound. Have you ever pondered the meaning of life? It's a classic philosophical question that has intrigued humans for centuries. What do you think gives life its meaning?"
-      //   }
-      // }
       // extract the content
       const method = toolJson.name;
       const args = toolJson.input;
@@ -170,7 +157,7 @@ const fetchChatCompletionFns = {
       } else {
         content = null;
       }
-      console.log('got content', JSON.stringify(content, null, 2));
+      // console.log('got content', JSON.stringify(content, null, 2));
       // check the parse
       if (content !== null) {
         content = format.parse(content);
