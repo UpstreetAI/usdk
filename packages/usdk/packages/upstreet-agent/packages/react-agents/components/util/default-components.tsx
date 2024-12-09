@@ -23,6 +23,7 @@ import {
   formatActionsPrompt,
 } from '../../util/format-schema';
 import { timeAgo } from '../../util/time-ago.mjs';
+import { ConversationProvider } from '../core/conversation';
 
 // defaults
 
@@ -33,10 +34,12 @@ import { timeAgo } from '../../util/time-ago.mjs';
 export const DefaultAgentComponents = () => {
   return (
     <>
-      <DefaultActions />
-      <DefaultPrompts />
-      <ChatLoop />
-      {/* <ActionLoop /> */}
+      <ConversationProvider>
+        <DefaultActions />
+        <DefaultPrompts />
+        <ChatLoop />
+        {/* <ActionLoop /> */}
+      </ConversationProvider> 
     </>
   );
 };
