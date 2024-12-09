@@ -92,59 +92,68 @@ const ConversationEnvironmentPrompt = () => {
 };
 const ScenePrompt = () => {
   const conversation = useConversation();
-  const scene = conversation.getScene();
-  return (
-    <Prompt>
-      {scene && dedent`
-        # Scene
-        ${scene.description}
-      `}
-    </Prompt>
-  );
+  if (conversation) {
+    const scene = conversation.getScene();
+    return (
+      <Prompt>
+        {scene && dedent`
+          # Scene
+          ${scene.description}
+        `}
+      </Prompt>
+    );
+  } else {
+    return null;
+  }
 };
 const CharactersPrompt = () => {
   const conversation = useConversation();
-  const agents = conversation.getAgents();
+  const agent = useAgent();
   const name = useName();
   const bio = usePersonality();
-  const currentAgentSpec = {
-    name,
-    // id,
-    bio,
-  };
-  const agentSpecs = agents.map((agent) => agent.getPlayerSpec());
+  if (conversation) {
+    const agents = conversation.getAgents();
+    const currentAgentSpec = {
+      id: agent.id,
+      name,
+      bio,
+    };
+    const agentSpecs = agents.map((agent) => agent.getPlayerSpec());
 
-  const formatAgent = (agent: any) => {
-    return [
-      `Name: ${agent.name}`,
-      `UserId: ${agent.id}`,
-      `Bio: ${agent.bio}`,
-    ].join('\n');
-  };
+    const formatAgent = (agent: any) => {
+      return [
+        `Name: ${agent.name}`,
+        `UserId: ${agent.id}`,
+        `Bio: ${agent.bio}`,
+      ].join('\n');
+    };
 
-  return (
-    <Prompt>
-      {dedent`
-        # Your Character
-      ` +
-        '\n\n' +
-        formatAgent(currentAgentSpec) +
-        (agents.length > 0
-          ? (
-            '\n\n' +
-            dedent`
-              # Other Characters
-            ` +
-            '\n\n' +
-            agentSpecs
-              .map(formatAgent)
-              .join('\n\n')
+    return (
+      <Prompt>
+        {dedent`
+          # Your Character
+        ` +
+          '\n\n' +
+          formatAgent(currentAgentSpec) +
+          (agents.length > 0
+            ? (
+              '\n\n' +
+              dedent`
+                # Other Characters
+              ` +
+              '\n\n' +
+              agentSpecs
+                .map(formatAgent)
+                .join('\n\n')
+            )
+            : ''
           )
-          : ''
-        )
-      }
-    </Prompt>
-  );
+        }
+      </Prompt>
+    );
+  } else {
+    return null;
+  }
 };
 const ActionsPromptInternal = () => {
   const actions = useActions();
@@ -190,24 +199,28 @@ const PurchasesPrompt = () => {
   const conversation = useConversation();
   const purchases = usePurchases();
 
-  const conversationUserIds = Array.from(conversation.agentsMap.keys());
-  const userPurchases = purchases.filter(purchase => {
-    return conversationUserIds.includes(purchase.buyerUserId);
-  });
+  if (conversation) {
+    const conversationUserIds = Array.from(conversation.agentsMap.keys());
+    const userPurchases = purchases.filter(purchase => {
+      return conversationUserIds.includes(purchase.buyerUserId);
+    });
 
-  return (
-    <Prompt>
-      {purchases.length > 0 && dedent`\
-        # Purchases
-        Here are the purchases made so far:
-        \`\`\`
-      ` + '\n' +
-      JSON.stringify(userPurchases, null, 2) + '\n' +
-      dedent`\
-        \`\`\`
-      `}
-    </Prompt>
-  )
+    return (
+      <Prompt>
+        {purchases.length > 0 && dedent`\
+          # Purchases
+          Here are the purchases made so far:
+          \`\`\`
+        ` + '\n' +
+        JSON.stringify(userPurchases, null, 2) + '\n' +
+        dedent`\
+          \`\`\`
+        `}
+      </Prompt>
+    );
+  } else {
+    return null;
+  }
 };
 const StorePrompt = () => {
   return (
