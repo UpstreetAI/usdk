@@ -11,7 +11,7 @@ import {
   ActionMessageEvent,
   ActionMessageEventData,
   ConversationObject,
-  TaskEventData,
+  // TaskEventData,
   ActOpts,
   DebugOptions,
   ActionStep,
