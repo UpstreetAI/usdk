@@ -93,7 +93,7 @@ export function PromptForm({
     }
   }
 
-  const buttonClass = cn("flex justify-start relative border rounded-none border-1 mb-1 bg-zinc-100 text-zinc-900 overflow-hidden")
+  const buttonClass = cn("flex justify-start relative border rounded-none border-1 mb-1 bg-zinc-100 text-zinc-900 hover:text-zinc-200 hover:bg-zinc-950 overflow-hidden")
 
   return (
     <form onSubmit={async (e: any) => {
