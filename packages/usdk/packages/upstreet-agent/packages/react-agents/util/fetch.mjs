@@ -309,10 +309,10 @@ export const fetchChatCompletion = async ({
     throw new Error('no jwt');
   }
 
-  const match = model.match(/^(.+?):/);
+  const match = model.match(/^([^:]+?):/);
   if (match) {
     const modelType = match[1];
-    const modelName = model.slice(match[0].length);
+    const modelName = model.slice(modelType.length + 1);
     const fn = fetchChatCompletionFns[modelType];
     if (fn) {
       const result = await fn({
@@ -347,10 +347,10 @@ export const fetchJsonCompletion = async ({
     throw new Error('no jwt');
   }
 
-  const match = model.match(/^(.+?):/);
+  const match = model.match(/^([^:]+?):/);
   if (match) {
     const modelType = match[1];
-    const modelName = model.slice(match[0].length);
+    const modelName = model.slice(modelType.length + 1);
     const fn = fetchChatCompletionFns[modelType];
     if (fn) {
       const result = await fn({
