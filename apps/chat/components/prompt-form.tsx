@@ -322,8 +322,8 @@ export function PromptForm({
         </div>
       </div>
 
-      <div>
-        <IconButton icon="Headset" size="small" className="p-4" active={mode === "desktop"} />
+      <div className={cn("p-[12px] cursor-pointer", mode === "desktop" && "bg-zinc-900")}>
+        <Icon icon="Headset" className={cn("size-[18px]", mode === "desktop" && "text-white")} />
       </div>
       </div>
     </form>
