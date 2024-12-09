@@ -289,7 +289,7 @@ export function PromptForm({
           <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
         {typing && (
-          <div className="absolute -top-12 text-slate-900 left-0 text-muted-foreground text-sm">{typing}</div>
+          <div className="absolute bottom-full text-slate-900 left-0 text-muted-foreground text-sm bg-[rgba(0,0,0,0.5)] text-zinc-100 py-1 px-2">{typing}</div>
         )}
         <div className="mt-2 px-2 w-full">
           <Textarea
