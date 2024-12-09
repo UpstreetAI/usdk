@@ -2,7 +2,7 @@ import { zodResponseFormat } from 'openai/helpers/zod';
 import dedent from 'dedent';
 // import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
-import { getAiFetch } from './ai-util.mjs';
+// import { getAiFetch } from './ai-util.mjs';
 import { defaultModel } from '../defaults.mjs';
 import { NotEnoughCreditsError } from './error-utils.mjs';
 import zodToJsonSchemaImpl from 'zod-to-json-schema';
@@ -13,6 +13,46 @@ const jsonParse = (s) => {
   } catch (e) {
     return null;
   }
+};
+const jsonSchemaToTools = (jsonSchema) => {
+  return jsonSchema.properties.action.anyOf.map(schema => {
+    const { type } = schema;
+    if (type === 'object') {
+      const name = schema.properties.method.const;
+      const description = schema.description || `Execute the ${name} action`;
+      const parameters = schema.properties.args;
+      let result = {
+        name,
+        description,
+        parameters,
+      };
+      return result;
+    } else {
+      return null;
+    }
+  }).filter(Boolean);
+};
+const toolsToOpenai = (tools) => {
+  return tools.map(tool => {
+    return {
+      type: 'function',
+      function: tools,
+    };
+  });
+};
+const toolsToAnthropic = (tools) => {
+  return tools.map(tool => {
+    const {
+      name,
+      description,
+      parameters,
+    } = tool;
+    return {
+      name,
+      description,
+      input_schema: parameters,
+    };
+  });
 };
 
 const fetchChatCompletionFns = {
@@ -25,8 +65,8 @@ const fetchChatCompletionFns = {
 
     const response_format = format && zodResponseFormat(format, 'result');
 
-    const aiFetch = getAiFetch();
-    const res = await aiFetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
+    // const aiFetch = getAiFetch();
+    const res = await fetch(`https://${aiProxyHost}/api/ai/chat/completions`, {
       method: 'POST',
 
       headers: {
@@ -59,12 +99,40 @@ const fetchChatCompletionFns = {
       throw new Error('no jwt');
     }
 
-    const response_format = format && zodResponseFormat(format, 'result');
-    if (response_format) {
-      throw new Error('response_format not supported for anthropic');
-    }
+    const o = {
+      model,
+      max_tokens,
+      messages,
+      // response_format,
+      stream,
+      max_tokens: 8192, // maximum allowed for claude
+    };
 
-    const res = await aiFetch(`https://${aiProxyHost}/api/claude/messages`, {
+    const response_format = format && zodResponseFormat(format, 'result');
+    // if (response_format) {
+    //   throw new Error('response_format not supported for anthropic');
+    // }
+
+    const jsonSchema = zodToJsonSchemaImpl(format);
+    console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
+    let tools = jsonSchemaToTools(jsonSchema);
+    tools = toolsToAnthropic(tools);
+    tools = tools.concat([
+      {
+        name: 'nothing',
+        description: 'Do nothing',
+        input_schema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+    ]);
+    o.tools = tools;
+    o.tool_choice = {
+      type: 'any',
+    };
+
+    const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
       method: 'POST',
 
       headers: {
@@ -72,19 +140,42 @@ const fetchChatCompletionFns = {
         Authorization: `Bearer ${jwt}`,
       },
 
-      body: JSON.stringify({
-        model,
-        max_tokens,
-        messages,
-        // response_format,
-        stream,
-      }),
+      body: JSON.stringify(o),
       signal,
     });
     if (res.ok) {
       const j = await res.json();
-      const text = j.content[0].text;
-      return text;
+      console.log('got anthropic response', JSON.stringify(j, null, 2));
+      const toolJson = j.content[0];
+      // = {
+      //   "type": "tool_use",
+      //   "id": "toolu_01M8EPHvpZDfaFvYgEm9WtCv",
+      //   "name": "say",
+      //   "input": {
+      //     "text": "Ah, the eternal question of \"what's new?\" Well, since we've been circling this topic for a while, let's dive into something more profound. Have you ever pondered the meaning of life? It's a classic philosophical question that has intrigued humans for centuries. What do you think gives life its meaning?"
+      //   }
+      // }
+      // extract the content
+      const method = toolJson.name;
+      const args = toolJson.input;
+      let content;
+      // handle null action
+      if (method !== 'nothing') {
+        content = {
+          action: {
+            method,
+            args,
+          },
+        };
+      } else {
+        content = null;
+      }
+      console.log('got content', JSON.stringify(content, null, 2));
+      // check the parse
+      if (content !== null) {
+        content = format.parse(content);
+      }
+      return content;
     } else {
       const text = await res.text();
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
@@ -227,24 +318,8 @@ const fetchChatCompletionFns = {
       }
       case 'tool': {
         const jsonSchema = zodToJsonSchemaImpl(format);
-        const tools = jsonSchema.properties.action.anyOf.map(schema => {
-          const { type } = schema;
-          if (type === 'object') {
-            const name = schema.properties.method.const;
-            const description = schema.description || `Execute the ${name} action`;
-            const parameters = schema.properties.args;
-            return {
-              type: 'function',
-              function: {
-                name,
-                description,
-                parameters,
-              },
-            };
-          } else {
-            return null;
-          }
-        }).filter(Boolean);
+        let tools = jsonSchemaToTools(jsonSchema);
+        tools = toolsToOpenai(tools);
         // console.log('got json schema', tools);
         o.tools = tools;
         o.tool_choice = 'required';
