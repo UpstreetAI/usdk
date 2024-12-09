@@ -23,6 +23,7 @@ import {
   formatActionsPrompt,
 } from '../../util/format-schema';
 import { timeAgo } from '../../util/time-ago.mjs';
+import { ConversationProvider } from '../core/conversation';
 
 // defaults
 
@@ -62,13 +63,15 @@ const DefaultActions = () => {
 const DefaultPrompts = () => {
   return (
     <>
-      <DefaultHeaderPrompt />
-      <ConversationEnvironmentPrompt />
-      <ActionsPrompt />
-      <StorePrompt />
-      <ConversationMessagesPrompt />
-      <InstructionsPrompt />
-      <DefaultCommunicationGuidelinesPrompt />
+      <ConversationProvider>
+        <DefaultHeaderPrompt />
+        <ConversationEnvironmentPrompt />
+        <ActionsPrompt />
+        <StorePrompt />
+        <ConversationMessagesPrompt />
+        <InstructionsPrompt />
+        <DefaultCommunicationGuidelinesPrompt />
+      </ConversationProvider>
     </>
   );
 };
