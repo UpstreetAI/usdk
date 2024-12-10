@@ -42,7 +42,10 @@ export const baseOptions = {
   },
   sidebar: {
     footer: (
-      <GitHubRepoCard repo={"upstreetAI/upstreet-core"} />
+      <div className='relative w-full h-fit'>
+        <Image alt="bg-pattern" className='dark:invert' width={200} height={500} style={{objectFit:'contain', width: '100%', transform:'scale(1, -1)', position: 'absolute', bottom: 0, left: 0}} src="/images/general/bg_pattern_lightMode.png" />
+        <GitHubRepoCard repo={"upstreetAI/upstreet-core"} />
+      </div>
     ),
     banner: (
       <RootToggle

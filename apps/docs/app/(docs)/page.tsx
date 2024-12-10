@@ -37,6 +37,7 @@ const DocsIndexPage = () => {
       <div className="flex flex-col md:flex-row justify-center items-center gap-3 mb-6">
         <Link href={'/install'}>
           <LargeCard
+            bottomGradientOverlay={true}
             backgroundOverlay={false}
             src={'/images/general/first-steps.webp'}
             title={'First steps'}
@@ -45,6 +46,7 @@ const DocsIndexPage = () => {
         </Link>
         <Link href={'/examples'}>
           <LargeCard
+            bottomGradientOverlay={true}
             backgroundOverlay={false}
             src={'/images/general/examples.webp'}
             title={'Examples'}
@@ -53,6 +55,7 @@ const DocsIndexPage = () => {
         </Link>
         <Link href={'/concepts/what-are-agents'}>
           <LargeCard
+            bottomGradientOverlay={true}
             backgroundOverlay={false}
             src={'/images/general/learn.webp'}
             title={'Learn'}
