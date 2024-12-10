@@ -2,17 +2,10 @@ import path from 'path';
 import fs from 'fs';
 import spawn from 'cross-spawn';
 
-let pnpmPackageJsonPath, pnpmPackageJsonString, pnpmPackageJson, pnpmPath;
-
-try {
-  pnpmPackageJsonPath = import.meta.resolve('pnpm').replace('file://', '');
-  pnpmPackageJsonString = fs.readFileSync(pnpmPackageJsonPath, 'utf8');
-  pnpmPackageJson = JSON.parse(pnpmPackageJsonString);
-  pnpmPath = path.resolve(path.dirname(pnpmPackageJsonPath), pnpmPackageJson.bin.pnpm);
-}
-catch (err) {
-  console.error("Couldn't resolve pnpmPath. Reason:", err)
-}
+const pnpmPackageJsonPath = import.meta.resolve('pnpm').replace('file://', '');
+const pnpmPackageJsonString = fs.readFileSync(pnpmPackageJsonPath, 'utf8');
+const pnpmPackageJson = JSON.parse(pnpmPackageJsonString);
+const pnpmPath = path.resolve(path.dirname(pnpmPackageJsonPath), pnpmPackageJson.bin.pnpm);
 
 export const hasNpm = async () => {
   // check if the npm command exists
