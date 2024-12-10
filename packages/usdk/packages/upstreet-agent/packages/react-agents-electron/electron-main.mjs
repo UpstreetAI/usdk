@@ -9,10 +9,12 @@ import { WebSocket } from 'ws';
 import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
 import { fileURLToPath } from 'url';
-
+import { updateIgnoreMouseEvents } from './lib/updateIgnoreMouseEvents.js';
 //
 
 console.log('electron start script!');
+
+const UPDATE_INTERVAL = 1000 / 60;
 
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
@@ -234,7 +236,6 @@ const openFrontend = async ({
       transparent: true,
       backgroundColor: '#00000000',
       frame: false,
-      hasShadow: false,
       alwaysOnTop: true,
       resizable: false,
       titleBarStyle: 'none',
@@ -246,6 +247,10 @@ const openFrontend = async ({
         contextIsolation: true,
         enableRemoteModule: false,
       },
+
+      // macOS
+      acceptFirstMouse: true,
+      hasShadow: false,
     });
     if (debug >= debugLevels.SILLY) {
       win.webContents.openDevTools();
@@ -257,6 +262,11 @@ const openFrontend = async ({
       name: 'auth-jwt',
       value: jwt,
     });
+
+    setInterval(() => {
+      // Allow mouse events to pass through the window.
+      updateIgnoreMouseEvents( win )
+    }, UPDATE_INTERVAL )
 
     await win.loadURL(dstUrl.href);
   }
