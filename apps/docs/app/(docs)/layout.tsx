@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <DocsLayout tree={{
       ...source.pageTree,
     }} {...baseOptions}>
-      <Image alt="bg-pattern" className='dark:invert select-none pointer-events-none' width={1000} height={200} style={{objectFit:'contain', position: 'absolute', top: 0, right: 0}} src="/images/general/bg_pattern_lightMode.png" />
+      <Image alt="bg-pattern" className='dark:invert select-none pointer-events-none -z-1' width={1000} height={200} style={{objectFit:'contain', position: 'absolute', top: 0, right: 0}} src="/images/general/bg_pattern_lightMode.png" />
       {children}
     </DocsLayout>
   );
