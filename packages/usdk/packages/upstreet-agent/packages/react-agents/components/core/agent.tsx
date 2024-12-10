@@ -16,9 +16,6 @@ import {
   DefaultAgentComponents,
 } from '../util/default-components';
 import {
-  ConversationProvider,
-} from './conversation';
-import {
   AgentRegistry,
 } from '../../classes/render-registry';
 import {
@@ -107,12 +104,10 @@ export const Agent = forwardRef(({
     <agent value={agent}>
       <AgentContext.Provider value={agent}>
         <ConversationsContext.Provider value={{conversations}}>
-          <ConversationProvider>
-            <AgentRegistryContext.Provider value={{agentRegistry}}>
-              {!raw && <DefaultAgentComponents />}
-              {children}
-            </AgentRegistryContext.Provider>
-          </ConversationProvider>
+          <AgentRegistryContext.Provider value={{agentRegistry}}>
+            {!raw && <DefaultAgentComponents />}
+            {children}
+          </AgentRegistryContext.Provider>
         </ConversationsContext.Provider>
       </AgentContext.Provider>
     </agent>
