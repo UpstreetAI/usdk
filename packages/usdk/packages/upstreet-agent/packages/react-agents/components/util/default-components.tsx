@@ -20,6 +20,9 @@ import { ChatLoop } from '../../loops/chat-loop';
 // import { ActionLoop } from '../../loops/action-loop';
 import { ChatActions } from '../core/chat';
 import {
+  ConversationProvider,
+} from '../core/conversation';
+import {
   formatActionsPrompt,
 } from '../../util/format-schema';
 import { timeAgo } from '../../util/time-ago.mjs';
@@ -33,10 +36,11 @@ import { timeAgo } from '../../util/time-ago.mjs';
 export const DefaultAgentComponents = () => {
   return (
     <>
-      <DefaultActions />
-      <DefaultPrompts />
+      <ConversationProvider>
+        <DefaultActions />
+        <DefaultPrompts />
+      </ConversationProvider>
       <ChatLoop />
-      {/* <ActionLoop /> */}
     </>
   );
 };

@@ -12,7 +12,7 @@ import {
   ActionMessageEvent,
   ActionMessageEventData,
   ConversationObject,
-  TaskEventData,
+  // TaskEventData,
   ActOpts,
   DebugOptions,
   ActionStep,
@@ -292,9 +292,7 @@ export const filterModifiersPerConversation = <T extends PriorityModifier>(
   return modifiers.map(([priority, modifiersArray]) => [
     priority,
     modifiersArray.filter(modifier => 
-      conversation ? 
-        modifier.conversation === conversation : 
-        !modifier.conversation
+      !modifier.conversation || modifier.conversation === conversation
     ),
   ]) as Array<[number, T[]]>;
 };
