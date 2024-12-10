@@ -264,65 +264,6 @@ async function _generateAgentActionStepFromMessages({
   }
 }
 
-/* export async function generateJsonMatchingSchema(hint: string, schema: ZodTypeAny) {
-  const numRetries = 5;
-  return await retry(async () => {
-    const prompts = [
-      dedent`
-        Respond with the following:
-      ` + '\n' + hint,
-      dedent`
-        Output the result as valid JSON matching the following schema:
-      ` + '\n' + printNode(zodToTs(schema).node) + '\n' + dedent`
-        Wrap your response in a code block e.g.
-        \`\`\`json
-        "...response goes here..."
-        \`\`\`
-      `,
-    ];
-    const promptString = prompts.join('\n\n');
-    const promptMessages = [
-      {
-        role: 'user',
-        content: promptString,
-      },
-    ];
-    const completionMessage = await (async () => {
-      const message = await this.appContextValue.complete(promptMessages);
-      return message;
-    })();
-    // extract the json string
-    const s = parseCodeBlock(completionMessage.content);
-    // parse the json
-    const rawJson = JSON.parse(s);
-    // check that the json matches the schema
-    const parsedJson = schema.parse(rawJson);
-    return parsedJson;
-  }, numRetries);
-} */
-/* export async function generateString(hint: string) {
-  const numRetries = 5;
-  return await retry(async () => {
-    const prompts = [
-      dedent`
-        Respond with the following:
-      ` + '\n' + hint,
-    ];
-    const promptString = prompts.join('\n\n');
-    const promptMessages = [
-      {
-        role: 'user',
-        content: promptString,
-      },
-    ];
-    const completionMessage = await (async () => {
-      const message = await this.appContextValue.complete(promptMessages);
-      return message;
-    })();
-    return completionMessage.content;
-  }, numRetries);
-} */
-
 interface PriorityModifier {
   type: string;
   conversation?: ConversationObject;
