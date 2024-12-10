@@ -267,29 +267,6 @@ const fetchChatCompletionFns = {
     })();
     switch (mode) {
       case 'prompt': {
-        // const omit = (o, keys) => {
-        //   const r = {};
-        //   for (const k in o) {
-        //     if (!keys.includes(k)) {
-        //       r[k] = o[k];
-        //     }
-        //   }
-        //   return r;
-        // };
-        // const zodToJsonSchema = (schema) => {
-        //   return omit(
-        //     zodToJsonSchemaImpl(schema, { $refStrategy: 'none' }),
-        //     [
-        //       '$ref',
-        //       '$schema',
-        //       'default',
-        //       'definitions',
-        //       'description',
-        //       'markdownDescription',
-        //     ],
-        //   );
-        // };
-
         const jsonSchema = zodToJsonSchemaImpl(format);
         // console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
         o.messages = messages.slice().concat([
