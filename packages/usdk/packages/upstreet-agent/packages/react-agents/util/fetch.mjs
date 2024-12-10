@@ -85,7 +85,10 @@ const fetchChatCompletionFns = {
     });
     if (res.ok) {
       const j = await res.json();
-      const content = j.choices[0].message.content;
+      let content = j.choices[0].message.content;
+      if (format) {
+        content = JSON.parse(content);
+      }
       return content;
     } else {
       const text = await res.text();
@@ -425,8 +428,7 @@ export const fetchJsonCompletion = async ({
       }, {
         jwt,
       });
-      const response = JSON.parse(result);
-      return response;
+      return result;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
