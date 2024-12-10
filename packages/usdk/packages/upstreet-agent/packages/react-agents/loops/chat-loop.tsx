@@ -37,6 +37,7 @@ export const ChatLoop = (props: LoopProps) => {
             });
           })();
         }}
+        priority={-1}
       />
       <Perception
         type="nudge"
