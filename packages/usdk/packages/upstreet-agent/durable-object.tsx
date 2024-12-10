@@ -11,7 +11,7 @@ function getEnvConfig(): Record<string, string> {
     const envTxt = require('../../.env.txt'); // Load the file only once
     parsedEnv = dotenv.parse(envTxt);
   } catch (err) {
-    console.warn('No .env.txt found. Your environment variables may become undefined in the code.', err);
+    console.warn('⚠️ No .env.txt found. Your environment variables may become undefined in the code. Learn how to define environment variables here: https://docs.upstreet.ai/customize-your-agent#using-environment-variables', err);
     parsedEnv = {};
   }
   return parsedEnv;
