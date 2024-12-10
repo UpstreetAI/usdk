@@ -37,6 +37,7 @@ const DocsIndexPage = () => {
       <div className="flex flex-col md:flex-row justify-center items-center gap-3 mb-6">
         <Link href={'/install'}>
           <LargeCard
+            backgroundOverlay={false}
             src={'/images/general/first-steps.webp'}
             title={'First steps'}
             description="Create your first AI Agent. Complete with its own backstory and motives."
@@ -44,6 +45,7 @@ const DocsIndexPage = () => {
         </Link>
         <Link href={'/examples'}>
           <LargeCard
+            backgroundOverlay={false}
             src={'/images/general/examples.webp'}
             title={'Examples'}
             description="Learn from our examples. See real agents in action."
@@ -51,6 +53,7 @@ const DocsIndexPage = () => {
         </Link>
         <Link href={'/concepts/what-are-agents'}>
           <LargeCard
+            backgroundOverlay={false}
             src={'/images/general/learn.webp'}
             title={'Learn'}
             description="What are agents? Learn from our research-backend knowledge base."
