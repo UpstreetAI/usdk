@@ -20,7 +20,7 @@ import {
 
 //
 
-class Task {
+class TaskObject extends EventTarget {
   id: string;
   goal: string;
   steps: string[];
@@ -39,20 +39,43 @@ class Task {
   }
 }
 
+const Goal = (props: {
+  children?: React.ReactNode;
+  mode?: 'once' | 'repeat' | 'auto',
+  task?: TaskObject;
+}) => {
+  const hint = props.children;
+  if (typeof hint !== 'string') {
+    throw new Error('Goal children must be a string');
+  }
+
+  const mode = props.mode ?? 'repeat';
+
+  const task = props.task ?? new TaskObject();
+
+  return (
+    <ActionLoop
+      hint={hint}
+    />
+  );
+};
+
 //
 
 export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
   const hint = props.hint;
 
   const [uuid, setUuid] = useState(() => crypto.randomUUID());
-  const [tasks, setTasks] = useState(new Map<string, Task>());
+  const [tasks, setTasks] = useState(new Map<string, TaskObject>());
 
   return (
     <>
       {/* tasks */}
       {Array.from(tasks.values()).map(task => (
-        <ActionLoop
-          hint={
+        <Goal
+          key={task.id}
+        >
+          {
             dedent`\
               Perform work on the following task:
               \`\`\`
@@ -62,8 +85,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
               \`\`\`
             `
           }
-          key={task.id}
-        />
+        </Goal>
       ))}
       {/* prompts */}
       <Prompt>
@@ -115,7 +137,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           // console.log('startTask', e.data);
           const { message } = e.data;
           const { args } = message;
-          const task = new Task({
+          const task = new TaskObject({
             id: crypto.randomUUID(),
             goal: args.goal,
             steps: args.steps,
