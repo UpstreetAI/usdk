@@ -85,7 +85,10 @@ const fetchChatCompletionFns = {
     });
     if (res.ok) {
       const j = await res.json();
-      const content = j.choices[0].message.content;
+      let content = j.choices[0].message.content;
+      if (format) {
+        content = JSON.parse(content);
+      }
       return content;
     } else {
       const text = await res.text();
@@ -128,45 +131,58 @@ const fetchChatCompletionFns = {
       type: 'any',
     };
 
-    const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
-      method: 'POST',
+    const numRetries = 3;
+    let i;
+    let err = null;
+    for (let i = 0; i < numRetries; i++) {
+      const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
-      },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-      body: JSON.stringify(o),
-      signal,
-    });
-    if (res.ok) {
-      const j = await res.json();
-      // console.log('got anthropic response', JSON.stringify(j, null, 2));
-      const toolJson = j.content[0];
-      // extract the content
-      const method = toolJson.name;
-      const args = toolJson.input;
-      let content;
-      // handle null action
-      if (method !== 'nothing') {
-        content = {
-          action: {
-            method,
-            args,
-          },
-        };
+        body: JSON.stringify(o),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        // console.log('got anthropic response', JSON.stringify(j, null, 2));
+        const toolJson = j.content[0];
+        // extract the content
+        const method = toolJson.name;
+        const args = toolJson.input;
+        let content;
+        // handle null action
+        if (method !== 'nothing') {
+          content = {
+            action: {
+              method,
+              args,
+            },
+          };
+        } else {
+          content = null;
+        }
+        // console.log('got content', JSON.stringify(content, null, 2));
+        // check the parse
+        if (content !== null) {
+          try {
+            content = format.parse(content);
+          } catch (e) {
+            err = e;
+            continue;
+          }
+        }
+        return content;
       } else {
-        content = null;
+        const text = await res.text();
+        throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
       }
-      // console.log('got content', JSON.stringify(content, null, 2));
-      // check the parse
-      if (content !== null) {
-        content = format.parse(content);
-      }
-      return content;
-    } else {
-      const text = await res.text();
-      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+    }
+    if (i === numRetries) {
+      throw new Error('too many retries: ' + err.stack);
     }
   },
   /* together: async ({ model, messages, format, stream, signal }, {
@@ -264,29 +280,6 @@ const fetchChatCompletionFns = {
     })();
     switch (mode) {
       case 'prompt': {
-        // const omit = (o, keys) => {
-        //   const r = {};
-        //   for (const k in o) {
-        //     if (!keys.includes(k)) {
-        //       r[k] = o[k];
-        //     }
-        //   }
-        //   return r;
-        // };
-        // const zodToJsonSchema = (schema) => {
-        //   return omit(
-        //     zodToJsonSchemaImpl(schema, { $refStrategy: 'none' }),
-        //     [
-        //       '$ref',
-        //       '$schema',
-        //       'default',
-        //       'definitions',
-        //       'description',
-        //       'markdownDescription',
-        //     ],
-        //   );
-        // };
-
         const jsonSchema = zodToJsonSchemaImpl(format);
         // console.log('got json schema', JSON.stringify(jsonSchema, null, 2));
         o.messages = messages.slice().concat([
@@ -320,40 +313,53 @@ const fetchChatCompletionFns = {
       }
     }
 
-    const openrouterEndpointUrl = `https://${aiProxyHost}/api/openrouter`;
-    const u = `${openrouterEndpointUrl}/chat/completions`;
-    const res = await fetch(u, {
-      method: 'POST',
+    const numRetries = 3;
+    let i;
+    let err = null;
+    for (i = 0; i < numRetries; i++) {
+      const openrouterEndpointUrl = `https://${aiProxyHost}/api/openrouter`;
+      const u = `${openrouterEndpointUrl}/chat/completions`;
+      const res = await fetch(u, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
-      },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-      body: JSON.stringify(o),
-      signal,
-    });
-    if (res.ok) {
-      const j = await res.json();
-      // console.log('got response content', JSON.stringify(j, null, 2));
-      const contentString = j.choices[0].message.content;
-      if (mode === 'prompt') {
-        let content = jsonParse(contentString);
-        // try to parse with the zod schema, format
-        // try {
-        if (content !== null) {
-          content = format.parse(content);
+        body: JSON.stringify(o),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        // console.log('got response content', JSON.stringify(j, null, 2));
+        const contentString = j.choices[0].message.content;
+        if (mode === 'prompt') {
+          let content = jsonParse(contentString);
+          // try to parse with the zod schema, format
+          // try {
+          if (content !== null) {
+            try {
+              content = format.parse(content);
+            } catch (e) {
+              err = e;
+              continue;
+            }
+          }
+          // } catch (e) {
+          //   console.error('error parsing content with zod schema', e);
+          // }
+          return content;
+        } else {
+          return contentString;
         }
-        // } catch (e) {
-        //   console.error('error parsing content with zod schema', e);
-        // }
-        return content;
       } else {
-        return contentString;
+        const text = await res.text();
+        throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
       }
-    } else {
-      const text = await res.text();
-      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+    }
+    if (i === numRetries) {
+      throw new Error('too many retries: ' + err.stack);
     }
   },
 };
@@ -425,8 +431,7 @@ export const fetchJsonCompletion = async ({
       }, {
         jwt,
       });
-      const response = JSON.parse(result);
-      return response;
+      return result;
     } else {
       throw new Error('invalid model type: ' + JSON.stringify(modelType));
     }
