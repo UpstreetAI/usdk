@@ -90,9 +90,9 @@ export const useConversations = () => {
 export const useConversation = () => {
   const conversationContextValue = useContext(ConversationContext);
   const { conversation } = conversationContextValue;
-  if (conversation === null) {
-    throw new Error('useConversation() can only be used within a conversation context');
-  }
+  // if (conversation === null) {
+  //   throw new Error('useConversation() can only be used within a conversation context');
+  // }
   return conversation;
 };
 
@@ -122,6 +122,10 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   const agent = useAgent();
   const conversation = useConversation();
   const [cachedMessagesEpoch, setCachedMessagesEpoch] = useState(0);
+
+  if (!conversation) {
+    throw new Error('useCachedMessages() can only be used within a conversation context');
+  }
 
   // trigger the load
   useEffect(() => {
