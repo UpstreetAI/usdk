@@ -181,9 +181,9 @@ const fetchChatCompletionFns = {
         throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
       }
     }
-    if (i === numRetries) {
+    // if (i === numRetries) {
       throw new Error('too many retries: ' + err.stack);
-    }
+    // }
   },
   /* together: async ({ model, messages, format, stream, signal }, {
     jwt,
@@ -358,9 +358,9 @@ const fetchChatCompletionFns = {
         throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
       }
     }
-    if (i === numRetries) {
+    // if (i === numRetries) {
       throw new Error('too many retries: ' + err.stack);
-    }
+    // }
   },
 };
 
