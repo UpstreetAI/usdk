@@ -507,24 +507,19 @@ const handleChatPerception = async (data: ActionMessageEventData, {
   for (const [priority, perceptionsBlock] of perceptionsPerPriority) {
     const blockPromises = [];
     for (const perception of perceptionsBlock) {
-      // if (
-      //   (!perception.type || perception.type === '*' || perception.type === message.method) &&
-      //   (!perception.conversation || perception.conversation === conversation)
-      // ) {
-        const targetAgent = agent.generative({
-          conversation,
-        });
-        const e = new AbortablePerceptionEvent({
-          targetAgent,
-          sourceAgent,
-          message,
-        });
-        const p = (async () => {
-          await perception.handler(e);
-          return e;
-        })();
-        blockPromises.push(p);
-      // }
+      const targetAgent = agent.generative({
+        conversation,
+      });
+      const e = new AbortablePerceptionEvent({
+        targetAgent,
+        sourceAgent,
+        message,
+      });
+      const p = (async () => {
+        await perception.handler(e);
+        return e;
+      })();
+      blockPromises.push(p);
     }
     const messageEvents = await Promise.all(blockPromises);
     aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
