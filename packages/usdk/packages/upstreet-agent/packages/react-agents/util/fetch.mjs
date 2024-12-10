@@ -131,45 +131,58 @@ const fetchChatCompletionFns = {
       type: 'any',
     };
 
-    const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
-      method: 'POST',
+    const numRetries = 3;
+    let i;
+    let err = null;
+    for (let i = 0; i < numRetries; i++) {
+      const res = await fetch(`https://${aiProxyHost}/api/anthropic/messages`, {
+        method: 'POST',
 
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${jwt}`,
-      },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jwt}`,
+        },
 
-      body: JSON.stringify(o),
-      signal,
-    });
-    if (res.ok) {
-      const j = await res.json();
-      // console.log('got anthropic response', JSON.stringify(j, null, 2));
-      const toolJson = j.content[0];
-      // extract the content
-      const method = toolJson.name;
-      const args = toolJson.input;
-      let content;
-      // handle null action
-      if (method !== 'nothing') {
-        content = {
-          action: {
-            method,
-            args,
-          },
-        };
+        body: JSON.stringify(o),
+        signal,
+      });
+      if (res.ok) {
+        const j = await res.json();
+        // console.log('got anthropic response', JSON.stringify(j, null, 2));
+        const toolJson = j.content[0];
+        // extract the content
+        const method = toolJson.name;
+        const args = toolJson.input;
+        let content;
+        // handle null action
+        if (method !== 'nothing') {
+          content = {
+            action: {
+              method,
+              args,
+            },
+          };
+        } else {
+          content = null;
+        }
+        // console.log('got content', JSON.stringify(content, null, 2));
+        // check the parse
+        if (content !== null) {
+          try {
+            content = format.parse(content);
+          } catch (e) {
+            err = e;
+            continue;
+          }
+        }
+        return content;
       } else {
-        content = null;
+        const text = await res.text();
+        throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
       }
-      // console.log('got content', JSON.stringify(content, null, 2));
-      // check the parse
-      if (content !== null) {
-        content = format.parse(content);
-      }
-      return content;
-    } else {
-      const text = await res.text();
-      throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
+    }
+    if (i === numRetries) {
+      throw new Error('too many retries: ' + err.stack);
     }
   },
   /* together: async ({ model, messages, format, stream, signal }, {
