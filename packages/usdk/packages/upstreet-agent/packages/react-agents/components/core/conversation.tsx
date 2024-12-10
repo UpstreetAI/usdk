@@ -26,12 +26,12 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
 export const ConversationProvider = (props: ConversationProps) => {
   const agent = useContext(AgentContext);
   const conversations = useContext(ConversationsContext).conversations;
-  return conversations.map((conversation) => {
+  return [null].concat(conversations).map((conversation) => {
     return (
       <ConversationInstance
         agent={agent}
         conversation={conversation}
-        key={conversation.getKey()}
+        key={conversation !== null ? conversation.getKey() : 'null'}
       >
         {props.children}
       </ConversationInstance>

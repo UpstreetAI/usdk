@@ -11,7 +11,7 @@ import {
   ActionMessageEvent,
   ActionMessageEventData,
   ConversationObject,
-  TaskEventData,
+  // TaskEventData,
   ActOpts,
   DebugOptions,
   ActionStep,
@@ -24,9 +24,9 @@ import {
 const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, actOpts?: ActOpts) => {
   const forceAction = actOpts?.forceAction ?? null;
   const excludeActions = actOpts?.excludeActions ?? [];
-  return (!action.conversation || action.conversation === conversation) &&
-    (forceAction === null || action.name === forceAction) &&
-    !excludeActions.includes(action.name);
+  return action.conversation === conversation &&
+    (forceAction === null || action.type === forceAction) &&
+    !excludeActions.includes(action.type);
 };
 const getFilteredActions = (actions: ActionPropsAux[], conversation?: ConversationObject, actOpts?: ActOpts) => {
   return actions.filter(action => isAllowedAction(action, conversation, actOpts));
@@ -39,7 +39,7 @@ const makeActionSchema = (method: string, args: z.ZodType<object> = z.object({})
 };
 const formatAction = (action: ActionPropsAux) => {
   const {
-    name,
+    type,
     description,
     state,
     examples,
@@ -48,16 +48,16 @@ const formatAction = (action: ActionPropsAux) => {
   const examplesJsonString = (examples ?? []).map((args) => {
     return JSON.stringify(
       {
-        method: name,
+        method: type,
         args,
       }
     );
   }).join('\n');
 
   return (
-    name ? (
+    type ? (
       dedent`
-        * ${name}
+        * ${type}
       ` +
       '\n'
     ) : ''

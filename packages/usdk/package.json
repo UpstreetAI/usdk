@@ -107,7 +107,6 @@
     "rimraf": "^5.0.5",
     "shell-escape-tag": "^2.0.2",
     "simple-yenc": "^1.0.4",
-    "together-ai": "^0.6.0-alpha.4",
     "unique-names-generator": "^4.7.1",
     "usdk": "link:",
     "update-notifier": "file:./packages/update-notifier",
@@ -134,5 +133,9 @@
     "tar": "7.2.0",
     "undici": "6.18.2",
     "whatwg-url": "14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "jest": "^29.0.0"
   }
 }

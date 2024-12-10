@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTts } from 'react-agents';
 import {
-  AbortableActionEvent,
+  PendingActionEvent,
   PlayableAudioStream,
 } from '../../types';
 import {
@@ -21,7 +21,7 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
   return (
     <ActionModifier
       type="say"
-      handler={async (e: AbortableActionEvent) => {
+      handler={async (e: PendingActionEvent) => {
         const { message, agent } = e.data;
         const args = message.args as any;
         const text = (args as any).text as string;

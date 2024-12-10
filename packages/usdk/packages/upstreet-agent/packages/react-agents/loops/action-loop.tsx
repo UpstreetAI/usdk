@@ -8,6 +8,8 @@ import { DeferConversation } from '../components/core/conversation';
 
 export const ActionLoop = (props: LoopProps) => {
   return (
+    // XXX this defer is here because otherwise the agent will try to send messages before a multiplayer connection is established
+    // XXX we can remove this if we wait for multiplayer connection before sending new messages
     <DeferConversation>
       <ActionLoopInner {...props}>
         {props.children}
@@ -57,6 +59,7 @@ const ActionLoopInner = (props: LoopProps) => {
         signal,
       });
       console.log('infinite loop tick 2');
+      if (signal.aborted) return;
 
       await recurse();
     };
