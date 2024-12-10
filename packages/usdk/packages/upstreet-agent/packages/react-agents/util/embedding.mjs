@@ -1,4 +1,5 @@
 import { aiProxyHost } from './endpoints.mjs';
+import { NotEnoughCreditsError } from './error-utils.mjs';
 import {
   retry,
 } from './util.mjs';
@@ -92,6 +93,9 @@ export const lembed = async (s, opts) => {
         return data[0].embedding;
       }
     } else {
+      if (res.status === 402) {
+        throw new NotEnoughCreditsError();
+      }
       throw new Error(`invalid embed response: ${res.status}`);
     }
   }, numRetries);

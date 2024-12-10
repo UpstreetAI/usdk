@@ -4,9 +4,11 @@ import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { app, screen, session, BrowserWindow, desktopCapturer } from 'electron';
+import { app, screen, session, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { WebSocket } from 'ws';
+import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
+import { fileURLToPath } from 'url';
 
 //
 
@@ -126,7 +128,7 @@ const runAgent = async (directory, opts) => {
     init: initString,
   } = opts;
   const init = initString && JSON.parse(initString);
-  const debug = !!opts.debug;
+  const debug = parseInt(opts.debug, 10);
 
   const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
   const main = await loadModule(directory, p);
@@ -166,7 +168,7 @@ const makeViteServer = (directory) => {
 // const host = 'https://chat.upstreet.ai';
 const host = 'http://127.0.0.1:3000';
 
-const createOTP = async (jwt) => {
+/* const createOTP = async (jwt) => {
   const res = await fetch(
     `https://ai.upstreet.ai/api/register-otp?token=${jwt}`,
     {
@@ -179,7 +181,11 @@ const createOTP = async (jwt) => {
   } else {
     throw new Error('Failed to create a one-time password.');
   }
-};
+}; */
+
+// Convert import.meta.url to a file path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const openFrontend = async ({
   room,
@@ -195,34 +201,32 @@ const openFrontend = async ({
   {
     const primaryDisplay = screen.getPrimaryDisplay();
     // console.log('primary display', primaryDisplay, primaryDisplay.workAreaSize);
-    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize; // primaryDisplay.bounds;
+    const { width: displayWidth, height: displayHeight } = primaryDisplay.workAreaSize;
 
-    if (!debug) {
+    if (debug >= debugLevels.SILLY) {
+      width = displayWidth;
+      height = displayHeight;
+    } else {
       if (width === undefined) {
         width = 300;
       }
       if (height === undefined) {
         height = 400;
       }
-    } else {
-      width = displayWidth;
-      height = displayHeight;
     }
 
     // trade the jwt for an otp auth token
-    const authToken = await createOTP(jwt);
+    // const authToken = await createOTP(jwt);
     // construct the destination url
     const dstUrl = new URL(`${host}/desktop/${room}`);
     dstUrl.searchParams.set('desktop', 1 + '');
-    // construct the final url
-    const u = new URL(`${host}/login`);
-    u.searchParams.set('auth_token', authToken);
-    u.searchParams.set('referrer_url', dstUrl.href);
+    // // construct the final url
+    // const u = new URL(`${host}/login`);
+    // u.searchParams.set('auth_token', authToken);
+    // u.searchParams.set('referrer_url', dstUrl.href);
 
     // main window
     const win = new BrowserWindow({
-      // width,
-      // height,
       width: width,
       height: height,
       x: displayWidth - width, // Position at right edge
@@ -238,12 +242,23 @@ const openFrontend = async ({
       webPreferences: {
         session: session.fromPartition('login'),
         // nodeIntegration: true,
+        preload: path.join(__dirname, 'preload.mjs'),
+        contextIsolation: true,
+        enableRemoteModule: false,
       },
     });
-    if (debug) {
+    if (debug >= debugLevels.SILLY) {
       win.webContents.openDevTools();
     }
-    win.loadURL(u.href);
+
+    // set the cookie on the page
+    await win.webContents.session.cookies.set({
+      url: host,
+      name: 'auth-jwt',
+      value: jwt,
+    });
+
+    await win.loadURL(dstUrl.href);
   }
 };
 
@@ -274,14 +289,25 @@ const main = async () => {
       }
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv, {
+    from: 'electron',
+  });
 
   if (!commandExecuted) {
     console.error('Command missing');
     process.exit(1);
   }
 };
+
 main().catch(err => {
   console.error(err);
   process.exit(1);
 });
+
+//
+
+ipcMain.on('app:quit', (_) => {
+  console.log('Shutdown message received');
+  app.quit();
+})

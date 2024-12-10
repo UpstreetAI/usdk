@@ -2,7 +2,7 @@ import type { ZodTypeAny } from 'zod';
 import type {
   ActionMessage,
   ChatMessages,
-  SubtleAiImageOpts,
+  SubtleAiCompleteOpts,
   PendingActionMessage,
   ReadableAudioStream,
   PlayableAudioStream,
@@ -27,6 +27,8 @@ import {
 import { formatConversationMessage } from '../util/message-utils';
 import { chatEndpointUrl } from '../util/endpoints.mjs';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
+
+import { NotEnoughCreditsError } from '../util/error-utils.mjs';
 
 //
 
@@ -64,17 +66,21 @@ export class GenerativeAgentObject {
   }
   async complete(
     messages: ChatMessages,
+    opts?: SubtleAiCompleteOpts,
   ) {
+    const model = opts?.model ?? this.agent.model;
     return await this.agent.appContextValue.complete(messages, {
-      model: this.agent.model,
+      model,
     });
   }
   async completeJson(
     messages: ChatMessages,
     format: ZodTypeAny,
+    opts?: SubtleAiCompleteOpts,
   ) {
+    const model = opts?.model ?? this.agent.model;
     return await this.agent.appContextValue.completeJson(messages, format, {
-      model: this.agent.model,
+      model,
     });
   }
   // async generateImage(prompt: string, opts?: SubtleAiImageOpts) {
@@ -95,7 +101,11 @@ export class GenerativeAgentObject {
           });
           return await this.evaluate(evaluator);
         } catch (err) {
-          console.warn('think error', err);
+          if (err instanceof NotEnoughCreditsError) {
+            this.say('Not enough credits');
+          } else {
+            console.warn('think error', err);
+          }
         }
       });
     // });
@@ -162,19 +172,19 @@ export class GenerativeAgentObject {
   }
   async monologue(text: string) {
     await this.conversation.typing(async () => {
-      const thinkOpts = {
+      const actOpts = {
         forceAction: 'say',
       };
       const debugOpts = {
         debug: this.agent.appContextValue.useDebug(),
       };
-      const step = await generateAgentActionStep(
-        this,
-        'Comment on the following:' + '\n' +
+      const step = await generateAgentActionStep({
+        generativeAgent: this,
+        hint: 'Comment on the following:' + '\n' +
           text,
-        thinkOpts,
+        actOpts,
         debugOpts,
-      );
+      });
       await executeAgentActionStep(this, step);
     });
   }

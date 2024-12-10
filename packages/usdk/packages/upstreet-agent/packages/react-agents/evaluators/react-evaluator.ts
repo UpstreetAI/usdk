@@ -15,12 +15,18 @@ export class ReACTEvaluator implements Evaluator {
       generativeAgent,
       signal,
     } = opts;
-    const step = await generateAgentActionStep(
+    const {
+      hint,
+      actOpts,
+      debugOpts,
+    } = this;
+    const step = await generateAgentActionStep({
       generativeAgent,
-      this.hint,
-      this.actOpts,
-      this.debugOpts,
-    );
+      mode: 'react',
+      hint,
+      actOpts,
+      debugOpts,
+    });
     return step;
   }
 }

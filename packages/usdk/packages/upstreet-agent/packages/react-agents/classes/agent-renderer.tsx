@@ -1,10 +1,10 @@
-import React from 'react';
-import { useState, useEffect, Component, Fragment, ReactNode } from 'react';
+import React, { useEffect, Component, ReactNode } from 'react';
 import ReactReconciler from 'react-reconciler';
 import {
   ConcurrentRoot,
   DefaultEventPriority,
 } from 'react-reconciler/constants'
+import { QueueManager } from 'queue-manager';
 import {
   SubtleAi,
 } from './subtle-ai';
@@ -14,10 +14,7 @@ import type {
   InstanceChild,
   ChatsSpecification,
 } from '../types';
-// import inspect from 'browser-util-inspect';
-
 import { RenderLoader } from './render-loader';
-import { QueueManager } from 'queue-manager';
 import { makeAnonymousClient } from '../util/supabase-client.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';

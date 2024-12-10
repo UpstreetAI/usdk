@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Perception } from '../components';
-import { LoopProps } from './types';
+import { useAgent } from '../hooks';
+import { Perception } from '../components/core/perception';
+import { LoopProps } from '../types';
 import { BasicEvaluator } from '../evaluators/basic-evaluator';
 
 export const ChatLoop = (props: LoopProps) => {
@@ -8,11 +9,16 @@ export const ChatLoop = (props: LoopProps) => {
     throw new Error('Cannot provide both evaluator and hint/actOpts');
   }
 
+  const agent = useAgent();
   const hint = props.hint;
   const actOpts = props.actOpts;
+  const debugOpts = {
+    debug: agent.appContextValue.useDebug(),
+  };
   const [evaluator, setEvaluator] = useState(() => props.evaluator ?? new BasicEvaluator({
     hint,
     actOpts,
+    debugOpts,
   }));
 
   return (
@@ -22,12 +28,14 @@ export const ChatLoop = (props: LoopProps) => {
         handler={async (e) => {
           const { targetAgent } = e.data;
 
-          const abortController = new AbortController();
-          const { signal } = abortController;
-          
-          await targetAgent.evaluate(evaluator, {
-            signal,
-          });
+          (async () => {
+            const abortController = new AbortController();
+            const { signal } = abortController;
+            
+            await targetAgent.evaluate(evaluator, {
+              signal,
+            });
+          })();
         }}
       />
       <Perception
@@ -40,12 +48,14 @@ export const ChatLoop = (props: LoopProps) => {
           const targetUserId = (args as any)?.targetUserId;
           // if the nudge is for us
           if (targetUserId === e.data.targetAgent.agent.id) {
-            const abortController = new AbortController();
-            const { signal } = abortController;
+            (async () => {
+              const abortController = new AbortController();
+              const { signal } = abortController;
 
-            await targetAgent.evaluate(evaluator, {
-              signal,
-            });
+              await targetAgent.evaluate(evaluator, {
+                signal,
+              });
+            })();
           }
         }}
       />

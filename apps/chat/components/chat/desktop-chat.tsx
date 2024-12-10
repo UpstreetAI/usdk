@@ -67,7 +67,7 @@ type AgentData = {
 function AgentAvatar({ agent, className }: { agent: AgentData, className?: string }) {
   console.log('agent', agent);
   return <div className={cn('relative flex overflow-hidden', className)}>
-    {agent && <img src={agent.previewUrl} alt={agent.name} className='w-[80px] h-[80px] mt-auto object-cover' />}
+    {agent && <img src={agent.previewUrl || '/images/user.png'} alt={agent.name} className='w-full h-full' />}
   </div>;
 }
 
@@ -144,12 +144,16 @@ export function DesktopChat({ className, room }: ChatProps) {
   const { isAgentLoading } = useLoading();
 
   const agentMessages = messages.filter(message => message.display && !message.display.props.isOwnMessage && message.display.props.name);
-  console.log('latestMessage', agentMessages);
 
+  const appQuit = () => {
+    (window as any).electron.send('app:quit');
+  }
+  
   return (
     <div className={`w-full relative transition-all duration-300 ${isChatExpanded ? 'h-screen' : 'h-20'}`}>
       <div className={`absolute cursor-pointer flex top-0 right-1 z-10 transition-opacity duration-300 ${isChatExpanded ? 'opacity-100' : 'opacity-0'} scale-[0.6]`}>
         {isChatExpanded && <IconButton icon="Minus" size="small" onClick={() => setIsChatExpanded(false)} className="" />}
+        {isChatExpanded && <IconButton icon="Close" size="small" className="ml-2" onClick={appQuit} />}
       </div>
       {isChatExpanded && (
         <div className={`relative group flex-1 duration-300 text-gray-900 ease-in-out animate-in`}>

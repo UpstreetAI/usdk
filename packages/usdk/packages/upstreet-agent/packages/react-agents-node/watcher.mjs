@@ -52,6 +52,7 @@ const reloadAgentWorker = async (directory, opts) => {
         workerPath,
         'run',
         directory,
+        '--',
       ];
       // pass the opts
       if (opts.var) {
@@ -210,7 +211,8 @@ const main = async () => {
       listenForChanges(directory, opts);
     });
 
-  await program.parseAsync();
+  const argv = process.argv.filter((arg) => arg !== '--');
+  await program.parseAsync(argv);
 
   if (!commandExecuted) {
     console.error('Command missing');

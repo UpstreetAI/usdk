@@ -12,19 +12,21 @@ import { shuffle } from 'react-agents/util/util.mjs'
 import { createPcmF32MicrophoneSource } from 'codecs/audio-client.mjs'
 import { createVideoSource } from '@upstreet/multiplayer/public/video/video-client.mjs'
 import { ensureAudioContext } from '@/lib/audio/audio-context-output'
-import { Icon } from 'ucom'
+import { Icon, IconButton } from 'ucom'
 
 export function PromptForm({
   input,
   embed,
   desktop,
   mode,
+  scrollToBottom,
   setInput
 }: {
   input: string
   embed?: boolean
   desktop?: boolean
   mode?: "web" | "desktop" | "embed"
+  scrollToBottom: () => void
   setInput: (value: string) => void
 }) {
   const [mediaPickerOpen, setMediaPickerOpen] = React.useState(false)
@@ -69,6 +71,7 @@ export function PromptForm({
     setInput('')
     if (value) {
       sendChatMessage(value)
+      scrollToBottom()
     } else if (canContinue) {
       nudgeContinue()
     }
@@ -90,17 +93,19 @@ export function PromptForm({
     }
   }
 
+  const buttonClass = cn("flex justify-start relative border rounded-none border-1 mb-1 bg-zinc-100 text-zinc-900 hover:text-zinc-200 hover:bg-zinc-950 overflow-hidden")
+
   return (
     <form onSubmit={async (e: any) => {
       e.preventDefault()
     }}>
+      <div className="flex w-full">
       <div className="relative flex max-h-60 w-full grow flex-col px-8 bg-slate-100 sm:border sm:px-12">
         {mediaPickerOpen && (
-          <div className="absolute left-0 bottom-16 py-2 flex flex-col border rounded">
-            <div className="mx-4 my-2 text-xs text-muted-foreground">Add media...</div>
+          <div className="absolute left-0 bottom-full flex flex-col bg-background p-1 pb-0">
             <Button
               variant="secondary"
-              className="flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden"
+              className={buttonClass}
             >
               <input className="absolute -top-12 bottom-0 -left-12 right-0 cursor-pointer" type="file" onChange={e => {
                 const files: File[] = Array.from((e.target as any).files);
@@ -114,7 +119,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!microphoneSource) {
                   const audioContext = await ensureAudioContext()
@@ -168,7 +173,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!cameraSource) {
                   const devices = await navigator.mediaDevices.enumerateDevices()
@@ -218,7 +223,7 @@ export function PromptForm({
             </Button>
             <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 if (!screenSource) {
                   const mediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -260,7 +265,7 @@ export function PromptForm({
             </Button>
             {desktop && <Button
               variant="secondary"
-              className={cn("flex justify-start relative rounded bg-background mx-2 p-2 overflow-hidden")}
+              className={buttonClass}
               onClick={async () => {
                 console.log('control click')
               }}
@@ -285,7 +290,7 @@ export function PromptForm({
           <TooltipContent>Add Media</TooltipContent>
         </Tooltip>
         {typing && (
-          <div className="absolute -top-12 text-slate-900 left-0 text-muted-foreground text-sm">{typing}</div>
+          <div className="absolute bottom-full left-0 text-muted-foreground text-sm bg-[rgba(0,0,0,0.5)] text-zinc-100 py-1 px-2">{typing}</div>
         )}
         <div className="mt-2 px-2 w-full">
           <Textarea
@@ -315,6 +320,11 @@ export function PromptForm({
             <TooltipContent>{ input !== '' ? "Send Message" : "Nudge to Continue" }</TooltipContent>
           </Tooltip>
         </div>
+      </div>
+
+      <div className={cn("p-[12px] cursor-pointer", mode === "desktop" && "bg-zinc-900")}>
+        <Icon icon="Headset" className={cn("size-[18px]", mode === "desktop" && "text-white")} />
+      </div>
       </div>
     </form>
   )

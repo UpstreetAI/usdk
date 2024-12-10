@@ -53,6 +53,7 @@ export class ReactAgentsNodeRuntime {
         watcherPath,
         'run',
         directory,
+        '--',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
         '--init', JSON.stringify(init),

@@ -7,7 +7,7 @@ import {
   AbortableMessageEvent,
 } from './abortable-message-event';
 
-export class AbortableActionEvent extends AbortableMessageEvent<PendingActionEventData> {
+export class PendingUniformEvent extends AbortableMessageEvent<PendingActionEventData> {
   constructor({
     agent,
     message,
