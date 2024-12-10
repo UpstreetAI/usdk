@@ -3,7 +3,6 @@ import { RootToggle } from 'fumadocs-ui/layouts/docs.client'
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'
 import pkgJson from 'usdk/package.json'
 import Image from 'next/image'
-import Link from 'next/link'
 import GitHubRepoCard from '@/components/github-repo-card'
 
 /**
@@ -30,11 +29,6 @@ export const baseOptions = {
                 href: 'https://www.npmjs.com/package/usdk'
               }
             }
-            // {
-            //   title: 'Folder 2',
-            //   description: 'Pages in folder 2',
-            //   url: '/path/to/page-tree-2',
-            // },
           ]}
         />
       </div>
@@ -97,11 +91,4 @@ export const baseOptions = {
       />
     )
   }
-  // links: [
-  //   {
-  //     text: 'Documentation',
-  //     url: '/docs',
-  //     active: 'nested-url',
-  //   },
-  // ],
 }
