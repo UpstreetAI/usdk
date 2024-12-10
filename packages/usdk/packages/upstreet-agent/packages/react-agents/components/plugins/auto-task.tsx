@@ -33,6 +33,7 @@ class TaskObject extends EventTarget {
     goal: string;
     steps: string[];
   }) {
+    super();
     this.id = id;
     this.goal = goal;
     this.steps = steps;
@@ -42,7 +43,6 @@ class TaskObject extends EventTarget {
 const Goal = (props: {
   children?: React.ReactNode;
   mode?: 'once' | 'repeat' | 'auto',
-  task?: TaskObject;
 }) => {
   const hint = props.children;
   if (typeof hint !== 'string') {
@@ -51,14 +51,28 @@ const Goal = (props: {
 
   const mode = props.mode ?? 'repeat';
 
-  const task = props.task ?? new TaskObject();
+  const agent = useAgent();
+  // maybe move this to a task
+  const [steps, setSteps] = useState(null);
 
-  return (
+  useEffect(() => {
+    if (!steps) {
+      // generate the steps
+    }
+  }, [steps]);
+
+  return steps && (
     <ActionLoop
       hint={hint}
     />
   );
 };
+
+/*
+usages:
+<AutoGoal hint="do crypto twitter research each day" />
+<Goal hint="scrape the tweets for @aixbt" />
+*/
 
 //
 
@@ -119,7 +133,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
         schema={
           z.object({
             goal: z.string(),
-            steps: z.array(z.string()),
+            steps: z.array(z.string()), // remove this and make it handled by the goal itself
           })
         }
         examples={[
