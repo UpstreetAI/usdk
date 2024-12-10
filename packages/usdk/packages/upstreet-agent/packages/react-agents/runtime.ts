@@ -344,10 +344,17 @@ export const collectPriorityModifiers = <T extends PriorityModifier>(modifiers: 
     .sort((aEntry, bEntry) => aEntry[0] - bEntry[0])
     // .map((entry) => entry[1]);
 };
-export const filterModifiersPerConversation = <T extends PriorityModifier>(modifiers: Array<[number, T[]]>, conversation: ConversationObject) => {
+export const filterModifiersPerConversation = <T extends PriorityModifier>(
+  modifiers: Array<[number, T[]]>, 
+  conversation: ConversationObject | null
+) => {
   return modifiers.map(([priority, modifiersArray]) => [
     priority,
-    modifiersArray.filter((modifier) => !modifier.conversation || modifier.conversation === conversation),
+    modifiersArray.filter(modifier => 
+      conversation ? 
+        modifier.conversation === conversation : 
+        !modifier.conversation
+    ),
   ]) as Array<[number, T[]]>;
 };
 export const filterModifiersPerType = <T extends PriorityModifier>(modifiers: Array<[number, T[]]>, name: string) => {
@@ -500,24 +507,19 @@ const handleChatPerception = async (data: ActionMessageEventData, {
   for (const [priority, perceptionsBlock] of perceptionsPerPriority) {
     const blockPromises = [];
     for (const perception of perceptionsBlock) {
-      // if (
-      //   (!perception.type || perception.type === '*' || perception.type === message.method) &&
-      //   (!perception.conversation || perception.conversation === conversation)
-      // ) {
-        const targetAgent = agent.generative({
-          conversation,
-        });
-        const e = new AbortablePerceptionEvent({
-          targetAgent,
-          sourceAgent,
-          message,
-        });
-        const p = (async () => {
-          await perception.handler(e);
-          return e;
-        })();
-        blockPromises.push(p);
-      // }
+      const targetAgent = agent.generative({
+        conversation,
+      });
+      const e = new AbortablePerceptionEvent({
+        targetAgent,
+        sourceAgent,
+        message,
+      });
+      const p = (async () => {
+        await perception.handler(e);
+        return e;
+      })();
+      blockPromises.push(p);
     }
     const messageEvents = await Promise.all(blockPromises);
     aborted = aborted || messageEvents.some((messageEvent) => messageEvent.abortController.signal.aborted);
