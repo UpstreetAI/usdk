@@ -55,7 +55,7 @@ const ActionLoopInner = (props: LoopProps) => {
 
     const recurse = async () => {
       console.log('infinite loop tick 1');
-      await generativeAgent.evaluate(evaluator, {
+      const steps = await generativeAgent.evaluate(evaluator, {
         signal,
       });
       console.log('infinite loop tick 2');
