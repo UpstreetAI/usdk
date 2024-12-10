@@ -26,7 +26,7 @@ const ConversationInstance = (props: ConversationInstanceProps) => {
 export const ConversationProvider = (props: ConversationProps) => {
   const agent = useContext(AgentContext);
   const conversations = useContext(ConversationsContext).conversations;
-  return [null].concat(conversations).map((conversation) => {
+  return conversations.map((conversation) => {
     return (
       <ConversationInstance
         agent={agent}
