@@ -45,7 +45,7 @@ import {
 
 // get the .env.txt content (parsed as an object)
 // note: this contains keys and must not be exposed to the user (such as by including it in prompts)
-export const useEnv: () => string = () => {
+export const useEnv: () => object = () => {
   const appContextValue = useContext(AppContext);
   return appContextValue.useEnv();
 };
