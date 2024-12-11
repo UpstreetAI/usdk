@@ -119,6 +119,7 @@ const bindOutgoing = ({
 
 export class DiscordBot extends EventTarget {
   token: string;
+  clientId: string;
   channels: DiscordRoomSpec[];
   dms: DiscordRoomSpec[];
   userWhitelist: string[];
@@ -132,6 +133,7 @@ export class DiscordBot extends EventTarget {
     // arguments
     const {
       token,
+      clientId,
       channels,
       dms,
       userWhitelist,
@@ -140,6 +142,7 @@ export class DiscordBot extends EventTarget {
       jwt,
     } = args;
     this.token = token;
+    this.clientId = clientId;
     this.channels = channels;
     this.dms = dms;
     this.userWhitelist = userWhitelist;
@@ -149,6 +152,12 @@ export class DiscordBot extends EventTarget {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
+    agent.updateSocialSpecs({
+      discord: {
+        userId: clientId,
+      },
+    });
+    
     // initialize discord bot client
     const discordBotClient = new DiscordBotClient({
       token,
