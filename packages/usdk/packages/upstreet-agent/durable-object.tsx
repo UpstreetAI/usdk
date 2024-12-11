@@ -31,7 +31,7 @@ export class DurableObject {
     const auth2 = dotenv.parse(envTxt);
     this.loadPromise = (async() => {
       const agentMain = new AgentMain(state2, env, auth2);
-      await agentMain.waitForLoad();
+      // await agentMain.waitForLoad();
       return agentMain;
     })();
   }

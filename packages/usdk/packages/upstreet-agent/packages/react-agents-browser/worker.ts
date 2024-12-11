@@ -57,7 +57,7 @@ globalThis.onmessage = (event: any) => {
           // });
 
           // wait for first render
-          await agentMain.waitForLoad();
+          // await agentMain.waitForLoad();
 
           return agentMain;
         })();

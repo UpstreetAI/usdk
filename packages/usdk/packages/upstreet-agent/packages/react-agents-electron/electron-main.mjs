@@ -142,7 +142,7 @@ const runAgent = async (directory, opts) => {
   // console.log('agentMain', agentMain);
 
   // wait for first render
-  await agentMain.waitForLoad();
+  // await agentMain.waitForLoad();
 
   await startAgentMainServer({
     agentMain,
