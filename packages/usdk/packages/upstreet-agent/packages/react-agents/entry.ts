@@ -38,15 +38,16 @@ export class AgentMain extends EventTarget {
     this.auth = auth;
     this.supabase = makeAnonymousClient(auth.AGENT_TOKEN);
 
-    this.chatsSpecification = new ChatsSpecification({
-      userId: this.#getId(),
-      supabase: this.supabase,
-    });
     const {
       userRender,
       config,
       codecs,
     } = state;
+    // XXX needs to be moved down
+    this.chatsSpecification = new ChatsSpecification({
+      userId: config.id,
+      supabase: this.supabase,
+    });
     this.agentRenderer = new AgentRenderer({
       env,
       auth,
@@ -77,14 +78,14 @@ export class AgentMain extends EventTarget {
 
   //
 
-  #getId = cachedGet(function() {
-    return this.#getAgentJson().id;
-  })
-  #getAgentJson = cachedGet(function() {
-    const agentJsonString = this.env.AGENT_JSON;
-    const agentJson = JSON.parse(agentJsonString);
-    return agentJson;
-  })
+  // #getId = cachedGet(function() {
+  //   return this.config.id;
+  // })
+  // #getAgentJson = cachedGet(function() {
+  //   const agentJsonString = this.env.AGENT_JSON;
+  //   const agentJson = JSON.parse(agentJsonString);
+  //   return agentJson;
+  // })
 
   //
 
@@ -100,7 +101,7 @@ export class AgentMain extends EventTarget {
       let match;
       if ((match = u.pathname.match(/^\/([^/]*)/))) {
         const subpath = match[1];
-        const guid = this.#getId();
+        // const guid = this.#getId();
 
         /* const handleAgentJson = async () => {
           const agentJson = this.#getAgentJson();
