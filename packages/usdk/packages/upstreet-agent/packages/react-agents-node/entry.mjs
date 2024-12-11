@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import toml from '@iarna/toml';
+// import toml from '@iarna/toml';
 import dotenv from 'dotenv';
 import { AgentMain } from './packages/upstreet-agent/packages/react-agents/entry.ts';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
@@ -18,27 +18,27 @@ import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 //
 
 // this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
-const wranglerTomlPath = path.join(getCurrentDirname(import.meta, process), '../../../../wrangler.toml');
+// const wranglerTomlPath = path.join(getCurrentDirname(import.meta, process), '../../../../wrangler.toml');
 const envTxtPath = path.join(getCurrentDirname(import.meta, process), '../../../../.env.txt');
 
 //
 
-const getEnv = async () => {
-  const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-  const wranglerToml = toml.parse(wranglerTomlString);
+// const getEnv = async () => {
+//   const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
+//   const wranglerToml = toml.parse(wranglerTomlString);
 
-  const agentJsonString = wranglerToml.vars.AGENT_JSON;
-  if (!agentJsonString) {
-    throw new Error('missing AGENT_JSON');
-  }
-  const agentJson = JSON.parse(agentJsonString);
+//   const agentJsonString = wranglerToml.vars.AGENT_JSON;
+//   if (!agentJsonString) {
+//     throw new Error('missing AGENT_JSON');
+//   }
+//   const agentJson = JSON.parse(agentJsonString);
 
-  const env = {
-    AGENT_JSON: JSON.stringify(agentJson),
-    WORKER_ENV: 'development', // 'production',
-  };
-  return env;
-};
+//   const env = {
+//     AGENT_JSON: JSON.stringify(agentJson),
+//     WORKER_ENV: 'development', // 'production',
+//   };
+//   return env;
+// };
 
 const getAuth = async () => {
   const envTxtString = await fs.promises.readFile(envTxtPath, 'utf8');
@@ -53,10 +53,10 @@ const main = async ({
   debug = 0,
 } = {}) => {
   let [
-    env,
+    // env,
     auth,
   ] = await Promise.all([
-    getEnv(),
+    // getEnv(),
     getAuth(),
   ]);
 
@@ -73,8 +73,8 @@ const main = async ({
       },
     },
   };
-  env = {
-    ...env,
+  const env = {
+    WORKER_ENV: 'development',
     init,
     debug,
   };
