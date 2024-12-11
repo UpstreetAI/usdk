@@ -27,18 +27,18 @@ export type ExtendableMessageEvent<T> = MessageEvent<T> & {
 // agents
 
 export type AgentObjectData = {
-  id: string;
-  ownerId: string;
-  name: string;
-  description: string;
-  bio: string;
-  previewUrl: string;
-  model: string;
-  smallModel: string;
-  largeModel: string;
-  features: string[];
-  address: string;
-  stripeConnectAccountId: string;
+  id?: string;
+  ownerId?: string;
+  name?: string;
+  description?: string;
+  bio?: string;
+  previewUrl?: string;
+  model?: string;
+  smallModel?: string;
+  largeModel?: string;
+  features?: string[];
+  address?: string;
+  stripeConnectAccountId?: string;
 };
 export type AgentObject = EventTarget & AgentObjectData & {
   setConfig(config: AgentObjectData): void;
@@ -565,7 +565,7 @@ export type AgentAppProps = {
 
 export type AgentProps = {
   raw?: boolean;
-  config?: AgentObject;
+  config?: AgentObjectData;
   children?: ReactNode;
   ref?: Ref<any>;
 };
