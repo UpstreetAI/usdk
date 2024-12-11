@@ -24,7 +24,7 @@ import {
 //
 
 const getIdFromUserId = (userId: string) => uuidByString(userId);
-const makePlayerFromMember = (member: any) => {
+const makePlayerFromDiscordMember = (member: any) => {
   const {
     userId,
     displayName,
@@ -34,6 +34,11 @@ const makePlayerFromMember = (member: any) => {
   const player = new Player(id, {
     name: displayName,
     previewUrl: displayAvatarURL,
+    socialSpecs: {
+      discord: {
+        userId,
+      },
+    },
   });
   return player;
 };
@@ -324,7 +329,7 @@ export class DiscordBot extends EventTarget {
         // console.log('got guild member add', {
         //   member,
         // });
-        const player = makePlayerFromMember(member);
+        const player = makePlayerFromDiscordMember(member);
         for (const conversation of this.channelConversations.values()) {
           conversation.addAgent(player.playerId, player);
         }
