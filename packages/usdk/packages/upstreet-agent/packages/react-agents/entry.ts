@@ -9,18 +9,6 @@ import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 //
 
-const cachedGet = (fn: () => any) => {
-  let value = null;
-  let ran = false;
-  return function() {
-    if (!ran) {
-      value = fn.call(this);
-      ran = true;
-    }
-    return value;
-  };
-};
-
 export class AgentMain extends EventTarget {
   state: any;
   env: any;
@@ -36,17 +24,17 @@ export class AgentMain extends EventTarget {
     this.state = state;
     this.env = env;
     this.auth = auth;
-    this.supabase = makeAnonymousClient(auth.AGENT_TOKEN);
+    const jwt = auth.AGENT_TOKEN;
+    this.supabase = makeAnonymousClient(jwt);
 
     const {
       userRender,
       config,
       codecs,
     } = state;
-    // XXX needs to be moved down
     this.chatsSpecification = new ChatsSpecification({
-      userId: config.id,
       supabase: this.supabase,
+      jwt,
     });
     this.agentRenderer = new AgentRenderer({
       env,
@@ -75,17 +63,6 @@ export class AgentMain extends EventTarget {
   waitForLoad() {
     return this.loadPromise;
   }
-
-  //
-
-  // #getId = cachedGet(function() {
-  //   return this.config.id;
-  // })
-  // #getAgentJson = cachedGet(function() {
-  //   const agentJsonString = this.env.AGENT_JSON;
-  //   const agentJson = JSON.parse(agentJsonString);
-  //   return agentJson;
-  // })
 
   //
 
