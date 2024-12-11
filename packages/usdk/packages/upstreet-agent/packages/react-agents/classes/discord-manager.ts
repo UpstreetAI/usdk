@@ -152,6 +152,7 @@ export class DiscordBot extends EventTarget {
     this.abortController = new AbortController();
     const { signal } = this.abortController;
 
+    // add relevent discord information to the agent's social specs variable
     agent.updateSocialSpecs({
       discord: {
         userId: clientId,
