@@ -1008,6 +1008,10 @@ importers:
       zod:
         specifier: ^3.21.4
         version: 3.23.8
+    devDependencies:
+      jest:
+        specifier: ^29.7.0
+        version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.9.2(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
 
   packages/usdk/packages/upstreet-agent/packages/codecs:
     dependencies:

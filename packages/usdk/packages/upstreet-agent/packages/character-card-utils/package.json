@@ -26,5 +26,8 @@
   "homepage": "https://github.com/malfoyslastname/character-card-utils#readme",
   "dependencies": {
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
