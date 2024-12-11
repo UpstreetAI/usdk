@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "clean": "find . -type d -name node_modules -exec rm -rf {} +",
     "chat": "npm run -w @upstreet/chat --",
     "docs": "npm run -w @upstreet/docs --"
   },
