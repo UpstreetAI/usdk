@@ -36,10 +36,6 @@ export const update = async (args, opts) => {
     throw new Error('all agent specs must have directories');
   }
   // opts
-  /* const jwt = opts.jwt;
-  if (!jwt) {
-    throw new Error('You must be logged in to update.');
-  } */
   const force = !!args.force;
 
   // update the agents
