@@ -420,8 +420,6 @@ export class DiscordBotClient extends EventTarget {
     const readyPromise = makePromise();
     ws.onopen = () => {
       // console.log('opened');
-      this.input.setUsername(this.name);
-      this.input.setAvatarUrl(this.previewUrl);
       connectPromise.resolve();
     };
     ws.onclose = () => {
@@ -463,6 +461,8 @@ export class DiscordBotClient extends EventTarget {
         } = j;
         switch (method) {
           case 'ready': {
+            this.input.setUsername(this.name);
+            this.input.setAvatarUrl(this.previewUrl);
             readyPromise.resolve();
             break;
           }
