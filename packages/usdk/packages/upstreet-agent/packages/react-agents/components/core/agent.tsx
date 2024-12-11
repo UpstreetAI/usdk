@@ -21,6 +21,9 @@ import {
 import {
   ActiveAgentObject,
 } from '../../classes/active-agent-object';
+import {
+  useConfig,
+} from '../../hooks';
 import { ExtendableMessageEvent } from '../../util/extendable-message-event';
 
 //
@@ -43,8 +46,8 @@ import { ExtendableMessageEvent } from '../../util/extendable-message-event';
  * ```
  */
 export const Agent = forwardRef(({
-  config,
-  children,
+  config = useConfig(),
+  children = [],
 }: AgentProps, ref: Ref<ActiveAgentObject>) => {
   // hooks
   const appContextValue = useContext(AppContext);

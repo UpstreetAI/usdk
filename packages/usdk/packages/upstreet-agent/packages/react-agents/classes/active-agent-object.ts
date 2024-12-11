@@ -8,6 +8,7 @@ import type {
   Memory,
   ActionMessageEventData,
   // LiveTriggerEvent,
+  AgentObjectData,
 } from '../types';
 import {
   ConversationObject,
@@ -43,7 +44,7 @@ import { AgentRegistry } from './render-registry';
 
 export class ActiveAgentObject extends AgentObject {
   // arguments
-  config: AgentObject;
+  config: AgentObjectData;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
   // state
@@ -60,7 +61,7 @@ export class ActiveAgentObject extends AgentObject {
   //
   
   constructor(
-    config: AgentObject,
+    config: AgentObjectData,
     {
       appContextValue,
       registry,
