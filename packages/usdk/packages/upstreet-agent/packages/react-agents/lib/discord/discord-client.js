@@ -46,6 +46,26 @@ export class DiscordInput {
     this.ws = ws;
   }
 
+  setUsername(username) {
+    const m = {
+      method: 'setUsername',
+      args: {
+        username,
+      },
+    };
+    this.ws.send(JSON.stringify(m));
+  }
+
+  setAvatarUrl(avatarUrl) {
+    const m = {
+      method: 'setAvatarUrl',
+      args: {
+        avatarUrl,
+      },
+    };
+    this.ws.send(JSON.stringify(m));
+  }
+
   writeText(text, {
     channelId,
     userId,
@@ -334,10 +354,15 @@ export class DiscordBotClient extends EventTarget {
   ws = null;
   input = null; // going from the agent into the discord bot
   output = null; // coming out of the discord bot to the agent
+  name = null;
+  previewUrl = null;
+
   constructor({
     token,
     codecs,
     jwt,
+    name,
+    previewUrl,
   }) {
     super();
 
@@ -355,6 +380,8 @@ export class DiscordBotClient extends EventTarget {
       codecs,
       jwt,
     });
+    this.name = name;
+    this.previewUrl = previewUrl;
   }
   async status() {
     const res = await fetch(`${discordBotEndpointUrl}/status`, {
@@ -393,6 +420,8 @@ export class DiscordBotClient extends EventTarget {
     const readyPromise = makePromise();
     ws.onopen = () => {
       // console.log('opened');
+      this.input.setUsername(this.name);
+      this.input.setAvatarUrl(this.previewUrl);
       connectPromise.resolve();
     };
     ws.onclose = () => {
