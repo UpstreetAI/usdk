@@ -28,7 +28,7 @@ The source code for this example is available on [GitHub](https://github.com/Ups
 
 You can follow along this example by watching the video below:
 
-<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/uz_aQLUXzmE?si=M1mK9t10lToW3Dc2" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/hTOCMnhcefY?si=4lNfOPyVpTKVjKkL" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 ## Guide
 
@@ -38,237 +38,335 @@ Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
 
 ### Step 2: Create an Agent (shortcut)
 
-We can skip the Interview process, and directly generate an Agent with a prompt, by running:
+We can skip the Interview process and directly generate an Agent with a prompt by running:
 
 ```bash
-usdk create <your-agent-directory> -p "create a pokedex assistant agent"
+usdk create <your-agent-directory> -p "convert OpenAPI specs to Zod schemas and generate actions"
 ```
 
 This will directly scaffold an Agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
 
-### Step 3: Create a `PokeDexAssistant` Component
+### Step 3: Setup Zod and `openapi-zod-client`
 
-As of November 12, 2024, there are **1,025** Pokémon in the National Pokédex. That's a lot of Pokémon!
+We'll first need an OpenAPI specification. We'll use [Swagger](https://swagger.io/)'s official example, the [Pet Store API](https://petstore.swagger.io/), as an example.
 
-So instead of keeping the Pokédex database in memory, we'll use [PokéAPI](https://pokeapi.co/) - an open-source (and free) Pokémon API - to retrieve Pokémon information at runtime.
+The OpenAPI specification is often served as a YAML or JSON file. We get this from their [GitHub](https://raw.githubusercontent.com/swagger-api/swagger-petstore/refs/heads/master/src/main/resources/openapi.yaml) (although, in a real scenario, it may be available in one of the server's routes).
 
-We'll have to create a [custom Component](/concepts/usdk/creating-custom-components) to retrieve Pokémon information from the PokéAPI. For the sake of this example, we'll keep it simple:
+We will use the [`openapi-zod-client`](https://www.npmjs.com/package/openapi-zod-client/v/0.1.2) package from NPM to convert this specification to a bunch of [Zod](https://zod.dev/) schemas. A Zod schema is just a more descriptive way to specify a data type. It also generates a [Zodios client](https://www.zodios.org/), which is, simply put, an easy way to call the endpoints specified in the OpenAPI specification.
 
-```tsx
-const PokemonDexAssistant = () => {
+First install the relevant packages:
 
-  // We'll add functions, useState, useEffect here
+<Tabs items={[
+  "pnpm",
+  "npm",
+]}>
+ 
 
-  return (
-    <>
-        {/* We can add components here to compose our Agent  */}
-    </>
-  );
+```bash tab="pnpm"
+pnpm i zod openapi-zod-client
+```
+
+```bash tab="npm"
+npm i zod openapi-zod-client
+```
+
+</Tabs>
+
+Add a script in your `package.json` which calls the `openapi-zod-client` CLI tool (feel free to [tweak the options](https://github.com/astahmer/openapi-zod-client) by checking out what's available):
+
+```json title="package.json"
+{
+  "name": "my-agent",
+  "scripts": {
+    // [!code ++]
+    "generate:api": "npx openapi-zod-client https://raw.githubusercontent.com/swagger-api/swagger-petstore/refs/heads/master/src/main/resources/openapi.yaml --additional-props-default-value false  -o ./api.ts"
+  },
+  "dependencies": {
+    "upstreet-agent": "file:./packages/upstreet-agent"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "^1.18.2"
+  }
 }
 ```
 
-Now add a helper function to retrieve the Pokémon data, and also two more to filter them by abilities and moves:
+### Step 4: Create a Dummy API
 
+Run the script we added in Step 3:
 
-```tsx
-const PokemonDexAssistant = () => {
+<Tabs items={[
+  "pnpm",
+  "npm",
+]}>
+ 
 
-    const fetchPokemonDetails = async (pokemonName: string) => { // [!code ++]
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);// [!code ++]
-        const data = await response.json();// [!code ++]
-        return data;// [!code ++]
-    };// [!code ++]
-// [!code ++]
-    const fetchPokemonAbilities = async (pokemonName: string) => {// [!code ++]
-        const response = await fetchPokemonDetails(pokemonName);// [!code ++]
-        const abilities = response.abilities;// [!code ++]
-        return abilities;// [!code ++]
-    };// [!code ++]
-// [!code ++]
-    const fetchPokemonMovesNames = async (pokemonName: string) => {// [!code ++]
-        const response = await fetchPokemonDetails(pokemonName);// [!code ++]
-        const moves = response.moves.map(move => move.move.name);// [!code ++]
-        return moves;// [!code ++]
-    };// [!code ++]
-        
-
-  return (
-    <>
-        {/* We can add components here to compose our Agent  */}
-    </>
-  );
-}
+```bash tab="pnpm"
+pnpm generate-api
 ```
 
-Now comes the interesting part. We'll use the [`<Action>`](/install) tag to define how the Agent should respond to the default text perception.
-
-To say that simply, we want the Agent to know that it can fetch Pokémon details whenever a user messages them.
-
-
-```tsx
-
-import { z } from 'zod'; // [!code ++]
-
-const PokemonDexAssistant = () => {
-
-    const fetchPokemonDetails = async (pokemonName: string) => { 
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`);
-        const data = await response.json();
-        return data;
-    };
-
-    const fetchPokemonAbilities = async (pokemonName: string) => {
-        const response = await fetchPokemonDetails(pokemonName);
-        const abilities = response.abilities;
-        return abilities;
-    };
-
-    const fetchPokemonMovesNames = async (pokemonName: string) => {
-        const response = await fetchPokemonDetails(pokemonName);
-        const moves = response.moves.map(move => move.move.name);
-        return moves;
-    };
-        
-
-  return (
-    <>
-        <Action  // [!code ++]
-        name='fetchPokemonMoves' // [!code ++]
-        description="Retrieve a list of move names for a given Pokemon from the PokeAPI" // [!code ++]
-        schema={ // [!code ++]
-            z.object({ // [!code ++]
-            pokemonName: z.string(), // [!code ++]
-            }) // [!code ++]
-        } // [!code ++]
-        examples={[ // [!code ++]
-            {  // [!code ++]
-            pokemonName: 'pikachu', // [!code ++]
-            }, // [!code ++]
-        ]} // [!code ++]
-        handler={ // [!code ++]
-            async (e: PendingActionEvent) => { // [!code ++]
-            const { pokemonName } = e.data.message.args as { pokemonName: string }; // [!code ++]
-            const moves =await fetchPokemonMovesNames(pokemonName); // [!code ++]
-            const monologueString = dedent`\ // [!code ++]
-                Your character fetched details about a pokemon's moves and discovered the following: // [!code ++]
-            ` + '\n\n' + moves; // [!code ++]
-            await e.data.agent.monologue(monologueString);   // [!code ++]
-            await e.commit(); // [!code ++]
-            } // [!code ++]
-        } // [!code ++]
-        /> 
-        <Action // [!code ++]
-        name="fetchPokemonAbilities" // [!code ++]
-        description="Retrieve a list of ability names for a given Pokemon from the PokeAPI" // [!code ++]
-        schema={ // [!code ++]
-            z.object({ // [!code ++]
-            pokemonName: z.string(), // [!code ++]
-            }) // [!code ++]
-        } // [!code ++]
-        examples={[ // [!code ++]
-            {  // [!code ++]
-            pokemonName: 'pikachu', // [!code ++]
-            }, // [!code ++]
-        ]} // [!code ++]
-        handler={ // [!code ++]
-            async (e: PendingActionEvent) => { // [!code ++]
-            const { pokemonName } = e.data.message.args as { pokemonName: string }; // [!code ++]
-            const abilities = await fetchPokemonAbilities(pokemonName); // [!code ++]
-            const monologueString = dedent`\
-Your character fetched details about a pokemon's abilities and discovered the following:
-            ` + '\n\n' + abilities; // [!code ++]
-            await e.data.agent.monologue(monologueString);   // [!code ++]
-            await e.commit(); // [!code ++]
-            } // [!code ++]
-        } // [!code ++]
-        />
-    </>
-  );
-}
+```bash tab="npm"
+npm run generate-api
 ```
 
----
+</Tabs>
 
-Let's break down one of the Actions, and understand it.
+This runs `openapi-zod-client`, which, if successful, uses the OpenAPI specification to create the API in Zod and Zodios, in the `api.ts` file.
 
-#### Breakdown summary of the `<Action>` Component
+The `api.ts` file contains all the Zod schemas, and endpoints as an array, and exports a Zodios client.
 
-1. **Purpose of the `<Action>` Component**  
-   `<Action>` components define specific actions that your agent can perform in response to user inputs. In this case, the agent retrieves Pokémon-related details like abilities and moves from the PokéAPI.
+Clean up the generated code by:
+- Removing `partial` and `optional` keywords.
+- Commenting out endpoints that are unsupported, such as file uploads.
 
-2. **Defining Action Properties**
-   Each `<Action>` is structured with the following properties:
-   - **`name`**: A unique identifier for the action. Example: `'fetchPokemonMoves'`.
-   - **`description`**: Explains what the action does. This helps developers understand its purpose.
-   - **`schema`**: Specifies the input structure for the action, defined using a `zod` schema. Here, the input is a Pokémon's name (`pokemonName`), and the schema ensures it's a string.
-   - **`examples`**: Provides sample inputs for testing or guiding the agent's behavior. Example: `{ pokemonName: 'pikachu' }`.
 
-3. **`handler`: The Action's Core Logic**
-   The `handler` function is where the actual functionality of the action is implemented:
-   - **Input Processing**: The `e.data.message.args` extracts the input (`pokemonName`) from the user's request.
-   - **Calling Helper Functions**: Helper functions like `fetchPokemonMovesNames` or `fetchPokemonAbilities` are invoked to fetch data from the PokéAPI.
-   - **Building the Response**: The results are formatted into a string (e.g., a monologue) using `dedent` for cleaner output.
-   - **Responding to the User**: The agent sends a response via `e.data.agent.monologue`.
-   - **Marking Action Completion**: The `await e.commit()` call signals that the action is complete.
+### Step 4: Import Dependencies
 
-#### The `fetchPokemonMoves` Action
-   
-   Learn about the basics of Actions [here](/concepts/agents-sdk).
+Before creating your OpenAPI agent, ensure you have imported the relevant dependencies. Update the generated files to include only the required ones and clean up unnecessary code. For example:
 
-   Let's break apart the `fetchPokemonMoves` Action. This action retrieves a Pokémon's move names:
-   - **Schema Validation**: Ensures `pokemonName` is a valid string.
-   - **Fetch Logic**: The `fetchPokemonMovesNames` helper gets the moves from the API.
-   - **User Feedback**: The response lists the moves and delivers them back to the user.
-
-   ```tsx
-   <Action 
-       name="fetchPokemonMoves"
-       description="Retrieve a list of move names for a given Pokemon from the PokeAPI"
-       schema={z.object({ pokemonName: z.string() })}
-       examples={[{ pokemonName: 'pikachu' }]}
-       handler={async (e: PendingActionEvent) => {
-           const { pokemonName } = e.data.message.args as { pokemonName: string };
-           const moves = await fetchPokemonMovesNames(pokemonName);
-           const monologueString = dedent`
-               Your character fetched details about a Pokémon's moves and discovered the following:
-           ` + '\n\n' + moves;
-           await e.data.agent.monologue(monologueString);
-           await e.commit();
-       }}
-   />
-   ```
-
-You can define multiple `<Action>` components, each tailored to a specific purpose. For example:
-- `fetchPokemonAbilities`: Fetches abilities using `fetchPokemonAbilities`.
-- `fetchPokemonMoves`: Fetches moves using `fetchPokemonMovesNames`.
-
----
-
-Finally, we call `<PokeDexAssistant />` in our Agent's main code:
 ```tsx title="agent.tsx"
-// ...
+import React from "react";
+import { Agent, Action, PendingActionEvent, Prompt } from "react-agents";
+import dedent from "dedent";
+import { z } from "zod";
+import { createApiClient } from "./api"; // Ensure correct import path
 
-export default function MyAgent() {
+const apiClient = createApiClient("https://petstore.swagger.io/v2"); // <-- Here, add the base URL to the server which hosted the OpenAPI specification
+```
+
+### Step 5: Build the OpenAPI Action Generator
+
+Define a component that maps OpenAPI endpoints to actions for your agent. Each action will have a schema, description, and handler. Here’s how to start:
+
+```tsx title="agent.tsx"
+const OpenAPIActionGenerator = () => {
+  const endpoints = apiClient.api;
+
+  const actions = endpoints.map((endpoint) => {
+    const reducedEndpointParameters = endpoint.parameters?.reduce(
+      (acc, param) => {
+        if (param.type === "Query") {
+          acc.query = acc.query.extend({
+            [param.name]: param.schema || z.unknown(),
+          });
+        } else if (param.type === "Body") {
+          acc.body = acc.body.extend({
+            [param.name]: param.schema || z.unknown(),
+          });
+        }
+        return acc;
+      },
+      {
+        query: z.object({}),
+        body: z.object({}),
+      }
+    ) || null;
+
+    if (!reducedEndpointParameters) return null;
+
+    const hasQuery = Object.keys(reducedEndpointParameters.query.shape || {}).length > 0;
+    const hasBody = Object.keys(reducedEndpointParameters.body.shape || {}).length > 0;
+    const schema = hasQuery && hasBody
+      ? z.object({ query: reducedEndpointParameters.query, body: reducedEndpointParameters.body })
+      : hasQuery
+      ? z.object({ query: reducedEndpointParameters.query })
+      : hasBody
+      ? reducedEndpointParameters.body
+      : z.null();
+
+    if (!schema) return null;
+
+    return (
+      <Action
+        key={endpoint.alias}
+        name={endpoint.alias}
+        schema={schema}
+        examples={[]}
+        description={endpoint.description || `Perform ${endpoint.method.toUpperCase()} request to ${endpoint.path}`}
+        handler={async (e: PendingActionEvent) => {
+          try {
+            const args = e.data.message.args;
+            const response = await apiClient[endpoint.alias]({
+              ...(args?.query ? { queries: args.query } : args?.body || args),
+            });
+            const limitedResponse = Array.isArray(response) ? response.slice(0, 10) : response;
+            const monologueString = dedent`\
+              You took the action ${endpoint.alias}. You sent:
+              ${JSON.stringify(args)}
+              and received in response:
+              ${JSON.stringify(limitedResponse, null, 2)}
+            `;
+            await e.data.agent.monologue(monologueString);
+            await e.commit();
+          } catch (error) {
+            console.error(`Error in ${endpoint.alias}:`, error);
+            throw error;
+          }
+        }}
+      />
+    );
+  });
+
   return (
     <Agent>
-        {/* [!code ++] */} 
-      <PokemonDexAssistant />
+      <Prompt>
+        You strictly answer based on retrieved data. You strictly take only actions you can. If you can't take an action, just say it. If there's an error, log the raw error. You can take the following actions:
+        {endpoints.map((endpoint) => endpoint.alias).join("\n")}
+      </Prompt>
+      {actions.filter(Boolean)}
     </Agent>
   );
-}
+};
+
+export default OpenAPIActionGenerator;
 ```
 
-You can see the complete code for this component on GitHub [here](https://github.com/UpstreetAI/usdk-examples/blob/5d1e2299ff4a518c0791f8e3c8a49143eb1fecc2/pokedex/agent.tsx#L13).
+Here's a breakdown the code above:
 
-### Step 4: Test out your Pokédex-like Agent!
+#### Purpose  
+The OpenAPI Action Generator is designed to:  
+1. **Clean the data of any irregularities**: Ensure consistency in handling query and body parameters from the OpenAPI spec.  
+2. **Reduce the size of the action**: Limit the number of response items displayed for clarity during testing.  
+3. **Generalize the schema across all actions**: Use a standard schema (`zod` objects) to validate input parameters dynamically for every endpoint.  
 
-You can run `usdk chat` to test it out. [Learn more](/test-your-agent)
+#### Steps and Explanations  
 
-You can ask it questions like:
-> What are Charizard's top abilities?
+**1. Retrieve API endpoints from the client**  
+```tsx
+const endpoints = apiClient.api;
+```
+- **Why?**: Extract the list of endpoints from the generated API client. This allows dynamic mapping of endpoints into actionable components for the agent.  
 
-Share its response in our [Discord community](https://upstreet.ai/usdk-discord); we'd love to know what it responds to you.
+---
+
+**2. Reduce and clean endpoint parameters**  
+```tsx
+const reducedEndpointParameters = endpoint.parameters?.reduce(
+  (acc, param) => {
+    if (param.type === "Query") {
+      acc.query = acc.query.extend({
+        [param.name]: param.schema || z.unknown(),
+      });
+    } else if (param.type === "Body") {
+      acc.body = acc.body.extend({
+        [param.name]: param.schema || z.unknown(),
+      });
+    }
+    return acc;
+  },
+  {
+    query: z.object({}),
+    body: z.object({}),
+  }
+) || null;
+```
+- **Why?**: This step consolidates query and body parameters into separate objects for clarity.  
+  - We currently handle only query and body parameters, to keep things simple.
+  - **`z.object({})`** initializes empty objects to represent schemas.  
+
+---
+
+**3. Check and define schema dynamically**  
+```tsx
+const hasQuery = Object.keys(reducedEndpointParameters.query.shape || {}).length > 0;
+const hasBody = Object.keys(reducedEndpointParameters.body.shape || {}).length > 0;
+const schema = hasQuery && hasBody
+  ? z.object({ query: reducedEndpointParameters.query, body: reducedEndpointParameters.body })
+  : hasQuery
+  ? z.object({ query: reducedEndpointParameters.query })
+  : hasBody
+  ? reducedEndpointParameters.body
+  : z.null();
+```
+- **Why?**: Depending on the endpoint, it might only have query parameters, body parameters, or neither.  
+  - If both exist, they are wrapped into a single schema object.  
+  - Otherwise, the body is kept in the root. This reduces the data size for the Agent.
+
+---
+
+**4. Create actions for each endpoint**  
+```tsx
+return (
+  <Action
+    key={endpoint.alias}
+    name={endpoint.alias}
+    schema={schema}
+    examples={[]}
+    description={endpoint.description || `Perform ${endpoint.method.toUpperCase()} request to ${endpoint.path}`}
+    handler={async (e: PendingActionEvent) => { ... }}
+  />
+);
+```
+- **Why?**: Define a unique action for each endpoint to:
+  - Bind the schema for validation.  
+  - Include descriptive metadata (`description` and `examples`) for easier testing and understanding. In our example of the Pet Store API, we didn't have any examples, but there may be examples in real-world use cases.
+  - Assign a handler for executing the API request.
+
+---
+
+**5. Handle API requests and responses**  
+```tsx
+const response = await apiClient[endpoint.alias]({
+  ...(args?.query ? { queries: args.query } : args?.body || args),
+});
+const limitedResponse = Array.isArray(response) ? response.slice(0, 10) : response;
+```
+- **Why?**:  
+  - Dynamically prepare the request arguments (`query` or `body`) based on the input.  
+  - Limit the response to a maximum of 10 items so that the AI's prompt isn't overloaded with information. Use this as you please.
+
+---
+
+**6. Generate a monologue for the agent**  
+```tsx
+const monologueString = dedent`\
+  You took the action ${endpoint.alias}. You sent:
+  ${JSON.stringify(args)}
+  and received in response:
+  ${JSON.stringify(limitedResponse, null, 2)}
+`;
+await e.data.agent.monologue(monologueString);
+```
+- **Why?**: Summarize the action for the agent by displaying:  
+  - The endpoint called.  
+  - The request parameters sent.  
+  - The response data received.  
+
+---
+
+**7. Wrap actions within the agent component**  
+```tsx
+return (
+  <Agent>
+    <Prompt>
+      You strictly answer based on retrieved data. ...
+    </Prompt>
+    {actions.filter(Boolean)}
+  </Agent>
+);
+```
+- **Why?**: Combine all dynamically generated actions into a cohesive agent interface. The `Prompt` provides instructions to the agent about its behavior when executing actions.  
+
+
+### Step 6: (optional) Test the OpenAPI Agent
+
+Run [`usdk chat`](/test-your-agent) to test the Agent in your CLI.
+
+You can start by asking:
+
+> What operations can you perform?
+
+It (hopefully) will be very straightforward in telling you what it can do.
+
+Now try asking it:
+
+> Can you create a dog called Rover, for me?
+
+It might take a bit, and will return a response. Plug that response in the actual Pet Store's [`GET pet/{petId}`](https://petstore.swagger.io/#/pet/getPetById) API.
+
+Does it work? Join our [Discord community](https://upstreet.ai/usdk-discord) and tell us; we'd love to know!
 
 ## Further Challenges
 
-- ["Who's that Pokémon?"](https://www.youtube.com/watch?v=VDJu97ijM-4) - Give the Agent an Image Perception, and create an Action so it can guess a Pokémon based on the image and provide its details
+- Support Path arguments (e.g. `GET pets/{petId}`)
+- Allow the Agent to change query parameters in pagination, in order to get fine-grained results
+- Try to get the Agent to chain its actions
