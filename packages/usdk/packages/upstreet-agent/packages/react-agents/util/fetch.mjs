@@ -95,7 +95,7 @@ const fetchChatCompletionFns = {
       throw new Error('error response in fetch completion: ' + res.status + ': ' + text);
     }
   },
-  anthropic: async ({ model, max_tokens, messages, format, stream, signal }, {
+  anthropic: async ({ model, messages, format, stream, signal }, {
     jwt,
   }) => {
     if (!jwt) {
@@ -104,7 +104,6 @@ const fetchChatCompletionFns = {
 
     const o = {
       model,
-      max_tokens,
       messages,
       // response_format,
       stream,
