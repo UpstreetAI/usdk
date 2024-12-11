@@ -3,7 +3,7 @@ import { AgentMain } from 'react-agents/entry.ts';
 import userRender from '../../agent.tsx'; // note: this will be overwritten by the build process
 import envTxt from '../../.env.txt';
 // import configTxt from '../../config.txt';
-import agentJsonTxt from '../../agent.json.txt';
+import agentJsonTxt from '../../agent.json';
 import * as codecs from 'codecs/ws-codec-runtime-edge.mjs';
 
 Error.stackTraceLimit = 300;

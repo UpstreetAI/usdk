@@ -7,9 +7,9 @@ import { isGuid } from '../packages/upstreet-agent/packages/react-agents/util/gu
 const getGuidFromPath = async (p) => {
   const makeEnoent = () => new Error('not an agent directory: ' + p);
 
-  const agentJsonTxtPath = path.join(p, 'agent.json.txt');
+  const agentJsonPath = path.join(p, 'agent.json');
   try {
-    const agentJsonString = await fs.promises.readFile(agentJsonTxtPath, 'utf8');
+    const agentJsonString = await fs.promises.readFile(agentJsonPath, 'utf8');
     const agentJson = agentJsonString && JSON.parse(agentJsonString);
     const id = agentJson?.id;
     if (id) {

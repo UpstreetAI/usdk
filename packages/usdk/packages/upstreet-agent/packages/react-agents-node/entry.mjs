@@ -16,7 +16,7 @@ import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 
 //
 
-const agentJsonTxtPath = path.join(getCurrentDirname(import.meta, process), '../../../../agent.json.txt');
+const agentJsonTxtPath = path.join(getCurrentDirname(import.meta, process), '../../../../agent.json');
 // this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
 // const wranglerTomlPath = path.join(getCurrentDirname(import.meta, process), '../../../../wrangler.toml');
 const envTxtPath = path.join(getCurrentDirname(import.meta, process), '../../../../.env.txt');

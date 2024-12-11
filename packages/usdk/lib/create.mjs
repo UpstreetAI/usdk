@@ -318,10 +318,7 @@ const addAgentJsonFeatures = (agentJson, features) => {
   return agentJson;
 };
 const loadAgentJson = (dstDir) => {
-  // const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
-  // const wranglerTomlString = fs.readFileSync(wranglerTomlPath, 'utf8');
-  // const wranglerToml = toml.parse(wranglerTomlString);
-  const agentJsonPath = path.join(dstDir, 'agent.json.txt');
+  const agentJsonPath = path.join(dstDir, 'agent.json');
   const agentJsonString = fs.readFileSync(agentJsonPath, 'utf8');
   const agentJson = JSON.parse(agentJsonString);
   return agentJson;
@@ -499,8 +496,8 @@ export const create = async (args, opts) => {
     const srcGitignorePath = path.join(upstreetAgentSrcDir, 'gitignore.template');
     const dstGitignorePath = path.join(dstDir, '.gitignore');
 
-    const agentJsonTxt = path.join(dstDir, 'agent.json.txt');
-    const dstEnvTxt = path.join(dstDir, '.env.txt');
+    const agentJsonPath = path.join(dstDir, 'agent.json');
+    const dstEnvTxtPath = path.join(dstDir, '.env.txt');
 
     // const srcJestPath = path.join(upstreetAgentSrcDir, 'jest');
     // const dstJestPath = dstDir;
@@ -540,10 +537,10 @@ export const create = async (args, opts) => {
         });
         return toml.stringify(t);
       }),
-      // agent.json.txt
-      writeFile(agentJsonTxt, JSON.stringify(agentJson, null, 2)),
+      // agent.json
+      writeFile(agentJsonPath, JSON.stringify(agentJson, null, 2)),
       // env.txt
-      writeFile(dstEnvTxt, dotenvFormat({
+      writeFile(dstEnvTxtPath, dotenvFormat({
         AGENT_TOKEN: agentToken,
         WALLET_MNEMONIC: mnemonic,
       })),

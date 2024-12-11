@@ -48,7 +48,7 @@ export const update = async (args, opts) => {
 
     console.log(pc.italic(`Updating agent ${directory}...`));
 
-    const agentJsonPath = path.join(directory, 'agent.json.txt');
+    const agentJsonPath = path.join(directory, 'agent.json');
     const packagesPathSrc = path.join(BASE_DIRNAME, 'packages');
     const packagesPathDst = path.join(directory, 'packages');
 
