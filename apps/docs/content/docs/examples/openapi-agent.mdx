@@ -1,19 +1,28 @@
 ---
-title: Informative Agent
-description: This section describes how to build an Agent with custom Components.
+title: OpenAPI Agent
+description: This section describes how to build an Agent which can work on an OpenAPI specification.
 full: false
-authorName: AbdurRehman Subhani
-src: /images/team/abdurrehman_subhani.jpeg
-thumbnailSrc: /images/example-thumbnails/informative-agent.png
+authorName: Saad Bazaz
+src: /images/team/saad_bazaz.jpeg
+thumbnailSrc: /images/example-thumbnails/openapi-agent.png
 ---
 
-In this guide, we build an **Informative Agent** inspired by the [Pokédex](https://www.pokemon.com/us/pokedex) in the Pokémon franchise, an encyclopedia device capable of retrieving Pokémon information and having conversations with its user.
+In this guide, we build an **OpenAPI Agent** which can parse an OpenAPI specification, and then take actions accordingly. OpenAPI Specification (formerly Swagger Specification) is an API description format for REST APIs. An OpenAPI file allows you to describe your entire API, including:
+
+- Available endpoints (/users) and operations on each endpoint (GET /users, POST /users)
+- Operation parameters Input and output for each operation
+- Authentication methods
+- Contact information, license, terms of use, and other information.
+
+The format is easy to learn and readable to both humans and machines. It is often used by backend teams to explain their endpoints to client-side teams.
 
 <Callout>
-We define an **Informative Agent** as an Agent which can retrieve information from an **API** or the **internet**.
+Learn more about the OpenAPI Specification in its [official docs](https://swagger.io/docs/specification/v3_0/about/).
 </Callout>
 
-The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/pokedex).
+**Why does this matter?** This basically allows you to create an Agent which can help non-technical users interact with your API, kind of like an Assistant to your application's admin panel. As long as the OpenAPI spec is well-defined, your Agent can display data analytics, crunch numbers, and performs actions on your behalf.
+
+The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/openApiAgent).
 
 ## Video Tutorial 
 
