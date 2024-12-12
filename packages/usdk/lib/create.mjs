@@ -700,26 +700,31 @@ export const edit = async (args, opts) => {
     });
   }
 
-  // const _updateFiles = async () => {
-  //   await Promise.all([
-  //     // wrangler.toml
-  //     // (async () => {
-  //     //   const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
-  //     //   await copyWithStringTransform(wranglerTomlPath, wranglerTomlPath, (s) => {
-  //     //     let t = toml.parse(s);
-  //     //     t = buildWranglerToml(t, {
-  //     //       agentJson,
-  //     //     });
-  //     //     return toml.stringify(t);
-  //     //   });
-  //     // })(),
-  //     // agent.tsx
-  //     (async () => {
-  //       const agentJSXPath = path.join(dstDir, 'agent.tsx');
-  //       const agentJSX = makeAgentSourceCode(agentJson.features ?? []);
-  //       await fs.promises.writeFile(agentJSXPath, agentJSX);
-  //     })(),
-  //   ]);
-  // };
-  // await _updateFiles();
+  const _updateFiles = async () => {
+    await Promise.all([
+      // wrangler.toml
+      // (async () => {
+      //   const wranglerTomlPath = path.join(dstDir, 'wrangler.toml');
+      //   await copyWithStringTransform(wranglerTomlPath, wranglerTomlPath, (s) => {
+      //     let t = toml.parse(s);
+      //     t = buildWranglerToml(t, {
+      //       agentJson,
+      //     });
+      //     return toml.stringify(t);
+      //   });
+      // })(),
+      // agent.json
+      (async () => {
+        const agentJsonPath = path.join(dstDir, 'agent.json');
+        await fs.promises.writeFile(agentJsonPath, JSON.stringify(agentJson, null, 2));
+      })(),
+      // agent.tsx
+      // (async () => {
+      //   const agentJSXPath = path.join(dstDir, 'agent.tsx');
+      //   const agentJSX = makeAgentSourceCode(agentJson.features ?? []);
+      //   await fs.promises.writeFile(agentJSXPath, agentJSX);
+      // })(),
+    ]);
+  };
+  await _updateFiles();
 };
