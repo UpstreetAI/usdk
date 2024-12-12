@@ -34,7 +34,7 @@ import {
 import { AgentInterview } from 'react-agents/util/agent-interview.mjs';
 import { 
   defaultVoices,
-} from 'react-agents/util/agent-features.mjs';
+} from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
 import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
