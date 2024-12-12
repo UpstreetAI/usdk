@@ -1,9 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo, useContext } from 'react';
-// import dedent from 'dedent';
 import type {
   AgentObject,
-  Attachment,
-  FormattedAttachment,
 } from '../../types';
 import {
   featureRenderers,
