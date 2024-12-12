@@ -16,6 +16,9 @@ import {
   DefaultAgentComponents,
 } from '../util/default-components';
 import {
+  ConfigAgentComponents,
+} from '../util/config-components';
+import {
   AgentRegistry,
 } from '../../classes/render-registry';
 import {
@@ -114,6 +117,7 @@ export const Agent = forwardRef(({
         <ConversationsContext.Provider value={{conversations}}>
           <AgentRegistryContext.Provider value={{agentRegistry}}>
             <DefaultAgentComponents />
+            <ConfigAgentComponents config={config} />
             {children}
           </AgentRegistryContext.Provider>
         </ConversationsContext.Provider>
