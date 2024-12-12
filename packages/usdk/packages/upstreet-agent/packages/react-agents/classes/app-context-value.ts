@@ -147,7 +147,6 @@ export class AppContextValue {
         return (this.config as any).voiceEndpoint as string;
       }
     })();
-    // const sampleRate = opts?.sampleRate ?? defaultSampleRate;
     if (voiceEndpointString) {
       const match = voiceEndpointString.match(/^([^:]+?):([^:]+?):([^:]+?)$/);
       if (match) {
