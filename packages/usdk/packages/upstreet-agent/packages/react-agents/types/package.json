@@ -1,4 +1,4 @@
 {
   "name": "react-agents-types",
-  "main": "index.d.ts"
+  "main": "react-agents.d.ts"
 }
