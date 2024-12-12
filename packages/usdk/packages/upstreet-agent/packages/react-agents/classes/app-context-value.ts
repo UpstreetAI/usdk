@@ -144,7 +144,7 @@ export class AppContextValue {
       if (opts?.voiceEndpoint) {
         return opts.voiceEndpoint;
       } else {
-        return (this.agentJson as any).voiceEndpoint as string;
+        return (this.config as any).voiceEndpoint as string;
       }
     })();
     // const sampleRate = opts?.sampleRate ?? defaultSampleRate;
