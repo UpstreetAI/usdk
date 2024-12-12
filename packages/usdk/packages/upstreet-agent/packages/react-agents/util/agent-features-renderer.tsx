@@ -279,7 +279,7 @@ import { Telnyx } from '../components/plugins/telnyx';
 export const featureRenderers = {
   tts: ({voiceEndpoint}) => {
     return (
-      <TTS voiceEndpoint={JSON.stringify(voiceEndpoint)} />
+      <TTS voiceEndpoint={voiceEndpoint} />
     );
   },
   rateLimit: ({maxUserMessages, maxUserMessagesTime, message}) => {
