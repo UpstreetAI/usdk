@@ -56,7 +56,7 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
         type="discordMessageReferenceReply"
         description={dedent`
           Use this Action:
-          - STRICTLY WITHIN A DISCORD CHANNEL OR DIRECT MESSAGE (DM) SCENE
+          - STRICTLY WITHIN A DISCORD CHANNEL OR DIRECT MESSAGE (DM) SCENE, IF NO SCENE IS PROVIDED OR THE SCENE IS NOT A DISCORD CHANNEL OR DIRECT MESSAGE (DM), THE ACTION MUST NOT BE EXECUTED.
           - To refer back to a specific message in the chat history or when replying to a message where you were specifically tagged using '@<your-discord-id>'.
           
           Ensure the response is contextually relevant to the message being referenced or replied to.
