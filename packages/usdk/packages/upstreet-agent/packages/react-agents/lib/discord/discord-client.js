@@ -468,8 +468,8 @@ export class DiscordBotClient extends EventTarget {
         } = j;
         switch (method) {
           case 'ready': {
-            this.input.setUsername(this.name);
-            this.input.setAvatarUrl(this.previewUrl);
+            this.name && this.input.setUsername(this.name);
+            this.previewUrl && this.input.setAvatarUrl(this.previewUrl);
             readyPromise.resolve();
             break;
           }
