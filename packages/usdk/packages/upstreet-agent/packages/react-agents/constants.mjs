@@ -9,6 +9,7 @@ export const defaultModels = [
   'anthropic:claude-3-5-sonnet-20240620',
   'openrouter:nousresearch/hermes-3-llama-3.1-405b',
   'openrouter:nousresearch/hermes-3-llama-3.1-70b',
+  'openrouter:google/gemini-2.0-flash-exp:free',
 ];
 export const defaultSmallModels = [
   'openai:gpt-4o-mini',
