@@ -53,21 +53,21 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
     <>
      <ConversationProvider>
       <Action
-        type="discordMessageReply"
+        type="discordMessageReferenceReply"
         description={dedent`
-          Use this Action to reply to a specific message ONLY within a Discord channel or direct message (DM) when you feel it is necessary to respond according to the context of the message.
-          Additionally, use this Action in most cases where you are mentioned using '@' in order to respond back directly to that message.
+          Use this Action to refer back to a specific message in the chat history or when replying to a message where you were specifically tagged using '@'.
+          Ensure the response is contextually relevant to the message being referenced or replied to.
         `}
         schema={
           z.object({
-          messageReference: z.string(),
-          content: z.string(),
+            messageReference: z.string(),
+            content: z.string(),
           })
         }
         examples={[
           {
             messageReference: '1234567890',
-            content: 'Yea, I got it.',
+            content: 'Yes, I understand your point.',
           },
         ]}
         handler={
