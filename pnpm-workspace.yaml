@@ -1,3 +1,4 @@
+# resolve dependencies in the following order
 packages:
   - 'apps/*'
   - 'packages/*'
