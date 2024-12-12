@@ -83,12 +83,14 @@ export async function generateAgentActionStep({
   mode,
   actOpts,
   debugOpts,
+  signal,
 }: {
   generativeAgent: GenerativeAgentObject,
   mode: 'basic' | 'react',
   hint?: string,
   actOpts?: ActOpts,
   debugOpts?: DebugOptions,
+  signal?: AbortSignal,
 }) {
   // wait for the conversation to be loaded so that we can use its conversation history in the prompts
   {
@@ -121,20 +123,24 @@ export async function generateAgentActionStep({
     mode,
     actOpts,
     debugOpts,
+    signal,
   });
 }
+
 async function _generateAgentActionStepFromMessages({
   generativeAgent,
   promptMessages,
   mode,
   actOpts,
   debugOpts,
+  signal,
 }: {
   generativeAgent: GenerativeAgentObject,
   promptMessages: ChatMessages,
   mode: 'basic' | 'react',
   actOpts?: ActOpts,
   debugOpts?: DebugOptions,
+  signal?: AbortSignal,
 }) {
   const { agent, conversation } = generativeAgent;
   const {
@@ -164,7 +170,7 @@ async function _generateAgentActionStepFromMessages({
     }
   })();
 
-  const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema);
+  const completionMessage = await generativeAgent.completeJson(promptMessages, resultSchema, { signal });
   if (completionMessage) {
     const result = {} as ActionStep;
     const observation = (completionMessage.content as any).observation as string | null;
@@ -306,6 +312,7 @@ export const filterModifiersPerType = <T extends PriorityModifier>(modifiers: Ar
 export async function executeAgentActionStep(
   generativeAgent: GenerativeAgentObject,
   step: ActionStep,
+  signal?: AbortSignal,
 ) {
   const {
     agent,
@@ -355,6 +362,7 @@ export async function executeAgentActionStep(
       const e = new PendingActionEvent({
         agent: generativeAgent,
         message,
+        signal,
       });
       if (message) {
         await modifier.handler(e);
@@ -374,6 +382,7 @@ export async function executeAgentActionStep(
                 method,
                 args,
               },
+              signal,
             });
             await modifier.handler(e);
             return e;

@@ -251,12 +251,14 @@ export type Memory = {
 
 export type SubtleAiCompleteOpts = {
   model: string;
+  signal?: AbortSignal;
 };
 export type SubtleAiImageOpts = {
   model: string;
   width: number;
   height: number;
   quality: string;
+  signal?: AbortSignal;
 };
 export type SubtleAi = {
   context: AppContextValue;

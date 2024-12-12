@@ -26,6 +26,7 @@ export class ReACTEvaluator implements Evaluator {
       hint,
       actOpts,
       debugOpts,
+      signal,
     });
     return step;
   }

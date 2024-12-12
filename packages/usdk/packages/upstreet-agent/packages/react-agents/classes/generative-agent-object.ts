@@ -110,10 +110,11 @@ export class GenerativeAgentObject {
       });
     // });
   }
-  async evaluate(evaluator: Evaluator) {
+  async evaluate(evaluator: Evaluator, opts: { signal?: AbortSignal } = {}) {
     return await this.conversation.typing(async () => {
       const step = await evaluator.evaluate({
         generativeAgent: this,
+        signal: opts.signal,
       });
       await executeAgentActionStep(this, step);
       return step;

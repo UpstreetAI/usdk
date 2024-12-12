@@ -202,11 +202,12 @@ export class AppContextValue {
     };
   }
   async completeJson(messages: ChatMessages, format: ZodTypeAny, opts: SubtleAiCompleteOpts) {
-    const { model } = opts;
+    const { model, signal } = opts;
     const jwt = this.authToken;
     const content = await fetchJsonCompletion({
       model,
       messages,
+      signal,
     }, format, {
       jwt,
     });

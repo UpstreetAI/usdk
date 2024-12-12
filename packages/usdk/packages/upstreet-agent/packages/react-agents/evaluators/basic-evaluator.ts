@@ -26,6 +26,7 @@ export class BasicEvaluator implements Evaluator {
       mode: 'basic',
       actOpts,
       debugOpts,
+      signal,
     });
     return step;
   }

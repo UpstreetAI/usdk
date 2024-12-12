@@ -45,28 +45,39 @@ const ActionLoopInner = (props: LoopProps) => {
       });
     }
   });
+
+  const abortControllerRef = useRef(null);
+  const [signal, setSignal] = useState(null);
+
   const [generativeAgent, setGenerativeAgent] = useState(() => agent.generative({
     conversation,
   }));
 
   useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
     const abortController = new AbortController();
-    const { signal } = abortController;
+    abortControllerRef.current = abortController;
+    setSignal(abortController.signal);
 
     const recurse = async () => {
       console.log('infinite loop tick 1');
       const steps = await generativeAgent.evaluate(evaluator, {
-        signal,
+        signal: abortController.signal,
       });
       console.log('infinite loop tick 2');
-      if (signal.aborted) return;
+      if (abortController.signal.aborted) return;
 
       await recurse();
     };
     recurse();
 
     return () => {
-      abortController.abort();
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
     };
   }, []);
 
