@@ -352,6 +352,7 @@ export class DiscordBot extends EventTarget {
           username,
           text,
           channelId, // if there is no channelId, it's a DM
+          messageId,
           // XXX discord channel/dm distinction can be made more explicit with a type: string field...
         } = e.data;
 
@@ -367,6 +368,7 @@ export class DiscordBot extends EventTarget {
             method: 'say',
             args: {
               text,
+              messageId,
             },
           };
           const id = getIdFromUserId(userId);
