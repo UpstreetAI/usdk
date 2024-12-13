@@ -179,7 +179,7 @@ export const deploy = async (args, opts) => {
       const parser = createParser({
         onEvent(event) {
           if (event.event === 'error') {
-            console.error(event.data);
+            reject(new Error('Error deploying agent: ' + event.data));
           }
           if (event.event === 'log') {
             if (outputStream) {
@@ -212,8 +212,6 @@ export const deploy = async (args, opts) => {
               console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
               console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
             })();
-          } else {
-            console.error('unknown event', event);
           }
         }
       });
