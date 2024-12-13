@@ -122,6 +122,36 @@ const bindOutgoing = ({
   // });
 };
 
+const bindReply = ({
+  conversation,
+  discordBotClient,
+  channelId,
+  userId,
+}: {
+  conversation: ConversationObject,
+  discordBotClient: DiscordBotClient,
+  channelId?: string,
+  userId?: string,
+}) => {
+  conversation.replyFn = async (message: ActionMessage, replyToMessageId: string) => {
+    const replyMessage = conversation.getMessageById(replyToMessageId);
+    const { discordMessageId } = replyMessage?.args;
+    const { text } = message.args;
+
+    const replyObject = {
+      content: text,
+      reply: {
+        messageReference: discordMessageId,
+      },
+    };
+
+    discordBotClient.input.writeText(replyObject, {
+      channelId,
+      userId,
+    });
+  };
+};
+
 //
 
 export class DiscordBot extends EventTarget {
@@ -245,23 +275,6 @@ export class DiscordBot extends EventTarget {
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
-            replyFn: async (message: ActionMessage, replyToMessageId: string) => {
-              console.log('replyFn', {
-                message,
-                replyToMessageId,
-              });
-
-              const replyObject = {
-                content: message.args.text,
-                reply: {
-                  messageReference: replyToMessageId,
-                },
-              };
-              discordBotClient.input.writeText(replyObject, {
-                channelId,
-                userId: message.args.src_user_id,
-              });
-            },
           });
 
           this.agent.conversationManager.addConversation(conversation);
@@ -272,6 +285,11 @@ export class DiscordBot extends EventTarget {
             conversation,
           });
           bindOutgoing({
+            conversation,
+            discordBotClient,
+            channelId,
+          });
+          bindReply({
             conversation,
             discordBotClient,
             channelId,
@@ -308,24 +326,6 @@ export class DiscordBot extends EventTarget {
           getHash: () => {
             return `discord:dm:${userId}`;
           },
-          replyFn: async (message: ActionMessage, replyToMessageId: string) => {
-            const replyMessage = conversation.getMessageById(replyToMessageId);
-            const { discordMessageId } = replyMessage?.args;
-            const {
-              text,
-            } = message.args;
-
-            const replyObject = {
-              content: text,
-              reply: {
-                messageReference: discordMessageId,
-              },
-            };
-
-            discordBotClient.input.writeText(replyObject, {
-              userId,
-            });
-          },
         });
 
         this.agent.conversationManager.addConversation(conversation);
@@ -336,6 +336,11 @@ export class DiscordBot extends EventTarget {
           conversation,
         });
         bindOutgoing({
+          conversation,
+          discordBotClient,
+          userId,
+        });
+        bindReply({
           conversation,
           discordBotClient,
           userId,
