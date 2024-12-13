@@ -180,7 +180,6 @@ export const deploy = async (args, opts) => {
         onEvent(event) {
           if (event.event === 'error') {
             console.error(event.data);
-            process.exit(1);
           }
           if (event.event === 'log') {
             if (outputStream) {
