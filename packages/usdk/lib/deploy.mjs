@@ -180,6 +180,7 @@ export const deploy = async (args, opts) => {
         onEvent(event) {
           if (event.event === 'error') {
             reject(new Error('Error deploying agent: ' + event.data));
+            return; // prevent fall through
           }
           if (event.event === 'log') {
             if (outputStream) {
@@ -212,6 +213,8 @@ export const deploy = async (args, opts) => {
               console.log(pc.cyan('✓ Public Profile:'), getAgentPublicUrl(guid), '\n');
               console.log(pc.cyan('✓ Chat using the sdk, run:'), 'usdk chat ' + guid, '\n');
             })();
+          } else {
+            console.error('unknown event', event);
           }
         }
       });
