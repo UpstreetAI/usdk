@@ -21,6 +21,9 @@ export class MessageCache extends EventTarget {
 
     this.loader = loader;
   }
+  getMessageById(messageId: string) {
+    return this.#messages.find((m) => m.messageId === messageId);
+  }
   getMessages() {
     return this.#messages;
   }

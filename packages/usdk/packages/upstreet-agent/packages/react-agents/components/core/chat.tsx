@@ -13,7 +13,8 @@ export const ChatActions = () => {
 
           You should use replyToMessageId in two specific cases:
           1. When you are directly tagged or mentioned in a message
-          2. When you need to reference a specific previous message according to the conversation context.
+          2. When you need to reference a specific previous message according to the conversation context
+          3. Not every message needs a reply reference so you should only use it when necessary
 
           In all other cases, send your message without a reply reference.
         `}

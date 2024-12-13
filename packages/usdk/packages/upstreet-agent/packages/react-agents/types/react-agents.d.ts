@@ -219,11 +219,13 @@ export type ActionMessage = {
   name: string;
   method: string;
   args: any;
+  replyToMessageId?: string;
   attachments?: Attachment[];
   human: boolean; // XXX can be converted to flags
   hidden: boolean;
   timestamp: Date;
 };
+export type ReplyFn = (message: ActionMessage, replyToMessageId: string) => Promise<void>;
 export type PendingActionMessage = {
   method: string;
   args: any;
@@ -297,6 +299,7 @@ export type Debouncer = EventTarget & {
 
 export type MessageCache = EventTarget & {
   getMessages(): ActionMessage[];
+  getMessageById(messageId: string): ActionMessage | undefined;
   pushMessage(message: ActionMessage): Promise<void>;
   // prependMessages(messages: ActionMessage[]): Promise<void>;
   trim(): void;

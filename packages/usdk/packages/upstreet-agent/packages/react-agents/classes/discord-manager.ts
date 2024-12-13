@@ -7,6 +7,7 @@ import {
   ExtendableMessageEvent,
   ActionMessageEventData,
   PlayableAudioStream,
+  ActionMessage,
 } from '../types';
 import {
   ConversationObject,
@@ -77,13 +78,19 @@ const bindOutgoing = ({
     if (method === 'say') {
       let {
         text,
-      } = args as { text: string };
+        replyToMessageId,
+      } = args as { text: string, replyToMessageId?: string };
       
       if (attachments && Object.keys(attachments).length > 0) {
         text += '\n' + Object.values(attachments)
           .filter(attachment => attachment && typeof attachment === 'object' && 'url' in attachment)
           .map(attachment => attachment.url)
           .join('\n');
+      }
+
+      if (replyToMessageId) {
+        conversation.reply(message, replyToMessageId);
+        return;
       }
 
       discordBotClient.input.writeText(text, {
@@ -238,6 +245,23 @@ export class DiscordBot extends EventTarget {
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
+            replyFn: async (message: ActionMessage, replyToMessageId: string) => {
+              console.log('replyFn', {
+                message,
+                replyToMessageId,
+              });
+
+              const replyObject = {
+                content: message.args.text,
+                reply: {
+                  messageReference: replyToMessageId,
+                },
+              };
+              discordBotClient.input.writeText(replyObject, {
+                channelId,
+                userId: message.args.src_user_id,
+              });
+            },
           });
 
           this.agent.conversationManager.addConversation(conversation);
@@ -283,6 +307,24 @@ export class DiscordBot extends EventTarget {
           agent,
           getHash: () => {
             return `discord:dm:${userId}`;
+          },
+          replyFn: async (message: ActionMessage, replyToMessageId: string) => {
+            const replyMessage = conversation.getMessageById(replyToMessageId);
+            const { discordMessageId } = replyMessage?.args;
+            const {
+              text,
+            } = message.args;
+
+            const replyObject = {
+              content: text,
+              reply: {
+                messageReference: discordMessageId,
+              },
+            };
+
+            discordBotClient.input.writeText(replyObject, {
+              userId,
+            });
           },
         });
 
@@ -353,6 +395,7 @@ export class DiscordBot extends EventTarget {
           text,
           channelId, // if there is no channelId, it's a DM
           // XXX discord channel/dm distinction can be made more explicit with a type: string field...
+          messageId,
         } = e.data;
 
         // look up conversation
@@ -367,6 +410,7 @@ export class DiscordBot extends EventTarget {
             method: 'say',
             args: {
               text,
+              discordMessageId: messageId,
             },
           };
           const id = getIdFromUserId(userId);

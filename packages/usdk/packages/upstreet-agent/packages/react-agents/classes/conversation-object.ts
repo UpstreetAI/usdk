@@ -8,6 +8,7 @@ import {
   PlayableAudioStream,
   GetHashFn,
   MessageCache,
+  ReplyFn,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from 'react-agents-client/util/player.mjs';
@@ -24,17 +25,20 @@ export class ConversationObject extends EventTarget {
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
   messageCache: MessageCache;
   numTyping: number = 0;
+  replyFn: ReplyFn | null;
 
   constructor({
     agent,
     agentsMap = new Map(),
     scene = null,
     getHash = () => '',
+    replyFn = null,
   }: {
     agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
+    replyFn?: ReplyFn;
   }) {
     super();
 
@@ -42,6 +46,7 @@ export class ConversationObject extends EventTarget {
     this.agentsMap = agentsMap;
     this.scene = scene;
     this.getHash = getHash;
+    this.replyFn = replyFn;
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
@@ -138,6 +143,10 @@ export class ConversationObject extends EventTarget {
     ].join('\n');
   }
 
+  getMessageById(messageId: string) {
+    return this.messageCache.getMessageById(messageId);
+  }
+  
   getCachedMessages(filter?: MessageFilter) {
     const agent = filter?.agent;
     const idMatches = agent?.idMatches;
@@ -197,6 +206,13 @@ export class ConversationObject extends EventTarget {
 
     return [] as ActionMessage[];
   } */
+
+  async reply(message: ActionMessage, replyToMessageId: string) {
+    if (!this.replyFn) {
+      throw new Error('No reply function configured for this conversation');
+    }
+    await this.replyFn(message, replyToMessageId);
+  }
 
   // handle a message from the network
   async addLocalMessage(message: ActionMessage) {
