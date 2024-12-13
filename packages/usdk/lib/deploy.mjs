@@ -174,8 +174,8 @@ export const deploy = async (args, opts) => {
     })();
 
     // process the response
-    const wranglerTomlJson = await new Promise((accept, reject) => {
-      let result = null;
+    const agentJsonResult = await new Promise((accept, reject) => {
+      let agentJson = null;
       const parser = createParser({
         onEvent(event) {
           if (event.event === 'log') {
@@ -186,10 +186,8 @@ export const deploy = async (args, opts) => {
           } else if (event.event === 'result') {
             (async () => {
               const data = JSON.parse(event.data);
-              result = data;
-
-              const agentJsonString = data.vars.AGENT_JSON;
-              const agentJson = JSON.parse(agentJsonString);
+              agentJson = data;
+              
               const guid = agentJson.id;
               const url = getAgentHost(guid);
 
@@ -220,8 +218,8 @@ export const deploy = async (args, opts) => {
           parser.feed(chunk);
         });
         res.on('end', () => {
-          if (result) {
-            accept(result);
+          if (agentJson) {
+            accept(agentJson);
           } else {
             reject(new Error('No result received from server'));
           }
@@ -230,6 +228,6 @@ export const deploy = async (args, opts) => {
       });
       req.on('error', reject);
     });
-    return wranglerTomlJson;
+    return agentJsonResult;
   }
 };
