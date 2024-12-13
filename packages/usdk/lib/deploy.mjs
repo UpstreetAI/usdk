@@ -178,6 +178,10 @@ export const deploy = async (args, opts) => {
       let agentJson = null;
       const parser = createParser({
         onEvent(event) {
+          if (event.event === 'error') {
+            reject(new Error('Error deploying agent: ' + event.data));
+            return; // prevent fall through
+          }
           if (event.event === 'log') {
             if (outputStream) {
               const s = JSON.parse(event.data);
