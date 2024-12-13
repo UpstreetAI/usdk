@@ -10,15 +10,30 @@ export const ChatActions = () => {
         type="say"
         description={dedent`\
           Say something in the chat.
+
+          You should use replyToMessageId in two specific cases:
+          1. When you are directly tagged or mentioned in a message
+          2. When you need to reference a specific previous message according to the conversation context.
+
+          In all other cases, send your message without a reply reference.
         `}
         schema={
           z.object({
             text: z.string(),
+            replyToMessageId: z.string().optional(),
           })
         }
         examples={[
           {
             text: 'Hello, there! How are you doing?',
+
+          },
+          {
+            text: 'What are you talking about?',
+          },
+          {
+            text: 'Not much, what about you?',
+            replyToMessageId: '123',
           },
         ]}
         // handler={async (e: PendingActionEvent) => {

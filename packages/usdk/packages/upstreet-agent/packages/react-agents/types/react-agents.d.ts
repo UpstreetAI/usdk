@@ -214,6 +214,7 @@ export type Attachment = FormattedAttachment & {
   url?: string;
 };
 export type ActionMessage = {
+  messageId: string;
   userId: string;
   name: string;
   method: string;
