@@ -178,6 +178,10 @@ export const deploy = async (args, opts) => {
       let result = null;
       const parser = createParser({
         onEvent(event) {
+          if (event.event === 'error') {
+            console.error(event.data);
+            process.exit(1);
+          }
           if (event.event === 'log') {
             if (outputStream) {
               const s = JSON.parse(event.data);
