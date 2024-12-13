@@ -16,6 +16,7 @@ export * from './components/core/prompt';
 export * from './components/plugins/rate-limit';
 export * from './components/plugins/status-updates';
 export * from './components/plugins/store';
+export * from './components/plugins/task-runner.jsx';
 export * from './components/plugins/telnyx';
 export * from './components/plugins/tts';
 export * from './components/plugins/twitter-spaces';
