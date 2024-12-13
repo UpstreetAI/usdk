@@ -20,7 +20,7 @@ import {
 
 //
 
-class TaskObject extends EventTarget {
+class Task {
   id: string;
   goal: string;
   steps: string[];
@@ -33,46 +33,11 @@ class TaskObject extends EventTarget {
     goal: string;
     steps: string[];
   }) {
-    super();
     this.id = id;
     this.goal = goal;
     this.steps = steps;
   }
 }
-
-const Goal = (props: {
-  children?: React.ReactNode;
-  mode?: 'once' | 'repeat' | 'auto',
-}) => {
-  const hint = props.children;
-  if (typeof hint !== 'string') {
-    throw new Error('Goal children must be a string');
-  }
-
-  const mode = props.mode ?? 'repeat';
-
-  const agent = useAgent();
-  // maybe move this to a task
-  const [steps, setSteps] = useState(null);
-
-  useEffect(() => {
-    if (!steps) {
-      // generate the steps
-    }
-  }, [steps]);
-
-  return steps && (
-    <ActionLoop
-      hint={hint}
-    />
-  );
-};
-
-/*
-usages:
-<AutoGoal hint="do crypto twitter research each day" />
-<Goal hint="scrape the tweets for @aixbt" />
-*/
 
 //
 
@@ -80,16 +45,14 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
   const hint = props.hint;
 
   const [uuid, setUuid] = useState(() => crypto.randomUUID());
-  const [tasks, setTasks] = useState(new Map<string, TaskObject>());
+  const [tasks, setTasks] = useState(new Map<string, Task>());
 
   return (
     <>
       {/* tasks */}
       {Array.from(tasks.values()).map(task => (
-        <Goal
-          key={task.id}
-        >
-          {
+        <ActionLoop
+          hint={
             dedent`\
               Perform work on the following task:
               \`\`\`
@@ -99,7 +62,8 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
               \`\`\`
             `
           }
-        </Goal>
+          key={task.id}
+        />
       ))}
       {/* prompts */}
       <Prompt>
@@ -133,7 +97,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
         schema={
           z.object({
             goal: z.string(),
-            steps: z.array(z.string()), // remove this and make it handled by the goal itself
+            steps: z.array(z.string()),
           })
         }
         examples={[
@@ -151,7 +115,7 @@ export const AutoTask: React.FC<AutoTaskProps> = (props: AutoTaskProps) => {
           // console.log('startTask', e.data);
           const { message } = e.data;
           const { args } = message;
-          const task = new TaskObject({
+          const task = new Task({
             id: crypto.randomUUID(),
             goal: args.goal,
             steps: args.steps,
