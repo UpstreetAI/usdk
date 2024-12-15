@@ -7,6 +7,7 @@ import { serve } from '@hono/node-server';
 
 //
 
+const dirname = path.dirname(import.meta.url.replace('file://', ''));
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     process.send({
@@ -15,7 +16,6 @@ import { serve } from '@hono/node-server';
     });
   });
 });
-
 process.addListener('SIGTERM', () => {
   process.exit(0);
 });
@@ -24,8 +24,8 @@ process.addListener('SIGTERM', () => {
 
 const homeDir = os.homedir();
 
-const loadModule = async (directory, p) => {
-  const viteServer = await makeViteServer(directory);
+const loadModule = async (p) => {
+  const viteServer = await makeViteServer(dirname);
   // console.log('get agent module 1');
   const entryModule = await viteServer.ssrLoadModule(p);
   // console.log('get agent module 2', entryModule);
@@ -69,10 +69,10 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const main = await loadModule(directory, p);
+  const main = await loadModule('entry.mjs');
   // console.log('worker loaded module', main);
   const agentMain = main({
+    directory,
     init,
     debug,
   });
