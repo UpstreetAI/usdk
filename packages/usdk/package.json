@@ -132,5 +132,8 @@
     "tar": "7.2.0",
     "undici": "6.18.2",
     "whatwg-url": "14.0.0"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   }
 }
