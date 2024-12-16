@@ -182,8 +182,19 @@ export class ConversationObject extends EventTarget {
     return messages;
   }
 
-  // format incoming messages for prompt
-  formatIncomingMessageMentions(message: string) {
+  /**
+   * Formats incoming message mentions by replacing platform-specific mention patterns
+   * with a standardized @userId format. This is useful for ensuring consistency
+   * in how mentions are injected into the prompt across different platforms.
+   * 
+   * Example:
+   * If the incoming message contains a mention like "<@mentionId>", and the corresponding
+   * userId is "1234", the function will replace "<@mentionId>" with "@1234".
+   * 
+   * @param {string} message - The incoming message containing potential mentions.
+   * @returns {string} - The message with mentions formatted to @userId.
+   */
+  formatIncomingMessageMentions(message: string): string {
     const mentions = this.getIncomingMessageMentions(message);
     if (mentions) {
       mentions.forEach(mentionId => {
@@ -206,20 +217,33 @@ export class ConversationObject extends EventTarget {
     return message;
   }
 
-  // agent uses @userId format for mentions
-  getOutgoingMessageMentions(message: string) {
+  /**
+   * Extracts user IDs from the agent's outgoing "say" message using the @userId format.
+   * This function identifies all mentions in the message that follow the @userId pattern
+   * and returns an array of user IDs without the "@" symbol.
+   * 
+   * @param {string} message - The message containing potential @userId mentions.
+   * @returns {string[] | null} - An array of user IDs or null if no matches are found.
+   */
+  getOutgoingMessageMentions(message: string): string[] | null {
     const matches = message.match(/@([0-9a-f-]{36})/g);
     if (!matches) return null;
     
-    // extract just the userIds from @userId format
     const result = matches.map(mention => 
-      mention.substring(1) // remove the @ symbol for a clean userId
+      mention.substring(1)
     ).filter(Boolean);
     return result;
   }
 
-  // format outgoing messages for platforms
-  formatOutgoingMessageMentions(message: string) {
+  /**
+   * Formats outgoing message of the agent containing @userId mentions to platform-specific patterns.
+   * This function replaces mentions in the @userId format with platform-specific
+   * mention patterns using the mentionId from the player's specification.
+   * 
+   * @param {string} message - The message containing @userId mentions.
+   * @returns {string} - The message with mentions formatted for the platform.
+   */
+  formatOutgoingMessageMentions(message: string): string {
     const mentions = this.getOutgoingMessageMentions(message);
     if (mentions && this.mentionsRegex) {
       mentions.forEach(userId => {
@@ -227,7 +251,7 @@ export class ConversationObject extends EventTarget {
         if (player) {
           const playerSpec = player.getPlayerSpec();
           if (playerSpec?.mentionId) {
-            // get the format, replace the named capture group's pattern with the mentionId for the platform
+            // Replace @userId with the platform-specific mention format
             const mentionFormat = this.mentionsRegex.source
               .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
             
@@ -242,10 +266,18 @@ export class ConversationObject extends EventTarget {
     return message;
   }
 
-  getIncomingMessageMentions(message: string) {
+  /**
+   * Extracts mention IDs from an incoming message to the agent using a regex pattern.
+   * This function uses the mentionsRegex to find all mentions in the message
+   * and returns an array of mention IDs extracted from the named capture group.
+   * 
+   * @param {string} message - The incoming message containing potential mentions.
+   * @returns {string[] | null} - An array of mention IDs or null if no matches are found.
+   */
+  getIncomingMessageMentions(message: string): string[] | null {
     if (!this.mentionsRegex) return null;
     
-    // match the regex pattern and extract the id from the named capture group
+    // Match the regex pattern and extract the id from the named capture group
     return Array.from(message.matchAll(this.mentionsRegex), 
       match => match.groups?.id
     ).filter(Boolean);
