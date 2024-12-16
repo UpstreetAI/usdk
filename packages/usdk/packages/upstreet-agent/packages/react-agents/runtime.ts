@@ -307,7 +307,7 @@ export const uniquifyModifiers = <T extends PriorityModifier>(modifiers: Array<[
   return modifiers.map(([priority, modifiersArray]) => [
     priority,
     uniquifyActions(modifiersArray as any) as unknown as T[],
-  ]);
+  ]) as Array<[number, T[]]>;
 };
 
 export async function executeAgentActionStep(
