@@ -6,6 +6,7 @@ import {
   ActionEvent,
 } from '../../types';
 import { Uniform } from '../core/uniform';
+import { timeAgo } from '../../util/util.mjs';
 
 export const LiveModeInner = (props) => {
   const agent = useAgent();
@@ -14,7 +15,7 @@ export const LiveModeInner = (props) => {
 
   return (
     <Uniform
-      name="nextActionTime"
+      type="nextActionTime"
       description={dedent`\
         Optionally wait before continuing with your next action.
         Use this to pause the job/conversation until a later time. The delay can be short (e.g. 1 second pause) or long (like a calendar date).
