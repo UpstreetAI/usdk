@@ -16,7 +16,6 @@ import { updateIgnoreMouseEvents } from './lib/updateIgnoreMouseEvents.js';
 console.log('electron start script!');
 
 const UPDATE_INTERVAL = 1000 / 60;
-
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     console.warn(err.stack);
@@ -34,8 +33,8 @@ globalThis.WebSocket = WebSocket;
 
 const homeDir = os.homedir();
 
-const loadModule = async (directory, p) => {
-  const viteServer = await makeViteServer(directory);
+const loadModule = async (p) => {
+  const viteServer = await makeViteServer(reactAgentsNodeDirectory);
   // console.log('get agent module 1');
   const entryModule = await viteServer.ssrLoadModule(p);
   // console.log('get agent module 2', entryModule);
@@ -133,10 +132,13 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const main = await loadModule(directory, p);
-  // console.log('worker loaded module', main);
+  const p = 'entry.mjs';
+  const main = await loadModule(p);
+  // console.log('worker loaded module', {
+  //   directory,
+  // });
   const agentMain = main({
+    directory,
     init,
     debug,
   });
@@ -192,6 +194,7 @@ const host = 'http://127.0.0.1:3000';
 // Convert import.meta.url to a file path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const reactAgentsNodeDirectory = path.join(__dirname, '..', 'react-agents-node');
 
 const openFrontend = async ({
   room,
@@ -270,7 +273,7 @@ const openFrontend = async ({
     setInterval(() => {
       // Allow mouse events to pass through the window.
       updateIgnoreMouseEvents( win )
-    }, UPDATE_INTERVAL )
+    }, UPDATE_INTERVAL);
 
     await win.loadURL(dstUrl.href);
   }
