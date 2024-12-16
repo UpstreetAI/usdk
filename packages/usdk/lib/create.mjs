@@ -511,13 +511,13 @@ export const create = async (args, opts) => {
       // agent.tsx
       writeFile(dstAgentTsxPath, defaultAgentSourceCode),
       // // package.json
-      // writeFile(dstPackageJsonPath, JSON.stringify({
-      //   name: 'my-agent',
-      //   dependencies: {
-      //     'react': '19.0.0-rc-df5f2736-20240712',
-      //     'react-agents': 'file:./packages/upstreet-agent/packages/react-agents'
-      //   },
-      // }, null, 2)),
+      writeFile(dstPackageJsonPath, JSON.stringify({
+        name: 'my-agent',
+        dependencies: {
+          // 'react': '19.0.0-rc-df5f2736-20240712',
+          // 'react-agents': 'file:./packages/upstreet-agent/packages/react-agents'
+        },
+      }, null, 2)),
       // // pnpm-workspace.yaml
       // writeFile(pnpmYamlPath, dedent`\
       //   packages:
