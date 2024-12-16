@@ -5,12 +5,12 @@ import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
 import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
-import toml from '@iarna/toml';
+// import toml from '@iarna/toml';
 import mime from 'mime/lite';
-import dedent from 'dedent';
+// import dedent from 'dedent';
 import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
-import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
+// import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
 import {
   BASE_DIRNAME,
@@ -19,9 +19,9 @@ import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
-import {
-  getAgentName,
-} from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
+// import {
+//   getAgentName,
+// } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   getAgentAuthSpec,
 } from '../util/agent-auth-util.mjs';
@@ -83,22 +83,22 @@ const writeFile = async (dstPath, s) => {
   await mkdirp(path.dirname(dstPath));
   await fs.promises.writeFile(dstPath, s);
 };
-const copyWithStringTransform = async (src, dst, transformFn) => {
-  let s = await fs.promises.readFile(src, 'utf8');
-  s = transformFn(s);
-  await mkdirp(path.dirname(dst));
-  await fs.promises.writeFile(dst, s);
-};
+// const copyWithStringTransform = async (src, dst, transformFn) => {
+//   let s = await fs.promises.readFile(src, 'utf8');
+//   s = transformFn(s);
+//   await mkdirp(path.dirname(dst));
+//   await fs.promises.writeFile(dst, s);
+// };
 
-const buildWranglerToml = (
-  t,
-  { name } = {},
-) => {
-  if (name !== undefined) {
-    t.name = name;
-  }
-  return t;
-};
+// const buildWranglerToml = (
+//   t,
+//   { name } = {},
+// ) => {
+//   if (name !== undefined) {
+//     t.name = name;
+//   }
+//   return t;
+// };
 const interview = async (agentJson, {
   prompt,
   mode,
@@ -482,13 +482,13 @@ export const create = async (args, opts) => {
     const upstreetAgentSrcDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
     const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
-    const dstPackageJsonPath = path.join(dstDir, 'package.json');
-    const pnpmYamlPath = path.join(dstDir, 'pnpm-workspace.yaml');
+    // const dstPackageJsonPath = path.join(dstDir, 'package.json');
+    // const pnpmYamlPath = path.join(dstDir, 'pnpm-workspace.yaml');
 
     const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
 
-    const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
-    const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
+    // const srcWranglerToml = path.join(upstreetAgentSrcDir, 'wrangler.toml');
+    // const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
 
     const srcTsconfigPath = path.join(BASE_DIRNAME, 'tsconfig.json');
     const dstTsconfigPath = path.join(dstDir, 'tsconfig.json');
@@ -507,50 +507,50 @@ export const create = async (args, opts) => {
     await Promise.all([
       // agent.tsx
       writeFile(dstAgentTsxPath, defaultAgentSourceCode),
-      // package.json
-      writeFile(dstPackageJsonPath, JSON.stringify({
-        name: 'my-agent',
-        dependencies: {
-          'react': '19.0.0-rc-df5f2736-20240712',
-          'react-agents': 'file:./packages/upstreet-agent/packages/react-agents'
-        },
-      }, null, 2)),
-      // pnpm-workspace.yaml
-      writeFile(pnpmYamlPath, dedent`\
-        packages:
-          - 'packages/*'
-          - 'packages/upstreet-agent/packages/*'
-          - 'packages/upstreet-agent/packages/codecs/*'
-          - 'packages/upstreet-agent/packages/codecs/packages/*'
-      `),
+      // // package.json
+      // writeFile(dstPackageJsonPath, JSON.stringify({
+      //   name: 'my-agent',
+      //   dependencies: {
+      //     'react': '19.0.0-rc-df5f2736-20240712',
+      //     'react-agents': 'file:./packages/upstreet-agent/packages/react-agents'
+      //   },
+      // }, null, 2)),
+      // // pnpm-workspace.yaml
+      // writeFile(pnpmYamlPath, dedent`\
+      //   packages:
+      //     - 'packages/*'
+      //     - 'packages/upstreet-agent/packages/*'
+      //     - 'packages/upstreet-agent/packages/codecs/*'
+      //     - 'packages/upstreet-agent/packages/codecs/packages/*'
+      // `),
       // root tsconfig
       recursiveCopyAll(srcTsconfigPath, dstTsconfigPath),
       // .gitignore
       recursiveCopyAll(srcGitignorePath, dstGitignorePath),
       /* // root jest config
       recursiveCopyAll(srcJestPath, dstJestPath), */
-      // wrangler.toml
-      copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
-        let t = toml.parse(s);
-        t = buildWranglerToml(t, {
-          name: getAgentName(guid),
-        });
-        return toml.stringify(t);
-      }),
+      // // wrangler.toml
+      // copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
+      //   let t = toml.parse(s);
+      //   t = buildWranglerToml(t, {
+      //     name: getAgentName(guid),
+      //   });
+      //   return toml.stringify(t);
+      // }),
       // agent.json
       writeFile(agentJsonPath, JSON.stringify(agentJson, null, 2)),
-      // env.txt
+      // .env.txt
       writeFile(dstEnvTxtPath, dotenvFormat({
         AGENT_TOKEN: agentToken,
         WALLET_MNEMONIC: mnemonic,
       })),
-      // upstreet-agent directory
-      recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir, {
-        filter: (src) => {
-          // filter out \/node_modules
-          return !src.includes('/node_modules');
-        },
-      }),
+      // // upstreet-agent directory
+      // recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir, {
+      //   filter: (src) => {
+      //     // filter out \/node_modules
+      //     return !src.includes('/node_modules');
+      //   },
+      // }),
     ]);
   };
   await _copyFiles();
@@ -561,21 +561,21 @@ export const create = async (args, opts) => {
     },
   }));
 
-  // npm install
-  if (!noInstall) {
-    const has = await hasNpm();
-    if (has) {
-      console.log(pc.italic('Installing dependencies...'));
-      try {
-        await npmInstall(dstDir);
-      } catch(err) {
-        console.warn('failed to install dependencies:', err.stack);
-      }
-    } else {
-      console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
-      console.warn('To install dependencies, run `npm install` in the agent directory.');
-    }
-  }
+  // // npm install
+  // if (!noInstall) {
+  //   const has = await hasNpm();
+  //   if (has) {
+  //     console.log(pc.italic('Installing dependencies...'));
+  //     try {
+  //       await npmInstall(dstDir);
+  //     } catch(err) {
+  //       console.warn('failed to install dependencies:', err.stack);
+  //     }
+  //   } else {
+  //     console.warn('npm not found; skipping dependecy install. Your agent may not work correctly.');
+  //     console.warn('To install dependencies, run `npm install` in the agent directory.');
+  //   }
+  // }
 
   // git init
   if (!noInstall) {
