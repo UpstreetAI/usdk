@@ -182,15 +182,22 @@ export class ConversationObject extends EventTarget {
     return messages;
   }
 
-  // format message for prompt
-  formatMessage(message: string) {
-    const mentions = this.getMessageMentions(message);
+  // format incoming messages for prompt
+  formatIncomingMessageMentions(message: string) {
+    const mentions = this.getIncomingMessageMentions(message);
     if (mentions) {
       mentions.forEach(mentionId => {
         for (const [userId, player] of this.agentsMap.entries()) {
           const playerSpec = player.getPlayerSpec();
           if (playerSpec && playerSpec.mentionId === mentionId) {
-            message = message.replace(new RegExp(`<@${mentionId}>`, 'g'), `@${userId}`);
+            // Create a regex pattern by replacing the named capture group with the actual mentionId
+            const mentionPattern = this.mentionsRegex.source
+              .replace(/\(\?<id>[^)]+\)/, mentionId);
+            
+            message = message.replace(
+              new RegExp(mentionPattern, 'g'), 
+              `@${userId}`
+            );
             break;
           }
         }
@@ -199,17 +206,49 @@ export class ConversationObject extends EventTarget {
     return message;
   }
 
-  getMessageMentions(message: string) {
-    if (!this.mentionsRegex) {
-      return null;
-    }
-    const matches = message.match(this.mentionsRegex);
+  // agent uses @userId format for mentions
+  getOutgoingMessageMentions(message: string) {
+    const matches = message.match(/@([0-9a-f-]{36})/g);
     if (!matches) return null;
     
-    // extract just the ID numbers from <@ID> format
-    return matches.map(mention => 
-      mention.replace(/[<@>]/g, '')
-      ).filter(Boolean);
+    // extract just the userIds from @userId format
+    const result = matches.map(mention => 
+      mention.substring(1) // remove the @ symbol for a clean userId
+    ).filter(Boolean);
+    return result;
+  }
+
+  // format outgoing messages for platforms
+  formatOutgoingMessageMentions(message: string) {
+    const mentions = this.getOutgoingMessageMentions(message);
+    if (mentions && this.mentionsRegex) {
+      mentions.forEach(userId => {
+        const player = this.agentsMap.get(userId);
+        if (player) {
+          const playerSpec = player.getPlayerSpec();
+          if (playerSpec?.mentionId) {
+            // get the format, replace the named capture group's pattern with the mentionId for the platform
+            const mentionFormat = this.mentionsRegex.source
+              .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
+            
+            message = message.replace(
+              new RegExp(`@${userId}`, 'g'),
+              mentionFormat
+            );
+          }
+        }
+      });
+    }
+    return message;
+  }
+
+  getIncomingMessageMentions(message: string) {
+    if (!this.mentionsRegex) return null;
+    
+    // match the regex pattern and extract the id from the named capture group
+    return Array.from(message.matchAll(this.mentionsRegex), 
+      match => match.groups?.id
+    ).filter(Boolean);
   }
   /* async fetchMessages(filter: MessageFilter, {
     supabase,

@@ -89,6 +89,10 @@ const bindOutgoing = ({
           .join('\n');
       }
 
+      if (conversation.getOutgoingMessageMentions(text)) {
+        text = conversation.formatOutgoingMessageMentions(text);
+      }
+
       discordBotClient.input.writeText(text, {
         channelId,
         userId,
@@ -369,13 +373,9 @@ export class DiscordBot extends EventTarget {
         }
         if (conversation) {
 
-          const mentions = conversation.getMessageMentions(text);
           let formattedMessage = text;
-          if (mentions) {
-            console.log('message got mentions', {
-              mentions,
-            });
-            formattedMessage = conversation.formatMessage(text);
+          if (conversation.getIncomingMessageMentions(text)) {
+            formattedMessage = conversation.formatIncomingMessageMentions(text);
           }
 
           const rawMessage = {
