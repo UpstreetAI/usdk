@@ -322,9 +322,9 @@ export async function executeAgentActionStep(
     uniforms: uniformsArgs,
   } = step;
 
-  const uniquifiedActions = uniquifyActions(actions);
+  // const uniquifiedActions = uniquifyActions(actions);
   let actionsPerPriority: Array<[number, ActionPropsAux[]]> = [
-    [0, uniquifiedActions],
+    [0, actions],
   ];
   actionsPerPriority = filterModifiersPerConversation(actionsPerPriority, conversation);
   let actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
