@@ -340,7 +340,6 @@ export async function executeAgentActionStep(
   if (message) {
     actionsPerPriority = filterModifiersPerType(actionsPerPriority, message.method);
     actionModifiersPerPriority = filterModifiersPerType(actionModifiersPerPriority, message.method);
-    uniformsPerPriority = filterModifiersPerType(uniformsPerPriority, message.method);
   }
 
   const mergePriorityHandlers = (handlersPerPriority: Array<[number, Array<() => Promise<AbortableMessageEvent<PendingActionEventData>>>]>) => {
