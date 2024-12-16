@@ -183,14 +183,14 @@ export class ConversationObject extends EventTarget {
   }
 
   // format message for prompt
-  formatMessage(message: ActionMessage) {
+  formatMessage(message: string) {
     const mentions = this.getMessageMentions(message);
     if (mentions) {
       mentions.forEach(mentionId => {
         for (const [userId, player] of this.agentsMap.entries()) {
           const playerSpec = player.getPlayerSpec();
-          if (playerSpec && playerSpec.discordId === mentionId) {
-            message.args.text = message.args.text.replace(new RegExp(`<@${mentionId}>`, 'g'), `@${userId}`);
+          if (playerSpec && playerSpec.mentionId === mentionId) {
+            message = message.replace(new RegExp(`<@${mentionId}>`, 'g'), `@${userId}`);
             break;
           }
         }
@@ -199,15 +199,17 @@ export class ConversationObject extends EventTarget {
     return message;
   }
 
-  getMessageMentions(message: ActionMessage) {
+  getMessageMentions(message: string) {
     if (!this.mentionsRegex) {
       return null;
     }
-    const matches = message.args.text.match(this.mentionsRegex);
-    return matches?.map(m => {
-      const match = m.match(this.mentionsRegex);
-      return match?.groups?.id || null;
-    }).filter(Boolean); // filter out any null values
+    const matches = message.match(this.mentionsRegex);
+    if (!matches) return null;
+    
+    // extract just the ID numbers from <@ID> format
+    return matches.map(mention => 
+      mention.replace(/[<@>]/g, '')
+      ).filter(Boolean);
   }
   /* async fetchMessages(filter: MessageFilter, {
     supabase,

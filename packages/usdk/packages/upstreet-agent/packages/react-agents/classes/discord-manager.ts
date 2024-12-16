@@ -23,7 +23,7 @@ import {
 
 //
 
-const discordMentionRegex = /@<(?<id>\d+)>/g;
+const discordMentionRegex = /<@(?<id>\d+)>/g;
 const getIdFromUserId = (userId: string) => uuidByString(userId);
 const makePlayerFromMember = (member: any) => {
   const {
