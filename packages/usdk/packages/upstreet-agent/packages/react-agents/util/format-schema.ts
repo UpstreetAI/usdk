@@ -21,9 +21,9 @@ import {
 
 //
 
-const uniquifyActions = (actions: ActionPropsAux[]) => {
+export const uniquifyActions = (actions: ActionPropsAux[]) => {
   const set = new Map<string, ActionPropsAux>();
-  actions.forEach(action => {
+  for (const action of actions) {
     if (!set.has(action.type)) {
       set.set(action.type, action);
     } else {
@@ -39,7 +39,7 @@ const uniquifyActions = (actions: ActionPropsAux[]) => {
         }
       }
     }
-  });
+  }
   return Array.from(set.values());
 };
 const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, actOpts?: ActOpts) => {

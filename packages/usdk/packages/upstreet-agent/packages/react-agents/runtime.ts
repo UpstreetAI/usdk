@@ -37,6 +37,7 @@ import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
 import {
+  uniquifyActions,
   formatBasicSchema,
   formatReactSchema,
 } from './util/format-schema';
@@ -321,8 +322,9 @@ export async function executeAgentActionStep(
     uniforms: uniformsArgs,
   } = step;
 
+  const uniquifiedActions = uniquifyActions(actions);
   let actionsPerPriority: Array<[number, ActionPropsAux[]]> = [
-    [0, actions],
+    [0, uniquifiedActions],
   ];
   actionsPerPriority = filterModifiersPerConversation(actionsPerPriority, conversation);
   let actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
