@@ -62,7 +62,7 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
     cp.stdout.on('end', onEnd);
 
     cp.on('exit', (code) => {
-      reject(new Error(`failed to get start process: ${cp.pid}: ${code}`));
+      reject(new Error(`failed to start process: ${cp.pid}: ${code}`));
     });
 
     const timeoutId = setTimeout(() => {
@@ -103,6 +103,7 @@ export class ReactAgentsElectronRuntime {
       [
         electronStartScriptPath,
         'run',
+        directory,
         '--',
         // '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
