@@ -1,9 +1,23 @@
+import path from 'path';
+import fs from 'fs';
 import crossSpawn from 'cross-spawn';
+import { mkdirp } from 'mkdirp';
+import { rimraf } from 'rimraf';
+import toml from '@iarna/toml';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
+import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
+import { recursiveCopyAll } from '../../../../util/copy-utils.mjs';
 
 //
 
+const dirname = getCurrentDirname(import.meta, process);
+const copyWithStringTransform = async (src, dst, transformFn = (s) => s) => {
+  let s = await fs.promises.readFile(src, 'utf8');
+  s = transformFn(s);
+  await mkdirp(path.dirname(dst));
+  await fs.promises.writeFile(dst, s);
+};
 process.addListener('SIGTERM', () => {
   process.exit(0);
 });
@@ -84,8 +98,19 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 
 //
 
+const buildWranglerToml = (
+  t,
+  opts = {},
+) => {
+  for (const k in opts) {
+    t[k] = opts[k];
+  }
+  return t;
+};
+
 export class ReactAgentsWranglerRuntime {
   agentSpec;
+  dstDir = null;
   cp = null;
   constructor(agentSpec) {
     this.agentSpec = agentSpec;
@@ -98,6 +123,48 @@ export class ReactAgentsWranglerRuntime {
       directory,
       portIndex,
     } = this.agentSpec;
+
+    const upstreetAgentDir = path.join(dirname, '..', '..');
+
+    // create temp agent directory
+    const dotAgents = path.join(upstreetAgentDir, '.agents');
+    await mkdirp(dotAgents);
+    const dstDir = await fs.promises.mkdtemp(path.join(dotAgents, 'wrangler-'));
+    this.dstDir = dstDir;
+
+    const srcMainJsx = path.join(upstreetAgentDir, 'main.jsx');
+    const dstMainJsx = path.join(dstDir, 'main.jsx');
+
+    const srcDurableObjectTsx = path.join(upstreetAgentDir, 'durable-object.tsx');
+    const dstDurableObjectTsx = path.join(dstDir, 'durable-object.tsx');
+
+    const srcWranglerToml = path.join(upstreetAgentDir, 'wrangler.toml');
+    const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
+
+    // set up the wrangler environment
+    await Promise.all([
+      // main.tsx
+      copyWithStringTransform(srcMainJsx, dstMainJsx),
+      // durable-object.tsx
+      copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx, (s) => {
+        // s = s.replace(/USER_RENDER_PATH/, './agent.tsx');
+        // s = s.replace(/ENV_TXT_PATH/, './.env.txt');
+        // s = s.replace(/AGENT_JSON_PATH/, './agent.json');
+        return s;
+      }),
+      // wrangler.toml
+      copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
+        let t = toml.parse(s);
+        t = buildWranglerToml(t, {
+          name: path.basename(dstDir).toLowerCase(),
+          main: 'main.jsx',
+        });
+        return toml.stringify(t);
+      }),
+      // all other files
+      recursiveCopyAll(directory, dstDir),
+    ]);
+    // console.log(dstDir);
 
     // spawn the wrangler child process
     const cp = crossSpawn(
@@ -115,8 +182,7 @@ export class ReactAgentsWranglerRuntime {
       ]: []),
       {
         stdio: 'pipe',
-        // stdio: 'inherit',
-        cwd: directory,
+        cwd: dstDir,
       },
     );
     bindProcess(cp);
@@ -156,5 +222,8 @@ export class ReactAgentsWranglerRuntime {
         }
       }
     });
+
+    // clean up the temporary directory
+    await rimraf(this.dstDir);
   }
 }
