@@ -24,17 +24,20 @@ export class ConversationObject extends EventTarget {
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
   messageCache: MessageCache;
   numTyping: number = 0;
+  mentionsRegex: RegExp | null = null;
 
   constructor({
     agent,
     agentsMap = new Map(),
     scene = null,
     getHash = () => '',
+    mentionsRegex = null,
   }: {
     agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
+    mentionsRegex?: RegExp | null;
   }) {
     super();
 
@@ -42,6 +45,7 @@ export class ConversationObject extends EventTarget {
     this.agentsMap = agentsMap;
     this.scene = scene;
     this.getHash = getHash;
+    this.mentionsRegex = mentionsRegex;
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
@@ -176,6 +180,34 @@ export class ConversationObject extends EventTarget {
       messages = messages.slice(-limit);
     }
     return messages;
+  }
+
+  // format message for prompt
+  formatMessage(message: ActionMessage) {
+    const mentions = this.getMessageMentions(message);
+    if (mentions) {
+      mentions.forEach(mentionId => {
+        for (const [userId, player] of this.agentsMap.entries()) {
+          const playerSpec = player.getPlayerSpec();
+          if (playerSpec && playerSpec.discordId === mentionId) {
+            message.args.text = message.args.text.replace(new RegExp(`<@${mentionId}>`, 'g'), `@${userId}`);
+            break;
+          }
+        }
+      });
+    }
+    return message;
+  }
+
+  getMessageMentions(message: ActionMessage) {
+    if (!this.mentionsRegex) {
+      return null;
+    }
+    const matches = message.args.text.match(this.mentionsRegex);
+    return matches?.map(m => {
+      const match = m.match(this.mentionsRegex);
+      return match?.groups?.id || null;
+    }).filter(Boolean); // filter out any null values
   }
   /* async fetchMessages(filter: MessageFilter, {
     supabase,

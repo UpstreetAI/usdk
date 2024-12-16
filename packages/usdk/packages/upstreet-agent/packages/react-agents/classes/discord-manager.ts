@@ -23,6 +23,7 @@ import {
 
 //
 
+const discordMentionRegex = /@<(?<id>\d+)>/g;
 const getIdFromUserId = (userId: string) => uuidByString(userId);
 const makePlayerFromMember = (member: any) => {
   const {
@@ -34,6 +35,8 @@ const makePlayerFromMember = (member: any) => {
   const player = new Player(id, {
     name: displayName,
     previewUrl: displayAvatarURL,
+    // the discord id of the user to be used in mentions formatting
+    mentionId: userId,
   });
   return player;
 };
@@ -238,6 +241,7 @@ export class DiscordBot extends EventTarget {
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
+            mentionsRegex: discordMentionRegex,
           });
 
           this.agent.conversationManager.addConversation(conversation);
@@ -284,6 +288,7 @@ export class DiscordBot extends EventTarget {
           getHash: () => {
             return `discord:dm:${userId}`;
           },
+          mentionsRegex: discordMentionRegex,
         });
 
         this.agent.conversationManager.addConversation(conversation);
@@ -363,10 +368,20 @@ export class DiscordBot extends EventTarget {
           conversation = this.dmConversations.get(userId) ?? null;
         }
         if (conversation) {
+
+          const mentions = conversation.getMessageMentions(text);
+          let formattedMessage = text;
+          if (mentions) {
+            console.log('message got mentions', {
+              mentions,
+            });
+            formattedMessage = conversation.formatMessage(text);
+          }
+
           const rawMessage = {
             method: 'say',
             args: {
-              text,
+              text: formattedMessage,
             },
           };
           const id = getIdFromUserId(userId);
