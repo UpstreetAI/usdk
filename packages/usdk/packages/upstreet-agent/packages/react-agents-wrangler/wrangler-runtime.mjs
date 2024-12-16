@@ -146,12 +146,7 @@ export class ReactAgentsWranglerRuntime {
       // main.tsx
       copyWithStringTransform(srcMainJsx, dstMainJsx),
       // durable-object.tsx
-      copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx, (s) => {
-        // s = s.replace(/USER_RENDER_PATH/, './agent.tsx');
-        // s = s.replace(/ENV_TXT_PATH/, './.env.txt');
-        // s = s.replace(/AGENT_JSON_PATH/, './agent.json');
-        return s;
-      }),
+      copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx),
       // wrangler.toml
       copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
         let t = toml.parse(s);
