@@ -469,16 +469,13 @@ export const create = async (args, opts) => {
     : '*none*'
   );
 
-  // const agentJSX = await (async () => {
-  //   if (sourceFile !== null) {
-  //     return sourceFile;
-  //   } else {
-  //     console.log(pc.italic('Building agent...'));
-  //     const sourceCode = makeAgentSourceCode(agentJson.features ?? []);
-  //     console.log(pc.italic('Agent built.'));
-  //     return sourceCode;
-  //   }
-  // })();
+  const agentTsx = (() => {
+    if (sourceFile !== null) {
+      return sourceFile;
+    } else {
+      return defaultAgentSourceCode;
+    }
+  })();
 
   // copy over files
   const _copyFiles = async () => {
@@ -509,7 +506,7 @@ export const create = async (args, opts) => {
     console.log(pc.italic('Copying files...'));
     await Promise.all([
       // agent.tsx
-      writeFile(dstAgentTsxPath, defaultAgentSourceCode),
+      writeFile(dstAgentTsxPath, agentTsx),
       // // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
