@@ -303,6 +303,12 @@ export const filterModifiersPerType = <T extends PriorityModifier>(modifiers: Ar
     modifiersArray.filter((modifier) => modifier.type === '*' || modifier.type === name),
   ]) as Array<[number, T[]]>;
 };
+export const uniquifyModifiers = <T extends PriorityModifier>(modifiers: Array<[number, T[]]>) => {
+  return modifiers.map(([priority, modifiersArray]) => [
+    priority,
+    uniquifyActions(modifiersArray as any) as unknown as T[],
+  ]);
+};
 
 export async function executeAgentActionStep(
   generativeAgent: GenerativeAgentObject,
@@ -322,13 +328,13 @@ export async function executeAgentActionStep(
     uniforms: uniformsArgs,
   } = step;
 
-  const uniquifiedActions = uniquifyActions(actions);
   let actionsPerPriority: Array<[number, ActionPropsAux[]]> = [
-    [0, uniquifiedActions],
+    [0, actions],
   ];
   actionsPerPriority = filterModifiersPerConversation(actionsPerPriority, conversation);
   let actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
   actionModifiersPerPriority = filterModifiersPerConversation(actionModifiersPerPriority, conversation);
+  actionModifiersPerPriority = uniquifyModifiers(actionModifiersPerPriority);
   let uniformsPerPriority = collectPriorityModifiers(uniforms);
   uniformsPerPriority = filterModifiersPerConversation(uniformsPerPriority, conversation);
   if (message) {
