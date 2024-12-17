@@ -20,6 +20,7 @@ import {
 import {
   QueueManager,
 } from 'queue-manager';
+import { SceneObject } from './scene-object';
 
 //
 
@@ -233,11 +234,17 @@ export class DiscordBot extends EventTarget {
             return
           }
 
+          const scene = new SceneObject({
+            name: 'Discord Channel Conversation',
+            description: 'A conversation happening in a Discord channel.',
+          });
+
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
               return `discord:channel:${channelId}`;
             },
+            scene,
           });
 
           this.agent.conversationManager.addConversation(conversation);
@@ -279,11 +286,17 @@ export class DiscordBot extends EventTarget {
           return
         }
         
+        const scene = new SceneObject({
+          name: 'Discord Direct Message Conversation',
+          description: 'A conversation happening with a user on Discord.',
+        });
+        
         const conversation = new ConversationObject({
           agent,
           getHash: () => {
             return `discord:dm:${userId}`;
           },
+          scene,
         });
 
         this.agent.conversationManager.addConversation(conversation);
@@ -352,6 +365,7 @@ export class DiscordBot extends EventTarget {
           username,
           text,
           channelId, // if there is no channelId, it's a DM
+          messageId,
           // XXX discord channel/dm distinction can be made more explicit with a type: string field...
         } = e.data;
 
@@ -367,6 +381,7 @@ export class DiscordBot extends EventTarget {
             method: 'say',
             args: {
               text,
+              messageId,
             },
           };
           const id = getIdFromUserId(userId);
