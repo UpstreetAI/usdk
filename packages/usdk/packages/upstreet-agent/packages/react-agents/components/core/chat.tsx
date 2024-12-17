@@ -10,6 +10,8 @@ export const ChatActions = () => {
         type="say"
         description={dedent`\
           Say something in the chat.
+
+          If you want to mention a player, use the @userId format.
         `}
         schema={
           z.object({
