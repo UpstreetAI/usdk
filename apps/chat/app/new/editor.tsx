@@ -34,10 +34,10 @@ import {
 import { AgentInterview } from 'react-agents/util/agent-interview.mjs';
 import { 
   defaultVoices,
-} from 'react-agents/util/agent-features.mjs';
+} from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
-import { makeAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
+import { defaultAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
@@ -121,7 +121,7 @@ export default function AgentEditor({
     discord: null,
     twitterBot: null,
   });
-  const [sourceCode, setSourceCode] = useState(() => makeAgentSourceCode(features));
+  const [sourceCode, setSourceCode] = useState(defaultAgentSourceCode);
 
   const monaco = useMonaco();
 
@@ -202,10 +202,6 @@ export default function AgentEditor({
       }
     }
   }, [monaco, sourceCode]);
-  // sync features to source code
-  useEffect(() => {
-    setSourceCode(makeAgentSourceCode(features));
-  }, [features]);
 
   // helpers
   const makeDefaultTts = () => ({

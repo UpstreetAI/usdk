@@ -1,0 +1,372 @@
+---
+title: OpenAPI Agent
+description: This section describes how to build an Agent which can work on an OpenAPI specification.
+full: false
+authorName: Saad Bazaz
+src: /images/team/saad_bazaz.jpeg
+thumbnailSrc: /images/example-thumbnails/openapi-agent.png
+---
+
+In this guide, we build an **OpenAPI Agent** which can parse an OpenAPI specification, and then take actions accordingly. OpenAPI Specification (formerly Swagger Specification) is an API description format for REST APIs. An OpenAPI file allows you to describe your entire API, including:
+
+- Available endpoints (/users) and operations on each endpoint (GET /users, POST /users)
+- Operation parameters Input and output for each operation
+- Authentication methods
+- Contact information, license, terms of use, and other information.
+
+The format is easy to learn and readable to both humans and machines. It is often used by backend teams to explain their endpoints to client-side teams.
+
+<Callout>
+Learn more about the OpenAPI Specification in its [official docs](https://swagger.io/docs/specification/v3_0/about/).
+</Callout>
+
+**Why does this matter?** This basically allows you to create an Agent which can help non-technical users interact with your API, kind of like an Assistant to your application's admin panel. As long as the OpenAPI spec is well-defined, your Agent can display data analytics, crunch numbers, and performs actions on your behalf.
+
+The source code for this example is available on [GitHub](https://github.com/UpstreetAI/usdk-examples/tree/main/openApiAgent).
+
+## Video Tutorial 
+
+You can follow along this example by watching the video below:
+
+<iframe style={{maxWidth: '90vw'}} width="560" height="315" src="https://www.youtube.com/embed/hTOCMnhcefY?si=4lNfOPyVpTKVjKkL" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+## Guide
+
+### Step 1: Setup `usdk`
+
+Follow _[Setup the SDK](/install)_ to set up NodeJS and `usdk`.
+
+### Step 2: Create an Agent (shortcut)
+
+We can skip the Interview process and directly generate an Agent with a prompt by running:
+
+```bash
+usdk create <your-agent-directory> -p "convert OpenAPI specs to Zod schemas and generate actions"
+```
+
+This will directly scaffold an Agent for you in `<your-agent-directory>`. [Learn more](/create-an-agent#file-structure)
+
+### Step 3: Setup Zod and `openapi-zod-client`
+
+We'll first need an OpenAPI specification. We'll use [Swagger](https://swagger.io/)'s official example, the [Pet Store API](https://petstore.swagger.io/), as an example.
+
+The OpenAPI specification is often served as a YAML or JSON file. We get this from their [GitHub](https://raw.githubusercontent.com/swagger-api/swagger-petstore/refs/heads/master/src/main/resources/openapi.yaml) (although, in a real scenario, it may be available in one of the server's routes).
+
+We will use the [`openapi-zod-client`](https://www.npmjs.com/package/openapi-zod-client/v/0.1.2) package from NPM to convert this specification to a bunch of [Zod](https://zod.dev/) schemas. A Zod schema is just a more descriptive way to specify a data type. It also generates a [Zodios client](https://www.zodios.org/), which is, simply put, an easy way to call the endpoints specified in the OpenAPI specification.
+
+First install the relevant packages:
+
+<Tabs items={[
+  "pnpm",
+  "npm",
+]}>
+ 
+
+```bash tab="pnpm"
+pnpm i zod openapi-zod-client
+```
+
+```bash tab="npm"
+npm i zod openapi-zod-client
+```
+
+</Tabs>
+
+Add a script in your `package.json` which calls the `openapi-zod-client` CLI tool (feel free to [tweak the options](https://github.com/astahmer/openapi-zod-client) by checking out what's available):
+
+```json title="package.json"
+{
+  "name": "my-agent",
+  "scripts": {
+    // [!code ++]
+    "generate:api": "npx openapi-zod-client https://raw.githubusercontent.com/swagger-api/swagger-petstore/refs/heads/master/src/main/resources/openapi.yaml --additional-props-default-value false  -o ./api.ts"
+  },
+  "dependencies": {
+    "upstreet-agent": "file:./packages/upstreet-agent"
+  },
+  "devDependencies": {
+    "openapi-zod-client": "^1.18.2"
+  }
+}
+```
+
+### Step 4: Create a Dummy API
+
+Run the script we added in Step 3:
+
+<Tabs items={[
+  "pnpm",
+  "npm",
+]}>
+ 
+
+```bash tab="pnpm"
+pnpm generate-api
+```
+
+```bash tab="npm"
+npm run generate-api
+```
+
+</Tabs>
+
+This runs `openapi-zod-client`, which, if successful, uses the OpenAPI specification to create the API in Zod and Zodios, in the `api.ts` file.
+
+The `api.ts` file contains all the Zod schemas, and endpoints as an array, and exports a Zodios client.
+
+Clean up the generated code by:
+- Removing `partial` and `optional` keywords.
+- Commenting out endpoints that are unsupported, such as file uploads.
+
+
+### Step 4: Import Dependencies
+
+Before creating your OpenAPI agent, ensure you have imported the relevant dependencies. Update the generated files to include only the required ones and clean up unnecessary code. For example:
+
+```tsx title="agent.tsx"
+import React from "react";
+import { Agent, Action, PendingActionEvent, Prompt } from "react-agents";
+import dedent from "dedent";
+import { z } from "zod";
+import { createApiClient } from "./api"; // Ensure correct import path
+
+const apiClient = createApiClient("https://petstore.swagger.io/v2"); // <-- Here, add the base URL to the server which hosted the OpenAPI specification
+```
+
+### Step 5: Build the OpenAPI Action Generator
+
+Define a component that maps OpenAPI endpoints to actions for your agent. Each action will have a schema, description, and handler. Here’s how to start:
+
+```tsx title="agent.tsx"
+const OpenAPIActionGenerator = () => {
+  const endpoints = apiClient.api;
+
+  const actions = endpoints.map((endpoint) => {
+    const reducedEndpointParameters = endpoint.parameters?.reduce(
+      (acc, param) => {
+        if (param.type === "Query") {
+          acc.query = acc.query.extend({
+            [param.name]: param.schema || z.unknown(),
+          });
+        } else if (param.type === "Body") {
+          acc.body = acc.body.extend({
+            [param.name]: param.schema || z.unknown(),
+          });
+        }
+        return acc;
+      },
+      {
+        query: z.object({}),
+        body: z.object({}),
+      }
+    ) || null;
+
+    if (!reducedEndpointParameters) return null;
+
+    const hasQuery = Object.keys(reducedEndpointParameters.query.shape || {}).length > 0;
+    const hasBody = Object.keys(reducedEndpointParameters.body.shape || {}).length > 0;
+    const schema = hasQuery && hasBody
+      ? z.object({ query: reducedEndpointParameters.query, body: reducedEndpointParameters.body })
+      : hasQuery
+      ? z.object({ query: reducedEndpointParameters.query })
+      : hasBody
+      ? reducedEndpointParameters.body
+      : z.null();
+
+    if (!schema) return null;
+
+    return (
+      <Action
+        key={endpoint.alias}
+        name={endpoint.alias}
+        schema={schema}
+        examples={[]}
+        description={endpoint.description || `Perform ${endpoint.method.toUpperCase()} request to ${endpoint.path}`}
+        handler={async (e: PendingActionEvent) => {
+          try {
+            const args = e.data.message.args;
+            const response = await apiClient[endpoint.alias]({
+              ...(args?.query ? { queries: args.query } : args?.body || args),
+            });
+            const limitedResponse = Array.isArray(response) ? response.slice(0, 10) : response;
+            const monologueString = dedent`\
+              You took the action ${endpoint.alias}. You sent:
+              ${JSON.stringify(args)}
+              and received in response:
+              ${JSON.stringify(limitedResponse, null, 2)}
+            `;
+            await e.data.agent.monologue(monologueString);
+            await e.commit();
+          } catch (error) {
+            console.error(`Error in ${endpoint.alias}:`, error);
+            throw error;
+          }
+        }}
+      />
+    );
+  });
+
+  return (
+    <Agent>
+      <Prompt>
+        You strictly answer based on retrieved data. You strictly take only actions you can. If you can't take an action, just say it. If there's an error, log the raw error. You can take the following actions:
+        {endpoints.map((endpoint) => endpoint.alias).join("\n")}
+      </Prompt>
+      {actions.filter(Boolean)}
+    </Agent>
+  );
+};
+
+export default OpenAPIActionGenerator;
+```
+
+Here's a breakdown the code above:
+
+#### Purpose  
+The OpenAPI Action Generator is designed to:  
+1. **Clean the data of any irregularities**: Ensure consistency in handling query and body parameters from the OpenAPI spec.  
+2. **Reduce the size of the action**: Limit the number of response items displayed for clarity during testing.  
+3. **Generalize the schema across all actions**: Use a standard schema (`zod` objects) to validate input parameters dynamically for every endpoint.  
+
+#### Steps and Explanations  
+
+**1. Retrieve API endpoints from the client**  
+```tsx
+const endpoints = apiClient.api;
+```
+- **Why?**: Extract the list of endpoints from the generated API client. This allows dynamic mapping of endpoints into actionable components for the agent.  
+
+---
+
+**2. Reduce and clean endpoint parameters**  
+```tsx
+const reducedEndpointParameters = endpoint.parameters?.reduce(
+  (acc, param) => {
+    if (param.type === "Query") {
+      acc.query = acc.query.extend({
+        [param.name]: param.schema || z.unknown(),
+      });
+    } else if (param.type === "Body") {
+      acc.body = acc.body.extend({
+        [param.name]: param.schema || z.unknown(),
+      });
+    }
+    return acc;
+  },
+  {
+    query: z.object({}),
+    body: z.object({}),
+  }
+) || null;
+```
+- **Why?**: This step consolidates query and body parameters into separate objects for clarity.  
+  - We currently handle only query and body parameters, to keep things simple.
+  - **`z.object({})`** initializes empty objects to represent schemas.  
+
+---
+
+**3. Check and define schema dynamically**  
+```tsx
+const hasQuery = Object.keys(reducedEndpointParameters.query.shape || {}).length > 0;
+const hasBody = Object.keys(reducedEndpointParameters.body.shape || {}).length > 0;
+const schema = hasQuery && hasBody
+  ? z.object({ query: reducedEndpointParameters.query, body: reducedEndpointParameters.body })
+  : hasQuery
+  ? z.object({ query: reducedEndpointParameters.query })
+  : hasBody
+  ? reducedEndpointParameters.body
+  : z.null();
+```
+- **Why?**: Depending on the endpoint, it might only have query parameters, body parameters, or neither.  
+  - If both exist, they are wrapped into a single schema object.  
+  - Otherwise, the body is kept in the root. This reduces the data size for the Agent.
+
+---
+
+**4. Create actions for each endpoint**  
+```tsx
+return (
+  <Action
+    key={endpoint.alias}
+    name={endpoint.alias}
+    schema={schema}
+    examples={[]}
+    description={endpoint.description || `Perform ${endpoint.method.toUpperCase()} request to ${endpoint.path}`}
+    handler={async (e: PendingActionEvent) => { ... }}
+  />
+);
+```
+- **Why?**: Define a unique action for each endpoint to:
+  - Bind the schema for validation.  
+  - Include descriptive metadata (`description` and `examples`) for easier testing and understanding. In our example of the Pet Store API, we didn't have any examples, but there may be examples in real-world use cases.
+  - Assign a handler for executing the API request.
+
+---
+
+**5. Handle API requests and responses**  
+```tsx
+const response = await apiClient[endpoint.alias]({
+  ...(args?.query ? { queries: args.query } : args?.body || args),
+});
+const limitedResponse = Array.isArray(response) ? response.slice(0, 10) : response;
+```
+- **Why?**:  
+  - Dynamically prepare the request arguments (`query` or `body`) based on the input.  
+  - Limit the response to a maximum of 10 items so that the AI's prompt isn't overloaded with information. Use this as you please.
+
+---
+
+**6. Generate a monologue for the agent**  
+```tsx
+const monologueString = dedent`\
+  You took the action ${endpoint.alias}. You sent:
+  ${JSON.stringify(args)}
+  and received in response:
+  ${JSON.stringify(limitedResponse, null, 2)}
+`;
+await e.data.agent.monologue(monologueString);
+```
+- **Why?**: Summarize the action for the agent by displaying:  
+  - The endpoint called.  
+  - The request parameters sent.  
+  - The response data received.  
+
+---
+
+**7. Wrap actions within the agent component**  
+```tsx
+return (
+  <Agent>
+    <Prompt>
+      You strictly answer based on retrieved data. ...
+    </Prompt>
+    {actions.filter(Boolean)}
+  </Agent>
+);
+```
+- **Why?**: Combine all dynamically generated actions into a cohesive agent interface. The `Prompt` provides instructions to the agent about its behavior when executing actions.  
+
+
+### Step 6: (optional) Test the OpenAPI Agent
+
+Run [`usdk chat`](/test-your-agent) to test the Agent in your CLI.
+
+You can start by asking:
+
+> What operations can you perform?
+
+It (hopefully) will be very straightforward in telling you what it can do.
+
+Now try asking it:
+
+> Can you create a dog called Rover for me?
+
+It might take a bit, and will return a response. Plug that response in the actual Pet Store's [`GET pet/{petId}`](https://petstore.swagger.io/#/pet/getPetById) API.
+
+Does it work? Join our [Discord community](https://upstreet.ai/usdk-discord) and tell us; we'd love to know!
+
+## Further Challenges
+
+- Support Path arguments (e.g. `GET pets/{petId}`)
+- Allow the Agent to change query parameters in pagination, in order to get fine-grained results
+- Try to get the Agent to chain its actions

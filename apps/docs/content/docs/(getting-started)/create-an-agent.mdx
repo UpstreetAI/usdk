@@ -23,7 +23,7 @@ Upstreet AI Agents are persistent digital entities that can autonomously handle 
 
 **New to designing Agents?** Explore how to define effective Agent objectives and strategies in our [Agent Design Concepts](/concepts/defining-agent-objectives).
 
-**Coming in from another platform like Tavern?** You can import your previous work into an Upstreet Agent. Check out our [Migration Guides](/migration-guides/tavern).
+**Coming in from another platform like Tavern?** You can import your previous work into an Upstreet Agent. Check out our [Migration Guides](/migration-guides).
 
 ## Quickstart: Creating an Agent
 Here’s how to set up your first Agent.
@@ -40,6 +40,10 @@ Here’s how to set up your first Agent.
    Run the above command in your terminal within your new directory. This will launch a guided interview, where you’ll define essential properties of your Agent.
 
    You can see more options by running `usdk create --help`.
+
+<Callout>
+We recommend using the [`pnpm`](https://pnpm.io/installation`) (Performant Node Package Manager) package manager with your Agent.
+</Callout>
 
 ### Step 2: Complete the Agent Interview
 
@@ -62,7 +66,7 @@ You can also omit the agent directory. In that case, a directory will be created
 
 To import your agent from other platforms, `usdk create` also supports [Tavern character cards](https://github.com/malfoyslastname/character-card-spec-v2) and more.
 
-See [Importing an Agent](/import-an-agent) for more information.
+See [*Importing a Tavern Agent*](/migration-guides/tavern#create-an-upstreet-agent-from-a-tavern-character-card) for more information.
 
 ### File Structure
 
@@ -99,7 +103,7 @@ Remember to keep your Agent's configuration secure. Avoid committing your secret
 
 ## Editing your Agent
 
-If you wish to edit your already-created Agent through the Interview process, you may run the following command in the directory of your Agent:
+If you wish to edit your already-created Agent **through the Interview process**, you may run the following command in the directory of your Agent:
 
 ```bash
 usdk edit

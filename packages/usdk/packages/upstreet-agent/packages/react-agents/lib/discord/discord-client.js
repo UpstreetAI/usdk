@@ -334,6 +334,8 @@ export class DiscordBotClient extends EventTarget {
   ws = null;
   input = null; // going from the agent into the discord bot
   output = null; // coming out of the discord bot to the agent
+  PING_INTERVAL = 7000; // 7 second ping interval
+
   constructor({
     token,
     codecs,
@@ -392,7 +394,13 @@ export class DiscordBotClient extends EventTarget {
     const connectPromise = makePromise();
     const readyPromise = makePromise();
     ws.onopen = () => {
-      // console.log('opened');
+      // Start keep-alive ping
+      setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping' }));
+        }
+      }, this.PING_INTERVAL);
+      
       connectPromise.resolve();
     };
     ws.onclose = () => {

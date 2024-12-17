@@ -90,7 +90,7 @@ import {
 //   env,
 // } from './lib/env.mjs';
 import { timeAgo } from './packages/upstreet-agent/packages/react-agents/util/time-ago.mjs';
-import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features.mjs';
+import { featureSpecs } from './packages/upstreet-agent/packages/react-agents/util/agent-features-spec.mjs';
 import { AudioDecodeStream } from './packages/upstreet-agent/packages/codecs/audio-decode.mjs';
 import { WebPEncoder } from './packages/upstreet-agent/packages/codecs/webp-codec.mjs';
 import * as codecs from './packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
@@ -1260,15 +1260,7 @@ export const createProgram = () => {
   try {
 
     const ver = version();
-    const latestVersion = getLatestVersion();
-
-    const isLatestVersion = latestVersion === ver;
-
-    if (!isLatestVersion) {
-      console.log(pc.yellow(`Notice: You are currently using version ${ver}, a newer version (${latestVersion}) is available.`));
-      console.log(pc.cyan(`To update, run 'npm i usdk -g' or 'npm update usdk'.`));
-    }
-
+    
     program.version(ver);
 
     let commandExecuted = false;
