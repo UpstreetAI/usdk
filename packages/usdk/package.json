@@ -1,7 +1,7 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.103",
+  "version": "0.0.104",
   "homepage": "https://upstreet.ai/",
   "author": "Upstreet <hello@upstreet.ai> (https://github.com/UpstreetAI)",
   "contributors": [
@@ -120,6 +120,7 @@
     "pupa": "^3.1.0",
     "boxen": "^8.0.1",
     "xdg-basedir": "^5.1.0",
+    "semver": "^7.6.3",
 
     "vercel": "^34.2.6",
     "vite": "^5.4.11",
@@ -141,7 +142,6 @@
     "@supabase/auth-js": "2.62.0",
     "debug": "4.3.5",
     "eslint": "9.4.0",
-    "semver": "7.6.2",
     "tar": "7.2.0",
     "undici": "6.18.2",
     "whatwg-url": "14.0.0"
