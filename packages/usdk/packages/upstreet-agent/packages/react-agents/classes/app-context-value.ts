@@ -41,6 +41,11 @@ export class AppContextValue {
   debug: number;
   registry: RenderRegistry;
 
+  expertise: string[];
+  background: string[];
+  knowledge: string[];
+  communicationStyle: string[];
+
   constructor({
     subtleAi,
     config,
@@ -55,6 +60,10 @@ export class AppContextValue {
     init,
     debug,
     registry,
+    expertise,
+    background,
+    knowledge,
+    communicationStyle,
   }: {
     subtleAi: SubtleAi;
     config: any;
@@ -69,6 +78,10 @@ export class AppContextValue {
     init: any;
     debug: number;
     registry: RenderRegistry;
+    expertise: string[];
+    background: string[];
+    knowledge: string[];
+    communicationStyle: string[];
   }) {
     this.subtleAi = subtleAi;
     this.config = config;
@@ -83,6 +96,10 @@ export class AppContextValue {
     this.init = init;
     this.debug = debug;
     this.registry = registry;
+    this.expertise = expertise;
+    this.background = background;
+    this.knowledge = knowledge;
+    this.communicationStyle = communicationStyle;
   }
 
   // hooks
@@ -122,6 +139,19 @@ export class AppContextValue {
   }
   useRegistry() {
     return this.registry;
+  }
+
+  useExpertise() {
+    return this.expertise;
+  }
+  useBackground() {
+    return this.background;
+  }
+  useKnowledge() {
+    return this.knowledge;
+  }
+  useCommunicationStyle() {
+    return this.communicationStyle;
   }
 
   useKv<T>() {

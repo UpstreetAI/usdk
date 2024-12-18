@@ -15,6 +15,10 @@ import {
   usePurchases,
   useConversation,
   useCachedMessages,
+  useKnowledge,
+  useCommunicationStyle,
+  useBackground,
+  useExpertise,
 } from '../../hooks';
 import { Prompt } from '../core/prompt';
 import { ChatLoop } from '../../loops/chat-loop';
@@ -120,12 +124,21 @@ const CharactersPrompt = () => {
   const agent = useAgent();
   const name = useName();
   const bio = usePersonality();
+  const expertise = useExpertise();
+  const background = useBackground();
+  const knowledge = useKnowledge();
+  const communicationStyle = useCommunicationStyle();
+      
   if (conversation) {
     const agents = conversation.getAgents();
     const currentAgentSpec = {
       id: agent.id,
       name,
       bio,
+      expertise,
+      background,
+      knowledge,
+      communicationStyle,
     };
     const agentSpecs = agents.map((agent) =>  {
       const agentSpec = agent.getPlayerSpec() as any;
@@ -133,6 +146,10 @@ const CharactersPrompt = () => {
         name: agentSpec?.name,
         id: agent.playerId,
         bio: agentSpec?.bio,
+        expertise: agentSpec?.expertise,
+        background: agentSpec?.background,
+        knowledge: agentSpec?.knowledge,
+        communicationStyle: agentSpec?.communicationStyle,
       };
     });
 
@@ -141,6 +158,10 @@ const CharactersPrompt = () => {
         `Name: ${agent.name}`,
         `UserId: ${agent.id}`,
         `Bio: ${agent.bio}`,
+        `Expertise: ${expertise.join(', ')}`,
+        `Background: ${background.join(', ')}`,
+        `Knowledge: ${knowledge.join(', ')}`,
+        `Communication Style: ${communicationStyle.join(', ')}`,
       ].join('\n');
     };
 

@@ -186,6 +186,22 @@ export class AgentRenderer {
     const useRegistry = () => {
       return this.registry;
     };
+    const useExpertise = () => {
+      const config = useConfig();
+      return config.expertise ?? [];
+    };
+    const useBackground = () => {
+      const config = useConfig();
+      return config.background ?? [];
+    };
+    const useKnowledge = () => {
+      const config = useConfig();
+      return config.knowledge ?? [];
+    };
+    const useCommunicationStyle = () => {
+      const config = useConfig();
+      return config.communicationStyle ?? [];
+    };
     this.appContextValue = new AppContextValue({
       subtleAi,
       config: useConfig(),
@@ -200,6 +216,10 @@ export class AgentRenderer {
       init: useInit(),
       debug: useDebug(),
       registry: useRegistry(),
+      expertise: useExpertise(),
+      background: useBackground(),
+      knowledge: useKnowledge(),
+      communicationStyle: useCommunicationStyle(),
     });
 
     // run the module to get the result

@@ -778,6 +778,11 @@ export type AppContextValue = {
   useDebug: () => number;
   useRegistry: () => RenderRegistry;
 
+  useExpertise: () => string[];
+  useBackground: () => string[];
+  useKnowledge: () => string[];
+  useCommunicationStyle: () => string[];
+
   useKv: (opts?: KvArgs) => Kv;
   useTts: (ttsArgs: TtsArgs) => Tts;
 

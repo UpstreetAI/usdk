@@ -77,6 +77,23 @@ export const useDebug: () => number = () => {
   return appContextValue.useDebug();
 };
 
+export const useExpertise: () => string[] = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useExpertise();
+};
+export const useBackground: () => string[] = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useBackground();
+};
+export const useKnowledge: () => string[] = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useKnowledge();
+};
+export const useCommunicationStyle: () => string[] = () => {
+  const appContextValue = useContext(AppContext);
+  return appContextValue.useCommunicationStyle();
+};
+
 //
 
 export const useAgent = () => {
