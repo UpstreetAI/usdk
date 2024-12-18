@@ -38,6 +38,7 @@
     "packages",
     "lib",
     "util",
+    "classes",
     "examples/**",
     "cli.js",
     "module.mjs",
