@@ -2,7 +2,7 @@
   "name": "react-agents-browser",
   "main": "browser-runtime.ts",
   "dependencies": {
-    "upstreet-agent": "file:../..",
+    "upstreet-agent": "file:../../",
     "codecs": "file:../codecs"
   }
 }

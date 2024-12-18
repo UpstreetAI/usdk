@@ -550,8 +550,10 @@ export const create = async (args, opts) => {
       // upstreet-agent directory
       recursiveCopyAll(upstreetAgentSrcDir, upstreetAgentDstDir, {
         filter: (src) => {
-          // filter out \/node_modules
-          return !src.includes('/node_modules');
+          // More thorough check for node_modules in the path
+          return !src.includes('node_modules') && 
+                 !src.match(/[\\/]node_modules[\\/]/) && 
+                 path.basename(src) !== 'node_modules';
         },
       }),
     ]);
