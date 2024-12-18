@@ -21,10 +21,31 @@ import {
 
 //
 
+export const uniquifyActions = (actions: ActionPropsAux[]) => {
+  const set = new Map<string, ActionPropsAux>();
+  for (const action of actions) {
+    if (!set.has(action.type)) {
+      set.set(action.type, action);
+    } else {
+      // add a suffice
+      for (let i = 2;; i++) {
+        const suffixedType = `${action.type}_${i}`;
+        if (!set.has(suffixedType)) {
+          set.set(suffixedType, {
+            ...action,
+            type: suffixedType,
+          });
+          break;
+        }
+      }
+    }
+  }
+  return Array.from(set.values());
+};
 const isAllowedAction = (action: ActionPropsAux, conversation?: ConversationObject, actOpts?: ActOpts) => {
   const forceAction = actOpts?.forceAction ?? null;
   const excludeActions = actOpts?.excludeActions ?? [];
-  return action.conversation === conversation &&
+  return (!action.conversation || action.conversation === conversation) &&
     (forceAction === null || action.type === forceAction) &&
     !excludeActions.includes(action.type);
 };
@@ -95,7 +116,9 @@ export const formatBasicSchema = ({
   actOpts?: ActOpts,
 }) => {
   const makeUnionSchema = (actions: ActionPropsAux[]) => {
-    const actionSchemas: ZodTypeAny[] = getFilteredActions(actions, conversation, actOpts)
+    const actionSchemas: ZodTypeAny[] = uniquifyActions(
+      getFilteredActions(actions, conversation, actOpts)
+    )
       .map(action => makeActionSchema(action.type, action.schema));
     if (actionSchemas.length >= 2) {
       return z.union([

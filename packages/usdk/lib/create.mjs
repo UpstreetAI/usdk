@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
@@ -46,6 +47,8 @@ import { imagePreviewPort } from '../util/ports.mjs';
 import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 
 //
+
+const homeDir = os.homedir();
 
 const logAgentPropertyUpdate = (propertyName, newValue) => {
   // ANSI escape codes for colors
@@ -387,7 +390,7 @@ export const create = async (args, opts) => {
   // create the destination directory if not present
   if (!dstDir) {
     const dirname = makeId(8);
-    dstDir = path.join(cwd, 'agents', dirname);
+    dstDir = path.join(homeDir, '.usdk', 'agents', dirname);
     await mkdirp(dstDir);
   }
 

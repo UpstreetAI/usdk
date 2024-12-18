@@ -26,6 +26,7 @@ export class ConversationObject extends EventTarget {
   messageCache: MessageCache;
   numTyping: number = 0;
   replyFn: ReplyFn | null;
+  mentionsRegex: RegExp | null = null;
 
   constructor({
     agent,
@@ -33,12 +34,14 @@ export class ConversationObject extends EventTarget {
     scene = null,
     getHash = () => '',
     replyFn = null,
+    mentionsRegex = null,
   }: {
     agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
     replyFn?: ReplyFn;
+    mentionsRegex?: RegExp | null;
   }) {
     super();
 
@@ -47,6 +50,7 @@ export class ConversationObject extends EventTarget {
     this.scene = scene;
     this.getHash = getHash;
     this.replyFn = replyFn;
+    this.mentionsRegex = mentionsRegex;
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
@@ -185,6 +189,107 @@ export class ConversationObject extends EventTarget {
       messages = messages.slice(-limit);
     }
     return messages;
+  }
+
+  /**
+   * Formats incoming message mentions by replacing platform-specific mention patterns
+   * with a standardized @userId format. This is useful for ensuring consistency
+   * in how mentions are injected into the prompt across different platforms.
+   * 
+   * Example:
+   * If the incoming message contains a mention like "<@mentionId>", and the corresponding
+   * userId is "1234", the function will replace "<@mentionId>" with "@1234".
+   * 
+   * @param {string} message - The incoming message containing potential mentions.
+   * @returns {string} - The message with mentions formatted to @userId.
+   */
+  formatIncomingMessageMentions(message: string): string {
+    const mentions = this.getIncomingMessageMentions(message);
+    if (mentions) {
+      mentions.forEach(mentionId => {
+        for (const [userId, player] of this.agentsMap.entries()) {
+          const playerSpec = player.getPlayerSpec();
+          if (playerSpec && playerSpec.mentionId === mentionId) {
+            // Create a regex pattern by replacing the named capture group with the actual mentionId
+            const mentionPattern = this.mentionsRegex.source
+              .replace(/\(\?<id>[^)]+\)/, mentionId);
+            
+            message = message.replace(
+              new RegExp(mentionPattern, 'g'), 
+              `@${userId}`
+            );
+            break;
+          }
+        }
+      });
+    }
+    return message;
+  }
+
+  /**
+   * Extracts user IDs from the agent's outgoing "say" message using the @userId format.
+   * This function identifies all mentions in the message that follow the @userId pattern
+   * and returns an array of user IDs without the "@" symbol.
+   * 
+   * @param {string} message - The message containing potential @userId mentions.
+   * @returns {string[] | null} - An array of user IDs or null if no matches are found.
+   */
+  getOutgoingMessageMentions(message: string): string[] | null {
+    const matches = message.match(/@([0-9a-f-]{36})/g);
+    if (!matches) return null;
+    
+    const result = matches.map(mention => 
+      mention.substring(1)
+    ).filter(Boolean);
+    return result;
+  }
+
+  /**
+   * Formats outgoing message of the agent containing @userId mentions to platform-specific patterns.
+   * This function replaces mentions in the @userId format with platform-specific
+   * mention patterns using the mentionId from the player's specification.
+   * 
+   * @param {string} message - The message containing @userId mentions.
+   * @returns {string} - The message with mentions formatted for the platform.
+   */
+  formatOutgoingMessageMentions(message: string): string {
+    const mentions = this.getOutgoingMessageMentions(message);
+    if (mentions && this.mentionsRegex) {
+      mentions.forEach(userId => {
+        const player = this.agentsMap.get(userId);
+        if (player) {
+          const playerSpec = player.getPlayerSpec();
+          if (playerSpec?.mentionId) {
+            // Replace @userId with the platform-specific mention format
+            const mentionFormat = this.mentionsRegex.source
+              .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
+            
+            message = message.replace(
+              new RegExp(`@${userId}`, 'g'),
+              mentionFormat
+            );
+          }
+        }
+      });
+    }
+    return message;
+  }
+
+  /**
+   * Extracts mention IDs from an incoming message to the agent using a regex pattern.
+   * This function uses the mentionsRegex to find all mentions in the message
+   * and returns an array of mention IDs extracted from the named capture group.
+   * 
+   * @param {string} message - The incoming message containing potential mentions.
+   * @returns {string[] | null} - An array of mention IDs or null if no matches are found.
+   */
+  getIncomingMessageMentions(message: string): string[] | null {
+    if (!this.mentionsRegex) return null;
+    
+    // Match the regex pattern and extract the id from the named capture group
+    return Array.from(message.matchAll(this.mentionsRegex), 
+      match => match.groups?.id
+    ).filter(Boolean);
   }
   /* async fetchMessages(filter: MessageFilter, {
     supabase,
