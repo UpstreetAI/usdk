@@ -120,7 +120,8 @@
     "yjs": "^13.6.18",
     "zjs": "file:./packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs",
     "zod": "^3.23.8",
-    "zod-to-ts": "^1.2.0"
+    "zod-to-ts": "^1.2.0",
+    "zod-to-json-schema": "^3.23.5"
   },
   "optionalDependencies": {
     "speaker": "^0.5.5"
