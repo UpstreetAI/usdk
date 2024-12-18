@@ -161,6 +161,10 @@ export class AgentInterview extends EventTarget {
           e.g. 'girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
           \`homespacecDescription\` visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
+          \`expertise\` is a list of areas where the agent has significant knowledge or skills.
+          \`background\` is a list of past experiences or history that shape the agent.
+          \`knowledge\` is a list of specific knowledge areas the agent is familiar with.
+          \`communicationStyle\` is a list of stylistic elements that define the agent's way of communicating.
           
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
           ${mode == 'auto' ?
@@ -176,11 +180,10 @@ export class AgentInterview extends EventTarget {
         name: z.string().optional(),
         bio: z.string().optional(),
         description: z.string().optional(),
-        personality: z.array(z.string()).optional(),
         expertise: z.array(z.string()).optional(),
         background: z.array(z.string()).optional(),
         knowledge: z.array(z.string()).optional(),
-        style: z.array(z.string()).optional(),
+        communicationStyle: z.array(z.string()).optional(),
         visualDescription: z.string().optional(),
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
