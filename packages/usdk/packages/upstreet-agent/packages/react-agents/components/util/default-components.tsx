@@ -288,9 +288,10 @@ const CachedMessagesPrompt = () => {
               '\n' +
               cachedMessages
                 .map((action) => {
-                  const { /*userId,*/ name, method, args, attachments = [], timestamp } = action;
+                  const { /*userId,*/ messageId, name, method, args, attachments = [], timestamp } = action;
                   const j = {
                     // userId,
+                    messageId,
                     name,
                     method,
                     args,

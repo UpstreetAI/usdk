@@ -5,8 +5,9 @@ export async function loadMessagesFromDatabase({
   limit,
 }) {
   const { error, data } = await supabase
-    .from( 'agent_messages' )
+    .from('agent_messages')
     .select([
+      'id',
       'method',
       'args',
       'attachments',
@@ -16,8 +17,8 @@ export async function loadMessagesFromDatabase({
     ].join(','))
     .eq('user_id', agentId)
     .eq('conversation_id', conversationId)
-    .order( 'created_at', { ascending: true })
-    .limit( limit );
+    .order('created_at', { ascending: true })
+    .limit(limit);
   if (!error) {
     return decodeMessages(data);
   } else {
@@ -26,7 +27,8 @@ export async function loadMessagesFromDatabase({
 }
 
 function decodeMessages(messages) {
-  return messages.map( message => ({
+  return messages.map(message => ({
+    messageId: message.id,
     method: message.method,
     args: message.args,
     attachments: message.attachments,

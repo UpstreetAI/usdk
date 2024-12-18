@@ -190,7 +190,15 @@ export class ChatsManager {
       multiplayerConnection.addEventListener('chat', async (e) => {
         const { playerId, message } = e.data;
         if (playerId !== agent.id) {
-          await conversation.addLocalMessage(message);
+          const playerSpec = conversation.agentsMap.get(playerId);
+          const agent = {
+            id: playerId,
+            name: playerSpec.name,
+          };
+          const formattedMessage = formatConversationMessage(message, {
+            agent,
+          });
+          await conversation.addLocalMessage(formattedMessage);
         // } else {
         //   // XXX fix this
         //   console.warn('received own message from realms "chat" event; this should not happen', message);

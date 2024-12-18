@@ -14,6 +14,7 @@ export const formatConversationMessage = (rawMessage: PendingActionMessage, {
   const { method, args, attachments } = rawMessage;
   const timestamp = new Date();
   const newMessage = {
+    messageId: crypto.randomUUID(),
     userId,
     name,
     method,
