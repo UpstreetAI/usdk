@@ -463,6 +463,11 @@ export const create = async (args, opts) => {
   console.log(pc.green('Preview URL:'), agentJson.previewUrl);
   console.log(pc.green('Homespace Description:'), agentJson.homespaceDescription);
   console.log(pc.green('Homespace URL:'), agentJson.homespaceUrl);
+  console.log(pc.green('Expertise:'), agentJson.expertise.join(', '));
+  console.log(pc.green('Background:'), agentJson.background.join(', '));
+  console.log(pc.green('Knowledge:'), agentJson.knowledge.join(', '));
+  console.log(pc.green('Communication Style:'), agentJson.communicationStyle.join(', '));
+  
   const featuresKeys = Object.keys(agentJson.features ?? {});
   console.log(pc.green('Features:'), featuresKeys.length > 0
     ? featuresKeys.join(', ')
