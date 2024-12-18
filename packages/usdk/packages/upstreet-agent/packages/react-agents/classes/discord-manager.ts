@@ -95,13 +95,10 @@ const bindOutgoing = ({
         text = conversation.formatOutgoingMessageMentions(text);
       }
 
-      
+
       if (replyToMessageId) {
-        const replyMessage = {
-          ...message,
-          text: text,
-        }
-        conversation.reply(replyMessage, replyToMessageId);
+        message.args.text = text;
+        conversation.reply(message, replyToMessageId);
         return;
       }
 
