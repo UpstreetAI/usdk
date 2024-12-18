@@ -99,6 +99,7 @@
     "png-chunks-extract": "^1.0.0",
     "pnpm": "^9.12.3",
     "pretty-bytes": "^6.1.1",
+    "react-agents": "file:./packages/upstreet-agent/packages/react-agents",
     "queue-manager": "file:./packages/upstreet-agent/packages/queue-manager",
     "react-agents-electron": "file:./packages/upstreet-agent/packages/react-agents-electron",
     "react-agents-node": "file:./packages/upstreet-agent/packages/react-agents-node",
