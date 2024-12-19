@@ -3,7 +3,7 @@ import fs from 'fs';
 import readline from 'readline';
 
 import { mkdirp } from 'mkdirp';
-import toml from '@iarna/toml';
+// import toml from '@iarna/toml';
 import pc from 'picocolors';
 import {
   parseAgentSpecs,
@@ -53,13 +53,11 @@ export const authenticate = async (args, opts) => {
       throw new Error('Authorization error. Please try logging in again.')
     }
 
-    const wranglerTomlPath = path.join(directory, 'wrangler.toml');
+    const agentJsonPath = path.join(directory, 'agent.json');
     const dstEnvTxt = path.join(directory, '.env.txt');
 
     // read the agent json
-    const wranglerTomlString = await fs.promises.readFile(wranglerTomlPath, 'utf8');
-    const wranglerToml = toml.parse(wranglerTomlString);
-    const agentJsonString = wranglerToml.vars.AGENT_JSON;
+    const agentJsonString = await fs.promises.readFile(agentJsonPath, 'utf8');
     let agentJson = JSON.parse(agentJsonString);
 
     // check if dstEnvTxt exists
@@ -93,8 +91,7 @@ export const authenticate = async (args, opts) => {
           id: guid,
         };
         // write the agent json
-        wranglerToml.vars.AGENT_JSON = JSON.stringify(agentJson);
-        await fs.promises.writeFile(wranglerTomlPath, toml.stringify(wranglerToml));
+        await fs.promises.writeFile(agentJsonPath, JSON.stringify(agentJson, null, 2));
       })(),
     ]);
 
