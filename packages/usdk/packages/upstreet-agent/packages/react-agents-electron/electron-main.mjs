@@ -33,8 +33,8 @@ globalThis.WebSocket = WebSocket;
 
 const homeDir = os.homedir();
 
-const loadModule = async (p) => {
-  const viteServer = await makeViteServer(reactAgentsNodeDirectory);
+const loadModule = async (directory, p) => {
+  const viteServer = await makeViteServer(directory);
   // console.log('get agent module 1');
   const entryModule = await viteServer.ssrLoadModule(p);
   // console.log('get agent module 2', entryModule);
@@ -133,12 +133,12 @@ const runAgent = async (directory, opts) => {
   const debug = parseInt(opts.debug, 10);
 
   const p = 'entry.mjs';
-  const main = await loadModule(p);
+  const main = await loadModule(directory, p);
   // console.log('worker loaded module', {
   //   directory,
   // });
-  const agentMain = main({
-    directory,
+  const agentMain = await main({
+    // directory,
     init,
     debug,
   });
