@@ -90,6 +90,31 @@ export type ActionStep = {
   thought?: string;
 };
 
+// data sources
+
+export type DataSourceType = 'api' | 'text' | 'pdf';
+
+export interface BaseDataSource {
+  name: string;
+  description: string;
+  pull(args: object): Promise<any>;
+}
+
+export type DataSourceConfig = {
+  id: string;
+  type: DataSourceType;
+  name: string;
+  description: string;
+};
+
+export type DataSourceManager = EventTarget & {
+  addDataSource: (source: BaseDataSource) => void;
+  removeDataSource: (id: string) => boolean;
+  getDataSource: (id: string) => BaseDataSource | undefined;
+  getAllDataSources: () => BaseDataSource[];
+  pullFromDataSource: (id: string, args: object) => Promise<any>;
+};
+
 // messages
 
 export type ChatMessage = {

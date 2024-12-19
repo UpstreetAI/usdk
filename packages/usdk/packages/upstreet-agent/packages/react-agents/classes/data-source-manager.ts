@@ -1,44 +1,34 @@
-interface DataSource {
-  id: string;
-  type: string;
-  fetch(): Promise<any>;
-}
+import type { BaseDataSource } from '../types/react-agents';
 
 export class DataSourceManager {
-  private dataSources: Map<string, DataSource>;
+  private dataSources: Map<string, BaseDataSource>;
 
   constructor() {
     this.dataSources = new Map();
   }
 
-  addDataSource(dataSource: DataSource): void {
-    this.dataSources.set(dataSource.id, dataSource);
+  addDataSource(dataSource: BaseDataSource): void {
+    this.dataSources.set(dataSource.name, dataSource);
   }
 
   removeDataSource(id: string): boolean {
     return this.dataSources.delete(id);
   }
 
-  async fetchAllData(): Promise<Record<string, any>> {
-    const results: Record<string, any> = {};
-    
-    for (const [id, source] of this.dataSources) {
-      try {
-        results[id] = await source.fetch();
-      } catch (error) {
-        console.error(`Error fetching data from source ${id}:`, error);
-      }
-    }
-
-    return results;
-  }
-
-  getDataSource(id: string): DataSource | undefined {
+  getDataSource(id: string): BaseDataSource | undefined {
     return this.dataSources.get(id);
   }
 
-  getAllDataSources(): DataSource[] {
+  getAllDataSources(): BaseDataSource[] {
     return Array.from(this.dataSources.values());
+  }
+
+  pullFromDataSource(id: string, args: object): Promise<any> {
+    const source = this.getDataSource(id);
+    if (!source) {
+      throw new Error(`Data source ${id} not found`);
+    }
+    return source.pull(args);
   }
 }
 
