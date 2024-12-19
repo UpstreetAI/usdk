@@ -104,6 +104,10 @@
   * {
     @apply border-border;
   }
+  input[type="text"],
+  input[type="number"] {
+    @apply bg-zinc-800 text-white border border-zinc-700;
+  }
   html {
     color-scheme: light !important;
     background: transparent !important;

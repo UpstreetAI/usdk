@@ -488,7 +488,7 @@ export default function AgentEditor({
         >
           <input
             type="text"
-            className="flex-1 px-4 bg-zinc-800 text-white"
+            className="flex-1 px-4"
             value={builderPrompt}
             onKeyDown={e => {
               switch (e.key) {
