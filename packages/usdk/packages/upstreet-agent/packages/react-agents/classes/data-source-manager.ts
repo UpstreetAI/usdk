@@ -8,7 +8,7 @@ export class DataSourceManager {
   }
 
   addDataSource(dataSource: BaseDataSource): void {
-    this.dataSources.set(dataSource.name, dataSource);
+    this.dataSources.set(dataSource.id, dataSource);
   }
 
   removeDataSource(id: string): boolean {
