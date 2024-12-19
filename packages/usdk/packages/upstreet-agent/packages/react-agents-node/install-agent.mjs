@@ -26,41 +26,12 @@ const buildWranglerToml = (
 const upstreetAgentDir = path.join(dirname, '..', '..');
 
 export const installAgent = async (directory) => {
-  // create temp runtime directory
-  // const dotRuntime = path.join(directory, '.runtime');
-  // const name = makeId(8);
-  // const dstDir = path.join(dotRuntime, name);
-  // await mkdirp(dstDir);
-
   const packageJson = JSON.parse(await fs.promises.readFile(path.join(upstreetAgentDir, 'package.json'), 'utf8'));
   const dependencies = Object.keys(packageJson.dependencies);
 
   const srcNodeModules = path.join(upstreetAgentDir, 'node_modules');
   const dstNodeModules = path.join(directory, 'node_modules');
   await mkdirp(dstNodeModules);
-
-  // remove old dependencies in node_modules
-  await Promise.all(dependencies.map(async (name) => {
-    const d = path.dirname(name);
-    if (d !== '.') {
-      // remove the directory
-      await rimraf(path.join(dstNodeModules, d));
-    }
-    const dst = path.join(dstNodeModules, name);
-    await rimraf(dst);
-  }));
-
-  // symlink node_modules deps
-  await Promise.all(dependencies.map(async (name) => {
-    const d = path.dirname(name);
-    if (d !== '.') {
-      // precreate the directory
-      await mkdirp(path.join(dstNodeModules, d));
-    }
-    const src = path.join(srcNodeModules, name);
-    const dst = path.join(dstNodeModules, name);
-    await fs.promises.symlink(src, dst);
-  }));
 
   const name = makeId(8);
 
@@ -78,7 +49,37 @@ export const installAgent = async (directory) => {
 
   const agentPath = directory;
 
-  // set up the wrangler environment
+  // remove old dependencies in node_modules
+  const removeDependencies = async () => {
+    await Promise.all(dependencies.map(async (name) => {
+      const d = path.dirname(name);
+      if (d !== '.') { // has /
+        // remove the directory
+        await rimraf(path.join(dstNodeModules, d));
+      } else {
+        const dst = path.join(dstNodeModules, name);
+        await rimraf(dst);
+      }
+    }));
+  };
+  await removeDependencies();
+
+  // symlink node_modules deps
+  const addDependencies = async () => {
+    await Promise.all(dependencies.map(async (name) => {
+      const d = path.dirname(name);
+      if (d !== '.') { // has /
+        // precreate the directory
+        await mkdirp(path.join(dstNodeModules, d));
+      }
+      const src = path.join(srcNodeModules, name);
+      const dst = path.join(dstNodeModules, name);
+      await fs.promises.symlink(src, dst);
+    }));
+  };
+  await addDependencies();
+
+  // add new files
   await Promise.all([
     // wrangler.toml
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
@@ -96,16 +97,15 @@ export const installAgent = async (directory) => {
     copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx),
     // entry.mjs
     copyWithStringTransform(srcEntryJs, dstEntryJs),
-    // link src directory
-    // fs.promises.symlink(directory, path.join(agentPath, 'src')),
   ]);
-  // console.log(dstDir); */
 
   const cleanup = async () => {
     await Promise.all([
       rimraf(dstWranglerToml),
-      rimraf(dstEntryJs),
       rimraf(dstMainJsx),
+      rimraf(dstDurableObjectTsx),
+      rimraf(dstEntryJs),
+      removeDependencies(),
     ]);
   };
 
