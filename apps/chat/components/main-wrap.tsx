@@ -14,10 +14,13 @@ export function MainWrap({ children }: MainProps) {
   const { isFetchingUser } = useSupabase();
   const [globalState] = useGlobalState();
 
-  console.log(globalState.mode?.mainBackgroundClass)
+  console.log(globalState.mode?.mainBackgroundClass);
 
   return (
-    <main className={cn("flex flex-col min-h-screen flex-1", globalState.mode && globalState.mode?.mainBackgroundClass)}>
+    <main className={cn(
+      "flex flex-col min-h-screen flex-1",
+      globalState.mode?.mainBackgroundClass
+    )}>
       {isFetchingUser ? (
         <Loading />
       ) : (
