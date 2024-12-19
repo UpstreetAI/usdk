@@ -2,8 +2,8 @@ import dotenv from 'dotenv';
 import { AgentMain } from 'react-agents/entry.ts';
 import * as codecs from 'codecs/ws-codec-runtime-edge.mjs';
 import userRender from './agent.tsx';
-import envTxt from './.env.txt';
 import agentJson from './agent.json';
+import envTxt from './.env.txt';
 
 Error.stackTraceLimit = 300;
 
