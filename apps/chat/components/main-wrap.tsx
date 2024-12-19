@@ -14,8 +14,6 @@ export function MainWrap({ children }: MainProps) {
   const { isFetchingUser } = useSupabase();
   const [globalState] = useGlobalState();
 
-  console.log(globalState.mode?.mainBackgroundClass);
-
   return (
     <main className={cn(
       "flex flex-col min-h-screen flex-1",
