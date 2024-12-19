@@ -29,11 +29,12 @@ export const installAgent = async (directory) => {
   const packageJson = JSON.parse(await fs.promises.readFile(path.join(upstreetAgentDir, 'package.json'), 'utf8'));
   const dependencies = Object.keys(packageJson.dependencies);
 
+  const agentJsonString = await fs.promises.readFile(path.join(directory, 'agent.json'), 'utf8');
+  const agentJson = JSON.parse(agentJsonString);
+
   const srcNodeModules = path.join(upstreetAgentDir, 'node_modules');
   const dstNodeModules = path.join(directory, 'node_modules');
   await mkdirp(dstNodeModules);
-
-  const name = makeId(8);
 
   const srcEntryJs = path.join(upstreetAgentDir, 'packages', 'react-agents-node', 'entry.mjs');
   const dstEntryJs = path.join(directory, 'entry.mjs');
@@ -45,7 +46,7 @@ export const installAgent = async (directory) => {
   const dstDurableObjectTsx = path.join(directory, 'durable-object.tsx');
 
   const srcWranglerToml = path.join(upstreetAgentDir, 'wrangler.toml');
-  const dstWranglerToml = path.join(directory, `.wrangler-${name}.toml`);
+  const dstWranglerToml = path.join(directory, `wrangler.toml`);
 
   const agentPath = directory;
 
@@ -85,7 +86,7 @@ export const installAgent = async (directory) => {
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
       t = buildWranglerToml(t, {
-        name: name.toLowerCase(),
+        name: agentJson.id,
         // main: `.agents/${name}/main.jsx`,
         // main: `main.jsx`,
       });
