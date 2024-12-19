@@ -1,4 +1,5 @@
 import path from 'path';
+// import fs from 'fs';
 import os from 'os';
 import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
@@ -7,7 +8,6 @@ import { serve } from '@hono/node-server';
 
 //
 
-const dirname = path.dirname(import.meta.url.replace('file://', ''));
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     process.send({
@@ -24,8 +24,8 @@ process.addListener('SIGTERM', () => {
 
 const homeDir = os.homedir();
 
-const loadModule = async (p) => {
-  const viteServer = await makeViteServer(dirname);
+const loadModule = async (directory, p) => {
+  const viteServer = await makeViteServer(directory);
   // console.log('get agent module 1');
   const entryModule = await viteServer.ssrLoadModule(p);
   // console.log('get agent module 2', entryModule);
@@ -69,10 +69,10 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const main = await loadModule('entry.mjs');
+  const main = await loadModule(directory, 'entry.mjs');
   // console.log('worker loaded module', main);
-  const agentMain = main({
-    directory,
+  const agentMain = await main({
+    // directory,
     init,
     debug,
   });
@@ -94,19 +94,18 @@ const runAgent = async (directory, opts) => {
   });
   // console.log('worker send 2');
 };
-const makeViteServer = (directory) => {
-  return createViteServer({
+const makeViteServer = async (directory) => {
+  return await createViteServer({
     root: directory,
     server: { middlewareMode: 'ssr' },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
+    // resolve,
     esbuild: {
       jsx: 'transform',
-      // jsxFactory: 'React.createElement',
-      // jsxFragment: 'React.Fragment',
     },
     optimizeDeps: {
       entries: [
-        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
+        './entry.mjs',
       ],
     },
   });
