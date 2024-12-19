@@ -39,6 +39,7 @@ export type AgentObjectData = {
   features?: string[];
   address?: string;
   stripeConnectAccountId?: string;
+  dataSources?: Record<string, DataSourceConfig>;
 };
 export type AgentObject = EventTarget & AgentObjectData & {
   setConfig(config: AgentObjectData): void;
@@ -94,7 +95,15 @@ export type ActionStep = {
 
 export type DataSourceType = 'api' | 'text' | 'pdf';
 
+export interface APIDataSource extends BaseDataSource {
+  type: 'api';
+  endpoint: string;
+  headers?: Record<string, string>;
+  params?: Record<string, string>;
+}
 export interface BaseDataSource {
+  id: string;
+  type: DataSourceType;
   name: string;
   description: string;
   pull(args: object): Promise<any>;
@@ -114,6 +123,15 @@ export type DataSourceManager = EventTarget & {
   getAllDataSources: () => BaseDataSource[];
   pullFromDataSource: (id: string, args: object) => Promise<any>;
 };
+
+export interface APIDataSourceProps {
+  id: string;
+  name?: string;
+  description?: string;
+  endpoint: string;
+  headers?: Record<string, string>;
+  params?: Record<string, string>;
+}
 
 // messages
 
@@ -482,6 +500,7 @@ export type ActiveAgentObject = AgentObject & {
   pingManager: PingManager;
   liveManager: LiveManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
+  dataSourceManager: DataSourceManager;
 
   //
 
