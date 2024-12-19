@@ -1,10 +1,12 @@
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-import { AgentMain } from '../react-agents/entry.ts';
-import * as codecs from '../codecs/ws-codec-runtime-fs.mjs';
+import { AgentMain } from 'react-agents/entry.ts';
+import * as codecs from 'codecs/ws-codec-runtime-fs.mjs';
 import userRender from './agent.tsx';
-// import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
+import config from './agent.json';
+
+const dirname = path.dirname(import.meta.url.replace('file://', ''));
 
 //
 
@@ -16,26 +18,16 @@ import userRender from './agent.tsx';
 
 //
 
-const main = ({
-  directory,
+const main = async ({
   init = {},
   debug = 0,
 } = {}) => {
-  const getConfig = () => {
-    const agentJsonTxt = fs.readFileSync(agentJsonPath, 'utf8');
-    const agentJson = JSON.parse(agentJsonTxt);
-    return agentJson;
-  };
-  const getAuth = () => {
-    const envTxtString = fs.readFileSync(envTxtPath, 'utf8');
+  const getAuth = async () => {
+    const envTxtString = fs.readFileSync(path.join(dirname, '.env.txt'), 'utf8');
     const envTxt = dotenv.parse(envTxtString);
     return envTxt;
   };
-  const agentJsonPath = path.join(directory, 'agent.json');
-  // // this file should be running from the agent's directory, so we can find the wrangler.toml file relative to it
-  const envTxtPath = path.join(directory, '.env.txt');
 
-  const config = getConfig();
   let alarmTimestamp = null;
   const state = {
     config,
@@ -55,7 +47,7 @@ const main = ({
     init,
     debug,
   };
-  const auth = getAuth();
+  const auth = await getAuth();
   const agentMain = new AgentMain(state, env, auth);
   return agentMain;
 };
