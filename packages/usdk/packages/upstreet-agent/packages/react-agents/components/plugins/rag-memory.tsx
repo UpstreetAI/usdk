@@ -11,13 +11,16 @@ import { QueueManager } from 'queue-manager';
 const memoryPriority = -1;
 const maxDefaultMemoryValues = 8;
 const defaultChunkMessages = 4;
+const defaultRefreshMemoryEveryNMessages = 1;
 
 type RAGMemoryProps = {
   chunkMessages: number;
+  refreshMemoryEveryNMessages: number;
 };
 
 export const RAGMemory = (props: RAGMemoryProps) => {
   const chunkMessages = props.chunkMessages ?? defaultChunkMessages;
+  const refreshMemoryEveryNMessages = props.refreshMemoryEveryNMessages ?? defaultRefreshMemoryEveryNMessages;
 
   const agent = useAgent();
   const conversation = useConversation();
@@ -44,7 +47,7 @@ export const RAGMemory = (props: RAGMemoryProps) => {
         </Prompt>
       )}
       {/* read memories synchronously */}
-      <EveryNMessages n={1} priority={memoryPriority}>{async (e) => {
+      <EveryNMessages n={refreshMemoryEveryNMessages} priority={memoryPriority}>{async (e) => {
         await conversation.messageCache.waitForLoad();
         const embeddingString = conversation.getEmbeddingString();
         // const embedding = await agent.appContextValue.embed(embeddingString);
