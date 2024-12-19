@@ -47,10 +47,6 @@ export class ReactAgentsNodeRuntime {
       wranglerTomlPath,
       cleanup: cleanupInstall,
     } = await installAgent(directory);
-    // console.log('got agent dir', {
-    //   dstDir,
-    //   wranglerTomlPath,
-    // });
 
     const watcherPath = path.join(localDirectory, 'watcher.mjs');
     const cp = crossSpawn(
