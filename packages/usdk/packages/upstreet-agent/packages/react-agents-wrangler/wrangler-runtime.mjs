@@ -3,11 +3,12 @@ import fs from 'fs';
 import crossSpawn from 'cross-spawn';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
-import toml from '@iarna/toml';
+// import toml from '@iarna/toml';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
 import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
-import { recursiveCopyAll } from '../../../../util/copy-utils.mjs';
+// import { recursiveCopyAll } from '../../../../util/copy-utils.mjs';
+import { installAgent } from '../react-agents-node/install-agent.mjs';
 
 //
 
@@ -124,48 +125,22 @@ export class ReactAgentsWranglerRuntime {
       portIndex,
     } = this.agentSpec;
 
-    const upstreetAgentDir = path.join(dirname, '..', '..');
-
-    // create temp agent directory
-    const dotAgents = path.join(upstreetAgentDir, '.agents');
-    await mkdirp(dotAgents);
-    const dstDir = await fs.promises.mkdtemp(path.join(dotAgents, 'wrangler-'));
-    this.dstDir = dstDir;
-
-    const srcMainJsx = path.join(upstreetAgentDir, 'main.jsx');
-    const dstMainJsx = path.join(dstDir, 'main.jsx');
-
-    const srcDurableObjectTsx = path.join(upstreetAgentDir, 'durable-object.tsx');
-    const dstDurableObjectTsx = path.join(dstDir, 'durable-object.tsx');
-
-    const srcWranglerToml = path.join(upstreetAgentDir, 'wrangler.toml');
-    const dstWranglerToml = path.join(dstDir, 'wrangler.toml');
-
-    // set up the wrangler environment
-    await Promise.all([
-      // main.tsx
-      copyWithStringTransform(srcMainJsx, dstMainJsx),
-      // durable-object.tsx
-      copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx),
-      // wrangler.toml
-      copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
-        let t = toml.parse(s);
-        t = buildWranglerToml(t, {
-          name: path.basename(dstDir).toLowerCase(),
-          main: 'main.jsx',
-        });
-        return toml.stringify(t);
-      }),
-      // all other files
-      recursiveCopyAll(directory, dstDir),
-    ]);
-    // console.log(dstDir);
+    const {
+      agentPath: dstDir,
+      wranglerTomlPath,
+      cleanup: cleanupInstall,
+    } = await installAgent(directory);
+    // console.log('got agent dir', {
+    //   dstDir,
+    //   wranglerTomlPath,
+    // });
 
     // spawn the wrangler child process
     const cp = crossSpawn(
       wranglerBinPath,
       [
         'dev',
+        '-c', wranglerTomlPath,
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
@@ -180,6 +155,9 @@ export class ReactAgentsWranglerRuntime {
         cwd: dstDir,
       },
     );
+    cp.on('exit', (code) => {
+      cleanupInstall();
+    });
     bindProcess(cp);
     await waitForProcessIo(cp, /ready on /i);
     if (debug) {
