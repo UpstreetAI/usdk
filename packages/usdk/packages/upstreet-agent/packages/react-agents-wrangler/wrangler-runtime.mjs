@@ -130,10 +130,6 @@ export class ReactAgentsWranglerRuntime {
       wranglerTomlPath,
       cleanup: cleanupInstall,
     } = await installAgent(directory);
-    // console.log('got agent dir', {
-    //   dstDir,
-    //   wranglerTomlPath,
-    // });
 
     // spawn the wrangler child process
     const cp = crossSpawn(
