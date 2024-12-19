@@ -27,6 +27,18 @@ export const RAGMemory = (props: RAGMemoryProps) => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [queueManager, setQueueManager] = useState(() => new QueueManager());
 
+  useEffect(() => {
+    const loadInitialMemories = async () => {
+      await conversation.messageCache.waitForLoad();
+      const embeddingString = conversation.getEmbeddingString();
+      const memories = await agent.getMemory(embeddingString, {
+        matchCount: maxDefaultMemoryValues,
+      });
+      setMemories(memories);
+    };
+    loadInitialMemories();
+  }, [agent]);
+  
   return (
     <>
       {memories.length > 0 && (
