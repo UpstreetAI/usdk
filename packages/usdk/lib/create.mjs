@@ -482,7 +482,7 @@ export const create = async (args, opts) => {
     const upstreetAgentSrcDir = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent');
     const upstreetAgentDstDir = path.join(dstDir, 'packages', 'upstreet-agent');
 
-    // const dstPackageJsonPath = path.join(dstDir, 'package.json');
+    const dstPackageJsonPath = path.join(dstDir, 'package.json');
     // const pnpmYamlPath = path.join(dstDir, 'pnpm-workspace.yaml');
 
     const dstAgentTsxPath = path.join(dstDir, 'agent.tsx');
@@ -507,7 +507,7 @@ export const create = async (args, opts) => {
     await Promise.all([
       // agent.tsx
       writeFile(dstAgentTsxPath, agentTsx),
-      // // package.json
+      // package.json
       writeFile(dstPackageJsonPath, JSON.stringify({
         name: 'my-agent',
         dependencies: {
