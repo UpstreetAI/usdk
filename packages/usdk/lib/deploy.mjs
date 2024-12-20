@@ -153,8 +153,18 @@ export const deploy = async (args, opts) => {
       exclude: [
         // /[\/\\]node_modules[\/\\]/, // linux and windows
         {
-          test: (p) => gitignore.denies(p),
-        }
+          test: (p) => {
+            p = p.slice(directory.length + 1);
+            const result =
+              /^\.git(?:\/|$)/.test(p) || // exclude .git
+              (
+                gitignore.denies(p) && // exclude gitignored
+                p !== '.env.txt' // include .env.txt
+              );
+            // console.log('denies', p, result);
+            return result;
+          },
+        },
       ],
     });
 
