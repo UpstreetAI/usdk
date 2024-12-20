@@ -488,7 +488,7 @@ export default function AgentEditor({
         >
           <input
             type="text"
-            className="flex-1 px-4"
+            className="flex-1 px-4 text-zinc-950"
             value={builderPrompt}
             onKeyDown={e => {
               switch (e.key) {
@@ -647,16 +647,16 @@ export default function AgentEditor({
           <div
             className="flex flex-col flex-1 mr-2"
           >
-            <input type="text" className="px-2" value={name} placeholder="Name" onChange={e => {
+            <input type="text" className="px-2 text-zinc-950" value={name} placeholder="Name" onChange={e => {
               setName(e.target.value);
             }} />
-            <input type="text" className="px-2" value={bio} placeholder="Bio" onChange={e => {
+            <input type="text" className="px-2 text-zinc-950" value={bio} placeholder="Bio" onChange={e => {
               setBio(e.target.value);
             }} />
-            <input type="text" className="px-2" value={visualDescription} placeholder="Visual description" onChange={e => {
+            <input type="text" className="px-2 text-zinc-950" value={visualDescription} placeholder="Visual description" onChange={e => {
               setVisualDescription(e.target.value);
             }} />
-            <input type="text" className="px-2" value={homespaceDescription} placeholder="Homespace description" onChange={e => {
+            <input type="text" className="px-2 text-zinc-950" value={homespaceDescription} placeholder="Homespace description" onChange={e => {
               setHomespaceDescription(e.target.value);
             }} />
             {/* <label className="flex">

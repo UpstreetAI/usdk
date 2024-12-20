@@ -31,7 +31,7 @@ export async function generateMetadata({
     cardImage: accountData?.preview_image ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {

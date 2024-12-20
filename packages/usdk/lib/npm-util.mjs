@@ -1,8 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 import spawn from 'cross-spawn';
+import { createRequire } from 'module';
 
-const pnpmPackageJsonPath = import.meta.resolve('pnpm').replace('file://', '');
+const require = createRequire(import.meta.url);
+const pnpmPackageJsonPath = require.resolve('pnpm');
 const pnpmPackageJsonString = fs.readFileSync(pnpmPackageJsonPath, 'utf8');
 const pnpmPackageJson = JSON.parse(pnpmPackageJsonString);
 const pnpmPath = path.resolve(path.dirname(pnpmPackageJsonPath), pnpmPackageJson.bin.pnpm);

@@ -127,7 +127,14 @@ const CharactersPrompt = () => {
       name,
       bio,
     };
-    const agentSpecs = agents.map((agent) => agent.getPlayerSpec());
+    const agentSpecs = agents.map((agent) =>  {
+      const agentSpec = agent.getPlayerSpec() as any;
+      return {
+        name: agentSpec?.name,
+        id: agent.playerId,
+        bio: agentSpec?.bio,
+      };
+    });
 
     const formatAgent = (agent: any) => {
       return [

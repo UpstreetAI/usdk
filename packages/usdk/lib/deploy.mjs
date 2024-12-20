@@ -1,8 +1,10 @@
+import fs from 'fs';
 import stream from 'stream';
 import https from 'https';
 import prettyBytes from 'pretty-bytes';
 import pc from 'picocolors';
 import {createParser} from 'eventsource-parser'
+import gitignoreParser from 'gitignore-parser';
 // import { getLoginJwt } from '../util/login-util.mjs';
 import { packZip } from './zip-util.mjs';
 import {
@@ -134,9 +136,35 @@ export const deploy = async (args, opts) => {
 
     console.log(pc.italic('Deploying agent...'));
 
+    const gitignoreString = await (async () => {
+      try {
+        return await fs.promises.readFile('.gitignore', 'utf8');
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          return '';
+        } else {
+          throw err;
+        }
+      }
+    })();
+    const gitignore = gitignoreParser.compile(gitignoreString);
+
     const uint8Array = await packZip(directory, {
       exclude: [
-        /[\/\\]node_modules[\/\\]/, // linux and windows
+        // /[\/\\]node_modules[\/\\]/, // linux and windows
+        {
+          test: (p) => {
+            p = p.slice(directory.length + 1);
+            const result =
+              /^\.git(?:\/|$)/.test(p) || // exclude .git
+              (
+                gitignore.denies(p) && // exclude gitignored
+                p !== '.env.txt' // include .env.txt
+              );
+            // console.log('denies', p, result);
+            return result;
+          },
+        },
       ],
     });
 
@@ -174,10 +202,14 @@ export const deploy = async (args, opts) => {
     })();
 
     // process the response
-    const wranglerTomlJson = await new Promise((accept, reject) => {
-      let result = null;
+    const agentJsonResult = await new Promise((accept, reject) => {
+      let agentJson = null;
       const parser = createParser({
         onEvent(event) {
+          if (event.event === 'error') {
+            reject(new Error('Error deploying agent: ' + event.data));
+            return; // prevent fall through
+          }
           if (event.event === 'log') {
             if (outputStream) {
               const s = JSON.parse(event.data);
@@ -186,10 +218,8 @@ export const deploy = async (args, opts) => {
           } else if (event.event === 'result') {
             (async () => {
               const data = JSON.parse(event.data);
-              result = data;
-
-              const agentJsonString = data.vars.AGENT_JSON;
-              const agentJson = JSON.parse(agentJsonString);
+              agentJson = data;
+              
               const guid = agentJson.id;
               const url = getAgentHost(guid);
 
@@ -220,8 +250,8 @@ export const deploy = async (args, opts) => {
           parser.feed(chunk);
         });
         res.on('end', () => {
-          if (result) {
-            accept(result);
+          if (agentJson) {
+            accept(agentJson);
           } else {
             reject(new Error('No result received from server'));
           }
@@ -230,6 +260,6 @@ export const deploy = async (args, opts) => {
       });
       req.on('error', reject);
     });
-    return wranglerTomlJson;
+    return agentJsonResult;
   }
 };

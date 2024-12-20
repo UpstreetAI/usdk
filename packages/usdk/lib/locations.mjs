@@ -44,6 +44,6 @@ export const certsLocalPath = path.join(BASE_DIRNAME, 'certs-local');
 
 export const wranglerTomlPath = path.join(BASE_DIRNAME, 'packages', 'upstreet-agent', 'wrangler.toml');
 
-const jestModulePath = require.resolve('jest');
-const jestNodeModulesPath = walkUpToNodeModules(jestModulePath);
-export const jestBin = path.join(jestNodeModulesPath, '.bin', 'jest');
+// const jestModulePath = require.resolve('jest');
+// const jestNodeModulesPath = walkUpToNodeModules(jestModulePath);
+// export const jestBin = path.join(jestNodeModulesPath, '.bin', 'jest');

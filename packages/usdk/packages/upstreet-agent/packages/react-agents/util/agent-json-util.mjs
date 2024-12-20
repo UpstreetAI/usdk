@@ -17,7 +17,8 @@ export const ensureAgentJsonDefaults = (spec) => {
   };
 
   if (typeof spec.name !== 'string') {
-    spec.name = 'AI Agent';
+    const suffix = Math.floor(10000 + Math.random() * 90000);
+    spec.name = `AI Agent #${suffix}`;
   }
   if (typeof spec.description !== 'string') {
     spec.description = 'Created by the AI Agent SDK';

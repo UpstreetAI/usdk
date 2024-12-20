@@ -37,6 +37,7 @@ import {
   saveMessageToDatabase,
 } from './util/saveMessageToDatabase.js';
 import {
+  uniquifyActions,
   formatBasicSchema,
   formatReactSchema,
 } from './util/format-schema';
@@ -302,6 +303,12 @@ export const filterModifiersPerType = <T extends PriorityModifier>(modifiers: Ar
     modifiersArray.filter((modifier) => modifier.type === '*' || modifier.type === name),
   ]) as Array<[number, T[]]>;
 };
+export const uniquifyModifiers = <T extends PriorityModifier>(modifiers: Array<[number, T[]]>) => {
+  return modifiers.map(([priority, modifiersArray]) => [
+    priority,
+    uniquifyActions(modifiersArray as any) as unknown as T[],
+  ]) as Array<[number, T[]]>;
+};
 
 export async function executeAgentActionStep(
   generativeAgent: GenerativeAgentObject,
@@ -327,12 +334,12 @@ export async function executeAgentActionStep(
   actionsPerPriority = filterModifiersPerConversation(actionsPerPriority, conversation);
   let actionModifiersPerPriority = collectPriorityModifiers(actionModifiers);
   actionModifiersPerPriority = filterModifiersPerConversation(actionModifiersPerPriority, conversation);
+  actionModifiersPerPriority = uniquifyModifiers(actionModifiersPerPriority);
   let uniformsPerPriority = collectPriorityModifiers(uniforms);
   uniformsPerPriority = filterModifiersPerConversation(uniformsPerPriority, conversation);
   if (message) {
     actionsPerPriority = filterModifiersPerType(actionsPerPriority, message.method);
     actionModifiersPerPriority = filterModifiersPerType(actionModifiersPerPriority, message.method);
-    uniformsPerPriority = filterModifiersPerType(uniformsPerPriority, message.method);
   }
 
   const mergePriorityHandlers = (handlersPerPriority: Array<[number, Array<() => Promise<AbortableMessageEvent<PendingActionEventData>>>]>) => {

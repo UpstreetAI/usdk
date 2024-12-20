@@ -43,7 +43,7 @@ type Params = {
     cardImage: agentData?.preview_image ?? '',
     robots: 'follow, index',
     favicon: '/favicon.ico',
-    url: `https://chat.upstreet.ai/`
+    url: `https://upstreet.ai/`
   };
 
   return {
