@@ -77,8 +77,8 @@ import {
   create,
   edit,
   pull,
+  build,
   deploy,
-  update,
   authenticate,
   chat,
   runAgent,
@@ -1556,6 +1556,27 @@ export const createProgram = () => {
           });
         });
       });
+    program
+      .command('build')
+      .description('Build an agent for deployment')
+      .argument('[directories...]', 'Directories of agents to build')
+      .action(async (directories = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const results = await build(args);
+          for (const result of results) {
+            const {
+              agentPath,
+            } = result;
+            console.log(`Built agent at ${agentPath}`);
+          }
+        });
+      });
     const runtimes = [
       'node',
       'wrangler',
@@ -1585,7 +1606,6 @@ export const createProgram = () => {
       });
     program
       .command('chat')
-      // .alias('c')
       .description(`Chat with agents in a multiplayer room`)
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
@@ -1755,26 +1775,6 @@ export const createProgram = () => {
           const jwt = await getLoginJwt();
 
           await authenticate(args, {
-            jwt,
-          });
-        });
-      });
-    program
-      .command('update')
-      .description('Update an agent to the latest sdk version')
-      .argument(`[directories...]`, `Path to the agents to update`)
-      .option(`-f, --force`, `Force update even if there are conflicts`)
-      .action(async (directories = '', opts) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await update(args, {
             jwt,
           });
         });
