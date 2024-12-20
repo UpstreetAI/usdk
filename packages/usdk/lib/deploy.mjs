@@ -1,3 +1,4 @@
+import fs from 'fs';
 import stream from 'stream';
 import https from 'https';
 import prettyBytes from 'pretty-bytes';
