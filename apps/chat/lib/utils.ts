@@ -94,7 +94,7 @@ export function getAgentEndpointUrl(guid: string) {
   return `https://user-agent-${guid}.isekaichat.workers.dev/`;
 }
 
-export const getAgentName = (guid: string) => `user-agent-${guid}`;
+export const getAgentName = (guid: string) => `${guid}`;
 export const getAgentHost = (guid: string) => `https://${getAgentName(guid)}.isekaichat.workers.dev`;
 
 export function isValidUrl(urlString: string) {
