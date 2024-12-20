@@ -162,9 +162,32 @@ export const useCachedMessages = (opts?: ActionHistoryQuery) => {
   return messages;
 };
 export const useNumMessages = () => {
-  const cachedMessages = useCachedMessages();
-  return cachedMessages.length;
+  const conversation = useConversation();
+  const [totalMessages, setTotalMessages] = useState(0);
+
+  useEffect(() => {
+    if (!conversation) return;
+
+    // initialize with current cached messages
+    setTotalMessages(conversation.messageCache.getMessages().length);
+
+    // listen for new messages
+    const handleNewMessage = () => {
+      setTotalMessages(count => count + 1);
+    };
+
+    conversation.addEventListener('localmessage', handleNewMessage);
+    conversation.addEventListener('remotemessage', handleNewMessage);
+
+    return () => {
+      conversation.removeEventListener('localmessage', handleNewMessage);
+      conversation.removeEventListener('remotemessage', handleNewMessage);
+    };
+  }, [conversation]);
+
+  return totalMessages;
 };
+
 export const useMessageFetch = (opts?: ActionHistoryQuery) => {
   // XXX finish this
   throw new Error('not implemented');
