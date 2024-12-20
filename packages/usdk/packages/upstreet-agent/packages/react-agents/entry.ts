@@ -33,8 +33,8 @@ export class AgentMain extends EventTarget {
       codecs,
     } = state;
     this.chatsSpecification = new ChatsSpecification({
+      agentId: config.id,
       supabase: this.supabase,
-      jwt,
     });
     this.agentRenderer = new AgentRenderer({
       env,
