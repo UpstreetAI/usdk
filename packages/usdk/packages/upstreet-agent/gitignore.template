@@ -1,4 +1,9 @@
 node_modules
+
+/entry.mjs
+/main.jsx
+/durable-object.tsx
+/wrangler.toml
+
 # This is to protect secrets being exposed in a public git repo. Remove this on your own discretion.
 .env.txt
-
