@@ -9,6 +9,7 @@ export class APIDataSourceManager implements BaseDataSource {
   endpoint: string;
   headers?: Record<string, string>;
   params?: Record<string, string>;
+  requiredArgs?: string[];
 
   constructor(config: APIDataSourceProps) {
     this.id = config.id;
@@ -18,6 +19,7 @@ export class APIDataSourceManager implements BaseDataSource {
     this.endpoint = config.endpoint;
     this.headers = config.headers;
     this.params = config.params;
+    this.requiredArgs = config.requiredArgs;
   }
 
   async pull(args: object = {}): Promise<any> {

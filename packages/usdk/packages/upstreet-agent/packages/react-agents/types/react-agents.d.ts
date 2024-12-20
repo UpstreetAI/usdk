@@ -107,6 +107,7 @@ export interface BaseDataSource {
   name: string;
   description: string;
   pull(args: object): Promise<any>;
+  requiredArgs?: string[];
 }
 
 export type DataSourceConfig = {
@@ -131,6 +132,7 @@ export interface APIDataSourceProps {
   endpoint: string;
   headers?: Record<string, string>;
   params?: Record<string, string>;
+  requiredArgs?: string[];
 }
 
 // messages

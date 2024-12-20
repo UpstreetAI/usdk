@@ -10,6 +10,7 @@ import { AutoTask } from './auto-task';
 export const DataSourceLearner: React.FC = () => {
   const agent = useAgent();
 
+  /// XXX TODO: NEED TO ENFORCE API SCHEME BETTER, PERHAPS USE OPENAPI SPEC APPROACH
   return (
     <>
       <Prompt>
@@ -26,7 +27,11 @@ export const DataSourceLearner: React.FC = () => {
           ${agent.dataSourceManager.getAllDataSources().map(source => dedent`
             - ${source.name} (ID: ${source.id})
               ${source.description}
-          `).join('\n')}
+              REQUIRED: You must include these arguments in your query:
+              ${source.requiredArgs?.map(arg => `  - '${arg}': (string) REQUIRED`)
+                .join('\n') || '  - No required arguments'}`).join('\n')}
+
+          NOTE: Queries will fail if required arguments are not provided!
         `}
       </Prompt>
       <AutoTask hint="You are provided with data sources to help you learn and obtain knowledge. Use the data sources to learn and use the knowledge to answer the user's question." />
@@ -35,22 +40,20 @@ export const DataSourceLearner: React.FC = () => {
         type="queryAndLearn"
         description={dedent`\
           Query a data source and store the learned information in memory.
-          Use this to expand your knowledge base with data from available sources.
+          IMPORTANT: You must provide all required arguments for the data source!
         `}
         schema={
           z.object({
             sourceId: z.string(),
-            args: z.object({}),
-            reason: z.string(),
+            jsonArgs: z.string(),
+            reason: z.string()
           })
         }
         examples={[
           {
             sourceId: "weather-api",
-            args: {
-              q: "London"
-            },
-            reason: "Learning about current weather conditions in London to provide accurate weather information",
+            jsonArgs: "{\"q\": \"London\"}",
+            reason: "Learning about current weather conditions in London",
           }
         ]}
         handler={async (e: PendingActionEvent) => {
@@ -61,7 +64,7 @@ export const DataSourceLearner: React.FC = () => {
             // Query the data source
             const data = await agent.agent.dataSourceManager.pullFromDataSource(
               args.sourceId, 
-              args.args
+              JSON.parse(args.jsonArgs)
             );
 
             console.log('data: ', data);
@@ -98,8 +101,6 @@ export const DataSourceLearner: React.FC = () => {
                 reason: args.reason
               }
             );
-
-            await e.commit();
           } catch (error) {
             console.error('Error in queryAndLearn:', error);
             throw error;
