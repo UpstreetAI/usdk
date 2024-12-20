@@ -113,6 +113,7 @@
     "unique-names-generator": "^4.7.1",
 
     "update-notifier": "file:./packages/update-notifier",
+    "upstreet-agent": "file:./packages/upstreet-agent",
     "configstore": "^7.0.0",
     "is-in-ci": "^1.0.0",
     "is-installed-globally": "^1.0.0",
