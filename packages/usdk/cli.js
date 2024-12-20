@@ -1559,20 +1559,16 @@ export const createProgram = () => {
     program
       .command('build')
       .description('Build an agent for deployment')
-      .argument('[directory]', 'Directory of the agent')
-      .action(async (directory = undefined, opts = {}) => {
+      .argument('[directories...]', 'Directories of agents to build')
+      .action(async (directories = [], opts = {}) => {
         await handleError(async () => {
           commandExecuted = true;
           let args = {
-            _: [directory],
+            _: [directories],
             ...opts,
           };
 
-          const jwt = await getLoginJwt();
-
-          const results = await build(args, {
-            jwt,
-          });
+          const results = await build(args);
           for (const result of results) {
             const {
               agentPath,
