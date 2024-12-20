@@ -1,10 +1,26 @@
 export { DurableObject } from './durable-object.jsx';
 import { headers } from 'react-agents/constants.mjs';
+import agentJsonSource from './agent.json';
+
+const parseAgentJson = (agentJsonSource) => {
+  try {
+    if (typeof agentJsonSource === 'string') {
+      return JSON.parse(agentJsonSource);
+    } else if (typeof agentJsonSource === 'object') {
+      return agentJsonSource;
+    } else {
+      throw new Error(`Invalid agent.json: ${agentJsonSource}`);
+    }
+  } catch (e) {
+    console.warn(`Warning: failed to parse ${agentJsonSource}:`, e);
+    return {};
+  }
+};
+const agentJson = parseAgentJson(agentJsonSource);
 
 async function handleAgentRequest(request, env) {
-  const guid = env.GUID;
-  const id = env.AGENT.idFromName(guid);
-  const stub = env.AGENT.get(id);
+  const durableObjectId = env.AGENT.idFromName(agentJson.id);
+  const stub = env.AGENT.get(durableObjectId);
   return await stub.fetch(request);
 }
 
