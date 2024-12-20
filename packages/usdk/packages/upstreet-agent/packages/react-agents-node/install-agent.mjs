@@ -4,7 +4,6 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import toml from '@iarna/toml';
 import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
-import { makeId } from 'react-agents/util/util.mjs';
 
 const dirname = getCurrentDirname(import.meta, process);
 const copyWithStringTransform = async (src, dst, transformFn = (s) => s) => {
