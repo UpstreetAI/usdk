@@ -4,11 +4,11 @@ import { installAgent } from '../packages/upstreet-agent/packages/react-agents-n
 //
 
 export const build = async (args, opts) => {
-  const jwt = opts.jwt;
-  if (!jwt) {
-    console.error('You must be logged in to create an agent.');
-    return;
-  }
+  // const jwt = opts.jwt;
+  // if (!jwt) {
+  //   console.error('You must be logged in to create an agent.');
+  //   return;
+  // }
 
   const agentSpecs = await parseAgentSpecs(args._[0]);
   if (!agentSpecs.every((agentSpec) => !!agentSpec.directory)) {
