@@ -19,6 +19,9 @@ export {
   pull,
 } from './pull.mjs';
 export {
+  build,
+} from './build.mjs';
+export {
   deploy,
 } from './deploy.mjs';
 export {

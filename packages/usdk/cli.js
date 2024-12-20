@@ -77,6 +77,7 @@ import {
   create,
   edit,
   pull,
+  build,
   deploy,
   authenticate,
   chat,
@@ -1555,6 +1556,31 @@ export const createProgram = () => {
           });
         });
       });
+    program
+      .command('build')
+      .description('Build an agent for deployment')
+      .argument('[directory]', 'Directory of the agent')
+      .action(async (directory = undefined, opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args = {
+            _: [directory],
+            ...opts,
+          };
+
+          const jwt = await getLoginJwt();
+
+          const results = await build(args, {
+            jwt,
+          });
+          for (const result of results) {
+            const {
+              agentPath,
+            } = result;
+            console.log(`Built agent at ${agentPath}`);
+          }
+        });
+      });
     const runtimes = [
       'node',
       'wrangler',
@@ -1584,7 +1610,6 @@ export const createProgram = () => {
       });
     program
       .command('chat')
-      // .alias('c')
       .description(`Chat with agents in a multiplayer room`)
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
