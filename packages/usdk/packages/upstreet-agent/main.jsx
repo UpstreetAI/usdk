@@ -1,4 +1,4 @@
-export { DurableObject } from './durable-object.jsx';
+export { DurableObject } from './durable-object.tsx';
 import { headers } from 'react-agents/constants.mjs';
 import agentJsonSource from './agent.json';
 
