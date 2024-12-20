@@ -85,7 +85,7 @@ export const installAgent = async (directory) => {
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
       t = buildWranglerToml(t, {
-        name: agentJson.id,
+        name: `user-agent-${agentJson.id}`,
         // main: `.agents/${name}/main.jsx`,
         // main: `main.jsx`,
       });
