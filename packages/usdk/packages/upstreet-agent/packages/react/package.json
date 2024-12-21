@@ -21,25 +21,6 @@
     "react.react-server.js"
   ],
   "main": "index.js",
-  "exports": {
-    ".": {
-      "react-server": "./react.react-server.js",
-      "default": "./index.js"
-    },
-    "./package.json": "./package.json",
-    "./jsx-runtime": {
-      "react-server": "./jsx-runtime.react-server.js",
-      "default": "./jsx-runtime.js"
-    },
-    "./jsx-dev-runtime": {
-      "react-server": "./jsx-dev-runtime.react-server.js",
-      "default": "./jsx-dev-runtime.js"
-    },
-    "./compiler-runtime": {
-      "react-server": "./compiler-runtime.js",
-      "default": "./compiler-runtime.js"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/facebook/react.git",

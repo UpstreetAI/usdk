@@ -26,7 +26,7 @@
     "node": ">=0.10.0"
   },
   "peerDependencies": {
-    "react": "19.0.0-rc-df5f2736-20240712"
+    "react": "file:../react"
   },
   "dependencies": {
     "scheduler": "0.25.0-rc-df5f2736-20240712"
