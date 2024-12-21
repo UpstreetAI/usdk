@@ -5,7 +5,6 @@ import { QueueManager } from 'queue-manager';
 import {
   ExtendableMessageEvent,
 } from '../util/extendable-message-event';
-import { getUserIdForJwt } from '../util/supabase-client.mjs';
 
 //
 
@@ -27,32 +26,42 @@ const getRoomsSpecificationKey = (roomSpecification: RoomSpecification) => {
 // tracks the chats that the currently active agents should connect to
 export class ChatsSpecification extends EventTarget {
   // members
+  agentId: string;
   supabase: any;
-  userId: string;
   // state
   roomSpecifications: RoomSpecification[];
   roomsQueueManager: QueueManager;
   loadPromise: Promise<void>;
 
   constructor({
+    agentId,
     supabase,
-    jwt,
   }: {
+    agentId: string,
     supabase: any,
-    jwt: string,
   }) {
     super();
 
+    if (!agentId) {
+      throw new Error('agentId must be provided');
+    }
+    if (!supabase) {
+      throw new Error('supabase must be provided');
+    }
+
+    this.agentId = agentId;
     this.supabase = supabase;
 
     this.roomSpecifications = [];
     this.roomsQueueManager = new QueueManager();
     this.loadPromise = (async () => {
-      this.userId = await getUserIdForJwt(jwt);
+      // console.log('chat specification load 1');
+      // console.log('chat specification load 2', this.agentId);
 
       const result = await this.supabase.from('chat_specifications')
         .select('*')
-        .eq('user_id', this.userId);
+        .eq('user_id', this.agentId);
+      // console.log('chat specification load 3', result);
       const {
         error,
         data,
@@ -70,11 +79,13 @@ export class ChatsSpecification extends EventTarget {
             endpointUrl,
           };
         }) as RoomSpecification[];
+        // console.log('chat specification load 4');
         // console.log('initial chat specifications', initialChatSpecifications);
         await Promise.all(initialChatSpecifications.map(async (chatSpecification) => {
           const result = await this.#joinInternal(chatSpecification);
           return result;
         }));
+        // console.log('chat specification load 5');
       } else {
         console.warn('failed to load initial chats: ' + JSON.stringify(error));
       }
@@ -90,9 +101,13 @@ export class ChatsSpecification extends EventTarget {
       throw new Error('join | roomSpecification must have room and endpointUrl: ' + JSON.stringify(roomSpecification));
     }
 
+    // console.log('chat specifications join 1', roomSpecification);
     await this.waitForLoad();
+    // console.log('chat specifications join 2', roomSpecification);
 
-    return await this.#joinInternal(roomSpecification);
+    const result = await this.#joinInternal(roomSpecification);
+    // console.log('chat specifications join 3', roomSpecification);
+    return result;
   }
   async #joinInternal(roomSpecification: RoomSpecification) {
     if (!roomSpecification.room || !roomSpecification.endpointUrl) {
@@ -100,7 +115,6 @@ export class ChatsSpecification extends EventTarget {
     }
 
     // console.log('join room 1', roomSpecification);
-    // console.log('join room 1.1',  roomSpecification);
 
     const index = this.roomSpecifications.findIndex((spec) => roomsSpecificationEquals(spec, roomSpecification));
     if (index === -1) {
@@ -121,7 +135,7 @@ export class ChatsSpecification extends EventTarget {
           const existing = await this.supabase.from('chat_specifications')
             .select('*')
             .eq('id', key)
-            .eq('user_id', this.userId)
+            .eq('user_id', this.agentId)
             .single();
 
           if (existing.data) {
@@ -131,7 +145,7 @@ export class ChatsSpecification extends EventTarget {
 
           const opts = {
             id: key,
-            user_id: this.userId,
+            user_id: this.agentId,
             data: {
               room: roomSpecification.room,
               endpoint_url: roomSpecification.endpointUrl,
@@ -229,7 +243,7 @@ export class ChatsSpecification extends EventTarget {
       await this.roomsQueueManager.waitForTurn(async () => {
         const result = await this.supabase.from('chat_specifications')
           .delete()
-          .eq('user_id', this.userId);
+          .eq('user_id', this.agentId);
         const {
           error,
         } = result;

@@ -15,6 +15,7 @@ import {
 import {
   makePromise,
   makeId,
+  retry,
 } from '../../util/util.mjs';
 import {
   discordBotEndpointUrl,
@@ -44,6 +45,26 @@ export class DiscordInput {
 
   setWs(ws) {
     this.ws = ws;
+  }
+
+  setUsername(username) {
+    const m = {
+      method: 'setUsername',
+      args: {
+        username,
+      },
+    };
+    this.ws.send(JSON.stringify(m));
+  }
+
+  setAvatarUrl(avatarUrl) {
+    const m = {
+      method: 'setAvatarUrl',
+      args: {
+        avatarUrl,
+      },
+    };
+    this.ws.send(JSON.stringify(m));
   }
 
   writeText(text, {
@@ -334,12 +355,18 @@ export class DiscordBotClient extends EventTarget {
   ws = null;
   input = null; // going from the agent into the discord bot
   output = null; // coming out of the discord bot to the agent
+  name = null;
+  previewUrl = null;
   PING_INTERVAL = 7000; // 7 second ping interval
 
   constructor({
     token,
     codecs,
     jwt,
+    name,
+    previewUrl,
+    maxReconnectAttempts = 10,
+    reconnectDelay = 2000,
   }) {
     super();
 
@@ -357,21 +384,36 @@ export class DiscordBotClient extends EventTarget {
       codecs,
       jwt,
     });
+    this.name = name;
+    this.previewUrl = previewUrl;
+    this.maxReconnectAttempts = maxReconnectAttempts;
+    this.reconnectDelay = reconnectDelay;
+    this.isReconnecting = false;
   }
   async status() {
-    const res = await fetch(`${discordBotEndpointUrl}/status`, {
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-      },
-    });
-    const j = await res.json();
-    return j;
+    return await retry(async () => {
+      const res = await fetch(`${discordBotEndpointUrl}/status`, {
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+        },
+      });
+      const j = await res.json();
+      return j;
+    }, 3);
   }
   async connect({
     channels = [],
     dms = [],
     userWhitelist = [],
   }) {
+    try {
+      await this._attemptConnect({ channels, dms, userWhitelist });
+    } catch (err) {
+      await this._handleReconnect({ channels, dms, userWhitelist });
+    }
+  }
+
+  async _attemptConnect({ channels, dms, userWhitelist }) {
     const channelSpecs = channels.map((channel) => {
       if (typeof channel === 'string') {
         return channel;
@@ -405,6 +447,9 @@ export class DiscordBotClient extends EventTarget {
     };
     ws.onclose = () => {
       console.warn('discord client closed');
+      if (!this.isReconnecting) {
+        this._handleReconnect({ channels, dms, userWhitelist }).catch(console.error);
+      }
     };
     ws.onmessage = e => {
       // console.log('got message', e.data);
@@ -442,6 +487,8 @@ export class DiscordBotClient extends EventTarget {
         } = j;
         switch (method) {
           case 'ready': {
+            this.name && this.input.setUsername(this.name);
+            this.previewUrl && this.input.setAvatarUrl(this.previewUrl);
             readyPromise.resolve();
             break;
           }
@@ -510,7 +557,35 @@ export class DiscordBotClient extends EventTarget {
     await readyPromise;
   }
 
+  async _handleReconnect(connectionParams) {
+    this.isReconnecting = true;
+    
+    try {
+        for (let attempt = 1; attempt <= this.maxReconnectAttempts; attempt++) {
+            console.log(`Attempting to reconnect (${attempt}/${this.maxReconnectAttempts})...`);
+            
+            await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
+            
+            try {
+                await this._attemptConnect(connectionParams);
+                console.log('Reconnection successful');
+                this.isReconnecting = false;
+                return; // Successfully reconnected
+            } catch (err) {
+                if (attempt === this.maxReconnectAttempts) {
+                    throw new Error(`Failed to reconnect after ${this.maxReconnectAttempts} attempts: ${err.message}`);
+                }
+                // Log the error but continue trying
+                console.warn(`Reconnection attempt ${attempt} failed:`, err.message);
+            }
+        }
+    } finally {
+        this.isReconnecting = false;
+    }
+  }
+
   destroy() {
+    this.isReconnecting = false;  // Stop any reconnection attempts
     this.ws && this.ws.close();
     this.input.destroy();
     this.output.destroy();
