@@ -2,10 +2,26 @@ import dotenv from 'dotenv';
 import { AgentMain } from 'react-agents/entry.ts';
 import * as codecs from 'codecs/ws-codec-runtime-edge.mjs';
 import userRender from './agent.tsx';
-import agentJson from './agent.json';
+import agentJsonSource from './agent.json';
 import envTxt from './.env.txt';
 
 Error.stackTraceLimit = 300;
+
+const parseAgentJson = (agentJsonSource) => {
+  try {
+    if (typeof agentJsonSource === 'string') {
+      return JSON.parse(agentJsonSource);
+    } else if (typeof agentJsonSource === 'object') {
+      return agentJsonSource;
+    } else {
+      throw new Error(`Invalid agent.json: ${agentJsonSource}`);
+    }
+  } catch (e) {
+    console.warn(`Warning: failed to parse ${agentJsonSource}:`, e);
+    return {};
+  }
+};
+const agentJson = parseAgentJson(agentJsonSource);
 
 // CloudFlare Worker Durable Object class
 export class DurableObject {
@@ -13,23 +29,9 @@ export class DurableObject {
   loadPromise: Promise<AgentMain> = null;
 
   constructor(state: any, env: any) {
-    const config = (() => {
-      try {
-        if (typeof agentJson === 'string') {
-          return JSON.parse(agentJson);
-        } else if (typeof agentJson === 'object') {
-          return agentJson;
-        } else {
-          throw new Error(`Invalid agent.json: ${agentJson}`);
-        }
-      } catch (e) {
-        console.warn(`Warning: failed to parse ${agentJson}:`, e);
-        return {};
-      }
-    })();
     const state2 = {
       ...state,
-      config,
+      config: agentJson,
       userRender,
       codecs,
     };

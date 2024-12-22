@@ -24,6 +24,40 @@ const buildWranglerToml = (
 
 const upstreetAgentDir = path.join(dirname, '..', '..');
 
+function walkUpToNodeModules(modulePath) {
+  let nodeModulesPath = modulePath;
+  while (path.basename(nodeModulesPath) !== 'node_modules') {
+    const oldNodeModulesPath = nodeModulesPath;
+    nodeModulesPath = path.dirname(nodeModulesPath);
+    if (nodeModulesPath === oldNodeModulesPath) {
+      return null;
+    }
+  }
+  return nodeModulesPath;
+}
+async function resolveModule(name, {
+  paths,
+}) {
+  for (let nodeModulesPath = paths[0]; nodeModulesPath !== null;) {
+    const checkPath = path.join(nodeModulesPath, name);
+    let exists = false;
+    try {
+      await fs.promises.lstat(checkPath);
+      exists = true;
+    } catch (e) {}
+    if (exists) {
+      return checkPath;
+    }
+
+    const oldNodeModulesPath = nodeModulesPath;
+    nodeModulesPath = walkUpToNodeModules(nodeModulesPath)
+    if (oldNodeModulesPath === nodeModulesPath) {
+      break;
+    }
+  }
+  return null;
+}
+
 export const installAgent = async (directory) => {
   const packageJson = JSON.parse(await fs.promises.readFile(path.join(upstreetAgentDir, 'package.json'), 'utf8'));
   const dependencies = Object.keys(packageJson.dependencies);
@@ -72,9 +106,15 @@ export const installAgent = async (directory) => {
         // precreate the directory
         await mkdirp(path.join(dstNodeModules, d));
       }
-      const src = path.join(srcNodeModules, name);
-      const dst = path.join(dstNodeModules, name);
-      await fs.promises.symlink(src, dst);
+      const src = await resolveModule(name, { paths: [
+        path.join(upstreetAgentDir, 'node_modules'),
+      ] });
+      if (src) {
+        const dst = path.join(dstNodeModules, name);
+        await fs.promises.symlink(src, dst);
+      } else {
+        throw new Error('install agent link: could not find root for: ' + name);
+      }
     }));
   };
   await addDependencies();
@@ -85,7 +125,7 @@ export const installAgent = async (directory) => {
     copyWithStringTransform(srcWranglerToml, dstWranglerToml, (s) => {
       let t = toml.parse(s);
       t = buildWranglerToml(t, {
-        name: agentJson.id,
+        name: `user-agent-${agentJson.id}`,
         // main: `.agents/${name}/main.jsx`,
         // main: `main.jsx`,
       });

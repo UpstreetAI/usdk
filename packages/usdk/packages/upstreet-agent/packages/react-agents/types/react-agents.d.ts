@@ -356,7 +356,7 @@ export type RoomSpecification = {
   endpointUrl: string;
 };
 export type ChatsSpecification = EventTarget & {
-  userId: string;
+  agentId: string;
   supabase: any;
   roomSpecifications: RoomSpecification[];
   roomsQueueManager: MultiQueueManager;
