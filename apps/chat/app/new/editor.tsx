@@ -310,17 +310,17 @@ export default function AgentEditor({
           id: ownerId,
           stripe_connect_account_id: stripeConnectAccountId,
         } = userPrivate;
-        const agentJson = {
+        let agentJson = {
           id,
           ownerId,
-          name: name || undefined,
-          bio: bio || undefined,
-          visualDescription: visualDescription || undefined,
+          name: name,
+          bio: bio,
+          visualDescription: visualDescription,
           previewUrl,
           homespaceUrl,
           stripeConnectAccountId,
         };
-        ensureAgentJsonDefaults(agentJson);
+        agentJson = ensureAgentJsonDefaults(agentJson);
         const agentJsonString = JSON.stringify(agentJson);
 
         const mnemonic = generateMnemonic();
