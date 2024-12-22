@@ -36,11 +36,11 @@ export function LoadingProvider({ children }: LoadingProviderProps) {
 
   React.useEffect(() => {
     if (pathname.startsWith('/desktop')) {
-      setGlobalState({ ...globalState, mode: { name: 'desktop', mainBackgroundClass: '' } });
+      setGlobalState({ ...globalState, mode: { name: 'desktop' } });
     } else if (pathname.startsWith('/embed')) {
-      setGlobalState({ ...globalState, mode: { name: 'embed', mainBackgroundClass: "bg-[url('/images/backgrounds/main-background.jpg')] bg-center bg-cover" } });
+      setGlobalState({ ...globalState, mode: { name: 'embed' } });
     } else {
-      setGlobalState({ ...globalState, mode: { name: 'web', mainBackgroundClass: "bg-[url('/images/backgrounds/main-background.jpg')] bg-center bg-cover" } });
+      setGlobalState({ ...globalState, mode: { name: 'web' } });
     }
   }, [pathname]);
 
