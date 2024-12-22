@@ -100,7 +100,7 @@ export const installAgent = async (directory) => {
 
   // symlink node_modules deps
   const addDependencies = async () => {
-    for (const name of dependencies) {
+    await Promise.all(dependencies.map(async (name) => {
       const d = path.dirname(name);
       if (d !== '.') { // has /
         // precreate the directory
@@ -115,7 +115,7 @@ export const installAgent = async (directory) => {
       } else {
         throw new Error('install agent link: could not find root for: ' + name);
       }
-    }
+    }));
   };
   await addDependencies();
 
