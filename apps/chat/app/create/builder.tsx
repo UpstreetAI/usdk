@@ -487,9 +487,10 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
-  const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 bg-zinc-200 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
+  const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
   const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
+  const textareaClass = 'w-full h-20 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-4 resize-none';
   // render
   return (
     <div className='w-full h-full text-zinc-950'>
@@ -511,49 +512,28 @@ export default function Builder({
             <div>
               {isPersonalityExpanded ? (
                 <div>
-                  <input type="text" className={inputClass} value={name} placeholder="Name" onChange={e => {
-                    setName(e.target.value);
-                  }} />
-                  <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => {
-                    setBio(e.target.value);
-                  }} />
+                  <input type="text" className={inputClass} value={name} placeholder="Name" onChange={e => setName(e.target.value)} />
+                  <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => setBio(e.target.value)} />
                   <div className="flex items-center mb-4">
-                    {previewUrl ? <Link
-                      href={previewUrl}
-                      target="_blank"
-                    >
-                      <img
-                        src={previewUrl}
-                        className='w-20 h-20 mr-2 bg-primary/10 rounded'
-                      />
-                    </Link> : <div
+                    <div
                       className='w-20 h-20 mr-2 bg-primary/10 rounded'
-                    />}
-                    <input
-                      type="text"
-                      className={inputClass}
+                      style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                    />
+                    <textarea
+                      className={textareaClass}
                       value={visualDescription}
                       placeholder="Visual description"
-                      onChange={e => {
-                        setVisualDescription(e.target.value);
-                      }}
+                      onChange={e => setVisualDescription(e.target.value)}
                     />
                     <Button
                       onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
-
-                        console.log('generate character click', { visualDescription });
                         if (visualDescription) {
                           (async () => {
                             const jwt = await getJWT();
-                            const result = await generateCharacterImage(visualDescription, undefined, {
-                              jwt,
-                            });
-                            const {
-                              blob,
-                            } = result;
-                            setPreviewBlob(blob);
+                            const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                            setPreviewBlob(result.blob);
                           })();
                         }
                       }}
@@ -563,43 +543,25 @@ export default function Builder({
                     </Button>
                   </div>
                   <div className="flex items-center mb-4">
-                    {homespaceUrl ? <Link
-                      href={homespaceUrl}
-                      target="_blank"
-                    >
-                      <img
-                        src={homespaceUrl}
-                        className='w-full h-32 bg-primary/10 object-cover rounded'
-                        alt="Homespace Preview"
-                      />
-                    </Link> : <div
-                      className='w-full h-32 bg-primary/10 rounded'
-                    />}
-                    <input
-                      type="text"
-                      className={inputClass}
+                    <div
+                      className='w-20 h-20 mr-2 bg-primary/10 rounded'
+                      style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                    />
+                    <textarea
+                      className={textareaClass}
                       value={homespaceDescription}
                       placeholder="Homespace description"
-                      onChange={e => {
-                        setHomespaceDescription(e.target.value);
-                      }}
+                      onChange={e => setHomespaceDescription(e.target.value)}
                     />
                     <Button
                       onClick={e => {
                         e.preventDefault();
                         e.stopPropagation();
-
-                        console.log('generate homespace click', { homespaceDescription });
                         if (homespaceDescription) {
                           (async () => {
                             const jwt = await getJWT();
-                            const result = await generateBackgroundImage(homespaceDescription, undefined, {
-                              jwt,
-                            });
-                            const {
-                              blob,
-                            } = result;
-                            setHomespaceBlob(blob);
+                            const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                            setHomespaceBlob(result.blob);
                           })();
                         }
                       }}
@@ -610,7 +572,7 @@ export default function Builder({
                   </div>
                 </div>
               ) : (
-                <div>Customize your agents personality, including visuals.</div>
+                <div>Customize your agent's personality, including visuals.</div>
               )}
             </div>
           </div>
