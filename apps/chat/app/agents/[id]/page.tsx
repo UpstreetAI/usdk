@@ -28,7 +28,6 @@ async function getAgentData(supabase: any, identifier: string) {
     .from('assets')
     .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
     .eq('id', identifier)
-    .eq('private', false)
     .single();
 
   // If not found by ID, try to find by username
@@ -37,7 +36,6 @@ async function getAgentData(supabase: any, identifier: string) {
       .from('assets')
       .select('*, author: accounts ( id, name ), embed: embed_agent ( trusted_urls )')
       .eq('name', identifier)
-      .eq('private', false)
       .single();
   }
 

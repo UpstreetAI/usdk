@@ -52,7 +52,6 @@ export function Agents({ loadmore = false, search = true, range = 5, row = false
       .from('assets')
       .select('*, author: accounts ( id, name )')
       .eq('origin', 'sdk')
-      .eq('private', false)
       .ilike('name', `%${debouncedSearchTerm}%`)
       .range(customRangeFrom, customRangeTo - 1)
       .order('created_at', { ascending: false });
