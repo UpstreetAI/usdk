@@ -488,7 +488,7 @@ export default function Builder({
 
   const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
   const expandedClass = 'bg-gray-900 text-white';
-  const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
+  const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
   // render
   return (
@@ -513,10 +513,17 @@ export default function Builder({
             <h2 className="text-lg font-bold mb-2">Personality <span className="text-sm text-gray-500">(default)</span></h2>
             <div>
               {isPersonalityExpanded ? (
-                <div>
-                  <input type="text" className={inputClass} value={name} placeholder="Name" onChange={e => setName(e.target.value)} />
-                  <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => setBio(e.target.value)} />
-                  <div className="flex items-center mb-4">
+                <div className="mt-4">
+                  <label>
+                    <span className="mb-2">Name</span>
+                    <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                  </label>
+                  <label>
+                    <span className="mb-2">Bio</span>
+                    <input type="text" className={inputClass} value={bio} placeholder="Describe your agent" onChange={e => setBio(e.target.value)} />
+                  </label>
+
+                  <div className="flex items-center mb-4 mt-4">
                     {previewUrl ? (
                       <Link href={previewUrl} target="_blank">
                         <div
@@ -534,7 +541,7 @@ export default function Builder({
                       <textarea
                         className={textareaClass}
                         value={visualDescription}
-                        placeholder="Visual description"
+                        placeholder="Describe your agent's appearance"
                         onChange={e => setVisualDescription(e.target.value)}
                       />
                       <Button
@@ -551,7 +558,7 @@ export default function Builder({
                         }}
                         className="w-full"
                       >
-                        {previewUrl ? 'ReGenerate' : 'Generate'} Avatar Image
+                        {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
                       </Button>
                     </div>
                   </div>
@@ -573,7 +580,7 @@ export default function Builder({
                       <textarea
                         className={textareaClass}
                         value={homespaceDescription}
-                        placeholder="Homespace description"
+                        placeholder="Describe your agent's home space and environment"
                         onChange={e => setHomespaceDescription(e.target.value)}
                       />
                       <Button
@@ -590,7 +597,7 @@ export default function Builder({
                         }}
                         className="w-full"
                       >
-                        {homespaceUrl ? 'Re-generate' : 'Generate'} Homespace Image
+                        {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
                       </Button>
                     </div>
                   </div>
