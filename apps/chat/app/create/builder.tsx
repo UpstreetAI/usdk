@@ -467,34 +467,35 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
+  const gridClass = 'cursor-pointer transition-all duration-300 bg-zinc-200 border p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
   // render
   return (
-    <div className='w-full h-full bg-zinc-600'>
+    <div className='w-full h-full text-zinc-950'>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-        <div className="grid grid-cols-12 gap-4">
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+        <div className="grid grid-cols-12 gap-6">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Personality</h2>
             <p>This is item one.</p>
           </div>
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
             <p>This is item two.</p>
           </div>
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
             <p>This is item three.</p>
           </div>
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Discord</h2>
             <p>This is item four.</p>
           </div>
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Twitter</h2>
             <p>This is item five.</p>
           </div>
-          <div className="cursor-pointer transition-all duration-300 border border-gray-200 rounded p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3">
+          <div className={gridClass}>
             <h2 className="text-lg font-semibold mb-2">Store</h2>
             <p>This is item six.</p>
           </div>
