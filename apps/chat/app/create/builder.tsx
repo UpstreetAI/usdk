@@ -848,17 +848,120 @@ export default function Builder({
           </div>
           <div
             className={`${gridClass} ${isStoreExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isStoreExpanded && setIsStoreExpanded(true)}
+            onClick={() => {
+              setIsStoreExpanded(true);
+              !isStoreExpanded && setFeatures({
+                ...features,
+                storeItems: makeEmptyStoreItems(),
+              });
+            }}
           >
             <div className='absolute top-2 right-2'>
               {isStoreExpanded && (
-                <CloseButton onClick={() => setIsStoreExpanded(false)} />
+                <CloseButton onClick={() => {
+                  setIsStoreExpanded(false);
+                  setFeatures({
+                    ...features,
+                    storeItems: null,
+                  });
+                }} />
               )}
             </div>
             <h2 className="text-lg font-bold mb-2">Store</h2>
             <div>
               {isStoreExpanded ? (
-                <div></div>
+                <div>
+                  {features.storeItems && <div className="flex flex-col">
+                    {features.storeItems.map((item, index) => {
+                      const {
+                        type,
+                        props,
+                      } = item;
+                      const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
+                        setFeatures(features => {
+                          const storeItems = features.storeItems ?? [];
+                          const newStoreItems = [...storeItems];
+                          const newStoreItem = { ...item };
+                          fn(newStoreItem);
+                          newStoreItems[index] = newStoreItem;
+                          return {
+                            ...features,
+                            storeItems: newStoreItems,
+                          };
+                        });
+                      };
+                      return (
+                        <div className="flex" key={index}>
+                          {props.previewUrl ?
+                            <img
+                              src={props.previewUrl}
+                              className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                            />
+                            :
+                            <div
+                              className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                            />
+                          }
+                          <div className="flex flex-col">
+                            <select value={type} onChange={e => {
+                              setStoreItem((storeItem) => {
+                                storeItem.type = e.target.value;
+                              });
+                            }}>
+                              <option value="payment">payment</option>
+                              <option value="subscription">subscription</option>
+                            </select>
+                            <input type="text" className="flex" value={props.name} onChange={e => {
+                              setStoreItem((storeItem) => {
+                                storeItem.props.name = e.target.value;
+                              });
+                            }} placeholder="Name" />
+                            <input type="text" className="flex" value={props.description} onChange={e => {
+                              setStoreItem((storeItem) => {
+                                storeItem.props.description = e.target.value;
+                              });
+                            }} placeholder="Description" />
+                            <input type="number" value={props.amount} onChange={e => {
+                              setStoreItem((storeItem) => {
+                                storeItem.props.amount = parseFloat(e.target.value);
+                              });
+                            }} placeholder="Amount" />
+                            <select value={props.currency} onChange={e => {
+                              setStoreItem((storeItem) => {
+                                storeItem.props.currency = e.target.value as Currency;
+                              });
+                            }}>
+                              {currencies.map(currency => {
+                                return (
+                                  <option value={currency} key={currency}>{currency}</option>
+                                );
+                              })}
+                            </select>
+                            {type === 'subscription' && <>
+                              {/* interval */}
+                              <select value={(props as SubscriptionProps).interval} onChange={e => {
+                                setStoreItem((storeItem) => {
+                                  (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
+                                });
+                              }}>
+                                <option value="day">day</option>
+                                <option value="week">week</option>
+                                <option value="month">month</option>
+                                <option value="year">year</option>
+                              </select>
+                              {/* intervalCount */}
+                              <input type="number" value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                                setStoreItem((storeItem) => {
+                                  (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
+                                });
+                              }} placeholder="Interval count" />
+                            </>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>}
+                </div>
               ) : (
                 <div>Define items for sale, including subscriptions and one-time purchases.</div>
               )}
