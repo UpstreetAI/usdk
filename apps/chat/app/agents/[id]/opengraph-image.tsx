@@ -24,6 +24,7 @@ export default async function AgentOgImage({
     .from('assets')
     .select('*, author: accounts ( id, name )')
     .eq('id', agentId)
+    .eq('private', false)
     .single()
   const agentData = result.data as any
 

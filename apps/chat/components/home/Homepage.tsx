@@ -32,6 +32,7 @@ export default function Home() {
           .from('assets')
           .select('*, author: accounts ( id, name )')
           .eq('origin', 'sdk')
+          .eq('private', false)
           .limit(30);
 
         if (error) {
