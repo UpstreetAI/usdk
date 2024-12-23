@@ -484,26 +484,23 @@ export default function Builder({
 
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-        <div className="grid grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 gap-6">
 
           <div
             className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
-            <div className='absolute top-2 right-2'>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800">Personality</h2>
               {isPersonalityExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsPersonalityExpanded(false);
-                  }}
-                />
+                <button className="text-gray-500 hover:text-gray-700 text-2xl -mt-2" onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPersonalityExpanded(false);
+                }}>
+                  ✕
+                </button>
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Personality</h2>
             <div>
               {isPersonalityExpanded ? (
                 <div>
@@ -513,12 +510,71 @@ export default function Builder({
                   <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => {
                     setBio(e.target.value);
                   }} />
-                  <input type="text" className={inputClass} value={visualDescription} placeholder="Visual description" onChange={e => {
-                    setVisualDescription(e.target.value);
-                  }} />
-                  <input type="text" className={inputClass} value={homespaceDescription} placeholder="Homespace description" onChange={e => {
-                    setHomespaceDescription(e.target.value);
-                  }} />
+                  <div className="flex items-center mb-4">
+                    <img src={previewUrl} alt="Avatar Preview" className="w-16 h-16 mr-4" />
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={visualDescription}
+                      placeholder="Visual description"
+                      onChange={e => {
+                        setVisualDescription(e.target.value);
+                      }}
+                    />
+                    <Button
+                      onClick={() => {
+                        // Logic to generate avatar image
+                      }}
+                      className="ml-2"
+                    >
+                      Generate Avatar
+                    </Button>
+                  </div>
+                  <div className="flex items-center mb-4">
+                    {homespaceUrl ? <Link
+                      href={homespaceUrl}
+                      target="_blank"
+                    >
+                      <img
+                        src={homespaceUrl}
+                        className='w-full h-32 bg-primary/10 object-cover rounded'
+                      />
+                    </Link> : <div
+                      className='w-full h-32 bg-primary/10 rounded'
+                    />}
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={homespaceDescription}
+                      placeholder="Homespace description"
+                      onChange={e => {
+                        setHomespaceDescription(e.target.value);
+                      }}
+                    />
+                    <Button
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        console.log('generate homespace click', { homespaceDescription });
+                        if (homespaceDescription) {
+                          (async () => {
+                            const jwt = await getJWT();
+                            const result = await generateBackgroundImage(homespaceDescription, undefined, {
+                              jwt,
+                            });
+                            const {
+                              blob,
+                            } = result;
+                            setHomespaceBlob(blob);
+                          })();
+                        }
+                      }}
+                      className="ml-2"
+                    >
+                      Generate Homespace
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div>Customize your agent's personality, including visuals.</div>
