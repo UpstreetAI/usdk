@@ -530,28 +530,30 @@ export default function Builder({
                         style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
                       />
                     )}
-                    <textarea
-                      className={textareaClass}
-                      value={visualDescription}
-                      placeholder="Visual description"
-                      onChange={e => setVisualDescription(e.target.value)}
-                    />
-                    <Button
-                      onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (visualDescription) {
-                          (async () => {
-                            const jwt = await getJWT();
-                            const result = await generateCharacterImage(visualDescription, undefined, { jwt });
-                            setPreviewBlob(result.blob);
-                          })();
-                        }
-                      }}
-                      className="ml-2"
-                    >
-                      Generate Avatar
-                    </Button>
+                    <div className="w-full">
+                      <textarea
+                        className={textareaClass}
+                        value={visualDescription}
+                        placeholder="Visual description"
+                        onChange={e => setVisualDescription(e.target.value)}
+                      />
+                      <Button
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (visualDescription) {
+                            (async () => {
+                              const jwt = await getJWT();
+                              const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                              setPreviewBlob(result.blob);
+                            })();
+                          }
+                        }}
+                        className="w-full"
+                      >
+                        {previewUrl ? 'ReGenerate' : 'Generate'} Avatar Image
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex items-center mb-4">
                     {homespaceUrl ? (
@@ -567,7 +569,7 @@ export default function Builder({
                         style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
                       />
                     )}
-                    <div>
+                    <div className="w-full">
                       <textarea
                         className={textareaClass}
                         value={homespaceDescription}
@@ -588,7 +590,7 @@ export default function Builder({
                         }}
                         className="w-full"
                       >
-                        Generate Homespace
+                        {homespaceUrl ? 'Re-generate' : 'Generate'} Homespace Image
                       </Button>
                     </div>
                   </div>
