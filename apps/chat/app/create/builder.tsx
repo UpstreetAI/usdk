@@ -3,7 +3,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -44,7 +43,7 @@ import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 // import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
-import { IconButton } from 'ucom';
+import { Button } from 'ucom';
 
 //
 
@@ -84,7 +83,7 @@ type AgentEditorProps = {
 // Create a reusable CloseButton component
 const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
   <button
-    className="text-gray-300 hover:text-gray-100 text-2xl -mt-2"
+    className="text-gray-900 hover:text-gray-100 text-2xl"
     onClick={(e) => {
       e.stopPropagation();
       onClick(e);
@@ -490,13 +489,16 @@ export default function Builder({
   const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
   const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
-  const textareaClass = 'w-full h-20 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-4 resize-none';
+  const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
   // render
   return (
     <div className='w-full h-full text-zinc-950'>
 
       <div className="container mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
+        <p className="text-lg text-gray-800 mb-4">
+          Select the features you want to enable for your agent.
+        </p>
         <div className="grid grid-cols-1 gap-6">
 
           <div
@@ -508,7 +510,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-bold mb-2">Personality</h2>
+            <h2 className="text-lg font-bold mb-2">Personality <span className="text-sm text-gray-500">(default)</span></h2>
             <div>
               {isPersonalityExpanded ? (
                 <div>
@@ -555,38 +557,40 @@ export default function Builder({
                     {homespaceUrl ? (
                       <Link href={homespaceUrl} target="_blank">
                         <div
-                          className='w-28 h-28 min-w-28 mr-2 bg-primary/10 rounded'
+                          className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
                           style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                         />
                       </Link>
                     ) : (
                       <div
-                        className='w-28 h-28 min-w-28 mr-2 bg-primary/10 rounded'
+                        className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
                         style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
                       />
                     )}
-                    <textarea
-                      className={textareaClass}
-                      value={homespaceDescription}
-                      placeholder="Homespace description"
-                      onChange={e => setHomespaceDescription(e.target.value)}
-                    />
-                    <Button
-                      onClick={e => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (homespaceDescription) {
-                          (async () => {
-                            const jwt = await getJWT();
-                            const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
-                            setHomespaceBlob(result.blob);
-                          })();
-                        }
-                      }}
-                      className="ml-2"
-                    >
-                      Generate Homespace
-                    </Button>
+                    <div>
+                      <textarea
+                        className={textareaClass}
+                        value={homespaceDescription}
+                        placeholder="Homespace description"
+                        onChange={e => setHomespaceDescription(e.target.value)}
+                      />
+                      <Button
+                        onClick={e => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (homespaceDescription) {
+                            (async () => {
+                              const jwt = await getJWT();
+                              const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                              setHomespaceBlob(result.blob);
+                            })();
+                          }
+                        }}
+                        className="w-full"
+                      >
+                        Generate Homespace
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -603,7 +607,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsVoiceExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-bold mb-2">Voice (TTS)</h2>
+            <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
             <div>
               {isVoiceExpanded ? (
                 <div>
@@ -645,7 +649,7 @@ export default function Builder({
             <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
             <div>
               {isRateLimitExpanded ? (
-                <div>This is expanded content for Rate Limit.</div>
+                <div></div>
               ) : (
                 <div>Control message frequency to prevent spam and ensure fair usage.</div>
               )}
@@ -663,7 +667,7 @@ export default function Builder({
             <h2 className="text-lg font-bold mb-2">Discord</h2>
             <div>
               {isDiscordExpanded ? (
-                <div>This is expanded content for Discord.</div>
+                <div></div>
               ) : (
                 <div>Integrate with Discord to enable agent interactions in channels.</div>
               )}
@@ -681,7 +685,7 @@ export default function Builder({
             <h2 className="text-lg font-bold mb-2">Twitter</h2>
             <div>
               {isTwitterExpanded ? (
-                <div>This is expanded content for Twitter.</div>
+                <div></div>
               ) : (
                 <div>Enable your agent to post and interact on Twitter automatically.</div>
               )}
@@ -699,7 +703,7 @@ export default function Builder({
             <h2 className="text-lg font-bold mb-2">Store</h2>
             <div>
               {isStoreExpanded ? (
-                <div>This is expanded content for Store.</div>
+                <div></div>
               ) : (
                 <div>Define items for sale, including subscriptions and one-time purchases.</div>
               )}
