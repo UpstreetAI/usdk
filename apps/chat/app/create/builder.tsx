@@ -611,14 +611,14 @@ export default function Builder({
             className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => {
               setIsVoiceExpanded(true);
-              !isRateLimitExpanded && setFeatures({
+              !isVoiceExpanded && setFeatures({
                 ...features,
                 tts: makeDefaultTts(),
               });
             }}
           >
             <div className='absolute top-2 right-2'>
-              {isRateLimitExpanded && (
+              {isVoiceExpanded && (
                 <CloseButton onClick={() => {
                   setIsVoiceExpanded(false);
                   setFeatures({
