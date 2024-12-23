@@ -26,6 +26,9 @@ export const ensureAgentJsonDefaults = (spec) => {
   if (typeof spec.bio !== 'string') {
     spec.bio = 'A cool AI';
   }
+  if (typeof spec.features !== 'object') {
+    spec.features = {};
+  }
   if (typeof spec.ownerId !== 'string') {
     spec.ownerId = '';
   }
