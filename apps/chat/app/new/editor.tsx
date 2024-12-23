@@ -590,7 +590,9 @@ export default function AgentEditor({
                   id: ownerId,
                   stripe_connect_account_id: stripeConnectAccountId,
                 } = userPrivate;
-                const agentJson = {
+
+                // agent.json
+                let agentJson = {
                   id,
                   ownerId,
                   name,
@@ -600,6 +602,7 @@ export default function AgentEditor({
                   homespaceUrl,
                   stripeConnectAccountId,
                 };
+                agentJson = ensureAgentJsonDefaults(agentJson);
                 console.log('deploy 2', {
                   agentJson,
                 });
