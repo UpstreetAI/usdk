@@ -609,37 +609,51 @@ export default function Builder({
           </div>
           <div
             className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isVoiceExpanded && setIsVoiceExpanded(true)}
+            onClick={() => {
+              setIsVoiceExpanded(true);
+              !isRateLimitExpanded && setFeatures({
+                ...features,
+                tts: makeDefaultTts(),
+              });
+            }}
           >
             <div className='absolute top-2 right-2'>
-              {isVoiceExpanded && (
-                <CloseButton onClick={() => setIsVoiceExpanded(false)} />
+              {isRateLimitExpanded && (
+                <CloseButton onClick={() => {
+                  setIsVoiceExpanded(false);
+                  setFeatures({
+                    ...features,
+                    tts: null,
+                  });
+                }} />
               )}
             </div>
             <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
             <div>
               {isVoiceExpanded ? (
                 <div>
-                  <select
-                    className={inputClass}
-                    value={features.tts?.voiceEndpoint ?? ''}
-                    onChange={e => {
-                      setFeatures(features => (
-                        {
-                          ...features,
-                          tts: {
-                            voiceEndpoint: e.target.value,
-                          },
-                        }
-                      ));
-                    }}
-                  >
-                    {voices.map(voice => {
-                      return (
-                        <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                      );
-                    })}
-                  </select>
+                  {features.tts &&
+                    <select
+                      className={inputClass}
+                      value={features.tts?.voiceEndpoint ?? ''}
+                      onChange={e => {
+                        setFeatures(features => (
+                          {
+                            ...features,
+                            tts: {
+                              voiceEndpoint: e.target.value,
+                            },
+                          }
+                        ));
+                      }}
+                    >
+                      {voices.map(voice => {
+                        return (
+                          <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                        );
+                      })}
+                    </select>
+                  }
                 </div>
               ) : (
                 <div>Convert text to speech with customizable voice options.</div>
