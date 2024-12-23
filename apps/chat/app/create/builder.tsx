@@ -594,7 +594,7 @@ export default function Builder({
                   </div>
                 </div>
               ) : (
-                <div>Customize your agent's personality, including visuals.</div>
+                <div>Customize your agents personality, including visuals.</div>
               )}
             </div>
           </div>
