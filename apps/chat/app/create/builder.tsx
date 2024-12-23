@@ -44,6 +44,7 @@ import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 // import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
+import { IconButton } from 'ucom';
 
 //
 
@@ -474,7 +475,7 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
-  const gridClass = 'cursor-pointer transition-all duration-300 bg-zinc-200 border p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
+  const gridClass = 'relative cursor-pointer transition-all duration-300 bg-zinc-200 border p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
   const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
   // render
   return (
@@ -486,8 +487,22 @@ export default function Builder({
 
           <div
             className={`${gridClass} ${isPersonalityExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
-            <h2 className="text-lg font-semibold mb-2" onClick={() => setIsPersonalityExpanded(!isPersonalityExpanded)}>Personality</h2>
+            <div className='absolute top-1 right-1'>
+              {isPersonalityExpanded && (
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPersonalityExpanded(false);
+                  }}
+                />
+              )}
+            </div>
+            <h2 className="text-lg font-semibold mb-2">Personality</h2>
             <div>
               {isPersonalityExpanded ? (
                 <div>
@@ -513,7 +528,24 @@ export default function Builder({
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
             <div>
               {isVoiceExpanded ? (
-                <div>This is expanded content for Voice (TTS).</div>
+                <div>
+                  <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
+                    setFeatures(features => (
+                      {
+                        ...features,
+                        tts: {
+                          voiceEndpoint: e.target.value,
+                        },
+                      }
+                    ));
+                  }}>
+                    {voices.map(voice => {
+                      return (
+                        <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                      );
+                    })}
+                  </select>
+                </div>
               ) : (
                 <div>This is item two.</div>
               )}
