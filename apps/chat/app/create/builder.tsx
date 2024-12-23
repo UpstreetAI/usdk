@@ -475,18 +475,35 @@ export default function Builder({
   };
 
   const gridClass = 'cursor-pointer transition-all duration-300 bg-zinc-200 border p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
+  const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
   // render
   return (
     <div className='w-full h-full text-zinc-950'>
 
       <div className="container mx-auto max-w-6xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-        <div className="grid grid-cols-12 gap-6">
-          <div className={gridClass} onClick={() => setIsPersonalityExpanded(!isPersonalityExpanded)}>
-            <h2 className="text-lg font-semibold mb-2">Personality</h2>
+        <div className="grid grid-cols-6 gap-6">
+
+          <div
+            className={`${gridClass} ${isPersonalityExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+          >
+            <h2 className="text-lg font-semibold mb-2" onClick={() => setIsPersonalityExpanded(!isPersonalityExpanded)}>Personality</h2>
             <div>
               {isPersonalityExpanded ? (
-                <div>This is expanded content for Personality.</div>
+                <div>
+                  <input type="text" className={inputClass} value={name} placeholder="Name" onChange={e => {
+                    setName(e.target.value);
+                  }} />
+                  <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => {
+                    setBio(e.target.value);
+                  }} />
+                  <input type="text" className={inputClass} value={visualDescription} placeholder="Visual description" onChange={e => {
+                    setVisualDescription(e.target.value);
+                  }} />
+                  <input type="text" className={inputClass} value={homespaceDescription} placeholder="Homespace description" onChange={e => {
+                    setHomespaceDescription(e.target.value);
+                  }} />
+                </div>
               ) : (
                 <div>This is item one.</div>
               )}
