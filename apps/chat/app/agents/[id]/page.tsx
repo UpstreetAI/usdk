@@ -45,7 +45,8 @@ async function getAgentData(supabase: any, identifier: string) {
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const supabase = makeAnonymousClient(env);
+  const jwt = await getJWT();
+  const supabase = makeAnonymousClient(env, jwt);
   const identifier = decodeURIComponent(params.id);
 
   const result = await getAgentData(supabase, identifier);
@@ -95,7 +96,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function AgentProfilePage({ params }: Params) {
-  const supabase = makeAnonymousClient(env);
+  const jwt = await getJWT();
+  const supabase = makeAnonymousClient(env, jwt);
   const identifier = decodeURIComponent(params.id);
 
   const result = await getAgentData(supabase, identifier);
