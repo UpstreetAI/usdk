@@ -1,5 +1,5 @@
 import { type Metadata } from 'next';
-import { notFound } from 'next/navigation'
+// import { notFound } from 'next/navigation'
 import { AgentProfile } from '@/components/agents';
 // import { createClient } from '@/utils/supabase/server';
 import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-client';
