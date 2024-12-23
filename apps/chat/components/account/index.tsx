@@ -31,7 +31,7 @@ export async function AccountForm({
   // Fetch agents with the linked credits_usage table data
   const agentsPromise = getAgents({
     user_id: id || currentUser.id,
-    private: false,
+    // private: false,
   }, `*, credits_usage ( * )`);
   const voicesPromise = getVoices({
     user_id: id || currentUser.id,
