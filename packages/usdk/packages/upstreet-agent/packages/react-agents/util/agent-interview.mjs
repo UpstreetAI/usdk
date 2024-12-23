@@ -37,7 +37,6 @@ const processFeatures = (agentJson) => {
     }
   }
 
-
   // console.log('process features', {
   //   result,
   //   userSpecifiedFeatures,
@@ -277,7 +276,7 @@ export class AgentInterview extends EventTarget {
               jwt,
             });
           } else if (result === null) {
-            return null;
+            return '';
           } else {
             console.warn('invalid result type', result);
             throw new Error('invalid result type: ' + typeof result);
