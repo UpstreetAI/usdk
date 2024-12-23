@@ -804,17 +804,43 @@ export default function Builder({
           </div>
           <div
             className={`${gridClass} ${isTwitterExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isTwitterExpanded && setIsTwitterExpanded(true)}
+            onClick={() => {
+              setIsTwitterExpanded(true);
+              !isTwitterExpanded && setFeatures({
+                ...features,
+                twitterBot: makeDefaultTwitterBot(),
+              });
+            }}
           >
             <div className='absolute top-2 right-2'>
               {isTwitterExpanded && (
-                <CloseButton onClick={() => setIsTwitterExpanded(false)} />
+                <CloseButton onClick={() => {
+                  setIsTwitterExpanded(false);
+                  setFeatures({
+                    ...features,
+                    twitterBot: null,
+                  });
+                }} />
               )}
             </div>
             <h2 className="text-lg font-bold mb-2">Twitter</h2>
             <div>
               {isTwitterExpanded ? (
-                <div></div>
+                <div>
+                  {features.twitterBot && <div className="flex flex-col">
+                    <label className="flex">
+                      <div className="mr-2 min-w-32">Token</div>
+                      <input type="text" value={features.twitterBot.token} onChange={e => {
+                        setFeatures(features => ({
+                          ...features,
+                          twitterBot: {
+                            token: e.target.value,
+                          },
+                        }));
+                      }} placeholder="<bot token>" required />
+                    </label>
+                  </div>}
+                </div>
               ) : (
                 <div>Enable your agent to post and interact on Twitter automatically.</div>
               )}
