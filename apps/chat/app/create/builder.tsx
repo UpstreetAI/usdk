@@ -489,17 +489,17 @@ export default function Builder({
             className={`${gridClass} ${isPersonalityExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
-            <div className='absolute top-1 right-1'>
+            <div className='absolute top-0 right-0'>
               {isPersonalityExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
+                <button 
+                  className='text-sm text-zinc-950' 
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsPersonalityExpanded(false);
                   }}
-                />
+                >
+                  Collapse
+                </button>
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Personality</h2>
@@ -524,7 +524,23 @@ export default function Builder({
               )}
             </div>
           </div>
-          <div className={gridClass} onClick={() => setIsVoiceExpanded(!isVoiceExpanded)}>
+          <div
+            className={`${gridClass} ${isVoiceExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isVoiceExpanded && setIsVoiceExpanded(true)}
+          >
+            <div className='absolute top-0 right-0'>
+              {isVoiceExpanded && (
+                <button 
+                  className='text-sm text-zinc-950' 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsVoiceExpanded(false);
+                  }}
+                >
+                  Collapse
+                </button>
+              )}
+            </div>
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
             <div>
               {isVoiceExpanded ? (
@@ -551,7 +567,23 @@ export default function Builder({
               )}
             </div>
           </div>
-          <div className={gridClass} onClick={() => setIsRateLimitExpanded(!isRateLimitExpanded)}>
+          <div
+            className={`${gridClass} ${isRateLimitExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isRateLimitExpanded && setIsRateLimitExpanded(true)}
+          >
+            <div className='absolute top-0 right-0'>
+              {isRateLimitExpanded && (
+                <button 
+                  className='text-sm text-zinc-950' 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsRateLimitExpanded(false);
+                  }}
+                >
+                  Collapse
+                </button>
+              )}
+            </div>
             <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
             <div>
               {isRateLimitExpanded ? (
@@ -561,7 +593,23 @@ export default function Builder({
               )}
             </div>
           </div>
-          <div className={gridClass} onClick={() => setIsDiscordExpanded(!isDiscordExpanded)}>
+          <div
+            className={`${gridClass} ${isDiscordExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isDiscordExpanded && setIsDiscordExpanded(true)}
+          >
+            <div className='absolute top-0 right-0'>
+              {isDiscordExpanded && (
+                <button 
+                  className='text-sm text-zinc-950' 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsDiscordExpanded(false);
+                  }}
+                >
+                  Collapse
+                </button>
+              )}
+            </div>
             <h2 className="text-lg font-semibold mb-2">Discord</h2>
             <div>
               {isDiscordExpanded ? (
@@ -571,7 +619,23 @@ export default function Builder({
               )}
             </div>
           </div>
-          <div className={gridClass} onClick={() => setIsTwitterExpanded(!isTwitterExpanded)}>
+          <div
+            className={`${gridClass} ${isTwitterExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isTwitterExpanded && setIsTwitterExpanded(true)}
+          >
+            <div className='absolute top-0 right-0'>
+              {isTwitterExpanded && (
+                <button 
+                  className='text-sm text-zinc-950' 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsTwitterExpanded(false);
+                  }}
+                >
+                  Collapse
+                </button>
+              )}
+            </div>
             <h2 className="text-lg font-semibold mb-2">Twitter</h2>
             <div>
               {isTwitterExpanded ? (
@@ -581,7 +645,23 @@ export default function Builder({
               )}
             </div>
           </div>
-          <div className={gridClass} onClick={() => setIsStoreExpanded(!isStoreExpanded)}>
+          <div
+            className={`${gridClass} ${isStoreExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            onClick={() => !isStoreExpanded && setIsStoreExpanded(true)}
+          >
+            <div className='absolute top-0 right-0'>
+              {isStoreExpanded && (
+                <button 
+                  className='text-sm text-zinc-950' 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsStoreExpanded(false);
+                  }}
+                >
+                  Collapse
+                </button>
+              )}
+            </div>
             <h2 className="text-lg font-semibold mb-2">Store</h2>
             <div>
               {isStoreExpanded ? (
