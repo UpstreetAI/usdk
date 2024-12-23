@@ -78,9 +78,9 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
             <div className="line-clamp-2">{agent.description}</div>
             {agent.private && <div className="text-xs text-red-500">[private]</div>}
           </a>
-          {!agent.private && <div className="flex absolute bottom-0 right-0">
+          <div className="flex absolute bottom-0 right-0">
             <AgentJoin agent={agent} />
-          </div>}
+          </div>
 
           {user && (
             <div className="flex absolute top-0 right-0">
