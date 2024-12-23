@@ -475,18 +475,19 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
-  const gridClass = 'relative cursor-pointer transition-all duration-300 bg-zinc-200 border p-4 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
+  const gridClass = 'relative cursor-pointer border p-4 bg-zinc-200 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
+  const expandedClass = 'border-4 border-zinc-950';
   const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
   // render
   return (
     <div className='w-full h-full text-zinc-950'>
 
-      <div className="container mx-auto max-w-6xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
         <div className="grid grid-cols-6 gap-6">
 
           <div
-            className={`${gridClass} ${isPersonalityExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
@@ -525,7 +526,7 @@ export default function Builder({
             </div>
           </div>
           <div
-            className={`${gridClass} ${isVoiceExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isVoiceExpanded && setIsVoiceExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
@@ -545,16 +546,20 @@ export default function Builder({
             <div>
               {isVoiceExpanded ? (
                 <div>
-                  <select value={features.tts?.voiceEndpoint ?? ''} onChange={e => {
-                    setFeatures(features => (
-                      {
-                        ...features,
-                        tts: {
-                          voiceEndpoint: e.target.value,
-                        },
-                      }
-                    ));
-                  }}>
+                  <select
+                    className={inputClass}
+                    value={features.tts?.voiceEndpoint ?? ''}
+                    onChange={e => {
+                      setFeatures(features => (
+                        {
+                          ...features,
+                          tts: {
+                            voiceEndpoint: e.target.value,
+                          },
+                        }
+                      ));
+                    }}
+                  >
                     {voices.map(voice => {
                       return (
                         <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
@@ -568,7 +573,7 @@ export default function Builder({
             </div>
           </div>
           <div
-            className={`${gridClass} ${isRateLimitExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isRateLimitExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isRateLimitExpanded && setIsRateLimitExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
@@ -594,7 +599,7 @@ export default function Builder({
             </div>
           </div>
           <div
-            className={`${gridClass} ${isDiscordExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isDiscordExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isDiscordExpanded && setIsDiscordExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
@@ -620,7 +625,7 @@ export default function Builder({
             </div>
           </div>
           <div
-            className={`${gridClass} ${isTwitterExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isTwitterExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isTwitterExpanded && setIsTwitterExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
@@ -646,7 +651,7 @@ export default function Builder({
             </div>
           </div>
           <div
-            className={`${gridClass} ${isStoreExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+            className={`${gridClass} ${isStoreExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isStoreExpanded && setIsStoreExpanded(true)}
           >
             <div className='absolute top-2 right-2'>
