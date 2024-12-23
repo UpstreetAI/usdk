@@ -254,7 +254,7 @@ export default function AgentEditor({
         throw new Error(`could not upload avatar file: ${text}`);
       }
     } else {
-      return null;
+      return '';
     }
   };
   const getEditorModel = (m = monaco) => m?.editor.getModels()[0] ?? null;
