@@ -84,7 +84,7 @@ type AgentEditorProps = {
 // Create a reusable CloseButton component
 const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
   <button
-    className="text-gray-500 hover:text-gray-700 text-2xl -mt-2"
+    className="text-gray-300 hover:text-gray-100 text-2xl -mt-2"
     onClick={(e) => {
       e.stopPropagation();
       onClick(e);
@@ -487,14 +487,14 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
-  const gridClass = 'relative cursor-pointer border p-4 bg-zinc-200 hover:shadow-lg col-span-6 md:col-span-4 lg:col-span-3';
-  const expandedClass = 'border-4 border-zinc-950';
+  const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 bg-zinc-200 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
+  const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 -mt-2 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-4';
   // render
   return (
     <div className='w-full h-full text-zinc-950'>
 
-      <div className="container mx-auto max-w-4xl px-4 py-8">
+      <div className="container mx-auto max-w-2xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
         <div className="grid grid-cols-1 gap-6">
 
@@ -502,12 +502,12 @@ export default function Builder({
             className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold text-gray-800">Personality</h2>
+            <div className='absolute top-2 right-2'>
               {isPersonalityExpanded && (
                 <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
               )}
             </div>
+            <h2 className="text-lg font-bold mb-2">Personality</h2>
             <div>
               {isPersonalityExpanded ? (
                 <div>
@@ -597,7 +597,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsVoiceExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
+            <h2 className="text-lg font-bold mb-2">Voice (TTS)</h2>
             <div>
               {isVoiceExpanded ? (
                 <div>
@@ -636,7 +636,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsRateLimitExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
+            <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
             <div>
               {isRateLimitExpanded ? (
                 <div>This is expanded content for Rate Limit.</div>
@@ -654,7 +654,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsDiscordExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Discord</h2>
+            <h2 className="text-lg font-bold mb-2">Discord</h2>
             <div>
               {isDiscordExpanded ? (
                 <div>This is expanded content for Discord.</div>
@@ -672,7 +672,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsTwitterExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Twitter</h2>
+            <h2 className="text-lg font-bold mb-2">Twitter</h2>
             <div>
               {isTwitterExpanded ? (
                 <div>This is expanded content for Twitter.</div>
@@ -690,7 +690,7 @@ export default function Builder({
                 <CloseButton onClick={() => setIsStoreExpanded(false)} />
               )}
             </div>
-            <h2 className="text-lg font-semibold mb-2">Store</h2>
+            <h2 className="text-lg font-bold mb-2">Store</h2>
             <div>
               {isStoreExpanded ? (
                 <div>This is expanded content for Store.</div>
