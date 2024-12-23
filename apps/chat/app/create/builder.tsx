@@ -495,7 +495,17 @@ export default function Builder({
     <div className='w-full h-full text-zinc-950'>
 
       <div className="container mx-auto max-w-2xl px-4 py-8">
-        <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
+          <div className="flex gap-2">
+            <Button>
+              Chat
+            </Button>
+            <Button>
+              Deploy
+            </Button>
+          </div>
+        </div>
         <p className="text-lg text-gray-800 mb-4">
           Select the features you want to enable for your agent.
         </p>
@@ -903,7 +913,7 @@ export default function Builder({
                             />
                           }
                           <div className="flex flex-col">
-                            <select value={type} onChange={e => {
+                            <select value={type} className={inputClass} onChange={e => {
                               setStoreItem((storeItem) => {
                                 storeItem.type = e.target.value;
                               });
@@ -926,7 +936,7 @@ export default function Builder({
                                 storeItem.props.amount = parseFloat(e.target.value);
                               });
                             }} placeholder="Amount" />
-                            <select value={props.currency} onChange={e => {
+                            <select className={inputClass} value={props.currency} onChange={e => {
                               setStoreItem((storeItem) => {
                                 storeItem.props.currency = e.target.value as Currency;
                               });
@@ -939,7 +949,7 @@ export default function Builder({
                             </select>
                             {type === 'subscription' && <>
                               {/* interval */}
-                              <select value={(props as SubscriptionProps).interval} onChange={e => {
+                              <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
                                 setStoreItem((storeItem) => {
                                   (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
                                 });
