@@ -518,7 +518,17 @@ export default function Builder({
                     setBio(e.target.value);
                   }} />
                   <div className="flex items-center mb-4">
-                    <img src={previewUrl} alt="Avatar Preview" className="w-16 h-16 mr-4" />
+                    {previewUrl ? <Link
+                      href={previewUrl}
+                      target="_blank"
+                    >
+                      <img
+                        src={previewUrl}
+                        className='w-20 h-20 mr-2 bg-primary/10 rounded'
+                      />
+                    </Link> : <div
+                      className='w-20 h-20 mr-2 bg-primary/10 rounded'
+                    />}
                     <input
                       type="text"
                       className={inputClass}
@@ -529,8 +539,23 @@ export default function Builder({
                       }}
                     />
                     <Button
-                      onClick={() => {
-                        // Logic to generate avatar image
+                      onClick={e => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        console.log('generate character click', { visualDescription });
+                        if (visualDescription) {
+                          (async () => {
+                            const jwt = await getJWT();
+                            const result = await generateCharacterImage(visualDescription, undefined, {
+                              jwt,
+                            });
+                            const {
+                              blob,
+                            } = result;
+                            setPreviewBlob(blob);
+                          })();
+                        }
                       }}
                       className="ml-2"
                     >
@@ -545,6 +570,7 @@ export default function Builder({
                       <img
                         src={homespaceUrl}
                         className='w-full h-32 bg-primary/10 object-cover rounded'
+                        alt="Homespace Preview"
                       />
                     </Link> : <div
                       className='w-full h-32 bg-primary/10 rounded'
@@ -584,7 +610,7 @@ export default function Builder({
                   </div>
                 </div>
               ) : (
-                <div>Customize your agent's personality, including visuals.</div>
+                <div>Customize your agents personality, including visuals.</div>
               )}
             </div>
           </div>
