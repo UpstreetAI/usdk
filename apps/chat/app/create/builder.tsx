@@ -639,17 +639,81 @@ export default function Builder({
           </div>
           <div
             className={`${gridClass} ${isRateLimitExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isRateLimitExpanded && setIsRateLimitExpanded(true)}
+            onClick={() => {
+              setIsRateLimitExpanded(true);
+              !isRateLimitExpanded && setFeatures({
+                ...features,
+                rateLimit: makeDefaultRateLimit(),
+              });
+            }}
           >
             <div className='absolute top-2 right-2'>
               {isRateLimitExpanded && (
-                <CloseButton onClick={() => setIsRateLimitExpanded(false)} />
+                <CloseButton onClick={() => {
+                  setIsRateLimitExpanded(false);
+                  setFeatures({
+                    ...features,
+                    rateLimit: null,
+                  });
+                }} />
               )}
             </div>
             <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
             <div>
               {isRateLimitExpanded ? (
-                <div></div>
+                <div>
+                  {features.rateLimit && <div className="flex flex-col">
+                    <label className="flex">
+                      <div className="mr-2 min-w-32"># messages</div>
+                      <input type="number" value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                        setFeatures(features => {
+                          features = {
+                            ...features,
+                            rateLimit: {
+                              maxUserMessages: parseInt(e.target.value, 10) || 0,
+                              maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                              message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                            },
+                          };
+                          e.target.value = (features.rateLimit as any).maxUserMessages + '';
+                          return features;
+                        });
+                      }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+                    </label>
+                    <label className="flex">
+                      <div className="mr-2 min-w-32">time (ms)</div>
+                      <input type="number" value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                        setFeatures(features => {
+                          features = {
+                            ...features,
+                            rateLimit: {
+                              maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                              maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                              message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                            },
+                          };
+                          e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
+                          return features;
+                        });
+                      }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+                    </label>
+                    <label className="flex">
+                      <div className="mr-2 min-w-32">message</div>
+                      <input type="text" value={features.rateLimit?.message ?? ''} onChange={e => {
+                        setFeatures(features => (
+                          {
+                            ...features,
+                            rateLimit: {
+                              maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                              maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                              message: e.target.value,
+                            },
+                          }
+                        ));
+                      }} placeholder="Rate limit message" />
+                    </label>
+                  </div>}
+                </div>
               ) : (
                 <div>Control message frequency to prevent spam and ensure fair usage.</div>
               )}
