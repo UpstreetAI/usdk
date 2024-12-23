@@ -520,7 +520,7 @@ export default function Builder({
                   </label>
                   <label>
                     <span className="mb-2">Bio</span>
-                    <input type="text" className={inputClass} value={bio} placeholder="Describe your agent" onChange={e => setBio(e.target.value)} />
+                    <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
                   </label>
 
                   <div className="flex items-center mb-4 mt-4">
