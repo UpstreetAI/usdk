@@ -492,6 +492,87 @@ export default function Builder({
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
   // render
   return (
+
+    <form className="relative" ref={editorForm} onSubmit={e => {
+      e.preventDefault();
+
+      // check if the form is validated
+      const valid = builderForm.current?.checkValidity();
+      if (valid) {
+        (async () => {
+          try {
+            setDeploying(true);
+
+            // get the value from monaco editor
+            const value = getEditorValue();
+            console.log('deploy 1', {
+              name,
+              bio,
+              visualDescription,
+              previewBlob,
+              value,
+            });
+
+            const jwt = await getJWT();
+            if (jwt) {
+              const [
+                userPrivate,
+                id,
+                previewUrl,
+                homespaceUrl,
+              ] = await Promise.all([
+                getUserForJwt(jwt, { private: true }),
+                createAgentGuid({ jwt }),
+                getCloudPreviewUrl(previewBlob),
+                getCloudPreviewUrl(homespaceBlob),
+              ]);
+              const {
+                id: ownerId,
+                stripe_connect_account_id: stripeConnectAccountId,
+              } = userPrivate;
+              const agentJson = {
+                id,
+                ownerId,
+                name,
+                bio,
+                visualDescription,
+                previewUrl,
+                homespaceUrl,
+                stripeConnectAccountId,
+              };
+              console.log('deploy 2', {
+                agentJson,
+              });
+
+              const res = await fetch(`${deployEndpointUrl}/agent`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/javascript',
+                  Authorization: `Bearer ${jwt}`,
+                  'Agent-Json': JSON.stringify(agentJson),
+                },
+                body: value,
+              });
+              if (res.ok) {
+                const j = await res.json();
+                console.log('deploy 3', j);
+                const agentJsonOutputString = j.vars.AGENT_JSON;
+                const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                const guid = agentJsonOutput.id;
+                location.href = `/agents/${guid}`;
+              } else {
+                console.error('failed to deploy agent', res);
+              }
+            } else {
+              throw new Error('not logged in');
+            }
+          } finally {
+            setDeploying(false);
+          }
+        })();
+      }
+    }}>
+
     <div className='w-full h-full text-zinc-950'>
 
       <div className="container mx-auto max-w-2xl px-4 py-8">
@@ -980,5 +1061,6 @@ export default function Builder({
         </div>
       </div>
     </div>
+    </form>
   );
 };
