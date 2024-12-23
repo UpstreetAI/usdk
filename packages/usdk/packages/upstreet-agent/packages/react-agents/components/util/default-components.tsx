@@ -152,12 +152,10 @@ const CharactersPrompt = () => {
         const agents = conversation.getAgents();
         setAgents(agents);
       };
-      conversation.addEventListener('addAgent', updateAgents);
-      conversation.addEventListener('removeAgent', updateAgents);
+      conversation.addEventListener('agentschange', updateAgents);
 
       return () => {
-        conversation.removeEventListener('addAgent', updateAgents);
-        conversation.removeEventListener('removeAgent', updateAgents);
+        conversation.removeEventListener('agentschange', updateAgents);
       };
     }, [conversation]);
 
