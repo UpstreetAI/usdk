@@ -520,7 +520,7 @@ export default function Builder({
                   }} />
                 </div>
               ) : (
-                <div>This is item one.</div>
+                <div>Customize your agent's personality, including visuals.</div>
               )}
             </div>
           </div>
@@ -563,7 +563,7 @@ export default function Builder({
                   </select>
                 </div>
               ) : (
-                <div>This is item two.</div>
+                <div>Convert text to speech with customizable voice options.</div>
               )}
             </div>
           </div>
@@ -589,7 +589,7 @@ export default function Builder({
               {isRateLimitExpanded ? (
                 <div>This is expanded content for Rate Limit.</div>
               ) : (
-                <div>This is item three.</div>
+                <div>Control message frequency to prevent spam and ensure fair usage.</div>
               )}
             </div>
           </div>
@@ -615,7 +615,7 @@ export default function Builder({
               {isDiscordExpanded ? (
                 <div>This is expanded content for Discord.</div>
               ) : (
-                <div>This is item four.</div>
+                <div>Integrate with Discord to enable agent interactions in channels.</div>
               )}
             </div>
           </div>
@@ -641,7 +641,7 @@ export default function Builder({
               {isTwitterExpanded ? (
                 <div>This is expanded content for Twitter.</div>
               ) : (
-                <div>This is item five.</div>
+                <div>Enable your agent to post and interact on Twitter automatically.</div>
               )}
             </div>
           </div>
@@ -667,7 +667,7 @@ export default function Builder({
               {isStoreExpanded ? (
                 <div>This is expanded content for Store.</div>
               ) : (
-                <div>This is item six.</div>
+                <div>Define items for sale, including subscriptions and one-time purchases.</div>
               )}
             </div>
           </div>
