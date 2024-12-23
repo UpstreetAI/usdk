@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://github.com/UpstreetAI/upstreet-core.git"
   },
+  "scripts": {
+    "postinstall": "cd packages/upstreet-agent && npm install --verbose"
+  },
   "bugs": {
     "url": "https://github.com/UpstreetAI/upstreet-core/issues"
   },
