@@ -515,10 +515,19 @@ export default function Builder({
                   <input type="text" className={inputClass} value={name} placeholder="Name" onChange={e => setName(e.target.value)} />
                   <input type="text" className={inputClass} value={bio} placeholder="Bio" onChange={e => setBio(e.target.value)} />
                   <div className="flex items-center mb-4">
-                    <div
-                      className='w-20 h-20 mr-2 bg-primary/10 rounded'
-                      style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                    />
+                    {previewUrl ? (
+                      <Link href={previewUrl} target="_blank">
+                        <div
+                          className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                          style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                        />
+                      </Link>
+                    ) : (
+                      <div
+                        className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                        style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                      />
+                    )}
                     <textarea
                       className={textareaClass}
                       value={visualDescription}
@@ -543,10 +552,19 @@ export default function Builder({
                     </Button>
                   </div>
                   <div className="flex items-center mb-4">
-                    <div
-                      className='w-20 h-20 mr-2 bg-primary/10 rounded'
-                      style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                    />
+                    {homespaceUrl ? (
+                      <Link href={homespaceUrl} target="_blank">
+                        <div
+                          className='w-28 h-28 min-w-28 mr-2 bg-primary/10 rounded'
+                          style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                        />
+                      </Link>
+                    ) : (
+                      <div
+                        className='w-28 h-28 min-w-28 mr-2 bg-primary/10 rounded'
+                        style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                      />
+                    )}
                     <textarea
                       className={textareaClass}
                       value={homespaceDescription}
