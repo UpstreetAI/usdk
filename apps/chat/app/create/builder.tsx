@@ -489,7 +489,7 @@ export default function Builder({
             className={`${gridClass} ${isPersonalityExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isPersonalityExpanded && (
                 <IconButton
                   icon={"Close"}
@@ -528,7 +528,7 @@ export default function Builder({
             className={`${gridClass} ${isVoiceExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isVoiceExpanded && setIsVoiceExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isVoiceExpanded && (
                 <IconButton
                   icon={"Close"}
@@ -571,7 +571,7 @@ export default function Builder({
             className={`${gridClass} ${isRateLimitExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isRateLimitExpanded && setIsRateLimitExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isRateLimitExpanded && (
                 <IconButton
                   icon={"Close"}
@@ -597,7 +597,7 @@ export default function Builder({
             className={`${gridClass} ${isDiscordExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isDiscordExpanded && setIsDiscordExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isDiscordExpanded && (
                 <IconButton
                   icon={"Close"}
@@ -623,7 +623,7 @@ export default function Builder({
             className={`${gridClass} ${isTwitterExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isTwitterExpanded && setIsTwitterExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isTwitterExpanded && (
                 <IconButton
                   icon={"Close"}
@@ -649,7 +649,7 @@ export default function Builder({
             className={`${gridClass} ${isStoreExpanded ? 'col-span-12' : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
             onClick={() => !isStoreExpanded && setIsStoreExpanded(true)}
           >
-            <div className='absolute top-0 right-0'>
+            <div className='absolute top-2 right-2'>
               {isStoreExpanded && (
                 <IconButton
                   icon={"Close"}
