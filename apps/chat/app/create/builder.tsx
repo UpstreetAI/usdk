@@ -126,6 +126,13 @@ export default function Builder({
 
   const monaco = useMonaco();
 
+  const [isPersonalityExpanded, setIsPersonalityExpanded] = useState(false);
+  const [isVoiceExpanded, setIsVoiceExpanded] = useState(false);
+  const [isRateLimitExpanded, setIsRateLimitExpanded] = useState(false);
+  const [isDiscordExpanded, setIsDiscordExpanded] = useState(false);
+  const [isTwitterExpanded, setIsTwitterExpanded] = useState(false);
+  const [isStoreExpanded, setIsStoreExpanded] = useState(false);
+
   // effects
   // sync previewBlob -> previewUrl
   useEffect(() => {
@@ -472,32 +479,68 @@ export default function Builder({
   return (
     <div className='w-full h-full text-zinc-950'>
 
-      <div className="container mx-auto max-w-4xl px-4 py-8">
+      <div className="container mx-auto max-w-6xl px-4 py-8">
         <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
         <div className="grid grid-cols-12 gap-6">
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsPersonalityExpanded(!isPersonalityExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Personality</h2>
-            <p>This is item one.</p>
+            <div>
+              {isPersonalityExpanded ? (
+                <div>This is expanded content for Personality.</div>
+              ) : (
+                <div>This is item one.</div>
+              )}
+            </div>
           </div>
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsVoiceExpanded(!isVoiceExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
-            <p>This is item two.</p>
+            <div>
+              {isVoiceExpanded ? (
+                <div>This is expanded content for Voice (TTS).</div>
+              ) : (
+                <div>This is item two.</div>
+              )}
+            </div>
           </div>
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsRateLimitExpanded(!isRateLimitExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
-            <p>This is item three.</p>
+            <div>
+              {isRateLimitExpanded ? (
+                <div>This is expanded content for Rate Limit.</div>
+              ) : (
+                <div>This is item three.</div>
+              )}
+            </div>
           </div>
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsDiscordExpanded(!isDiscordExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Discord</h2>
-            <p>This is item four.</p>
+            <div>
+              {isDiscordExpanded ? (
+                <div>This is expanded content for Discord.</div>
+              ) : (
+                <div>This is item four.</div>
+              )}
+            </div>
           </div>
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsTwitterExpanded(!isTwitterExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Twitter</h2>
-            <p>This is item five.</p>
+            <div>
+              {isTwitterExpanded ? (
+                <div>This is expanded content for Twitter.</div>
+              ) : (
+                <div>This is item five.</div>
+              )}
+            </div>
           </div>
-          <div className={gridClass}>
+          <div className={gridClass} onClick={() => setIsStoreExpanded(!isStoreExpanded)}>
             <h2 className="text-lg font-semibold mb-2">Store</h2>
-            <p>This is item six.</p>
+            <div>
+              {isStoreExpanded ? (
+                <div>This is expanded content for Store.</div>
+              ) : (
+                <div>This is item six.</div>
+              )}
+            </div>
           </div>
         </div>
       </div>
