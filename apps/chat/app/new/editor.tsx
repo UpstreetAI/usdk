@@ -313,9 +313,9 @@ export default function AgentEditor({
         let agentJson = {
           id,
           ownerId,
-          name: name,
-          bio: bio,
-          visualDescription: visualDescription,
+          name,
+          bio,
+          visualDescription,
           previewUrl,
           homespaceUrl,
           stripeConnectAccountId,
