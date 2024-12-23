@@ -254,7 +254,7 @@ export default function AgentEditor({
         throw new Error(`could not upload avatar file: ${text}`);
       }
     } else {
-      return null;
+      return '';
     }
   };
   const getEditorModel = (m = monaco) => m?.editor.getModels()[0] ?? null;
@@ -313,9 +313,9 @@ export default function AgentEditor({
         let agentJson = {
           id,
           ownerId,
-          name: name,
-          bio: bio,
-          visualDescription: visualDescription,
+          name,
+          bio,
+          visualDescription,
           previewUrl,
           homespaceUrl,
           stripeConnectAccountId,
@@ -333,7 +333,7 @@ export default function AgentEditor({
           `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
         ].join('\n');
 
-        console.log('building agent src...', { monaco, sourceCode });
+        // console.log('building agent src...', { monaco, sourceCode });
         const agentTsxFile = new File([ sourceCode ], 'agent.tsx');
         const agentJsonFile = new File([ agentJsonString ], 'agent.json');
         const envTxtFile = new File([ envTxt ], '.env.txt');
@@ -344,8 +344,13 @@ export default function AgentEditor({
             envTxtFile,
           ],
         });
-        console.log('built agent src', { agentModuleSrc });
+        // console.log('built agent src', { agentModuleSrc });
 
+        console.log('start worker', {
+          agentJson,
+          agentModuleSrc,
+          auth,
+        });
         const newWorker = new ReactAgentsWorker({
           agentJson,
           agentModuleSrc,
@@ -585,7 +590,9 @@ export default function AgentEditor({
                   id: ownerId,
                   stripe_connect_account_id: stripeConnectAccountId,
                 } = userPrivate;
-                const agentJson = {
+
+                // agent.json
+                let agentJson = {
                   id,
                   ownerId,
                   name,
@@ -595,28 +602,51 @@ export default function AgentEditor({
                   homespaceUrl,
                   stripeConnectAccountId,
                 };
+                agentJson = ensureAgentJsonDefaults(agentJson);
                 console.log('deploy 2', {
                   agentJson,
+                });
+                const agentJsonString = JSON.stringify(agentJson, null, 2);
+                const agentJsonFile = new File([ agentJsonString ], 'agent.json');
+
+                // .env.txt
+                const mnemonic = generateMnemonic();
+                const envTxt = [
+                  `AGENT_TOKEN=${JSON.stringify(jwt)}`,
+                  `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
+                ].join('\n');
+                const envTxtFile = new File([ envTxt ], '.env.txt');
+
+                // agent.tsx
+                const agentTsxFile = new File([ sourceCode ], 'agent.tsx');
+
+                const files = [
+                  agentJsonFile,
+                  envTxtFile,
+                  agentTsxFile,
+                ];
+                const formData = new FormData();
+                files.forEach(file => {
+                  formData.append(file.name, file);
                 });
 
                 const res = await fetch(`${deployEndpointUrl}/agent`, {
                   method: 'PUT',
                   headers: {
-                    'Content-Type': 'application/javascript',
                     Authorization: `Bearer ${jwt}`,
-                    'Agent-Json': JSON.stringify(agentJson),
                   },
-                  body: value,
+                  body: formData,
                 });
                 if (res.ok) {
                   const j = await res.json();
                   console.log('deploy 3', j);
-                  const agentJsonOutputString = j.vars.AGENT_JSON;
-                  const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                  const guid = agentJsonOutput.id;
-                  location.href = `/agents/${guid}`;
+                  // const agentJsonOutputString = j.vars.AGENT_JSON;
+                  // const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                  // const guid = agentJsonOutput.id;
+                  // location.href = `/agents/${guid}`;
                 } else {
-                  console.error('failed to deploy agent', res);
+                  const text = await res.text();
+                  console.error('failed to deploy agent', res.status, text);
                 }
               } else {
                 throw new Error('not logged in');
