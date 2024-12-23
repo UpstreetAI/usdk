@@ -342,7 +342,7 @@ const uploadImage = async (file, {
 
 export const create = async (args, opts) => {
   // args
-  let dstDir = args._[0] ?? cwd;
+  let dstDir = args._[0] ?? '';
   const prompt = args.prompt ?? '';
   const inputStream = args.inputStream ?? null;
   const outputStream = args.outputStream ?? null;
@@ -437,7 +437,7 @@ export const create = async (args, opts) => {
   agentJson = ensureAgentJsonDefaults(agentJson);
 
   // update destination directory if no specific path was provided
-  if (dstDir === cwd) {
+  if (dstDir === '') {
     const sanitizedName = agentJson.name.replace(/\s+/g, '_');
     dstDir = path.join(cwd, sanitizedName);
   }
