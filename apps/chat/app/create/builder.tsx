@@ -80,19 +80,6 @@ type AgentEditorProps = {
   user: any;
 };
 
-// Create a reusable CloseButton component
-const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
-  <button
-    className="text-gray-900 hover:text-gray-100 text-2xl"
-    onClick={(e) => {
-      e.stopPropagation();
-      onClick(e);
-    }}
-  >
-    ✕
-  </button>
-);
-
 export default function Builder({
   user,
 }: AgentEditorProps) {
@@ -486,6 +473,19 @@ export default function Builder({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
+  // Create a reusable CloseButton component
+  const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
+    <button
+      className="text-gray-300 hover:text-gray-600 text-2xl"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
+      }}
+    >
+      ✕
+    </button>
+  );
+
   const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
   const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
@@ -728,19 +728,61 @@ export default function Builder({
               )}
             </div>
           </div>
+
           <div
             className={`${gridClass} ${isDiscordExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isDiscordExpanded && setIsDiscordExpanded(true)}
+            onClick={() => {
+              setIsDiscordExpanded(true);
+              !isRateLimitExpanded && setFeatures({
+                ...features,
+                discord: makeDefaultDiscord(),
+              });
+            }}
           >
             <div className='absolute top-2 right-2'>
               {isDiscordExpanded && (
-                <CloseButton onClick={() => setIsDiscordExpanded(false)} />
+                <CloseButton onClick={() => {
+                  setIsDiscordExpanded(false);
+                  setFeatures({
+                    ...features,
+                    discord: null,
+                  });
+                }} />
               )}
             </div>
             <h2 className="text-lg font-bold mb-2">Discord</h2>
             <div>
               {isDiscordExpanded ? (
-                <div></div>
+                <div>
+                  {features.discord && <div className="flex flex-col">
+                    {/* token */}
+                    <label className="flex">
+                      <div className="mr-2 min-w-32">Token</div>
+                      <input type="text" value={features.discord.token} onChange={e => {
+                        setFeatures(features => ({
+                          ...features,
+                          discord: {
+                            token: e.target.value,
+                            channels: features.discord?.channels ?? '',
+                          },
+                        }));
+                      }} placeholder="<bot token>" required />
+                    </label>
+                    {/* channels */}
+                    <label className="flex">
+                      <div className="mr-2 min-w-32">Channels</div>
+                      <input type="text" value={features.discord.channels} onChange={e => {
+                        setFeatures(features => ({
+                          ...features,
+                          discord: {
+                            token: features.discord?.token ?? '',
+                            channels: e.target.value,
+                          },
+                        }));
+                      }} placeholder="text, voice" required />
+                    </label>
+                  </div>}
+                </div>
               ) : (
                 <div>Integrate with Discord to enable agent interactions in channels.</div>
               )}
