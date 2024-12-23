@@ -688,7 +688,7 @@ export default function Builder({
                   {features.rateLimit && <div className="flex flex-col">
                     <label className="flex">
                       <div className="mr-2 min-w-32"># messages</div>
-                      <input type="number" value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                      <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
                         setFeatures(features => {
                           features = {
                             ...features,
@@ -705,7 +705,7 @@ export default function Builder({
                     </label>
                     <label className="flex">
                       <div className="mr-2 min-w-32">time (ms)</div>
-                      <input type="number" value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                      <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
                         setFeatures(features => {
                           features = {
                             ...features,
@@ -722,7 +722,7 @@ export default function Builder({
                     </label>
                     <label className="flex">
                       <div className="mr-2 min-w-32">message</div>
-                      <input type="text" value={features.rateLimit?.message ?? ''} onChange={e => {
+                      <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
                         setFeatures(features => (
                           {
                             ...features,
@@ -772,7 +772,7 @@ export default function Builder({
                     {/* token */}
                     <label className="flex">
                       <div className="mr-2 min-w-32">Token</div>
-                      <input type="text" value={features.discord.token} onChange={e => {
+                      <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
                         setFeatures(features => ({
                           ...features,
                           discord: {
@@ -785,7 +785,7 @@ export default function Builder({
                     {/* channels */}
                     <label className="flex">
                       <div className="mr-2 min-w-32">Channels</div>
-                      <input type="text" value={features.discord.channels} onChange={e => {
+                      <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
                         setFeatures(features => ({
                           ...features,
                           discord: {
@@ -830,7 +830,7 @@ export default function Builder({
                   {features.twitterBot && <div className="flex flex-col">
                     <label className="flex">
                       <div className="mr-2 min-w-32">Token</div>
-                      <input type="text" value={features.twitterBot.token} onChange={e => {
+                      <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
                         setFeatures(features => ({
                           ...features,
                           twitterBot: {
@@ -911,17 +911,17 @@ export default function Builder({
                               <option value="payment">payment</option>
                               <option value="subscription">subscription</option>
                             </select>
-                            <input type="text" className="flex" value={props.name} onChange={e => {
+                            <input type="text" className={inputClass} value={props.name} onChange={e => {
                               setStoreItem((storeItem) => {
                                 storeItem.props.name = e.target.value;
                               });
                             }} placeholder="Name" />
-                            <input type="text" className="flex" value={props.description} onChange={e => {
+                            <input type="text" className={inputClass} value={props.description} onChange={e => {
                               setStoreItem((storeItem) => {
                                 storeItem.props.description = e.target.value;
                               });
                             }} placeholder="Description" />
-                            <input type="number" value={props.amount} onChange={e => {
+                            <input type="number" className={inputClass} value={props.amount} onChange={e => {
                               setStoreItem((storeItem) => {
                                 storeItem.props.amount = parseFloat(e.target.value);
                               });
@@ -950,7 +950,7 @@ export default function Builder({
                                 <option value="year">year</option>
                               </select>
                               {/* intervalCount */}
-                              <input type="number" value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                              <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
                                 setStoreItem((storeItem) => {
                                   (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
                                 });
@@ -969,7 +969,6 @@ export default function Builder({
           </div>
         </div>
       </div>
-
     </div>
   );
 };
