@@ -491,15 +491,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isPersonalityExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsPersonalityExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Personality</h2>
@@ -530,15 +530,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isVoiceExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsVoiceExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
@@ -573,15 +573,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isRateLimitExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsRateLimitExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
@@ -599,15 +599,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isDiscordExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsDiscordExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Discord</h2>
@@ -625,15 +625,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isTwitterExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsTwitterExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Twitter</h2>
@@ -651,15 +651,15 @@ export default function Builder({
           >
             <div className='absolute top-0 right-0'>
               {isStoreExpanded && (
-                <button 
-                  className='text-sm text-zinc-950' 
+                <IconButton
+                  icon={"Close"}
+                  size='small'
+                  style={{ zoom: 0.6 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsStoreExpanded(false);
                   }}
-                >
-                  Collapse
-                </button>
+                />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Store</h2>
