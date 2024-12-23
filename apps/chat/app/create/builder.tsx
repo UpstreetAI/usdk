@@ -81,6 +81,18 @@ type AgentEditorProps = {
   user: any;
 };
 
+// Create a reusable CloseButton component
+const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
+  <button
+    className="text-gray-500 hover:text-gray-700 text-2xl -mt-2"
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick(e);
+    }}
+  >
+    ✕
+  </button>
+);
 
 export default function Builder({
   user,
@@ -493,12 +505,7 @@ export default function Builder({
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-gray-800">Personality</h2>
               {isPersonalityExpanded && (
-                <button className="text-gray-500 hover:text-gray-700 text-2xl -mt-2" onClick={(e) => {
-                  e.stopPropagation();
-                  setIsPersonalityExpanded(false);
-                }}>
-                  ✕
-                </button>
+                <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
               )}
             </div>
             <div>
@@ -587,15 +594,7 @@ export default function Builder({
           >
             <div className='absolute top-2 right-2'>
               {isVoiceExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsVoiceExpanded(false);
-                  }}
-                />
+                <CloseButton onClick={() => setIsVoiceExpanded(false)} />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Voice (TTS)</h2>
@@ -634,15 +633,7 @@ export default function Builder({
           >
             <div className='absolute top-2 right-2'>
               {isRateLimitExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsRateLimitExpanded(false);
-                  }}
-                />
+                <CloseButton onClick={() => setIsRateLimitExpanded(false)} />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Rate Limit</h2>
@@ -660,15 +651,7 @@ export default function Builder({
           >
             <div className='absolute top-2 right-2'>
               {isDiscordExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsDiscordExpanded(false);
-                  }}
-                />
+                <CloseButton onClick={() => setIsDiscordExpanded(false)} />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Discord</h2>
@@ -686,15 +669,7 @@ export default function Builder({
           >
             <div className='absolute top-2 right-2'>
               {isTwitterExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsTwitterExpanded(false);
-                  }}
-                />
+                <CloseButton onClick={() => setIsTwitterExpanded(false)} />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Twitter</h2>
@@ -712,15 +687,7 @@ export default function Builder({
           >
             <div className='absolute top-2 right-2'>
               {isStoreExpanded && (
-                <IconButton
-                  icon={"Close"}
-                  size='small'
-                  style={{ zoom: 0.6 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsStoreExpanded(false);
-                  }}
-                />
+                <CloseButton onClick={() => setIsStoreExpanded(false)} />
               )}
             </div>
             <h2 className="text-lg font-semibold mb-2">Store</h2>
