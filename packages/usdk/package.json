@@ -17,6 +17,9 @@
   },
   "type": "module",
   "main": "module.mjs",
+  "scripts": {
+    "postinstall": "cd packages/upstreet-agent && ni install"
+  },
   "keywords": [
     "ai",
     "ai-agents",
@@ -149,6 +152,7 @@
     "whatwg-url": "14.0.0"
   },
   "devDependencies": {
+    "@antfu/ni": "^0.23.2",
     "@types/node": "^18.0.0",
     "jest": "^29.0.0"
   }
