@@ -2,12 +2,13 @@ import path from 'path';
 import stream from 'stream';
 import fs from 'fs';
 import https from 'https';
+import pc from 'picocolors';
 
 import { program } from 'commander';
 // import WebSocket from 'ws';
 import EventSource from 'eventsource';
 import open from 'open';
-import pc from 'picocolors';
+
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 
