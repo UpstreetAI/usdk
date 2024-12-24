@@ -563,7 +563,6 @@ export default function AgentEditor({
                 <div className="flex gap-2">
                   <Button
                     onClick={() => setIsAssistantVisible(!isAssistantVisible)}
-                    disabled={deploying}
                     active={isAssistantVisible}
                   >
                     {'Assistant'}
@@ -583,7 +582,6 @@ export default function AgentEditor({
 
                   <Button
                     onClick={() => setIsCodeVisible(!isCodeVisible)}
-                    disabled={deploying}
                     active={isCodeVisible}
                   >
                     {'Code'}
@@ -595,7 +593,6 @@ export default function AgentEditor({
                       editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                     }}
                     disabled={deploying}
-                    active={deploying}
                   >
                     {!deploying ? `Deploy` : 'Deploying...'}
                   </Button>
@@ -1062,116 +1059,113 @@ export default function AgentEditor({
               </div>
             </form>
           </div>
+          
+          {/* chat */}
+          
+          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isChatVisible ? '' : 'hidden'}`}>
+            <Chat
+              room={room}
+              onConnect={(connected) => {
+                if (connected) {
+                  setConnecting(false);
+                }
+              }}
+            />
+          </div>
 
-          {isChatVisible && (
-            <div className="flex-col h-screen w-[300px] flex-1 relative border-l border-zinc-900">
-              <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
-                <Chat
-                  room={room}
-                  onConnect={(connected) => {
-                    if (connected) {
-                      setConnecting(false);
-                    }
-                  }}
-                />
-              </div>
+          {/* assistant */} 
+
+          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isAssistantVisible ? '' : 'hidden'}`}>
+            <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
+              {builderMessages.map((message, index) => (
+                <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
+                  {message.content}
+                </div>
+              ))}
             </div>
-          )}
+            <div className="flex absolute bottom-0 left-0 w-full px-2">
+              <form
+                className="flex w-full"
+                onSubmit={async e => {
+                  e.preventDefault();
+                  e.stopPropagation();
 
-          {/* builder */}
-          {isAssistantVisible && (
-            <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
-              <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
-                {builderMessages.map((message, index) => (
-                  <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
-                    {message.content}
-                  </div>
-                ))}
-              </div>
-              <div className="flex absolute bottom-0 left-0 w-full px-2">
-                <form
-                  className="flex w-full"
-                  onSubmit={async e => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  if (builderPrompt) {
+                    const agentInterview = await ensureAgentInterview();
+                    agentInterview.write(builderPrompt);
 
-                    if (builderPrompt) {
-                      const agentInterview = await ensureAgentInterview();
-                      agentInterview.write(builderPrompt);
-
-                      setBuilderMessages((builderMessages) => [
-                        ...builderMessages,
-                        {
-                          role: 'user',
-                          content: builderPrompt,
-                        },
-                      ]);
-                      setBuilderPrompt('');
-                    }
-                  }}
-                  ref={builderForm}
-                >
-                  <div className="relative w-full">
-                    <div className="w-full">
-                      <input
-                        type="text"
-                        className={cn(inputClass, 'w-full')}
-                        value={builderPrompt}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            builderSubmit();
-                          }
-                        }}
-                        onChange={e => setBuilderPrompt(e.target.value)}
-                      />
-                    </div>
-                    <div className="absolute right-0 top-[2px] sm:right-2">
-                      <Button size="icon" className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
-                        e.preventDefault();
-                        builderSubmit();
-                      }}>
-                        <Icon icon={"Send"} />
-                        <span className="sr-only">{"Send Message"}</span>
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {isCodeVisible && (
-            <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
-              <Editor
-                theme="vs-dark"
-                defaultLanguage="javascript"
-                defaultValue={sourceCode}
-                options={{
-                  readOnly: deploying,
-                }}
-                onMount={(editor, monaco) => {
-                  (editor as any)._domElement.parentNode.style.flex = 1;
-
-                  const model = editor.getModel();
-                  if (model) {
-                    model.onDidChangeContent(() => {
-                      const s = getEditorValue(monaco);
-                      setSourceCode(s);
-                    });
-                  } else {
-                    console.warn('no model', editor);
+                    setBuilderMessages((builderMessages) => [
+                      ...builderMessages,
+                      {
+                        role: 'user',
+                        content: builderPrompt,
+                      },
+                    ]);
+                    setBuilderPrompt('');
                   }
-
-                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-                    startAgent({
-                      sourceCode: getEditorValue(monaco),
-                    });
-                  });
                 }}
-              />
+                ref={builderForm}
+              >
+                <div className="relative w-full">
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      className={cn(inputClass, 'w-full')}
+                      value={builderPrompt}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          builderSubmit();
+                        }
+                      }}
+                      onChange={e => setBuilderPrompt(e.target.value)}
+                    />
+                  </div>
+                  <div className="absolute right-0 top-[2px] sm:right-2">
+                    <Button className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
+                      e.preventDefault();
+                      builderSubmit();
+                    }}>
+                      <Icon icon={"Send"} />
+                      <span className="sr-only">{"Send Message"}</span>
+                    </Button>
+                  </div>
+                </div>
+              </form>
             </div>
-          )}
+          </div>
+
+          {/* code editor */}
+
+          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isCodeVisible ? '' : 'hidden'}`}>
+            <Editor
+              theme="vs-dark"
+              defaultLanguage="javascript"
+              defaultValue={sourceCode}
+              options={{
+                readOnly: deploying,
+              }}
+              onMount={(editor, monaco) => {
+                (editor as any)._domElement.parentNode.style.flex = 1;
+
+                const model = editor.getModel();
+                if (model) {
+                  model.onDidChangeContent(() => {
+                    const s = getEditorValue(monaco);
+                    setSourceCode(s);
+                  });
+                } else {
+                  console.warn('no model', editor);
+                }
+
+                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                  startAgent({
+                    sourceCode: getEditorValue(monaco),
+                  });
+                });
+              }}
+            />
+          </div>
 
         </div>
       </div>
