@@ -455,6 +455,12 @@ export default function AgentEditor({
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
+  useEffect(() => {
+    if (name || bio || visualDescription || homespaceDescription) {
+      setIsPersonalityExpanded(true);
+    }
+  }, [name, bio, visualDescription, homespaceDescription]);
+
   // Create a reusable CloseButton component
   const CloseButton = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
     <button
