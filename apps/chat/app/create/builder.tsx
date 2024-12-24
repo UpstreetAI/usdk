@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button, IconButton } from 'ucom';
+import { Button, Icon } from 'ucom';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -25,7 +25,6 @@ import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { BackButton } from '@/components/back';
-import { Icon } from 'ucom';
 
 //
 
@@ -564,6 +563,7 @@ export default function AgentEditor({
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
+                      if (starting || connecting) return;
                       setIsAssistantVisible(!isAssistantVisible);
                       setIsChatVisible(false);
                       setIsCodeVisible(false);
@@ -577,6 +577,7 @@ export default function AgentEditor({
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
+                      if (starting || connecting) return;
                       toggleAgent();
                       setIsChatVisible(!isChatVisible);
                       setIsAssistantVisible(false);
@@ -591,6 +592,7 @@ export default function AgentEditor({
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
+                      if (starting || connecting) return;
                       setIsCodeVisible(!isCodeVisible);
                       setIsChatVisible(false);
                       setIsAssistantVisible(false);
@@ -604,6 +606,7 @@ export default function AgentEditor({
                   <Button
                     onClick={(e) => {
                       e.preventDefault();
+                      if (starting || connecting) return;
                       editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                     }}
                     disabled={deploying}
