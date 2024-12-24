@@ -112,6 +112,7 @@ export default function AgentEditor({
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [modalOpen, setModalOpen] = useState(null);
 
   // effects
   // sync previewBlob -> previewUrl
