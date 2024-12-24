@@ -109,6 +109,10 @@ export default function AgentEditor({
 
   const monaco = useMonaco();
 
+  const [isAssistantVisible, setIsAssistantVisible] = useState(false);
+  const [isCodeVisible, setIsCodeVisible] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
+
   // effects
   // sync previewBlob -> previewUrl
   useEffect(() => {
@@ -473,28 +477,7 @@ export default function AgentEditor({
   return (
     <div className="relative">
       <div className='w-full h-full text-zinc-950'>
-
-
-
-
-
-        <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
-          <Chat
-            room={room}
-            onConnect={(connected) => {
-              if (connected) {
-                setConnecting(false);
-              }
-            }}
-          />
-        </div>
-
-
-
-
         <div className="flex">
-
-
           <div className="container mx-auto max-w-2xl px-4 py-8">
             <form className="relative" ref={editorForm} onSubmit={e => {
               e.preventDefault();
@@ -579,12 +562,20 @@ export default function AgentEditor({
                 <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
                 <div className="flex gap-2">
                   <Button
+                    onClick={() => setIsAssistantVisible(!isAssistantVisible)}
+                    disabled={deploying}
+                  >{'Assistant'}</Button>
+                  <Button
                     onClick={e => {
                       e.preventDefault();
                       toggleAgent();
+                      setIsChatVisible(!isChatVisible);
                     }}
                     disabled={starting || connecting}
-                  >{starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop' : 'Start'}</Button>
+                  >{starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop Chat' : 'Chat'}</Button>
+                  <Button
+                    onClick={() => setIsCodeVisible(!isCodeVisible)}
+                  >{'Code'}</Button>
                   <Button
                     onClick={e => {
                       e.preventDefault();
@@ -592,6 +583,7 @@ export default function AgentEditor({
                     }}
                     disabled={deploying}
                   >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+
                 </div>
               </div>
               <p className="text-lg text-gray-800 mb-4">
@@ -1055,102 +1047,118 @@ export default function AgentEditor({
               </div>
             </form>
           </div>
+        
+          {isChatVisible && (
+            <div className="flex-col h-screen w-[300px] flex-1 relative border-l border-zinc-900">
+          <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
+          <Chat
+            room={room}
+            onConnect={(connected) => {
+              if (connected) {
+                setConnecting(false);
+              }
+                }}
+              />
+            </div>
+          </div>  
+        )}
 
           {/* builder */}
-          <div className="flex-col h-screen w-[300px] flex-1 relative border-l border-zinc-900">
-            <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
-              {builderMessages.map((message, index) => (
-                <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
-                  {message.content}
-                </div>
-              ))}
-            </div>
-            <div className="flex absolute bottom-0 left-0 w-full px-2">
-              <form
-                className="flex w-full"
-                onSubmit={async e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-
-                  if (builderPrompt) {
-                    const agentInterview = await ensureAgentInterview();
-                    agentInterview.write(builderPrompt);
-
-                    setBuilderMessages((builderMessages) => [
-                      ...builderMessages,
-                      {
-                        role: 'user',
-                        content: builderPrompt,
-                      },
-                    ]);
-                    setBuilderPrompt('');
-                  }
-                }}
-                ref={builderForm}
-              >
-                <div className="relative w-full">
-                  <div className="w-full">
-                    <input
-                      type="text"
-                      className={cn(inputClass, 'w-full')}
-                      value={builderPrompt}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          builderSubmit();
-                        }
-                      }}
-                      onChange={e => setBuilderPrompt(e.target.value)}
-                    />
+          {isAssistantVisible && (
+            <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
+              <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
+                {builderMessages.map((message, index) => (
+                  <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
+                    {message.content}
                   </div>
-                  <div className="absolute right-0 top-[2px] sm:right-2">
-                    <Button size="icon" className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
-                      e.preventDefault();
-                      builderSubmit();
-                    }}>
-                      <Icon icon={"Send"} />
-                      <span className="sr-only">{"Send Message"}</span>
-                    </Button>
-                  </div>
-                </div>
+                ))}
+              </div>
+              <div className="flex absolute bottom-0 left-0 w-full px-2">
+                <form
+                  className="flex w-full"
+                  onSubmit={async e => {
+                    e.preventDefault();
+                    e.stopPropagation();
 
-              </form>
+                    if (builderPrompt) {
+                      const agentInterview = await ensureAgentInterview();
+                      agentInterview.write(builderPrompt);
+
+                      setBuilderMessages((builderMessages) => [
+                        ...builderMessages,
+                        {
+                          role: 'user',
+                          content: builderPrompt,
+                        },
+                      ]);
+                      setBuilderPrompt('');
+                    }
+                  }}
+                  ref={builderForm}
+                >
+                  <div className="relative w-full">
+                    <div className="w-full">
+                      <input
+                        type="text"
+                        className={cn(inputClass, 'w-full')}
+                        value={builderPrompt}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            builderSubmit();
+                          }
+                        }}
+                        onChange={e => setBuilderPrompt(e.target.value)}
+                      />
+                    </div>
+                    <div className="absolute right-0 top-[2px] sm:right-2">
+                      <Button size="icon" className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
+                        e.preventDefault();
+                        builderSubmit();
+                      }}>
+                        <Icon icon={"Send"} />
+                        <span className="sr-only">{"Send Message"}</span>
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </div>
             </div>
+          )}
+
+{isCodeVisible && (
+          <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
+            <Editor
+              theme="vs-dark"
+            defaultLanguage="javascript"
+            defaultValue={sourceCode}
+            options={{
+              readOnly: deploying,
+            }}
+            onMount={(editor, monaco) => {
+              (editor as any)._domElement.parentNode.style.flex = 1;
+
+              const model = editor.getModel();
+              if (model) {
+                model.onDidChangeContent(() => {
+                  const s = getEditorValue(monaco);
+                  setSourceCode(s);
+                });
+              } else {
+                console.warn('no model', editor);
+              }
+
+              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                startAgent({
+                  sourceCode: getEditorValue(monaco),
+                });
+              });
+            }}
+            />
           </div>
+        )}
 
         </div>
-
-
-
-      </div>
-      <div className='hidden'>
-        <Editor
-          theme="vs-dark"
-          defaultLanguage="javascript"
-          defaultValue={sourceCode}
-          options={{
-            readOnly: deploying,
-          }}
-          onMount={(editor, monaco) => {
-            (editor as any)._domElement.parentNode.style.flex = 1;
-
-            const model = editor.getModel();
-            if (model) {
-              model.onDidChangeContent(() => {
-                const s = getEditorValue(monaco);
-                setSourceCode(s);
-              });
-            } else {
-              console.warn('no model', editor);
-            }
-
-            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-              startAgent({
-                sourceCode: getEditorValue(monaco),
-              });
-            });
-          }}
-        />
       </div>
     </div>
   );
