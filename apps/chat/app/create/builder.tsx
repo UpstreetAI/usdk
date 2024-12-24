@@ -1127,8 +1127,9 @@ export default function AgentEditor({
           <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isAssistantVisible ? '' : 'hidden'}`}>
             <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
               {builderMessages.map((message, index) => (
-                <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
-                  {message.content}
+                <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
+                  <div className='w-6 min-w-6'><Icon icon={message.role === 'assistant' ? 'Upstreet' : 'Head'} className="size-5" /></div>
+                   <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
                 </div>
               ))}
             </div>
