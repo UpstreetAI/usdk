@@ -438,7 +438,7 @@ export const create = async (args, opts) => {
 
   // update destination directory if no specific path was provided
   if (dstDir === '') {
-    const sanitizedName = agentJson.name.replace(/\s+/g, '_');
+    const sanitizedName = agentJson.name.replace(/[\s#]+/g, '_');
     dstDir = path.join(cwd, sanitizedName);
   }
 
