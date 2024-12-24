@@ -91,29 +91,39 @@ export class TwitterScraperClient extends TwitterBase {
         conversation.addAgent(this.agent.id, player);
       }
 
-      // const rawMessage = {
-      //   method: 'say',
-      //   args: {
-      //     text
-      //   }
-      // };
-      // const newMessage = formatConversationMessage(rawMessage, {
-      //   agent: this.agent,
-      // });
-
-      // console.log('newMessage', newMessage);
-      // const steps = await conversation.addLocalMessage(newMessage);
-      // console.log('steps', steps);
+      console.log('this.agent.id', this.agent.id);
       
-      // const actions = steps.map(step => step.action).filter(Boolean);
-      // for (const message of actions) {
-      //   const { method, args } = message;
+      const seenTweetIdsKey = `twitter:seenTweetIds:${this.agent.id}`;
+      const seenTweetIds = this.kv.get(seenTweetIdsKey, []);
+      const seenTweetIdsSet = new Set(seenTweetIds);
+      if (seenTweetIdsSet.has(tweetId)) {
+        console.log('skipping already seen tweet', tweetId);
+        return;
+      }
 
-      //   if (method === 'say') {
-      //     const { text } = args;
-      //     await this.scraper.sendTweet(text, tweetId);
-      //   }
-      // }
+      this.kv.set(seenTweetIdsKey, [...seenTweetIds, tweetId]);
+
+      const rawMessage = {
+        method: 'say',
+        args: {
+          text
+        }
+      };
+      const newMessage = formatConversationMessage(rawMessage, {
+        agent: this.agent,
+      });
+
+      const steps = await conversation.addLocalMessage(newMessage);
+      
+      const actions = steps.map(step => step.action).filter(Boolean);
+      for (const message of actions) {
+        const { method, args } = message;
+
+        if (method === 'say') {
+          const { text } = args;
+          await this.scraper.sendTweet(text, tweetId);
+        }
+      }
     };
 
     const queueManager = new QueueManager();
@@ -135,9 +145,7 @@ export class TwitterScraperClient extends TwitterBase {
 
           if (mentionsData.length > 0) {
             const tweetPromises = mentionsData.map(async (tweet) => {
-              console.log('tweet', tweet);
               const author = await this.scraper.getProfile(tweet.username);
-              console.log('author', author);
               await _handleTweet(tweet, author);
             });
             await Promise.all(tweetPromises);
