@@ -50,7 +50,7 @@ export function AgentProfile({ agent, isOwner }: AgentProps) {
     }
   };
 
-  const backgroundImageUrl = agent.images?.[0]?.url || '/images/backgrounds/agents/default-agent-profile-background.jpg';
+  const backgroundImageUrl = agent.images?.[0]?.url || '';
   const isPreviewUrlValid = isValidUrl(agent.preview_url);
   const agentInitial = agent.name.charAt(0).toUpperCase();
 
