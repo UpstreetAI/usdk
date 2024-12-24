@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button } from '@/components/ui/button';
+import { Button } from 'ucom';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserForJwt } from '@/utils/supabase/supabase-client';
