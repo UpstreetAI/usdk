@@ -480,9 +480,9 @@ export default function AgentEditor({
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
 
-  const featureClass = 'w-1/2 py-6 text-center border lg:w-[calc(33%-1rem)] m-2';
-  const featureIconClass = 'size-20 mx-auto';
-  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-6';
+  const featureClass = 'inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4';
+  const featureIconClass = 'size-12 mx-auto';
+  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-2';
   
   // render
   return (
@@ -600,9 +600,9 @@ export default function AgentEditor({
               </p>
 
 
-              <div>
+              <div className="text-center mb-56">
 
-                <div className="flex flex-wrap justify-center w-full mb-40">
+                <div className="flex flex-wrap justify-center w-full mb-8">
 
                   <a href="#" className={cn(featureClass)}>
                     <div>
@@ -610,20 +610,14 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Personality
                       </p>
-                      <p className="text-sm text-gray-500">
-                        Customize your agent's personality, including visuals.
-                      </p>
                     </div>
                   </a>
 
-                  <a href="#" className={cn(featureClass, features.tts ? 'w-full' : '')}>
+                  <a href="#" className={cn(featureClass, features.tts ? '' : '')}>
                     <div>
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Voice
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Convert text to speech with customizable voice options.
                       </p>
                     </div>
                   </a>
@@ -634,9 +628,6 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Rate Limit
                       </p>
-                      <p className="text-sm text-gray-500">
-                        Control message frequency to prevent spam and ensure fair usage.
-                      </p>
                     </div>
                   </a>
 
@@ -645,9 +636,6 @@ export default function AgentEditor({
                       <Icon icon="Discord" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Discord
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Connect your agent to Discord for seamless communication.
                       </p>
                     </div>
                   </a>
@@ -658,9 +646,6 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         X (Twitter)
                       </p>
-                      <p className="text-sm text-gray-500">
-                        Connect your agent to X for seamless communication.
-                      </p>
                     </div>
                   </a>
 
@@ -670,13 +655,12 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Store
                       </p>
-                      <p className="text-sm text-gray-500">
-                        Store your agents data in a database.
-                      </p>
                     </div>
                   </a>
 
                 </div>
+
+                <Button className='p-2'>Next</Button>
 
               </div>
 
