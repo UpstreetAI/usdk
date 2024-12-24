@@ -440,7 +440,7 @@ export const create = async (args, opts) => {
   if (dstDir === '') {
     const sanitizedName = agentJson.name
       .replace(/\s+/g, '_') // match spaces
-      .replace(/[^a-zA-Z0-9]/g, '') // match bash-unsafe characters
+      .replace(/[^a-zA-Z0-9_]/g, '_') // match bash-unsafe characters
       .replace(/_+/g, '_').toLowerCase();
     dstDir = path.join(cwd, sanitizedName);
   }
