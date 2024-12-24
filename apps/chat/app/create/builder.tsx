@@ -498,7 +498,7 @@ export default function AgentEditor({
       <div className='w-full h-full text-zinc-950'>
 
         {/* builder */}
-        <div className="fixed left-4 bottom-4 flex-col h-[calc(100vh-36px)] w-[300px] flex-1 bg-zinc-900 z-[50]">
+        <div className="fixed left-4 bottom-4 flex-col h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
           <div className="flex flex-col flex-1 h-[calc(100%-36px)] bg-primary/10 overflow-scroll pt-14">
             {builderMessages.map((message, index) => (
               <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
