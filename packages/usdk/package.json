@@ -18,7 +18,7 @@
   "type": "module",
   "main": "module.mjs",
   "scripts": {
-    "preinstall": "cd packages/upstreet-agent && pnpm install --filter=.... --no-frozen-lockfile"
+    "preinstall": "cd packages/upstreet-agent && pnpm install --filter=upstreet-agent --no-frozen-lockfile"
   },
   "keywords": [
     "ai",
