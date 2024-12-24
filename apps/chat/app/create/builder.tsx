@@ -478,6 +478,12 @@ export default function AgentEditor({
   const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
+
+
+  const featureClass = 'w-1/2 py-6 text-center border lg:w-[calc(33%-1rem)] m-2';
+  const featureIconClass = 'size-20 mx-auto';
+  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-6';
+  
   // render
   return (
     <div className="relative">
@@ -649,6 +655,70 @@ export default function AgentEditor({
               <p className="text-lg text-gray-800 mb-4">
                 Select the features you want to enable for your agent.
               </p>
+
+
+              <div>
+
+                <div className="flex flex-wrap justify-center w-full mb-40">
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="Head" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        Personality
+                      </p>
+                    </div>
+                  </a>
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="Voice" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        Voice
+                      </p>
+                    </div>
+                  </a>
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="Chat" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        Rate Limit
+                      </p>
+                    </div>
+                  </a>
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="Discord" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        Discord
+                      </p>
+                    </div>
+                  </a>
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="X" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        X (Twitter)
+                      </p>
+                    </div>
+                  </a>
+
+                  <a href="#" className={featureClass}>
+                    <div>
+                      <Icon icon="ModuleStore" className={featureIconClass} />
+                      <p className={featureTextClass}>
+                        Store
+                      </p>
+                    </div>
+                  </a>
+
+                </div>
+
+              </div>
+
               <div className="grid grid-cols-1 gap-6">
                 <div
                   className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
@@ -1129,7 +1199,7 @@ export default function AgentEditor({
               {builderMessages.map((message, index) => (
                 <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
                   <div className='w-6 min-w-6'><Icon icon={message.role === 'assistant' ? 'Upstreet' : 'Head'} className="size-5" /></div>
-                   <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
+                  <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
                 </div>
               ))}
             </div>
