@@ -779,17 +779,17 @@ export default function AgentEditor({
                 </div>
               </div>
               <div
-                className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                className={`${gridClass} ${features.tts ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsVoiceExpanded(true);
-                  !isVoiceExpanded && setFeatures({
+                  !features.tts && setFeatures({
                     ...features,
                     tts: makeDefaultTts(),
                   });
                 }}
               >
                 <div className='absolute top-2 right-2'>
-                  {isVoiceExpanded && (
+                  {features.tts && (
                     <CloseButton onClick={() => {
                       setIsVoiceExpanded(false);
                       setFeatures({
@@ -801,10 +801,9 @@ export default function AgentEditor({
                 </div>
                 <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
                 <div>
-                  {isVoiceExpanded ? (
+                  {features.tts ? (
                     <div>
-                      {features.tts &&
-                        <select
+                      <select
                           className={inputClass}
                           value={features.tts?.voiceEndpoint ?? ''}
                           onChange={e => {
@@ -823,8 +822,7 @@ export default function AgentEditor({
                               <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
                             );
                           })}
-                        </select>
-                      }
+                      </select>
                     </div>
                   ) : (
                     <div>Convert text to speech with customizable voice options.</div>
@@ -832,7 +830,7 @@ export default function AgentEditor({
                 </div>
               </div>
               <div
-                className={`${gridClass} ${isRateLimitExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                className={`${gridClass} ${features.rateLimit ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsRateLimitExpanded(true);
                   !isRateLimitExpanded && setFeatures({
@@ -842,7 +840,7 @@ export default function AgentEditor({
                 }}
               >
                 <div className='absolute top-2 right-2'>
-                  {isRateLimitExpanded && (
+                  {features.rateLimit && (
                     <CloseButton onClick={() => {
                       setIsRateLimitExpanded(false);
                       setFeatures({
