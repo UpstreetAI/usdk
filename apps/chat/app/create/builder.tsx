@@ -25,6 +25,7 @@ import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { BackButton } from '@/components/back';
+import Modal from './modal';
 
 //
 
@@ -483,7 +484,7 @@ export default function AgentEditor({
   const featureClass = 'inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4';
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-2';
-  
+
   // render
   return (
     <div className="relative">
@@ -610,6 +611,102 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Personality
                       </p>
+                      <Modal
+                        icon="Head"
+                        title="Personality"
+                        description="Customize your agents personality, including visuals."
+                        onClose={() => { }}
+                      >
+                        <div className="mt-4">
+                          <label>
+                            <span className="mb-2">Name</span>
+                            <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                          </label>
+                          <label>
+                            <span className="mb-2">Bio</span>
+                            <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
+                          </label>
+
+                          <div className="flex items-center mb-4 mt-4">
+                            {previewUrl ? (
+                              <Link href={previewUrl} target="_blank">
+                                <div
+                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                  style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                />
+                              </Link>
+                            ) : (
+                              <div
+                                className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                              />
+                            )}
+                            <div className="w-full">
+                              <textarea
+                                className={textareaClass}
+                                value={visualDescription}
+                                placeholder="Describe your agent's appearance"
+                                onChange={e => setVisualDescription(e.target.value)}
+                              />
+                              <Button
+                                onClick={e => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (visualDescription) {
+                                    (async () => {
+                                      const jwt = await getJWT();
+                                      const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                                      setPreviewBlob(result.blob);
+                                    })();
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="flex items-center mb-4">
+                            {homespaceUrl ? (
+                              <Link href={homespaceUrl} target="_blank">
+                                <div
+                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                  style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                />
+                              </Link>
+                            ) : (
+                              <div
+                                className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                              />
+                            )}
+                            <div className="w-full">
+                              <textarea
+                                className={textareaClass}
+                                value={homespaceDescription}
+                                placeholder="Describe your agent's home space and environment"
+                                onChange={e => setHomespaceDescription(e.target.value)}
+                              />
+                              <Button
+                                onClick={e => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (homespaceDescription) {
+                                    (async () => {
+                                      const jwt = await getJWT();
+                                      const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                                      setHomespaceBlob(result.blob);
+                                    })();
+                                  }
+                                }}
+                                className="w-full"
+                              >
+                                {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Modal>
                     </div>
                   </a>
 
@@ -663,45 +760,6 @@ export default function AgentEditor({
                 <Button className='p-2'>Next</Button>
 
               </div>
-
-
-
-
-
-
-              <div className="relative z-10" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  
-  <div className="fixed inset-0 bg-gray-500/75 transition-opacity" aria-hidden="true"></div>
-
-  <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-     
-      <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-        <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
-          <div className="sm:flex sm:items-start">
-            <div className="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
-              <svg className="size-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-              </svg>
-            </div>
-            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold text-gray-900" id="modal-title">Deactivate account</h3>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">Are you sure you want to deactivate your account? All of your data will be permanently removed. This action cannot be undone.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-          <button type="button" className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Deactivate</button>
-          <button type="button" className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 
 
               <div className="grid grid-cols-1 gap-6">
