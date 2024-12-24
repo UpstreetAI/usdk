@@ -7,7 +7,6 @@
     "@supabase/supabase-js": "^2.47.1",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/jest": "^29.5.13",
-    "@types/react": "^18.3.3",
     "browser-util-inspect": "^0.2.0",
     "codecs": "file:./packages/codecs",
     "debouncer": "file:./packages/debouncer",
