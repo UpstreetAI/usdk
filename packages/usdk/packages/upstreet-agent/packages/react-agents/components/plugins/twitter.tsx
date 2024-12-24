@@ -2,6 +2,8 @@ import React, { useContext, useRef, useEffect } from 'react';
 import type {
   TwitterProps,
   TwitterArgs,
+  TwitterScraperAuth,
+  TwitterApiAuth,
 } from '../../types';
 import {
   useAgent,
@@ -13,11 +15,7 @@ import {
   AppContext,
 } from '../../context';
 
-// https://twitter-oauth.upstreet.ai/
-export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
-  const {
-    token,
-  } = props;
+export const Twitter: React.FC<TwitterProps> = (props) => {
   const agent = useAgent();
   const kv = useKv();
   const conversation = useConversation();
@@ -33,26 +31,25 @@ export const Twitter: React.FC<TwitterProps> = (props: TwitterProps) => {
       }
       ref.current = true;
 
-      (async () => {
-        if (token) {
-          const args: TwitterArgs = {
-            token,
-            agent,
-            kv,
-            codecs,
-            jwt: authToken,
-          };
-          const twitter = agent.twitterManager.addTwitterBot(args);
-          return () => {
-            agent.twitterManager.removeTwitterBot(twitter);
-          };
-        }
-      })();
-    }
-  }, [
-    token,
-    conversation,
-  ]);
+    (async () => {
+      const auth: TwitterApiAuth | TwitterScraperAuth = 
+        props.type === 'api' 
+          ? { type: 'api', token: props.token }
+          : { type: 'scraper', ...props };
+
+      const args: TwitterArgs = {
+        auth,
+        agent,
+        kv,
+        codecs,
+        jwt: authToken,
+      };
+      const twitter = agent.twitterManager.addTwitterBot(args);
+      return () => {
+        agent.twitterManager.removeTwitterBot(twitter);
+      };
+    })();
+  }, [props]);
 
   return null;
 };

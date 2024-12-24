@@ -138,14 +138,33 @@ export type DiscordArgs = {
 // twitter
 
 export type TwitterProps = {
-  token: string;
-};
+  type: 'api' | 'scraper';
+} & (
+  | { type: 'api'; token: string }
+  | TwitterScraperAuth
+);
 export type TwitterArgs = {
-  token: string;
+  auth: TwitterApiAuth | TwitterScraperAuth;
   agent: ActiveAgentObject;
   kv: any;
   codecs: any;
   jwt: string;
+};
+
+export type TwitterScraperAuth = {
+  type: 'scraper';
+  username: string;
+  password: string;
+  email: string;
+  apiKey?: string;
+  apiSecretKey?: string;
+  accessToken?: string;
+  accessTokenSecret?: string;
+};
+
+export type TwitterApiAuth = {
+  type: 'api';
+  token: string;
 };
 
 // twitter spaces
