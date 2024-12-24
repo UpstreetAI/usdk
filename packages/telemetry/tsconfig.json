@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "target": "ESNext", // Use the latest ECMAScript features
+      "module": "ESNext", // Use ESNext module resolution
+      "lib": ["DOM", "ESNext"], // Include DOM and latest JS features
+      "declaration": true, // Emit `.d.ts` files for type definitions
+      "declarationMap": true, // Emit declaration source maps
+      "outDir": "dist", // Specify output directory for compiled files
+      "strict": true, // Enable all strict type-checking options
+      "esModuleInterop": true, // Allow default imports from CommonJS
+      "skipLibCheck": true, // Skip type checking of declaration files
+      "incremental": true, // Enable incremental compilation
+      "tsBuildInfoFile": "./dist/.tsbuildinfo", // Specify incremental build info file
+      "moduleResolution": "Node", // Resolve modules using Node.js
+      "resolveJsonModule": true, // Allow importing JSON files
+      "isolatedModules": true, // Enforce modularity for tools like Babel
+      "jsx": "react-jsx", // Use the JSX transform
+      "allowSyntheticDefaultImports": true // Allow default imports
+    },
+    "include": ["src"], // Include all TypeScript files in `src`
+    "exclude": ["node_modules", "dist"] // Exclude unnecessary directories
+  }
+  

@@ -1,0 +1,55 @@
+{
+  "name": "telemetry",
+  "version": "0.0.1",
+  "description": "Shared telemetry package for Upstreet Next.js apps and CLI tools",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./core": {
+      "import": "./dist/core.js",
+      "require": "./dist/core.cjs",
+      "types": "./dist/core.d.ts"
+    },
+    "./next": {
+      "import": "./dist/next/index.js",
+      "require": "./dist/next/index.cjs",
+      "types": "./dist/next/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src --format esm,cjs --dts --out-dir dist",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "jest",
+    "prepare": "pnpm build"
+  },
+  "dependencies": {
+    "posthog-js": "^1.203.1"
+  },
+  "peerDependencies": {
+    "cookies-next": "^5.0.2",
+    "next": "^13.0.0",
+    "react": "^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^17.0.0 || ^18.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "tsup": "^7.0.0",
+    "typescript": "^5.0.0"
+  },
+  "author": "Upstreet",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/yourrepo.git",
+    "directory": "packages/telemetry"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
