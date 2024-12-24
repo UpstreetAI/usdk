@@ -92,16 +92,16 @@ export class TwitterScraperClient extends TwitterBase {
       }
 
       console.log('this.agent.id', this.agent.id);
-      
+
       const seenTweetIdsKey = `twitter:seenTweetIds:${this.agent.id}`;
-      const seenTweetIds = this.kv.get(seenTweetIdsKey, []);
+      const seenTweetIds = await this.kv.get(seenTweetIdsKey, []);
       const seenTweetIdsSet = new Set(seenTweetIds);
       if (seenTweetIdsSet.has(tweetId)) {
         console.log('skipping already seen tweet', tweetId);
         return;
       }
 
-      this.kv.set(seenTweetIdsKey, [...seenTweetIds, tweetId]);
+      await this.kv.set(seenTweetIdsKey, [...seenTweetIds, tweetId]);
 
       const rawMessage = {
         method: 'say',
@@ -113,8 +113,9 @@ export class TwitterScraperClient extends TwitterBase {
         agent: this.agent,
       });
 
+      // XXX steps is currently null
       const steps = await conversation.addLocalMessage(newMessage);
-      
+
       const actions = steps.map(step => step.action).filter(Boolean);
       for (const message of actions) {
         const { method, args } = message;
