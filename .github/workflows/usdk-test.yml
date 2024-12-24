@@ -25,7 +25,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Preinstall Script
-        run: cd packages/usdk/packages/upstreet-agent && pnpm install --filter=upstreet-agent
+        run: cd packages/usdk/packages/upstreet-agent && pnpm install --filter=upstreet-agent --no-optional --no-frozen-lockfile
 
       - name: Install dependencies
         run: cd packages/usdk && pnpm install --no-optional --no-frozen-lockfile
