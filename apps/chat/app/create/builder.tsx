@@ -44,6 +44,7 @@ import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 // import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
+import { Icon } from 'ucom';
 
 //
 
@@ -506,9 +507,9 @@ export default function AgentEditor({
               </div>
             ))}
           </div>
-          <div className="flex">
+          <div className="flex bg-gray-700">
             <form
-              className="flex"
+              className="flex w-full"
               onSubmit={async e => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -529,31 +530,32 @@ export default function AgentEditor({
               }}
               ref={builderForm}
             >
-              <input
-                type="text"
-                className={inputClass}
-                value={builderPrompt}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
+              <div className="relative w-full">
+                <div className="w-full">
+                  <input
+                    type="text"
+                    className={cn(inputClass, 'w-full')}
+                    value={builderPrompt}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        builderSubmit();
+                      }
+                    }}
+                    onChange={e => setBuilderPrompt(e.target.value)}
+                  />
+                </div>
+                <div className="absolute right-0 top-[2px] sm:right-2">
+                  <Button size="icon" className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
                     e.preventDefault();
                     builderSubmit();
-                  }
-                }}
-                onChange={e => setBuilderPrompt(e.target.value)}
-              />
-              <Button
-                onClick={e => {
-                  e.preventDefault();
-                  agentInterviewPromiseRef.current = null;
-                  setBuilderMessages([]);
-                }}
-              >Clear</Button>
-              <Button
-                onClick={e => {
-                  e.preventDefault();
-                  builderSubmit();
-                }}
-              >Send</Button>
+                  }}>
+                    <Icon icon={"Send"} />
+                    <span className="sr-only">{"Send Message"}</span>
+                  </Button>
+                </div>
+              </div>
+              
             </form>
           </div>
         </div>
