@@ -2,9 +2,8 @@ import { makeAnonymousClient } from '@/utils/supabase/supabase-client'
 import { ImageResponse } from 'next/og'
 import { env } from '@/lib/env'
 
-const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? 'http://localhost:3000'
-
-const withHttps = (url:string) => !/^https?:\/\//i.test(url) ? `https://${url}` : url;
+// const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL ?? 'http://localhost:3000'
+// const withHttps = (url:string) => !/^https?:\/\//i.test(url) ? `https://${url}` : url;
 
 export const size = {
   width: 1200,

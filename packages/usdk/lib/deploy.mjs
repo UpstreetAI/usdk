@@ -158,10 +158,9 @@ export const deploy = async (args, opts) => {
             const result =
               /^\.git(?:\/|$)/.test(p) || // exclude .git
               (
-                gitignore.denies(p) && // exclude gitignored
-                p !== '.env.txt' // include .env.txt
+                gitignore.denies(p) && // exclude .gitignore
+                p !== '.env.txt' // ...but include .env.txt
               );
-            // console.log('denies', p, result);
             return result;
           },
         },

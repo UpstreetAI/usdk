@@ -16,56 +16,56 @@ export const ensureAgentJsonDefaults = (spec) => {
     ...spec,
   };
 
-  if (typeof spec.name !== 'string') {
+  if (typeof spec.name !== 'string' || !spec.name) {
     const suffix = Math.floor(10000 + Math.random() * 90000);
     spec.name = `AI Agent #${suffix}`;
   }
-  if (typeof spec.description !== 'string') {
+  if (typeof spec.description !== 'string' || !spec.description) {
     spec.description = 'Created by the AI Agent SDK';
   }
-  if (typeof spec.bio !== 'string') {
+  if (typeof spec.bio !== 'string' || !spec.bio) {
     spec.bio = 'A cool AI';
   }
-  if (typeof spec.ownerId !== 'string') {
+  if (typeof spec.ownerId !== 'string' || !spec.ownerId) {
     spec.ownerId = '';
   }
-  if (typeof spec.model !== 'string') {
+  if (typeof spec.model !== 'string' || !spec.model) {
     spec.model = defaultModels[0];
   }
-  if (typeof spec.smallModel !== 'string') {
+  if (typeof spec.smallModel !== 'string' || !spec.smallModel) {
     spec.smallModel = defaultSmallModels[0];
   }
-  if (typeof spec.largeModel !== 'string') {
+  if (typeof spec.largeModel !== 'string' || !spec.largeModel) {
     spec.largeModel = defaultLargeModels[0];
   }
-  if (typeof spec.startUrl !== 'string') {
+  if (typeof spec.startUrl !== 'string' || !spec.startUrl) {
     spec.startUrl = getCloudAgentHost(spec.id);
   }
-  if (typeof spec.previewUrl !== 'string') {
+  if (typeof spec.previewUrl !== 'string' || !spec.previewUrl) {
     spec.previewUrl = '';
   }
-  if (typeof spec.homespaceUrl !== 'string') {
+  if (typeof spec.homespaceUrl !== 'string' || !spec.homespaceUrl) {
     spec.homespaceUrl = '';
   }
-  if (typeof spec.avatarUrl !== 'string') {
+  if (typeof spec.avatarUrl !== 'string' || !spec.avatarUrl) {
     spec.avatarUrl = '';
   }
-  if (typeof spec.voiceEndpoint !== 'string') {
+  if (typeof spec.voiceEndpoint !== 'string' || !spec.voiceEndpoint) {
     spec.voiceEndpoint = 'elevenlabs:scillia:kNBPK9DILaezWWUSHpF9';
   }
-  if (typeof spec.voicePack !== 'string') {
+  if (typeof spec.voicePack !== 'string' || !spec.voicePack) {
     spec.voicePack = 'ShiShi voice pack';
   }
-  if (typeof spec.stripeConnectAccountId !== 'string') {
+  if (typeof spec.stripeConnectAccountId !== 'string' || !spec.stripeConnectAccountId) {
     spec.stripeConnectAccountId = '';
   }
-  if (typeof spec.address !== 'string') {
+  if (typeof spec.address !== 'string' || !spec.address) {
     spec.address = '';
   }
   if (!Array.isArray(spec.capabilities)) {
     spec.capabilities = [];
   }
-  if (typeof spec.version !== 'string') {
+  if (typeof spec.version !== 'string' || !spec.version) {
     spec.version = packageJson.version;
   }
 

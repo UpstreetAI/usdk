@@ -54,15 +54,23 @@ import { getUserForJwt, makeAnonymousClient } from '@/utils/supabase/supabase-cl
   );
 }; */
 
-export async function getAgents(userId: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
-  const { error, data } = await supabaseClient
+export async function getAgents(query: Record<string, any>, select = '*') {
+  const supabaseClient = makeAnonymousClient(env, getJWT());
+  let supabaseQuery = supabaseClient
     .from('assets')
     .select(select)
-    .eq( 'user_id', userId )
-    .eq( 'type', 'npc' )
+    .eq('type', 'npc')
     .order('created_at', { ascending: false });
-    // .limit(1)
-    // .single()
+
+  for (const [key, value] of Object.entries(query)) {
+    supabaseQuery = supabaseQuery.eq(key, value);
+  }
+
+  // supabaseQuery = supabaseQuery
+  // .limit(1)
+  // .single()
+
+  const { error, data } = await supabaseQuery;
   if (!error) {
     return data as object[];
   } else {
@@ -70,12 +78,18 @@ export async function getAgents(userId: string, select = '*', supabaseClient = m
   }
 }
 
-export async function getVoices(userId: string, select = '*', supabaseClient = makeAnonymousClient(env, getJWT())) {
-  const { error, data } = await supabaseClient
+export async function getVoices(query: Record<string, any>, select = '*') {
+  const supabaseClient = makeAnonymousClient(env, getJWT());
+  let supabaseQuery = supabaseClient
     .from('assets')
     .select(select)
-    .eq( 'user_id', userId )
-    .eq( 'type', 'voice' )
+    .eq('type', 'voice');
+
+  for (const [key, value] of Object.entries(query)) {
+    supabaseQuery = supabaseQuery.eq(key, value);
+  }
+
+  const { error, data } = await supabaseQuery;
   if (!error) {
     return data as object[];
   } else {
