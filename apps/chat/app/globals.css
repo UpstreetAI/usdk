@@ -102,7 +102,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-none;
   }
   html {
     color-scheme: light !important;
