@@ -49,9 +49,8 @@ async function resolveModule(name, {
       return checkPath;
     }
 
-    const oldNodeModulesPath = nodeModulesPath;
-    nodeModulesPath = walkUpToNodeModules(nodeModulesPath)
-    if (oldNodeModulesPath === nodeModulesPath) {
+    nodeModulesPath = walkUpToNodeModules(path.join(nodeModulesPath, '..'));
+    if (nodeModulesPath === null) {
       break;
     }
   }

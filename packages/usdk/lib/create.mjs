@@ -48,7 +48,7 @@ import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/uti
 
 //
 
-const homeDir = os.homedir();
+// const homeDir = os.homedir();
 
 const logAgentPropertyUpdate = (propertyName, newValue) => {
   // ANSI escape codes for colors
