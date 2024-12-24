@@ -515,7 +515,9 @@ export default function AgentEditor({
                         id: ownerId,
                         stripe_connect_account_id: stripeConnectAccountId,
                       } = userPrivate;
-                      const agentJson = {
+
+                      // agent.json
+                      let agentJson = {
                         id,
                         ownerId,
                         name,
@@ -525,28 +527,51 @@ export default function AgentEditor({
                         homespaceUrl,
                         stripeConnectAccountId,
                       };
+                      agentJson = ensureAgentJsonDefaults(agentJson);
                       console.log('deploy 2', {
                         agentJson,
+                      });
+                      const agentJsonString = JSON.stringify(agentJson, null, 2);
+                      const agentJsonFile = new File([agentJsonString], 'agent.json');
+
+                      // .env.txt
+                      const mnemonic = generateMnemonic();
+                      const envTxt = [
+                        `AGENT_TOKEN=${JSON.stringify(jwt)}`,
+                        `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
+                      ].join('\n');
+                      const envTxtFile = new File([envTxt], '.env.txt');
+
+                      // agent.tsx
+                      const agentTsxFile = new File([sourceCode], 'agent.tsx');
+
+                      const files = [
+                        agentJsonFile,
+                        envTxtFile,
+                        agentTsxFile,
+                      ];
+                      const formData = new FormData();
+                      files.forEach(file => {
+                        formData.append(file.name, file);
                       });
 
                       const res = await fetch(`${deployEndpointUrl}/agent`, {
                         method: 'PUT',
                         headers: {
-                          'Content-Type': 'application/javascript',
                           Authorization: `Bearer ${jwt}`,
-                          'Agent-Json': JSON.stringify(agentJson),
                         },
-                        body: value,
+                        body: formData,
                       });
                       if (res.ok) {
                         const j = await res.json();
                         console.log('deploy 3', j);
-                        const agentJsonOutputString = j.vars.AGENT_JSON;
-                        const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                        const guid = agentJsonOutput.id;
-                        location.href = `/agents/${guid}`;
+                        // const agentJsonOutputString = j.vars.AGENT_JSON;
+                        // const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                        // const guid = agentJsonOutput.id;
+                        // location.href = `/agents/${guid}`;
                       } else {
-                        console.error('failed to deploy agent', res);
+                        const text = await res.text();
+                        console.error('failed to deploy agent', res.status, text);
                       }
                     } else {
                       throw new Error('not logged in');
@@ -1076,7 +1101,7 @@ export default function AgentEditor({
               </div>
             </form>
           </div>
-          
+
           {/* chat */}
 
           <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isChatVisible ? '' : 'hidden'}`}>
@@ -1091,7 +1116,7 @@ export default function AgentEditor({
             />
           </div>
 
-          {/* assistant */} 
+          {/* assistant */}
 
           <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isAssistantVisible ? '' : 'hidden'}`}>
             <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
