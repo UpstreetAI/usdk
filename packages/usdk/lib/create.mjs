@@ -40,7 +40,7 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
-import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+// import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
