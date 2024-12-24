@@ -3,6 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
+import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -43,7 +44,6 @@ import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 // import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
-import { Button } from 'ucom';
 
 //
 
@@ -80,7 +80,7 @@ type AgentEditorProps = {
   user: any;
 };
 
-export default function Builder({
+export default function AgentEditor({
   user,
 }: AgentEditorProps) {
   // state
@@ -113,6 +113,13 @@ export default function Builder({
   const builderForm = useRef<HTMLFormElement>(null);
   const editorForm = useRef<HTMLFormElement>(null);
 
+  const [isPersonalityExpanded, setIsPersonalityExpanded] = useState(false);
+  const [isVoiceExpanded, setIsVoiceExpanded] = useState(false);
+  const [isRateLimitExpanded, setIsRateLimitExpanded] = useState(false);
+  const [isDiscordExpanded, setIsDiscordExpanded] = useState(false);
+  const [isTwitterExpanded, setIsTwitterExpanded] = useState(false);
+  const [isStoreExpanded, setIsStoreExpanded] = useState(false);
+
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
     tts: null,
@@ -124,13 +131,6 @@ export default function Builder({
   const [sourceCode, setSourceCode] = useState(defaultAgentSourceCode);
 
   const monaco = useMonaco();
-
-  const [isPersonalityExpanded, setIsPersonalityExpanded] = useState(false);
-  const [isVoiceExpanded, setIsVoiceExpanded] = useState(false);
-  const [isRateLimitExpanded, setIsRateLimitExpanded] = useState(false);
-  const [isDiscordExpanded, setIsDiscordExpanded] = useState(false);
-  const [isTwitterExpanded, setIsTwitterExpanded] = useState(false);
-  const [isStoreExpanded, setIsStoreExpanded] = useState(false);
 
   // effects
   // sync previewBlob -> previewUrl
@@ -470,6 +470,7 @@ export default function Builder({
     return agentInterviewPromiseRef.current;
   };
   const builderSubmit = () => {
+    console.log('builder submit', builderForm.current);
     builderForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
   };
 
@@ -492,575 +493,653 @@ export default function Builder({
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
   // render
   return (
+    <div className="relative">
 
-    <form className="relative" ref={editorForm} onSubmit={e => {
-      e.preventDefault();
+      <div className='w-full h-full text-zinc-950'>
 
-      // check if the form is validated
-      const valid = builderForm.current?.checkValidity();
-      if (valid) {
-        (async () => {
-          try {
-            setDeploying(true);
+        {/* builder */}
+        <div className="fixed left-4 bottom-4 flex-col h-[calc(100vh-36px)] w-[300px] flex-1 bg-zinc-900 z-[50]">
+          <div className="flex flex-col flex-1 h-[calc(100%-36px)] bg-primary/10 overflow-scroll pt-14">
+            {builderMessages.map((message, index) => (
+              <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
+                {message.content}
+              </div>
+            ))}
+          </div>
+          <div className="flex">
+            <form
+              className="flex"
+              onSubmit={async e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-            // get the value from monaco editor
-            const value = getEditorValue();
-            console.log('deploy 1', {
-              name,
-              bio,
-              visualDescription,
-              previewBlob,
-              value,
-            });
+                if (builderPrompt) {
+                  const agentInterview = await ensureAgentInterview();
+                  agentInterview.write(builderPrompt);
 
-            const jwt = await getJWT();
-            if (jwt) {
-              const [
-                userPrivate,
-                id,
-                previewUrl,
-                homespaceUrl,
-              ] = await Promise.all([
-                getUserForJwt(jwt, { private: true }),
-                createAgentGuid({ jwt }),
-                getCloudPreviewUrl(previewBlob),
-                getCloudPreviewUrl(homespaceBlob),
-              ]);
-              const {
-                id: ownerId,
-                stripe_connect_account_id: stripeConnectAccountId,
-              } = userPrivate;
-              const agentJson = {
-                id,
-                ownerId,
-                name,
-                bio,
-                visualDescription,
-                previewUrl,
-                homespaceUrl,
-                stripeConnectAccountId,
-              };
-              console.log('deploy 2', {
-                agentJson,
-              });
-
-              const res = await fetch(`${deployEndpointUrl}/agent`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/javascript',
-                  Authorization: `Bearer ${jwt}`,
-                  'Agent-Json': JSON.stringify(agentJson),
-                },
-                body: value,
-              });
-              if (res.ok) {
-                const j = await res.json();
-                console.log('deploy 3', j);
-                const agentJsonOutputString = j.vars.AGENT_JSON;
-                const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                const guid = agentJsonOutput.id;
-                location.href = `/agents/${guid}`;
-              } else {
-                console.error('failed to deploy agent', res);
-              }
-            } else {
-              throw new Error('not logged in');
-            }
-          } finally {
-            setDeploying(false);
-          }
-        })();
-      }
-    }}>
-
-    <div className='w-full h-full text-zinc-950'>
-
-      <div className="container mx-auto max-w-2xl px-4 py-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-          <div className="flex gap-2">
-            <Button>
-              Chat
-            </Button>
-            <Button>
-              Deploy
-            </Button>
+                  setBuilderMessages((builderMessages) => [
+                    ...builderMessages,
+                    {
+                      role: 'user',
+                      content: builderPrompt,
+                    },
+                  ]);
+                  setBuilderPrompt('');
+                }
+              }}
+              ref={builderForm}
+            >
+              <input
+                type="text"
+                className={inputClass}
+                value={builderPrompt}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    builderSubmit();
+                  }
+                }}
+                onChange={e => setBuilderPrompt(e.target.value)}
+              />
+              <Button
+                onClick={e => {
+                  e.preventDefault();
+                  agentInterviewPromiseRef.current = null;
+                  setBuilderMessages([]);
+                }}
+              >Clear</Button>
+              <Button
+                onClick={e => {
+                  e.preventDefault();
+                  builderSubmit();
+                }}
+              >Send</Button>
+            </form>
           </div>
         </div>
-        <p className="text-lg text-gray-800 mb-4">
-          Select the features you want to enable for your agent.
-        </p>
-        <div className="grid grid-cols-1 gap-6">
 
-          <div
-            className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
-          >
-            <div className='absolute top-2 right-2'>
-              {isPersonalityExpanded && (
-                <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Personality <span className="text-sm text-gray-500">(default)</span></h2>
-            <div>
-              {isPersonalityExpanded ? (
-                <div className="mt-4">
-                  <label>
-                    <span className="mb-2">Name</span>
-                    <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
-                  </label>
-                  <label>
-                    <span className="mb-2">Bio</span>
-                    <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
-                  </label>
+        <Chat
+          room={room}
+          onConnect={(connected) => {
+            if (connected) {
+              setConnecting(false);
+            }
+          }}
+        />
 
-                  <div className="flex items-center mb-4 mt-4">
-                    {previewUrl ? (
-                      <Link href={previewUrl} target="_blank">
-                        <div
-                          className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                          style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                        />
-                      </Link>
-                    ) : (
-                      <div
-                        className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                        style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                      />
-                    )}
-                    <div className="w-full">
-                      <textarea
-                        className={textareaClass}
-                        value={visualDescription}
-                        placeholder="Describe your agent's appearance"
-                        onChange={e => setVisualDescription(e.target.value)}
-                      />
-                      <Button
-                        onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (visualDescription) {
-                            (async () => {
-                              const jwt = await getJWT();
-                              const result = await generateCharacterImage(visualDescription, undefined, { jwt });
-                              setPreviewBlob(result.blob);
-                            })();
-                          }
-                        }}
-                        className="w-full"
-                      >
-                        {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center mb-4">
-                    {homespaceUrl ? (
-                      <Link href={homespaceUrl} target="_blank">
-                        <div
-                          className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                          style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                        />
-                      </Link>
-                    ) : (
-                      <div
-                        className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                        style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                      />
-                    )}
-                    <div className="w-full">
-                      <textarea
-                        className={textareaClass}
-                        value={homespaceDescription}
-                        placeholder="Describe your agent's home space and environment"
-                        onChange={e => setHomespaceDescription(e.target.value)}
-                      />
-                      <Button
-                        onClick={e => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (homespaceDescription) {
-                            (async () => {
-                              const jwt = await getJWT();
-                              const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
-                              setHomespaceBlob(result.blob);
-                            })();
-                          }
-                        }}
-                        className="w-full"
-                      >
-                        {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div>Customize your agents personality, including visuals.</div>
-              )}
-            </div>
-          </div>
-          <div
-            className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => {
-              setIsVoiceExpanded(true);
-              !isVoiceExpanded && setFeatures({
-                ...features,
-                tts: makeDefaultTts(),
-              });
-            }}
-          >
-            <div className='absolute top-2 right-2'>
-              {isVoiceExpanded && (
-                <CloseButton onClick={() => {
-                  setIsVoiceExpanded(false);
-                  setFeatures({
-                    ...features,
-                    tts: null,
+        <div className="container mx-auto max-w-2xl px-4 py-8">
+          <form className="relative" ref={editorForm} onSubmit={e => {
+            e.preventDefault();
+
+            // check if the form is validated
+            const valid = builderForm.current?.checkValidity();
+            if (valid) {
+              (async () => {
+                try {
+                  setDeploying(true);
+
+                  // get the value from monaco editor
+                  const value = getEditorValue();
+                  console.log('deploy 1', {
+                    name,
+                    bio,
+                    visualDescription,
+                    previewBlob,
+                    value,
                   });
-                }} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
-            <div>
-              {isVoiceExpanded ? (
-                <div>
-                  {features.tts &&
-                    <select
-                      className={inputClass}
-                      value={features.tts?.voiceEndpoint ?? ''}
-                      onChange={e => {
-                        setFeatures(features => (
-                          {
-                            ...features,
-                            tts: {
-                              voiceEndpoint: e.target.value,
-                            },
-                          }
-                        ));
-                      }}
-                    >
-                      {voices.map(voice => {
-                        return (
-                          <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                        );
-                      })}
-                    </select>
+
+                  const jwt = await getJWT();
+                  if (jwt) {
+                    const [
+                      userPrivate,
+                      id,
+                      previewUrl,
+                      homespaceUrl,
+                    ] = await Promise.all([
+                      getUserForJwt(jwt, { private: true }),
+                      createAgentGuid({ jwt }),
+                      getCloudPreviewUrl(previewBlob),
+                      getCloudPreviewUrl(homespaceBlob),
+                    ]);
+                    const {
+                      id: ownerId,
+                      stripe_connect_account_id: stripeConnectAccountId,
+                    } = userPrivate;
+                    const agentJson = {
+                      id,
+                      ownerId,
+                      name,
+                      bio,
+                      visualDescription,
+                      previewUrl,
+                      homespaceUrl,
+                      stripeConnectAccountId,
+                    };
+                    console.log('deploy 2', {
+                      agentJson,
+                    });
+
+                    const res = await fetch(`${deployEndpointUrl}/agent`, {
+                      method: 'PUT',
+                      headers: {
+                        'Content-Type': 'application/javascript',
+                        Authorization: `Bearer ${jwt}`,
+                        'Agent-Json': JSON.stringify(agentJson),
+                      },
+                      body: value,
+                    });
+                    if (res.ok) {
+                      const j = await res.json();
+                      console.log('deploy 3', j);
+                      const agentJsonOutputString = j.vars.AGENT_JSON;
+                      const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                      const guid = agentJsonOutput.id;
+                      location.href = `/agents/${guid}`;
+                    } else {
+                      console.error('failed to deploy agent', res);
+                    }
+                  } else {
+                    throw new Error('not logged in');
                   }
+                } finally {
+                  setDeploying(false);
+                }
+              })();
+            }
+          }}>
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
+              <div className="flex gap-2">
+                <Button
+                  onClick={e => {
+                    e.preventDefault();
+                    toggleAgent();
+                  }}
+                  disabled={starting || connecting}
+                >{starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop' : 'Start'}</Button>
+                <Button
+                  onClick={e => {
+                    e.preventDefault();
+                    editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                  disabled={deploying}
+                >{!deploying ? `Deploy` : 'Deploying...'}</Button>
+              </div>
+            </div>
+            <p className="text-lg text-gray-800 mb-4">
+              Select the features you want to enable for your agent.
+            </p>
+            <div className="grid grid-cols-1 gap-6">
+              <div
+                className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isPersonalityExpanded && (
+                    <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
+                  )}
                 </div>
-              ) : (
-                <div>Convert text to speech with customizable voice options.</div>
-              )}
-            </div>
-          </div>
-          <div
-            className={`${gridClass} ${isRateLimitExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => {
-              setIsRateLimitExpanded(true);
-              !isRateLimitExpanded && setFeatures({
-                ...features,
-                rateLimit: makeDefaultRateLimit(),
-              });
-            }}
-          >
-            <div className='absolute top-2 right-2'>
-              {isRateLimitExpanded && (
-                <CloseButton onClick={() => {
-                  setIsRateLimitExpanded(false);
-                  setFeatures({
-                    ...features,
-                    rateLimit: null,
-                  });
-                }} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
-            <div>
-              {isRateLimitExpanded ? (
+                <h2 className="text-lg font-bold mb-2">Personality <span className="text-sm text-gray-500">(default)</span></h2>
                 <div>
-                  {features.rateLimit && <div className="flex flex-col">
-                    <label className="flex">
-                      <div className="mr-2 min-w-32"># messages</div>
-                      <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
-                        setFeatures(features => {
-                          features = {
-                            ...features,
-                            rateLimit: {
-                              maxUserMessages: parseInt(e.target.value, 10) || 0,
-                              maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                              message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                            },
-                          };
-                          e.target.value = (features.rateLimit as any).maxUserMessages + '';
-                          return features;
-                        });
-                      }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
-                    </label>
-                    <label className="flex">
-                      <div className="mr-2 min-w-32">time (ms)</div>
-                      <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
-                        setFeatures(features => {
-                          features = {
-                            ...features,
-                            rateLimit: {
-                              maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                              maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
-                              message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                            },
-                          };
-                          e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
-                          return features;
-                        });
-                      }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
-                    </label>
-                    <label className="flex">
-                      <div className="mr-2 min-w-32">message</div>
-                      <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
-                        setFeatures(features => (
-                          {
-                            ...features,
-                            rateLimit: {
-                              maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                              maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                              message: e.target.value,
-                            },
-                          }
-                        ));
-                      }} placeholder="Rate limit message" />
-                    </label>
-                  </div>}
-                </div>
-              ) : (
-                <div>Control message frequency to prevent spam and ensure fair usage.</div>
-              )}
-            </div>
-          </div>
+                  {isPersonalityExpanded ? (
+                    <div className="mt-4">
+                      <label>
+                        <span className="mb-2">Name</span>
+                        <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                      </label>
+                      <label>
+                        <span className="mb-2">Bio</span>
+                        <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
+                      </label>
 
-          <div
-            className={`${gridClass} ${isDiscordExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => {
-              setIsDiscordExpanded(true);
-              !isRateLimitExpanded && setFeatures({
-                ...features,
-                discord: makeDefaultDiscord(),
-              });
-            }}
-          >
-            <div className='absolute top-2 right-2'>
-              {isDiscordExpanded && (
-                <CloseButton onClick={() => {
-                  setIsDiscordExpanded(false);
-                  setFeatures({
-                    ...features,
-                    discord: null,
-                  });
-                }} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Discord</h2>
-            <div>
-              {isDiscordExpanded ? (
-                <div>
-                  {features.discord && <div className="flex flex-col">
-                    {/* token */}
-                    <label className="flex">
-                      <div className="mr-2 min-w-32">Token</div>
-                      <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
-                        setFeatures(features => ({
-                          ...features,
-                          discord: {
-                            token: e.target.value,
-                            channels: features.discord?.channels ?? '',
-                          },
-                        }));
-                      }} placeholder="<bot token>" required />
-                    </label>
-                    {/* channels */}
-                    <label className="flex">
-                      <div className="mr-2 min-w-32">Channels</div>
-                      <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
-                        setFeatures(features => ({
-                          ...features,
-                          discord: {
-                            token: features.discord?.token ?? '',
-                            channels: e.target.value,
-                          },
-                        }));
-                      }} placeholder="text, voice" required />
-                    </label>
-                  </div>}
-                </div>
-              ) : (
-                <div>Integrate with Discord to enable agent interactions in channels.</div>
-              )}
-            </div>
-          </div>
-          <div
-            className={`${gridClass} ${isTwitterExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => {
-              setIsTwitterExpanded(true);
-              !isTwitterExpanded && setFeatures({
-                ...features,
-                twitterBot: makeDefaultTwitterBot(),
-              });
-            }}
-          >
-            <div className='absolute top-2 right-2'>
-              {isTwitterExpanded && (
-                <CloseButton onClick={() => {
-                  setIsTwitterExpanded(false);
-                  setFeatures({
-                    ...features,
-                    twitterBot: null,
-                  });
-                }} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Twitter</h2>
-            <div>
-              {isTwitterExpanded ? (
-                <div>
-                  {features.twitterBot && <div className="flex flex-col">
-                    <label className="flex">
-                      <div className="mr-2 min-w-32">Token</div>
-                      <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
-                        setFeatures(features => ({
-                          ...features,
-                          twitterBot: {
-                            token: e.target.value,
-                          },
-                        }));
-                      }} placeholder="<bot token>" required />
-                    </label>
-                  </div>}
-                </div>
-              ) : (
-                <div>Enable your agent to post and interact on Twitter automatically.</div>
-              )}
-            </div>
-          </div>
-          <div
-            className={`${gridClass} ${isStoreExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-            onClick={() => {
-              setIsStoreExpanded(true);
-              !isStoreExpanded && setFeatures({
-                ...features,
-                storeItems: makeEmptyStoreItems(),
-              });
-            }}
-          >
-            <div className='absolute top-2 right-2'>
-              {isStoreExpanded && (
-                <CloseButton onClick={() => {
-                  setIsStoreExpanded(false);
-                  setFeatures({
-                    ...features,
-                    storeItems: null,
-                  });
-                }} />
-              )}
-            </div>
-            <h2 className="text-lg font-bold mb-2">Store</h2>
-            <div>
-              {isStoreExpanded ? (
-                <div>
-                  {features.storeItems && <div className="flex flex-col">
-                    {features.storeItems.map((item, index) => {
-                      const {
-                        type,
-                        props,
-                      } = item;
-                      const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
-                        setFeatures(features => {
-                          const storeItems = features.storeItems ?? [];
-                          const newStoreItems = [...storeItems];
-                          const newStoreItem = { ...item };
-                          fn(newStoreItem);
-                          newStoreItems[index] = newStoreItem;
-                          return {
-                            ...features,
-                            storeItems: newStoreItems,
-                          };
-                        });
-                      };
-                      return (
-                        <div className="flex" key={index}>
-                          {props.previewUrl ?
-                            <img
-                              src={props.previewUrl}
-                              className="w-16 h-16 mr-2 bg-primary/10 rounded"
-                            />
-                            :
+                      <div className="flex items-center mb-4 mt-4">
+                        {previewUrl ? (
+                          <Link href={previewUrl} target="_blank">
                             <div
-                              className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                              className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                              style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
                             />
-                          }
-                          <div className="flex flex-col">
-                            <select value={type} className={inputClass} onChange={e => {
-                              setStoreItem((storeItem) => {
-                                storeItem.type = e.target.value;
-                              });
-                            }}>
-                              <option value="payment">payment</option>
-                              <option value="subscription">subscription</option>
-                            </select>
-                            <input type="text" className={inputClass} value={props.name} onChange={e => {
-                              setStoreItem((storeItem) => {
-                                storeItem.props.name = e.target.value;
-                              });
-                            }} placeholder="Name" />
-                            <input type="text" className={inputClass} value={props.description} onChange={e => {
-                              setStoreItem((storeItem) => {
-                                storeItem.props.description = e.target.value;
-                              });
-                            }} placeholder="Description" />
-                            <input type="number" className={inputClass} value={props.amount} onChange={e => {
-                              setStoreItem((storeItem) => {
-                                storeItem.props.amount = parseFloat(e.target.value);
-                              });
-                            }} placeholder="Amount" />
-                            <select className={inputClass} value={props.currency} onChange={e => {
-                              setStoreItem((storeItem) => {
-                                storeItem.props.currency = e.target.value as Currency;
-                              });
-                            }}>
-                              {currencies.map(currency => {
-                                return (
-                                  <option value={currency} key={currency}>{currency}</option>
-                                );
-                              })}
-                            </select>
-                            {type === 'subscription' && <>
-                              {/* interval */}
-                              <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
-                                setStoreItem((storeItem) => {
-                                  (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
-                                });
-                              }}>
-                                <option value="day">day</option>
-                                <option value="week">week</option>
-                                <option value="month">month</option>
-                                <option value="year">year</option>
-                              </select>
-                              {/* intervalCount */}
-                              <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
-                                setStoreItem((storeItem) => {
-                                  (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
-                                });
-                              }} placeholder="Interval count" />
-                            </>}
-                          </div>
+                          </Link>
+                        ) : (
+                          <div
+                            className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                            style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                          />
+                        )}
+                        <div className="w-full">
+                          <textarea
+                            className={textareaClass}
+                            value={visualDescription}
+                            placeholder="Describe your agent's appearance"
+                            onChange={e => setVisualDescription(e.target.value)}
+                          />
+                          <Button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (visualDescription) {
+                                (async () => {
+                                  const jwt = await getJWT();
+                                  const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                                  setPreviewBlob(result.blob);
+                                })();
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
+                          </Button>
                         </div>
-                      );
-                    })}
-                  </div>}
+                      </div>
+                      <div className="flex items-center mb-4">
+                        {homespaceUrl ? (
+                          <Link href={homespaceUrl} target="_blank">
+                            <div
+                              className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                              style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                            />
+                          </Link>
+                        ) : (
+                          <div
+                            className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
+                            style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                          />
+                        )}
+                        <div className="w-full">
+                          <textarea
+                            className={textareaClass}
+                            value={homespaceDescription}
+                            placeholder="Describe your agent's home space and environment"
+                            onChange={e => setHomespaceDescription(e.target.value)}
+                          />
+                          <Button
+                            onClick={e => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (homespaceDescription) {
+                                (async () => {
+                                  const jwt = await getJWT();
+                                  const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                                  setHomespaceBlob(result.blob);
+                                })();
+                              }
+                            }}
+                            className="w-full"
+                          >
+                            {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>Customize your agents personality, including visuals.</div>
+                  )}
                 </div>
-              ) : (
-                <div>Define items for sale, including subscriptions and one-time purchases.</div>
-              )}
+              </div>
+              <div
+                className={`${gridClass} ${isVoiceExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => {
+                  setIsVoiceExpanded(true);
+                  !isVoiceExpanded && setFeatures({
+                    ...features,
+                    tts: makeDefaultTts(),
+                  });
+                }}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isVoiceExpanded && (
+                    <CloseButton onClick={() => {
+                      setIsVoiceExpanded(false);
+                      setFeatures({
+                        ...features,
+                        tts: null,
+                      });
+                    }} />
+                  )}
+                </div>
+                <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
+                <div>
+                  {isVoiceExpanded ? (
+                    <div>
+                      {features.tts &&
+                        <select
+                          className={inputClass}
+                          value={features.tts?.voiceEndpoint ?? ''}
+                          onChange={e => {
+                            setFeatures(features => (
+                              {
+                                ...features,
+                                tts: {
+                                  voiceEndpoint: e.target.value,
+                                },
+                              }
+                            ));
+                          }}
+                        >
+                          {voices.map(voice => {
+                            return (
+                              <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                            );
+                          })}
+                        </select>
+                      }
+                    </div>
+                  ) : (
+                    <div>Convert text to speech with customizable voice options.</div>
+                  )}
+                </div>
+              </div>
+              <div
+                className={`${gridClass} ${isRateLimitExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => {
+                  setIsRateLimitExpanded(true);
+                  !isRateLimitExpanded && setFeatures({
+                    ...features,
+                    rateLimit: makeDefaultRateLimit(),
+                  });
+                }}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isRateLimitExpanded && (
+                    <CloseButton onClick={() => {
+                      setIsRateLimitExpanded(false);
+                      setFeatures({
+                        ...features,
+                        rateLimit: null,
+                      });
+                    }} />
+                  )}
+                </div>
+                <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
+                <div>
+                  {isRateLimitExpanded ? (
+                    <div>
+                      {features.rateLimit && <div className="flex flex-col">
+                        <label className="flex">
+                          <div className="mr-2 min-w-32"># messages</div>
+                          <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                            setFeatures(features => {
+                              features = {
+                                ...features,
+                                rateLimit: {
+                                  maxUserMessages: parseInt(e.target.value, 10) || 0,
+                                  maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                  message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                },
+                              };
+                              e.target.value = (features.rateLimit as any).maxUserMessages + '';
+                              return features;
+                            });
+                          }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+                        </label>
+                        <label className="flex">
+                          <div className="mr-2 min-w-32">time (ms)</div>
+                          <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                            setFeatures(features => {
+                              features = {
+                                ...features,
+                                rateLimit: {
+                                  maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                  maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                                  message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                },
+                              };
+                              e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
+                              return features;
+                            });
+                          }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+                        </label>
+                        <label className="flex">
+                          <div className="mr-2 min-w-32">message</div>
+                          <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
+                            setFeatures(features => (
+                              {
+                                ...features,
+                                rateLimit: {
+                                  maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                  maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                  message: e.target.value,
+                                },
+                              }
+                            ));
+                          }} placeholder="Rate limit message" />
+                        </label>
+                      </div>}
+                    </div>
+                  ) : (
+                    <div>Control message frequency to prevent spam and ensure fair usage.</div>
+                  )}
+                </div>
+              </div>
+
+              <div
+                className={`${gridClass} ${isDiscordExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => {
+                  setIsDiscordExpanded(true);
+                  !isRateLimitExpanded && setFeatures({
+                    ...features,
+                    discord: makeDefaultDiscord(),
+                  });
+                }}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isDiscordExpanded && (
+                    <CloseButton onClick={() => {
+                      setIsDiscordExpanded(false);
+                      setFeatures({
+                        ...features,
+                        discord: null,
+                      });
+                    }} />
+                  )}
+                </div>
+                <h2 className="text-lg font-bold mb-2">Discord</h2>
+                <div>
+                  {isDiscordExpanded ? (
+                    <div>
+                      {features.discord && <div className="flex flex-col">
+                        {/* token */}
+                        <label className="flex">
+                          <div className="mr-2 min-w-32">Token</div>
+                          <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
+                            setFeatures(features => ({
+                              ...features,
+                              discord: {
+                                token: e.target.value,
+                                channels: features.discord?.channels ?? '',
+                              },
+                            }));
+                          }} placeholder="<bot token>" required />
+                        </label>
+                        {/* channels */}
+                        <label className="flex">
+                          <div className="mr-2 min-w-32">Channels</div>
+                          <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
+                            setFeatures(features => ({
+                              ...features,
+                              discord: {
+                                token: features.discord?.token ?? '',
+                                channels: e.target.value,
+                              },
+                            }));
+                          }} placeholder="text, voice" required />
+                        </label>
+                      </div>}
+                    </div>
+                  ) : (
+                    <div>Integrate with Discord to enable agent interactions in channels.</div>
+                  )}
+                </div>
+              </div>
+              <div
+                className={`${gridClass} ${isTwitterExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => {
+                  setIsTwitterExpanded(true);
+                  !isTwitterExpanded && setFeatures({
+                    ...features,
+                    twitterBot: makeDefaultTwitterBot(),
+                  });
+                }}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isTwitterExpanded && (
+                    <CloseButton onClick={() => {
+                      setIsTwitterExpanded(false);
+                      setFeatures({
+                        ...features,
+                        twitterBot: null,
+                      });
+                    }} />
+                  )}
+                </div>
+                <h2 className="text-lg font-bold mb-2">Twitter</h2>
+                <div>
+                  {isTwitterExpanded ? (
+                    <div>
+                      {features.twitterBot && <div className="flex flex-col">
+                        <label className="flex">
+                          <div className="mr-2 min-w-32">Token</div>
+                          <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
+                            setFeatures(features => ({
+                              ...features,
+                              twitterBot: {
+                                token: e.target.value,
+                              },
+                            }));
+                          }} placeholder="<bot token>" required />
+                        </label>
+                      </div>}
+                    </div>
+                  ) : (
+                    <div>Enable your agent to post and interact on Twitter automatically.</div>
+                  )}
+                </div>
+              </div>
+              <div
+                className={`${gridClass} ${isStoreExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                onClick={() => {
+                  setIsStoreExpanded(true);
+                  !isStoreExpanded && setFeatures({
+                    ...features,
+                    storeItems: makeEmptyStoreItems(),
+                  });
+                }}
+              >
+                <div className='absolute top-2 right-2'>
+                  {isStoreExpanded && (
+                    <CloseButton onClick={() => {
+                      setIsStoreExpanded(false);
+                      setFeatures({
+                        ...features,
+                        storeItems: null,
+                      });
+                    }} />
+                  )}
+                </div>
+                <h2 className="text-lg font-bold mb-2">Store</h2>
+                <div>
+                  {isStoreExpanded ? (
+                    <div>
+                      {features.storeItems && <div className="flex flex-col">
+                        {features.storeItems.map((item, index) => {
+                          const {
+                            type,
+                            props,
+                          } = item;
+                          const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
+                            setFeatures(features => {
+                              const storeItems = features.storeItems ?? [];
+                              const newStoreItems = [...storeItems];
+                              const newStoreItem = { ...item };
+                              fn(newStoreItem);
+                              newStoreItems[index] = newStoreItem;
+                              return {
+                                ...features,
+                                storeItems: newStoreItems,
+                              };
+                            });
+                          };
+                          return (
+                            <div className="flex" key={index}>
+                              {props.previewUrl ?
+                                <img
+                                  src={props.previewUrl}
+                                  className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                                />
+                                :
+                                <div
+                                  className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                                />
+                              }
+                              <div className="flex flex-col">
+                                <select value={type} className={inputClass} onChange={e => {
+                                  setStoreItem((storeItem) => {
+                                    storeItem.type = e.target.value;
+                                  });
+                                }}>
+                                  <option value="payment">payment</option>
+                                  <option value="subscription">subscription</option>
+                                </select>
+                                <input type="text" className={inputClass} value={props.name} onChange={e => {
+                                  setStoreItem((storeItem) => {
+                                    storeItem.props.name = e.target.value;
+                                  });
+                                }} placeholder="Name" />
+                                <input type="text" className={inputClass} value={props.description} onChange={e => {
+                                  setStoreItem((storeItem) => {
+                                    storeItem.props.description = e.target.value;
+                                  });
+                                }} placeholder="Description" />
+                                <input type="number" className={inputClass} value={props.amount} onChange={e => {
+                                  setStoreItem((storeItem) => {
+                                    storeItem.props.amount = parseFloat(e.target.value);
+                                  });
+                                }} placeholder="Amount" />
+                                <select className={inputClass} value={props.currency} onChange={e => {
+                                  setStoreItem((storeItem) => {
+                                    storeItem.props.currency = e.target.value as Currency;
+                                  });
+                                }}>
+                                  {currencies.map(currency => {
+                                    return (
+                                      <option value={currency} key={currency}>{currency}</option>
+                                    );
+                                  })}
+                                </select>
+                                {type === 'subscription' && <>
+                                  {/* interval */}
+                                  <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
+                                    setStoreItem((storeItem) => {
+                                      (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
+                                    });
+                                  }}>
+                                    <option value="day">day</option>
+                                    <option value="week">week</option>
+                                    <option value="month">month</option>
+                                    <option value="year">year</option>
+                                  </select>
+                                  {/* intervalCount */}
+                                  <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                                    setStoreItem((storeItem) => {
+                                      (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
+                                    });
+                                  }} placeholder="Interval count" />
+                                </>}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>}
+                    </div>
+                  ) : (
+                    <div>Define items for sale, including subscriptions and one-time purchases.</div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
-    </form>
   );
 };
