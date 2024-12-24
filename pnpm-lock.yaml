@@ -987,6 +987,9 @@ importers:
       openai:
         specifier: ^4.56.0
         version: 4.76.1(zod@3.24.1)
+      path-util:
+        specifier: file:./packages/path-util
+        version: link:packages/path-util
       playwright-core-lite:
         specifier: file:./packages/playwright-core-lite
         version: link:packages/playwright-core-lite
@@ -1071,6 +1074,8 @@ importers:
         version: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
 
   packages/usdk/packages/upstreet-agent/packages/debouncer: {}
+
+  packages/usdk/packages/upstreet-agent/packages/path-util: {}
 
   packages/usdk/packages/upstreet-agent/packages/playwright-core-lite: {}
 
@@ -11534,6 +11539,9 @@ packages:
   path-type@5.0.0:
     resolution: {integrity: sha512-5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==}
     engines: {node: '>=12'}
+
+  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/path-util, type: directory}
 
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
@@ -27876,6 +27884,8 @@ snapshots:
 
   path-type@5.0.0: {}
 
+  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util: {}
+
   pathe@1.1.2: {}
 
   peek-readable@4.1.0: {}
@@ -30698,6 +30708,7 @@ snapshots:
       memoize-one: 6.0.0
       minimatch: 9.0.5
       openai: 4.76.1(zod@3.24.1)
+      path-util: file:packages/usdk/packages/upstreet-agent/packages/path-util
       playwright-core-lite: file:packages/usdk/packages/upstreet-agent/packages/playwright-core-lite
       queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
       react: file:packages/usdk/packages/upstreet-agent/packages/react
