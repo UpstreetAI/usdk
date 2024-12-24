@@ -37,7 +37,7 @@ export class TwitterScraperClient extends TwitterBase {
 
       if (await this.scraper.isLoggedIn()) { 
         console.log('Already logged in with cookies');
-        // this.startTweetHandlingAndPolling();
+        this.startTweetHandlingAndPolling();
         return;
       }
     }
@@ -58,19 +58,19 @@ export class TwitterScraperClient extends TwitterBase {
 
     const newCookies = await this.scraper.getCookies();
     await this.kv.set(cookiesKey, newCookies);
-    // this.startTweetHandlingAndPolling();
+    this.startTweetHandlingAndPolling();
   }
 
   private startTweetHandlingAndPolling() {
     const _handleTweet = async (tweet: any, author: any) => {
       const { id: tweetId, text, conversationId, userId } = tweet;
 
-      // console.log('tweet', tweet);
-      // console.log('author', author);
-      // console.log('conversationId', conversationId);
-      // console.log('userId', userId);
-      // console.log('text', text);
-      // console.log('tweetId', tweetId);
+      console.log('tweet', tweet);
+      console.log('author', author);
+      console.log('conversationId', conversationId);
+      console.log('userId', userId);
+      console.log('text', text);
+      console.log('tweetId', tweetId);
     
       let conversation = this.conversations.get(conversationId);
       if (!conversation) {
@@ -87,38 +87,33 @@ export class TwitterScraperClient extends TwitterBase {
           conversation,
         });
 
-        const player = new Player(this.agent.id, {
-          name: this.agent.name,
-        });
+        const player = this.makePlayerFromAuthor(author);
         conversation.addAgent(this.agent.id, player);
       }
 
-      const player = this.makePlayerFromAuthor(author);
-      conversation.addAgent(userId, player);
+      // const rawMessage = {
+      //   method: 'say',
+      //   args: {
+      //     text
+      //   }
+      // };
+      // const newMessage = formatConversationMessage(rawMessage, {
+      //   agent: this.agent,
+      // });
 
-      const rawMessage = {
-        method: 'say',
-        args: {
-          text
-        }
-      };
-      const newMessage = formatConversationMessage(rawMessage, {
-        agent: this.agent,
-      });
-
-      console.log('newMessage', newMessage);
-      const steps = await conversation.addLocalMessage(newMessage);
-      console.log('steps', steps);
+      // console.log('newMessage', newMessage);
+      // const steps = await conversation.addLocalMessage(newMessage);
+      // console.log('steps', steps);
       
-      const actions = steps.map(step => step.action).filter(Boolean);
-      for (const message of actions) {
-        const { method, args } = message;
+      // const actions = steps.map(step => step.action).filter(Boolean);
+      // for (const message of actions) {
+      //   const { method, args } = message;
 
-        if (method === 'say') {
-          const { text } = args;
-          await this.scraper.sendTweet(text, tweetId);
-        }
-      }
+      //   if (method === 'say') {
+      //     const { text } = args;
+      //     await this.scraper.sendTweet(text, tweetId);
+      //   }
+      // }
     };
 
     const queueManager = new QueueManager();
@@ -158,10 +153,15 @@ export class TwitterScraperClient extends TwitterBase {
     const pollTimeout = setTimeout(() => {
       _poll();
     });
-    // Poll every 91 seconds (1.5 minutes)
-    const pollRate = 15 * 60 * 1000 / 10 + 1000;
+    // Poll between 1-2 minutes
+    const getRandomPollRate = () => Math.floor(Math.random() * (120000 - 60000 + 1) + 60000);
+    let pollRate = getRandomPollRate();
     const pollInterval = setInterval(async () => {
       _poll();
+      // Update poll rate for next interval
+      pollRate = getRandomPollRate();
+      clearInterval(pollInterval);
+      setInterval(_poll, pollRate);
     }, pollRate);
 
     const { signal } = this.abortController;
@@ -182,7 +182,7 @@ export class TwitterScraperClient extends TwitterBase {
     if (cachedProfile){
       this.profile = cachedProfile;
     } else {
-      this.profile = await this.scraper.getProfile(username);
+      this.profile = await this.scraper.me();
       // console.log('this.profile', this.profile);
       await this.kv.set(`twitter:profile:${username}`, this.profile);
     }
