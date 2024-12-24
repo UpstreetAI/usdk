@@ -17,9 +17,6 @@
   },
   "type": "module",
   "main": "module.mjs",
-  "scripts": {
-    "preinstall": "cd packages/upstreet-agent && pnpm install --filter=.... --no-frozen-lockfile"
-  },
   "keywords": [
     "ai",
     "ai-agents",
@@ -154,5 +151,8 @@
   "devDependencies": {
     "@types/node": "^18.0.0",
     "jest": "^29.0.0"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
