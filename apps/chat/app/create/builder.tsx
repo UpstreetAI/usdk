@@ -6,43 +6,24 @@ import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
-import type {
-  StoreItem,
-  SubscriptionProps,
-  Currency,
-  Interval,
-} from 'react-agents/types';
-import {
-  createAgentGuid,
-} from 'react-agents/util/guid-util.mjs';
-import {
-  getAgentToken,
-} from 'react-agents/util/jwt-utils.mjs';
-import {
-  generateMnemonic,
-} from '../../utils/etherium-utils.mjs';
-import {
-  Chat,
-} from '@/components/chat/chat';
+import { getUserForJwt } from '@/utils/supabase/supabase-client';
+import type { StoreItem, SubscriptionProps, Currency, Interval } from 'react-agents/types';
+import { createAgentGuid } from 'react-agents/util/guid-util.mjs';
+import { getAgentToken } from 'react-agents/util/jwt-utils.mjs';
+import { generateMnemonic } from '../../utils/etherium-utils.mjs';
+import { Chat } from '@/components/chat/chat';
 import { cn } from '@/lib/utils';
 import { ensureAgentJsonDefaults } from 'react-agents/util/agent-json-util.mjs';
-import {
-  generateCharacterImage,
-  generateBackgroundImage,
-} from 'react-agents/util/generate-image.mjs';
+import { generateCharacterImage, generateBackgroundImage } from 'react-agents/util/generate-image.mjs';
 import { AgentInterview } from 'react-agents/util/agent-interview.mjs';
-import {
-  defaultVoices,
-} from 'react-agents/util/agent-features-spec.mjs';
+import { defaultVoices } from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
-import { env } from '@/lib/env'
+import { env } from '@/lib/env';
 import { defaultAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
-// import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
 import { Icon } from 'ucom';
 
@@ -272,6 +253,7 @@ export default function AgentEditor({
     setStarting(true);
 
     const jwt = await getJWT();
+    console.log('jwt', jwt);
     try {
       if (jwt) {
         const [
@@ -494,7 +476,7 @@ export default function AgentEditor({
       <div className='w-full h-full text-zinc-950'>
 
         {/* builder */}
-        <div className="fixed left-4 bottom-4 flex-col h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
+        <div className="fixed right-4 bottom-4 flex-col h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
           <div className="flex flex-col flex-1 h-[calc(100%-36px)] bg-primary/10 overflow-scroll pt-14">
             {builderMessages.map((message, index) => (
               <div key={index} className={cn("p-2", message.role === 'assistant' ? 'bg-primary/10' : '')}>
@@ -555,6 +537,7 @@ export default function AgentEditor({
           </div>
         </div>
         
+        <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
         <Chat
           room={room}
           onConnect={(connected) => {
@@ -563,6 +546,7 @@ export default function AgentEditor({
             }
           }}
         />
+        </div>
 
         <div className="container mx-auto max-w-2xl px-4 py-8">
           <form className="relative" ref={editorForm} onSubmit={e => {
@@ -1124,6 +1108,35 @@ export default function AgentEditor({
             </div>
           </form>
         </div>
+      </div>
+      <div className='hidden'>
+      <Editor
+          theme="vs-dark"
+          defaultLanguage="javascript"
+          defaultValue={sourceCode}
+          options={{
+            readOnly: deploying,
+          }}
+          onMount={(editor, monaco) => {
+            (editor as any)._domElement.parentNode.style.flex = 1;
+
+            const model = editor.getModel();
+            if (model) {
+              model.onDidChangeContent(() => {
+                const s = getEditorValue(monaco);
+                setSourceCode(s);
+              });
+            } else {
+              console.warn('no model', editor);
+            }
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+              startAgent({
+                sourceCode: getEditorValue(monaco),
+              });
+            });
+          }}
+        />
       </div>
     </div>
   );
