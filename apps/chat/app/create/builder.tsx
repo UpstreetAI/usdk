@@ -564,7 +564,11 @@ export default function AgentEditor({
                   <Button
                     onClick={() => setIsAssistantVisible(!isAssistantVisible)}
                     disabled={deploying}
-                  >{'Assistant'}</Button>
+                    active={isAssistantVisible}
+                  >
+                    {'Assistant'}
+                  </Button>
+
                   <Button
                     onClick={e => {
                       e.preventDefault();
@@ -572,18 +576,29 @@ export default function AgentEditor({
                       setIsChatVisible(!isChatVisible);
                     }}
                     disabled={starting || connecting}
-                  >{starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop Chat' : 'Chat'}</Button>
+                    active={isChatVisible}
+                  >
+                    {starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop Chat' : 'Chat'}
+                  </Button>
+
                   <Button
                     onClick={() => setIsCodeVisible(!isCodeVisible)}
-                  >{'Code'}</Button>
+                    disabled={deploying}
+                    active={isCodeVisible}
+                  >
+                    {'Code'}
+                  </Button>
+
                   <Button
                     onClick={e => {
                       e.preventDefault();
                       editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                     }}
                     disabled={deploying}
-                  >{!deploying ? `Deploy` : 'Deploying...'}</Button>
-
+                    active={deploying}
+                  >
+                    {!deploying ? `Deploy` : 'Deploying...'}
+                  </Button>
                 </div>
               </div>
               <p className="text-lg text-gray-800 mb-4">
@@ -1047,21 +1062,21 @@ export default function AgentEditor({
               </div>
             </form>
           </div>
-        
+
           {isChatVisible && (
             <div className="flex-col h-screen w-[300px] flex-1 relative border-l border-zinc-900">
-          <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
-          <Chat
-            room={room}
-            onConnect={(connected) => {
-              if (connected) {
-                setConnecting(false);
-              }
-                }}
-              />
+              <div className="fixed left-4 bottom-4 h-[calc(100vh-36px)] w-[300px] flex-1 z-[50]">
+                <Chat
+                  room={room}
+                  onConnect={(connected) => {
+                    if (connected) {
+                      setConnecting(false);
+                    }
+                  }}
+                />
+              </div>
             </div>
-          </div>  
-        )}
+          )}
 
           {/* builder */}
           {isAssistantVisible && (
@@ -1126,37 +1141,37 @@ export default function AgentEditor({
             </div>
           )}
 
-{isCodeVisible && (
-          <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
-            <Editor
-              theme="vs-dark"
-            defaultLanguage="javascript"
-            defaultValue={sourceCode}
-            options={{
-              readOnly: deploying,
-            }}
-            onMount={(editor, monaco) => {
-              (editor as any)._domElement.parentNode.style.flex = 1;
+          {isCodeVisible && (
+            <div className="flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900">
+              <Editor
+                theme="vs-dark"
+                defaultLanguage="javascript"
+                defaultValue={sourceCode}
+                options={{
+                  readOnly: deploying,
+                }}
+                onMount={(editor, monaco) => {
+                  (editor as any)._domElement.parentNode.style.flex = 1;
 
-              const model = editor.getModel();
-              if (model) {
-                model.onDidChangeContent(() => {
-                  const s = getEditorValue(monaco);
-                  setSourceCode(s);
-                });
-              } else {
-                console.warn('no model', editor);
-              }
+                  const model = editor.getModel();
+                  if (model) {
+                    model.onDidChangeContent(() => {
+                      const s = getEditorValue(monaco);
+                      setSourceCode(s);
+                    });
+                  } else {
+                    console.warn('no model', editor);
+                  }
 
-              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-                startAgent({
-                  sourceCode: getEditorValue(monaco),
-                });
-              });
-            }}
-            />
-          </div>
-        )}
+                  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                    startAgent({
+                      sourceCode: getEditorValue(monaco),
+                    });
+                  });
+                }}
+              />
+            </div>
+          )}
 
         </div>
       </div>
