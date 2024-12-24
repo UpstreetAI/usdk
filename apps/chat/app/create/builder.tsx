@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button } from 'ucom';
+import { Button, IconButton } from 'ucom';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -560,19 +560,27 @@ export default function AgentEditor({
             }}>
               <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-                <div className="flex gap-2">
+                <div className="flex gap-2 -mt-4">
                   <Button
-                    onClick={() => setIsAssistantVisible(!isAssistantVisible)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsAssistantVisible(!isAssistantVisible);
+                      setIsChatVisible(false);
+                      setIsCodeVisible(false);
+                      worker && toggleAgent();
+                    }}
                     active={isAssistantVisible}
                   >
                     {'Assistant'}
                   </Button>
 
                   <Button
-                    onClick={e => {
+                    onClick={(e) => {
                       e.preventDefault();
                       toggleAgent();
                       setIsChatVisible(!isChatVisible);
+                      setIsAssistantVisible(false);
+                      setIsCodeVisible(false);
                     }}
                     disabled={starting || connecting}
                     active={isChatVisible}
@@ -581,14 +589,20 @@ export default function AgentEditor({
                   </Button>
 
                   <Button
-                    onClick={() => setIsCodeVisible(!isCodeVisible)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsCodeVisible(!isCodeVisible);
+                      setIsChatVisible(false);
+                      setIsAssistantVisible(false);
+                      worker && toggleAgent();
+                    }}
                     active={isCodeVisible}
                   >
                     {'Code'}
                   </Button>
 
                   <Button
-                    onClick={e => {
+                    onClick={(e) => {
                       e.preventDefault();
                       editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                     }}
@@ -1061,10 +1075,11 @@ export default function AgentEditor({
           </div>
           
           {/* chat */}
-          
+
           <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isChatVisible ? '' : 'hidden'}`}>
             <Chat
               room={room}
+              mode={'builder'}
               onConnect={(connected) => {
                 if (connected) {
                   setConnecting(false);
@@ -1121,14 +1136,11 @@ export default function AgentEditor({
                       onChange={e => setBuilderPrompt(e.target.value)}
                     />
                   </div>
-                  <div className="absolute right-0 top-[2px] sm:right-2">
-                    <Button className='shadow-none text-xl bg-transparent cursor-pointer' onClick={e => {
+                  <div className="absolute right-0 top-2 sm:right-2">
+                    <Icon icon="Send" className='text-2xl cursor-pointer' onClick={e => {
                       e.preventDefault();
                       builderSubmit();
-                    }}>
-                      <Icon icon={"Send"} />
-                      <span className="sr-only">{"Send Message"}</span>
-                    </Button>
+                    }} />
                   </div>
                 </div>
               </form>
