@@ -559,7 +559,7 @@ export default function AgentEditor({
             </form>
           </div>
         </div>
-
+        
         <Chat
           room={room}
           onConnect={(connected) => {
@@ -854,9 +854,9 @@ export default function AgentEditor({
                 </div>
                 <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
                 <div>
-                  {isRateLimitExpanded ? (
+                  {features.rateLimit ? (
                     <div>
-                      {features.rateLimit && <div className="flex flex-col">
+                      <div className="flex flex-col">
                         <label className="flex">
                           <div className="mr-2 min-w-32"># messages</div>
                           <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
@@ -906,7 +906,7 @@ export default function AgentEditor({
                             ));
                           }} placeholder="Rate limit message" />
                         </label>
-                      </div>}
+                      </div>
                     </div>
                   ) : (
                     <div>Control message frequency to prevent spam and ensure fair usage.</div>
@@ -937,9 +937,9 @@ export default function AgentEditor({
                 </div>
                 <h2 className="text-lg font-bold mb-2">Discord</h2>
                 <div>
-                  {isDiscordExpanded ? (
+                  {features.discord ? (
                     <div>
-                      {features.discord && <div className="flex flex-col">
+                      <div className="flex flex-col">
                         {/* token */}
                         <label className="flex">
                           <div className="mr-2 min-w-32">Token</div>
@@ -966,7 +966,7 @@ export default function AgentEditor({
                             }));
                           }} placeholder="text, voice" required />
                         </label>
-                      </div>}
+                      </div>
                     </div>
                   ) : (
                     <div>Integrate with Discord to enable agent interactions in channels.</div>
@@ -996,9 +996,9 @@ export default function AgentEditor({
                 </div>
                 <h2 className="text-lg font-bold mb-2">Twitter</h2>
                 <div>
-                  {isTwitterExpanded ? (
+                  {features.twitterBot ? (
                     <div>
-                      {features.twitterBot && <div className="flex flex-col">
+                      <div className="flex flex-col">
                         <label className="flex">
                           <div className="mr-2 min-w-32">Token</div>
                           <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
@@ -1010,7 +1010,7 @@ export default function AgentEditor({
                             }));
                           }} placeholder="<bot token>" required />
                         </label>
-                      </div>}
+                      </div>
                     </div>
                   ) : (
                     <div>Enable your agent to post and interact on Twitter automatically.</div>
@@ -1040,9 +1040,9 @@ export default function AgentEditor({
                 </div>
                 <h2 className="text-lg font-bold mb-2">Store</h2>
                 <div>
-                  {isStoreExpanded ? (
+                  {features.storeItems ? (
                     <div>
-                      {features.storeItems && <div className="flex flex-col">
+                      <div className="flex flex-col">
                         {features.storeItems.map((item, index) => {
                           const {
                             type,
@@ -1131,7 +1131,7 @@ export default function AgentEditor({
                             </div>
                           );
                         })}
-                      </div>}
+                      </div>
                     </div>
                   ) : (
                     <div>Define items for sale, including subscriptions and one-time purchases.</div>
