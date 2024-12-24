@@ -20,6 +20,7 @@
     "memoize-one": "^6.0.0",
     "minimatch": "^9.0.4",
     "openai": "^4.56.0",
+    "path-util": "file:./packages/path-util",
     "playwright-core-lite": "file:./packages/playwright-core-lite",
     "queue-manager": "file:./packages/queue-manager",
     "react": "file:./packages/react",
