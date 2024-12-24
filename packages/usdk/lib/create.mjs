@@ -439,7 +439,8 @@ export const create = async (args, opts) => {
   // update destination directory if no specific path was provided
   if (dstDir === '') {
     const sanitizedName = agentJson.name
-      .replace(/[^a-zA-Z0-9\s+]/g, '') // match bash-unsafe characters
+      .replace(/\s+/g, '_') // match spaces
+      .replace(/[^a-zA-Z0-9]/g, '') // match bash-unsafe characters
       .replace(/_+/g, '_').toLowerCase();
     dstDir = path.join(cwd, sanitizedName);
   }
