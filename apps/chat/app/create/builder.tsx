@@ -833,7 +833,7 @@ export default function AgentEditor({
                 className={`${gridClass} ${features.rateLimit ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsRateLimitExpanded(true);
-                  !isRateLimitExpanded && setFeatures({
+                  !features.rateLimit && setFeatures({
                     ...features,
                     rateLimit: makeDefaultRateLimit(),
                   });
@@ -913,17 +913,17 @@ export default function AgentEditor({
               </div>
 
               <div
-                className={`${gridClass} ${isDiscordExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                className={`${gridClass} ${features.discord ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsDiscordExpanded(true);
-                  !isRateLimitExpanded && setFeatures({
+                  !features.discord && setFeatures({
                     ...features,
                     discord: makeDefaultDiscord(),
                   });
                 }}
               >
                 <div className='absolute top-2 right-2'>
-                  {isDiscordExpanded && (
+                  {features.discord && (
                     <CloseButton onClick={() => {
                       setIsDiscordExpanded(false);
                       setFeatures({
@@ -972,17 +972,17 @@ export default function AgentEditor({
                 </div>
               </div>
               <div
-                className={`${gridClass} ${isTwitterExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                className={`${gridClass} ${features.twitterBot ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsTwitterExpanded(true);
-                  !isTwitterExpanded && setFeatures({
+                  !features.twitterBot && setFeatures({
                     ...features,
                     twitterBot: makeDefaultTwitterBot(),
                   });
                 }}
               >
                 <div className='absolute top-2 right-2'>
-                  {isTwitterExpanded && (
+                  {features.twitterBot && (
                     <CloseButton onClick={() => {
                       setIsTwitterExpanded(false);
                       setFeatures({
@@ -1016,17 +1016,17 @@ export default function AgentEditor({
                 </div>
               </div>
               <div
-                className={`${gridClass} ${isStoreExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
+                className={`${gridClass} ${features.storeItems ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
                 onClick={() => {
                   setIsStoreExpanded(true);
-                  !isStoreExpanded && setFeatures({
+                  !features.storeItems && setFeatures({
                     ...features,
                     storeItems: makeEmptyStoreItems(),
                   });
                 }}
               >
                 <div className='absolute top-2 right-2'>
-                  {isStoreExpanded && (
+                  {features.storeItems && (
                     <CloseButton onClick={() => {
                       setIsStoreExpanded(false);
                       setFeatures({
