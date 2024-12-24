@@ -8,6 +8,7 @@ export abstract class TwitterBase {
   jwt: string;
   conversations: Map<string, ConversationObject>;
   abortController: AbortController;
+  profile: any;
 
   constructor(agent: ActiveAgentObject, kv: any, codecs: any, jwt: string) {
     if (!agent) throw new Error('Twitter bot requires an agent');
@@ -20,6 +21,7 @@ export abstract class TwitterBase {
     this.jwt = jwt;
     this.conversations = new Map();
     this.abortController = new AbortController();
+    this.profile = null;
   }
 
   protected makePlayerFromAuthor(author: any): Player {

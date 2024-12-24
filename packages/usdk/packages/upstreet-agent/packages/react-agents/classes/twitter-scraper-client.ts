@@ -18,9 +18,12 @@ export class TwitterScraperClient extends TwitterBase {
   }
 
   async start() {
+    const { username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret } = this.auth;
     const cookiesKey = `twitter:cookies:${this.auth.username}`;
     
     const cookies = await this.kv.get(cookiesKey);
+    await this.setupProfile();
+
     if (cookies) {
       console.log('cookies', cookies);
       const cookieStrings = cookies.map(cookie => {
@@ -31,15 +34,13 @@ export class TwitterScraperClient extends TwitterBase {
       });
       
       await this.scraper.setCookies(cookieStrings);
-      if (await this.scraper.isLoggedIn()) {
+
+      if (await this.scraper.isLoggedIn()) { 
         console.log('Already logged in with cookies');
-        this.startTweetHandlingAndPolling();
+        // this.startTweetHandlingAndPolling();
         return;
       }
     }
-
-    const { username, password, email, apiKey, apiSecretKey, accessToken, accessTokenSecret } = this.auth;
-
 
     if (!username || !password) {
       throw new Error('Username and password are required');
@@ -57,14 +58,20 @@ export class TwitterScraperClient extends TwitterBase {
 
     const newCookies = await this.scraper.getCookies();
     await this.kv.set(cookiesKey, newCookies);
-
-    this.startTweetHandlingAndPolling();
+    // this.startTweetHandlingAndPolling();
   }
 
   private startTweetHandlingAndPolling() {
     const _handleTweet = async (tweet: any, author: any) => {
       const { id: tweetId, text, conversationId, userId } = tweet;
 
+      // console.log('tweet', tweet);
+      // console.log('author', author);
+      // console.log('conversationId', conversationId);
+      // console.log('userId', userId);
+      // console.log('text', text);
+      // console.log('tweetId', tweetId);
+    
       let conversation = this.conversations.get(conversationId);
       if (!conversation) {
         conversation = new ConversationObject({
@@ -151,6 +158,7 @@ export class TwitterScraperClient extends TwitterBase {
     const pollTimeout = setTimeout(() => {
       _poll();
     });
+    // Poll every 91 seconds (1.5 minutes)
     const pollRate = 15 * 60 * 1000 / 10 + 1000;
     const pollInterval = setInterval(async () => {
       _poll();
@@ -165,6 +173,19 @@ export class TwitterScraperClient extends TwitterBase {
         this.agent.conversationManager.removeConversation(conversation);
       }
     });
+  }
+
+  async setupProfile() {
+    const { username } = this.auth;
+    const cachedProfile = await this.kv.get(`twitter:profile:${username}`);
+    // console.log('cachedProfile', cachedProfile);
+    if (cachedProfile){
+      this.profile = cachedProfile;
+    } else {
+      this.profile = await this.scraper.getProfile(username);
+      // console.log('this.profile', this.profile);
+      await this.kv.set(`twitter:profile:${username}`, this.profile);
+    }
   }
 
   destroy() {
