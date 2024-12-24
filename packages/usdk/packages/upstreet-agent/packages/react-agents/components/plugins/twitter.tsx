@@ -30,6 +30,7 @@ export const Twitter: React.FC<TwitterProps> = (props) => {
         return;
       }
       ref.current = true;
+    }
 
     (async () => {
       const auth: TwitterApiAuth | TwitterScraperAuth = 
