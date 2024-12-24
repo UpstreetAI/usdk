@@ -17,9 +17,6 @@
   },
   "type": "module",
   "main": "module.mjs",
-  "scripts": {
-    "preinstall": "cd packages/upstreet-agent && pnpm install"
-  },
   "keywords": [
     "ai",
     "ai-agents",
