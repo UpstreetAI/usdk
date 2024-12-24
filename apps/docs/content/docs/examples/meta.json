@@ -1,5 +1,5 @@
 {
-    "title": "🤖 Examples of Agents",
+    "title": "🤖 Examples",
     "pages": ["hello-world", "informative-agent", "stateful-agent", "action-agent", "discord-agent", "openapi-agent"],
     "defaultOpen": false
 }

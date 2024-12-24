@@ -1,5 +1,4 @@
 {
-    "title": "🚀 Getting Started",
-    "pages": ["install", "create-an-agent", "customize-your-agent", "test-your-agent", "deploy-your-agent"],
-    "defaultOpen": true
+    "title": "🚀 Quickstart",
+    "pages": ["install", "create-an-agent", "customize-your-agent", "test-your-agent", "deploy-your-agent"]
 }
