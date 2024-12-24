@@ -25,6 +25,6 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: cd packages/usdk && pnpm install --filter=. --no-optional --no-frozen-lockfile
+        run: cd packages/usdk && pnpm install --no-optional --no-frozen-lockfile
       - name: Run USDK command
         run: cd packages/usdk && ./usdk.js --version
