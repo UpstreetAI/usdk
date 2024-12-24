@@ -594,66 +594,9 @@ export default function AgentEditor({
                 })();
               }
             }}>
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-                <div className="flex gap-2 -mt-4">
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      setIsAssistantVisible(!isAssistantVisible);
-                      setIsChatVisible(false);
-                      setIsCodeVisible(false);
-                      worker && toggleAgent();
-                    }}
-                    active={isAssistantVisible}
-                  >
-                    {'Assistant'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      toggleAgent();
-                      setIsChatVisible(!isChatVisible);
-                      setIsAssistantVisible(false);
-                      setIsCodeVisible(false);
-                    }}
-                    disabled={starting || connecting}
-                    active={isChatVisible}
-                  >
-                    {starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop Chat' : 'Chat'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      setIsCodeVisible(!isCodeVisible);
-                      setIsChatVisible(false);
-                      setIsAssistantVisible(false);
-                      worker && toggleAgent();
-                    }}
-                    active={isCodeVisible}
-                  >
-                    {'Code'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                    }}
-                    disabled={deploying}
-                  >
-                    {!deploying ? `Deploy` : 'Deploying...'}
-                  </Button>
-                </div>
-              </div>
-              <p className="text-lg text-gray-800 mb-4">
-                Select the features you want to enable for your agent.
+              <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
+              <p className="text-lg text-gray-800 mb-4 text-center">
+                Select the features for your agent.
               </p>
 
 
@@ -661,20 +604,26 @@ export default function AgentEditor({
 
                 <div className="flex flex-wrap justify-center w-full mb-40">
 
-                  <a href="#" className={featureClass}>
+                  <a href="#" className={cn(featureClass)}>
                     <div>
                       <Icon icon="Head" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Personality
                       </p>
+                      <p className="text-sm text-gray-500">
+                        Customize your agent's personality, including visuals.
+                      </p>
                     </div>
                   </a>
 
-                  <a href="#" className={featureClass}>
+                  <a href="#" className={cn(featureClass, features.tts ? 'w-full' : '')}>
                     <div>
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Voice
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Convert text to speech with customizable voice options.
                       </p>
                     </div>
                   </a>
@@ -685,6 +634,9 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Rate Limit
                       </p>
+                      <p className="text-sm text-gray-500">
+                        Control message frequency to prevent spam and ensure fair usage.
+                      </p>
                     </div>
                   </a>
 
@@ -693,6 +645,9 @@ export default function AgentEditor({
                       <Icon icon="Discord" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Discord
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Connect your agent to Discord for seamless communication.
                       </p>
                     </div>
                   </a>
@@ -703,6 +658,9 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         X (Twitter)
                       </p>
+                      <p className="text-sm text-gray-500">
+                        Connect your agent to X for seamless communication.
+                      </p>
                     </div>
                   </a>
 
@@ -711,6 +669,9 @@ export default function AgentEditor({
                       <Icon icon="ModuleStore" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Store
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Store your agents data in a database.
                       </p>
                     </div>
                   </a>
