@@ -244,25 +244,30 @@ export class ConversationObject extends EventTarget {
    * @returns {string} - The message with mentions formatted for the platform.
    */
   formatOutgoingMessageMentions(message: string): string {
-    const mentions = this.getOutgoingMessageMentions(message);
-    if (mentions && this.mentionsRegex) {
-      mentions.forEach(userId => {
-        const player = this.agentsMap.get(userId);
-        if (player) {
-          const playerSpec = player.getPlayerSpec();
-          if (playerSpec?.mentionId) {
-            // Replace @userId with the platform-specific mention format
-            const mentionFormat = this.mentionsRegex.source
-              .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
-            
-            message = message.replace(
-              new RegExp(`@${userId}`, 'g'),
-              mentionFormat
-            );
-          }
+    // Extract usernames from @mentions in the message
+    const matches = message.match(/@(\w+)/g);
+    if (!matches || !this.mentionsRegex) return message;
+
+    matches.forEach(match => {
+      const username = match.substring(1); // Remove @ symbol
+      
+      // Find player with matching username
+      for (const player of this.agentsMap.values()) {
+        const playerSpec = player.getPlayerSpec();
+        if (playerSpec?.username === username && playerSpec.mentionId) {
+          // Replace @username with platform-specific mention format
+          const mentionFormat = this.mentionsRegex.source
+            .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
+          
+          message = message.replace(
+            new RegExp(`@${username}`, 'g'),
+            mentionFormat
+          );
+          break;
         }
-      });
-    }
+      }
+    });
+
     return message;
   }
 
