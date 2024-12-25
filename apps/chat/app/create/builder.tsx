@@ -714,6 +714,7 @@ export default function AgentEditor({
 
                   <div
                     onClick={() => {
+                      setModalOpen('voice');
                       !features.tts && setFeatures({
                         ...features,
                         tts: makeDefaultTts(),
@@ -722,28 +723,89 @@ export default function AgentEditor({
                     className={cn(featureClass, features.tts ? featureClassActive : '')}
                   >
                     <div>
-                      <Icon 
-                        icon="Close" 
+                      <Icon
+                        icon="Close"
                         className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
                         onClick={() => {
-                        setFeatures({
-                          ...features,
-                          tts: null,
-                        });
-                      }} />
+                          setFeatures({
+                            ...features,
+                            tts: null,
+                          });
+                        }} />
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Voice
                       </p>
+                      {features.tts && (
+                        <Modal
+                          icon="Head"
+                          title="Voice"
+                          description="Select a voice for your agent"
+                          open={modalOpen === 'voice'}
+                          close={() => setModalOpen(null)}
+                        >
+                          <div className="w-full">
+                          <label>
+                            <span className="mb-2 text-gray-900">Selected voice:</span>
+                            <select
+                              className={inputClass}
+                              value={features.tts?.voiceEndpoint ?? ''}
+                              onChange={e => {
+                                setFeatures(features => (
+                                  {
+                                    ...features,
+                                    tts: {
+                                      voiceEndpoint: e.target.value,
+                                    },
+                                  }
+                                ));
+                              }}
+                            >
+                              {voices.map(voice => {
+                                return (
+                                  <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                                );
+                              })}
+                            </select>
+                            </label>
+                          </div>
+                        </Modal>
+                      )}
                     </div>
                   </div>
 
-                  <div onClick={() => setModalOpen('rateLimit')} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
+                  <div onClick={() => {
+                    setModalOpen('rateLimit');
+                    !features.rateLimit && setFeatures({
+                      ...features,
+                      rateLimit: makeDefaultRateLimit(),
+                    });
+                  }} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
                     <div>
+                    <Icon
+                        icon="Close"
+                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.rateLimit && 'hidden')}
+                        onClick={() => {
+                          setFeatures({
+                            ...features,
+                            rateLimit: null,
+                          });
+                        }} />
                       <Icon icon="Chat" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Rate Limit
                       </p>
+                      {features.rateLimit && (
+                        <Modal
+                          icon="Head"
+                          title="Rate Limit"
+                          description="Control message frequency to prevent spam and ensure fair usage."
+                          open={modalOpen === 'rateLimit'}
+                          close={() => setModalOpen(null)}
+                        >
+                          
+                        </Modal>
+                      )}
                     </div>
                   </div>
 
