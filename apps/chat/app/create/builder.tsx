@@ -745,28 +745,28 @@ export default function AgentEditor({
                           close={() => setModalOpen(null)}
                         >
                           <div className="w-full">
-                          <label>
-                            <span className="mb-2 text-gray-900">Selected voice:</span>
-                            <select
-                              className={inputClass}
-                              value={features.tts?.voiceEndpoint ?? ''}
-                              onChange={e => {
-                                setFeatures(features => (
-                                  {
-                                    ...features,
-                                    tts: {
-                                      voiceEndpoint: e.target.value,
-                                    },
-                                  }
-                                ));
-                              }}
-                            >
-                              {voices.map(voice => {
-                                return (
-                                  <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                                );
-                              })}
-                            </select>
+                            <label>
+                              <span className="mb-2 text-gray-900">Selected voice:</span>
+                              <select
+                                className={inputClass}
+                                value={features.tts?.voiceEndpoint ?? ''}
+                                onChange={e => {
+                                  setFeatures(features => (
+                                    {
+                                      ...features,
+                                      tts: {
+                                        voiceEndpoint: e.target.value,
+                                      },
+                                    }
+                                  ));
+                                }}
+                              >
+                                {voices.map(voice => {
+                                  return (
+                                    <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                                  );
+                                })}
+                              </select>
                             </label>
                           </div>
                         </Modal>
@@ -782,7 +782,7 @@ export default function AgentEditor({
                     });
                   }} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
                     <div>
-                    <Icon
+                      <Icon
                         icon="Close"
                         className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.rateLimit && 'hidden')}
                         onClick={() => {
@@ -803,7 +803,59 @@ export default function AgentEditor({
                           open={modalOpen === 'rateLimit'}
                           close={() => setModalOpen(null)}
                         >
-                          
+                          <div>
+                            <div className="flex flex-col">
+                              <label className="text-gray-900">
+                                <div className="mr-2 min-w-32">Max Messages</div>
+                                <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                                  setFeatures(features => {
+                                    features = {
+                                      ...features,
+                                      rateLimit: {
+                                        maxUserMessages: parseInt(e.target.value, 10) || 0,
+                                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                      },
+                                    };
+                                    e.target.value = (features.rateLimit as any).maxUserMessages + '';
+                                    return features;
+                                  });
+                                }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+                              </label>
+                              <label className="text-gray-900">
+                                <div className="mr-2 min-w-32">Time Frame (ms)</div>
+                                <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                                  setFeatures(features => {
+                                    features = {
+                                      ...features,
+                                      rateLimit: {
+                                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                        maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                      },
+                                    };
+                                    e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
+                                    return features;
+                                  });
+                                }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+                              </label>
+                              <label className="text-gray-900">
+                                <div className="mr-2 min-w-32">Limit Exceeded Message</div>
+                                <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
+                                  setFeatures(features => (
+                                    {
+                                      ...features,
+                                      rateLimit: {
+                                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                        message: e.target.value,
+                                      },
+                                    }
+                                  ));
+                                }} placeholder="Rate limit message" />
+                              </label>
+                            </div>
+                          </div>
                         </Modal>
                       )}
                     </div>
@@ -1024,7 +1076,7 @@ export default function AgentEditor({
                       <div>
                         <div className="flex flex-col">
                           <label className="flex">
-                            <div className="mr-2 min-w-32"># messages</div>
+                            <div className="mr-2 min-w-32">Max Messages</div>
                             <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
                               setFeatures(features => {
                                 features = {
@@ -1041,7 +1093,7 @@ export default function AgentEditor({
                             }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
                           </label>
                           <label className="flex">
-                            <div className="mr-2 min-w-32">time (ms)</div>
+                            <div className="mr-2 min-w-32">Time Frame (ms)</div>
                             <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
                               setFeatures(features => {
                                 features = {
@@ -1058,7 +1110,7 @@ export default function AgentEditor({
                             }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
                           </label>
                           <label className="flex">
-                            <div className="mr-2 min-w-32">message</div>
+                            <div className="mr-2 min-w-32">Limit Exceeded Message</div>
                             <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
                               setFeatures(features => (
                                 {
