@@ -389,6 +389,7 @@ export default function AgentEditor({
       stopAgent();
     }
   };
+
   const ensureAgentInterview = () => {
     if (!agentInterviewPromiseRef.current) {
       agentInterviewPromiseRef.current = (async () => {
@@ -504,708 +505,727 @@ export default function AgentEditor({
     setModalOpen(null);
   };
 
+
+  useEffect(() => {
+    if (!worker && monaco && user) {
+      startAgent();
+    }
+  }, [worker, monaco, user]);
+
+
   // render
   return (
     <div className="relative">
       <div className='w-full h-full text-zinc-950'>
         <div className="flex">
-          <div className="container mx-auto max-w-2xl px-4 py-8">
-            <form className="relative" ref={editorForm} onSubmit={e => {
-              e.preventDefault();
+          <div className="container mx-auto max-w-4xl px-4 py-8">
+            <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
 
-              // check if the form is validated
-              const valid = builderForm.current?.checkValidity();
-              if (valid) {
-                (async () => {
-                  try {
-                    setDeploying(true);
+            <p className="text-lg text-gray-800 mb-4 text-center">
+              Build your agent with a few simple steps.
+            </p>
 
-                    // get the value from monaco editor
-                    const value = getEditorValue();
-                    console.log('deploy 1', {
-                      name,
-                      bio,
-                      visualDescription,
-                      previewBlob,
-                      value,
-                    });
-
-                    const jwt = await getJWT();
-                    if (jwt) {
-                      const [
-                        userPrivate,
-                        id,
-                        previewUrl,
-                        homespaceUrl,
-                      ] = await Promise.all([
-                        getUserForJwt(jwt, { private: true }),
-                        createAgentGuid({ jwt }),
-                        getCloudPreviewUrl(previewBlob),
-                        getCloudPreviewUrl(homespaceBlob),
-                      ]);
-                      const {
-                        id: ownerId,
-                        stripe_connect_account_id: stripeConnectAccountId,
-                      } = userPrivate;
-
-                      // agent.json
-                      let agentJson = {
-                        id,
-                        ownerId,
-                        name,
-                        bio,
-                        visualDescription,
-                        previewUrl,
-                        homespaceUrl,
-                        stripeConnectAccountId,
-                      };
-                      agentJson = ensureAgentJsonDefaults(agentJson);
-                      console.log('deploy 2', {
-                        agentJson,
-                      });
-                      const agentJsonString = JSON.stringify(agentJson, null, 2);
-                      const agentJsonFile = new File([agentJsonString], 'agent.json');
-
-                      // .env.txt
-                      const mnemonic = generateMnemonic();
-                      const envTxt = [
-                        `AGENT_TOKEN=${JSON.stringify(jwt)}`,
-                        `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
-                      ].join('\n');
-                      const envTxtFile = new File([envTxt], '.env.txt');
-
-                      // agent.tsx
-                      const agentTsxFile = new File([sourceCode], 'agent.tsx');
-
-                      const files = [
-                        agentJsonFile,
-                        envTxtFile,
-                        agentTsxFile,
-                      ];
-                      const formData = new FormData();
-                      files.forEach(file => {
-                        formData.append(file.name, file);
-                      });
-
-                      const res = await fetch(`${deployEndpointUrl}/agent`, {
-                        method: 'PUT',
-                        headers: {
-                          Authorization: `Bearer ${jwt}`,
-                        },
-                        body: formData,
-                      });
-                      if (res.ok) {
-                        const j = await res.json();
-                        console.log('deploy 3', j);
-                        // const agentJsonOutputString = j.vars.AGENT_JSON;
-                        // const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                        // const guid = agentJsonOutput.id;
-                        // location.href = `/agents/${guid}`;
-                      } else {
-                        const text = await res.text();
-                        console.error('failed to deploy agent', res.status, text);
-                      }
-                    } else {
-                      throw new Error('not logged in');
-                    }
-                  } finally {
-                    setDeploying(false);
-                  }
-                })();
+            <Progress
+              currentStep={1}
+              steps={
+                [
+                  {
+                    title: 'Select Features',
+                    Icon: 'Tiling',
+                    description: 'Customize your agents personality',
+                  },
+                  {
+                    title: 'Test Agent',
+                    Icon: 'Chat',
+                    description: 'Customize your agents personality',
+                  },
+                  {
+                    title: 'Deploy',
+                    Icon: 'Upload',
+                    description: 'Deploy your agent',
+                  },
+                ]
               }
-            }}>
-              <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
+            />
 
-              <p className="text-lg text-gray-800 mb-4 text-center">
-                Build your agent with a few simple steps.
-              </p>
+            <div className="text-center mb-56">
 
-              <Progress
-                currentStep={1}
-                steps={
-                  [
-                    {
-                      title: 'Select Features',
-                      Icon: 'Tiling',
-                      description: 'Customize your agents personality',
-                    },
-                    {
-                      title: 'Test Agent',
-                      Icon: 'Chat',
-                      description: 'Customize your agents personality',
-                    },
-                    {
-                      title: 'Deploy',
-                      Icon: 'Upload',
-                      description: 'Deploy your agent',
-                    },
-                  ]
-                }
-              />
 
-              <div className="text-center mb-56">
 
-                <div className="flex flex-wrap justify-center w-full mb-8">
+              <div className='flex'>
+                <form className="relative" ref={editorForm} onSubmit={e => {
+                  e.preventDefault();
 
-                  <div
-                    onClick={enablePersonality}
-                    className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}
-                  >
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !isPersonalityExpanded && 'hidden')}
-                        onClick={disablePersonality}
-                      />
-                      <Icon icon="Head" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        Personality
-                      </p>
-                      {/* modal */}
-                      <Modal
-                        icon="Head"
-                        title="Personality"
-                        description="Customize your agents personality, including visuals."
-                        open={modalOpen === 'personality'}
-                        close={() => setModalOpen(null)}
-                        disableFeature={() => {
-                          setName('');
-                          setBio('');
-                          setVisualDescription('');
-                          setHomespaceDescription('');
-                          setIsPersonalityExpanded(false);
-                          setModalOpen(null);
-                        }}
-                      >
-                        <div className="mt-4">
-                          <label>
-                            <span className="mb-2">Name</span>
-                            <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
-                          </label>
-                          <label>
-                            <span className="mb-2">Bio</span>
-                            <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
-                          </label>
-                          <div className="flex items-center mb-4 mt-4">
-                            {previewUrl ? (
-                              <Link href={previewUrl} target="_blank">
-                                <div
-                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
-                                  style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                                />
-                              </Link>
-                            ) : (
-                              <div
-                                className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
-                                style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                              />
-                            )}
-                            <div className="w-full">
-                              <textarea
-                                className={textareaClass}
-                                value={visualDescription}
-                                placeholder="Describe your agent's appearance"
-                                onChange={e => setVisualDescription(e.target.value)}
-                              />
-                              <Button
-                                onClick={e => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (visualDescription) {
-                                    (async () => {
-                                      const jwt = await getJWT();
-                                      const result = await generateCharacterImage(visualDescription, undefined, { jwt });
-                                      setPreviewBlob(result.blob);
-                                    })();
-                                  }
-                                }}
-                                className="w-full"
-                              >
-                                {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
-                              </Button>
-                            </div>
-                          </div>
-                          <div className="flex items-center mb-4">
-                            {homespaceUrl ? (
-                              <Link href={homespaceUrl} target="_blank">
-                                <div
-                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
-                                  style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                                />
-                              </Link>
-                            ) : (
-                              <div
-                                className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
-                                style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                              />
-                            )}
-                            <div className="w-full">
-                              <textarea
-                                className={textareaClass}
-                                value={homespaceDescription}
-                                placeholder="Describe your agent's home space and environment"
-                                onChange={e => setHomespaceDescription(e.target.value)}
-                              />
-                              <Button
-                                onClick={e => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (homespaceDescription) {
-                                    (async () => {
-                                      const jwt = await getJWT();
-                                      const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
-                                      setHomespaceBlob(result.blob);
-                                    })();
-                                  }
-                                }}
-                                className="w-full"
-                              >
-                                {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </Modal>
-                    </div>
-                  </div>
+                  // check if the form is validated
+                  const valid = builderForm.current?.checkValidity();
+                  if (valid) {
+                    (async () => {
+                      try {
+                        setDeploying(true);
 
-                  <div
-                    onClick={() => {
-                      setModalOpen('voice');
-                      !features.tts && setFeatures({
-                        ...features,
-                        tts: makeDefaultTts(),
-                      });
-                    }}
-                    className={cn(featureClass, features.tts ? featureClassActive : '')}
-                  >
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
-                        onClick={() => {
-                          setFeatures({
-                            ...features,
-                            tts: null,
+                        // get the value from monaco editor
+                        const value = getEditorValue();
+                        console.log('deploy 1', {
+                          name,
+                          bio,
+                          visualDescription,
+                          previewBlob,
+                          value,
+                        });
+
+                        const jwt = await getJWT();
+                        if (jwt) {
+                          const [
+                            userPrivate,
+                            id,
+                            previewUrl,
+                            homespaceUrl,
+                          ] = await Promise.all([
+                            getUserForJwt(jwt, { private: true }),
+                            createAgentGuid({ jwt }),
+                            getCloudPreviewUrl(previewBlob),
+                            getCloudPreviewUrl(homespaceBlob),
+                          ]);
+                          const {
+                            id: ownerId,
+                            stripe_connect_account_id: stripeConnectAccountId,
+                          } = userPrivate;
+
+                          // agent.json
+                          let agentJson = {
+                            id,
+                            ownerId,
+                            name,
+                            bio,
+                            visualDescription,
+                            previewUrl,
+                            homespaceUrl,
+                            stripeConnectAccountId,
+                          };
+                          agentJson = ensureAgentJsonDefaults(agentJson);
+                          console.log('deploy 2', {
+                            agentJson,
                           });
-                        }} />
-                      <Icon icon="Voice" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        Voice
-                      </p>
-                      {features.tts && (
+                          const agentJsonString = JSON.stringify(agentJson, null, 2);
+                          const agentJsonFile = new File([agentJsonString], 'agent.json');
+
+                          // .env.txt
+                          const mnemonic = generateMnemonic();
+                          const envTxt = [
+                            `AGENT_TOKEN=${JSON.stringify(jwt)}`,
+                            `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
+                          ].join('\n');
+                          const envTxtFile = new File([envTxt], '.env.txt');
+
+                          // agent.tsx
+                          const agentTsxFile = new File([sourceCode], 'agent.tsx');
+
+                          const files = [
+                            agentJsonFile,
+                            envTxtFile,
+                            agentTsxFile,
+                          ];
+                          const formData = new FormData();
+                          files.forEach(file => {
+                            formData.append(file.name, file);
+                          });
+
+                          const res = await fetch(`${deployEndpointUrl}/agent`, {
+                            method: 'PUT',
+                            headers: {
+                              Authorization: `Bearer ${jwt}`,
+                            },
+                            body: formData,
+                          });
+                          if (res.ok) {
+                            const j = await res.json();
+                            console.log('deploy 3', j);
+                            // const agentJsonOutputString = j.vars.AGENT_JSON;
+                            // const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                            // const guid = agentJsonOutput.id;
+                            // location.href = `/agents/${guid}`;
+                          } else {
+                            const text = await res.text();
+                            console.error('failed to deploy agent', res.status, text);
+                          }
+                        } else {
+                          throw new Error('not logged in');
+                        }
+                      } finally {
+                        setDeploying(false);
+                      }
+                    })();
+                  }
+                }}>
+                  <div className="flex flex-wrap justify-center w-full mb-8">
+
+
+
+                    <div
+                      onClick={enablePersonality}
+                      className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}
+                    >
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !isPersonalityExpanded && 'hidden')}
+                          onClick={disablePersonality}
+                        />
+                        <Icon icon="Head" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          Personality
+                        </p>
+                        {/* modal */}
                         <Modal
-                          icon="Voice"
-                          title="Voice"
-                          description="Select a voice for your agent"
-                          open={modalOpen === 'voice'}
+                          icon="Head"
+                          title="Personality"
+                          description="Customize your agents personality, including visuals."
+                          open={modalOpen === 'personality'}
                           close={() => setModalOpen(null)}
                           disableFeature={() => {
+                            setName('');
+                            setBio('');
+                            setVisualDescription('');
+                            setHomespaceDescription('');
+                            setIsPersonalityExpanded(false);
+                            setModalOpen(null);
+                          }}
+                        >
+                          <div className="mt-4">
+                            <label>
+                              <span className="mb-2">Name</span>
+                              <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                            </label>
+                            <label>
+                              <span className="mb-2">Bio</span>
+                              <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
+                            </label>
+                            <div className="flex items-center mb-4 mt-4">
+                              {previewUrl ? (
+                                <Link href={previewUrl} target="_blank">
+                                  <div
+                                    className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                    style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                  />
+                                </Link>
+                              ) : (
+                                <div
+                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                  style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                />
+                              )}
+                              <div className="w-full">
+                                <textarea
+                                  className={textareaClass}
+                                  value={visualDescription}
+                                  placeholder="Describe your agent's appearance"
+                                  onChange={e => setVisualDescription(e.target.value)}
+                                />
+                                <Button
+                                  onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (visualDescription) {
+                                      (async () => {
+                                        const jwt = await getJWT();
+                                        const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                                        setPreviewBlob(result.blob);
+                                      })();
+                                    }
+                                  }}
+                                  className="w-full"
+                                >
+                                  {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="flex items-center mb-4">
+                              {homespaceUrl ? (
+                                <Link href={homespaceUrl} target="_blank">
+                                  <div
+                                    className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                    style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                  />
+                                </Link>
+                              ) : (
+                                <div
+                                  className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                  style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                />
+                              )}
+                              <div className="w-full">
+                                <textarea
+                                  className={textareaClass}
+                                  value={homespaceDescription}
+                                  placeholder="Describe your agent's home space and environment"
+                                  onChange={e => setHomespaceDescription(e.target.value)}
+                                />
+                                <Button
+                                  onClick={e => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (homespaceDescription) {
+                                      (async () => {
+                                        const jwt = await getJWT();
+                                        const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                                        setHomespaceBlob(result.blob);
+                                      })();
+                                    }
+                                  }}
+                                  className="w-full"
+                                >
+                                  {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </Modal>
+                      </div>
+                    </div>
+
+                    <div
+                      onClick={() => {
+                        setModalOpen('voice');
+                        !features.tts && setFeatures({
+                          ...features,
+                          tts: makeDefaultTts(),
+                        });
+                      }}
+                      className={cn(featureClass, features.tts ? featureClassActive : '')}
+                    >
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
+                          onClick={() => {
                             setFeatures({
                               ...features,
                               tts: null,
                             });
-                          }}
-                        >
-                          <div className="w-full">
-                            <label>
-                              <span className="mb-2 text-gray-900">Selected voice:</span>
-                              <select
-                                className={inputClass}
-                                value={features.tts?.voiceEndpoint ?? ''}
-                                onChange={e => {
-                                  setFeatures(features => (
-                                    {
-                                      ...features,
-                                      tts: {
-                                        voiceEndpoint: e.target.value,
-                                      },
-                                    }
-                                  ));
-                                }}
-                              >
-                                {voices.map(voice => {
-                                  return (
-                                    <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                                  );
-                                })}
-                              </select>
-                            </label>
-                          </div>
-                        </Modal>
-                      )}
+                          }} />
+                        <Icon icon="Voice" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          Voice
+                        </p>
+                        {features.tts && (
+                          <Modal
+                            icon="Voice"
+                            title="Voice"
+                            description="Select a voice for your agent"
+                            open={modalOpen === 'voice'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setFeatures({
+                                ...features,
+                                tts: null,
+                              });
+                            }}
+                          >
+                            <div className="w-full">
+                              <label>
+                                <span className="mb-2 text-gray-900">Selected voice:</span>
+                                <select
+                                  className={inputClass}
+                                  value={features.tts?.voiceEndpoint ?? ''}
+                                  onChange={e => {
+                                    setFeatures(features => (
+                                      {
+                                        ...features,
+                                        tts: {
+                                          voiceEndpoint: e.target.value,
+                                        },
+                                      }
+                                    ));
+                                  }}
+                                >
+                                  {voices.map(voice => {
+                                    return (
+                                      <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
+                                    );
+                                  })}
+                                </select>
+                              </label>
+                            </div>
+                          </Modal>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div onClick={() => {
-                    setModalOpen('rateLimit');
-                    !features.rateLimit && setFeatures({
-                      ...features,
-                      rateLimit: makeDefaultRateLimit(),
-                    });
-                  }} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.rateLimit && 'hidden')}
-                        onClick={() => {
-                          setFeatures({
-                            ...features,
-                            rateLimit: null,
-                          });
-                        }} />
-                      <Icon icon="Chat" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        Rate Limit
-                      </p>
-                      {features.rateLimit && (
-                        <Modal
-                          icon="Chat"
-                          title="Rate Limit"
-                          description="Control message frequency to prevent spam and ensure fair usage."
-                          open={modalOpen === 'rateLimit'}
-                          close={() => setModalOpen(null)}
-                          disableFeature={() => {
+                    <div onClick={() => {
+                      setModalOpen('rateLimit');
+                      !features.rateLimit && setFeatures({
+                        ...features,
+                        rateLimit: makeDefaultRateLimit(),
+                      });
+                    }} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.rateLimit && 'hidden')}
+                          onClick={() => {
                             setFeatures({
                               ...features,
                               rateLimit: null,
                             });
-                          }}
-                        >
-                          <div>
-                            <div className="flex flex-col">
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Max Messages</div>
-                                <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
-                                  setFeatures(features => {
-                                    features = {
-                                      ...features,
-                                      rateLimit: {
-                                        maxUserMessages: parseInt(e.target.value, 10) || 0,
-                                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                                      },
-                                    };
-                                    e.target.value = (features.rateLimit as any).maxUserMessages + '';
-                                    return features;
-                                  });
-                                }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
-                              </label>
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Time Frame (ms)</div>
-                                <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
-                                  setFeatures(features => {
-                                    features = {
-                                      ...features,
-                                      rateLimit: {
-                                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                                        maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
-                                        message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                                      },
-                                    };
-                                    e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
-                                    return features;
-                                  });
-                                }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
-                              </label>
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Limit Exceeded Message</div>
-                                <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
-                                  setFeatures(features => (
-                                    {
-                                      ...features,
-                                      rateLimit: {
-                                        maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                                        maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                                        message: e.target.value,
-                                      },
-                                    }
-                                  ));
-                                }} placeholder="Rate limit message" />
-                              </label>
+                          }} />
+                        <Icon icon="Chat" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          Rate Limit
+                        </p>
+                        {features.rateLimit && (
+                          <Modal
+                            icon="Chat"
+                            title="Rate Limit"
+                            description="Control message frequency to prevent spam and ensure fair usage."
+                            open={modalOpen === 'rateLimit'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setFeatures({
+                                ...features,
+                                rateLimit: null,
+                              });
+                            }}
+                          >
+                            <div>
+                              <div className="flex flex-col">
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Max Messages</div>
+                                  <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
+                                    setFeatures(features => {
+                                      features = {
+                                        ...features,
+                                        rateLimit: {
+                                          maxUserMessages: parseInt(e.target.value, 10) || 0,
+                                          maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                          message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                        },
+                                      };
+                                      e.target.value = (features.rateLimit as any).maxUserMessages + '';
+                                      return features;
+                                    });
+                                  }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
+                                </label>
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Time Frame (ms)</div>
+                                  <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
+                                    setFeatures(features => {
+                                      features = {
+                                        ...features,
+                                        rateLimit: {
+                                          maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                          maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
+                                          message: features.rateLimit?.message ?? rateLimitMessageDefault,
+                                        },
+                                      };
+                                      e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
+                                      return features;
+                                    });
+                                  }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
+                                </label>
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Limit Exceeded Message</div>
+                                  <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
+                                    setFeatures(features => (
+                                      {
+                                        ...features,
+                                        rateLimit: {
+                                          maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
+                                          maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
+                                          message: e.target.value,
+                                        },
+                                      }
+                                    ));
+                                  }} placeholder="Rate limit message" />
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                        </Modal>
-                      )}
+                          </Modal>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div onClick={() => {
-                    setModalOpen('discord');
-                    !features.discord && setFeatures({
-                      ...features,
-                      discord: makeDefaultDiscord(),
-                    });
-                  }} className={cn(featureClass, features.discord ? featureClassActive : '')}>
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.discord && 'hidden')}
-                        onClick={() => {
-                          setFeatures({
-                            ...features,
-                            discord: null,
-                          });
-                        }} />
-                      <Icon icon="Discord" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        Discord
-                      </p>
-                      {features.discord && (
-                        <Modal
-                          icon="Discord"
-                          title="Discord"
-                          description="Integrate your agent with discord to enable interactions in your discord server channels."
-                          open={modalOpen === 'discord'}
-                          close={() => setModalOpen(null)}
-                          disableFeature={() => {
+                    <div onClick={() => {
+                      setModalOpen('discord');
+                      !features.discord && setFeatures({
+                        ...features,
+                        discord: makeDefaultDiscord(),
+                      });
+                    }} className={cn(featureClass, features.discord ? featureClassActive : '')}>
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.discord && 'hidden')}
+                          onClick={() => {
                             setFeatures({
                               ...features,
                               discord: null,
                             });
-                          }}
-                        >
-                          <div>
-                            <div className="flex flex-col">
-                              {/* token */}
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Bot Token</div>
-                                <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
-                                  setFeatures(features => ({
-                                    ...features,
-                                    discord: {
-                                      token: e.target.value,
-                                      channels: features.discord?.channels ?? '',
-                                    },
-                                  }));
-                                }} placeholder="<bot token>" required />
-                              </label>
-                              {/* channels */}
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Channels</div>
-                                <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
-                                  setFeatures(features => ({
-                                    ...features,
-                                    discord: {
-                                      token: features.discord?.token ?? '',
-                                      channels: e.target.value,
-                                    },
-                                  }));
-                                }} placeholder="text, voice" required />
-                              </label>
+                          }} />
+                        <Icon icon="Discord" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          Discord
+                        </p>
+                        {features.discord && (
+                          <Modal
+                            icon="Discord"
+                            title="Discord"
+                            description="Integrate your agent with discord to enable interactions in your discord server channels."
+                            open={modalOpen === 'discord'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setFeatures({
+                                ...features,
+                                discord: null,
+                              });
+                            }}
+                          >
+                            <div>
+                              <div className="flex flex-col">
+                                {/* token */}
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Bot Token</div>
+                                  <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
+                                    setFeatures(features => ({
+                                      ...features,
+                                      discord: {
+                                        token: e.target.value,
+                                        channels: features.discord?.channels ?? '',
+                                      },
+                                    }));
+                                  }} placeholder="<bot token>" required />
+                                </label>
+                                {/* channels */}
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Channels</div>
+                                  <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
+                                    setFeatures(features => ({
+                                      ...features,
+                                      discord: {
+                                        token: features.discord?.token ?? '',
+                                        channels: e.target.value,
+                                      },
+                                    }));
+                                  }} placeholder="text, voice" required />
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                        </Modal>
-                      )}
+                          </Modal>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div onClick={() => {
-                    setModalOpen('twitterBot');
-                    !features.twitterBot && setFeatures({
-                      ...features,
-                      twitterBot: makeDefaultTwitterBot(),
-                    });
-                  }} className={cn(featureClass, features.twitterBot ? featureClassActive : '')}>
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.twitterBot && 'hidden')}
-                        onClick={() => {
-                          setFeatures({
-                            ...features,
-                            twitterBot: null,
-                          });
-                        }} />
-                      <Icon icon="X" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        X (Twitter)
-                      </p>
-                      {features.twitterBot && (
-                        <Modal
-                          icon="X"
-                          title="X (Twitter)"
-                          description="Enable your agent to post and interact on Twitter automatically."
-                          open={modalOpen === 'twitterBot'}
-                          close={() => setModalOpen(null)}
-                          disableFeature={() => {
+                    <div onClick={() => {
+                      setModalOpen('twitterBot');
+                      !features.twitterBot && setFeatures({
+                        ...features,
+                        twitterBot: makeDefaultTwitterBot(),
+                      });
+                    }} className={cn(featureClass, features.twitterBot ? featureClassActive : '')}>
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.twitterBot && 'hidden')}
+                          onClick={() => {
                             setFeatures({
                               ...features,
                               twitterBot: null,
                             });
-                          }}
-                        >
-                          <div>
-                            <div className="flex flex-col">
-                              <label className="text-gray-900">
-                                <div className="mr-2 min-w-32">Token</div>
-                                <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
-                                  setFeatures(features => ({
-                                    ...features,
-                                    twitterBot: {
-                                      token: e.target.value,
-                                    },
-                                  }));
-                                }} placeholder="<bot token>" required />
-                              </label>
+                          }} />
+                        <Icon icon="X" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          X (Twitter)
+                        </p>
+                        {features.twitterBot && (
+                          <Modal
+                            icon="X"
+                            title="X (Twitter)"
+                            description="Enable your agent to post and interact on Twitter automatically."
+                            open={modalOpen === 'twitterBot'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setFeatures({
+                                ...features,
+                                twitterBot: null,
+                              });
+                            }}
+                          >
+                            <div>
+                              <div className="flex flex-col">
+                                <label className="text-gray-900">
+                                  <div className="mr-2 min-w-32">Token</div>
+                                  <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
+                                    setFeatures(features => ({
+                                      ...features,
+                                      twitterBot: {
+                                        token: e.target.value,
+                                      },
+                                    }));
+                                  }} placeholder="<bot token>" required />
+                                </label>
+                              </div>
                             </div>
-                          </div>
-                        </Modal>
-                      )}
+                          </Modal>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div onClick={() => {
-                    setModalOpen('storeItems');
-                    !features.storeItems && setFeatures({
-                      ...features,
-                      storeItems: makeEmptyStoreItems(),
-                    });
-                  }} className={cn(featureClass, features.storeItems ? featureClassActive : '')}>
-                    <div>
-                      <Icon
-                        icon="Close"
-                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.storeItems && 'hidden')}
-                        onClick={() => {
-                          setFeatures({
-                            ...features,
-                            storeItems: null,
-                          });
-                        }} />
-                      <Icon icon="ModuleStore" className={featureIconClass} />
-                      <p className={featureTextClass}>
-                        Store
-                      </p>
-                      {features.storeItems && (
-                        <Modal
-                          icon="ModuleStore"
-                          title="Store"
-                          description="Define items for sale, including subscriptions and one-time purchases."
-                          open={modalOpen === 'storeItems'}
-                          close={() => setModalOpen(null)}
-                          disableFeature={() => {
+                    <div onClick={() => {
+                      setModalOpen('storeItems');
+                      !features.storeItems && setFeatures({
+                        ...features,
+                        storeItems: makeEmptyStoreItems(),
+                      });
+                    }} className={cn(featureClass, features.storeItems ? featureClassActive : '')}>
+                      <div>
+                        <Icon
+                          icon="Close"
+                          className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.storeItems && 'hidden')}
+                          onClick={() => {
                             setFeatures({
                               ...features,
                               storeItems: null,
                             });
-                          }}
-                        >
-                          <div>
-                            <div className="flex flex-col">
-                              {features.storeItems.map((item, index) => {
-                                const {
-                                  type,
-                                  props,
-                                } = item;
-                                const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
-                                  setFeatures(features => {
-                                    const storeItems = features.storeItems ?? [];
-                                    const newStoreItems = [...storeItems];
-                                    const newStoreItem = { ...item };
-                                    fn(newStoreItem);
-                                    newStoreItems[index] = newStoreItem;
-                                    return {
-                                      ...features,
-                                      storeItems: newStoreItems,
-                                    };
-                                  });
-                                };
-                                return (
-                                  <div className="flex" key={index}>
-                                    {props.previewUrl ?
-                                      <img
-                                        src={props.previewUrl}
-                                        className="w-16 h-16 mr-2 bg-primary/10 rounded"
-                                      />
-                                      :
-                                      <div
-                                        className="w-16 h-16 mr-2 bg-primary/10 rounded"
-                                      />
-                                    }
-                                    <div className="flex flex-col">
-                                      <select value={type} className={inputClass} onChange={e => {
-                                        setStoreItem((storeItem) => {
-                                          storeItem.type = e.target.value;
-                                        });
-                                      }}>
-                                        <option value="payment">payment</option>
-                                        <option value="subscription">subscription</option>
-                                      </select>
-                                      <input type="text" className={inputClass} value={props.name} onChange={e => {
-                                        setStoreItem((storeItem) => {
-                                          storeItem.props.name = e.target.value;
-                                        });
-                                      }} placeholder="Name" />
-                                      <input type="text" className={inputClass} value={props.description} onChange={e => {
-                                        setStoreItem((storeItem) => {
-                                          storeItem.props.description = e.target.value;
-                                        });
-                                      }} placeholder="Description" />
-                                      <input type="number" className={inputClass} value={props.amount} onChange={e => {
-                                        setStoreItem((storeItem) => {
-                                          storeItem.props.amount = parseFloat(e.target.value);
-                                        });
-                                      }} placeholder="Amount" />
-                                      <select className={inputClass} value={props.currency} onChange={e => {
-                                        setStoreItem((storeItem) => {
-                                          storeItem.props.currency = e.target.value as Currency;
-                                        });
-                                      }}>
-                                        {currencies.map(currency => {
-                                          return (
-                                            <option value={currency} key={currency}>{currency}</option>
-                                          );
-                                        })}
-                                      </select>
-                                      {type === 'subscription' && <>
-                                        {/* interval */}
-                                        <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
+                          }} />
+                        <Icon icon="ModuleStore" className={featureIconClass} />
+                        <p className={featureTextClass}>
+                          Store
+                        </p>
+                        {features.storeItems && (
+                          <Modal
+                            icon="ModuleStore"
+                            title="Store"
+                            description="Define items for sale, including subscriptions and one-time purchases."
+                            open={modalOpen === 'storeItems'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setFeatures({
+                                ...features,
+                                storeItems: null,
+                              });
+                            }}
+                          >
+                            <div>
+                              <div className="flex flex-col">
+                                {features.storeItems.map((item, index) => {
+                                  const {
+                                    type,
+                                    props,
+                                  } = item;
+                                  const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
+                                    setFeatures(features => {
+                                      const storeItems = features.storeItems ?? [];
+                                      const newStoreItems = [...storeItems];
+                                      const newStoreItem = { ...item };
+                                      fn(newStoreItem);
+                                      newStoreItems[index] = newStoreItem;
+                                      return {
+                                        ...features,
+                                        storeItems: newStoreItems,
+                                      };
+                                    });
+                                  };
+                                  return (
+                                    <div className="flex" key={index}>
+                                      {props.previewUrl ?
+                                        <img
+                                          src={props.previewUrl}
+                                          className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                                        />
+                                        :
+                                        <div
+                                          className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                                        />
+                                      }
+                                      <div className="flex flex-col">
+                                        <select value={type} className={inputClass} onChange={e => {
                                           setStoreItem((storeItem) => {
-                                            (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
+                                            storeItem.type = e.target.value;
                                           });
                                         }}>
-                                          <option value="day">day</option>
-                                          <option value="week">week</option>
-                                          <option value="month">month</option>
-                                          <option value="year">year</option>
+                                          <option value="payment">payment</option>
+                                          <option value="subscription">subscription</option>
                                         </select>
-                                        {/* intervalCount */}
-                                        <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                                        <input type="text" className={inputClass} value={props.name} onChange={e => {
                                           setStoreItem((storeItem) => {
-                                            (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
+                                            storeItem.props.name = e.target.value;
                                           });
-                                        }} placeholder="Interval count" />
-                                      </>}
+                                        }} placeholder="Name" />
+                                        <input type="text" className={inputClass} value={props.description} onChange={e => {
+                                          setStoreItem((storeItem) => {
+                                            storeItem.props.description = e.target.value;
+                                          });
+                                        }} placeholder="Description" />
+                                        <input type="number" className={inputClass} value={props.amount} onChange={e => {
+                                          setStoreItem((storeItem) => {
+                                            storeItem.props.amount = parseFloat(e.target.value);
+                                          });
+                                        }} placeholder="Amount" />
+                                        <select className={inputClass} value={props.currency} onChange={e => {
+                                          setStoreItem((storeItem) => {
+                                            storeItem.props.currency = e.target.value as Currency;
+                                          });
+                                        }}>
+                                          {currencies.map(currency => {
+                                            return (
+                                              <option value={currency} key={currency}>{currency}</option>
+                                            );
+                                          })}
+                                        </select>
+                                        {type === 'subscription' && <>
+                                          {/* interval */}
+                                          <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
+                                            setStoreItem((storeItem) => {
+                                              (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
+                                            });
+                                          }}>
+                                            <option value="day">day</option>
+                                            <option value="week">week</option>
+                                            <option value="month">month</option>
+                                            <option value="year">year</option>
+                                          </select>
+                                          {/* intervalCount */}
+                                          <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
+                                            setStoreItem((storeItem) => {
+                                              (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
+                                            });
+                                          }} placeholder="Interval count" />
+                                        </>}
+                                      </div>
                                     </div>
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
-                        </Modal>
-                      )}
+                          </Modal>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+
+                </form>
+
+
+                {/* chat */}
+
+                <div className={`flex-col h-[400px] w-[300px] min-w-[300px] relative bg-white`}>
+                  <Chat
+                    room={room}
+                    mode={'builder'}
+                    className='h-[400px] w-[300px] min-w-[300px]'
+                    onConnect={(connected) => {
+                      if (connected) {
+                        setConnecting(false);
+                      }
+                    }}
+                  />
                 </div>
 
-                <Button className='p-2'>Next</Button>
               </div>
 
-            </form>
-          </div>
+              <Button className='p-2'>Next</Button>
+            </div>
 
-          {/* chat */}
-
-          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isChatVisible ? '' : 'hidden'}`}>
-            <Chat
-              room={room}
-              mode={'builder'}
-              onConnect={(connected) => {
-                if (connected) {
-                  setConnecting(false);
-                }
-              }}
-            />
           </div>
 
           {/* code editor */}
