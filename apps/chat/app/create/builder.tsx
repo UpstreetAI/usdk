@@ -26,6 +26,7 @@ import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { BackButton } from '@/components/back';
 import { Modal } from './modal';
+import Progress from './progress';
 
 //
 
@@ -614,11 +615,13 @@ export default function AgentEditor({
               }
             }}>
               <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
+
               <p className="text-lg text-gray-800 mb-4 text-center">
-                Select the features for your agent.
+                Build your agent with a few simple steps.
               </p>
 
-
+              <Progress step={1} />
+              
               <div className="text-center mb-56">
 
                 <div className="flex flex-wrap justify-center w-full mb-8">
