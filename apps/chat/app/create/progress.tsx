@@ -18,7 +18,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
     <div className="w-full py-6">
       <div className="flex justify-center">
         {steps.map((step, index) => (
-          <div key={index} className="w-1/3">
+          <div key={index} className={`w-1/${steps.length}`}>
             <div className="relative mb-2">
               {index > 0 && (
                 <div
