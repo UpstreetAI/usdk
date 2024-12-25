@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button, Icon } from 'ucom';
+import { Button, Icon, IconButton } from 'ucom';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -480,8 +480,8 @@ export default function AgentEditor({
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
-  const featureClass = 'cursor-pointer inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
-  const featureClassActive = 'bg-gray-900 text-white hover:bg-gray-900/90 ';
+  const featureClass = 'cursor-pointer relative inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
+  const featureClassActive = 'bg-gray-900 text-white hover:bg-gray-950';
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
 
@@ -629,7 +629,6 @@ export default function AgentEditor({
                             <span className="mb-2">Bio</span>
                             <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
                           </label>
-
                           <div className="flex items-center mb-4 mt-4">
                             {previewUrl ? (
                               <Link href={previewUrl} target="_blank">
@@ -723,6 +722,15 @@ export default function AgentEditor({
                     className={cn(featureClass, features.tts ? featureClassActive : '')}
                   >
                     <div>
+                      <Icon 
+                        icon="Close" 
+                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
+                        onClick={() => {
+                        setFeatures({
+                          ...features,
+                          tts: null,
+                        });
+                      }} />
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Voice
