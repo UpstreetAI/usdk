@@ -259,8 +259,10 @@ export class ConversationObject extends EventTarget {
           const mentionFormat = this.mentionsRegex.source
             .replace(/\(\?<id>[^)]+\)/, playerSpec.mentionId);
           
+          const sanitizedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
           message = message.replace(
-            new RegExp(`@${name}`, 'g'),
+            new RegExp(`@${sanitizedName}`, 'g'),
             mentionFormat
           );
           break;
