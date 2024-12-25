@@ -108,13 +108,31 @@ const bindOutgoing = ({
         userId: string,
       };
 
+
+      // TODO: current agent mentionId needs to be set
+      const getDiscordIdForUserId = (userId: string) => {
+        const agents = conversation.getAgents();
+        const currentAgent = conversation.agent;
+        const agent = agents.find(
+          agent => agent.playerId === userId
+        ) || (currentAgent.id === userId ? currentAgent : undefined);
+
+        const discordId = agent?.playerSpec?.mentionId;
+        return discordId;
+      };
+
+      const discordId = getDiscordIdForUserId(userId);
       console.log('discord manager message reaction', {
         reaction,
         messageId,
         userId,
+        channelId,
+        discordId,
       });
-
-      discordBotClient.input.reactToMessage(reaction, messageId, userId);
+      discordBotClient.input.reactToMessage(reaction, messageId, {
+        channelId,
+        userId: discordId,
+      });
     } else {
       // ignore
     }

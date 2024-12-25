@@ -193,6 +193,22 @@ export class DiscordInput {
     this.queueManager.completeStream(streamId);
   }
 
+  reactToMessage(reaction, messageId, {
+    channelId,
+    userId,
+  } = {}) {
+    const m = {
+      method: 'reactToMessage',
+      args: {
+        channelId,
+        reaction,
+        messageId,
+        userId,
+      },
+    };
+    this.ws.send(JSON.stringify(m));
+  }
+
   destroy() {
     // Clean up any remaining buffers
     for (const streamId of this.bufferManager.buffers.keys()) {
