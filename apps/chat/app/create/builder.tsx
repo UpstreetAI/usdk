@@ -620,8 +620,29 @@ export default function AgentEditor({
                 Build your agent with a few simple steps.
               </p>
 
-              <Progress step={1} />
-              
+              <Progress
+                currentStep={1}
+                steps={
+                  [
+                    {
+                      title: 'Select Features',
+                      Icon: 'Tiling',
+                      description: 'Customize your agents personality',
+                    },
+                    {
+                      title: 'Test Agent',
+                      Icon: 'Chat',
+                      description: 'Customize your agents personality',
+                    },
+                    {
+                      title: 'Deploy',
+                      Icon: 'Upload',
+                      description: 'Deploy your agent',
+                    },
+                  ]
+                }
+              />
+
               <div className="text-center mb-56">
 
                 <div className="flex flex-wrap justify-center w-full mb-8">
