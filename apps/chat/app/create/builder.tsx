@@ -477,8 +477,6 @@ export default function AgentEditor({
     </button>
   );
 
-  const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
-  const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
