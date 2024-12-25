@@ -360,26 +360,24 @@ export class ConversationObject extends EventTarget {
     );
   }
 
+  // async processMessageReaction(
+  //   reaction,
+  //   messageId,
+  //   userId,
+  // ) {
+  //   console.log('process reaction: ',{
+  //     reaction,
+  //     messageId,
+  //     userId,
+  //   });
 
-  async processMessageReaction(
-    reaction,
-    messageId,
-    userId,
-  ) {
-    console.log('process reaction: ',{
-      reaction,
-      messageId,
-      userId,
-    });
-
-    const e = new ExtendableMessageEvent<MessageReactionEventData>('localMessageReaction', {
-      data: {
-        reaction,
-        messageId,
-        userId,
-      },
-    });
-    this.dispatchEvent(e);
-  }
-
+  //   const e = new ExtendableMessageEvent<MessageReactionEventData>('localMessageReaction', {
+  //     data: {
+  //       reaction,
+  //       messageId,
+  //       userId,
+  //     },
+  //   });
+  //   this.dispatchEvent(e);
+  // }
 }
