@@ -1208,66 +1208,6 @@ export default function AgentEditor({
             />
           </div>
 
-          {/* assistant */}
-
-          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isAssistantVisible ? '' : 'hidden'}`}>
-            <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
-              {builderMessages.map((message, index) => (
-                <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
-                  <div className='w-6 min-w-6'><Icon icon={message.role === 'assistant' ? 'Upstreet' : 'Head'} className="size-5" /></div>
-                  <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex absolute bottom-0 left-0 w-full px-2">
-              <form
-                className="flex w-full"
-                onSubmit={async e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-
-                  if (builderPrompt) {
-                    const agentInterview = await ensureAgentInterview();
-                    agentInterview.write(builderPrompt);
-
-                    setBuilderMessages((builderMessages) => [
-                      ...builderMessages,
-                      {
-                        role: 'user',
-                        content: builderPrompt,
-                      },
-                    ]);
-                    setBuilderPrompt('');
-                  }
-                }}
-                ref={builderForm}
-              >
-                <div className="relative w-full">
-                  <div className="w-full">
-                    <input
-                      type="text"
-                      className={cn(inputClass, 'w-full')}
-                      value={builderPrompt}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          builderSubmit();
-                        }
-                      }}
-                      onChange={e => setBuilderPrompt(e.target.value)}
-                    />
-                  </div>
-                  <div className="absolute right-0 top-2 sm:right-2">
-                    <Icon icon="Send" className='text-2xl cursor-pointer' onClick={e => {
-                      e.preventDefault();
-                      builderSubmit();
-                    }} />
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
           {/* code editor */}
 
           <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isCodeVisible ? '' : 'hidden'}`}>
@@ -1301,6 +1241,70 @@ export default function AgentEditor({
           </div>
 
         </div>
+
+
+
+        {/* assistant */}
+
+        <div className={`flex-col fixed left-4 bottom-4 h-[400px] w-[300px] flex-1 z-10 bg-white`}>
+          <div className="flex flex-col flex-1 h-[calc(100%-40px)] overflow-scroll px-1 pb-8 pt-6">
+            {builderMessages.map((message, index) => (
+              <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
+                <div className='w-6 min-w-6'><Icon icon={message.role === 'assistant' ? 'Upstreet' : 'Head'} className="size-5" /></div>
+                <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
+              </div>
+            ))}
+          </div>
+          <div className="flex absolute h-[40px] bg-green-500 bottom-0 left-0 w-full">
+            <form
+              className="flex w-full"
+              onSubmit={async e => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (builderPrompt) {
+                  const agentInterview = await ensureAgentInterview();
+                  agentInterview.write(builderPrompt);
+
+                  setBuilderMessages((builderMessages) => [
+                    ...builderMessages,
+                    {
+                      role: 'user',
+                      content: builderPrompt,
+                    },
+                  ]);
+                  setBuilderPrompt('');
+                }
+              }}
+              ref={builderForm}
+            >
+              <div className="relative w-full">
+                <div className="w-full">
+                  <input
+                    type="text"
+                    className={cn(inputClass, 'w-full')}
+                    value={builderPrompt}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        builderSubmit();
+                      }
+                    }}
+                    onChange={e => setBuilderPrompt(e.target.value)}
+                  />
+                </div>
+                <div className="absolute right-0 top-2 sm:right-2">
+                  <Icon icon="Send" className='text-2xl cursor-pointer' onClick={e => {
+                    e.preventDefault();
+                    builderSubmit();
+                  }} />
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+
       </div>
     </div>
   );
