@@ -340,6 +340,20 @@ export class DiscordOutput extends EventTarget {
     }
   }
 
+  handleMessageReactionAdd(args) {
+    console.log('handleMessageReactionAdd', args);
+    this.dispatchEvent(new MessageEvent('messagereactionadd', {
+      data: args,
+    }));
+  }
+
+  handleMessageReactionRemove(args) {
+    console.log('handleMessageReactionRemove', args);
+    this.dispatchEvent(new MessageEvent('messagereactionremove', {
+      data: args,
+    }));
+  }
+
   destroy() {
     for (const stream of this.streams.values()) {
       stream.destroy();
@@ -537,17 +551,11 @@ export class DiscordBotClient extends EventTarget {
             break;
           }
           case 'messagereactionadd': {
-            console.log('messagereactionadd', args);
-            this.dispatchEvent(new MessageEvent('messagereactionadd', {
-              data: args,
-            }));
+            this.output.handleMessageReactionAdd(args);
             break;
           }
           case 'messagereactionremove': {
-            console.log('messagereactionremove', args);
-            this.dispatchEvent(new MessageEvent('messagereactionremove', {
-              data: args,
-            }));
+            this.output.handleMessageReactionRemove(args);
             break;
           }
           default: {

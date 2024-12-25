@@ -411,11 +411,41 @@ export class DiscordBot extends EventTarget {
       });
     };
 
+    // message reactions
+    const _bindIncomingMessageReactions = () => {
+      discordBotClient.output.addEventListener('messagereactionadd', (e: MessageEvent) => {
+        const {
+          userId,
+          messageId,
+          emoji,
+        } = e.data;
+        console.log('messagereactionadd', {
+          userId,
+          messageId,
+          emoji,
+        });
+      });
+
+      discordBotClient.output.addEventListener('messagereactionremove', (e: MessageEvent) => {
+        const {
+          userId,
+          messageId,
+          emoji,
+        } = e.data;
+        console.log('messagereactionremove', {
+          userId,
+          messageId,
+          emoji,
+        });
+      });
+    };
+
     (async () => {
       _bindChannels();
       _bindGuildMemberAdd();
       _bindGuildMemberRemove();
       _bindIncoming();
+      _bindIncomingMessageReactions();
       await _connect();
     })().catch(err => {
       console.warn('discord bot error', err);
