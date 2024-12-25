@@ -25,7 +25,7 @@ import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { BackButton } from '@/components/back';
-import Modal from './modal';
+import { Modal } from './modal';
 
 //
 
@@ -112,7 +112,7 @@ export default function AgentEditor({
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
-  const [modalOpen, setModalOpen] = useState(null);
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   // effects
   // sync previewBlob -> previewUrl
@@ -486,6 +486,11 @@ export default function AgentEditor({
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-2';
 
+  const close = () => {
+    setModalOpen(null);
+    console.log('close', modalOpen);
+  };
+
   // render
   return (
     <div className="relative">
@@ -606,7 +611,7 @@ export default function AgentEditor({
 
                 <div className="flex flex-wrap justify-center w-full mb-8">
 
-                  <a href="#" className={cn(featureClass)}>
+                  <div onClick={() => setModalOpen('personality')} className={cn(featureClass)}>
                     <div>
                       <Icon icon="Head" className={featureIconClass} />
                       <p className={featureTextClass}>
@@ -616,7 +621,8 @@ export default function AgentEditor({
                         icon="Head"
                         title="Personality"
                         description="Customize your agents personality, including visuals."
-                        onClose={() => { }}
+                        open={modalOpen === 'personality'}
+                        close={close}
                       >
                         <div className="mt-4">
                           <label>
@@ -709,7 +715,7 @@ export default function AgentEditor({
                         </div>
                       </Modal>
                     </div>
-                  </a>
+                  </div>
 
                   <a href="#" className={cn(featureClass, features.tts ? '' : '')}>
                     <div>
