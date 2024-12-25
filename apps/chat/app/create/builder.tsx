@@ -482,7 +482,7 @@ export default function AgentEditor({
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
-  const featureClass = 'cursor-pointer relative inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
+  const featureClass = 'cursor-pointer relative inline-block py-6 text-center border lg:w-[calc(50%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
   const featureClassActive = 'bg-gray-900 text-white hover:bg-gray-950';
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
@@ -516,8 +516,8 @@ export default function AgentEditor({
   // render
   return (
     <div className="relative">
-      <div className='w-full h-full text-zinc-950'>
-        <div className="flex">
+      <div className='w-full h-screen text-zinc-950'>
+        <div className="flex h-full">
           <div className="container mx-auto max-w-4xl px-4 py-8">
             <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
 
@@ -548,12 +548,28 @@ export default function AgentEditor({
               }
             />
 
-            <div className="text-center mb-56">
+            <div className="text-center">
 
 
+              <div className='flex flex-row h-full'>
 
-              <div className='flex'>
-                <form className="relative" ref={editorForm} onSubmit={e => {
+                {/* chat */}
+
+              <div className={`flex-col h-full w-1/2 min-w-1/2 relative border m-2`}>
+
+                  <Chat
+                    room={room}
+                    mode={'builder'}
+                    className='h-[400px] w-[300px] min-w-[300px]'
+                    onConnect={(connected) => {
+                      if (connected) {
+                        setConnecting(false);
+                      }
+                    }}
+                  />
+                </div>
+
+                <form className="w-1/2 min-w-1/2 relative" ref={editorForm} onSubmit={e => {
                   e.preventDefault();
 
                   // check if the form is validated
@@ -1201,24 +1217,10 @@ export default function AgentEditor({
                       </div>
                     </div>
                   </div>
-
-
                 </form>
 
-                {/* chat */}
 
-                <div className={`flex-col h-[400px] w-[300px] min-w-[300px] relative border m-2`}>
-                  <Chat
-                    room={room}
-                    mode={'desktop'}
-                    className='h-[400px] w-[300px] min-w-[300px]'
-                    onConnect={(connected) => {
-                      if (connected) {
-                        setConnecting(false);
-                      }
-                    }}
-                  />
-                </div>
+
 
               </div>
 
@@ -1259,13 +1261,10 @@ export default function AgentEditor({
             />
           </div>
 
-        </div>
 
+          {/* assistant */}
 
-
-        {/* assistant */}
-
-        <div className={`flex-col fixed left-4 bottom-4 h-[400px] w-[300px] flex-1 z-10 bg-white`}>
+        <div className={`flex-col relative right-4 bottom-4 h-full w-[300px] bg-white`}>
           <div className="flex flex-col flex-1 h-[calc(100%-40px)] overflow-scroll px-1 pb-8 pt-6">
             {builderMessages.map((message, index) => (
               <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
@@ -1323,6 +1322,13 @@ export default function AgentEditor({
           </div>
         </div>
 
+
+
+        </div>
+
+
+
+        
 
       </div>
     </div>
