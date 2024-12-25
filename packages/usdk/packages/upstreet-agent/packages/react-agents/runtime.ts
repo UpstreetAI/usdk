@@ -541,13 +541,23 @@ export const bindConversationToAgent = ({
       })();
     }
   });
-  conversation.addEventListener('localMessageReaction', (e: MessageReactionEvent) => {
+  conversation.addEventListener('localMessageReaction', async (e: MessageReactionEvent) => {
     const { reaction, messageId, userId } = e.data;
     console.log('runtime localMessageReaction: ', {
       reaction,
       messageId,
       userId,
     });
+    try {
+      const {
+          aborted,
+        } = await handleChatPerception(e.data, {
+        agent,
+        conversation,
+      });
+    } catch (error) {
+      console.warn('caught new message reaction error', error);
+    }
   });
 };
 

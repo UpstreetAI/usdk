@@ -40,6 +40,24 @@ export const ChatLoop = (props: LoopProps) => {
         priority={-1}
       />
       <Perception
+        type="messageReaction"
+        handler={async (e) => {
+          const { targetAgent } = e.data;
+
+
+          console.log('messageReaction: ', e.data);
+          (async () => {
+            const abortController = new AbortController();
+            const { signal } = abortController;
+            
+            await targetAgent.evaluate(evaluator, {
+              signal,
+            });
+          })();
+        }}
+        priority={-1}
+      />
+      <Perception
         type="nudge"
         handler={async (e) => {
           const { targetAgent, message } = e.data;

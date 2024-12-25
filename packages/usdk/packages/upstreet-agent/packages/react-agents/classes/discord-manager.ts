@@ -421,6 +421,7 @@ export class DiscordBot extends EventTarget {
           messageId,
           emoji,
           channelId,
+          userDisplayName,
         } = e.data;
         console.log('messagereactionadd', {
           userId,
@@ -442,8 +443,25 @@ export class DiscordBot extends EventTarget {
           conversation = this.channelConversations.get(channelId) ?? null;
         }
 
+        const rawMessageReaction = {
+          userId,
+          name: userDisplayName,
+          method: 'messageReaction',
+          args: {
+            reaction: emoji,
+            messageId,
+            userId,
+          },
+        };
+
+        const newMessageReaction = formatConversationMessage(rawMessageReaction, {
+          agent,
+        });
+
+        console.log('newMessageReaction: ', newMessageReaction);
+
         if (conversation) {
-          conversation.processMessageReaction(emoji, messageId, userId);
+          conversation.addLocalMessage(newMessageReaction);
         }
 
       });
@@ -469,10 +487,13 @@ export class DiscordBot extends EventTarget {
           conversation = this.channelConversations.get(channelId) ?? null;
         }
 
+        const newMessageReaction = formatConversationMessage(rawMessageReaction, {
+          agent,
+        });
+        
         if (conversation) {
-          conversation.processMessageReaction(emoji, messageId, userId);
+          conversation.addLocalMessage(newMessageReaction);
         }
-
       });
     };
 
