@@ -13,7 +13,7 @@ export const Modal = ({ icon, title, description, open, close, children }) => {
                         <div className="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                             <div className="sm:flex sm:items-start">
                                 <div className="mx-auto flex size-12 shrink-0 items-center justify-center sm:mx-0 sm:size-14">
-                                    <Icon icon={icon} className='size-10 -mt-2' />
+                                    <Icon icon={icon} className='size-10 -mt-2 text-gray-900' />
                                 </div>
                                 <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
                                     <h3 className="text-base font-semibold text-gray-900" id="modal-title">{title}</h3>
