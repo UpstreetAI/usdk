@@ -480,11 +480,11 @@ export default function AgentEditor({
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
-  const featureClass = 'inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4';
-  const featureClassActive = 'bg-gray-900 text-white';
+  const featureClass = 'cursor-pointer inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
+  const featureClassActive = 'bg-gray-900 text-white hover:bg-gray-900/90 ';
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
-  
+
   const [modalOpen, setModalOpen] = useState<string | null>(null);
   // render
   return (
@@ -708,12 +708,20 @@ export default function AgentEditor({
                               </Button>
                             </div>
                           </div>
-                          </div>
-                        </Modal>
+                        </div>
+                      </Modal>
                     </div>
                   </div>
 
-                  <div onClick={() => setModalOpen('voice')} className={cn(featureClass, features.tts ? featureClassActive : '')}>
+                  <div
+                    onClick={() => {
+                      !features.tts && setFeatures({
+                        ...features,
+                        tts: makeDefaultTts(),
+                      });
+                    }}
+                    className={cn(featureClass, features.tts ? featureClassActive : '')}
+                  >
                     <div>
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
