@@ -738,7 +738,7 @@ export default function AgentEditor({
                       </p>
                       {features.tts && (
                         <Modal
-                          icon="Head"
+                          icon="Voice"
                           title="Voice"
                           description="Select a voice for your agent"
                           open={modalOpen === 'voice'}
@@ -797,7 +797,7 @@ export default function AgentEditor({
                       </p>
                       {features.rateLimit && (
                         <Modal
-                          icon="Head"
+                          icon="Chat"
                           title="Rate Limit"
                           description="Control message frequency to prevent spam and ensure fair usage."
                           open={modalOpen === 'rateLimit'}
@@ -884,7 +884,7 @@ export default function AgentEditor({
                       </p>
                       {features.discord && (
                         <Modal
-                          icon="Head"
+                          icon="Discord"
                           title="Discord"
                           description="Integrate your agent with discord to enable interactions in your discord server channels."
                           open={modalOpen === 'discord'}
@@ -948,7 +948,7 @@ export default function AgentEditor({
                       </p>
                       {features.twitterBot && (
                         <Modal
-                          icon="Head"
+                          icon="X"
                           title="X (Twitter)"
                           description="Enable your agent to post and interact on Twitter automatically."
                           open={modalOpen === 'twitterBot'}
@@ -997,7 +997,7 @@ export default function AgentEditor({
                       </p>
                       {features.storeItems && (
                         <Modal
-                          icon="Head"
+                          icon="ModuleStore"
                           title="Store"
                           description="Define items for sale, including subscriptions and one-time purchases."
                           open={modalOpen === 'storeItems'}
