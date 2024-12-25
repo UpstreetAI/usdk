@@ -447,6 +447,9 @@ export class DiscordBot extends EventTarget {
             reaction: emoji,
             messageId,
             userId,
+            context: {
+              action: eventType === 'messagereactionadd' ? 'Reaction added' : 'Reaction removed',
+            },
           },
         };
 
