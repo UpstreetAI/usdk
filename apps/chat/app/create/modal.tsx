@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Icon } from 'ucom';
 
-export const Modal = ({ icon, title, description, open, close, children }) => {
+export const Modal = ({ icon, title, description, open, close, children, disableFeature }) => {
     if (!open) return null;
 
     return (
@@ -26,7 +26,7 @@ export const Modal = ({ icon, title, description, open, close, children }) => {
                             </div>
                         </div>
                         <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                            <Button type="button" onClick={close}>Close</Button>
+                            <Button type="button" onClick={disableFeature}>Disable Feature</Button>
                         </div>
                     </div>
                 </div>

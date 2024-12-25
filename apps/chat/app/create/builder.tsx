@@ -743,6 +743,12 @@ export default function AgentEditor({
                           description="Select a voice for your agent"
                           open={modalOpen === 'voice'}
                           close={() => setModalOpen(null)}
+                          disableFeature={() => {
+                            setFeatures({
+                              ...features,
+                              tts: null,
+                            });
+                          }}
                         >
                           <div className="w-full">
                             <label>
@@ -802,6 +808,12 @@ export default function AgentEditor({
                           description="Control message frequency to prevent spam and ensure fair usage."
                           open={modalOpen === 'rateLimit'}
                           close={() => setModalOpen(null)}
+                          disableFeature={() => {
+                            setFeatures({
+                              ...features,
+                              rateLimit: null,
+                            });
+                          }}
                         >
                           <div>
                             <div className="flex flex-col">
@@ -889,6 +901,12 @@ export default function AgentEditor({
                           description="Integrate your agent with discord to enable interactions in your discord server channels."
                           open={modalOpen === 'discord'}
                           close={() => setModalOpen(null)}
+                          disableFeature={() => {
+                            setFeatures({
+                              ...features,
+                              discord: null,
+                            });
+                          }}
                         >
                           <div>
                             <div className="flex flex-col">
@@ -953,6 +971,12 @@ export default function AgentEditor({
                           description="Enable your agent to post and interact on Twitter automatically."
                           open={modalOpen === 'twitterBot'}
                           close={() => setModalOpen(null)}
+                          disableFeature={() => {
+                            setFeatures({
+                              ...features,
+                              twitterBot: null,
+                            });
+                          }}
                         >
                           <div>
                             <div className="flex flex-col">
@@ -1002,6 +1026,12 @@ export default function AgentEditor({
                           description="Define items for sale, including subscriptions and one-time purchases."
                           open={modalOpen === 'storeItems'}
                           close={() => setModalOpen(null)}
+                          disableFeature={() => {
+                            setFeatures({
+                              ...features,
+                              storeItems: null,
+                            });
+                          }}
                         >
                           <div>
                             <div className="flex flex-col">
