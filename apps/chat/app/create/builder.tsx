@@ -486,6 +486,23 @@ export default function AgentEditor({
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
 
   const [modalOpen, setModalOpen] = useState<string | null>(null);
+
+
+  const enablePersonality = () => {
+    setModalOpen('personality');
+    setIsPersonalityExpanded(true);
+  };
+
+  const disablePersonality = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setName('');
+    setBio('');
+    setVisualDescription('');
+    setHomespaceDescription('');
+    setIsPersonalityExpanded(false);
+    setModalOpen(null);
+  };
+
   // render
   return (
     <div className="relative">
@@ -606,8 +623,16 @@ export default function AgentEditor({
 
                 <div className="flex flex-wrap justify-center w-full mb-8">
 
-                  <div onClick={() => setModalOpen('personality')} className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}>
+                  <div
+                    onClick={enablePersonality}
+                    className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}
+                  >
                     <div>
+                      <Icon
+                        icon="Close"
+                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !isPersonalityExpanded && 'hidden')}
+                        onClick={disablePersonality}
+                      />
                       <Icon icon="Head" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Personality
@@ -619,6 +644,14 @@ export default function AgentEditor({
                         description="Customize your agents personality, including visuals."
                         open={modalOpen === 'personality'}
                         close={() => setModalOpen(null)}
+                        disableFeature={() => {
+                          setName('');
+                          setBio('');
+                          setVisualDescription('');
+                          setHomespaceDescription('');
+                          setIsPersonalityExpanded(false);
+                          setModalOpen(null);
+                        }}
                       >
                         <div className="mt-4">
                           <label>
