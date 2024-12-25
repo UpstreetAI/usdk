@@ -97,6 +97,24 @@ const bindOutgoing = ({
         channelId,
         userId,
       });
+    } else if (method === 'messageReaction') {
+      const {
+        reaction,
+        messageId,
+        userId,
+      } = args as {
+        reaction: string,
+        messageId: string,
+        userId: string,
+      };
+
+      console.log('discord manager message reaction', {
+        reaction,
+        messageId,
+        userId,
+      });
+
+      discordBotClient.input.reactToMessage(reaction, messageId, userId);
     } else {
       // ignore
     }

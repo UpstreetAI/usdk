@@ -2,6 +2,7 @@ import React from 'react';
 import dedent from 'dedent';
 import { z } from 'zod';
 import { Action } from './action';
+import { PendingActionEvent } from '../../types/react-agents';
 
 export const ChatActions = () => {
   return (
@@ -26,6 +27,32 @@ export const ChatActions = () => {
         // handler={async (e: PendingActionEvent) => {
         //   await e.commit();
         // }}
+      />
+      <Action
+        type="messageReaction"
+        description="React to a message"
+        schema={
+          z.object({
+            reaction: z.string(),
+            messageId: z.string(),
+            userId: z.string(),
+          })
+        }
+        examples={[
+          {
+            reaction: '👍',
+            messageId: '123',
+            userId: '456',
+          },
+          {
+            reaction: '👎',
+            messageId: '123',
+            userId: '456',
+          },
+        ]}
+        handler={async (e: PendingActionEvent) => {
+          await e.commit();
+        }}
       />
     </>
   );
