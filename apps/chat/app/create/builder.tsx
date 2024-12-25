@@ -112,7 +112,6 @@ export default function AgentEditor({
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
-  const [modalOpen, setModalOpen] = useState<string | null>(null);
 
   // effects
   // sync previewBlob -> previewUrl
@@ -481,16 +480,11 @@ export default function AgentEditor({
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
-
   const featureClass = 'inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4';
   const featureIconClass = 'size-12 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-2';
-
-  const close = () => {
-    setModalOpen(null);
-    console.log('close', modalOpen);
-  };
-
+  
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
   // render
   return (
     <div className="relative">
@@ -617,12 +611,13 @@ export default function AgentEditor({
                       <p className={featureTextClass}>
                         Personality
                       </p>
+                      {/* modal */}
                       <Modal
                         icon="Head"
                         title="Personality"
                         description="Customize your agents personality, including visuals."
                         open={modalOpen === 'personality'}
-                        close={close}
+                        close={() => setModalOpen(null)}
                       >
                         <div className="mt-4">
                           <label>
@@ -712,8 +707,8 @@ export default function AgentEditor({
                               </Button>
                             </div>
                           </div>
-                        </div>
-                      </Modal>
+                          </div>
+                        </Modal>
                     </div>
                   </div>
 
