@@ -481,8 +481,9 @@ export default function AgentEditor({
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
   const featureClass = 'inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4';
+  const featureClassActive = 'bg-gray-900 text-white';
   const featureIconClass = 'size-12 mx-auto';
-  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body text-green-900 lg:text-lg md:text-base md:pt-2';
+  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
   
   const [modalOpen, setModalOpen] = useState<string | null>(null);
   // render
@@ -605,7 +606,7 @@ export default function AgentEditor({
 
                 <div className="flex flex-wrap justify-center w-full mb-8">
 
-                  <div onClick={() => setModalOpen('personality')} className={cn(featureClass)}>
+                  <div onClick={() => setModalOpen('personality')} className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}>
                     <div>
                       <Icon icon="Head" className={featureIconClass} />
                       <p className={featureTextClass}>
@@ -712,50 +713,50 @@ export default function AgentEditor({
                     </div>
                   </div>
 
-                  <a href="#" className={cn(featureClass, features.tts ? '' : '')}>
+                  <div onClick={() => setModalOpen('voice')} className={cn(featureClass, features.tts ? featureClassActive : '')}>
                     <div>
                       <Icon icon="Voice" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Voice
                       </p>
                     </div>
-                  </a>
+                  </div>
 
-                  <a href="#" className={featureClass}>
+                  <div onClick={() => setModalOpen('rateLimit')} className={cn(featureClass, features.rateLimit ? featureClassActive : '')}>
                     <div>
                       <Icon icon="Chat" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Rate Limit
                       </p>
                     </div>
-                  </a>
+                  </div>
 
-                  <a href="#" className={featureClass}>
+                  <div onClick={() => setModalOpen('discord')} className={cn(featureClass, features.discord ? featureClassActive : '')}>
                     <div>
                       <Icon icon="Discord" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Discord
                       </p>
                     </div>
-                  </a>
+                  </div>
 
-                  <a href="#" className={featureClass}>
+                  <div onClick={() => setModalOpen('twitterBot')} className={cn(featureClass, features.twitterBot ? featureClassActive : '')}>
                     <div>
                       <Icon icon="X" className={featureIconClass} />
                       <p className={featureTextClass}>
                         X (Twitter)
                       </p>
                     </div>
-                  </a>
+                  </div>
 
-                  <a href="#" className={featureClass}>
+                  <div onClick={() => setModalOpen('storeItems')} className={cn(featureClass, features.storeItems ? featureClassActive : '')}>
                     <div>
                       <Icon icon="ModuleStore" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Store
                       </p>
                     </div>
-                  </a>
+                  </div>
 
                 </div>
 
