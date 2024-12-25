@@ -145,9 +145,15 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
           },
           {},
         );
+        const localPlayerSpec = localPlayer.getPlayerSpec();
+        const playerSpec = {
+          ...localPlayerSpec,
+          mentionId: localPlayerSpec.name, // add mentionId to the player spec
+        };
+
         realms.localPlayer.setKeyValue(
           'playerSpec',
-          localPlayer.getPlayerSpec(),
+          playerSpec,
         );
       }
 
@@ -170,7 +176,11 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
       virtualPlayers.addEventListener('join', (e) => {
         const { playerId, player } = e.data;
 
-        const playerSpec = player.getKeyValue('playerSpec');
+        const eventPlayerSpec = player.getKeyValue('playerSpec');
+        const playerSpec = {
+          ...eventPlayerSpec,
+          mentionId: eventPlayerSpec.name,
+        };
         if (connected) {
           // this.log('react agents client: remote player joined:', playerId);
         // } else {

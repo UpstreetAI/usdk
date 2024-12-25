@@ -58,6 +58,10 @@ export const getChatKey = ({
 
 //
 
+const mentionRegex = /@(?<id>\w+)/g;
+
+//
+
 // tracks an agent's connected chat rooms based on the changing chatsSpecification
 export class ChatsManager {
   // members
@@ -99,6 +103,7 @@ export class ChatsManager {
             endpointUrl,
           });
         },
+        mentionsRegex: mentionRegex,
       });
       this.agent.conversationManager.addConversation(conversation);
 
@@ -190,7 +195,16 @@ export class ChatsManager {
       multiplayerConnection.addEventListener('chat', async (e) => {
         const { playerId, message } = e.data;
         if (playerId !== agent.id) {
-          await conversation.addLocalMessage(message);
+          const { text } = message.args;
+          const formattedMessageText = conversation.formatIncomingMessageMentions(text);
+          const formattedMessage = {
+            ...message,
+            args: {
+              ...message.args,
+              text: formattedMessageText
+            }
+          };
+          await conversation.addLocalMessage(formattedMessage);
         // } else {
         //   // XXX fix this
         //   console.warn('received own message from realms "chat" event; this should not happen', message);
@@ -315,7 +329,16 @@ export class ChatsManager {
       const _bindOutgoingChat = () => {
         const remotemessage = async (e: ExtendableMessageEvent<ActionMessageEventData>) => {
           const { message } = e.data;
-          multiplayerConnection.sendChatMessage(message);
+          const { text } = message.args;
+          const formattedMessageText = conversation.formatOutgoingMessageMentions(text);
+          const formattedMessage = {
+            ...message,
+            args: {
+              ...message.args,
+              text: formattedMessageText
+            }
+          };
+          multiplayerConnection.sendChatMessage(formattedMessage);
         };
         conversation.addEventListener('remotemessage', remotemessage);
 
