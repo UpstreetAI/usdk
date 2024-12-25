@@ -113,7 +113,7 @@ export class GenerativeAgentObject {
   }
   async evaluate(evaluator: Evaluator, opts?: EvaluateOpts) {
     const {
-      sendTyping,
+      sendTyping = true,
     } = opts ?? {};
 
     const evaluateAndExecuteStep = async () => {
