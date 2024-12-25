@@ -415,7 +415,7 @@ export class DiscordBot extends EventTarget {
 
     // message reactions
     const _bindIncomingMessageReactions = () => {
-      discordBotClient.output.addEventListener('messagereactionadd', (e: MessageEvent) => {
+      const handleReaction = (e: MessageEvent, eventType: string) => {
         const {
           userId,
           messageId,
@@ -423,7 +423,8 @@ export class DiscordBot extends EventTarget {
           channelId,
           userDisplayName,
         } = e.data;
-        console.log('messagereactionadd', {
+
+        console.log(eventType, {
           userId,
           userDisplayName,
           messageId,
@@ -431,18 +432,12 @@ export class DiscordBot extends EventTarget {
           channelId,
         });
 
-        console.log('this.dmConversations: ', this.dmConversations);
-        console.log('this.channelConversations: ', this.channelConversations);
-        console.log('userId: ', userId);
-        console.log('channelId: ', channelId);
+        // look up conversation
+        const conversation = this.dmConversations.has(userId)
+          ? this.dmConversations.get(userId) ?? null
+          : this.channelConversations.get(channelId) ?? null;
 
-         // look up conversation
-        let conversation: ConversationObject | null = null;
-        if (this.dmConversations.has(userId)) {
-          conversation = this.dmConversations.get(userId) ?? null;
-        } else {
-          conversation = this.channelConversations.get(channelId) ?? null;
-        }
+        if (!conversation) return;
 
         const rawMessageReaction = {
           userId,
@@ -456,62 +451,22 @@ export class DiscordBot extends EventTarget {
         };
 
         const newMessageReaction = formatConversationMessage(rawMessageReaction, {
-          agent,
-        });
-
-        console.log('newMessageReaction: ', newMessageReaction);
-
-        if (conversation) {
-          conversation.addLocalMessage(newMessageReaction);
-        }
-
-      });
-
-      discordBotClient.output.addEventListener('messagereactionremove', (e: MessageEvent) => {
-        const {
-          userId,
-          messageId,
-          userDisplayName,
-          emoji,
-          channelId,
-        } = e.data;
-        console.log('messagereactionremove', {
-          userId,
-          messageId,
-          userDisplayName,
-          emoji,
-          channelId,
-        });
-
-        let conversation: ConversationObject | null = null;
-        if (this.dmConversations.has(userId)) {
-          conversation = this.dmConversations.get(userId) ?? null;
-        } else {
-          conversation = this.channelConversations.get(channelId) ?? null;
-        }
-
-       const rawMessageReaction = {
-          userId,
-          name: userDisplayName,
-          method: 'messageReaction',
-          args: {
-            reaction: emoji,
-            messageId,
-            userId,
+          agent: {
+            id: getIdFromUserId(userId),
+            name: userDisplayName,
           },
-        };
-
-        const newMessageReaction = formatConversationMessage(rawMessageReaction, {
-          agent,
         });
 
-        console.log('newMessageReaction: ', newMessageReaction);
+        conversation.addLocalMessage(newMessageReaction);
+      };
 
-        if (conversation) {
-          conversation.addLocalMessage(newMessageReaction);
-        }
+      discordBotClient.output.addEventListener('messagereactionadd', 
+        (e) => handleReaction(e, 'messagereactionadd')
+      );
 
-      });
+      discordBotClient.output.addEventListener('messagereactionremove', 
+        (e) => handleReaction(e, 'messagereactionremove')
+      );
     };
 
     (async () => {
