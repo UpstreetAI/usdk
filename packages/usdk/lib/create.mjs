@@ -40,7 +40,7 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
-import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+// import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
@@ -48,7 +48,7 @@ import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/uti
 
 //
 
-const homeDir = os.homedir();
+// const homeDir = os.homedir();
 
 const logAgentPropertyUpdate = (propertyName, newValue) => {
   // ANSI escape codes for colors
@@ -438,7 +438,10 @@ export const create = async (args, opts) => {
 
   // update destination directory if no specific path was provided
   if (dstDir === '') {
-    const sanitizedName = agentJson.name.replace(/\s+/g, '_');
+    const sanitizedName = agentJson.name
+      .replace(/\s+/g, '_') // match spaces
+      .replace(/[^a-zA-Z0-9_]/g, '_') // match bash-unsafe characters
+      .replace(/_+/g, '_').toLowerCase();
     dstDir = path.join(cwd, sanitizedName);
   }
 

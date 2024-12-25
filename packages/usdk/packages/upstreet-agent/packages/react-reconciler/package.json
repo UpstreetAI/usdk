@@ -25,10 +25,8 @@
   "engines": {
     "node": ">=0.10.0"
   },
-  "peerDependencies": {
-    "react": "file:../react"
-  },
   "dependencies": {
+    "react": "file:../react",
     "scheduler": "0.25.0-rc-df5f2736-20240712"
   }
 }

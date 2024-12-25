@@ -366,6 +366,7 @@ export class DiscordBot extends EventTarget {
         const {
           userId,
           username,
+          displayName,
           text,
           channelId, // if there is no channelId, it's a DM
           // XXX discord channel/dm distinction can be made more explicit with a type: string field...
@@ -394,7 +395,7 @@ export class DiscordBot extends EventTarget {
           const id = getIdFromUserId(userId);
           const agent = {
             id,
-            name: username,
+            name: displayName,
           };
           const newMessage = formatConversationMessage(rawMessage, {
             agent,

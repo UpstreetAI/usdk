@@ -1,7 +1,7 @@
 {
   "name": "usdk",
   "description": "AI Agents SDK in TypeScript and React.",
-  "version": "0.0.105",
+  "version": "0.0.107",
   "homepage": "https://upstreet.ai/",
   "author": "Upstreet <hello@upstreet.ai> (https://github.com/UpstreetAI)",
   "contributors": [
@@ -17,6 +17,9 @@
   },
   "type": "module",
   "main": "module.mjs",
+  "scripts": {
+    "preinstall": "[[ $npm_config_global == 'true' ]] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile"
+  },
   "keywords": [
     "ai",
     "ai-agents",

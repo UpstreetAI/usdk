@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { getCurrentDirname } from '../../../react-agents/util/path-util.mjs';
+import { getCurrentDirname } from 'path-util';
 
 const loadWasm = p => {
   const b = fs.readFileSync(p);
