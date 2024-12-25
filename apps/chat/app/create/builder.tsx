@@ -1205,13 +1205,12 @@ export default function AgentEditor({
 
                 </form>
 
-
                 {/* chat */}
 
-                <div className={`flex-col h-[400px] w-[300px] min-w-[300px] relative bg-white`}>
+                <div className={`flex-col h-[400px] w-[300px] min-w-[300px] relative border m-2`}>
                   <Chat
                     room={room}
-                    mode={'builder'}
+                    mode={'desktop'}
                     className='h-[400px] w-[300px] min-w-[300px]'
                     onConnect={(connected) => {
                       if (connected) {
