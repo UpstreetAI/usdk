@@ -130,7 +130,7 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
 
   return (
     <div
-      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
+      className={`relative group w-full h-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
       {room && (
         <>
