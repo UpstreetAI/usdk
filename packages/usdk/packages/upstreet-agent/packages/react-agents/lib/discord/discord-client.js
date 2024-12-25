@@ -536,6 +536,20 @@ export class DiscordBotClient extends EventTarget {
             this.input.handleVoiceIdle(args);
             break;
           }
+          case 'messagereactionadd': {
+            console.log('messagereactionadd', args);
+            this.dispatchEvent(new MessageEvent('messagereactionadd', {
+              data: args,
+            }));
+            break;
+          }
+          case 'messagereactionremove': {
+            console.log('messagereactionremove', args);
+            this.dispatchEvent(new MessageEvent('messagereactionremove', {
+              data: args,
+            }));
+            break;
+          }
           default: {
             console.warn('unhandled json method', method);
             break;
