@@ -861,12 +861,67 @@ export default function AgentEditor({
                     </div>
                   </div>
 
-                  <div onClick={() => setModalOpen('discord')} className={cn(featureClass, features.discord ? featureClassActive : '')}>
+                  <div onClick={() => {
+                    setModalOpen('discord');
+                    !features.discord && setFeatures({
+                      ...features,
+                      discord: makeDefaultDiscord(),
+                    });
+                  }} className={cn(featureClass, features.discord ? featureClassActive : '')}>
                     <div>
+                      <Icon
+                        icon="Close"
+                        className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.discord && 'hidden')}
+                        onClick={() => {
+                          setFeatures({
+                            ...features,
+                            discord: null,
+                          });
+                        }} />
                       <Icon icon="Discord" className={featureIconClass} />
                       <p className={featureTextClass}>
                         Discord
                       </p>
+                      {features.discord && (
+                        <Modal
+                          icon="Head"
+                          title="Discord"
+                          description="Integrate your agent with discord to enable interactions in your discord server  channels."
+                          open={modalOpen === 'discord'}
+                          close={() => setModalOpen(null)}
+                        >
+                          <div>
+                            <div className="flex flex-col">
+                              {/* token */}
+                              <label className="text-gray-900">
+                                <div className="mr-2 min-w-32">Bot Token</div>
+                                <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
+                                  setFeatures(features => ({
+                                    ...features,
+                                    discord: {
+                                      token: e.target.value,
+                                      channels: features.discord?.channels ?? '',
+                                    },
+                                  }));
+                                }} placeholder="<bot token>" required />
+                              </label>
+                              {/* channels */}
+                              <label className="text-gray-900">
+                                <div className="mr-2 min-w-32">Channels</div>
+                                <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
+                                  setFeatures(features => ({
+                                    ...features,
+                                    discord: {
+                                      token: features.discord?.token ?? '',
+                                      channels: e.target.value,
+                                    },
+                                  }));
+                                }} placeholder="text, voice" required />
+                              </label>
+                            </div>
+                          </div>
+                        </Modal>
+                      )}
                     </div>
                   </div>
 
