@@ -520,21 +520,17 @@ export default function AgentEditor({
             <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
 
             <p className="text-lg text-gray-800 mb-4 text-center">
-              Build your agent with a few simple steps.
+              Build and deploy your agent in 2 steps.
             </p>
 
+            <div className='mx-auto max-w-xl'>
             <Progress
               currentStep={1}
               steps={
                 [
                   {
-                    title: 'Select Features',
+                    title: 'Customize',
                     Icon: 'Tiling',
-                    description: 'Customize your agents personality',
-                  },
-                  {
-                    title: 'Test Agent',
-                    Icon: 'Chat',
                     description: 'Customize your agents personality',
                   },
                   {
@@ -545,6 +541,7 @@ export default function AgentEditor({
                 ]
               }
             />
+            </div>
 
             <div className="text-center">
 
