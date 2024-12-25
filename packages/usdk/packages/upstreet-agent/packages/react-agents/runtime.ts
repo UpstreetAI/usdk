@@ -20,6 +20,7 @@ import {
   AbortableMessageEvent,
   PendingActionEventData,
   PerceptionPropsAux,
+  MessageReactionEvent,
 } from './types';
 import {
   PendingActionEvent,
@@ -539,6 +540,14 @@ export const bindConversationToAgent = ({
         });
       })();
     }
+  });
+  conversation.addEventListener('localMessageReaction', (e: MessageReactionEvent) => {
+    const { reaction, messageId, userId } = e.data;
+    console.log('runtime localMessageReaction: ', {
+      reaction,
+      messageId,
+      userId,
+    });
   });
 };
 

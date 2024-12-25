@@ -370,6 +370,7 @@ export class DiscordBot extends EventTarget {
           text,
           channelId, // if there is no channelId, it's a DM
           // XXX discord channel/dm distinction can be made more explicit with a type: string field...
+          messageId,
         } = e.data;
 
         // look up conversation
@@ -390,6 +391,7 @@ export class DiscordBot extends EventTarget {
             method: 'say',
             args: {
               text: formattedMessage,
+              messageId,
             },
           };
           const id = getIdFromUserId(userId);
@@ -418,12 +420,32 @@ export class DiscordBot extends EventTarget {
           userId,
           messageId,
           emoji,
+          channelId,
         } = e.data;
         console.log('messagereactionadd', {
           userId,
           messageId,
           emoji,
+          channelId,
         });
+
+        console.log('this.dmConversations: ', this.dmConversations);
+        console.log('this.channelConversations: ', this.channelConversations);
+        console.log('userId: ', userId);
+        console.log('channelId: ', channelId);
+
+         // look up conversation
+        let conversation: ConversationObject | null = null;
+        if (this.dmConversations.has(userId)) {
+          conversation = this.dmConversations.get(userId) ?? null;
+        } else {
+          conversation = this.channelConversations.get(channelId) ?? null;
+        }
+
+        if (conversation) {
+          conversation.processMessageReaction(emoji, messageId, userId);
+        }
+
       });
 
       discordBotClient.output.addEventListener('messagereactionremove', (e: MessageEvent) => {
@@ -431,12 +453,26 @@ export class DiscordBot extends EventTarget {
           userId,
           messageId,
           emoji,
+          channelId,
         } = e.data;
         console.log('messagereactionremove', {
           userId,
           messageId,
           emoji,
+          channelId,
         });
+
+        let conversation: ConversationObject | null = null;
+        if (this.dmConversations.has(userId)) {
+          conversation = this.dmConversations.get(userId) ?? null;
+        } else {
+          conversation = this.channelConversations.get(channelId) ?? null;
+        }
+
+        if (conversation) {
+          conversation.processMessageReaction(emoji, messageId, userId);
+        }
+
       });
     };
 

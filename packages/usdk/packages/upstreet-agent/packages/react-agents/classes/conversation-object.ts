@@ -8,6 +8,7 @@ import {
   PlayableAudioStream,
   GetHashFn,
   MessageCache,
+  MessageReactionEventData,
 } from '../types'
 import { SceneObject } from '../classes/scene-object';
 import { Player } from 'react-agents-client/util/player.mjs';
@@ -358,4 +359,27 @@ export class ConversationObject extends EventTarget {
       }),
     );
   }
+
+
+  async processMessageReaction(
+    reaction,
+    messageId,
+    userId,
+  ) {
+    console.log('process reaction: ',{
+      reaction,
+      messageId,
+      userId,
+    });
+
+    const e = new ExtendableMessageEvent<MessageReactionEventData>('localMessageReaction', {
+      data: {
+        reaction,
+        messageId,
+        userId,
+      },
+    });
+    this.dispatchEvent(e);
+  }
+
 }
