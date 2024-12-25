@@ -226,7 +226,7 @@ export class ConversationObject extends EventTarget {
    * @returns {string[] | null} - An array of user IDs or null if no matches are found.
    */
   getOutgoingMessageMentions(message: string): string[] | null {
-    const matches = message.match(/@([0-9a-f-]{36})/g);
+    const matches = message.match(/@(\w+)/g);
     if (!matches) return null;
     
     const result = matches.map(mention => 
