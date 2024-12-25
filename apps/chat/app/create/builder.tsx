@@ -517,33 +517,33 @@ export default function AgentEditor({
       <div className='w-full h-screen text-zinc-950'>
         <div className="flex h-full">
           <div className="container mx-auto max-w-4xl px-4 py-8">
-            <h1 className="text-2xl font-bold mb-4 text-center">Build your agent</h1>
+            <h1 className="text-2xl font-bold mb-2 text-center">Create Agent</h1>
 
-            <p className="text-lg text-gray-800 mb-4 text-center">
+            <p className="text-lg text-gray-800 mb-6 text-center">
               Build and deploy your agent in 2 steps.
             </p>
 
-            <div className='mx-auto max-w-xl'>
-            <Progress
-              currentStep={1}
-              steps={
-                [
-                  {
-                    title: 'Customize',
-                    Icon: 'Tiling',
-                    description: 'Customize your agents personality',
-                  },
-                  {
-                    title: 'Deploy',
-                    Icon: 'Upload',
-                    description: 'Deploy your agent',
-                  },
-                ]
-              }
-            />
+            <div className='mx-auto max-w-[300px] mb-4'>
+              <Progress
+                currentStep={1}
+                steps={
+                  [
+                    {
+                      title: 'Customize',
+                      Icon: 'Tiling',
+                      description: 'Customize your agents personality',
+                    },
+                    {
+                      title: 'Deploy',
+                      Icon: 'Upload',
+                      description: 'Deploy your agent',
+                    },
+                  ]
+                }
+              />
             </div>
 
-            <div className="text-center">
+            <div>
 
 
               <div className='flex flex-row h-full'>
@@ -654,6 +654,9 @@ export default function AgentEditor({
                     })();
                   }
                 }}>
+
+                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
+
                   <div className="flex flex-wrap justify-center w-full mb-8">
 
 
@@ -1202,7 +1205,10 @@ export default function AgentEditor({
 
                 {/* chat */}
 
-                <div className={`flex-col h-[408px] w-1/2 min-w-1/2 relative border m-2`}>
+                <div className={`w-1/2 min-w-1/2 m-2`}>
+
+                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Chat with your agent</h2></div>
+                  <div className='h-[408px] w-full relative border'>
                   <Chat
                     room={room}
                     mode={'builder'}
@@ -1212,10 +1218,14 @@ export default function AgentEditor({
                       }
                     }}
                   />
+                  </div>
                 </div>
               </div>
 
-              <Button className='p-2'>Next</Button>
+              <div className='flex flex-row justify-center'>
+                <Button className='p-2' size='large'>Next</Button>
+              </div>
+
             </div>
 
           </div>

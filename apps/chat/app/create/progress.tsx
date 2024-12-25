@@ -15,7 +15,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
     currentStep > step ? "bg-gray-900 text-white" : "bg-white text-gray-900 border-2 border-gray-200";
 
   return (
-    <div className="w-full py-6">
+    <div className="w-full">
       <div className="flex justify-center">
         {steps.map((step, index) => (
           <div key={index} className={`w-1/${steps.length}`}>
