@@ -352,7 +352,6 @@ export class DiscordOutput extends EventTarget {
 export class DiscordBotClient extends EventTarget {
   token;
   codecs;
-  appId;
   ws = null;
   input = null; // going from the agent into the discord bot
   output = null; // coming out of the discord bot to the agent
@@ -362,7 +361,6 @@ export class DiscordBotClient extends EventTarget {
 
   constructor({
     token,
-    appId,
     codecs,
     jwt,
     name,
@@ -381,7 +379,6 @@ export class DiscordBotClient extends EventTarget {
 
     this.token = token;
     this.codecs = codecs;
-    this.appId = appId;
     this.input = new DiscordInput();
     this.output = new DiscordOutput({
       codecs,

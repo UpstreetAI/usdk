@@ -24,14 +24,6 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
 
   useEffect(() => {
     if (!conversation) {
-      
-      if (!token) {
-        throw new Error('Discord Bot token is required');
-      }
-      if (!appId) {
-        throw new Error('Discord Bot appId is required');
-      }
-
       const args: DiscordArgs = {
         token,
         channels: channels ? (Array.isArray(channels) ? channels : [channels]) : [],
@@ -40,7 +32,6 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
         agent,
         codecs,
         jwt: authToken,
-        appId,
       };
       const discordBot = agent.discordManager.addDiscordBot(args);
       return () => {

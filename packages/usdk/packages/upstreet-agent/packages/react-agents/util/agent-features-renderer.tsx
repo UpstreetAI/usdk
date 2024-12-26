@@ -287,11 +287,11 @@ export const featureRenderers = {
       <RateLimit maxUserMessages={maxUserMessages} maxUserMessagesTime={maxUserMessagesTime} message={message} />
     );
   },
-  discord: ({token, appId, channels}) => {
+  discord: ({token, channels}) => {
     if (token) {
       channels = channels && channels.map((c: string) => c.trim()).filter(Boolean);
       return (
-        <Discord token={token} appId={appId} channels={channels} />
+        <Discord token={token} channels={channels} />
       );
     } else {
       return null;

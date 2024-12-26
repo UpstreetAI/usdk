@@ -121,14 +121,12 @@ export type DiscordRoomSpec = RegExp | string;
 export type DiscordRoomSpecs = DiscordRoomSpec | DiscordRoomSpec[];
 export type DiscordProps = {
   token: string;
-  appId: string;
   channels?: DiscordRoomSpecs;
   dms?: DiscordRoomSpecs;
   userWhitelist?: string[];
 };
 export type DiscordArgs = {
   token: string;
-  appId: string;
   channels: DiscordRoomSpec[];
   dms: DiscordRoomSpec[];
   userWhitelist: string[];
