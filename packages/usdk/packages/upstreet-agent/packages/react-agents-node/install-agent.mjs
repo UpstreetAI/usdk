@@ -150,7 +150,7 @@ export const installAgent = async (directory) => {
 
   return {
     agentPath,
-    // wranglerTomlPath: dstWranglerToml,
+    wranglerTomlPath: dstWranglerToml,
     cleanup,
   };
 };
