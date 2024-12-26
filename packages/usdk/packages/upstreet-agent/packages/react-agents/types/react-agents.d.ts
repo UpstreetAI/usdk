@@ -718,7 +718,6 @@ export type AgentRegistry = {
   actionsMap: Map<symbol, ActionPropsAux | null>;
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null>;
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
-  // perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;

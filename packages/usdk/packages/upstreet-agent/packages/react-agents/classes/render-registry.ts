@@ -1,28 +1,18 @@
 import type {
   ActiveAgentObject,
-  // AgentProps,
-  // ActionProps,
-  // ActionModifierProps,
-  // PromptProps,
   PromptPropsAux,
   UniformPropsAux,
   DeferProps,
   DeferPropsAux,
-  // ParserProps,
-  // PerceptionProps,
-  // PerceptionModifierProps,
-  TaskProps,
   NameProps,
   PersonalityProps,
   ServerProps,
-  // StoreItemProps,
   StoreItem,
   PaymentProps,
   SubscriptionProps,
   ActionPropsAux,
   ActionModifierPropsAux,
   PerceptionPropsAux,
-  PerceptionModifierPropsAux,
 } from '../types';
 
 //
@@ -68,7 +58,6 @@ export class AgentRegistry {
   actionsMap: Map<symbol, ActionPropsAux | null> = new Map();
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null> = new Map();
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
-  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   uniformsMap: Map<symbol, UniformPropsAux | null> = new Map();
   deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
@@ -88,9 +77,6 @@ export class AgentRegistry {
   }
   get perceptions() {
     return Array.from(this.perceptionsMap.values()).filter(Boolean);
-  }
-  get perceptionModifiers() {
-    return Array.from(this.perceptionModifiersMap.values()).filter(Boolean);
   }
   get uniforms() {
     return Array.from(this.uniformsMap.values()).filter(Boolean);
@@ -144,12 +130,6 @@ export class AgentRegistry {
   }
   unregisterPerception(key: symbol) {
     this.perceptionsMap.set(key, null);
-  }
-  registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux) {
-    this.perceptionModifiersMap.set(key, perception);
-  }
-  unregisterPerceptionModifier(key: symbol) {
-    this.perceptionModifiersMap.set(key, null);
   }
   registerUniform(key: symbol, uniform: ActionPropsAux) {
     if (!uniform.conversation) {
