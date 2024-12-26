@@ -14,7 +14,7 @@ type RootOpts = {
   environment?: string;
 };
 
-class Root extends EventTarget {
+export class Root extends EventTarget {
   opts: RootOpts;
   chatsSpecification: ChatsSpecification;
   agentRenderer: AgentRenderer;

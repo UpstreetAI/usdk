@@ -8,6 +8,8 @@ import envTxt from './.env.txt';
 
 Error.stackTraceLimit = 300;
 
+const alarmTimeout = 10 * 1000;
+
 const parseAgentJson = (agentJsonSource) => {
   try {
     if (typeof agentJsonSource === 'string') {
@@ -26,10 +28,15 @@ const agentJson = parseAgentJson(agentJsonSource);
 
 // CloudFlare Worker Durable Object class
 export class DurableObject {
+  state: any;
+  env: any;
   agentMain: Root;
   loadPromise: Promise<Root> = null;
 
   constructor(state: any, env: any) {
+    this.state = state;
+    this.env = env;
+
     const env2 = dotenv.parse(envTxt);
     const state2 = {
       // agentJson?: any;
@@ -48,14 +55,17 @@ export class DurableObject {
       root.render(<App />);
       return root;
     })();
+
+    // initialize the alarm to prevent the worker from being evicted
+    (async () => {
+      await this.alarm();
+    })();
   }
   async fetch(request: Request) {
     const root = await this.loadPromise;
     return await root.fetch(request);
   }
   async alarm() {
-    // XXX rewrite this to trigger an alarm loop
-    // const root = await this.loadPromise;
-    // return await root.alarm();
+    this.state.storage.setAlarm(alarmTimeout);
   }
 }
