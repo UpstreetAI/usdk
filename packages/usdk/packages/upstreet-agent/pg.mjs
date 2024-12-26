@@ -189,15 +189,17 @@ const testTableName = 'users';
   });
   // console.log('created database', data);
 }
-{
-  const data = await pglitePostgrest.from(testTableName).upsert({
-    username: 'johndoe',
-    email: 'john@example.com',
-    created_at: new Date().toISOString()
-  }).single();
-  console.log('inserted data:', data);
-}
-{
-  const data = await pglitePostgrest.from(testTableName).select('*').single();
-  console.log('got data', JSON.stringify(data, null, 2));
-}
+await Promise.all([
+  (async () => {
+    const data = await pglitePostgrest.from(testTableName).upsert({
+      username: 'johndoe',
+      email: 'john@example.com',
+      created_at: new Date().toISOString()
+    }).single();
+    console.log('inserted data:', data);
+  })(),
+  (async () => {
+    const data = await pglitePostgrest.from(testTableName).select('*').single();
+    console.log('got data', JSON.stringify(data, null, 2));
+  })(),
+]);
