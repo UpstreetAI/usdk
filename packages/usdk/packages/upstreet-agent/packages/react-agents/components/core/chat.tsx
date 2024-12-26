@@ -43,19 +43,16 @@ export const ChatActions = () => {
           z.object({
             reaction: z.string(),
             messageId: z.string(),
-            userId: z.string(),
           })
         }
         examples={[
           {
             reaction: '👍',
             messageId: '123',
-            userId: '456',
           },
           {
             reaction: '👎',
             messageId: '123',
-            userId: '456',
           },
         ]}
         handler={async (e: PendingActionEvent) => {
