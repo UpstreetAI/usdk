@@ -14,7 +14,6 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
     channels,
     dms,
     userWhitelist,
-    appId,
   } = props;
   const agent = useAgent();
   const conversation = useConversation();
