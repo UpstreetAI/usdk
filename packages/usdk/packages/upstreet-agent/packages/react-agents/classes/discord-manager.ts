@@ -101,13 +101,14 @@ const bindOutgoing = ({
       const {
         reaction,
         messageId,
-        userId,
       } = args as {
         reaction: string,
         messageId: string,
-        userId: string,
       };
 
+
+      // get message from conversation by messageId
+      const message = conversation.getCachedMessages().find(m => m.args.messageId === messageId);
 
       // TODO: current agent mentionId needs to be set
       const getDiscordIdForUserId = (userId: string) => {
@@ -120,6 +121,9 @@ const bindOutgoing = ({
         const discordId = agent?.playerSpec?.mentionId;
         return discordId;
       };
+
+      // get userId from message
+      const userId = message?.userId;
 
       const discordId = getDiscordIdForUserId(userId);
       console.log('discord manager message reaction', {
