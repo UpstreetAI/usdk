@@ -14,6 +14,7 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
     channels,
     dms,
     userWhitelist,
+    appId,
   } = props;
   const agent = useAgent();
   const conversation = useConversation();
@@ -31,6 +32,7 @@ export const Discord: React.FC<DiscordProps> = (props: DiscordProps) => {
         agent,
         codecs,
         jwt: authToken,
+        appId,
       };
       const discordBot = agent.discordManager.addDiscordBot(args);
       return () => {
