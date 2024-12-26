@@ -7,7 +7,6 @@ import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 type RootOpts = {
   agentJson?: any;
-  userRender?: React.FC;
   storageAdapter?: any;
   blockchainAdapter?: any;
   env?: any;
