@@ -39,12 +39,6 @@ export class DurableObject {
 
     const env2 = dotenv.parse(envTxt);
     const state2 = {
-      // agentJson?: any;
-      // env?: any;
-      // environment?: string;
-      // storageAdapter?: any;
-      // blockchainAdapter?: any;
-      // codecs?: any;
       agentJson,
       env: env2,
       enivronment: env?.WORKER_ENV ?? 'production',
