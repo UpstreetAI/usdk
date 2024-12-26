@@ -122,11 +122,7 @@ const CharactersPrompt = () => {
   const bio = usePersonality();
   if (conversation) {
     const agents = conversation.getAgents();
-    const currentAgentSpec = {
-      id: agent.id,
-      name,
-      bio,
-    };
+    const currentAgentSpec = conversation.getAgentSpec();
     const agentSpecs = agents.map((agent) =>  {
       const agentSpec = agent.getPlayerSpec() as any;
       return {
