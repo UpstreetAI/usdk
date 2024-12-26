@@ -20,6 +20,7 @@ import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 
 export class ConversationObject extends EventTarget {
   agent: ActiveAgentObject; // the current agent
+  currentAgentPlayer: Player; // the current agent's player
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
@@ -47,6 +48,11 @@ export class ConversationObject extends EventTarget {
     this.scene = scene;
     this.getHash = getHash;
     this.mentionsRegex = mentionsRegex;
+    this.currentAgentPlayer = new Player(agent.id, {
+      id: agent.id,
+      name: agent.agentJson.name,
+      bio: agent.agentJson.bio,
+    });
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
@@ -97,6 +103,21 @@ export class ConversationObject extends EventTarget {
 
   getAgent() {
     return this.agent;
+  }
+
+  setCurrentAgentPlayer(player: Player) {
+    this.currentAgentPlayer = player;
+  }
+
+  getCurrentAgentPlayer() {
+    return this.currentAgentPlayer;
+  }
+
+  appendCurrentAgentSpecs(agentSpec: object) {
+    this.currentAgentPlayer.setPlayerSpec({
+      ...this.currentAgentPlayer.getPlayerSpec(),
+      ...agentSpec,
+    });
   }
   // setAgent(agent: ActiveAgentObject) {
   //   this.agent = agent;
