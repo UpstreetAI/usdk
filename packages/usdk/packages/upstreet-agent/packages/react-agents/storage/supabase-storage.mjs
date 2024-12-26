@@ -22,19 +22,3 @@ export function SupabaseStorage({
  } 
   return createClient(SUPABASE_URL, SUPABASE_PUBLIC_API_KEY, o);
 };
-
-export const getTokenFromRequest = (request) => {
-  let authHeader;
-  if (request.headers.get) {
-    authHeader = request.headers.get('authorization');
-  } else {
-    authHeader = request.headers['authorization'];
-  }
-
-  const match = authHeader?.match(/^Bearer\s+(.*)$/i);
-  if (match) {
-    return match[1];
-  } else {
-    return '';
-  }
-};
