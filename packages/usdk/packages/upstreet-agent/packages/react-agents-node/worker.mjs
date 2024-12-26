@@ -33,7 +33,7 @@ const loadModule = async (directory, p) => {
   return entryModule.default;
 };
 const startAgentMainServer = async ({
-  agentMain,
+  root,
   ip,
   port,
 }) => {
@@ -41,7 +41,7 @@ const startAgentMainServer = async ({
 
   app.all('*', (c) => {
     const req = c.req.raw;
-    return agentMain.fetch(req);
+    return root.fetch(req);
   });
 
   // create server
@@ -72,7 +72,7 @@ const runAgent = async (directory, opts) => {
 
   // we load it lioke this to perform a compilation
   const createRootMain = await loadModule(directory, 'root-main.tsx');
-  const agentMain = createRootMain({
+  const root = createRootMain({
     init,
     debug,
   });
@@ -81,7 +81,7 @@ const runAgent = async (directory, opts) => {
   // await agentMain.waitForLoad();
 
   await startAgentMainServer({
-    agentMain,
+    root,
     ip,
     port,
   });
