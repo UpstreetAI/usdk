@@ -832,7 +832,3 @@ export type ReadableVideoStream = ReadableStream & {
 export type PlayableVideoStream = ReadableAudioStream & {
   id: string;
 };
-
-// user handler
-
-export type UserHandler = FC;
