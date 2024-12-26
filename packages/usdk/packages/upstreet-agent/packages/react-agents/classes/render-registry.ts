@@ -112,7 +112,7 @@ export class AgentRegistry {
       if (!conversationActionExists) {
         this.actionsMap.set(key, action);
       } else {
-        throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+        throw new Error(`Duplicate action with same name ${JSON.stringify(action.type)}`);
       }
     }
   }
@@ -138,7 +138,7 @@ export class AgentRegistry {
       const conversationUniformExists = Array.from(this.uniformsMap.values())
         .some((u) => {
           if (u) {
-            return u.name === uniform.name && u.conversation === uniform.conversation;
+            return u.type === uniform.type && u.conversation === uniform.conversation;
           } else {
             return false;
           }
@@ -146,7 +146,7 @@ export class AgentRegistry {
       if (!conversationUniformExists) {
         this.uniformsMap.set(key, uniform);
       } else {
-        throw new Error(`Duplicate uniform with same name ${JSON.stringify(uniform.name)}`);
+        throw new Error(`Duplicate uniform with same name ${JSON.stringify(uniform.type)}`);
       }
     }
   }
