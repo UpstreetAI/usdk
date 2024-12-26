@@ -8,7 +8,7 @@ import { serve } from '@hono/node-server';
 
 //
 
-const dirname = path.dirname(import.meta.url.replace('file://', ''));
+// const dirname = path.dirname(import.meta.url.replace('file://', ''));
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     process.send({
@@ -70,14 +70,12 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const main = await loadModule(directory, 'entry.mjs');
-  // console.log('worker loaded module', main);
-  const agentMain = await main({
-    // directory,
+  // we load it lioke this to perform a compilation
+  const createRootMain = await loadModule(directory, 'root-main.tsx');
+  const agentMain = createRootMain({
     init,
     debug,
   });
-  // console.log('agentMain', agentMain);
 
   // wait for first render
   // await agentMain.waitForLoad();
@@ -105,7 +103,7 @@ const makeViteServer = async (directory) => {
     },
     optimizeDeps: {
       entries: [
-        './entry.mjs',
+        './root-main.tsx',
       ],
     },
     ssr: {

@@ -10,12 +10,11 @@ import {
 } from './subtle-ai';
 import { AppContext } from '../context';
 import type {
-  UserHandler,
   InstanceChild,
   ChatsSpecification,
 } from '../types';
 import { RenderLoader } from './render-loader';
-import { makeAnonymousClient } from '../util/supabase-client.mjs';
+import { SupabaseStorage } from '../storage/supabase-storage.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';
 import { AppContextValue } from './app-context-value';
@@ -68,28 +67,23 @@ class ErrorBoundary extends Component<
     return this.localProps.children;
   }
 }
-type AppComponentProps = {
-  userRender: UserHandler,
-  appContextValue: AppContextValue,
-  topLevelRenderPromise: any
-}
 const AppComponent = ({
-  userRender,
+  node,
   appContextValue,
   topLevelRenderPromise,
-}: AppComponentProps) => {
+}: {
+  node: ReactNode,
+  appContextValue: AppContextValue,
+  topLevelRenderPromise: any
+}) => {
   useEffect(() => {
     topLevelRenderPromise.resolve(null);
   }, [topLevelRenderPromise]);
 
-  const UserRenderComponent = userRender;
-
   return (
     <ErrorBoundary>
       <AppContext.Provider value={appContextValue}>
-        {/* <ConfigurationComponent> */}
-          <UserRenderComponent />
-        {/* </ConfigurationComponent> */}
+        {node}
       </AppContext.Provider>
     </ErrorBoundary>
   )
@@ -99,8 +93,6 @@ const AppComponent = ({
 
 export class AgentRenderer {
   env: any;
-  auth: any;
-  userRender: UserHandler;
   config: any;
   chatsSpecification: ChatsSpecification;
   codecs: any;
@@ -114,28 +106,23 @@ export class AgentRenderer {
   root: any;
   renderLoader: RenderLoader;
 
-  renderPromise: Promise<void> | null = null;
+  renderPromise = makePromise();
+  renderPromiseResolved = false;
   renderQueueManager: QueueManager;
 
   constructor({
     env,
-    auth,
-    userRender,
     config,
     chatsSpecification,
     codecs,
   }: {
     env: any;
-    auth: any;
-    userRender: UserHandler;
     config: any;
     chatsSpecification: ChatsSpecification;
     codecs: any;
   }) {
     // latch arguments
     this.env = env;
-    this.auth = auth;
-    this.userRender = userRender;
     this.config = config;
     this.chatsSpecification = chatsSpecification;
     this.codecs = codecs;
@@ -150,22 +137,22 @@ export class AgentRenderer {
       return this.config;
     };
     const useEnv = () => {
-      return this.auth;
+      return this.env;
     }
     const useEnvironment = () => {
       return this.env.WORKER_ENV as string;
     };
     const useWallets = () => {
-      const mnemonic = this.auth.WALLET_MNEMONIC as string;
+      const mnemonic = this.env.WALLET_MNEMONIC as string;
       const wallets = getConnectedWalletsFromMnemonic(mnemonic);
       return wallets;
     };
     const useAuthToken = () => {
-      return this.auth.AGENT_TOKEN;
+      return this.env.AGENT_TOKEN;
     };
     const useSupabase = () => {
       const jwt = useAuthToken();
-      const supabase = makeAnonymousClient(jwt);
+      const supabase = new SupabaseStorage({ jwt });
       return supabase;
     };
     const useConversationManager = () => {
@@ -328,15 +315,22 @@ export class AgentRenderer {
 
   // rendering
 
-  async renderProps(props: any) {
-    props.topLevelRenderPromise = makePromise();
+  async #renderProps(props: {
+    node: ReactNode,
+    appContextValue: AppContextValue,
+  }) {
+    const props2 = {
+      node: props.node,
+      appContextValue: props.appContextValue,
+      topLevelRenderPromise: makePromise(),
+    }
     this.renderLoader.clear();
-    this.renderLoader.useLoad(props.topLevelRenderPromise);
+    this.renderLoader.useLoad(props2.topLevelRenderPromise);
 
     await new Promise((accept, reject) => {
       const element = (
         <AppComponent
-          {...props}
+          {...props2}
         />
       );
       this.reconciler.updateContainer(element, this.root, null, () => {
@@ -346,19 +340,22 @@ export class AgentRenderer {
 
     await this.renderLoader.waitForLoad();
   }
-  async render() {
+  async render(node: ReactNode) {
     const {
-      userRender,
       appContextValue,
     } = this;
 
     const props = {
-      userRender,
+      node,
       appContextValue,
-      topLevelRenderPromise: null,
     };
     try {
-      await this.renderProps(props);
+      await this.#renderProps(props);
+
+      if (!this.renderPromiseResolved) {
+        this.renderPromiseResolved = true;
+        this.renderPromise.resolve(null);
+      }
     } catch (error) {
       console.warn('Error during render', error.stack);
       throw error;
@@ -368,9 +365,6 @@ export class AgentRenderer {
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
   async waitForRender() {
-    if (!this.renderPromise) {
-      this.renderPromise = this.render();
-    }
     await this.renderPromise;
   }
   async ensureRegistry() {

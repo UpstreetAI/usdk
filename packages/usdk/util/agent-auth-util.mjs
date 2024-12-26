@@ -1,13 +1,6 @@
 import { createAgentGuid } from '../packages/upstreet-agent/packages/react-agents/util/guid-util.mjs';
-import {
-  getAgentToken,
-} from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
-import {
-  generateMnemonic,
-} from './ethereum-utils.mjs';
-import {
-  getUserForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import { getUserForJwt, getAgentToken } from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { generateMnemonic } from './ethereum-utils.mjs';
 
 export const getAgentAuthSpec = async (jwt) => {
   const [
