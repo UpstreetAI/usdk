@@ -19,7 +19,7 @@ import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 
 export class ConversationObject extends EventTarget {
   agent: ActiveAgentObject; // the current agent
-  currentAgentSpecs: object; // the current agent's spec
+  currentAgentPlayer: Player; // the current agent's player
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
@@ -47,11 +47,11 @@ export class ConversationObject extends EventTarget {
     this.scene = scene;
     this.getHash = getHash;
     this.mentionsRegex = mentionsRegex;
-    this.currentAgentSpecs = {
+    this.currentAgentPlayer = new Player(agent.id, {
       id: agent.id,
-      name: agent.name,
-      bio: agent.bio,
-    };
+      name: agent.agentJson.name,
+      bio: agent.agentJson.bio,
+    });
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
@@ -104,19 +104,19 @@ export class ConversationObject extends EventTarget {
     return this.agent;
   }
 
-  setCurrentAgentSpecs(agentSpec: object) {
-    this.currentAgentSpecs = agentSpec;
+  setCurrentAgentPlayer(player: Player) {
+    this.currentAgentPlayer = player;
   }
 
-  getCurrentAgentSpecs() {
-    return this.currentAgentSpecs;
+  getCurrentAgentPlayer() {
+    return this.currentAgentPlayer;
   }
 
   appendCurrentAgentSpecs(agentSpec: object) {
-    this.currentAgentSpecs = {
-      ...this.currentAgentSpecs,
+    this.currentAgentPlayer.setPlayerSpec({
+      ...this.currentAgentPlayer.getPlayerSpec(),
       ...agentSpec,
-    };
+    });
   }
   // setAgent(agent: ActiveAgentObject) {
   //   this.agent = agent;
