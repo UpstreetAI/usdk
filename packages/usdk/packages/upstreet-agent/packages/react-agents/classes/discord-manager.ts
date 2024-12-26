@@ -126,6 +126,7 @@ const bindOutgoing = ({
 
 export class DiscordBot extends EventTarget {
   token: string;
+  appId: string;
   channels: DiscordRoomSpec[];
   dms: DiscordRoomSpec[];
   userWhitelist: string[];
@@ -139,6 +140,7 @@ export class DiscordBot extends EventTarget {
     // arguments
     const {
       token,
+      appId,
       channels,
       dms,
       userWhitelist,
@@ -147,6 +149,7 @@ export class DiscordBot extends EventTarget {
       jwt,
     } = args;
     this.token = token;
+    this.appId = appId;
     this.channels = channels;
     this.dms = dms;
     this.userWhitelist = userWhitelist;
@@ -164,6 +167,7 @@ export class DiscordBot extends EventTarget {
     // initialize discord bot client
     const discordBotClient = new DiscordBotClient({
       token,
+      appId,
       codecs,
       jwt,
       name,
