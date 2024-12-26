@@ -1,7 +1,7 @@
-import { PostgrestClient, PostgrestQueryBuilder } from '@supabase/postgrest-js';
+import { PostgrestClient } from '@supabase/postgrest-js';
 import { PGlite } from '@electric-sql/pglite';
 
-const schema = {
+/* const schema = {
   Tables: {
     users: {
       Row: {
@@ -28,7 +28,7 @@ const schema = {
       ],
     },
   },
-};
+}; */
 
 // const c = new PostgrestQueryBuilder(new URL('http://localhost'), {
 //   async fetch(...args) {
@@ -154,14 +154,6 @@ const pgliteClient = {
   }
 };
 
-// Create PostgrestQueryBuilder instance using PGlite client
-// const makeBuilder = (schema = 'public') => {
-//   const pglitePostgrest = new PostgrestQueryBuilder(new URL('http://localhost'), {
-//     fetch: pgliteClient.fetch,
-//     schema,
-//   });
-//   return pglitePostgrest;
-// };
 const makeClient = (schema = 'public') => {
   const pglitePostgrest = new PostgrestClient(new URL('http://localhost'), {
     fetch: pgliteClient.fetch,
