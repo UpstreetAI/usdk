@@ -259,6 +259,11 @@ export class DiscordBot extends EventTarget {
             mentionsRegex: discordMentionRegex,
           });
 
+          conversation.appendCurrentAgentSpecs({
+            mentionId: appId,
+          });
+
+
           this.agent.conversationManager.addConversation(conversation);
           this.channelConversations.set(channelId, conversation);
 
@@ -306,6 +311,10 @@ export class DiscordBot extends EventTarget {
           mentionsRegex: discordMentionRegex,
         });
 
+        conversation.appendCurrentAgentSpecs({
+          mentionId: appId,
+        });
+        
         this.agent.conversationManager.addConversation(conversation);
         this.dmConversations.set(userId, conversation);
 
