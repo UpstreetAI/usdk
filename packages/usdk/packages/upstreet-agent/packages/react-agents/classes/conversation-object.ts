@@ -19,7 +19,7 @@ import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 
 export class ConversationObject extends EventTarget {
   agent: ActiveAgentObject; // the current agent
-  agentSpecs: object; // the current agent's spec
+  currentAgentSpecs: object; // the current agent's spec
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
@@ -47,7 +47,7 @@ export class ConversationObject extends EventTarget {
     this.scene = scene;
     this.getHash = getHash;
     this.mentionsRegex = mentionsRegex;
-    this.agentSpecs = {
+    this.currentAgentSpecs = {
       id: agent.id,
       name: agent.name,
       bio: agent.bio,
@@ -104,17 +104,17 @@ export class ConversationObject extends EventTarget {
     return this.agent;
   }
 
-  setAgentSpec(agentSpec: object) {
-    this.agentSpecs = agentSpec;
+  setCurrentAgentSpecs(agentSpec: object) {
+    this.currentAgentSpecs = agentSpec;
   }
 
-  getAgentSpec() {
-    return this.agentSpecs;
+  getCurrentAgentSpecs() {
+    return this.currentAgentSpecs;
   }
 
-  appendAgentSpec(agentSpec: object) {
-    this.agentSpecs = {
-      ...this.agentSpecs,
+  appendCurrentAgentSpecs(agentSpec: object) {
+    this.currentAgentSpecs = {
+      ...this.currentAgentSpecs,
       ...agentSpec,
     };
   }
