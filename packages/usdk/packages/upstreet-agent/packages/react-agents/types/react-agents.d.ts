@@ -534,13 +534,6 @@ export type ActionMessageEventData = {
 };
 export type ActionMessageEvent = ExtendableMessageEvent<ActionMessageEventData>;
 
-export type MessageReactionEventData = {
-  reaction: string;
-  messageId: string;
-  userId: string;
-};
-export type MessageReactionEvent = ExtendableMessageEvent<MessageReactionEventData>;
-
 export type ConversationChangeEventData = {
   conversation: ConversationObject;
 };
