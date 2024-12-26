@@ -86,8 +86,6 @@ export const getSupabase = async ({
 }
 
 export function SupabaseProvider({ children }: SidebarProviderProps) {
-  // const [user, setUser] = React.useState(null)
-  // const [supabase, setSupabase] = React.useState(null)
   const [value, setValue] = React.useState<SupabaseContext>({
     user: null,
     supabase: null,

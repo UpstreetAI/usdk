@@ -40,7 +40,7 @@ import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
-import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+// import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
@@ -48,7 +48,7 @@ import { uploadBlob } from '../packages/upstreet-agent/packages/react-agents/uti
 
 //
 
-const homeDir = os.homedir();
+// const homeDir = os.homedir();
 
 const logAgentPropertyUpdate = (propertyName, newValue) => {
   // ANSI escape codes for colors
@@ -387,30 +387,10 @@ export const create = async (args, opts) => {
     throw new Error('The --json flag is required when using the --source flag.');
   }
 
-  // create the destination directory if not present
-  if (!dstDir) {
-    const dirname = makeId(8);
-    dstDir = path.join(homeDir, '.usdk', 'agents', dirname);
-    await mkdirp(dstDir);
-  }
-
   // load source file
   const sourceFile = source ?
     await fs.promises.readFile(source)
   : null;
-
-  // remove old directory
-  const _prepareDirectory = async () => {
-    console.log(pc.italic('Preparing directory...'));
-    await cleanDir(dstDir, {
-      force,
-      forceNoConfirm,
-    });
-    // bootstrap destination directory
-    await mkdirp(dstDir);
-    console.log(pc.italic('Directory prepared...'));
-  };
-  await _prepareDirectory();
 
   console.log(pc.italic('Generating Agent...'));
   // generate the agent
@@ -455,6 +435,29 @@ export const create = async (args, opts) => {
  
   agentJson = updateAgentJsonAuth(agentJson, agentAuthSpec);
   agentJson = ensureAgentJsonDefaults(agentJson);
+
+  // update destination directory if no specific path was provided
+  if (dstDir === '') {
+    const sanitizedName = agentJson.name
+      .replace(/\s+/g, '_') // match spaces
+      .replace(/[^a-zA-Z0-9_]/g, '_') // match bash-unsafe characters
+      .replace(/_+/g, '_').toLowerCase();
+    dstDir = path.join(cwd, sanitizedName);
+  }
+
+  // remove old directory
+  const _prepareDirectory = async () => {
+    console.log(pc.italic('Preparing directory...'));
+    await cleanDir(dstDir, {
+      force,
+      forceNoConfirm,
+    });
+    // bootstrap destination directory
+    await mkdirp(dstDir);
+    console.log(pc.italic('Directory prepared...'));
+  };
+  await _prepareDirectory();
+
   console.log(pc.italic('Agent generated...'));
   console.log(pc.green('Name:'), agentJson.name);
   console.log(pc.green('Bio:'), agentJson.bio);

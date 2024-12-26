@@ -68,9 +68,7 @@ export function Voices({ voices: voicesInit, userIsCurrentUser }: AgentsProps) {
                   const supabase = makeAnonymousClient(env, jwt);
                   const result = await supabase.from('assets')
                     .select('*')
-                    // .eq('name', voiceName)
                     .eq('id', id)
-                    // .eq('user_id', userId)
                     .eq('type', 'voice')
                     .maybeSingle();
                   const error = result.error as any;

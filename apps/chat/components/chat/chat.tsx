@@ -64,8 +64,9 @@ export interface ChatProps extends React.ComponentProps<'div'> {
   room: string
   desktop?: boolean
   onConnect?: (connected: boolean) => void
+  mode?: 'web' | 'builder' | 'desktop' | 'embed'
 }
-export function Chat({ className, /* user, missingKeys, */ room, desktop, onConnect }: ChatProps) {
+export function Chat({ className, /* user, missingKeys, */ room, desktop, onConnect, mode }: ChatProps) {
   const [input, setInput] = useState('')
   const { user } = useSupabase();
 
@@ -133,11 +134,11 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
     >
       {room && (
         <>
-          <ChatMenu players={players} roomName={roomName} />
+          {mode !== 'builder' && <ChatMenu players={players} roomName={roomName} />}
 
           <div className='h-screen overflow-auto' ref={scrollRef}>
             <div
-              className={cn('pb-[80px] pt-20 md:pt-24', className)}
+              className={cn('pb-[80px]', className, mode !== 'builder' ? 'pt-20 md:pt-24' : 'pt-2 md:pt-6')}
               ref={messagesRef}
             >
               <div className="relative mx-auto max-w-2xl px-4">
