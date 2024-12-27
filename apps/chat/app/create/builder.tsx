@@ -493,7 +493,7 @@ export default function AgentEditor({
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
 
   const [modalOpen, setModalOpen] = useState<string | null>(null);
-
+  const [step, setStep] = useState(1);
 
   const enablePersonality = () => {
     setModalOpen('personality');
@@ -533,7 +533,7 @@ export default function AgentEditor({
 
             <div className='mx-auto max-w-xl mb-4'>
               <Progress
-                currentStep={1}
+                currentStep={step}
                 steps={
                   [
                     {
@@ -559,10 +559,9 @@ export default function AgentEditor({
             <div>
 
 
-              <div className='flex flex-row h-full'>
+              {/* STEP 1 */}
 
-
-
+              <div className={cn('flex flex-row h-full', step !== 1 && 'hidden')}>
                 <form className="w-full relative" ref={editorForm} onSubmit={e => {
                   e.preventDefault();
 
@@ -1227,10 +1226,12 @@ export default function AgentEditor({
 
                   </div>
                 </form>
+              </div>
 
-                {/* chat */}
+              {/* STEP 2 */}
 
-                {/* <div className={`w-1/2 min-w-1/2 m-2`}>
+              <div className={cn('flex flex-row h-full items-center justify-center my-8', step !== 2 && 'hidden')}>
+                <div className={`w-[300px]`}>
 
                   <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Chat with your agent</h2></div>
                   <div className='h-[408px] w-full relative border'>
@@ -1244,13 +1245,18 @@ export default function AgentEditor({
                     }}
                   />
                   </div>
-                </div> */}
+                </div>
+              </div>
 
+              {/* STEP 3 */}
+
+              <div className={cn('flex flex-row h-full', step !== 3 && 'hidden')}>
 
               </div>
 
-              <div className='flex flex-row justify-center'>
-                <Button className='p-2' size='large'>Next</Button>
+              <div className='flex flex-row justify-center mt-8'>
+                {step !== 1 && <Button className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>}
+                {step !== 3 && <Button className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>}
               </div>
 
             </div>
