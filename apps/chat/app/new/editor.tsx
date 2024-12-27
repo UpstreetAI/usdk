@@ -6,7 +6,8 @@ import Editor, { useMonaco } from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
-import { getUserIdForJwt, getUserForJwt } from '@/utils/supabase/supabase-client';
+import { getUserForJwt } from '@/utils/supabase/supabase-client';
+import { PGliteStorage } from 'react-agents/storage/pglite-storage.mjs'
 import type {
   StoreItem,
   SubscriptionProps,
@@ -42,7 +43,6 @@ import { currencies, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
-// import { IconButton } from 'ucom';
 import { BackButton } from '@/components/back';
 
 //
@@ -355,6 +355,7 @@ export default function AgentEditor({
           agentJson,
           agentModuleSrc,
           env,
+          storageAdapter: 'pglite',
         });
         setWorker(newWorker);
 

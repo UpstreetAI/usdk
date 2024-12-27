@@ -8,10 +8,12 @@ export class ReactAgentsWorker {
     agentJson,
     agentModuleSrc,
     env,
+    storageAdapter,
   }: {
     agentJson: any,
     agentModuleSrc: string,
     env: any,
+    storageAdapter?: string,
   }) {
     if (
       !agentJson ||
@@ -34,6 +36,7 @@ export class ReactAgentsWorker {
         agentJson,
         env,
         agentModuleSrc,
+        storageAdapter,
       },
     });
     this.worker.addEventListener('error', e => {

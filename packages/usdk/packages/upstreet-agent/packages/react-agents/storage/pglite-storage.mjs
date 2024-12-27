@@ -4,9 +4,12 @@ import { PGlite } from '@electric-sql/pglite';
 const defaultSchema = 'public';
 
 export class PGliteStorage {
+  pglite;
+  postgrestClient;
+
   constructor({
     path,
-  }) {
+  } = {}) {
     const pglite = new PGlite(path);
     this.pglite = pglite;
     // await p.waitReady;
