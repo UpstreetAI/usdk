@@ -72,7 +72,7 @@ export const StatusUpdateAction: React.FC<StatusUpdateActionProps> = (props: Sta
       handler={async (e: PendingActionEvent) => {
         const { agent, message } = e.data;
         const agentId = agent.agent.id;
-        const { text, attachments } = message.args as {
+        const { text, attachments } = message.metadata as {
           text: string;
           attachments: Array<{ attachmentId: string }>;
         };
