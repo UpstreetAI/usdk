@@ -406,6 +406,9 @@ export class Root extends EventTarget {
   render(node: ReactNode) {
     this.agentRenderer.render(node);
   }
+  unmount() {
+    return this.agentRenderer.unmount();
+  }
   /* async updateAlarm() {
     // get the next timeout
     const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];

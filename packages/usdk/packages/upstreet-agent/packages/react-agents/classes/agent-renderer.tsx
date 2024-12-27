@@ -361,6 +361,9 @@ export class AgentRenderer {
       throw error;
     }
   }
+  unmount() {
+    this.reconciler.updateContainer(null, this.root, null, () => {});
+  }
 
   // note: needs to be async to wait for React to resolves
   // this is used to e.g. fetch the chat history in user code
