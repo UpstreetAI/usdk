@@ -177,16 +177,18 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
       setEpoch((prev) => prev + 1);
     };
 
-    const sendMessage = (method: string, args: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
+    const sendMessage = (method: string, text: string | undefined, metadata: object = {}, attachments?: Attachment[], opts?: MessageSendOptions) => {
       if (multiplayerConnection) {
         const { id: userId, name } = localPlayerSpec;
 
         const timestamp = new Date();
         const message: ActionMessage = {
+          id: crypto.randomUUID(),
           method,
           userId,
           name,
-          args,
+          text,
+          metadata,
           attachments,
           human: typeof opts?.human === 'boolean' ? opts.human : true,
           hidden: !!opts?.hidden,
@@ -506,13 +508,11 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         }
       },
       sendChatMessage: (text: string) =>
-        sendMessage('say', {
-          text,
-        }),
+        sendMessage('say', text, {}),
       sendMediaMessage: async (file: File) => {
         const url = await uploadFile(file);
         const id = crypto.randomUUID();
-        sendMessage('say', undefined, [
+        sendMessage('say', undefined, undefined, [
           {
             id,
             type: file.type,
@@ -521,7 +521,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
         ]);
       },
       sendNudgeMessage: (guid: string) => {
-        sendMessage('nudge', {
+        sendMessage('nudge', undefined, {
           targetUserId: guid,
         }, undefined, {
           hidden: true,
