@@ -35,7 +35,7 @@ import {
 import {
   TranscribedVoiceInput,
 } from 'react-agents/devices/audio-transcriber.mjs';
-import { formatConversationMessage } from '../util/message-utils';
+import { createMessageCache, formatConversationMessage } from '../util/message-utils';
 
 //
 
@@ -99,6 +99,11 @@ export class ChatsManager {
             endpointUrl,
           });
         },
+        messageCache: createMessageCache({
+          agent,
+          conversationId: key,
+          agentId: agent.id,
+        }),
       });
       this.agent.conversationManager.addConversation(conversation);
 

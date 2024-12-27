@@ -18,7 +18,6 @@ import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 //
 
 export class ConversationObject extends EventTarget {
-  agent: ActiveAgentObject; // the current agent
   agentsMap: Map<string, Player>; // note: agents does not include the current agent
   scene: SceneObject | null;
   getHash: GetHashFn; // XXX this can be a string, since conversation hashes do not change (?)
@@ -27,37 +26,26 @@ export class ConversationObject extends EventTarget {
   mentionsRegex: RegExp | null = null;
 
   constructor({
-    agent,
     agentsMap = new Map(),
     scene = null,
     getHash = () => '',
     mentionsRegex = null,
+    messageCache,
   }: {
     agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
     mentionsRegex?: RegExp | null;
+    messageCache: MessageCache;
   }) {
     super();
 
-    this.agent = agent;
     this.agentsMap = agentsMap;
     this.scene = scene;
     this.getHash = getHash;
     this.mentionsRegex = mentionsRegex;
-    this.messageCache = new MessageCacheConstructor({
-      loader: async () => {
-        const supabase = this.agent.appContextValue.useSupabase();
-        const messages = await loadMessagesFromDatabase({
-          supabase,
-          conversationId: this.getKey(),
-          agentId: this.agent.id,
-          limit: CACHED_MESSAGES_LIMIT,
-        });
-        return messages;
-      },
-    });
+    this.messageCache = messageCache;
   }
 
   //
@@ -94,9 +82,6 @@ export class ConversationObject extends EventTarget {
     this.scene = scene;
   }
 
-  getAgent() {
-    return this.agent;
-  }
   // setAgent(agent: ActiveAgentObject) {
   //   this.agent = agent;
   // }
@@ -127,7 +112,6 @@ export class ConversationObject extends EventTarget {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
-    this.agent && allAgents.push(this.agent.agentJson);
     return allAgents;
   }
   getEmbeddingString() {
