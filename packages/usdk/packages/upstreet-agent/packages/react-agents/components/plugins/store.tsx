@@ -110,7 +110,7 @@ const StoreActions = () => {
             const {
               stripeConnectAccountId,
             } = e.data.agent.agent;
-            (e.data.message.args as any).stripeConnectAccountId = stripeConnectAccountId;
+            (e.data.message.metadata as any).stripeConnectAccountId = stripeConnectAccountId;
 
             await e.commit();
           }}
