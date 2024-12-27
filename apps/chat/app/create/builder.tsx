@@ -1233,7 +1233,7 @@ export default function AgentEditor({
               <div className={cn('flex flex-row h-full items-center justify-center my-8', step !== 2 && 'hidden')}>
                 <div className={`w-[400px]`}>
 
-                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
+                  <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
                   <div className='h-[408px] w-full relative'>
                   <Chat
                     room={room}
