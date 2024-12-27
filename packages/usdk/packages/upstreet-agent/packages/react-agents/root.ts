@@ -66,6 +66,7 @@ export class Root extends EventTarget {
       env,
       config: agentJson,
       codecs,
+      supabase: storageAdapter,
       chatsSpecification: this.chatsSpecification,
     });
     // const bindAlarm = () => {
