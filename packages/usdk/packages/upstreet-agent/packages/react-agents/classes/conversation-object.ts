@@ -50,9 +50,10 @@ export class ConversationObject extends EventTarget {
     this.mentionsRegex = mentionsRegex;
     this.currentAgentPlayer = new Player(agent.id, {
       id: agent.id,
-      name: agent.agentJson.name,
-      bio: agent.agentJson.bio,
+      name: agent.name,
+      bio: agent.bio,
     });
+    console.log('this.currentAgentPlayer', this.currentAgentPlayer);
     this.messageCache = new MessageCacheConstructor({
       loader: async () => {
         const supabase = this.agent.appContextValue.useSupabase();
