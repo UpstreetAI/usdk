@@ -1,10 +1,15 @@
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { PGlite } from '@electric-sql/pglite';
+import { vector } from '@electric-sql/pglite/vector';
 import dedent from 'dedent';
+import { QueueManager } from 'queue-manager';
 
 const defaultSchema = 'public';
 
-const initQuery = [
+const initQueries = [
+  dedent`\
+    CREATE EXTENSION vector;
+  `,
   dedent`\
     create table
       chat_specifications (
@@ -17,118 +22,201 @@ const initQuery = [
         constraint chat_specifications_uid_key unique (uid)
       );
   `,
-].join('\n');
+  dedent`\
+    create table
+      keys_values (
+        created_at timestamp with time zone not null default now(),
+        value jsonb null,
+        agent_id uuid null,
+        key text not null,
+        constraint keys_values_pkey primary key (key)
+      );
+  `,
+  dedent`\
+    create table
+      agent_messages (
+        user_id uuid not null default gen_random_uuid (),
+        created_at timestamp with time zone not null default now(),
+        method text not null,
+        src_user_id uuid null,
+        src_name text null,
+        text text null,
+        args jsonb not null,
+        id uuid not null default gen_random_uuid (),
+        embedding vector(3072) not null,
+        conversation_id text null,
+        attachments jsonb null,
+        constraint agent_messages_pkey primary key (id)
+      );
+  `,
+  dedent`\
+    create table
+      webhooks (
+        id uuid not null default gen_random_uuid (),
+        user_id uuid null,
+        type text not null,
+        data jsonb not null,
+        created_at timestamp with time zone not null default now(),
+        dev boolean null,
+        constraint stripe_connect_payments_pkey primary key (id)
+      );
+  `,
+];
 
 export class PGliteStorage {
   pglite;
   postgrestClient;
+  queueManager = new QueueManager();
 
   constructor({
     path,
   } = {}) {
-    const pglite = new PGlite(path);
+    // console.log('vector extension', vector);
+    // const vector2 = {
+    //   name: 'vector',
+    //   setup: (...args) => {
+    //     console.log('vector setup', args, new Error().stack);
+    //     return vector.setup(...args);
+    //   },
+    // };
+    const pglite = new PGlite({
+      dataDir: path,
+      extensions: {
+        vector,
+        // vector: vector2,
+      },
+    });
     this.pglite = pglite;
-    // await p.waitReady;
+    // (async () => {
+    //   this.queueManager.waitForTurn(async () => {
+    //     await pglite.waitReady;
+    //   });
+    // })();
 
     // Hook up PostgrestQueryBuilder to PGlite by implementing fetch
     const fetch = async (url, init = {}) => {
-      // Parse the SQL query from the URL and body
-      const urlObj = new URL(url);
-      const path = urlObj.pathname;
-      const searchParams = urlObj.searchParams;
-      const method = init.method || 'GET';
+      return await this.queueManager.waitForTurn(async () => {
+        // Parse the SQL query from the URL and body
+        const urlObj = new URL(url);
+        const path = urlObj.pathname;
+        const searchParams = urlObj.searchParams;
+        const method = init.method || 'GET';
 
-      // Get table name from the basename of the path
-      const tableName = path.split('/').pop();
+        // Get table name from the basename of the path
+        const tableName = path.split('/').pop();
 
-      const parseConditions = (params) => {
-        return Array.from(params)
-          .map(([key, value]) => {
+        const parseConditions = (params) => {
+          const conditions = [];
+          for (const [key, value] of params) {
+            if (key === 'select' || key === 'order' || key === 'limit') {
+              continue;
+            }
             const [operator, filterValue] = value.split('.');
             switch(operator) {
               case 'eq':
-                return `${key} = '${filterValue}'`;
+                conditions.push(`${key} = '${filterValue}'`);
+                break;
               case 'gt':
-                return `${key} > '${filterValue}'`;
-              case 'lt':
-                return `${key} < '${filterValue}'`;
+                conditions.push(`${key} > '${filterValue}'`);
+                break;
+              case 'lt': 
+                conditions.push(`${key} < '${filterValue}'`);
+                break;
               case 'gte':
-                return `${key} >= '${filterValue}'`;
+                conditions.push(`${key} >= '${filterValue}'`);
+                break;
               case 'lte':
-                return `${key} <= '${filterValue}'`;
+                conditions.push(`${key} <= '${filterValue}'`);
+                break;
               case 'neq':
-                return `${key} != '${filterValue}'`;
+                conditions.push(`${key} != '${filterValue}'`);
+                break;
               default:
-                return `${key} = '${value}'`;
+                conditions.push(`${key} = '${value}'`);
             }
-          })
-          .join(' AND ');
-      };
-
-      // Convert Postgrest request to SQL query
-      let query;
-      if (method === 'GET') {
-        // Handle SELECT
-        const select = searchParams.get('select') || '*';
-        const filter = Object.fromEntries(searchParams);
-        delete filter.select;
-        
-        query = `SELECT ${select} FROM ${tableName}`;
-        
-        // Handle PostgREST filter operators
-        if (Object.keys(filter).length > 0) {
-          const conditions = parseConditions(Object.entries(filter));
-          query += ` WHERE ${conditions}`;
-        }
-      } else if (method === 'POST') {
-        // Handle INSERT
-        const body = JSON.parse(init.body);
-        const columns = Object.keys(body).join(', ');
-        const values = Object.values(body)
-          .map(v => typeof v === 'string' ? `'${v}'` : v)
-          .join(', ');
-        query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
-      } else if (method === 'PATCH') {
-        // Handle UPDATE
-        const body = JSON.parse(init.body);
-        const updates = Object.entries(body)
-          .map(([key, value]) => `${key} = '${value}'`)
-          .join(', ');
-        query = `UPDATE ${tableName} SET ${updates}`;
-        
-        // Add WHERE clause from search params with operators
-        if (searchParams.toString()) {
-          const conditions = parseConditions(searchParams);
-          query += ` WHERE ${conditions}`;
-        }
-      } else if (method === 'DELETE') {
-        // Handle DELETE
-        query = `DELETE FROM ${tableName}`;
-        if (searchParams.toString()) {
-          const conditions = parseConditions(searchParams);
-          query += ` WHERE ${conditions}`;
-        }
-      }
-
-      try {
-        const result = await pglite.query(query);
-        return new Response(JSON.stringify(result?.rows ?? null), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/vnd.pgrst.object+json',
           }
-        });
-      } catch (err) {
-        console.warn('error', err);
-        return new Response(JSON.stringify({
-          error: err.message
-        }), {
-          status: 500,
-          headers: {
-            'Content-Type': 'application/json'
+          return conditions.join(' AND ');
+        };
+
+        // Convert Postgrest request to SQL query
+        let query;
+        if (method === 'GET') {
+          // Handle SELECT
+          const select = searchParams.get('select') || '*';
+          const filter = Object.fromEntries(searchParams);
+
+          query = `SELECT ${select} FROM ${tableName}`;
+          
+          // Handle PostgREST filter operators
+          const conditions = parseConditions(searchParams);
+          if (conditions) {
+            query += ` WHERE ${conditions}`;
           }
-        });
-      }
+
+          // Handle order
+          const order = searchParams.get('order');
+          if (order) {
+            const [column, direction] = order.split('.');
+            query += ` ORDER BY ${column} ${direction.toUpperCase()}`;
+          }
+
+          // Handle limit
+          const limit = searchParams.get('limit');
+          if (limit) {
+            query += ` LIMIT ${limit}`;
+          }
+
+        } else if (method === 'POST') {
+          // Handle INSERT
+          const body = JSON.parse(init.body);
+          const columns = Object.keys(body).join(', ');
+          const values = Object.values(body)
+            .map(v => typeof v === 'string' ? `'${v}'` : v)
+            .join(', ');
+          query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
+        } else if (method === 'PATCH') {
+          // Handle UPDATE
+          const body = JSON.parse(init.body);
+          const updates = Object.entries(body)
+            .map(([key, value]) => `${key} = '${value}'`)
+            .join(', ');
+          query = `UPDATE ${tableName} SET ${updates}`;
+          
+          // Add WHERE clause from search params with operators
+          const conditions = parseConditions(searchParams);
+          if (conditions) {
+            query += ` WHERE ${conditions}`;
+          }
+        } else if (method === 'DELETE') {
+          // Handle DELETE
+          query = `DELETE FROM ${tableName}`;
+          const conditions = parseConditions(searchParams);
+          if (conditions) {
+            query += ` WHERE ${conditions}`;
+          }
+        }
+
+        try {
+          console.log('execute query', query);
+          const result = await pglite.query(query);
+          return new Response(JSON.stringify(result?.rows ?? null), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/vnd.pgrst.object+json',
+            }
+          });
+        } catch (err) {
+          console.warn('error', err);
+          return new Response(JSON.stringify({
+            error: err.message
+          }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        }
+      });
     };
     this.postgrestClient = new PostgrestClient(new URL('http://localhost'), {
       fetch,
@@ -140,23 +228,36 @@ export class PGliteStorage {
     })();
   }
   async #init() {
-    console.log('init 1');
-    const initResult = await this.pglite.query(initQuery);
-    console.log('init 2', initResult);
+    // console.log('init 1');
+    const initPromises = [];
+    for (const initQuery of initQueries) {
+      const p = this.query(initQuery);
+      initPromises.push(p);
+    }
+    const initResults = await Promise.all(initPromises);
+    // console.log('init 2', initResults);
   }
-  query(query) {
-    return this.pglite.query(query);
+  async query(query) {
+    return await this.queueManager.waitForTurn(async () => {
+      // console.log('init query', query);
+      const result = await this.pglite.query(query);
+      // console.log('init result', {
+      //   query,
+      //   result,
+      // });
+      return result;
+    });
   }
-  sql(strings, ...values) {
-    const query = strings.reduce((acc, str, i) => {
-      acc.push(str);
-      if (i < values.length) {
-        acc.push(values[i]);
-      }
-      return acc;
-    }, []).join('');
-    return this.query(query);
-  }
+  // sql(strings, ...values) {
+  //   const query = strings.reduce((acc, str, i) => {
+  //     acc.push(str);
+  //     if (i < values.length) {
+  //       acc.push(values[i]);
+  //     }
+  //     return acc;
+  //   }, []).join('');
+  //   return this.query(query);
+  // }
   from(...args) {
     return this.postgrestClient.from(...args);
   }
