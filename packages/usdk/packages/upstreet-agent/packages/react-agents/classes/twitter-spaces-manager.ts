@@ -14,7 +14,7 @@ import {
   bindConversationToAgent,
 } from '../runtime';
 import { AudioDecodeStream } from 'codecs/audio-decode.mjs';
-import { formatConversationMessage } from '../util/message-utils';
+import { createMessageCache, formatConversationMessage } from '../util/message-utils';
 import {
   QueueManager,
 } from 'queue-manager';
@@ -85,6 +85,11 @@ class TwitterSpacesBot {
         getHash: () => {
           return `twitterSpaces:channel:${url}`;
         },
+        messageCache: createMessageCache({
+          agent,
+          conversationId: `twitterSpaces:channel:${url}`,
+          agentId: agent.id,
+        }),
       });
 
       this.agent.conversationManager.addConversation(conversation);
