@@ -1231,10 +1231,10 @@ export default function AgentEditor({
               {/* STEP 2 */}
 
               <div className={cn('flex flex-row h-full items-center justify-center my-8', step !== 2 && 'hidden')}>
-                <div className={`w-[300px]`}>
+                <div className={`w-[400px]`}>
 
-                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Chat with your agent</h2></div>
-                  <div className='h-[408px] w-full relative border'>
+                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
+                  <div className='h-[408px] w-full relative'>
                   <Chat
                     room={room}
                     mode={'builder'}
@@ -1255,8 +1255,8 @@ export default function AgentEditor({
               </div>
 
               <div className='flex flex-row justify-center mt-8'>
-                {step !== 1 && <Button className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>}
-                {step !== 3 && <Button className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>}
+                {step !== 1 && <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>}
+                {step !== 3 && <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>}
               </div>
 
             </div>
