@@ -23,8 +23,8 @@ export const TTS: React.FC<TTSProps> = (props: TTSProps) => {
       type="say"
       handler={async (e: PendingActionEvent) => {
         const { message, agent } = e.data;
-        const args = message.args as any;
-        const text = (args as any).text as string;
+        const metadata = message.metadata as any;
+        const text = message.text as string;
 
         const readableAudioStream = tts.getVoiceStream(text);
         const { type } = readableAudioStream;
