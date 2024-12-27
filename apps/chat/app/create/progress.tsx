@@ -11,14 +11,14 @@ interface ProgressProps {
 }
 
 const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
-  const getStepClass = (step: number) => 
+  const getStepClass = (step: number) =>
     currentStep > step ? "bg-gray-900 text-white" : "bg-white text-gray-900 border-2 border-gray-200";
 
   return steps.length > 0 ? (
     <div className="w-full">
       <div className="flex justify-center">
         {steps.map((step, index) => (
-          <div key={index} className={`w-1/${steps.length}`}>
+          <div key={index} className="w-1/3">
             <div className="relative mb-2">
               {index > 0 && (
                 <div
