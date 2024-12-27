@@ -5,6 +5,7 @@ import { ReACTEvaluator } from '../evaluators/react-evaluator';
 // import { PerceptionEvent } from '../classes/perception-event';
 import { ConversationObject } from '../classes/conversation-object';
 import { DeferConversation } from '../components/core/conversation';
+import { createMessageCache } from '../util/message-utils';
 
 export const ActionLoop = (props: LoopProps) => {
   return (
@@ -43,6 +44,11 @@ const ActionLoopInner = (props: LoopProps) => {
       return new ConversationObject({
         agent,
         getHash: () => conversationId,
+        messageCache: createMessageCache({
+          agent,
+          conversationId,
+          agentId: agent.id,
+        }),
       });
     }
   });
