@@ -32,18 +32,38 @@ export class PGliteStorage {
 
     // Hook up PostgrestQueryBuilder to PGlite by implementing fetch
     const fetch = async (url, init = {}) => {
-      // console.log('fetch', url, init);
-
       // Parse the SQL query from the URL and body
       const urlObj = new URL(url);
       const path = urlObj.pathname;
       const searchParams = urlObj.searchParams;
       const method = init.method || 'GET';
-      
-      // // Get table name from headers
-      // const tableName = (init.headers?.['Accept-Profile'] || init.headers?.['Content-Profile'] || '').replace(/[^a-zA-Z0-9_]/g, '');
+
       // Get table name from the basename of the path
       const tableName = path.split('/').pop();
+
+      const parseConditions = (params) => {
+        return Array.from(params)
+          .map(([key, value]) => {
+            const [operator, filterValue] = value.split('.');
+            switch(operator) {
+              case 'eq':
+                return `${key} = '${filterValue}'`;
+              case 'gt':
+                return `${key} > '${filterValue}'`;
+              case 'lt':
+                return `${key} < '${filterValue}'`;
+              case 'gte':
+                return `${key} >= '${filterValue}'`;
+              case 'lte':
+                return `${key} <= '${filterValue}'`;
+              case 'neq':
+                return `${key} != '${filterValue}'`;
+              default:
+                return `${key} = '${value}'`;
+            }
+          })
+          .join(' AND ');
+      };
 
       // Convert Postgrest request to SQL query
       let query;
@@ -54,27 +74,20 @@ export class PGliteStorage {
         delete filter.select;
         
         query = `SELECT ${select} FROM ${tableName}`;
+        
+        // Handle PostgREST filter operators
         if (Object.keys(filter).length > 0) {
-          const conditions = Object.entries(filter)
-            .map(([key, value]) => `${key} = '${value}'`)
-            .join(' AND ');
+          const conditions = parseConditions(Object.entries(filter));
           query += ` WHERE ${conditions}`;
         }
       } else if (method === 'POST') {
-        // Handle INSERT or CREATE DATABASE
-        // if (path === '/rpc') {
-        //   // read the query from the request body
-        //   const body = JSON.parse(init.body);
-        //   query = body.query;
-        // } else {
-          // Regular INSERT
-          const body = JSON.parse(init.body);
-          const columns = Object.keys(body).join(', ');
-          const values = Object.values(body)
-            .map(v => typeof v === 'string' ? `'${v}'` : v)
-            .join(', ');
-          query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
-        // }
+        // Handle INSERT
+        const body = JSON.parse(init.body);
+        const columns = Object.keys(body).join(', ');
+        const values = Object.values(body)
+          .map(v => typeof v === 'string' ? `'${v}'` : v)
+          .join(', ');
+        query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
       } else if (method === 'PATCH') {
         // Handle UPDATE
         const body = JSON.parse(init.body);
@@ -82,45 +95,29 @@ export class PGliteStorage {
           .map(([key, value]) => `${key} = '${value}'`)
           .join(', ');
         query = `UPDATE ${tableName} SET ${updates}`;
-        // Add WHERE clause from search params
+        
+        // Add WHERE clause from search params with operators
         if (searchParams.toString()) {
-          const conditions = Array.from(searchParams)
-            .map(([key, value]) => `${key} = '${value}'`)
-            .join(' AND ');
+          const conditions = parseConditions(searchParams);
           query += ` WHERE ${conditions}`;
         }
       } else if (method === 'DELETE') {
         // Handle DELETE
-        if (path.startsWith('/database/')) {
-          // Handle DROP DATABASE
-          const dbName = path.slice('/database/'.length).replace(/[^a-zA-Z0-9_]/g, '');
-          query = `DROP DATABASE ${dbName}`;
-        } else {
-          // Regular DELETE
-          query = `DELETE FROM ${tableName}`;
-          if (searchParams.toString()) {
-            const conditions = Array.from(searchParams)
-              .map(([key, value]) => `${key} = '${value}'`)
-              .join(' AND ');
-            query += ` WHERE ${conditions}`;
-          }
+        query = `DELETE FROM ${tableName}`;
+        if (searchParams.toString()) {
+          const conditions = parseConditions(searchParams);
+          query += ` WHERE ${conditions}`;
         }
       }
 
       try {
-        // Execute the protocol message
-        // console.log('executing query', query);
         const result = await pglite.query(query);
-        // console.log('result', result); // , new TextDecoder().decode(result.data));
-
-        // Parse result and convert to JSON response
         return new Response(JSON.stringify(result?.rows ?? null), {
           status: 200,
           headers: {
             'Content-Type': 'application/vnd.pgrst.object+json',
           }
         });
-
       } catch (err) {
         console.warn('error', err);
         return new Response(JSON.stringify({
