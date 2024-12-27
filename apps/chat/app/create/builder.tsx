@@ -303,9 +303,9 @@ export default function AgentEditor({
         let agentJson = {
           id,
           ownerId,
-          name: name,
-          bio: bio,
-          visualDescription: visualDescription,
+          name,
+          bio,
+          visualDescription,
           previewUrl,
           homespaceUrl,
           stripeConnectAccountId,
@@ -314,7 +314,7 @@ export default function AgentEditor({
         const agentJsonString = JSON.stringify(agentJson);
 
         const mnemonic = generateMnemonic();
-        const auth = {
+        const env = {
           AGENT_TOKEN: agentToken,
           WALLET_MNEMONIC: mnemonic,
         };
@@ -323,7 +323,7 @@ export default function AgentEditor({
           `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
         ].join('\n');
 
-        console.log('building agent src...', { monaco, sourceCode });
+        // console.log('building agent src...', { monaco, sourceCode });
         const agentTsxFile = new File([sourceCode], 'agent.tsx');
         const agentJsonFile = new File([agentJsonString], 'agent.json');
         const envTxtFile = new File([envTxt], '.env.txt');
@@ -334,12 +334,17 @@ export default function AgentEditor({
             envTxtFile,
           ],
         });
-        console.log('built agent src', { agentModuleSrc });
+        // console.log('built agent src', { agentModuleSrc });
 
+        console.log('start worker', {
+          agentJson,
+          agentModuleSrc,
+          env,
+        });
         const newWorker = new ReactAgentsWorker({
           agentJson,
           agentModuleSrc,
-          auth,
+          env,
         });
         setWorker(newWorker);
 

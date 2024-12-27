@@ -175,7 +175,7 @@ const makeViteWatcher = (directory) => {
     root: directory,
     watch: {
       include: [
-        './entry.mjs',
+        './root-main.tsx',
       ],
     },
   });

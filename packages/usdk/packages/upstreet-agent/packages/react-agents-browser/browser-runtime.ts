@@ -1,7 +1,4 @@
 import { FetchOpts } from './types';
-// import {
-//   dotenvFormat,
-// } from '../util/dotenv-util.mjs';
 
 //
 
@@ -10,51 +7,32 @@ export class ReactAgentsWorker {
   constructor({
     agentJson,
     agentModuleSrc,
-    auth,
-    // apiKey,
-    // mnemonic,
+    env,
   }: {
     agentJson: any,
     agentModuleSrc: string,
-    auth: any,
-    // apiKey: string,
-    // mnemonic: string,
+    env: any,
   }) {
     if (
       !agentJson ||
       !agentModuleSrc ||
-      !auth
-      // !apiKey ||
-      // !mnemonic
+      !env
     ) {
       throw new Error('missing required options: ' + JSON.stringify({
         agentJson,
         agentModuleSrc,
-        auth,
-        // apiKey,
-        // mnemonic,
+        env,
       }));
     }
     console.log('got agent src', agentModuleSrc);
 
-    this.worker = new Worker(new URL('./worker.ts', import.meta.url));
+    this.worker = new Worker(new URL('./worker.tsx', import.meta.url));
 
-    // const env = {
-    //   // AGENT_JSON: JSON.stringify(agentJson),
-    //   // SUPABASE_URL,
-    //   // SUPABASE_PUBLIC_API_KEY,
-    //   WORKER_ENV: 'development', // 'production',
-    // };
-    // const auth = {
-    //   AGENT_TOKEN: apiKey,
-    //   WALLET_MNEMONIC: mnemonic,
-    // };
-    // console.log('starting worker with env:', env);
     this.worker.postMessage({
       method: 'init',
       args: {
         agentJson,
-        auth,
+        env,
         agentModuleSrc,
       },
     });
@@ -62,12 +40,6 @@ export class ReactAgentsWorker {
       console.warn('got error', e);
     });
   }
-  // addEventListener(...args: Parameters<Worker['addEventListener']>) {
-  //   return this.worker.addEventListener(...args);
-  // }
-  // removeEventListener(...args: Parameters<Worker['removeEventListener']>) {
-  //   return this.worker.removeEventListener(...args);
-  // }
   async fetch(url: string, opts: FetchOpts) {
     const requestId = crypto.randomUUID();
     const {
