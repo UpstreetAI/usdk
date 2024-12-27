@@ -225,9 +225,7 @@ class TwitterBot {
         // Add message to conversation
         const rawMessage = {
           method: 'say',
-          args: {
-            text
-          }
+          text,
         };
         const newMessage = formatConversationMessage(rawMessage, {
           agent: this.agent,

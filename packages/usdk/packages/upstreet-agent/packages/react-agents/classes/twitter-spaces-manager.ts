@@ -331,9 +331,7 @@ class TwitterSpacesBot {
 
                 const rawMessage = {
                   method: 'say',
-                  args: {
-                    text,
-                  },
+                  text,
                 };
                 const id = getIdFromUserId(userId);
                 const agent = {

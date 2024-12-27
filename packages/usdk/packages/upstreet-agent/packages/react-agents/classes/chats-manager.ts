@@ -242,9 +242,7 @@ export class ChatsManager {
                   // add the transcription to the conversation
                   const rawMessage = {
                     method: 'say',
-                    args: {
-                      text,
-                    },
+                    text,
                   };
                   const agent = {
                     id: playerId,

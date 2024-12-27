@@ -214,19 +214,22 @@ export type Attachment = FormattedAttachment & {
   url?: string;
 };
 export type ActionMessage = {
+  id: string;
   userId: string;
   name: string;
   method: string;
-  args: any;
-  attachments?: Attachment[];
-  human: boolean; // XXX can be converted to flags
   hidden: boolean;
+  human: boolean; // XXX can be converted to flags
   timestamp: Date;
+  text?: string;
+  metadata?: object;
+  attachments?: Attachment[];
 };
 export type PendingActionMessage = {
   method: string;
-  args: any;
   attachments?: Attachment[];
+  text?: string;
+  metadata?: object;
 };
 export type PerceptionMessage = {
   method: string;

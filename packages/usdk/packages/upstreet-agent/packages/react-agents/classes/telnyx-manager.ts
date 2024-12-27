@@ -216,9 +216,7 @@ export class TelnyxBot extends EventTarget {
 
         const rawMessage = {
           method: 'say',
-          args: {
-            text,
-          },
+          text,
         };
 
         const id = getIdFromPhoneNumber(fromPhoneNumber);

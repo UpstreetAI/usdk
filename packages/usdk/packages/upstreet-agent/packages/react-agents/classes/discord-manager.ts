@@ -388,9 +388,7 @@ export class DiscordBot extends EventTarget {
 
           const rawMessage = {
             method: 'say',
-            args: {
-              text: formattedMessage,
-            },
+            text: formattedMessage,
           };
           const id = getIdFromUserId(userId);
           const agent = {
