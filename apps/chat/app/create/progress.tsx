@@ -14,7 +14,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
   const getStepClass = (step: number) => 
     currentStep > step ? "bg-gray-900 text-white" : "bg-white text-gray-900 border-2 border-gray-200";
 
-  return (
+  return steps.length > 0 ? (
     <div className="w-full">
       <div className="flex justify-center">
         {steps.map((step, index) => (
@@ -48,7 +48,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
         ))}
       </div>
     </div>
-  );
+  ) : null;
 };
 
 export default Progress;

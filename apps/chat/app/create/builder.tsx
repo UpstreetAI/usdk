@@ -519,7 +519,7 @@ export default function AgentEditor({
   // render
   return (
     <div className="relative">
-      <div className='w-full h-screen text-zinc-950'>
+      <div className='w-full h-screen text-zinc-950 bg-[url("/images/backgrounds/builder-background.jpg")] bg-center bg-cover'>
         <div className="flex h-full overflow-y-auto">
           <div className="container mx-auto max-w-4xl px-4 py-8">
             <h1 className="text-2xl font-bold mb-2 text-center mt-8">Create Agent</h1>
