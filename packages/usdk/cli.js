@@ -788,17 +788,16 @@ const agents = async (args, opts) => {
       head: [
         'ID',
         'Name',
-        // 'enabled',
         // 'location',
         // 'balance',
         // 'battery',
         'Bio',
-        'Server',
-        'Created',
-        'Active Room IDs',
-        'Last Active',
+        // 'Server',
+        // 'Created',
+        // 'Active Room IDs',
+        // 'Last Active',
       ],
-      colWidths: [20, 30, 40, 30, 10, 30, 20],
+      colWidths: [38, 20, 38],
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
@@ -835,59 +834,6 @@ const agents = async (args, opts) => {
 
           return rooms;
         })();
-        // const statusPromise = (async () => {
-        //   // const u = `${agentHost}/status`;
-        //   // const proxyRes = await fetch(u);
-        //   // if (proxyRes.ok) {
-        //   //   const j = await proxyRes.json();
-        //   //   return j;
-        //   // } else {
-        //   //   return null;
-        //   // }
-        // })();
-        // const creditsPromise = (async () => {
-        //   const creditsResult = await supabase
-        //     .from('credits')
-        //     .select('credits')
-        //     .eq('agent_id', agent.id)
-        //     .maybeSingle();
-        //   const { error, data } = creditsResult;
-        //   if (!error) {
-        //     return data?.credits ?? 0;
-        //   } else {
-        //     throw new Error(
-        //       `could not get credits for agent ${agent.id}: ${error}`,
-        //     );
-        //   }
-        // })();
-
-        // const res = await fetch(`${agent.start_url}/agent.json`);
-        // if (res.ok) {
-        //   const agentJson = await res.json();
-        //   if (
-        //     agentJson.id &&
-        //     agentJson.name &&
-        //     agentJson.address &&
-        //     agentJson.bio
-        //   ) {
-        //     // const balancePromise = (async () => {
-        //     //   const provider = providers[network];
-        //     //   const balance = await provider.getBalance(agentJson.address);
-        //     //   const ethBalance = ethers.formatEther(balance);
-        //     //   return ethBalance;
-        //     // })();
-        //     const [status, credits, balance] = await Promise.all([
-        //       statusPromise,
-        //       // creditsPromise,
-        //       // balancePromise,
-        //     ]);
-
-        //     const serverUrl = agentHost;
-
-           
-        //   // } else {
-        //   //   console.warn('skipping agent', agentJson);
-        //   }
         
         const [
           latestTimestamp,
@@ -908,15 +854,11 @@ const agents = async (args, opts) => {
         table.push([
           agentJson.id,
           agentJson.name,
-          // status?.enabled ?? false,
           agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
-          // status?.room ?? '',
-          // balance,
-          // credits,
-          { content: serverUrl, href: serverUrl },
-          timeAgo(new Date(agent.created_at)),
-          rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
-          timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
+          // { content: serverUrl, href: serverUrl },
+          // timeAgo(new Date(agent.created_at)),
+          // rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
+          // timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
         ]);
       });
       promises.push(p);
