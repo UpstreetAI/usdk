@@ -194,7 +194,7 @@ const VideoPerceptionInner = (props: VideoPerceptionProps) => {
                   // alt,
                 });
                 const qa = makeQa(questions, answers);
-                (e.data.message.args as any).queries = qa;
+                (e.data.message.metadata as any).queries = qa;
                 // console.log('commit 1', e.data.message);
                 await e.commit();
 
