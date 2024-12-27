@@ -7,32 +7,32 @@ export class ReactAgentsWorker {
   constructor({
     agentJson,
     agentModuleSrc,
-    auth,
+    env,
   }: {
     agentJson: any,
     agentModuleSrc: string,
-    auth: any,
+    env: any,
   }) {
     if (
       !agentJson ||
       !agentModuleSrc ||
-      !auth
+      !env
     ) {
       throw new Error('missing required options: ' + JSON.stringify({
         agentJson,
         agentModuleSrc,
-        auth,
+        env,
       }));
     }
     console.log('got agent src', agentModuleSrc);
 
-    this.worker = new Worker(new URL('./worker.ts', import.meta.url));
+    this.worker = new Worker(new URL('./worker.tsx', import.meta.url));
 
     this.worker.postMessage({
       method: 'init',
       args: {
         agentJson,
-        auth,
+        env,
         agentModuleSrc,
       },
     });

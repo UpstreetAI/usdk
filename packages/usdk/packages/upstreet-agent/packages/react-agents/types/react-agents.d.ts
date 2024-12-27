@@ -429,13 +429,6 @@ export type TelnyxManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
-export type LiveManager = {
-  getTimeouts: (conversation: ConversationObject) => number[];
-  useTimeouts: (conversation: ConversationObject) => number[];
-  setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
-  process: () => void;
-  getNextTimeout: () => number;
-};
 export type PingManager = {
   userId: string;
   supabase: any;
@@ -455,7 +448,6 @@ export type ActiveAgentObject = AgentObject & {
   twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
-  liveManager: LiveManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
@@ -832,7 +824,3 @@ export type ReadableVideoStream = ReadableStream & {
 export type PlayableVideoStream = ReadableAudioStream & {
   id: string;
 };
-
-// user handler
-
-export type UserHandler = FC;

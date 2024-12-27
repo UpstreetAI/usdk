@@ -24,10 +24,9 @@ import {
   callbackPort,
 } from './util/ports.mjs';
 import {
-  makeAnonymousClient,
   getUserIdForJwt,
-  getUserForJwt,
-} from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { SupabaseStorage } from './packages/upstreet-agent/packages/react-agents/storage/supabase-storage.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -35,7 +34,6 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-// import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -125,7 +123,7 @@ const logger = LoggerFactory.getLogger();
 
 //
 
-const makeSupabase = (jwt) => makeAnonymousClient(jwt);
+const makeSupabase = (jwt) => new SupabaseStorage({ jwt });
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);

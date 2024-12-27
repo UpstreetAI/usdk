@@ -1,22 +1,11 @@
-// import path from 'path';
-// import fs from 'fs';
 import crossSpawn from 'cross-spawn';
-// import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
-// import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 import { installAgent } from '../react-agents-node/install-agent.mjs';
 
 //
 
-/* const dirname = getCurrentDirname(import.meta, process);
-const copyWithStringTransform = async (src, dst, transformFn = (s) => s) => {
-  let s = await fs.promises.readFile(src, 'utf8');
-  s = transformFn(s);
-  await mkdirp(path.dirname(dst));
-  await fs.promises.writeFile(dst, s);
-}; */
 process.addListener('SIGTERM', () => {
   process.exit(0);
 });
@@ -96,16 +85,6 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 };
 
 //
-
-/* const buildWranglerToml = (
-  t,
-  opts = {},
-) => {
-  for (const k in opts) {
-    t[k] = opts[k];
-  }
-  return t;
-}; */
 
 export class ReactAgentsWranglerRuntime {
   agentSpec;
