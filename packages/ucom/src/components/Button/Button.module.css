@@ -73,7 +73,7 @@ a.ucomButton {
 .ucomButton.secondary {
   background-color: #0E468A;
   border: 2px solid #0a3568;
-  color: #000000;
+  color: #EFEFEF;
 }
 
 .ucomButton.secondary:hover {
