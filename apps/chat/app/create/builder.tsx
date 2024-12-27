@@ -665,11 +665,9 @@ export default function AgentEditor({
                   }
                 }}>
 
-                  <div className='text-lg font-bold mb-2 flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
+                  <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
-
-
 
                     <div
                       onClick={enablePersonality}
