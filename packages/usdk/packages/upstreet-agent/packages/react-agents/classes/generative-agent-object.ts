@@ -112,27 +112,13 @@ export class GenerativeAgentObject {
     // });
   }
   async evaluate(evaluator: Evaluator, opts?: EvaluateOpts) {
-    const {
-      sendTyping = true,
-    } = opts ?? {};
-
-    const evaluateAndExecuteStep = async () => {
+    return await this.conversation.typing(async () => {
       const step = await evaluator.evaluate({
-        generativeAgent: this as GenerativeAgentObject,
+        generativeAgent: this,
       });
       await executeAgentActionStep(this, step);
       return step;
-    };
-
-    if (sendTyping) {
-      let result: ActionStep;
-      await this.conversation.typing(async () => {
-        result = await evaluateAndExecuteStep();
-      });
-      return result;
-    } else {
-      return await evaluateAndExecuteStep();
-    }
+    });
   }
   /* async generate(hint: string, schema?: ZodTypeAny) {
     // console.log('agent renderer generate 1');
