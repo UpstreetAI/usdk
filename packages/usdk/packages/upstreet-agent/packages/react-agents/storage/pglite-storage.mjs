@@ -170,8 +170,14 @@ export class PGliteStorage {
           // Handle INSERT
           const body = JSON.parse(init.body);
           const columns = Object.keys(body).join(', ');
+          console.log('got body', body);
           const values = Object.values(body)
-            .map(v => typeof v === 'string' ? `'${v}'` : v)
+            .map(v => {
+              if (v === null) return 'NULL';
+              if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
+              if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
+              return v;
+            })
             .join(', ');
           query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
         } else if (method === 'PATCH') {
