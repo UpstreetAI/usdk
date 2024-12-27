@@ -1,7 +1,23 @@
 import { PostgrestClient } from '@supabase/postgrest-js';
 import { PGlite } from '@electric-sql/pglite';
+import dedent from 'dedent';
 
 const defaultSchema = 'public';
+
+const initQuery = [
+  dedent`\
+    create table
+      chat_specifications (
+        id text not null,
+        created_at timestamp with time zone not null default now(),
+        user_id uuid not null,
+        data jsonb null,
+        uid uuid not null default gen_random_uuid (),
+        constraint chat_specifications_pkey primary key (uid),
+        constraint chat_specifications_uid_key unique (uid)
+      );
+  `,
+].join('\n');
 
 export class PGliteStorage {
   pglite;
@@ -121,6 +137,15 @@ export class PGliteStorage {
       fetch,
       schema: defaultSchema,
     });
+
+    (async () => {
+      await this.#init();
+    })();
+  }
+  async #init() {
+    console.log('init 1');
+    const initResult = await this.pglite.query(initQuery);
+    console.log('init 2', initResult);
   }
   query(query) {
     return this.pglite.query(query);
