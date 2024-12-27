@@ -14,7 +14,7 @@ import type {
   TelnyxMessageArgs,
   TelnyxVoiceArgs,
 } from '../lib/telnyx/telnyx-client';
-import { formatConversationMessage } from '../util/message-utils';
+import { createMessageCache, formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
@@ -178,6 +178,11 @@ export class TelnyxBot extends EventTarget {
         conversation = new ConversationObject({
           agent,
           getHash: () => hash,
+          messageCache: createMessageCache({
+            agent,
+            conversationId: hash,
+            agentId: agent.id,
+          }),
         });
         const player = makePlayerFromPhoneNumber(toPhoneNumber);
         conversation.addAgent(player.playerId, player);
