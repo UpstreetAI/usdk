@@ -13,7 +13,7 @@ import {
 } from './conversation-object';
 import { Player } from 'react-agents-client/util/player.mjs';
 import { DiscordBotClient } from '../lib/discord/discord-client';
-import { formatConversationMessage } from '../util/message-utils';
+import { createMessageCache, formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
@@ -247,12 +247,18 @@ export class DiscordBot extends EventTarget {
             return
           }
 
+          const conversationId = `discord:channel:${channelId}`;
           const conversation = new ConversationObject({
             agent,
             getHash: () => {
-              return `discord:channel:${channelId}`;
+              return conversationId;
             },
             mentionsRegex: discordMentionRegex,
+            messageCache: createMessageCache({
+              agent,
+              conversationId,
+              agentId: agent.id,
+            }),
           });
 
           this.agent.conversationManager.addConversation(conversation);
@@ -293,13 +299,19 @@ export class DiscordBot extends EventTarget {
           console.log('dm conversation already exists for this user, skipping', userId);
           return
         }
-        
+
+        const conversationId = `discord:dm:${userId}`;
         const conversation = new ConversationObject({
           agent,
           getHash: () => {
-            return `discord:dm:${userId}`;
+            return conversationId;
           },
           mentionsRegex: discordMentionRegex,
+          messageCache: createMessageCache({
+            agent,
+            conversationId,
+            agentId: agent.id,
+          }),
         });
 
         this.agent.conversationManager.addConversation(conversation);
