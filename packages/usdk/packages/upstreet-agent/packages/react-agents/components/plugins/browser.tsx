@@ -57,7 +57,7 @@ class BrowserState {
   }
 }
 type WebBrowserActionHandlerOptions = {
-  args: any;
+  metadata: any;
   agent?: GenerativeAgentObject;
   authToken?: string;
   ensureBrowserState: () => Promise<BrowserState>;
@@ -74,7 +74,7 @@ type WebBrowserActionSpec = {
 };
 type WebBrowserActionObject = {
   method: string;
-  args: any;
+  metadata: any;
 };
 const webbrowserActions: WebBrowserActionSpec[] = [
   {
@@ -113,13 +113,13 @@ const webbrowserActions: WebBrowserActionSpec[] = [
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
-        args,
+        metadata,
         agent,
       } = opts;
       const {
         pageId,
         url,
-      } = args as {
+      } = metadata as {
         pageId: string;
         url: string;
       };
@@ -153,13 +153,13 @@ const webbrowserActions: WebBrowserActionSpec[] = [
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
-        args,
+        metadata,
         agent,
       } = opts;
       const {
         pageId,
         text,
-      } = args as {
+      } = metadata as {
         pageId: string;
         text: string;
       };
@@ -194,13 +194,13 @@ const webbrowserActions: WebBrowserActionSpec[] = [
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
-        args,
+        metadata,
         agent,
         authToken,
       } = opts;
       const {
         pageId,
-      } = args as {
+      } = metadata as {
         pageId: string;
       };
       const browserState = await opts.ensureBrowserState();
@@ -234,9 +234,7 @@ const webbrowserActions: WebBrowserActionSpec[] = [
 
           const m = {
             method: 'say',
-            args: {
-              text: '',
-            },
+            text: '',
             attachments: [
               {
                 id: guid2,
@@ -276,12 +274,12 @@ const webbrowserActions: WebBrowserActionSpec[] = [
     }),
     handle: async (opts: WebBrowserActionHandlerOptions) => {
       const {
-        args,
+        metadata,
         agent,
       } = opts;
       const {
         pageId,
-      } = args as {
+      } = metadata as {
         pageId: string;
       };
       const browserState = await opts.ensureBrowserState();
@@ -368,13 +366,13 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
   const actionTypeUnion = z.union(webbrowserActions.map((action) => {
     return z.object({
       method: z.literal(action.method),
-      args: action.schema,
+      metadata: action.schema,
     });
   }) as any);
   const examples = webbrowserActions.map((action) => {
     return {
       method: action.method,
-      args: action.schemaDefault,
+      metadata: action.schemaDefault(),
     };
   });
 
@@ -459,8 +457,8 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
       examples={examples}
       handler={async (e: PendingActionEvent) => {
         const { agent, message } = e.data;
-        const webBrowserActionArgs = message.args as WebBrowserActionObject;
-        const { method, args } = webBrowserActionArgs;
+        const webBrowserActionArgs = message.metadata as WebBrowserActionObject;
+        const { method, metadata } = webBrowserActionArgs;
 
         const retry = () => {
           agent.act();
@@ -473,7 +471,7 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
             let error: (string | undefined) = undefined;
             try {
               const opts = {
-                args,
+                metadata,
                 agent,
                 authToken,
                 ensureBrowserState,
@@ -482,13 +480,13 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
               };
               console.log('execute browser action 1', {
                 method,
-                args,
+                metadata,
                 opts,
               });
               result = await webbrowserAction.handle(opts);
               console.log('execute browser action 2', {
                 method,
-                args,
+                metadata,
                 opts,
                 result,
               });
@@ -514,9 +512,9 @@ export const WebBrowser: React.FC<WebBrowserProps> = (props: WebBrowserProps) =>
 
             const m = {
               method: browserAction,
-              args: {
+              metadata: {
                 method,
-                args,
+                metadata,
                 error,
                 result,
               },
