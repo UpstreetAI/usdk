@@ -61,6 +61,14 @@ const initQueries = [
         constraint stripe_connect_payments_pkey primary key (id)
       );
   `,
+  dedent`\
+    create table
+      pings (
+        user_id uuid not null default gen_random_uuid (),
+        timestamp timestamp with time zone not null default now(),
+        constraint pings_pkey primary key (user_id)
+      );
+  `,
 ];
 
 export class PGliteStorage {
@@ -108,7 +116,7 @@ export class PGliteStorage {
         const parseConditions = (params) => {
           const conditions = [];
           for (const [key, value] of params) {
-            if (key === 'select' || key === 'order' || key === 'limit') {
+            if (key === 'select' || key === 'order' || key === 'limit' || key === 'on_conflict') {
               continue;
             }
             const [operator, filterValue] = value.split('.');
@@ -136,6 +144,13 @@ export class PGliteStorage {
             }
           }
           return conditions.join(' AND ');
+        };
+
+        const stringifyValue = (value) => {
+          if (value === null) return 'NULL';
+          if (typeof value === 'string') return `'${value.replace(/'/g, "''")}'`;
+          if (typeof value === 'object') return `'${JSON.stringify(value).replace(/'/g, "''")}'`;
+          return value;
         };
 
         // Convert Postgrest request to SQL query
@@ -170,21 +185,26 @@ export class PGliteStorage {
           // Handle INSERT
           const body = JSON.parse(init.body);
           const columns = Object.keys(body).join(', ');
-          console.log('got body', body);
           const values = Object.values(body)
-            .map(v => {
-              if (v === null) return 'NULL';
-              if (typeof v === 'string') return `'${v.replace(/'/g, "''")}'`;
-              if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'`;
-              return v;
-            })
+            .map(stringifyValue)
             .join(', ');
           query = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
+
+          // Handle ON CONFLICT
+          const onConflict = searchParams.get('on_conflict');
+          if (onConflict) {
+            query += ` ON CONFLICT (${onConflict}) DO UPDATE SET `;
+            const updates = Object.entries(body)
+              .filter(([key]) => key !== onConflict) // Exclude the conflict column
+              .map(([key, value]) => `${key} = ${stringifyValue(value)}`)
+              .join(', ');
+            query += updates;
+          }
         } else if (method === 'PATCH') {
           // Handle UPDATE
           const body = JSON.parse(init.body);
           const updates = Object.entries(body)
-            .map(([key, value]) => `${key} = '${value}'`)
+            .map(([key, value]) => `${key} = ${stringifyValue(value)}`)
             .join(', ');
           query = `UPDATE ${tableName} SET ${updates}`;
           
@@ -203,7 +223,10 @@ export class PGliteStorage {
         }
 
         try {
-          console.log('execute query', query);
+          // console.log('execute query', query, {
+          //   searchParams: Object.fromEntries(searchParams),
+          //   init,
+          // });
           const result = await pglite.query(query);
           return new Response(JSON.stringify(result?.rows ?? null), {
             status: 200,
