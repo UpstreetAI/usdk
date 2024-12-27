@@ -13,7 +13,7 @@ import {
   ConversationObject,
 } from './conversation-object';
 // import { Player } from 'react-agents-client/util/player.mjs';
-import { formatConversationMessage } from '../util/message-utils';
+import { createMessageCache, formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,
 } from '../runtime';
@@ -200,6 +200,11 @@ class TwitterBot {
           conversation = new ConversationObject({
             agent: this.agent,
             getHash: () => `twitter:conversation:${conversation_id}`,
+            messageCache: createMessageCache({
+              agent: this.agent,
+              conversationId: `twitter:conversation:${conversation_id}`,
+              agentId: this.agent.id,
+            }),
           });
           
           this.agent.conversationManager.addConversation(conversation);
