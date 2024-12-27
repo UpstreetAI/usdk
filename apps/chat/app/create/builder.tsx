@@ -485,7 +485,9 @@ export default function AgentEditor({
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
-  const featureClass = 'cursor-pointer relative inline-block py-6 text-center border lg:w-[calc(33%-1rem)] m-2 px-4 hover:bg-gray-900/10 transition-colors duration-300';
+  
+  const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] p-[2px] cursor-pointer relative inline-block text-center border lg:w-[calc(33%-1rem)] m-2 transition-colors duration-300';
+  const featureClass = 'bg-[#000C19] px-4 py-6';
   const featureClassActive = 'bg-gray-900 text-white hover:bg-gray-950';
   const featureIconClass = 'size-10 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
@@ -522,9 +524,10 @@ export default function AgentEditor({
       <div className='w-full h-screen text-zinc-950 bg-[url("/images/backgrounds/builder-background.jpg")] bg-center bg-cover'>
         <div className="flex h-full overflow-y-auto">
           <div className="container mx-auto max-w-4xl px-4 py-8">
+
             <h1 className="text-2xl font-bold mb-2 text-center mt-8">Create Agent</h1>
 
-            <p className="text-lg text-gray-800 mb-6 text-center">
+            <p className="text-lg text-gray-100 mb-6 text-center">
               Build and deploy your agent in 3 steps.
             </p>
 
@@ -668,7 +671,7 @@ export default function AgentEditor({
                   <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
-
+                    <div className={featureWrapperClass}>
                     <div
                       onClick={enablePersonality}
                       className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}
@@ -790,7 +793,10 @@ export default function AgentEditor({
                         </Modal>
                       </div>
                     </div>
+                    </div>
+                    
 
+                    <div className={featureWrapperClass}>
                     <div
                       onClick={() => {
                         setModalOpen('voice');
@@ -858,7 +864,9 @@ export default function AgentEditor({
                         )}
                       </div>
                     </div>
+                    </div>
 
+                    <div className={featureWrapperClass}>
                     <div onClick={() => {
                       setModalOpen('rateLimit');
                       !features.rateLimit && setFeatures({
@@ -951,7 +959,9 @@ export default function AgentEditor({
                         )}
                       </div>
                     </div>
+                    </div>
 
+                    <div className={featureWrapperClass}>
                     <div onClick={() => {
                       setModalOpen('discord');
                       !features.discord && setFeatures({
@@ -1021,7 +1031,9 @@ export default function AgentEditor({
                         )}
                       </div>
                     </div>
+                    </div>
 
+                    <div className={featureWrapperClass}>
                     <div onClick={() => {
                       setModalOpen('twitterBot');
                       !features.twitterBot && setFeatures({
@@ -1076,7 +1088,9 @@ export default function AgentEditor({
                         )}
                       </div>
                     </div>
+                    </div>
 
+                    <div className={featureWrapperClass}>
                     <div onClick={() => {
                       setModalOpen('storeItems');
                       !features.storeItems && setFeatures({
@@ -1208,6 +1222,9 @@ export default function AgentEditor({
                         )}
                       </div>
                     </div>
+                    </div>
+
+
                   </div>
                 </form>
 
