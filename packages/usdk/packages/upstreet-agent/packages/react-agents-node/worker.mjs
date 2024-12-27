@@ -32,7 +32,7 @@ const loadModule = async (directory, p) => {
   // console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const startAgentMainServer = async ({
+const startRootServer = async ({
   root,
   ip,
   port,
@@ -78,9 +78,9 @@ const runAgent = async (directory, opts) => {
   });
 
   // wait for first render
-  // await agentMain.waitForLoad();
+  // await root.waitForLoad();
 
-  await startAgentMainServer({
+  await startRootServer({
     root,
     ip,
     port,

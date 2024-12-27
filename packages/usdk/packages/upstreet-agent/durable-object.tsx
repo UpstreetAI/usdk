@@ -30,7 +30,6 @@ const agentJson = parseAgentJson(agentJsonSource);
 export class DurableObject {
   state: any;
   env: any;
-  agentMain: Root;
   loadPromise: Promise<Root> = null;
 
   constructor(state: any, env: any) {

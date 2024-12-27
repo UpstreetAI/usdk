@@ -38,8 +38,8 @@ const loadModule = async (directory, p) => {
   // console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const startAgentMainServer = async ({
-  agentMain,
+const startRootServer = async ({
+  root,
   ip,
   port,
 }) => {
@@ -101,7 +101,7 @@ const startAgentMainServer = async ({
   });
   app.all('*', (c) => {
     const req = c.req.raw;
-    return agentMain.fetch(req);
+    return root.fetch(req);
   });
 
   // create server
@@ -130,18 +130,18 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const main = await loadModule(directory, 'root-main.tsx');
-  const agentMain = await main({
+  const createRootMain = await loadModule(directory, 'root-main.tsx');
+  const root = createRootMain({
     init,
     debug,
   });
-  // console.log('agentMain', agentMain);
+  // console.log('root', root);
 
   // wait for first render
-  // await agentMain.waitForLoad();
+  // await root.waitForLoad();
 
-  await startAgentMainServer({
-    agentMain,
+  await startRootServer({
+    root,
     ip,
     port,
   });
