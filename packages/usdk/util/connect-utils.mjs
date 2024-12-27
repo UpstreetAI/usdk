@@ -339,9 +339,7 @@ const startMultiplayerRepl = ({
       method: 'say',
       userId,
       name,
-      args: {
-        text,
-      },
+      text,
       timestamp: Date.now(),
     });
   };
@@ -477,13 +475,12 @@ const connectRepl = async ({
   });
   multiplayerConnection.addEventListener('chat', (e) => {
     const { message } = e.data;
-    const { userId: messageUserId, name, method, args } = message;
+    const { userId: messageUserId, name, method, metadata, text } = message;
     // console.log('got message', message);
     const attachments = (message.attachments ?? []).filter(a => !!a.url);
 
     switch (method) {
       case 'say': {
-        const { text } = args;
         if (messageUserId !== profile.id) {
           let s = `${name}: ${text}`;
           if (attachments.length > 0) {
@@ -524,13 +521,12 @@ const connectRepl = async ({
       }
       case 'log': {
         if (debug) {
-          const { text } = args;
           mpLog(text);
         }
         break;
       }
       case 'typing': {
-        const { typing } = args;
+        const { typing } = metadata;
         typingMap.set(messageUserId, { userId: messageUserId, name, typing });
         break;
       }
@@ -549,10 +545,10 @@ const connectRepl = async ({
       case 'browserAction': {
         const {
           method: method2,
-          args: args2,
+          metadata: metadata2,
           result,
           error,
-        } = args;
+        } = metadata;
         const webbrowserAction = webbrowserActionsToText.find((action) => action.method === method2);
         if (webbrowserAction) {
           // get the agent from the player spec
@@ -569,7 +565,7 @@ const connectRepl = async ({
             // get the agent from the local player spec
             agent,
             method: method2,
-            args: args2,
+            metadata: metadata2,
             result,
             error,
           };
@@ -582,7 +578,7 @@ const connectRepl = async ({
         const {
           type,
           props,
-        } = args;
+        } = metadata;
         const {
           amount,
           currency,
@@ -790,12 +786,12 @@ const connectStream = async ({
   });
   multiplayerConnection.addEventListener('chat', (e) => {
     const { message } = e.data;
+    const { text } = message;
     const method = message?.method;
-    const args = message?.args;
+    const metadata = message?.metadata;
     switch (method) {
       case 'say': {
         const { name } = message;
-        const { text } = args;
         outputStream.write(`${name}: ${text}\n`);
         break;
       }
@@ -833,9 +829,7 @@ const connectStream = async ({
       method: 'say',
       userId,
       name,
-      args: {
-        text,
-      },
+      text,
       timestamp: Date.now(),
     });
   };
