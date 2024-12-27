@@ -23,17 +23,18 @@ export async function saveMessageToDatabase({
 async function encodeMessage(message, jwt, userId, conversationId) {
   const embedding = await lembed(JSON.stringify({
     method: message.method,
-    args: message.args,
+    metadata: message.metadata,
   }), { jwt });
   return {
+    id: message.id,
     method: message.method,
-    args: message.args,
     attachments: message.attachments,
-    text: message.args.text,
+    text: message.text,
     user_id: userId,
     conversation_id: conversationId,
     src_user_id: message.userId,
     src_name: message.name,
+    metadata: message.metadata,
     embedding,
   };
 }

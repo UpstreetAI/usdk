@@ -7,9 +7,11 @@ export async function loadMessagesFromDatabase({
   const { error, data } = await supabase
     .from( 'agent_messages' )
     .select([
+      'id',
       'method',
-      'args',
+      'metadata',
       'attachments',
+      'text',
       'src_user_id',
       'src_name',
       'created_at',
@@ -27,8 +29,10 @@ export async function loadMessagesFromDatabase({
 
 function decodeMessages(messages) {
   return messages.map( message => ({
+    id: message.id,
     method: message.method,
-    args: message.args,
+    metadata: message.metadata,
+    text: message.text,
     attachments: message.attachments,
     userId: message.src_user_id,
     name: message.src_name,
