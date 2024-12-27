@@ -520,18 +520,23 @@ export default function AgentEditor({
             <h1 className="text-2xl font-bold mb-2 text-center mt-8">Create Agent</h1>
 
             <p className="text-lg text-gray-800 mb-6 text-center">
-              Build and deploy your agent in 2 steps.
+              Build and deploy your agent in 3 steps.
             </p>
 
-            <div className='mx-auto max-w-[300px] mb-4'>
+            <div className='mx-auto max-w-xl mb-4'>
               <Progress
                 currentStep={1}
                 steps={
                   [
                     {
-                      title: 'Customize',
+                      title: 'Build',
                       Icon: 'Tiling',
                       description: 'Customize your agents personality',
+                    },
+                    {
+                      title: 'Test',
+                      Icon: 'Head',
+                      description: 'Test your agent',
                     },
                     {
                       title: 'Deploy',
