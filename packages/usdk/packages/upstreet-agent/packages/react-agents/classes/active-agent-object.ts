@@ -44,7 +44,6 @@ import { AgentRegistry } from './render-registry';
 
 export class ActiveAgentObject extends AgentObject {
   // arguments
-  agentJson: AgentObject;
   config: AgentObjectData;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
@@ -76,7 +75,6 @@ export class ActiveAgentObject extends AgentObject {
     //
 
     this.config = config;
-    this.agentJson = new AgentObject(config);
     this.appContextValue = appContextValue;
     this.registry = registry;
 
