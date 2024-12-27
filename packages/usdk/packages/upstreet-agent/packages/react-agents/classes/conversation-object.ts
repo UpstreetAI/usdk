@@ -12,8 +12,6 @@ import {
 import { SceneObject } from '../classes/scene-object';
 import { Player } from 'react-agents-client/util/player.mjs';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
-import { MessageCache as MessageCacheConstructor, CACHED_MESSAGES_LIMIT } from './message-cache';
-import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
 
 //
 
