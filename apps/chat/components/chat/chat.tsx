@@ -45,16 +45,16 @@ type FormattedAttachment = {
 type Attachment = FormattedAttachment & {
   url?: string
 }
-type Message = {
+type Message = {  
+  id: string
   method: string
-  args: {
-    text?: string
-  }
+  text?: string
   attachments: Attachment[]
   name: string
   timestamp: Date
   userId: string
-  human: boolean
+  human: boolean,
+  metadata?: object
 }
 
 //
@@ -201,7 +201,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         <ChatMessage
           id={id}
           name={message.name}
-          content={message.args.text}
+          content={message.text}
           isOwnMessage={isOwnMessage}
           profileUrl={profileUrl}
           media={media}
@@ -245,18 +245,16 @@ function getMessageComponent(room: string, message: Message, id: string, players
       const {
         // agent:,
         // method,
-        args: messageArgs,
+        metadata,
         // result,
         // error,
       } = message;
       const {
         method,
-        args,
         result,
         error,
-      } = messageArgs as {
+      } = metadata as {
         method: string;
-        args: any;
         result: any;
         error: any;
       };
@@ -266,7 +264,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         const o = {
           agent,
           method,
-          args,
+          metadata,
           result,
           error,
         };
@@ -288,13 +286,13 @@ function getMessageComponent(room: string, message: Message, id: string, players
       let media = null;
 
       const {
-        args,
+        metadata,
       } = message;
       const {
         type,
         props,
         stripeConnectAccountId,
-      } = args as PaymentItem;
+      } = metadata as PaymentItem;
       const {
         name = '',
         description = '',

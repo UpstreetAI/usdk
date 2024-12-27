@@ -16,7 +16,7 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
@@ -28,14 +28,14 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
       const {
         pageId,
         url,
-      } = args;
+      } = metadata;
       return `${agent.name} navigated to ${url} on page ${pageId}${getActionErrorText(error)}`;
     }
   },
@@ -44,14 +44,14 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
       const {
         pageId,
         text,
-      } = args;
+      } = metadata;
       return `${agent.name} clicked on element with text ${text} on page ${pageId}${getActionErrorText(error)}`;
     }
   },
@@ -60,13 +60,13 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
       const {
         pageId,
-      } = args;
+      } = metadata;
       return `${agent.name} took a screenshot of page ${pageId}${getActionErrorText(error)}`;
     }
   },
@@ -75,13 +75,13 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
       const {
         pageId,
-      } = args;
+      } = metadata;
       return `${agent.name} closed page ${pageId}${getActionErrorText(error)}`;
     },
   },
@@ -90,13 +90,13 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
       const {
         url,
-      } = args;
+      } = metadata;
       return `${agent.name} downloaded a file from ${url}${getActionErrorText(error)}`;
     }
   },
@@ -105,7 +105,7 @@ export const webbrowserActionsToText = [
     toText({
       agent,
       method,
-      args,
+      metadata,
       result,
       error,
     }) {
