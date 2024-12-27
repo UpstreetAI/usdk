@@ -13,8 +13,6 @@ import { updateIgnoreMouseEvents } from './lib/updateIgnoreMouseEvents.js';
 
 //
 
-console.log('electron start script!');
-
 const UPDATE_INTERVAL = 1000 / 60;
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
@@ -132,13 +130,8 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const p = 'entry.mjs';
-  const main = await loadModule(directory, p);
-  // console.log('worker loaded module', {
-  //   directory,
-  // });
+  const main = await loadModule(directory, 'root-main.tsx');
   const agentMain = await main({
-    // directory,
     init,
     debug,
   });
