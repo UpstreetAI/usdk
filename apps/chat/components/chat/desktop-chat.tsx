@@ -42,10 +42,10 @@ type Attachment = FormattedAttachment & {
 };
 
 type Message = {
+  id: string;
   method: string;
-  args: {
-    text?: string;
-  };
+  metadata: object;
+  text: string;
   attachments: Attachment[];
   name: string;
   timestamp: Date;
@@ -225,7 +225,7 @@ function getMessageComponent(room: string, message: Message, id: string, players
         <ChatMessageEmbed
           id={id}
           name={message.name}
-          content={message.args.text}
+          content={message.text}
           isOwnMessage={isOwnMessage}
           profileUrl={profileUrl}
           media={media}
@@ -249,16 +249,16 @@ function getMessageComponent(room: string, message: Message, id: string, players
       );
     case 'browserAction': {
       const player = playersCache.get(message.userId);
-      const { method, args, result, error } = message.args as {
+      const { method, metadata, result, error } = message.metadata as {
         method: string;
-        args: any;
+        metadata: any;
         result: any;
         error: any;
       };
       const spec = webbrowserActionsToText.find((spec) => spec.method === method);
       if (spec) {
         const agent = player?.getPlayerSpec();
-        const o = { agent, method, args, result, error };
+        const o = { agent, method, metadata, result, error };
         const text = spec.toText(o);
         return (
           <div className="opacity-60 text-xs">{text}</div>
@@ -270,8 +270,8 @@ function getMessageComponent(room: string, message: Message, id: string, players
     case 'paymentRequest': {
       const agentId = message.userId;
       const player = playersCache.get(agentId);
-      const { args } = message;
-      const { type, props, stripeConnectAccountId } = args as PaymentItem;
+      const { metadata } = message;
+      const { type, props, stripeConnectAccountId } = metadata as PaymentItem;
       const { name = '', description = '', amount = 0, currency = currencies[0], interval = intervals[0], intervalCount = 1 } = props as SubscriptionProps;
 
       const checkout = async (e: any) => {
