@@ -267,7 +267,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
             multiplayerConnection.addEventListener('chat', (e: any) => {
               const { message } = e.data;
               // console.log('got message', { message });
-              const { userId: messageUserId, name, method, args } = message;
+              const { userId: messageUserId, name, method, metadata, text } = message;
 
               switch (method) {
                 case 'say': {
@@ -283,14 +283,13 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   // const { userId, name, text } = args;
                   // console.log(`\r${name}: ${text}`);
                   // replServer.displayPrompt(true);
-                  const { text } = args;
                   console.log(text);
                   // console.log(eraseLine + JSON.stringify(args2, null, 2));
                   // }
                   break;
                 }
                 case 'typing': {
-                  const { typing } = args;
+                  const { typing } = metadata;
                   typingMap.set(messageUserId, { userId: messageUserId, name, typing });
                   break;
                 }
@@ -358,7 +357,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                   method: 'join',
                   userId,
                   name,
-                  args: {},
+                  metadata: {},
                   timestamp: Date.now(),
                 };
                 messages = [...messages, joinMessage];
@@ -374,7 +373,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 method: 'join',
                 userId,
                 name,
-                args: {},
+                metadata: {},
                 timestamp: Date.now(),
               };
               messages = [...messages, joinMessage];
@@ -389,7 +388,7 @@ export function MultiplayerActionsProvider({ children }: MultiplayerActionsProvi
                 method: 'leave',
                 userId,
                 name,
-                args: {},
+                metadata: {},
                 timestamp: Date.now(),
               };
               messages = [...messages, leaveMessage];
