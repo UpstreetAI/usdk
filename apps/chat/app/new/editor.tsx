@@ -324,7 +324,7 @@ export default function AgentEditor({
         const agentJsonString = JSON.stringify(agentJson);
 
         const mnemonic = generateMnemonic();
-        const auth = {
+        const env = {
           AGENT_TOKEN: agentToken,
           WALLET_MNEMONIC: mnemonic,
         };
@@ -349,12 +349,12 @@ export default function AgentEditor({
         console.log('start worker', {
           agentJson,
           agentModuleSrc,
-          auth,
+          env,
         });
         const newWorker = new ReactAgentsWorker({
           agentJson,
           agentModuleSrc,
-          auth,
+          env,
         });
         setWorker(newWorker);
 
