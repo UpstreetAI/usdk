@@ -4,6 +4,7 @@
   "dependencies": {
     "@aws-sdk/util-format-url": "^3.577.0",
     "@electric-sql/pglite": "^0.2.15",
+    "@fal-ai/client": "^1.2.1",
     "@iarna/toml": "^2.2.5",
     "@supabase/postgrest-js": "^1.17.7",
     "@supabase/supabase-js": "^2.47.1",
