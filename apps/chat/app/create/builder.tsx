@@ -19,7 +19,7 @@ import { AgentInterview } from 'react-agents/util/agent-interview.mjs';
 import { defaultVoices } from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
-import { defaultAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
+import defaultAgentSourceCode from 'react-agents/util/agent-default.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
