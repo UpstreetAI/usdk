@@ -512,10 +512,17 @@ export default function AgentEditor({
 
 
   useEffect(() => {
-    if (!worker && monaco && user) {
-      startAgent();
+    if (step === 1) {
+      if (worker) {
+        stopAgent();
+      }
     }
-  }, [worker, monaco, user]);
+    if (step === 2) {
+      if (!worker && monaco && user) {
+        startAgent();
+      }
+    }
+  }, [worker, monaco, user, step]);
 
 
   // render
@@ -1235,15 +1242,15 @@ export default function AgentEditor({
 
                   <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
                   <div className='h-[408px] w-full relative'>
-                  <Chat
-                    room={room}
-                    mode={'builder'}
-                    onConnect={(connected) => {
-                      if (connected) {
-                        setConnecting(false);
-                      }
-                    }}
-                  />
+                    <Chat
+                      room={room}
+                      mode={'builder'}
+                      onConnect={(connected) => {
+                        if (connected) {
+                          setConnecting(false);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
