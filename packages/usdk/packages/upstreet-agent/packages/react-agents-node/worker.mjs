@@ -108,6 +108,9 @@ const makeViteServer = async (directory) => {
     ssr: {
       external: ['react', 'react-reconciler'],
     },
+    resolve: {
+      fs: import.meta.resolve('fs').replace('file://', ''),
+    },
   });
 };
 
