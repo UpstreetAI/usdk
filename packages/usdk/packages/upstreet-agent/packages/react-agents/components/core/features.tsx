@@ -6,8 +6,6 @@ import {
   features,
 } from '../features/index';
 
-// defaults
-
 type FeaturesProps = {
   config?: AgentObject;
 };

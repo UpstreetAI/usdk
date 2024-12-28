@@ -6,8 +6,6 @@ import {
   plugins,
 } from '../plugins/index';
 
-// defaults
-
 type PluginsProps = {
   config?: AgentObject;
 };
