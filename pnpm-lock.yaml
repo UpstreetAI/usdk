@@ -940,8 +940,8 @@ importers:
         specifier: ^0.2.15
         version: 0.2.15
       '@elizaos/core':
-        specifier: file:./packages/elizaos-core
-        version: link:packages/elizaos-core
+        specifier: file:./packages/elizaos-core-proxy
+        version: link:packages/elizaos-core-proxy
       '@fal-ai/client':
         specifier: ^1.2.1
         version: 1.2.1
@@ -982,8 +982,8 @@ importers:
         specifier: ^1.0.5
         version: 1.0.5
       fs:
-        specifier: file:./packages/fs
-        version: link:packages/fs
+        specifier: file:./packages/fs-proxy
+        version: link:packages/fs-proxy
       javascript-time-ago:
         specifier: ^2.5.11
         version: 2.5.11
@@ -1093,9 +1093,9 @@ importers:
 
   packages/usdk/packages/upstreet-agent/packages/debouncer: {}
 
-  packages/usdk/packages/upstreet-agent/packages/elizaos-core: {}
+  packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy: {}
 
-  packages/usdk/packages/upstreet-agent/packages/fs: {}
+  packages/usdk/packages/upstreet-agent/packages/fs-proxy: {}
 
   packages/usdk/packages/upstreet-agent/packages/path-util: {}
 
@@ -2049,8 +2049,8 @@ packages:
     resolution: {integrity: sha512-Qkzpg2s9GnVV2I2BjRksUi43U5e6+zaQMcjoJy0C+C5oxaKl+fmckGDQFtRpZpZV0NQekuZZ+tGz7EA9TVnQtQ==}
     engines: {node: '>=12'}
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core':
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/elizaos-core, type: directory}
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy, type: directory}
 
   '@emnapi/runtime@1.3.1':
     resolution: {integrity: sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw==}
@@ -8961,8 +8961,8 @@ packages:
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
-  fs@file:packages/usdk/packages/upstreet-agent/packages/fs:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/fs, type: directory}
+  fs@file:packages/usdk/packages/upstreet-agent/packages/fs-proxy:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/fs-proxy, type: directory}
 
   fsevents@2.1.3:
     resolution: {integrity: sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==}
@@ -15703,7 +15703,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core': {}
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy': {}
 
   '@emnapi/runtime@1.3.1':
     dependencies:
@@ -24334,7 +24334,7 @@ snapshots:
 
   fs.realpath@1.0.0: {}
 
-  fs@file:packages/usdk/packages/upstreet-agent/packages/fs: {}
+  fs@file:packages/usdk/packages/upstreet-agent/packages/fs-proxy: {}
 
   fsevents@2.1.3:
     optional: true
@@ -30821,7 +30821,7 @@ snapshots:
     dependencies:
       '@aws-sdk/util-format-url': 3.709.0
       '@electric-sql/pglite': 0.2.15
-      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core
+      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy
       '@fal-ai/client': 1.2.1
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
@@ -30835,7 +30835,7 @@ snapshots:
       dotenv: 16.4.7
       ethers: 6.13.4
       format-util: 1.0.5
-      fs: file:packages/usdk/packages/upstreet-agent/packages/fs
+      fs: file:packages/usdk/packages/upstreet-agent/packages/fs-proxy
       javascript-time-ago: 2.5.11
       jest: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
       jimp: 1.6.0
