@@ -1,7 +1,8 @@
 import React from 'react';
 import { Action, useEnv } from 'react-agents';
 import { z } from 'zod';
-import { ThreeDGenerationPlugin } from './plugin-3d-generation/src/index.ts';
+import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
+import { solanaPlugin } from '@elizaos/plugin-solana';
 import util from 'util';
 
 
@@ -22,6 +23,16 @@ function generateZodSchema(obj: any): z.ZodTypeAny {
   return z.any();
 }
 
+//
+
+type IAgentRuntime = {};
+type State = {};
+type Options = {};
+type Memory = {
+  user: string;
+  content: any;
+};
+
 type IActionHandlerAttachment = {
   id: string;
   url: string;
@@ -35,25 +46,54 @@ type IActionHandlerCallbackArgs = {
   error?: boolean;
   attachments?: IActionHandlerAttachment[],
 };
-type IActionHandler = (
-  runtime: any,
-  message: {
-    content: any;
-  },
-  state: any,
-  options: any,
+type HandlerFn = (
+  runtime: IAgentRuntime,
+  message: Memory,
+  state: State,
+  options: Options,
   callback: (result: IActionHandlerCallbackArgs) => void,
 ) => void;
+type ValidateFn = (
+  runtime: IAgentRuntime,
+  message: Memory,
+) => Promise<boolean>;
 type IAction = {
   name: string;
   // similies?: string[];
   description: string;
-  examples: any[];
-  handler: IActionHandler;
+  examples: Memory[][];
+  validate: ValidateFn,
+  handler: HandlerFn;
 };
+
+type IEvaluator = {
+  name: string;
+    // similes?: string[],
+    alwaysRun?: boolean,
+    validate: ValidateFn,
+    description: string,
+    handler: HandlerFn,
+    examples: {
+      context: string;
+      message: Memory[];
+    }[],
+};
+
+type IProvider = {
+  get: (
+    runtime: IAgentRuntime,
+    message: Memory,
+    state?: State
+  ) => Promise<string | null>;
+};
+
 type IPlugin = {
   actions: IAction[];
+  evaluators: IEvaluator[];
+  providers: IProvider[];
 };
+
+//
 
 const pluginWrap = (plugin: IPlugin) => (props: any) => {
   console.log('render plugin', util.inspect(plugin, {
@@ -129,4 +169,5 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
 
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
+  '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
 };
