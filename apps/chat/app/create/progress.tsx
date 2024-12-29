@@ -12,7 +12,7 @@ interface ProgressProps {
 
 const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
   const getStepClass = (step: number) =>
-    currentStep > step ? "bg-[#0E468A] text-white" : "bg-white text-gray-900 border-2 border-gray-200";
+    currentStep > step ? "bg-[#0E4277] text-[#CBE2F7]" : "bg-[#CBE2F7] text-[#0E468A] border-2 border-[#CBE2F7]";
 
   return steps.length > 0 ? (
     <div className="w-full">
@@ -29,7 +29,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
                     transform: "translate(-50%, -50%)"
                   }}
                 >
-                  <div className="w-full bg-gray-200 rounded items-center align-middle align-center flex-1">
+                  <div className="w-full bg-[#CBE2F7] rounded items-center align-middle align-center flex-1">
                     <div
                       className="w-0 bg-[#0E468A] py-1 rounded"
                       style={{ width: index < currentStep ? "100%" : "0%" }}
@@ -43,7 +43,7 @@ const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
                 </span>
               </div>
             </div>
-            <div className="text-xs text-center md:text-base">{step.title}</div>
+            <div className="text-xs text-[#CBE2F7] text-center md:text-base">{step.title}</div>
           </div>
         ))}
       </div>
