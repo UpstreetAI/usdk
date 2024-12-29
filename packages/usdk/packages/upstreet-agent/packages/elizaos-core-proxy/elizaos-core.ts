@@ -1,4 +1,4 @@
-export const elizaLogger = console.log;
+export const elizaLogger = console;
 
 export const Action = {};
 export const HandlerCallback = {};
