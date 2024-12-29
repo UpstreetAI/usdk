@@ -531,6 +531,22 @@ export default function AgentEditor({
     }
   }, [worker, monaco, user, step]);
 
+  // Function to add a feature
+  const addFeature = (featureType: keyof FeaturesObject, defaultValue: any) => {
+    setFeatures((prevFeatures) => ({
+      ...prevFeatures,
+      [featureType]: defaultValue,
+    }));
+  };
+
+  // Function to remove a feature with event propagation stopped
+  const removeFeature = (featureType: keyof FeaturesObject, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFeatures((prevFeatures) => ({
+      ...prevFeatures,
+      [featureType]: null,
+    }));
+  };
 
   // render
   return (
@@ -720,7 +736,7 @@ export default function AgentEditor({
                             <div className="mt-4">
                               <label>
                                 <span className="mb-2">Name</span>
-                                <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                                <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => (e.target.value)} />
                               </label>
                               <label>
                                 <span className="mb-2">Bio</span>
@@ -815,10 +831,7 @@ export default function AgentEditor({
                       <div
                         onClick={() => {
                           setModalOpen('voice');
-                          !features.tts && setFeatures({
-                            ...features,
-                            tts: makeDefaultTts(),
-                          });
+                          addFeature('tts', makeDefaultTts());
                         }}
                         className={cn(featureClass, features.tts ? featureClassActive : '')}
                       >
@@ -826,12 +839,8 @@ export default function AgentEditor({
                           <Icon
                             icon="Close"
                             className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
-                            onClick={() => {
-                              setFeatures({
-                                ...features,
-                                tts: null,
-                              });
-                            }} />
+                            onClick={(e) => removeFeature('tts', e)}
+                          />
                           <Icon icon="Voice" className={featureIconClass} />
                           <p className={featureTextClass}>
                             Voice
@@ -893,12 +902,8 @@ export default function AgentEditor({
                           <Icon
                             icon="Close"
                             className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.rateLimit && 'hidden')}
-                            onClick={() => {
-                              setFeatures({
-                                ...features,
-                                rateLimit: null,
-                              });
-                            }} />
+                            onClick={(e) => removeFeature('rateLimit', e)}
+                          />
                           <Icon icon="Chat" className={featureIconClass} />
                           <p className={featureTextClass}>
                             Rate Limit
@@ -988,12 +993,8 @@ export default function AgentEditor({
                           <Icon
                             icon="Close"
                             className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.discord && 'hidden')}
-                            onClick={() => {
-                              setFeatures({
-                                ...features,
-                                discord: null,
-                              });
-                            }} />
+                            onClick={(e) => removeFeature('discord', e)}
+                          />
                           <Icon icon="Discord" className={featureIconClass} />
                           <p className={featureTextClass}>
                             Discord
@@ -1060,12 +1061,8 @@ export default function AgentEditor({
                           <Icon
                             icon="Close"
                             className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.twitterBot && 'hidden')}
-                            onClick={() => {
-                              setFeatures({
-                                ...features,
-                                twitterBot: null,
-                              });
-                            }} />
+                            onClick={(e) => removeFeature('twitterBot', e)}
+                          />
                           <Icon icon="X" className={featureIconClass} />
                           <p className={featureTextClass}>
                             X (Twitter)
@@ -1117,12 +1114,8 @@ export default function AgentEditor({
                           <Icon
                             icon="Close"
                             className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.storeItems && 'hidden')}
-                            onClick={() => {
-                              setFeatures({
-                                ...features,
-                                storeItems: null,
-                              });
-                            }} />
+                            onClick={(e) => removeFeature('storeItems', e)}
+                          />
                           <Icon icon="ModuleStore" className={featureIconClass} />
                           <p className={featureTextClass}>
                             Store
