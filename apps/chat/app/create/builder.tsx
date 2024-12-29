@@ -486,7 +486,7 @@ export default function AgentEditor({
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
 
 
-  const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] p-[2px] cursor-pointer relative inline-block text-center border lg:w-[calc(33%-1rem)] m-2 transition-colors duration-300';
+  const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] hover:from-[#003A82] hover:to-[#003A82] p-[2px] cursor-pointer relative inline-block text-center border w-full md:w-[calc(33.333%-1rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] m-2 transition-colors duration-300';
   const featureClass = 'bg-[#000C19] px-4 py-6 text-[#85B0E5] hover:bg-[#003A82] transition-colors duration-300';
   const featureClassActive = 'bg-[#0155BC]';
   const featureIconClass = 'size-10 mx-auto';
@@ -532,9 +532,9 @@ export default function AgentEditor({
         <div className="flex h-full overflow-y-auto">
           <div className="container mx-auto max-w-4xl px-4 py-8 text-gray-100">
 
-            <h1 className="text-2xl font-bold mb-2 text-center mt-8">Create Agent</h1>
+            <h1 className="text-4xl font-bold mb-4 text-center mt-8">Create Agent</h1>
 
-            <p className="text-lg mb-6 text-center">
+            <p className="text-lg mb-8 text-center">
               Build and deploy your agent in 3 steps.
             </p>
 
