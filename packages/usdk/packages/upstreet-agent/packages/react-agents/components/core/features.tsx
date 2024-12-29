@@ -10,7 +10,7 @@ type FeaturesProps = {
   config?: AgentObject;
 };
 
-export const Features = (props: FeaturesProps) => {
+export const Features: React.FC<FeaturesProps> = (props: FeaturesProps) => {
   const featuresConfig = props.config?.features ?? {};
   return (
     <>
