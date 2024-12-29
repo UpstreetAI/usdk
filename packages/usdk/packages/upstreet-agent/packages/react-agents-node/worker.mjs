@@ -109,6 +109,7 @@ const makeViteServer = async (directory) => {
       external: ['react', 'react-reconciler'],
     },
     resolve: {
+      mainFields: ['main', 'module', 'browser'],
       // these proxies are necessary for vite to polyfill node builtins
       fs: import.meta.resolve('fs').replace('file://', ''),
     },
