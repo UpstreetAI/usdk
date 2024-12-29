@@ -42,6 +42,12 @@ type ChatMessage = {
 };
 
 type FeaturesObject = {
+  personality: {
+    name: string;
+    bio: string;
+    visualDescription: string;
+    homespaceDescription: string;
+  } | null;
   tts: {
     voiceEndpoint: string;
   } | null;
@@ -100,6 +106,7 @@ export default function AgentEditor({
 
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
+    personality: null,
     tts: null,
     rateLimit: null,
     storeItems: null,
@@ -677,6 +684,8 @@ export default function AgentEditor({
                   <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
+                    
+                    
                     <div className={featureWrapperClass}>
                       <div
                         onClick={enablePersonality}
