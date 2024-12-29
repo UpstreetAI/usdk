@@ -83,6 +83,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{voiceEndpoint: defaultVoices[0].voiceEndpoint},],
+
+    // For Web UI
+    icon: 'Voice',
+    displayName: 'Voice',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: () => [
     //   'TTS',
     // ],
@@ -112,6 +120,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
+
+    // For Web UI
+    icon: 'Chat',
+    displayName: 'Rate Limit',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: () => [
     //   'RateLimit',
     // ],
@@ -147,6 +163,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
+
+    // For Web UI
+    icon: 'Discord',
+    displayName: 'Discord',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: (discord) => {
     //   if (discord.token) {
     //     return ['Discord'];
@@ -184,6 +208,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
+
+    // For Web UI
+    icon: 'X',
+    displayName: 'X (Twitter)',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: (twitterBot) => {
     //   if (twitterBot.token) {
     //     return ['TwitterBot'];
@@ -222,6 +254,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
+
+    // For Web UI
+    icon: 'Upstreet',
+    displayName: 'Telnyx',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: (telnyx) => {
     //   if (telnyx.apiKey) {
     //     return ['Telnyx'];
@@ -257,6 +297,14 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
+
+    // For Web UI
+    icon: 'ModuleStore',
+    displayName: 'Store',
+
+    // Status ( enabled, disabled )
+    status: 'enabled',
+
     // imports: (storeItems) => {
     //   const isValidStoreItem = (storeItem) =>
     //     !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;
