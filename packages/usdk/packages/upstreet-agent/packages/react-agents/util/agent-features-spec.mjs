@@ -2,32 +2,32 @@ import { z } from 'zod';
 import dedent from 'dedent';
 import { currencies, intervals } from '../constants.mjs';
 
-export const paymentPropsType = z.object({
+export const paymentPropsType = z.object( {
   name: z.string(),
   description: z.string().optional(),
   amount: z.number().int(),
-  currency: z.enum(currencies),
-});
-export const paymentItemType = z.object({
-  type: z.literal('payment'),
+  currency: z.enum( currencies ),
+} );
+export const paymentItemType = z.object( {
+  type: z.literal( 'payment' ),
   props: paymentPropsType,
-});
-export const subscriptionPropsType = z.object({
+} );
+export const subscriptionPropsType = z.object( {
   name: z.string(),
   description: z.string().optional(),
   amount: z.number().int(),
-  currency: z.enum(currencies),
-  interval: z.enum(intervals),
+  currency: z.enum( currencies ),
+  interval: z.enum( intervals ),
   intervalCount: z.number(),
-});
-export const subscriptionItemType = z.object({
-  type: z.literal('subscription'),
+} );
+export const subscriptionItemType = z.object( {
+  type: z.literal( 'subscription' ),
   props: subscriptionPropsType,
-});
-export const storeItemType = z.union([
+} );
+export const storeItemType = z.union( [
   paymentItemType,
   subscriptionItemType,
-]);
+] );
 
 //
 
@@ -75,26 +75,27 @@ export const featureSpecs = [
       Text to speech.
       Available voice endpoints:
     ` + '\n'
-    + defaultVoices.map(v => `* ${JSON.stringify(v.name)}: ${v.voiceEndpoint}`).join('\n'),
-    schema: z.union([
-      z.object({
-        voiceEndpoint: z.enum(defaultVoices.map(v => v.voiceEndpoint)),
-      }),
+      + defaultVoices.map( v => `* ${JSON.stringify( v.name )}: ${v.voiceEndpoint}` ).join( '\n' ),
+    schema: z.union( [
+      z.object( {
+        voiceEndpoint: z.enum( defaultVoices.map( v => v.voiceEndpoint ) ),
+      } ),
       z.null(),
-    ]),
-    examples: [{voiceEndpoint: defaultVoices[0].voiceEndpoint},],
-
-    // For Web UI
-    icon: 'Voice',
-    displayName: 'Voice',
-
-    // Feature active ( true, false )
-    active: true,
+    ] ),
+    examples: [{ voiceEndpoint: defaultVoices[0].voiceEndpoint },],
 
     // Default values
     default: {
       voiceEndpoint: defaultVoices[0].voiceEndpoint,
     },
+
+    // For Web UI
+    icon: 'Voice',
+    displayName: 'Voice',
+    displayDescription: 'Select a voice for your agent.',
+
+    // Feature active ( true, false )
+    active: true,
 
     // imports: () => [
     //   'TTS',
@@ -115,23 +116,16 @@ export const featureSpecs = [
       When the rate limit is exceeded, the agent will respond with the static \`message\`.
       If either \`maxUserMessages\` or \`maxUserMessagesTime\` is not provided or zero, the rate limit is disabled.
     ` + '\n'
-    + defaultVoices.map(v => `* ${JSON.stringify(v.name)}: ${v.voiceEndpoint}`).join('\n'),
-    schema: z.union([
-      z.object({
+      + defaultVoices.map( v => `* ${JSON.stringify( v.name )}: ${v.voiceEndpoint}` ).join( '\n' ),
+    schema: z.union( [
+      z.object( {
         maxUserMessages: z.number().optional(),
         maxUserMessagesTime: z.number().optional(),
         message: z.string().optional(),
-      }),
+      } ),
       z.null(),
-    ]),
+    ] ),
     examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
-
-    // For Web UI
-    icon: 'Chat',
-    displayName: 'Rate Limit',
-
-    // Feature active ( true, false )
-    active: true,
 
     // Default values
     default: {
@@ -139,6 +133,13 @@ export const featureSpecs = [
       maxUserMessagesTime: 60 * 60 * 24 * 1000, // 1 day
       message: '',
     },
+
+    // For Web UI
+    icon: 'Chat',
+    displayName: 'Rate Limit',
+    displayDescription: 'Control how often users can message the agent.',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: () => [
     //   'RateLimit',
@@ -167,27 +168,27 @@ export const featureSpecs = [
 
       \`channels\` is a list of channel names (text or voice) that the agent should join.
     `,
-    schema: z.union([
-      z.object({
+    schema: z.union( [
+      z.object( {
         token: z.string(),
-        channels: z.array(z.string()),
-      }),
+        channels: z.array( z.string() ),
+      } ),
       z.null(),
-    ]),
+    ] ),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
-
-    // For Web UI
-    icon: 'Discord',
-    displayName: 'Discord',
-
-    // Feature active ( true, false )
-    active: true,
 
     // Default values
     default: {
       token: '',
       channels: [],
     },
+
+    // For Web UI
+    icon: 'Discord',
+    displayName: 'Discord',
+    displayDescription: 'Connect your agent to Discord.',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (discord) => {
     //   if (discord.token) {
@@ -219,25 +220,26 @@ export const featureSpecs = [
 
       The API token is required.
     `,
-    schema: z.union([
-      z.object({
+    schema: z.union( [
+      z.object( {
         token: z.string(),
-      }),
+      } ),
       z.null(),
-    ]),
+    ] ),
     examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
-
-    // For Web UI
-    icon: 'X',
-    displayName: 'X (Twitter)',
-
-    // Feature active ( true, false )
-    active: true,
 
     // Default values
     default: {
       token: '',
     },
+
+    // For Web UI
+    icon: 'X',
+    displayName: 'X (Twitter)',
+    displayDescription: 'Add a Twitter bot to your agent.',
+
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (twitterBot) => {
     //   if (twitterBot.token) {
@@ -267,23 +269,16 @@ export const featureSpecs = [
 
       Phone number is optional, but if provided must be in +E.164 format (e.g. +14151234567).
     `,
-    schema: z.union([
-      z.object({
+    schema: z.union( [
+      z.object( {
         apiKey: z.string(),
         phoneNumber: z.string().optional(),
         message: z.boolean(),
         voice: z.boolean(),
-      }),
+      } ),
       z.null(),
-    ]),
+    ] ),
     examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
-
-    // For Web UI
-    icon: 'Upstreet',
-    displayName: 'Telnyx',
-
-    // Feature active ( true, false )
-    active: true,
 
     // Default values
     default: {
@@ -292,6 +287,14 @@ export const featureSpecs = [
       message: false,
       voice: false,
     },
+
+    // For Web UI
+    icon: 'Upstreet',
+    displayName: 'Telnyx',
+    displayDescription: 'Enable phone call and SMS support for your agent.',
+
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (telnyx) => {
     //   if (telnyx.apiKey) {
@@ -323,18 +326,11 @@ export const featureSpecs = [
       List of items that can be purchased from the agent, with associated prices.
       \`amount\` in cents (e.g. 100 = $1).
     `,
-    schema: z.union([
-      z.array(storeItemType),
+    schema: z.union( [
+      z.array( storeItemType ),
       z.null(),
-    ]),
-    examples: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
-
-    // For Web UI
-    icon: 'ModuleStore',
-    displayName: 'Store',
-
-    // Feature active ( true, false )
-    active: true,
+    ] ),
+    examples: [{ type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd', }, },],
 
     // Default values
     default: [
@@ -350,6 +346,14 @@ export const featureSpecs = [
         },
       }
     ],
+
+    // For Web UI
+    icon: 'ModuleStore',
+    displayName: 'Store',
+    displayDescription: 'Manage items your agent can sell.',
+
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (storeItems) => {
     //   const isValidStoreItem = (storeItem) =>
