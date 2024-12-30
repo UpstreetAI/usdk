@@ -1,12 +1,9 @@
 {
   "name": "@elizaos/plugin-cronoszkevm",
   "version": "0.1.7-alpha.2",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "dist/index.d.ts",
   "dependencies": {
-    "@elizaos/core": "workspace:*",
-    "@elizaos/plugin-trustdb": "workspace:*",
     "tsup": "^8.3.5",
     "web3": "^4.15.0",
     "web3-plugin-zksync": "^1.0.8"
