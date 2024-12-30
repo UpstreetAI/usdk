@@ -3,15 +3,6 @@
   "version": "0.1.7-alpha.2",
   "main": "src/index.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "tsup": "8.3.5"
   },
