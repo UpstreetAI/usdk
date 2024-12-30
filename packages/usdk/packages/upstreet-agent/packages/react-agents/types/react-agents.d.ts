@@ -37,6 +37,7 @@ export type AgentObjectData = {
   smallModel?: string;
   largeModel?: string;
   features?: string[];
+  clients?: string[];
   plugins?: string[];
   address?: string;
   stripeConnectAccountId?: string;
