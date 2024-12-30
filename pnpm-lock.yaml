@@ -948,6 +948,9 @@ importers:
       '@elizaos/plugin-coinbase':
         specifier: file:./packages/react-agents/components/plugins/plugin-coinbase
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      '@elizaos/plugin-evm':
+        specifier: file:./packages/react-agents/components/plugins/plugin-evm
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-flow':
         specifier: file:./packages/react-agents/components/plugins/plugin-flow
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(@types/react@18.3.16)(@vercel/kv@1.0.1)(bufferutil@4.0.9)(google-protobuf@3.21.4)(jiti@1.21.6)(postcss@8.4.49)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
@@ -2208,6 +2211,13 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
+  '@bigmi/core@0.0.4':
+    resolution: {integrity: sha512-PtLwVOtKXeFNm9mk3gcoo5YmmUSSGxZFjBSX7Wh+5ubRlPAq40D8VqngO0R3/gnFflopQJ4y+igPOz+0J2cQ3A==}
+    peerDependencies:
+      bitcoinjs-lib: ^7.0.0-rc.0
+      bs58: ^6.0.0
+      viem: ^2.21.0
+
   '@cfworker/json-schema@4.0.3':
     resolution: {integrity: sha512-ZykIcDTVv5UNmKWSTLAs3VukO6NDJkkSKxrgUTDPBkAlORVT3H9n5DbRjRl8xIotklscHdbLIa0b9+y3mQq73g==}
 
@@ -2370,6 +2380,11 @@ packages:
 
   '@elizaos/plugin-coinbase@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase, type: directory}
+
+  '@elizaos/plugin-evm@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm, type: directory}
+    peerDependencies:
+      whatwg-url: 7.1.0
 
   '@elizaos/plugin-flow@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow, type: directory}
@@ -3907,6 +3922,19 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@langchain/core': '>=0.2.21 <0.4.0'
+
+  '@lifi/data-types@5.15.5':
+    resolution: {integrity: sha512-nMlXxVZTClaMNS1fty6BV7E+gyKFnOgYAIMQ1kAJLv97TdLWBwQxUVDWPI5zJKKIT/Y14PJ7H6ONx+5Gq0kRGw==}
+
+  '@lifi/sdk@3.4.1':
+    resolution: {integrity: sha512-8jctwg+EYj4AFhfLCQbkz9TUwE+8AZtWxfCTSgzl2FBWwgPBgnK4l0OWZ7HejZSt5BXtxtytk2JAphhHtvtCag==}
+    peerDependencies:
+      '@solana/wallet-adapter-base': ^0.9.0
+      '@solana/web3.js': ^1.93.0
+      viem: ^2.16.0
+
+  '@lifi/types@16.3.0':
+    resolution: {integrity: sha512-rYMdXRdNOyJb5tI5CXfqxU4k62GiJrElx0DEZ8ZRFYFtljg69X6hrMKER1wVWkRpcB67Ca8SKebLnufy7qCaTw==}
 
   '@lit-labs/ssr-dom-shim@1.2.1':
     resolution: {integrity: sha512-wx4aBmgeGvFmOKucFKY+8VFJSYZxs9poN3SDNQFF6lT6NrQUnHiPB2PWz2sc4ieEcAaYYzN+1uWahEeTq2aRIQ==}
@@ -5994,6 +6022,16 @@ packages:
     resolution: {integrity: sha512-JBMGB0oR4lPttOZ5XiUGyvylwLQjt1CPJa6qQ5oM+MBCndfjz2TKKkw0eATlLLcYmq1jBVsNlJ2cD6ns2GR7lA==}
     engines: {node: '>=16'}
 
+  '@solana/wallet-adapter-base@0.9.23':
+    resolution: {integrity: sha512-apqMuYwFp1jFi55NxDfvXUX2x1T0Zh07MxhZ/nCCTGys5raSfYUh82zen2BLv8BSDj/JxZ2P/s7jrQZGrX8uAw==}
+    engines: {node: '>=16'}
+    peerDependencies:
+      '@solana/web3.js': ^1.77.3
+
+  '@solana/wallet-standard-features@1.2.0':
+    resolution: {integrity: sha512-tUd9srDLkRpe1BYg7we+c4UhRQkq+XQWswsr/L1xfGmoRDF47BPSXf4zE7ZU2GRBGvxtGt7lwJVAufQyQYhxTQ==}
+    engines: {node: '>=16'}
+
   '@solana/web3.js@1.95.5':
     resolution: {integrity: sha512-hU9cBrbg1z6gEjLH9vwIckGBVB78Ijm0iZFNk4ocm5OD82piPwuk3MeQ1rfiKD9YQtr95krrcaopb49EmQJlRg==}
 
@@ -7213,6 +7251,14 @@ packages:
   '@vue/shared@3.5.13':
     resolution: {integrity: sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==}
 
+  '@wallet-standard/base@1.1.0':
+    resolution: {integrity: sha512-DJDQhjKmSNVLKWItoKThJS+CsJQjR9AOBOirBVT1F9YpRyC9oYHE+ZnSf8y8bxUphtKqdQMPVQ2mHohYdRvDVQ==}
+    engines: {node: '>=16'}
+
+  '@wallet-standard/features@1.1.0':
+    resolution: {integrity: sha512-hiEivWNztx73s+7iLxsuD1sOJ28xtRix58W7Xnz4XzzA/pF0+aicnWgjOdA10doVDEDZdUuZCIIqG96SFNlDUg==}
+    engines: {node: '>=16'}
+
   '@walletconnect/core@2.17.3':
     resolution: {integrity: sha512-57uv0FW4L6H/tmkb1kS2nG41MDguyDgZbGR58nkDUd1TO/HydyiTByVOhFzIxgN331cnY/1G1rMaKqncgdnOFA==}
     engines: {node: '>=18'}
@@ -8003,12 +8049,20 @@ packages:
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
 
+  bip174@3.0.0-rc.1:
+    resolution: {integrity: sha512-+8P3BpSairVNF2Nee6Ksdc1etIjWjBOi/MH0MwKtq9YaYp+S2Hk2uvup0e8hCT4IKlS58nXJyyQVmW92zPoD4Q==}
+    engines: {node: '>=18.0.0'}
+
   bip32@4.0.0:
     resolution: {integrity: sha512-aOGy88DDlVUhspIXJN+dVEtclhIsfAUppD43V0j40cPTld3pv/0X/MlrZSZ6jowIaQQzFwP8M6rFU2z2mVYjDQ==}
     engines: {node: '>=6.0.0'}
 
   bip39@3.1.0:
     resolution: {integrity: sha512-c9kiwdk45Do5GL0vJMe7tS95VjCii65mYAH7DfWl3uW8AVzXKQVUm64i3hzVybBDMp9r7j9iNxR85+ul8MdN/A==}
+
+  bitcoinjs-lib@7.0.0-rc.0:
+    resolution: {integrity: sha512-7CQgOIbREemKR/NT2uc3uO/fkEy+6CM0sLxboVVY6bv6DbZmPt3gg5Y/hhWgQFeZu5lfTbtVAv32MIxf7lMh4g==}
+    engines: {node: '>=18.0.0'}
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
@@ -8095,6 +8149,9 @@ packages:
 
   bs58check@2.1.2:
     resolution: {integrity: sha512-0TS1jicxdU09dwJMNZtVAfzPi6Q6QeN0pM1Fkzrjn+XYHvzMKPU3pHVpva+769iNVSfIYWf7LJ6WR+BuuMf8cA==}
+
+  bs58check@4.0.0:
+    resolution: {integrity: sha512-FsGDOnFg9aVI9erdriULkd/JjEWONV/lQE5aYziB5PoBsXRind56lh8doIZIc9X4HoxT5x4bLjMWN1/NB8Zp5g==}
 
   bser@2.1.1:
     resolution: {integrity: sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==}
@@ -15898,6 +15955,14 @@ packages:
   uid-promise@1.0.0:
     resolution: {integrity: sha512-R8375j0qwXyIu/7R0tjdF06/sElHqbmdmWC9M2qQHpEVbvE4I5+38KJI7LUUmQMp7NVq4tKHiBMkT0NFM453Ig==}
 
+  uint8array-tools@0.0.8:
+    resolution: {integrity: sha512-xS6+s8e0Xbx++5/0L+yyexukU7pz//Yg6IHg3BKhXotg1JcYtgxVcUctQ0HxLByiJzpAkNFawz1Nz5Xadzo82g==}
+    engines: {node: '>=14.0.0'}
+
+  uint8array-tools@0.0.9:
+    resolution: {integrity: sha512-9vqDWmoSXOoi+K14zNaf6LBV51Q8MayF0/IiQs3GlygIKUYtog603e6virExkjjFosfJUBI4LhbQK1iq8IG11A==}
+    engines: {node: '>=14.0.0'}
+
   uint8arrays@3.1.0:
     resolution: {integrity: sha512-ei5rfKtoRO8OyOIor2Rz5fhzjThwIHJZ3uyDPnDHTXbP0aMQ1RN/6AI5B5d9dBxJOU+BvOAk7ZQ1xphsX8Lrog==}
 
@@ -16274,6 +16339,14 @@ packages:
   valibot@0.36.0:
     resolution: {integrity: sha512-CjF1XN4sUce8sBK9TixrDqFM7RwNkuXdJu174/AwmQUB62QbCQADg5lLe8ldBalFgtj1uKj+pKwDJiNo4Mn+eQ==}
 
+  valibot@0.38.0:
+    resolution: {integrity: sha512-RCJa0fetnzp+h+KN9BdgYOgtsMAG9bfoJ9JSjIhFHobKWVWyzM3jjaeNTdpFK9tQtf3q1sguXeERJ/LcmdFE7w==}
+    peerDependencies:
+      typescript: '>=5'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
 
@@ -16291,6 +16364,9 @@ packages:
 
   varint@5.0.2:
     resolution: {integrity: sha512-lKxKYG6H03yCZUpAGOPOsMcGxd1RHCu1iKvEHYDPmTyq2HueGhD73ssNBqqQWfvYs04G9iUFRvmAVLW20Jw6ow==}
+
+  varuint-bitcoin@2.0.0:
+    resolution: {integrity: sha512-6QZbU/rHO2ZQYpWFDALCDSRsXbAs1VOEmXAxtbtjLtKuMJ/FQ8YbhfxlaiKv5nklci0M6lZtlZyxo9Q+qNnyog==}
 
   vary@1.1.2:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
@@ -18071,6 +18147,14 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@bigmi/core@0.0.4(bitcoinjs-lib@7.0.0-rc.0(typescript@5.7.2))(bs58@6.0.0)(viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1))':
+    dependencies:
+      '@noble/hashes': 1.6.1
+      bech32: 2.0.0
+      bitcoinjs-lib: 7.0.0-rc.0(typescript@5.7.2)
+      bs58: 6.0.0
+      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+
   '@cfworker/json-schema@4.0.3': {}
 
   '@cloudflare/kv-asset-handler@0.3.4':
@@ -18118,7 +18202,7 @@ snapshots:
       ethers: 6.13.4(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       node-jose: 2.2.0
       secp256k1: 5.0.1
-      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      viem: 2.21.54(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
     transitivePeerDependencies:
       - bufferutil
       - debug
@@ -18420,6 +18504,29 @@ snapshots:
       - encoding
       - typescript
       - utf-8-validate
+      - zod
+
+  '@elizaos/plugin-evm@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)':
+    dependencies:
+      '@lifi/data-types': 5.15.5
+      '@lifi/sdk': 3.4.1(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.7.2)(viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1))
+      '@lifi/types': 16.3.0
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@solana/wallet-adapter-base'
+      - '@solana/web3.js'
+      - '@swc/core'
+      - bufferutil
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - utf-8-validate
+      - yaml
       - zod
 
   '@elizaos/plugin-flow@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(@types/react@18.3.16)(@vercel/kv@1.0.1)(bufferutil@4.0.9)(google-protobuf@3.21.4)(jiti@1.21.6)(postcss@8.4.49)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)':
@@ -19528,7 +19635,7 @@ snapshots:
     dependencies:
       '@solana/web3.js': 1.95.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       abitype: 1.0.6(typescript@5.7.2)(zod@3.23.8)
-      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.23.8)
+      viem: 2.21.54(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       zod: 3.23.8
     transitivePeerDependencies:
       - bufferutil
@@ -20451,6 +20558,27 @@ snapshots:
     dependencies:
       '@langchain/core': 0.3.26(openai@4.76.1(zod@3.24.1))
       js-tiktoken: 1.0.15
+
+  '@lifi/data-types@5.15.5':
+    dependencies:
+      '@lifi/types': 16.3.0
+
+  '@lifi/sdk@3.4.1(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(typescript@5.7.2)(viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1))':
+    dependencies:
+      '@bigmi/core': 0.0.4(bitcoinjs-lib@7.0.0-rc.0(typescript@5.7.2))(bs58@6.0.0)(viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1))
+      '@lifi/types': 16.3.0
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@solana/wallet-adapter-base': 0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      bech32: 2.0.0
+      bitcoinjs-lib: 7.0.0-rc.0(typescript@5.7.2)
+      bs58: 6.0.0
+      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+    transitivePeerDependencies:
+      - typescript
+
+  '@lifi/types@16.3.0': {}
 
   '@lit-labs/ssr-dom-shim@1.2.1': {}
 
@@ -21476,7 +21604,7 @@ snapshots:
 
   '@phala/dstack-sdk@0.1.6(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)':
     optionalDependencies:
-      viem: 2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      viem: 2.21.54(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -23444,6 +23572,19 @@ snapshots:
   '@solana/spl-type-length-value@0.1.0':
     dependencies:
       buffer: 6.0.3
+
+  '@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+    dependencies:
+      '@solana/wallet-standard-features': 1.2.0
+      '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@wallet-standard/base': 1.1.0
+      '@wallet-standard/features': 1.1.0
+      eventemitter3: 4.0.7
+
+  '@solana/wallet-standard-features@1.2.0':
+    dependencies:
+      '@wallet-standard/base': 1.1.0
+      '@wallet-standard/features': 1.1.0
 
   '@solana/web3.js@1.95.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
@@ -25501,6 +25642,12 @@ snapshots:
 
   '@vue/shared@3.5.13': {}
 
+  '@wallet-standard/base@1.1.0': {}
+
+  '@wallet-standard/features@1.1.0':
+    dependencies:
+      '@wallet-standard/base': 1.1.0
+
   '@walletconnect/core@2.17.3(@vercel/kv@1.0.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       '@walletconnect/heartbeat': 1.2.2
@@ -25924,6 +26071,11 @@ snapshots:
     optionalDependencies:
       typescript: 5.7.2
       zod: 3.24.1
+
+  abitype@1.0.7(typescript@5.7.2)(zod@3.23.8):
+    optionalDependencies:
+      typescript: 5.7.2
+      zod: 3.23.8
 
   abitype@1.0.7(typescript@5.7.2)(zod@3.24.1):
     optionalDependencies:
@@ -26651,6 +26803,11 @@ snapshots:
     dependencies:
       file-uri-to-path: 1.0.0
 
+  bip174@3.0.0-rc.1:
+    dependencies:
+      uint8array-tools: 0.0.9
+      varuint-bitcoin: 2.0.0
+
   bip32@4.0.0:
     dependencies:
       '@noble/hashes': 1.6.1
@@ -26661,6 +26818,18 @@ snapshots:
   bip39@3.1.0:
     dependencies:
       '@noble/hashes': 1.6.1
+
+  bitcoinjs-lib@7.0.0-rc.0(typescript@5.7.2):
+    dependencies:
+      '@noble/hashes': 1.6.1
+      bech32: 2.0.0
+      bip174: 3.0.0-rc.1
+      bs58check: 4.0.0
+      uint8array-tools: 0.0.9
+      valibot: 0.38.0(typescript@5.7.2)
+      varuint-bitcoin: 2.0.0
+    transitivePeerDependencies:
+      - typescript
 
   bl@4.1.0:
     dependencies:
@@ -26772,6 +26941,11 @@ snapshots:
       bs58: 4.0.1
       create-hash: 1.2.0
       safe-buffer: 5.2.1
+
+  bs58check@4.0.0:
+    dependencies:
+      '@noble/hashes': 1.6.1
+      bs58: 6.0.0
 
   bser@2.1.1:
     dependencies:
@@ -28623,7 +28797,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1):
+  eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1):
     dependencies:
       debug: 3.2.7
       enhanced-resolve: 0.9.1
@@ -28651,14 +28825,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1))(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 7.18.0(eslint@8.57.1)(typescript@5.7.2)
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1)
+      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -28727,7 +28901,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1))(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.15.1
       is-glob: 4.0.3
@@ -33517,9 +33691,9 @@ snapshots:
       '@adraffy/ens-normalize': 1.10.1
       '@noble/curves': 1.7.0
       '@noble/hashes': 1.6.1
-      '@scure/bip32': 1.5.0
+      '@scure/bip32': 1.6.0
       '@scure/bip39': 1.5.0
-      abitype: 1.0.6(typescript@5.7.2)(zod@3.23.8)
+      abitype: 1.0.7(typescript@5.7.2)(zod@3.23.8)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.7.2
@@ -33531,9 +33705,9 @@ snapshots:
       '@adraffy/ens-normalize': 1.10.1
       '@noble/curves': 1.7.0
       '@noble/hashes': 1.6.1
-      '@scure/bip32': 1.5.0
+      '@scure/bip32': 1.6.0
       '@scure/bip39': 1.5.0
-      abitype: 1.0.6(typescript@5.7.2)(zod@3.24.1)
+      abitype: 1.0.7(typescript@5.7.2)(zod@3.24.1)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.7.2
@@ -36749,6 +36923,10 @@ snapshots:
 
   uid-promise@1.0.0: {}
 
+  uint8array-tools@0.0.8: {}
+
+  uint8array-tools@0.0.9: {}
+
   uint8arrays@3.1.0:
     dependencies:
       multiformats: 9.9.0
@@ -36944,6 +37122,7 @@ snapshots:
       '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
       '@elizaos/plugin-3d-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      '@elizaos/plugin-evm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       '@elizaos/plugin-goat': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-image-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
@@ -37025,6 +37204,8 @@ snapshots:
       - '@onflow/util-config'
       - '@planetscale/database'
       - '@react-native-async-storage/async-storage'
+      - '@solana/wallet-adapter-base'
+      - '@solana/web3.js'
       - '@swc/core'
       - '@types/node'
       - '@types/react'
@@ -37258,6 +37439,10 @@ snapshots:
 
   valibot@0.36.0: {}
 
+  valibot@0.38.0(typescript@5.7.2):
+    optionalDependencies:
+      typescript: 5.7.2
+
   validate-npm-package-license@3.0.4:
     dependencies:
       spdx-correct: 3.2.0
@@ -37279,6 +37464,10 @@ snapshots:
       react: 19.0.0-rc-df5f2736-20240712
 
   varint@5.0.2: {}
+
+  varuint-bitcoin@2.0.0:
+    dependencies:
+      uint8array-tools: 0.0.8
 
   vary@1.1.2: {}
 
@@ -37324,24 +37513,6 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.23.8):
-    dependencies:
-      '@noble/curves': 1.6.0
-      '@noble/hashes': 1.5.0
-      '@scure/bip32': 1.5.0
-      '@scure/bip39': 1.4.0
-      abitype: 1.0.6(typescript@5.7.2)(zod@3.23.8)
-      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
-      ox: 0.1.2(typescript@5.7.2)(zod@3.23.8)
-      webauthn-p256: 0.0.10
-      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-    optionalDependencies:
-      typescript: 5.7.2
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-      - zod
-
   viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1):
     dependencies:
       '@noble/curves': 1.6.0
@@ -37351,6 +37522,24 @@ snapshots:
       abitype: 1.0.6(typescript@5.7.2)(zod@3.24.1)
       isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       ox: 0.1.2(typescript@5.7.2)(zod@3.24.1)
+      webauthn-p256: 0.0.10
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    optionalDependencies:
+      typescript: 5.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+
+  viem@2.21.54(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.23.8):
+    dependencies:
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      abitype: 1.0.7(typescript@5.7.2)(zod@3.23.8)
+      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      ox: 0.1.2(typescript@5.7.2)(zod@3.23.8)
       webauthn-p256: 0.0.10
       ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
@@ -38019,7 +38208,7 @@ snapshots:
       eslint-config-xo: 0.45.0(eslint@8.57.1)
       eslint-config-xo-typescript: 5.0.0(@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1)(typescript@5.7.2))(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1)(typescript@5.7.2)
       eslint-formatter-pretty: 6.0.1
-      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1)
+      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1)
       eslint-plugin-ava: 14.0.0(eslint@8.57.1)
       eslint-plugin-eslint-comments: 3.2.0(eslint@8.57.1)
       eslint-plugin-import: 2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)
