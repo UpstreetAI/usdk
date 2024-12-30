@@ -25,13 +25,14 @@ export class ConversationObject extends EventTarget {
 
   constructor({
     agentsMap = new Map(),
+    agentPlayer,
     scene = null,
     getHash = () => '',
     mentionsRegex = null,
     messageCache,
   }: {
-    agent: ActiveAgentObject | null;
     agentsMap?: Map<string, Player>;
+    agentPlayer: Player;
     scene?: SceneObject | null;
     getHash?: GetHashFn;
     mentionsRegex?: RegExp | null;
@@ -44,6 +45,9 @@ export class ConversationObject extends EventTarget {
     this.getHash = getHash;
     this.mentionsRegex = mentionsRegex;
     this.messageCache = messageCache;
+
+    // add the agent player to the agents map
+    this.agentsMap.set(agentPlayer.playerId, agentPlayer);
   }
 
   //
