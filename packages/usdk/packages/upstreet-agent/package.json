@@ -8,6 +8,7 @@
     "@elizaos/plugin-whatsapp": "file:./packages/react-agents/components/clients/plugin-whatsapp",
     "@elizaos/plugin-0g": "file:./packages/react-agents/components/plugins/plugin-0g",
     "@elizaos/plugin-3d-generation": "file:./packages/react-agents/components/plugins/plugin-3d-generation",
+    "@elizaos/plugin-aptos": "file:./packages/react-agents/components/plugins/plugin-aptos",
     "@elizaos/plugin-coinbase": "file:./packages/react-agents/components/plugins/plugin-coinbase",
     "@elizaos/plugin-conflux": "file:./packages/react-agents/components/plugins/plugin-conflux",
     "@elizaos/plugin-echochambers": "file:./packages/react-agents/components/plugins/plugin-echochambers",
