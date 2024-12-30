@@ -945,6 +945,9 @@ importers:
       '@elizaos/plugin-3d-generation':
         specifier: file:./packages/react-agents/components/plugins/plugin-3d-generation
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-avalanche':
+        specifier: file:./packages/react-agents/components/plugins/plugin-avalanche
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@elizaos/plugin-coinbase':
         specifier: file:./packages/react-agents/components/plugins/plugin-coinbase
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
@@ -2381,6 +2384,11 @@ packages:
 
   '@elizaos/plugin-3d-generation@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation, type: directory}
+    peerDependencies:
+      whatwg-url: 7.1.0
+
+  '@elizaos/plugin-avalanche@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche, type: directory}
     peerDependencies:
       whatwg-url: 7.1.0
 
@@ -16574,6 +16582,14 @@ packages:
   vfile@6.0.3:
     resolution: {integrity: sha512-KzIbH/9tXat2u30jf+smMwFCsno4wHVdNmzFyL+T/L3UGqqk6JKfVqOFOZEpZSHADH1k40ab6NUIXZq422ov3Q==}
 
+  viem@2.21.49:
+    resolution: {integrity: sha512-NNItYfTv4+yGE5DDKc+S/g2S7KeJn047GwgEYG60FAJlK0FzwuP6lQKSeQ8k7Y4VasfuKPqiT+XiilcCtTRiDQ==}
+    peerDependencies:
+      typescript: '>=5.0.4'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   viem@2.21.53:
     resolution: {integrity: sha512-0pY8clBacAwzc59iV1vY4a6U4xvRlA5tAuhClJCKvqA6rXJzmNMMvxQ0EG79lkHr7WtBEruXz8nAmONXwnq4EQ==}
     peerDependencies:
@@ -18375,8 +18391,8 @@ snapshots:
 
   '@coinbase/coinbase-sdk@0.13.0(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)':
     dependencies:
-      '@scure/bip32': 1.5.0
-      abitype: 1.0.6(typescript@5.7.2)(zod@3.24.1)
+      '@scure/bip32': 1.6.0
+      abitype: 1.0.7(typescript@5.7.2)(zod@3.24.1)
       axios: 1.7.9
       axios-mock-adapter: 1.22.0(axios@1.7.9)
       axios-retry: 4.5.0(axios@1.7.9)
@@ -18672,6 +18688,16 @@ snapshots:
       - typescript
       - utf-8-validate
       - yaml
+
+  '@elizaos/plugin-avalanche@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)':
+    dependencies:
+      viem: 2.21.49(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
 
   '@elizaos/plugin-coinbase@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)':
     dependencies:
@@ -19874,7 +19900,7 @@ snapshots:
   '@goat-sdk/core@0.3.8(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)':
     dependencies:
       '@solana/web3.js': 1.95.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      abitype: 1.0.6(typescript@5.7.2)(zod@3.23.8)
+      abitype: 1.0.7(typescript@5.7.2)(zod@3.23.8)
       viem: 2.21.54(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.23.8)
       zod: 3.23.8
     transitivePeerDependencies:
@@ -21239,7 +21265,7 @@ snapshots:
       '@mysten/bcs': 1.2.0
       '@noble/curves': 1.7.0
       '@noble/hashes': 1.6.1
-      '@scure/bip32': 1.5.0
+      '@scure/bip32': 1.6.0
       '@scure/bip39': 1.5.0
       '@simplewebauthn/typescript-types': 7.4.0
       '@suchipi/femver': 1.0.0
@@ -26449,11 +26475,6 @@ snapshots:
     optionalDependencies:
       typescript: 5.7.2
       zod: 3.24.1
-
-  abitype@1.0.6(typescript@5.7.2)(zod@3.23.8):
-    optionalDependencies:
-      typescript: 5.7.2
-      zod: 3.23.8
 
   abitype@1.0.6(typescript@5.7.2)(zod@3.24.1):
     optionalDependencies:
@@ -37664,6 +37685,7 @@ snapshots:
       '@electric-sql/pglite': 0.2.15
       '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
       '@elizaos/plugin-3d-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-avalanche': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@elizaos/plugin-evm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
@@ -38057,6 +38079,24 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
+
+  viem@2.21.49(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1):
+    dependencies:
+      '@noble/curves': 1.6.0
+      '@noble/hashes': 1.5.0
+      '@scure/bip32': 1.5.0
+      '@scure/bip39': 1.4.0
+      abitype: 1.0.6(typescript@5.7.2)(zod@3.24.1)
+      isows: 1.0.6(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+      ox: 0.1.2(typescript@5.7.2)(zod@3.24.1)
+      webauthn-p256: 0.0.10
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    optionalDependencies:
+      typescript: 5.7.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
 
   viem@2.21.53(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1):
     dependencies:
