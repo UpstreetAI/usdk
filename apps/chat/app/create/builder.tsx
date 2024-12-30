@@ -952,7 +952,7 @@ export default function AgentEditor({
                     editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
                   }}
                 >
-                  DEPLOY
+                  {!deploying ? `Deploy` : 'Deploying...'}
                 </Button>
               </div>
 
@@ -1068,10 +1068,6 @@ export default function AgentEditor({
             }}
           />
         </div>
-
-
-
-
 
       </div>
     </div>
