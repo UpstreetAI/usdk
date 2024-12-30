@@ -95,7 +95,7 @@ const runAgent = async (directory, opts) => {
 const makeViteServer = async (directory) => {
   return await createViteServer({
     root: directory,
-    server: { middlewareMode: 'ssr' },
+    // server: { middlewareMode: 'ssr' },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
