@@ -9,6 +9,7 @@ import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import echoChamberPlugin from '@elizaos/plugin-echochambers';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import intifacePlugin from '@elizaos/plugin-intiface';
+import { webSearchPlugin } from '@elizaos/plugin-web-search';
 import evmPlugin from '@elizaos/plugin-evm';
 import { zgPlugin } from '@elizaos/plugin-0g';
 import icpPlugin from '@elizaos/plugin-icp';
@@ -32,9 +33,9 @@ import fereProPlugin from '@elizaos/plugin-ferePro';
 import flowPlugin from '@elizaos/plugin-flow';
 import fuelPlugin from '@elizaos/plugin-fuel';
 import storyPlugin from '@elizaos/plugin-story';
-import { webSearchPlugin } from '@elizaos/plugin-web-search';
 import zksyncEraPlugin from '@elizaos/plugin-zksync-era';
 import createGoatPlugin from '@elizaos/plugin-goat';
+import { WhatsAppPlugin } from '@elizaos/plugin-whatsapp';
 
 function generateZodSchema(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();
