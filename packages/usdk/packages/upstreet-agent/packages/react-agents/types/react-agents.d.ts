@@ -575,7 +575,6 @@ export type ConversationInstanceProps = {
 export type ActionProps = {
   type: string;
   description: string;
-  state?: string;
   schema: ZodTypeAny;
   examples: Array<object>,
   handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
