@@ -295,6 +295,7 @@ export class DiscordBot extends EventTarget {
           const agentPlayer = new Player(agent.id, {
             name: agent.name,
             bio: agent.bio,
+            mentionId: appId,
           });
           const conversation = new ConversationObject({
             agentPlayer,
@@ -308,11 +309,6 @@ export class DiscordBot extends EventTarget {
               agentId: agent.id,
             }),
           });
-
-          conversation.appendCurrentAgentSpecs({
-            mentionId: appId,
-          });
-
 
           this.agent.conversationManager.addConversation(conversation);
           this.channelConversations.set(channelId, conversation);
@@ -357,6 +353,7 @@ export class DiscordBot extends EventTarget {
         const agentPlayer = new Player(agent.id, {
           name: agent.name,
           bio: agent.bio,
+          mentionId: appId,
         });
         const conversation = new ConversationObject({
           agentPlayer,
@@ -369,10 +366,6 @@ export class DiscordBot extends EventTarget {
             conversationId,
             agentId: agent.id,
           }),
-        });
-
-        conversation.appendCurrentAgentSpecs({
-          mentionId: appId,
         });
         
         this.agent.conversationManager.addConversation(conversation);
