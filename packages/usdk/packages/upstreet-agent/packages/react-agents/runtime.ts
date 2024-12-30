@@ -18,7 +18,6 @@ import {
   AbortableMessageEvent,
   PendingActionEventData,
   PerceptionPropsAux,
-  MessageReactionEvent,
 } from './types';
 import {
   PendingActionEvent,
