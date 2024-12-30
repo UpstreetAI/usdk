@@ -9,6 +9,7 @@
     "@elizaos/plugin-solana": "file:./packages/react-agents/components/plugins/plugin-solana",
     "@elizaos/plugin-tee": "file:./packages/react-agents/components/plugins/plugin-tee",
     "@elizaos/plugin-trustdb": "file:./packages/react-agents/components/plugins/plugin-trustdb",
+    "@elizaos/plugin-twitter": "file:./packages/react-agents/components/plugins/plugin-twitter",
     "@iarna/toml": "^2.2.5",
     "@supabase/postgrest-js": "^1.17.7",
     "@supabase/supabase-js": "^2.47.1",
