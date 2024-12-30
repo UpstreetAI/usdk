@@ -79,12 +79,6 @@ export const featureSpecs = [
       z.null(),
     ] ),
     examples: [{ voiceEndpoint: defaultVoices[0].voiceEndpoint },],
-
-    // Default values
-    default: {
-      voiceEndpoint: defaultVoices[0].voiceEndpoint,
-    },
-
     // For Web UI
     displayIcon: 'Voice',
     displayName: 'Voice',
@@ -131,13 +125,6 @@ export const featureSpecs = [
       z.null(),
     ] ),
     examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
-
-    // Default values
-    default: {
-      maxUserMessages: 5,
-      maxUserMessagesTime: 60 * 60 * 24 * 1000, // 1 day
-      message: '',
-    },
 
     // For Web UI
     displayIcon: 'Chat',
@@ -202,12 +189,6 @@ export const featureSpecs = [
     ] ),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
 
-    // Default values
-    default: {
-      token: '',
-      channels: [],
-    },
-
     // For Web UI
     displayIcon: 'Discord',
     displayName: 'Discord',
@@ -271,11 +252,6 @@ export const featureSpecs = [
     ] ),
     examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
 
-    // Default values
-    default: {
-      token: '',
-    },
-
     // For Web UI
     displayIcon: 'X',
     displayName: 'X (Twitter)',
@@ -330,14 +306,6 @@ export const featureSpecs = [
       z.null(),
     ] ),
     examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
-
-    // Default values
-    default: {
-      apiKey: '',
-      phoneNumber: '',
-      message: false,
-      voice: false,
-    },
 
     // For Web UI
     displayIcon: 'Upstreet',
@@ -439,7 +407,7 @@ export const featureSpecs = [
     },
 
     // Feature active ( true, false )
-    active: true,
+    active: false,
 
     // imports: (storeItems) => {
     //   const isValidStoreItem = (storeItem) =>
