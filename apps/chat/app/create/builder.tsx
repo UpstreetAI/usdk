@@ -499,7 +499,7 @@ export default function AgentEditor({
   const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] hover:from-[#003A82] hover:to-[#003A82] p-[2px] cursor-pointer relative inline-block text-center border w-full md:w-[calc(33.333%-1rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] m-2 transition-colors duration-300';
   const featureClass = 'bg-[#000C19] px-4 py-6 text-[#85B0E5] hover:bg-[#003A82] transition-colors duration-300';
   const featureClassActive = 'bg-[#0155BC]';
-  const featureClassInDevelopment = 'bg-[#003A82]';
+  const featureClassInDevelopment = 'opacity-50 hover:opacity-80';
   const featureIconClass = 'size-10 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
 
@@ -1370,12 +1370,12 @@ export default function AgentEditor({
                       .filter(featureSpec => !featureSpec.active)
                       .map((featureSpec) => {
                         return (
-                          <div className={featureWrapperClass} key={featureSpec.name}>
+                          <div className={cn(featureWrapperClass, featureClassInDevelopment)} key={featureSpec.name}>
                             <div
-                              className={cn(featureClass, featureClassInDevelopment)}
+                              className={cn(featureClass)}
                             >
                               <div>
-                                <Icon icon={featureSpec.displayIcon ?? 'Upstreet'} className={featureIconClass} />
+                                <Icon icon={'Lock'} className={featureIconClass} />
                                 <p className={featureTextClass}>
                                   {featureSpec.displayName ?? featureSpec.name}
                                 </p>
@@ -1415,9 +1415,19 @@ export default function AgentEditor({
 
               </div>
 
-              <div className='flex flex-row justify-center mt-8'>
-                {step !== 1 && <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>}
-                {step !== 3 && <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>}
+              <div className='flex flex-row justify-center mt-8 absolute bottom-8 left-8 right-8'>
+                {step === 1 && (
+                  <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+                )}
+                {step === 3 && (
+                  <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+                )}
+                {step !== 1 && step !== 3 && (
+                  <>
+                    <Button variant='secondary' className='p-2 mr-auto' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+                    <Button variant='secondary' className='p-2 ml-auto' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+                  </>
+                )}
               </div>
 
             </div>

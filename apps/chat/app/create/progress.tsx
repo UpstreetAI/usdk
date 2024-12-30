@@ -12,7 +12,7 @@ interface ProgressProps {
 
 const Progress: React.FC<ProgressProps> = ({ steps, currentStep }) => {
   const getStepClass = (step: number) =>
-    currentStep > step ? "bg-[#0E4277] text-[#CBE2F7]" : "bg-[#CBE2F7] text-[#0E468A] border-2 border-[#CBE2F7]";
+    currentStep > step ? "bg-[#0E468A] text-[#CBE2F7]" : "bg-[#CBE2F7] text-[#0E468A] border-2 border-[#CBE2F7]";
 
   return steps.length > 0 ? (
     <div className="w-full">
