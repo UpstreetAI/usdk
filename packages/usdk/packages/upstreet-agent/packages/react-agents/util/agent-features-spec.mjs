@@ -90,7 +90,7 @@ export const featureSpecs = [
     },
 
     // For Web UI
-    icon: 'Voice',
+    displayIcon: 'Voice',
     displayName: 'Voice',
     displayDescription: 'Select a voice for your agent.',
 
@@ -135,7 +135,7 @@ export const featureSpecs = [
     },
 
     // For Web UI
-    icon: 'Chat',
+    displayIcon: 'Chat',
     displayName: 'Rate Limit',
     displayDescription: 'Control how often users can message the agent.',
     // Feature active ( true, false )
@@ -184,7 +184,7 @@ export const featureSpecs = [
     },
 
     // For Web UI
-    icon: 'Discord',
+    displayIcon: 'Discord',
     displayName: 'Discord',
     displayDescription: 'Connect your agent to Discord.',
     // Feature active ( true, false )
@@ -234,7 +234,7 @@ export const featureSpecs = [
     },
 
     // For Web UI
-    icon: 'X',
+    displayIcon: 'X',
     displayName: 'X (Twitter)',
     displayDescription: 'Add a Twitter bot to your agent.',
 
@@ -289,7 +289,7 @@ export const featureSpecs = [
     },
 
     // For Web UI
-    icon: 'Upstreet',
+    displayIcon: 'Upstreet',
     displayName: 'Telnyx',
     displayDescription: 'Enable phone call and SMS support for your agent.',
 
@@ -348,7 +348,7 @@ export const featureSpecs = [
     ],
 
     // For Web UI
-    icon: 'ModuleStore',
+    displayIcon: 'ModuleStore',
     displayName: 'Store',
     displayDescription: 'Manage items your agent can sell.',
 

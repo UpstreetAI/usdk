@@ -1258,12 +1258,12 @@ export default function AgentEditor({
                                 className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[featureSpec.name] && 'hidden')}
                                 onClick={(e) => removeFeature(featureSpec.name as keyof FeaturesObject, e)}
                               />
-                              <Icon icon={featureSpec.icon ?? 'Upstreet'} className={featureIconClass} />
+                              <Icon icon={featureSpec.displayIcon ?? 'Upstreet'} className={featureIconClass} />
                               <p className={featureTextClass}>
                                 {featureSpec.displayName ?? featureSpec.name}
                               </p>
                               <Modal
-                                icon={featureSpec.icon ?? 'Upstreet'}
+                                icon={featureSpec.displayIcon ?? 'Upstreet'}
                                 title={featureSpec.displayName ?? featureSpec.name}
                                 description={featureSpec.displayDescription}
                                 open={modalOpen === featureSpec.name}
