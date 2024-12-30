@@ -857,9 +857,9 @@ export default function AgentEditor({
                                   className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[name] && 'hidden')}
                                   onClick={(e) => removeFeature(name as keyof FeaturesObject, e)}
                                 />
-                                
+
                                 <Icon icon={displayIcon ?? 'Upstreet'} className={featureIconClass} />
-                                
+
                                 <p className={featureTextClass}>
                                   {displayName ?? name}
                                 </p>

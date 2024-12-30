@@ -95,6 +95,7 @@ export const featureSpecs = [
         label: 'Voice',
         description: 'Select a voice for your agent.',
         options: defaultVoices.map( v => ({ value: v.voiceEndpoint, label: v.name }) ),
+        defaultValue: defaultVoices[0].voiceEndpoint,
       },
     },
 
@@ -147,16 +148,19 @@ export const featureSpecs = [
         type: 'number',
         label: 'Max User Messages',
         description: 'The maximum number of messages a user can send to the agent.',
+        defaultValue: 5,
       },
       maxUserMessagesTime: {
         type: 'number',
         label: 'Max User Messages Time',
         description: 'The time in milliseconds after which a user can send another message to the agent.',
+        defaultValue: 60 * 60 * 24 * 1000, // 1 day
       },
       message: {
         type: 'text',
         label: 'Message',
         description: 'The message to send to the agent when the rate limit is exceeded.',
+        defaultValue: 'Whoa there! Take a moment.',
       },
     },
     // Feature active ( true, false )
@@ -213,6 +217,7 @@ export const featureSpecs = [
         type: 'text',
         label: 'Token',
         description: 'The token for your Discord bot.',
+        defaultValue: '',
       },
       channels: {
         type: 'array',
@@ -222,6 +227,7 @@ export const featureSpecs = [
           { value: 'general', label: 'General' },
           { value: 'voice', label: 'Voice' },
         ],
+        defaultValue: [],
       },
     },
     // Feature active ( true, false )
@@ -279,6 +285,7 @@ export const featureSpecs = [
         type: 'text',
         label: 'Token',
         description: 'The token for your Twitter bot.',
+        defaultValue: '',
       },
     },
 
@@ -342,21 +349,25 @@ export const featureSpecs = [
         type: 'text',
         label: 'API Key',
         description: 'The API key for your Telnyx account.',
+        defaultValue: '',
       },
       phoneNumber: {
         type: 'text',
         label: 'Phone Number',
         description: 'The phone number to use for Telnyx.',
+        defaultValue: '',
       },
       message: {
         type: 'checkbox',
         label: 'Message',
         description: 'Enable message support.',
+        defaultValue: false,
       },
       voice: {
         type: 'checkbox',
         label: 'Voice',
         description: 'Enable voice support.',
+        defaultValue: false,
       },
     },
 
@@ -418,6 +429,14 @@ export const featureSpecs = [
     displayIcon: 'ModuleStore',
     displayName: 'Store',
     displayDescription: 'Manage items your agent can sell.',
+    form: {
+      items: {
+        type: 'array',
+        label: 'Items',
+        description: 'The items to sell.',
+        defaultValue: [],
+      },
+    },
 
     // Feature active ( true, false )
     active: true,
