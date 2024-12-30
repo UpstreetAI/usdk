@@ -14,6 +14,7 @@ import { zgPlugin } from '@elizaos/plugin-0g';
 import icpPlugin from '@elizaos/plugin-icp';
 import avalanchePlugin from '@elizaos/plugin-avalanche';
 import aptosPlugin from '@elizaos/plugin-aptos';
+import { bootstrapPlugin } from '@elizaos/plugin-bootstrap';
 import { confluxPlugin } from '@elizaos/plugin-conflux';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import starknetPlugin from '@elizaos/plugin-starknet';
@@ -229,6 +230,7 @@ export const plugins = {
   '@elizaos/plugin-icp': pluginWrap(icpPlugin),
   '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
   '@elizaos/plugin-aptos': pluginWrap(aptosPlugin),
+  '@elizaos/plugin-bootstrap': pluginWrap(bootstrapPlugin),
   '@elizaos/plugin-conflux': pluginWrap(confluxPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-starknet': pluginWrap(starknetPlugin),
