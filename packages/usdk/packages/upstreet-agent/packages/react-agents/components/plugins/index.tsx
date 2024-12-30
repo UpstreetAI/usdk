@@ -8,6 +8,7 @@ import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import evmPlugin from '@elizaos/plugin-evm';
 import { solanaPlugin } from '@elizaos/plugin-solana';
+import nearPlugin from '@elizaos/plugin-near';
 import { teePlugin } from '@elizaos/plugin-tee';
 import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
 import { twitterPlugin } from '@elizaos/plugin-twitter';
@@ -211,6 +212,7 @@ export const plugins = {
   '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
+  '@elizaos/plugin-near': pluginWrap(nearPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
   '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
   '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),

@@ -13,6 +13,7 @@
     "@elizaos/plugin-gitbook": "file:./packages/react-agents/components/plugins/plugin-gitbook",
     "@elizaos/plugin-goat": "file:./packages/react-agents/components/plugins/plugin-goat",
     "@elizaos/plugin-image-generation": "file:./packages/react-agents/components/plugins/plugin-image-generation",
+    "@elizaos/plugin-near": "file:./packages/react-agents/components/plugins/plugin-near",
     "@elizaos/plugin-nft-generation": "file:./packages/react-agents/components/plugins/plugin-nft-generation",
     "@elizaos/plugin-solana": "file:./packages/react-agents/components/plugins/plugin-solana",
     "@elizaos/plugin-story": "file:./packages/react-agents/components/plugins/plugin-story",
