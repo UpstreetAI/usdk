@@ -499,6 +499,7 @@ export default function AgentEditor({
   const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] hover:from-[#003A82] hover:to-[#003A82] p-[2px] cursor-pointer relative inline-block text-center border w-full md:w-[calc(33.333%-1rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] m-2 transition-colors duration-300';
   const featureClass = 'bg-[#000C19] px-4 py-6 text-[#85B0E5] hover:bg-[#003A82] transition-colors duration-300';
   const featureClassActive = 'bg-[#0155BC]';
+  const featureClassInDevelopment = 'bg-[#003A82]';
   const featureIconClass = 'size-10 mx-auto';
   const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
 
@@ -1239,53 +1240,150 @@ export default function AgentEditor({
                     </div>
 
                     <div className='w-full h-px bg-zinc-200 my-8' />
+                    
+                    {/* ACTIVE FEATURES (featureSpec.active === true) */}
 
-                    {featureSpecs.map((featureSpec) => {
-                      // console.log(featureSpec);
+                    {featureSpecs
+                      .filter(featureSpec => featureSpec.active)
+                      .map((featureSpec) => {
+                        const { name, default: defaultValues, displayName, displayDescription, displayIcon } = featureSpec;
 
-                      return (
-                        <div className={featureWrapperClass} key={featureSpec.name}>
-                          <div
-                            onClick={() => {
-                              setModalOpen(featureSpec.name);
-                              addFeature(featureSpec.name as keyof FeaturesObject, featureSpec.default);
-                            }}
-                            className={cn(featureClass, features[featureSpec.name] ? featureClassActive : '')}
-                          >
-                            <div>
-                              <Icon
-                                icon="Close"
-                                className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[featureSpec.name] && 'hidden')}
-                                onClick={(e) => removeFeature(featureSpec.name as keyof FeaturesObject, e)}
-                              />
-                              <Icon icon={featureSpec.displayIcon ?? 'Upstreet'} className={featureIconClass} />
-                              <p className={featureTextClass}>
-                                {featureSpec.displayName ?? featureSpec.name}
-                              </p>
-                              <Modal
-                                icon={featureSpec.displayIcon ?? 'Upstreet'}
-                                title={featureSpec.displayName ?? featureSpec.name}
-                                description={featureSpec.displayDescription}
-                                open={modalOpen === featureSpec.name}
-                                close={() => setModalOpen(null)}
-                                disableFeature={() => {
-                                  setFeatures({
-                                    ...features,
-                                    [featureSpec.name]: null,
-                                  });
-                                }}
-                              >
-                                <div>
-                                  <div className="flex flex-col">
-                                    
+                        return (
+                          <div className={featureWrapperClass} key={name}>
+                            <div
+                              onClick={() => {
+                                setModalOpen(name);
+                                addFeature(name as keyof FeaturesObject, defaultValues);
+                              }}
+                              className={cn(featureClass, features[name] ? featureClassActive : '')}
+                            >
+                              <div>
+                                <Icon
+                                  icon="Close"
+                                  className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[name] && 'hidden')}
+                                  onClick={(e) => removeFeature(name as keyof FeaturesObject, e)}
+                                />
+                                
+                                <Icon icon={displayIcon ?? 'Upstreet'} className={featureIconClass} />
+                                
+                                <p className={featureTextClass}>
+                                  {displayName ?? name}
+                                </p>
+
+                                <Modal
+                                  icon={displayIcon ?? 'Upstreet'}
+                                  title={displayName ?? name}
+                                  description={displayDescription}
+                                  open={modalOpen === name}
+                                  close={() => setModalOpen(null)}
+                                  disableFeature={() => {
+                                    setFeatures({
+                                      ...features,
+                                      [name]: null,
+                                    });
+                                  }}
+                                >
+                                  <div>
+                                    <div className="flex flex-col">
+                                      {Object.entries(defaultValues).map(([key, value]) => {
+                                        if (typeof value === 'string') {
+                                          return (
+                                            <label key={key} className="text-gray-900">
+                                              <span className="mb-2">{key}</span>
+                                              <input
+                                                type="text"
+                                                className={inputClass}
+                                                value={features[name]?.[key] ?? ''}
+                                                onChange={(e) => {
+                                                  setFeatures((prevFeatures) => ({
+                                                    ...prevFeatures,
+                                                    [name]: {
+                                                      ...prevFeatures[name],
+                                                      [key]: e.target.value,
+                                                    },
+                                                  }));
+                                                }}
+                                              />
+                                            </label>
+                                          );
+                                        } else if (typeof value === 'number') {
+                                          return (
+                                            <label key={key} className="text-gray-900">
+                                              <span className="mb-2">{key}</span>
+                                              <input
+                                                type="number"
+                                                className={inputClass}
+                                                value={features[name]?.[key] ?? ''}
+                                                onChange={(e) => {
+                                                  setFeatures((prevFeatures) => ({
+                                                    ...prevFeatures,
+                                                    [name]: {
+                                                      ...prevFeatures[name],
+                                                      [key]: parseFloat(e.target.value),
+                                                    },
+                                                  }));
+                                                }}
+                                              />
+                                            </label>
+                                          );
+                                        } else if (Array.isArray(value)) {
+                                          return (
+                                            <label key={key} className="text-gray-900">
+                                              <span className="mb-2">{key}</span>
+                                              <select
+                                                className={inputClass}
+                                                value={features[name]?.[key] ?? ''}
+                                                onChange={(e) => {
+                                                  setFeatures((prevFeatures) => ({
+                                                    ...prevFeatures,
+                                                    [name]: {
+                                                      ...prevFeatures[name],
+                                                      [key]: e.target.value,
+                                                    },
+                                                  }));
+                                                }}
+                                              >
+                                                {value.map((option) => (
+                                                  <option key={option} value={option}>
+                                                    {option}
+                                                  </option>
+                                                ))}
+                                              </select>
+                                            </label>
+                                          );
+                                        }
+                                        return null;
+                                      })}
+                                    </div>
                                   </div>
-                                </div>
-                              </Modal>
+                                </Modal>
+
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+
+                    {/* INACTIVE FEATURES ( In development, featureSpec.active === false) */}
+
+                    {featureSpecs
+                      .filter(featureSpec => !featureSpec.active)
+                      .map((featureSpec) => {
+                        return (
+                          <div className={featureWrapperClass} key={featureSpec.name}>
+                            <div
+                              className={cn(featureClass, featureClassInDevelopment)}
+                            >
+                              <div>
+                                <Icon icon={featureSpec.displayIcon ?? 'Upstreet'} className={featureIconClass} />
+                                <p className={featureTextClass}>
+                                  {featureSpec.displayName ?? featureSpec.name}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
 
                   </div>
                 </form>
