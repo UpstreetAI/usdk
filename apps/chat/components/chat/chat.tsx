@@ -130,18 +130,18 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
 
   return (
     <div
-      className={`relative group w-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
+      className={`relative group w-full h-full duration-300 text-gray-900 ease-in-out animate-in ${isLeftSidebarOpen ? "lg:pl-[250px] xl:pl-[300px]" : ""} ${isRightSidebarOpen ? "lg:pr-[250px] xl:pr-[300px]" : ""} `}
     >
       {room && (
         <>
           {mode !== 'builder' && <ChatMenu players={players} roomName={roomName} />}
 
-          <div className='h-screen overflow-auto' ref={scrollRef}>
+          <div className='h-full overflow-auto' ref={scrollRef}>
             <div
               className={cn('pb-[80px]', className, mode !== 'builder' ? 'pt-20 md:pt-24' : 'pt-2 md:pt-6')}
               ref={messagesRef}
             >
-              <div className="relative mx-auto max-w-2xl px-4">
+              <div className={cn("relative mx-auto max-w-2xl px-4", mode === 'builder' ? 'px-1' : 'px-4')}>
                 {messages.length ? (
                   <ChatList messages={messages} />
                 ) : (
@@ -163,7 +163,7 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
             scrollToBottom={scrollToBottom}
             room={room}
             desktop={desktop}
-            mode="web"
+            mode={mode}
           />
 
         </>
