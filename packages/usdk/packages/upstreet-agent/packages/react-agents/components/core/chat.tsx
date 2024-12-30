@@ -32,6 +32,7 @@ export const ChatActions = () => {
         type="messageReaction"
         description={dedent`\
           React to a message sent by another user with an emoji when you want to:
+          - Use the "id" of a message to react to a specific message
           - Show agreement or disagreement with the message content
           - Express appreciation for helpful or insightful messages
           - Acknowledge someone's feelings or emotions
@@ -42,17 +43,17 @@ export const ChatActions = () => {
         schema={
           z.object({
             reaction: z.string(),
-            messageId: z.string(),
+            id: z.string(),
           })
         }
         examples={[
           {
             reaction: '👍',
-            messageId: '123',
+            id: '123',
           },
           {
             reaction: '👎',
-            messageId: '123',
+            id: '123',
           },
         ]}
         handler={async (e: PendingActionEvent) => {
