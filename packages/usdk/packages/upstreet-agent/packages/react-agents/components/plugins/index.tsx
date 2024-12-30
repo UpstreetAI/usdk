@@ -11,6 +11,7 @@ import createGoatPlugin from '@elizaos/plugin-goat';
 import { plugins as coinbasePlugins } from '@elizaos/plugin-coinbase';
 import suiPlugin from '@elizaos/plugin-sui';
 import flowPlugin from '@elizaos/plugin-flow';
+import { webSearchPlugin } from '@elizaos/plugin-web-search';
 
 function generateZodSchema(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();
@@ -206,6 +207,7 @@ export const plugins = {
   '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),
   '@elizaos/plugin-sui': pluginWrap(suiPlugin),
   '@elizaos/plugin-flow': pluginWrap(flowPlugin),
+  '@elizaos/plugin-web-search': pluginWrap(webSearchPlugin),
   '@elizaos/plugin-trustdb': adapterWrap(TrustScoreDatabase),
   // '@elizaos/plugin-goat': pluginWrap(goatPlugin),
 };
