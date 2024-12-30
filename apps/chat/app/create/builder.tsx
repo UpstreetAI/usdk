@@ -67,6 +67,7 @@ type FeaturesObject = {
     token: string;
   } | null;
 };
+
 type AgentEditorProps = {
   user: any;
 };
@@ -1243,31 +1244,48 @@ export default function AgentEditor({
                       // console.log(featureSpec);
 
                       return (
-                        <div className={featureWrapperClass}>
+                        <div className={featureWrapperClass} key={featureSpec.name}>
                           <div
                             onClick={() => {
-                              setModalOpen('voice');
-                              addFeature('tts', makeDefaultTts());
+                              setModalOpen(featureSpec.name);
+                              addFeature(featureSpec.name as keyof FeaturesObject, featureSpec.default);
                             }}
-                            className={cn(featureClass, features.tts ? featureClassActive : '')}
+                            className={cn(featureClass, features[featureSpec.name] ? featureClassActive : '')}
                           >
                             <div>
                               <Icon
                                 icon="Close"
-                                className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
-                                onClick={(e) => removeFeature('tts', e)}
+                                className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[featureSpec.name] && 'hidden')}
+                                onClick={(e) => removeFeature(featureSpec.name as keyof FeaturesObject, e)}
                               />
                               <Icon icon={featureSpec.icon ?? 'Upstreet'} className={featureIconClass} />
                               <p className={featureTextClass}>
                                 {featureSpec.displayName ?? featureSpec.name}
                               </p>
-
+                              <Modal
+                                icon={featureSpec.icon ?? 'Upstreet'}
+                                title={featureSpec.displayName ?? featureSpec.name}
+                                description={featureSpec.description}
+                                open={modalOpen === featureSpec.name}
+                                close={() => setModalOpen(null)}
+                                disableFeature={() => {
+                                  setFeatures({
+                                    ...features,
+                                    [featureSpec.name]: null,
+                                  });
+                                }}
+                              >
+                                <div>
+                                  <div className="flex flex-col">
+                                    
+                                  </div>
+                                </div>
+                              </Modal>
                             </div>
                           </div>
                         </div>
                       );
                     })}
-
 
                   </div>
                 </form>
