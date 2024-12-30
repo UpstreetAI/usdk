@@ -1,8 +1,7 @@
 import React from 'react';
-import { Action, useEnv } from 'react-agents';
-import { z } from 'zod';
+// import { Action, useEnv } from 'react-agents';
+// import { z } from 'zod';
 import util from 'util';
-import { WhatsAppPlugin } from '@elizaos/plugin-whatsapp';
 
 //
 
@@ -21,5 +20,4 @@ const clientWrap = (client: IClient) => (props: any) => {
 };
 
 export const clients = {
-  '@elizaos/plugin-whatsapp': clientWrap(WhatsAppPlugin),
 };
