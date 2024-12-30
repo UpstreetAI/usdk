@@ -830,7 +830,7 @@ importers:
         version: link:packages/update-notifier
       upstreet-agent:
         specifier: file:./packages/upstreet-agent
-        version: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(form-data@4.0.1)(rollup@4.28.1)(sass@1.82.0)(terser@5.37.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
+        version: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@google-cloud/vertexai@1.9.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(axios@1.7.9)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(form-data@4.0.1)(rollup@4.28.1)(sass@1.82.0)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(terser@5.37.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       vercel:
         specifier: ^34.2.6
         version: 34.4.0(@swc/core@1.10.1(@swc/helpers@0.5.13))
@@ -966,6 +966,9 @@ importers:
       '@elizaos/plugin-twitter':
         specifier: file:./packages/react-agents/components/plugins/plugin-twitter
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      '@elizaos/plugin-whatsapp':
+        specifier: file:./packages/react-agents/components/clients/plugin-whatsapp
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
       '@iarna/toml':
         specifier: ^2.2.5
         version: 2.2.5
@@ -1393,7 +1396,6 @@ packages:
 
   '@ai-sdk/react@0.0.70':
     resolution: {integrity: sha512-GnwbtjW4/4z7MleLiW+TOZC2M29eCg1tOUpuEiYFMmFNZK8mkrqM0PFZMo6UsYeUYMWqEOOcPOU9OQVJMJh7IQ==}
-    version: 0.0.70
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -2383,6 +2385,9 @@ packages:
 
   '@elizaos/plugin-twitter@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter, type: directory}
+
+  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp, type: directory}
 
   '@emnapi/runtime@1.3.1':
     resolution: {integrity: sha512-kEBmG8KyqtxJZv+ygbEim+KCGtIq1fC22Ms3S4ziXmYKm8uyoLX0MHONVKwp+9opg390VaKRNt4a7A9NwmpNhw==}
@@ -7056,7 +7061,6 @@ packages:
 
   ai@3.4.33:
     resolution: {integrity: sha512-plBlrVZKwPoRTmM8+D1sJac9Bq8eaa2jiZlHLZIWekKWI1yMWYZvCCEezY9ASPwRhULYDJB2VhKOBUUeg3S5JQ==}
-    version: 3.4.33
     engines: {node: '>=18'}
     peerDependencies:
       openai: ^4.42.0
@@ -7408,6 +7412,9 @@ packages:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
     peerDependencies:
       axios: 0.x || 1.x
+
+  axios@1.7.8:
+    resolution: {integrity: sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==}
 
   axios@1.7.9:
     resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
@@ -14650,7 +14657,6 @@ packages:
 
   swr@2.3.0:
     resolution: {integrity: sha512-NyZ76wA4yElZWBHzSgEJc28a0u6QZvhb6w0azeL2k7+Q1gAzVK+IqQYXhVOC/mzi+HZIozrZvBVeSeOZNR2bqA==}
-    version: 2.3.0
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -17421,7 +17427,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
     dependencies:
       '@ai-sdk/anthropic': 0.0.56(zod@3.23.8)
       '@ai-sdk/google': 0.0.55(zod@3.23.8)
@@ -17432,7 +17438,7 @@ snapshots:
       '@fal-ai/client': 1.2.0
       '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/uuid': 10.0.0
-      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8)
+      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(solid-js@1.9.3)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(vue@3.5.13(typescript@5.7.2))(zod@3.23.8)
       anthropic-vertex-ai: 1.0.2(zod@3.23.8)
       fastembed: 1.14.1
       fastestsmallesttextencoderdecoder: 1.0.22
@@ -17474,7 +17480,7 @@ snapshots:
       - utf-8-validate
       - vue
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(utf-8-validate@5.0.10)':
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
     dependencies:
       '@ai-sdk/anthropic': 0.0.56(zod@3.23.8)
       '@ai-sdk/google': 0.0.55(zod@3.23.8)
@@ -17494,7 +17500,7 @@ snapshots:
       handlebars: 4.7.8
       js-sha1: 0.7.0
       js-tiktoken: 1.0.15
-      langchain: 0.3.6(@langchain/core@0.3.26(openai@4.73.0(zod@3.23.8)))(axios@1.7.9)(handlebars@4.7.8)(openai@4.73.0(zod@3.23.8))
+      langchain: 0.3.6(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(handlebars@4.7.8)(openai@4.73.0(zod@3.23.8))
       ollama-ai-provider: 0.16.1(zod@3.23.8)
       openai: 4.73.0(zod@3.23.8)
       tinyld: 1.3.4
@@ -17855,6 +17861,12 @@ snapshots:
       - tsx
       - typescript
       - yaml
+
+  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp':
+    dependencies:
+      axios: 1.7.8
+    transitivePeerDependencies:
+      - debug
 
   '@emnapi/runtime@1.3.1':
     dependencies:
@@ -24397,6 +24409,14 @@ snapshots:
     dependencies:
       axios: 1.7.9
       is-retry-allowed: 2.2.0
+
+  axios@1.7.8:
+    dependencies:
+      follow-redirects: 1.15.9
+      form-data: 4.0.1
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   axios@1.7.9:
     dependencies:
@@ -34376,11 +34396,11 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(form-data@4.0.1)(rollup@4.28.1)(sass@1.82.0)(terser@5.37.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0):
+  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@google-cloud/vertexai@1.9.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(axios@1.7.9)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(form-data@4.0.1)(rollup@4.28.1)(sass@1.82.0)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(terser@5.37.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0):
     dependencies:
       '@aws-sdk/util-format-url': 3.709.0
       '@electric-sql/pglite': 0.2.15
-      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(utf-8-validate@5.0.10)
+      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
       '@elizaos/plugin-3d-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@elizaos/plugin-goat': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
@@ -34389,6 +34409,7 @@ snapshots:
       '@elizaos/plugin-tee': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-tee(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(jiti@1.21.6)(postcss@8.4.49)(rollup@4.28.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-trustdb': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-trustdb(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-twitter': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      '@elizaos/plugin-whatsapp': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
       '@supabase/supabase-js': 2.47.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
