@@ -948,6 +948,9 @@ importers:
       '@elizaos/plugin-3d-generation':
         specifier: file:./packages/react-agents/components/plugins/plugin-3d-generation
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-aptos':
+        specifier: file:./packages/react-agents/components/plugins/plugin-aptos
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(form-data@4.0.1)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-avalanche':
         specifier: file:./packages/react-agents/components/plugins/plugin-avalanche
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
@@ -1577,6 +1580,18 @@ packages:
   '@anush008/tokenizers@0.0.0':
     resolution: {integrity: sha512-IQD9wkVReKAhsEAbDjh/0KrBGTEXelqZLpOBRDaIRvlzZ9sjmUP+gKbpvzyJnei2JHQiE8JAgj7YcNloINbGBw==}
     engines: {node: '>= 10'}
+
+  '@aptos-labs/aptos-cli@1.0.2':
+    resolution: {integrity: sha512-PYPsd0Kk3ynkxNfe3S4fanI3DiUICCoh4ibQderbvjPFL5A0oK6F4lPEO2t0MDsQySTk2t4vh99Xjy6Bd9y+aQ==}
+    hasBin: true
+
+  '@aptos-labs/aptos-client@0.1.1':
+    resolution: {integrity: sha512-kJsoy4fAPTOhzVr7Vwq8s/AUg6BQiJDa7WOqRzev4zsuIS3+JCuIZ6vUd7UBsjnxtmguJJulMRs9qWCzVBt2XA==}
+    engines: {node: '>=15.10.0'}
+
+  '@aptos-labs/ts-sdk@1.33.1':
+    resolution: {integrity: sha512-d6nWtUI//fyEN8DeLjm3+ro87Ad6+IKwR9pCqfrs/Azahso1xR1Llxd/O6fj/m1DDsuDj/HAsCsy5TC/aKD6Eg==}
+    engines: {node: '>=11.0.0'}
 
   '@auth/core@0.18.4':
     resolution: {integrity: sha512-GsNhsP1xE/3FoNS3dVkPjqRljLNJ4iyL2OLv3klQGNvw3bMpROFcK4lqhx7+pPHiamnVaYt2vg1xbB+lsNaevg==}
@@ -2454,6 +2469,12 @@ packages:
   '@elizaos/plugin-3d-generation@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation, type: directory}
     peerDependencies:
+      whatwg-url: 7.1.0
+
+  '@elizaos/plugin-aptos@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos, type: directory}
+    peerDependencies:
+      form-data: 4.0.1
       whatwg-url: 7.1.0
 
   '@elizaos/plugin-avalanche@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche':
@@ -8405,6 +8426,9 @@ packages:
   axios@0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
 
+  axios@1.7.4:
+    resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
+
   axios@1.7.8:
     resolution: {integrity: sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==}
 
@@ -12609,6 +12633,9 @@ packages:
   js-ago@2.1.1:
     resolution: {integrity: sha512-w+tpQK8o86vqEVctcIJ2Qg+b0O/ls0KPEmr4EEbkr+pRqgHRgx3XdkImn86OaKNS4sZtb5jJBAhJkagTRKoVXA==}
 
+  js-base64@3.7.7:
+    resolution: {integrity: sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==}
+
   js-md5@0.7.3:
     resolution: {integrity: sha512-ZC41vPSTLKGwIRjqDh8DfXoCrdQIyBgspJVPXHBGu4nZlAEvG3nf+jO9avM9RmLiGakg7vz974ms99nEV0tmTQ==}
 
@@ -12789,6 +12816,10 @@ packages:
 
   jws@4.0.0:
     resolution: {integrity: sha512-KDncfTmOZoOMTFG4mBlG0qUIOlc03fmzH+ru6RgYVZhPkyiy/92Owlt/8UEN+a4TXR1FQetfIpJE8ApdvdVxTg==}
+
+  jwt-decode@4.0.0:
+    resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
+    engines: {node: '>=18'}
 
   katex@0.16.15:
     resolution: {integrity: sha512-yE9YJIEAk2aZ+FL/G8r+UGw0CTUzEA8ZFy6E+8tc3spHUKq3qBnzCkI1CQwGoI9atJhVyFPEypQsTY7mJ1Pi9w==}
@@ -18640,6 +18671,33 @@ snapshots:
       '@anush008/tokenizers-linux-x64-gnu': 0.0.0
       '@anush008/tokenizers-win32-x64-msvc': 0.0.0
 
+  '@aptos-labs/aptos-cli@1.0.2':
+    dependencies:
+      commander: 12.1.0
+
+  '@aptos-labs/aptos-client@0.1.1':
+    dependencies:
+      axios: 1.7.4
+      got: 11.8.6
+    transitivePeerDependencies:
+      - debug
+
+  '@aptos-labs/ts-sdk@1.33.1':
+    dependencies:
+      '@aptos-labs/aptos-cli': 1.0.2
+      '@aptos-labs/aptos-client': 0.1.1
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.1
+      '@scure/bip32': 1.6.0
+      '@scure/bip39': 1.5.0
+      eventemitter3: 5.0.1
+      form-data: 4.0.1
+      js-base64: 3.7.7
+      jwt-decode: 4.0.0
+      poseidon-lite: 0.2.1
+    transitivePeerDependencies:
+      - debug
+
   '@auth/core@0.18.4':
     dependencies:
       '@panva/hkdf': 1.2.1
@@ -19884,6 +19942,76 @@ snapshots:
       - tsx
       - typescript
       - utf-8-validate
+      - yaml
+
+  '@elizaos/plugin-aptos@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(form-data@4.0.1)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)':
+    dependencies:
+      '@aptos-labs/ts-sdk': 1.33.1
+      bignumber: 1.1.0
+      bignumber.js: 9.1.2
+      form-data: 4.0.1
+      node-cache: 5.1.2
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      vitest: 2.1.4(@edge-runtime/vm@3.2.0)(@types/node@22.8.1)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(sass@1.82.0)(terser@5.37.0)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - '@edge-runtime/vm'
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - '@types/node'
+      - '@vitest/browser'
+      - '@vitest/ui'
+      - debug
+      - happy-dom
+      - jiti
+      - jsdom
+      - less
+      - lightningcss
+      - msw
+      - postcss
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - typescript
+      - yaml
+
+  '@elizaos/plugin-aptos@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(form-data@4.0.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)':
+    dependencies:
+      '@aptos-labs/ts-sdk': 1.33.1
+      bignumber: 1.1.0
+      bignumber.js: 9.1.2
+      form-data: 4.0.1
+      node-cache: 5.1.2
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      vitest: 2.1.4(@types/node@18.19.68)(sass@1.82.0)(terser@5.37.0)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - '@edge-runtime/vm'
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - '@types/node'
+      - '@vitest/browser'
+      - '@vitest/ui'
+      - debug
+      - happy-dom
+      - jiti
+      - jsdom
+      - less
+      - lightningcss
+      - msw
+      - postcss
+      - sass
+      - sass-embedded
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
+      - typescript
       - yaml
 
   '@elizaos/plugin-avalanche@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)':
@@ -28846,6 +28974,14 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  axios@1.7.4:
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.0)
+      form-data: 4.0.1
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
   axios@1.7.8:
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.0)
@@ -34560,6 +34696,8 @@ snapshots:
     dependencies:
       '@types/node': 20.17.10
 
+  js-base64@3.7.7: {}
+
   js-md5@0.7.3: {}
 
   js-sha1@0.6.0: {}
@@ -34780,6 +34918,8 @@ snapshots:
     dependencies:
       jwa: 2.0.0
       safe-buffer: 5.2.1
+
+  jwt-decode@4.0.0: {}
 
   katex@0.16.15:
     dependencies:
@@ -40502,6 +40642,7 @@ snapshots:
       '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
       '@elizaos/plugin-0g': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-0g(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(yaml@2.6.1)
       '@elizaos/plugin-3d-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-aptos': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-aptos(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(form-data@4.0.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-avalanche': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@elizaos/plugin-conflux': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-conflux(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)
