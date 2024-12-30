@@ -486,6 +486,7 @@ export class DiscordBot extends EventTarget {
           emoji,
           channelId,
           userDisplayName,
+          guildId,
         } = e.data;
 
         console.log(eventType, {
@@ -494,12 +495,13 @@ export class DiscordBot extends EventTarget {
           messageId,
           emoji,
           channelId,
+          guildId,
         });
 
         // look up conversation
-        const conversation = this.dmConversations.has(userId)
-          ? this.dmConversations.get(userId) ?? null
-          : this.channelConversations.get(channelId) ?? null;
+        const conversation = guildId
+          ? this.channelConversations.get(channelId) ?? null
+          : this.dmConversations.get(userId) ?? null;
 
         if (!conversation) return;
 
