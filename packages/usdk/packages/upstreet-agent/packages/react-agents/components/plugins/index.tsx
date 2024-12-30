@@ -21,6 +21,7 @@ import starknetPlugin from '@elizaos/plugin-starknet';
 import multiversxPlugin from '@elizaos/plugin-multiversx';
 import nearPlugin from '@elizaos/plugin-near';
 import { teePlugin } from '@elizaos/plugin-tee';
+import tonPlugin from '@elizaos/plugin-ton';
 import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
 import { twitterPlugin } from '@elizaos/plugin-twitter';
 import { plugins as coinbasePlugins } from '@elizaos/plugin-coinbase';
@@ -237,6 +238,7 @@ export const plugins = {
   '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
   '@elizaos/plugin-near': pluginWrap(nearPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
+  '@elizaos/plugin-ton': pluginWrap(tonPlugin),
   '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
   '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),
   '@elizaos/plugin-sui': pluginWrap(suiPlugin),
