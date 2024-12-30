@@ -510,12 +510,7 @@ export class DiscordBot extends EventTarget {
           name: userDisplayName,
           method: 'messageReaction',
           args: {
-            reaction: emoji,
-            messageId,
-            userId,
-            context: {
-              action: eventType === 'messagereactionadd' ? 'Reaction added' : 'Reaction removed',
-            },
+            text: `${eventType === 'messagereactionadd' ? 'Added' : 'Removed'} reaction '${emoji}' ${eventType === 'messagereactionadd' ? 'to' : 'from'} message ${messageId}`,
           },
         };
 
