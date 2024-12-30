@@ -10,6 +10,7 @@ import gitbookPlugin from '@elizaos/plugin-gitbook';
 import intifacePlugin from '@elizaos/plugin-intiface';
 import evmPlugin from '@elizaos/plugin-evm';
 import { zgPlugin } from '@elizaos/plugin-0g';
+import icpPlugin from '@elizaos/plugin-icp';
 import avalanchePlugin from '@elizaos/plugin-avalanche';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import multiversxPlugin from '@elizaos/plugin-multiversx';
@@ -220,6 +221,7 @@ export const plugins = {
   '@elizaos/plugin-intiface': pluginWrap(intifacePlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
   '@elizaos/plugin-0g': pluginWrap(zgPlugin),
+  '@elizaos/plugin-icp': pluginWrap(icpPlugin),
   '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
