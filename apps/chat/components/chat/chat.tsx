@@ -163,7 +163,7 @@ export function Chat({ className, /* user, missingKeys, */ room, desktop, onConn
             scrollToBottom={scrollToBottom}
             room={room}
             desktop={desktop}
-            mode="web"
+            mode={mode}
           />
 
         </>

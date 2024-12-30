@@ -14,7 +14,7 @@ export interface ChatPanelProps {
   scrollToBottom: () => void
   room?: string
   desktop?: boolean
-  mode?: "web" | "desktop" | "embed"
+  mode?: "web" | "desktop" | "embed" | "builder"
   messages?: Array<{ id: string; display: React.ReactNode }>
   // messages: Array<{ id: string; display: React.ReactNode }>
   // sendChatMessage: (message: string) => void
@@ -29,8 +29,8 @@ export function ChatPanel({
   scrollToBottom,
   room,
   desktop,
+  mode,
   // messages,
-  mode
 }: ChatPanelProps) {
 
   const { isLeftSidebarOpen, isRightSidebarOpen } = useSidebar();
@@ -43,9 +43,9 @@ export function ChatPanel({
         scrollToBottom={scrollToBottom}
       />
 
-      <div className={`relative mx-auto sm:px-4 ${mode === "web" ? "border-t" : ""}`}>
+      <div className={`relative mx-auto ${mode === "web" ? "border-t sm:px-4" : ""}`}>
         {room && (<>
-          <div className={cn("space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative", mode === "desktop" ? "py-0" : "")}>
+          <div className={cn("space-y-4 px-4 py-2 sm:max-w-2xl mx-auto md:py-3 relative", mode !== "web" ? "py-0" : "")}>
             <PromptForm
               input={input}
               setInput={setInput}

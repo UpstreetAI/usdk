@@ -25,7 +25,7 @@ export function PromptForm({
   input: string
   embed?: boolean
   desktop?: boolean
-  mode?: "web" | "desktop" | "embed"
+  mode?: "web" | "desktop" | "embed" | "builder"
   scrollToBottom: () => void
   setInput: (value: string) => void
 }) {
