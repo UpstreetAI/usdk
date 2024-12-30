@@ -113,6 +113,7 @@ const makeViteServer = async (directory) => {
       // these proxies are necessary for vite to polyfill node builtins
       fs: import.meta.resolve('fs').replace('file://', ''),
     },
+    assetsInclude: [/\.cdc$/],
   });
 };
 
