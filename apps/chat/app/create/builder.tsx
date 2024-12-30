@@ -924,11 +924,11 @@ export default function AgentEditor({
 
               {/* STEP 2 */}
 
-              <div className={cn('flex flex-row h-full items-center justify-center my-8', step !== 2 && 'hidden')}>
-                <div className={`w-[400px]`}>
+              <div className={cn('flex flex-row h-full items-center justify-center', step !== 2 && 'hidden')}>
+                <div className={`flex flex-col w-[400px] h-full`}>
 
                   <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
-                  <div className='h-[408px] w-full relative'>
+                  <div className='h-full w-full relative'>
                     <Chat
                       room={room}
                       mode={'builder'}
@@ -1037,11 +1037,9 @@ export default function AgentEditor({
 
         </div>
 
-
-
         {/* code editor */}
 
-        <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 hidden`}>
+        <div className={`hidden flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900`}>
           <Editor
             theme="vs-dark"
             defaultLanguage="javascript"
