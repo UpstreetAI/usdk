@@ -197,7 +197,6 @@ const adapterWrap = (adapter: IAdapter) => (props: any) => {
 // const goatPlugin = awaitcreateGoatPlugin(function getSetting(key: string) {
 //   return '';
 // });
-
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),

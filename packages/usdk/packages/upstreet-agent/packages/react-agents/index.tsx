@@ -8,6 +8,7 @@ export * from './components/core/personality';
 export * from './components/core/prompt';
 export * from './components/core/uniform';
 export * from './components/core/features';
+export * from './components/core/clients';
 export * from './components/core/plugins';
 
 // export * from './components/features/browser';
