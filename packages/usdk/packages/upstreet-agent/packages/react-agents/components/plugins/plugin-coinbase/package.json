@@ -1,19 +1,21 @@
 {
   "name": "@elizaos/plugin-coinbase",
   "version": "0.1.7-alpha.2",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "dist/index.d.ts",
   "dependencies": {
-    "coinbase-api": "1.0.5",
-    "coinbase-advanced-sdk": "file:./advanced-sdk-ts",
-    "jsonwebtoken": "^9.0.2",
+    "@coinbase/coinbase-sdk": "^0.13.0",
     "@types/jsonwebtoken": "^9.0.7",
+    "coinbase-advanced-sdk": "file:./advanced-sdk-ts",
+    "coinbase-api": "1.0.5",
+    "csv-parse": "^5.6.0",
+    "csv-writer": "^1.6.0",
+    "jsonwebtoken": "^9.0.2",
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {
-    "tsup": "8.3.5",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "tsup": "8.3.5"
   },
   "scripts": {
     "build": "tsup --format esm --dts",
