@@ -175,8 +175,13 @@ export class TelnyxBot extends EventTarget {
       });
       let conversation = this.conversations.get(hash);
       if (!conversation) {
+
+        const agentPlayer = new Player(agent.id, {
+          name: agent.name,
+          bio: agent.bio,
+        });
         conversation = new ConversationObject({
-          agent,
+          agentPlayer,
           getHash: () => hash,
           messageCache: createMessageCache({
             agent,

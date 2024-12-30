@@ -24,6 +24,7 @@ import {
 import {
   TranscribedVoiceInput,
 } from '../devices/audio-transcriber.mjs';
+import { Player } from 'react-agents-client/util/player.mjs';
 
 //
 
@@ -80,8 +81,12 @@ class TwitterSpacesBot {
         live = false;
       });
 
+      const agentPlayer = new Player(this.agent.id, {
+        name: this.agent.name,
+        bio: this.agent.bio,
+      });
       const conversation = new ConversationObject({
-        agent,
+        agentPlayer,
         getHash: () => {
           return `twitterSpaces:channel:${url}`;
         },

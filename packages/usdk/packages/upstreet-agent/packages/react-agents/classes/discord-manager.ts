@@ -248,8 +248,12 @@ export class DiscordBot extends EventTarget {
           }
 
           const conversationId = `discord:channel:${channelId}`;
+          const agentPlayer = new Player(agent.id, {
+            name: agent.name,
+            bio: agent.bio,
+          });
           const conversation = new ConversationObject({
-            agent,
+            agentPlayer,
             getHash: () => {
               return conversationId;
             },
@@ -301,8 +305,12 @@ export class DiscordBot extends EventTarget {
         }
 
         const conversationId = `discord:dm:${userId}`;
+        const agentPlayer = new Player(agent.id, {
+          name: agent.name,
+          bio: agent.bio,
+        });
         const conversation = new ConversationObject({
-          agent,
+          agentPlayer,
           getHash: () => {
             return conversationId;
           },

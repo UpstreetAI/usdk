@@ -197,8 +197,13 @@ class TwitterBot {
         // Create or get conversation
         let conversation = this.conversations.get(conversation_id);
         if (!conversation) {
+          const agentPlayer = new Player(this.agent.id, {
+            name: this.agent.name,
+            bio: this.agent.bio,
+          });
+          
           conversation = new ConversationObject({
-            agent: this.agent,
+            agentPlayer,
             getHash: () => `twitter:conversation:${conversation_id}`,
             messageCache: createMessageCache({
               agent: this.agent,
