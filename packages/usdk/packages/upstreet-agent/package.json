@@ -12,6 +12,7 @@
     "@elizaos/plugin-bootstrap": "file:./packages/react-agents/components/plugins/plugin-bootstrap",
     "@elizaos/plugin-coinbase": "file:./packages/react-agents/components/plugins/plugin-coinbase",
     "@elizaos/plugin-conflux": "file:./packages/react-agents/components/plugins/plugin-conflux",
+    "@elizaos/plugin-cronoszkevm": "file:./packages/react-agents/components/plugins/plugin-cronoszkevm",
     "@elizaos/plugin-echochambers": "file:./packages/react-agents/components/plugins/plugin-echochambers",
     "@elizaos/plugin-evm": "file:./packages/react-agents/components/plugins/plugin-evm",
     "@elizaos/plugin-avalanche": "file:./packages/react-agents/components/plugins/plugin-avalanche",

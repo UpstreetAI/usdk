@@ -16,6 +16,7 @@ import avalanchePlugin from '@elizaos/plugin-avalanche';
 import aptosPlugin from '@elizaos/plugin-aptos';
 import { bootstrapPlugin } from '@elizaos/plugin-bootstrap';
 import { confluxPlugin } from '@elizaos/plugin-conflux';
+import cronosZkEVMPlugin from '@elizaos/plugin-cronoszkevm';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import starknetPlugin from '@elizaos/plugin-starknet';
 import multiversxPlugin from '@elizaos/plugin-multiversx';
@@ -233,6 +234,7 @@ export const plugins = {
   '@elizaos/plugin-aptos': pluginWrap(aptosPlugin),
   '@elizaos/plugin-bootstrap': pluginWrap(bootstrapPlugin),
   '@elizaos/plugin-conflux': pluginWrap(confluxPlugin),
+  '@elizaos/plugin-cronoszkevm': pluginWrap(cronosZkEVMPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-starknet': pluginWrap(starknetPlugin),
   '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
