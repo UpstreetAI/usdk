@@ -8,7 +8,6 @@ import { serve } from '@hono/node-server';
 
 //
 
-// const dirname = path.dirname(import.meta.url.replace('file://', ''));
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     process.send({

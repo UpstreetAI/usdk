@@ -13,7 +13,7 @@ import {
   printZodSchema,
 } from '../../util/util.mjs';
 
-export const Action = /*memo(*/(props: ActionProps) => {
+export const Action: React.FC<ActionProps> = (props: ActionProps) => {
   const agent = useContext(AgentContext);
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;
   const symbol = useMemo(Symbol, []);
