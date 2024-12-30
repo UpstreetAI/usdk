@@ -4,6 +4,7 @@ import { z } from 'zod';
 import util from 'util';
 import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
+import { videoGenerationPlugin } from '@elizaos/plugin-video-generation';
 import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import evmPlugin from '@elizaos/plugin-evm';
@@ -210,6 +211,7 @@ const adapterWrap = (adapter: IAdapter) => (props: any) => {
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-image-generation': pluginWrap(imageGenerationPlugin),
+  '@elizaos/plugin-video-generation': pluginWrap(videoGenerationPlugin),
   '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
   '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
