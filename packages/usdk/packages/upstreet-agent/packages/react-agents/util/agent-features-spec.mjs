@@ -91,6 +91,11 @@ export const featureSpecs = [
     // Feature active ( true, false )
     active: true,
 
+    // Default values
+    default: {
+      voiceEndpoint: voices[0].voiceEndpoint,
+    },
+
     // imports: () => [
     //   'TTS',
     // ],
@@ -127,6 +132,13 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
+
+    // Default values
+    default: {
+      maxUserMessages: 5,
+      maxUserMessagesTime: 60 * 60 * 24 * 1000, // 1 day
+      message: '',
+    },
 
     // imports: () => [
     //   'RateLimit',
@@ -170,6 +182,12 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
+
+    // Default values
+    default: {
+      token: '',
+      channels: [],
+    },
 
     // imports: (discord) => {
     //   if (discord.token) {
@@ -215,6 +233,11 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
+
+    // Default values
+    default: {
+      token: '',
+    },
 
     // imports: (twitterBot) => {
     //   if (twitterBot.token) {
@@ -262,6 +285,14 @@ export const featureSpecs = [
     // Feature active ( true, false )
     active: true,
 
+    // Default values
+    default: {
+      apiKey: '',
+      phoneNumber: '',
+      message: false,
+      voice: false,
+    },
+
     // imports: (telnyx) => {
     //   if (telnyx.apiKey) {
     //     return ['Telnyx'];
@@ -304,6 +335,21 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
+
+    // Default values
+    default: [
+      {
+        type: 'payment',
+        props: {
+          name: '',
+          description: '',
+          amount: 100,
+          currency: currencies[0],
+          interval: intervals[0],
+          intervalCount: 1,
+        },
+      }
+    ],
 
     // imports: (storeItems) => {
     //   const isValidStoreItem = (storeItem) =>
