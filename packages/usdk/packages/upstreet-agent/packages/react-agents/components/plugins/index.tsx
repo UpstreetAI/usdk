@@ -7,6 +7,9 @@ import { solanaPlugin } from '@elizaos/plugin-solana';
 import { teePlugin } from '@elizaos/plugin-tee';
 import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
 import { twitterPlugin } from '@elizaos/plugin-twitter';
+import createGoatPlugin from '@elizaos/plugin-goat';
+import { plugins as coinbasePlugins } from '@elizaos/plugin-coinbase';
+import suiPlugin from '@elizaos/plugin-sui';
 
 function generateZodSchema(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();
@@ -172,15 +175,36 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
     </>
   );
 };
+const pluginWrapObject = (plugins: {
+  [key: string]: IPlugin;
+}) => (props: any) => {
+  return (
+    <>
+      {Object.keys(plugins).map((key) => {
+        const Plugin = pluginWrap(plugins[key]);
+        return (
+          <Plugin key={key} />
+        );
+      })}
+    </>
+  );
+};
 const adapterWrap = (adapter: IAdapter) => (props: any) => {
   console.log('load adapter', adapter);
   return null;
 };
+
+// const goatPlugin = awaitcreateGoatPlugin(function getSetting(key: string) {
+//   return '';
+// });
 
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
   '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
+  '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),
+  '@elizaos/plugin-sui': pluginWrap(suiPlugin),
+  // '@elizaos/plugin-goat': pluginWrap(goatPlugin),
   '@elizaos/plugin-trustdb': adapterWrap(TrustScoreDatabase),
 };
