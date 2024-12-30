@@ -24,7 +24,9 @@ export interface IIntifaceService extends Service {
 }
 
 export class IntifaceService extends Service implements IIntifaceService {
-    static serviceType: ServiceType = ServiceType.INTIFACE;
+    static get serviceType(): ServiceType {
+        return ServiceType.INTIFACE;
+    }
     private client: ButtplugClient;
     private connected = false;
     private devices: Map<string, any> = new Map();
