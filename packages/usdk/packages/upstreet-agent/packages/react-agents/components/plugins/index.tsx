@@ -2,6 +2,12 @@ import React from 'react';
 import { Action, useEnv } from 'react-agents';
 import { z } from 'zod';
 import util from 'util';
+import type {
+  IActionHandlerCallbackArgs,
+  IPlugin,
+  IAdapter,
+  IRuntime,
+} from '../types/eliza.d.ts';
 import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
 import { videoGenerationPlugin } from '@elizaos/plugin-video-generation';
@@ -56,84 +62,14 @@ function generateZodSchema(obj: any): z.ZodTypeAny {
 
 //
 
-type IAgentRuntime = {};
-type State = {};
-type Options = {};
-type Memory = {
-  user: string;
-  content: any;
-};
-
-type IActionHandlerAttachment = {
-  id: string;
-  url: string;
-  // title: "Generated 3D",
-  // source: "ThreeDGeneration",
-  // description: ThreeDPrompt,
-  // text: ThreeDPrompt,
-};
-type IActionHandlerCallbackArgs = {
-  text: string;
-  error?: boolean;
-  attachments?: IActionHandlerAttachment[],
-};
-type HandlerFn = (
-  runtime: IAgentRuntime,
-  message: Memory,
-  state: State,
-  options: Options,
-  callback: (result: IActionHandlerCallbackArgs) => void,
-) => void;
-type ValidateFn = (
-  runtime: IAgentRuntime,
-  message: Memory,
-) => Promise<boolean>;
-type IAction = {
-  name: string;
-  // similies?: string[];
-  description: string;
-  examples: Memory[][];
-  validate: ValidateFn,
-  handler: HandlerFn;
-};
-
-type IEvaluator = {
-  name: string;
-    // similes?: string[],
-    alwaysRun?: boolean,
-    validate: ValidateFn,
-    description: string,
-    handler: HandlerFn,
-    examples: {
-      context: string;
-      message: Memory[];
-    }[],
-};
-
-type IProvider = {
-  get: (
-    runtime: IAgentRuntime,
-    message: Memory,
-    state?: State
-  ) => Promise<string | null>;
-};
-
-type IPlugin = {
-  actions: IAction[];
-  evaluators: IEvaluator[];
-  providers: IProvider[];
-};
-
-type Database = {};
-
-type IAdapter = (database: Database) => void;
-
-//
-
-const pluginWrap = (plugin: IPlugin) => (props: any) => {
-  console.log('render plugin', util.inspect(plugin, {
-    depth: 7,
-  }));
+const Plugin = (props: {
+  plugin: IPlugin;
+  opts: any;
+}) => {
+  const {
+    plugin,
+    opts,
+  } = props;
   const env = useEnv();
   return (
     <>
@@ -168,7 +104,7 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
                 console.log('got handler', args);
 
                 await new Promise((resolve, reject) => {
-                  const runtime = {
+                  const runtime: IRuntime = {
                     getSetting(key: string) {
                       return env[key];
                     },
@@ -201,15 +137,24 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
     </>
   );
 };
+const pluginWrap = (plugin: IPlugin) => (opts: any) => {
+  console.log('render plugin', util.inspect(plugin, {
+    depth: 7,
+  }));
+  return (
+    <Plugin plugin={plugin} opts={opts} />
+  );
+};
 const pluginWrapObject = (plugins: {
   [key: string]: IPlugin;
 }) => (props: any) => {
   return (
     <>
       {Object.keys(plugins).map((key) => {
-        const Plugin = pluginWrap(plugins[key]);
+        const value = plugins[key];
+        const Plugin = pluginWrap(value);
         return (
-          <Plugin key={key} />
+          <Plugin plugin={value} key={key} />
         );
       })}
     </>
