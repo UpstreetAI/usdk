@@ -167,6 +167,13 @@ export class AgentRenderer {
     const useInit = () => {
       return this.env.init ?? {};
     };
+    const useRuntime = () => {
+      return {
+        getSetting: (key: string) => {
+          return ''; // XXX finish this
+        },
+      };
+    };
     const useDebug = () => {
       return this.env.debug ?? 0;
     };
@@ -185,6 +192,7 @@ export class AgentRenderer {
       chatsSpecification: useChatsSpecification(),
       codecs: useCodecs(),
       init: useInit(),
+      runtime: useRuntime(),
       debug: useDebug(),
       registry: useRegistry(),
     });

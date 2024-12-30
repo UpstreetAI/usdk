@@ -767,6 +767,7 @@ export type AppContextValue = {
   useChatsSpecification: () => ChatsSpecification;
   useCodecs: () => any;
   useInit: () => any;
+  useRuntime: () => any;
   useDebug: () => number;
   useRegistry: () => RenderRegistry;
 
