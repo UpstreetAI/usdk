@@ -840,7 +840,13 @@ export default function AgentEditor({
                     {featureSpecs
                       .filter(featureSpec => featureSpec.active)
                       .map((featureSpec) => {
-                        const { name, default: defaultValues, displayName, displayDescription, displayIcon } = featureSpec;
+                        const { name, form, displayName, displayDescription, displayIcon } = featureSpec;
+
+                        // Extract default values from the form object
+                        const defaultValues = Object.keys(form).reduce((acc, key) => {
+                          acc[key] = form[key].defaultValue;
+                          return acc;
+                        }, {});
 
                         return (
                           <div className={featureWrapperClass} key={name}>
@@ -1020,9 +1026,6 @@ export default function AgentEditor({
               </form>
             </div>
           </div>
-
-
-
 
         </div>
 
