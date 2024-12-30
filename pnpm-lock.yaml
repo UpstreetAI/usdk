@@ -969,6 +969,9 @@ importers:
       '@elizaos/plugin-image-generation':
         specifier: file:./packages/react-agents/components/plugins/plugin-image-generation
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-intiface':
+        specifier: file:./packages/react-agents/components/plugins/plugin-intiface
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-intiface(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-multiversx':
         specifier: file:./packages/react-agents/components/plugins/plugin-multiversx
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-multiversx(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(esbuild@0.24.0)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(protobufjs@7.4.0)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
@@ -2440,6 +2443,11 @@ packages:
 
   '@elizaos/plugin-image-generation@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation, type: directory}
+    peerDependencies:
+      whatwg-url: 7.1.0
+
+  '@elizaos/plugin-intiface@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-intiface':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-intiface, type: directory}
     peerDependencies:
       whatwg-url: 7.1.0
 
@@ -8711,6 +8719,9 @@ packages:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
     engines: {node: '>=10.16.0'}
 
+  buttplug@3.2.2:
+    resolution: {integrity: sha512-TGkQzG6dxEjuFX29eRoWkh82vsQhGQ+E98tZtN8fWn1NOG7v/9H0FFkNXrpmeRt9FFS0GdHTvubfZ8dcIPGSAA==}
+
   bytes@3.1.0:
     resolution: {integrity: sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg==}
     engines: {node: '>= 0.8'}
@@ -8932,6 +8943,9 @@ packages:
 
   class-is@1.1.0:
     resolution: {integrity: sha512-rhjH9AG1fvabIDoGRVH587413LPjTZgmDF9fOFCbFJQV4yuocX1mHxxvXI4g3cGwbVY9wAYIoKlg1N79frJKQw==}
+
+  class-transformer@0.5.1:
+    resolution: {integrity: sha512-SQa1Ws6hUbfC98vKGxZH3KFY0Y1lm5Zm0SY8XX9zbK7FJCyVEac3ATW0RIpwzW+oOfmHE5PMPufDG9hCfoEOMw==}
 
   class-variance-authority@0.7.0:
     resolution: {integrity: sha512-jFI8IQw4hczaL4ALINxqLEXQbWcNjoSkloa4IaufXCJr6QawJyw7tuRysRsrE8w2p/4gGaxKIt/hX3qz/IbD1A==}
@@ -13710,6 +13724,9 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
+  net@1.0.2:
+    resolution: {integrity: sha512-kbhcj2SVVR4caaVnGLJKmlk2+f+oLkjqdKeQlmUtz6nGzOpbcobwVIeSURNgraV/v3tlmGIX82OcPCl0K6RbHQ==}
+
   next-auth@5.0.0-beta.4:
     resolution: {integrity: sha512-vgocjvwPA8gxd/zrIP/vr9lJ/HeNe+C56lPP1D3sdyenHt8KncQV6ro7q0xCsDp1fcOKx7WAWVZH5o8aMxDzgw==}
     peerDependencies:
@@ -15380,6 +15397,9 @@ packages:
   redent@3.0.0:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
+
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
 
   reflect.getprototypeof@1.0.8:
     resolution: {integrity: sha512-B5dj6usc5dkk8uFliwjwDHM8To5/QwdKz9JcBZ8Ic4G1f0YmeeJTtE/ZTdgRFPAfxZFiUaPhZ1Jcs4qeagItGQ==}
@@ -19848,6 +19868,24 @@ snapshots:
       - supports-color
       - tsx
       - typescript
+      - yaml
+
+  '@elizaos/plugin-intiface@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-intiface(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)':
+    dependencies:
+      buttplug: 3.2.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      net: 1.0.2
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - bufferutil
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - utf-8-validate
       - yaml
 
   '@elizaos/plugin-multiversx@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-multiversx(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(esbuild@0.24.0)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(protobufjs@7.4.0)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)':
@@ -29038,6 +29076,16 @@ snapshots:
     dependencies:
       streamsearch: 1.1.0
 
+  buttplug@3.2.2(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      class-transformer: 0.5.1
+      eventemitter3: 5.0.1
+      reflect-metadata: 0.2.2
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   bytes@3.1.0: {}
 
   bytes@3.1.2: {}
@@ -29261,6 +29309,8 @@ snapshots:
   cjs-module-lexer@1.4.1: {}
 
   class-is@1.1.0: {}
+
+  class-transformer@0.5.1: {}
 
   class-variance-authority@0.7.0:
     dependencies:
@@ -35905,6 +35955,8 @@ snapshots:
 
   neo-async@2.6.2: {}
 
+  net@1.0.2: {}
+
   next-auth@5.0.0-beta.4(next@14.2.14(@opentelemetry/api@1.9.0)(babel-plugin-macros@3.1.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(sass@1.82.0))(react@18.2.0):
     dependencies:
       '@auth/core': 0.18.4
@@ -37735,6 +37787,8 @@ snapshots:
     dependencies:
       indent-string: 4.0.0
       strip-indent: 3.0.0
+
+  reflect-metadata@0.2.2: {}
 
   reflect.getprototypeof@1.0.8:
     dependencies:
@@ -39986,6 +40040,7 @@ snapshots:
       '@elizaos/plugin-gitbook': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
       '@elizaos/plugin-goat': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-image-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
+      '@elizaos/plugin-intiface': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-intiface(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-multiversx': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-multiversx(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(esbuild@0.20.2)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-near': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-near(@swc/core@1.10.1(@swc/helpers@0.5.13))(form-data@4.0.1)(react@19.0.0-rc-df5f2736-20240712)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-nft-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-nft-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
