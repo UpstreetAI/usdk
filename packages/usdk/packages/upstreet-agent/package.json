@@ -18,6 +18,7 @@
     "@elizaos/plugin-evm": "file:./packages/react-agents/components/plugins/plugin-evm",
     "@elizaos/plugin-avalanche": "file:./packages/react-agents/components/plugins/plugin-avalanche",
     "@elizaos/plugin-flow": "file:./packages/react-agents/components/plugins/plugin-flow",
+    "@elizaos/plugin-fuel": "file:./packages/react-agents/components/plugins/plugin-fuel",
     "@elizaos/plugin-gitbook": "file:./packages/react-agents/components/plugins/plugin-gitbook",
     "@elizaos/plugin-goat": "file:./packages/react-agents/components/plugins/plugin-goat",
     "@elizaos/plugin-icp": "file:./packages/react-agents/components/plugins/plugin-icp",

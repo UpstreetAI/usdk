@@ -29,6 +29,7 @@ import { twitterPlugin } from '@elizaos/plugin-twitter';
 import { plugins as coinbasePlugins } from '@elizaos/plugin-coinbase';
 import suiPlugin from '@elizaos/plugin-sui';
 import flowPlugin from '@elizaos/plugin-flow';
+import fuelPlugin from '@elizaos/plugin-fuel';
 import storyPlugin from '@elizaos/plugin-story';
 import { webSearchPlugin } from '@elizaos/plugin-web-search';
 import zksyncEraPlugin from '@elizaos/plugin-zksync-era';
@@ -247,6 +248,7 @@ export const plugins = {
   '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),
   '@elizaos/plugin-sui': pluginWrap(suiPlugin),
   '@elizaos/plugin-flow': pluginWrap(flowPlugin),
+  '@elizaos/plugin-fuel': pluginWrap(fuelPlugin),
   '@elizaos/plugin-story': pluginWrap(storyPlugin),
   '@elizaos/plugin-web-search': pluginWrap(webSearchPlugin),
   '@elizaos/plugin-zksync-era': pluginWrap(zksyncEraPlugin),
