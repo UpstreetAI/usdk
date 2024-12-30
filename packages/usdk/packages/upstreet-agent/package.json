@@ -10,6 +10,7 @@
     "@elizaos/plugin-coinbase": "file:./packages/react-agents/components/plugins/plugin-coinbase",
     "@elizaos/plugin-flow": "file:./packages/react-agents/components/plugins/plugin-flow",
     "@elizaos/plugin-goat": "file:./packages/react-agents/components/plugins/plugin-goat",
+    "@elizaos/plugin-image-generation": "file:./packages/react-agents/components/plugins/plugin-image-generation",
     "@elizaos/plugin-solana": "file:./packages/react-agents/components/plugins/plugin-solana",
     "@elizaos/plugin-sui": "file:./packages/react-agents/components/plugins/plugin-sui",
     "@elizaos/plugin-tee": "file:./packages/react-agents/components/plugins/plugin-tee",
