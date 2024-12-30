@@ -954,6 +954,9 @@ importers:
       '@elizaos/plugin-flow':
         specifier: file:./packages/react-agents/components/plugins/plugin-flow
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(@types/react@18.3.16)(@vercel/kv@1.0.1)(bufferutil@4.0.9)(google-protobuf@3.21.4)(jiti@1.21.6)(postcss@8.4.49)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
+      '@elizaos/plugin-gitbook':
+        specifier: file:./packages/react-agents/components/plugins/plugin-gitbook
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
       '@elizaos/plugin-goat':
         specifier: file:./packages/react-agents/components/plugins/plugin-goat
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
@@ -2390,6 +2393,9 @@ packages:
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow, type: directory}
     peerDependencies:
       whatwg-url: 7.1.0
+
+  '@elizaos/plugin-gitbook@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook, type: directory}
 
   '@elizaos/plugin-goat@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat, type: directory}
@@ -18618,6 +18624,19 @@ snapshots:
       - tsx
       - uploadthing
       - utf-8-validate
+
+  '@elizaos/plugin-gitbook@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)':
+    dependencies:
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - yaml
 
   '@elizaos/plugin-goat@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)':
     dependencies:
@@ -37124,6 +37143,7 @@ snapshots:
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@elizaos/plugin-evm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
+      '@elizaos/plugin-gitbook': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
       '@elizaos/plugin-goat': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-image-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-nft-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-nft-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
