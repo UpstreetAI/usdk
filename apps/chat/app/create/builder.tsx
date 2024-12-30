@@ -28,6 +28,8 @@ import { BackButton } from '@/components/back';
 import { Modal } from './modal';
 import Progress from './progress';
 
+import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
+
 //
 
 const maxUserMessagesDefault = 5;
@@ -531,7 +533,7 @@ export default function AgentEditor({
     }
   }, [worker, monaco, user, step]);
 
-  // Function to add a feature
+  // Add Feature
   const addFeature = (featureType: keyof FeaturesObject, defaultValue: any) => {
     setFeatures((prevFeatures) => ({
       ...prevFeatures,
@@ -539,7 +541,7 @@ export default function AgentEditor({
     }));
   };
 
-  // Function to remove a feature with event propagation stopped
+  // Remove Feature
   const removeFeature = (featureType: keyof FeaturesObject, e: React.MouseEvent) => {
     e.stopPropagation();
     setFeatures((prevFeatures) => ({
@@ -547,6 +549,9 @@ export default function AgentEditor({
       [featureType]: null,
     }));
   };
+
+
+  console.log('featureSpecs', featureSpecs);
 
   // render
   return (
@@ -588,10 +593,10 @@ export default function AgentEditor({
 
             <div>
 
-
               {/* STEP 1 */}
 
               <div className={cn('flex flex-row h-full', step !== 1 && 'hidden')}>
+
                 <form className="w-full relative" ref={editorForm} onSubmit={e => {
                   e.preventDefault();
 
@@ -700,8 +705,8 @@ export default function AgentEditor({
                   <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
-                    
-                    
+
+
                     <div className={featureWrapperClass}>
                       <div
                         onClick={enablePersonality}
@@ -1231,6 +1236,37 @@ export default function AgentEditor({
                         </div>
                       </div>
                     </div>
+
+                    <div className='w-full h-px bg-zinc-200 my-8' />
+
+                    {featureSpecs.map((featureSpec) => {
+                      // console.log(featureSpec);
+
+                      return (
+                        <div className={featureWrapperClass}>
+                          <div
+                            onClick={() => {
+                              setModalOpen('voice');
+                              addFeature('tts', makeDefaultTts());
+                            }}
+                            className={cn(featureClass, features.tts ? featureClassActive : '')}
+                          >
+                            <div>
+                              <Icon
+                                icon="Close"
+                                className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features.tts && 'hidden')}
+                                onClick={(e) => removeFeature('tts', e)}
+                              />
+                              <Icon icon={featureSpec.icon ?? 'Upstreet'} className={featureIconClass} />
+                              <p className={featureTextClass}>
+                                {featureSpec.displayName ?? featureSpec.name}
+                              </p>
+
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
 
 
                   </div>
