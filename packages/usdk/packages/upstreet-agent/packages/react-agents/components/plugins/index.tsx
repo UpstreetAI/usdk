@@ -7,6 +7,7 @@ import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
 import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import evmPlugin from '@elizaos/plugin-evm';
+import avalanchePlugin from '@elizaos/plugin-avalanche';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import nearPlugin from '@elizaos/plugin-near';
 import { teePlugin } from '@elizaos/plugin-tee';
@@ -211,6 +212,7 @@ export const plugins = {
   '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
   '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
+  '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-near': pluginWrap(nearPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
