@@ -954,6 +954,9 @@ importers:
       '@elizaos/plugin-coinbase':
         specifier: file:./packages/react-agents/components/plugins/plugin-coinbase
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      '@elizaos/plugin-echochambers':
+        specifier: file:./packages/react-agents/components/plugins/plugin-echochambers
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers
       '@elizaos/plugin-evm':
         specifier: file:./packages/react-agents/components/plugins/plugin-evm
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
@@ -2446,6 +2449,9 @@ packages:
 
   '@elizaos/plugin-coinbase@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase, type: directory}
+
+  '@elizaos/plugin-echochambers@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers, type: directory}
 
   '@elizaos/plugin-evm@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm, type: directory}
@@ -19807,6 +19813,8 @@ snapshots:
       - typescript
       - utf-8-validate
       - zod
+
+  '@elizaos/plugin-echochambers@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers': {}
 
   '@elizaos/plugin-evm@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)':
     dependencies:
@@ -40197,6 +40205,7 @@ snapshots:
       '@elizaos/plugin-3d-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-3d-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-avalanche': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-avalanche(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
+      '@elizaos/plugin-echochambers': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers
       '@elizaos/plugin-evm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       '@elizaos/plugin-gitbook': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
