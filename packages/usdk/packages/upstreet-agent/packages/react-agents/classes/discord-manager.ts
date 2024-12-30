@@ -110,13 +110,11 @@ const bindOutgoing = ({
       // get message from conversation by messageId
       const message = conversation.getCachedMessages().find(m => m.args.messageId === messageId);
 
-      // TODO: current agent mentionId needs to be set
       const getDiscordIdForUserId = (userId: string) => {
         const agents = conversation.getAgents();
-        const currentAgent = conversation.agent;
         const agent = agents.find(
           agent => agent.playerId === userId
-        ) || (currentAgent.id === userId ? currentAgent : undefined);
+        );
 
         const discordId = agent?.playerSpec?.mentionId;
         return discordId;
