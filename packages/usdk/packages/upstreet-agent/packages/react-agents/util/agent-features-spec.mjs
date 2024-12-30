@@ -64,10 +64,6 @@ export const defaultVoices = [
   },
 ];
 
-// const formatDiscordBotChannels = (channels = []) => {
-//   return channels.map(c => c.trim()).filter(Boolean);
-// };
-
 export const featureSpecs = [
   {
     name: 'tts',
@@ -83,16 +79,6 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{voiceEndpoint: defaultVoices[0].voiceEndpoint},],
-    // imports: () => [
-    //   'TTS',
-    // ],
-    // components: ({
-    //   voiceEndpoint,
-    // }) => [
-    //   dedent`
-    //     <TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />
-    //   `,
-    // ],
   },
   {
     name: 'rateLimit',
@@ -112,18 +98,6 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ maxUserMessages: 5, maxUserMessagesTime: 60000, message: "Whoa there! Take a moment.", }],
-    // imports: () => [
-    //   'RateLimit',
-    // ],
-    // components: ({
-    //   maxUserMessages,
-    //   maxUserMessagesTime,
-    //   message,
-    // }) => [
-    //   dedent`
-    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
-    //   `,
-    // ],
   },
   {
     name: 'discord',
@@ -147,28 +121,6 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ token: 'YOUR_DISCORD_BOT_TOKEN', channels: ['general', 'voice'], }],
-    // imports: (discord) => {
-    //   if (discord.token) {
-    //     return ['Discord'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (discord) => {
-    //   const channels = formatDiscordBotChannels(discord.channels);
-    //   if (discord.token && channels.length > 0) {
-    //     return [
-    //       dedent`
-    //         <Discord
-    //           token=${JSON.stringify(discord.token)}
-    //           ${discord.channels ? `channels={${JSON.stringify(channels)}}` : ''}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'twitterBot',
@@ -184,26 +136,6 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ token: 'YOUR_TWITTER_BOT_TOKEN', }],
-    // imports: (twitterBot) => {
-    //   if (twitterBot.token) {
-    //     return ['TwitterBot'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (twitterBot) => {
-    //   if (twitterBot.token) {
-    //     return [
-    //       dedent`
-    //         <TwitterBot
-    //           token=${JSON.stringify(twitterBot.token)}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'telnyx',
@@ -222,29 +154,6 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{ apiKey: 'YOUR_TELNYX_API_KEY', phoneNumber: '+14151234567', message: true, voice: true, }],
-    // imports: (telnyx) => {
-    //   if (telnyx.apiKey) {
-    //     return ['Telnyx'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (telnyx) => {
-    //   if (telnyx.apiKey) {
-    //     return [
-    //       dedent`
-    //         <Telnyx
-    //           apiKey=${JSON.stringify(telnyx.apiKey)}
-    //           ${telnyx.phoneNumber ? `phoneNumber=${JSON.stringify(telnyx.phoneNumber)}` : ''}
-    //           ${telnyx.message ? `message` : ''}
-    //           ${telnyx.voice ? `voice` : ''}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'storeItems',
@@ -257,53 +166,5 @@ export const featureSpecs = [
       z.null(),
     ]),
     examples: [{type: 'payment', props: { name: 'Art', description: 'An art piece', amount: 499, currency: 'usd',},},],
-    // imports: (storeItems) => {
-    //   const isValidStoreItem = (storeItem) =>
-    //     !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;
-
-    //   const result = [];
-    //   if (storeItems.some((storeItem) => storeItem.type === 'payment' && isValidStoreItem(storeItem))) {
-    //     result.push('Payment');
-    //   }
-    //   if (storeItems.some((storeItem) => storeItem.type === 'subscription' && isValidStoreItem(storeItem))) {
-    //     result.push('Subscription');
-    //   }
-    //   return result;
-    // },
-    // components: (storeItems) => {
-    //   return storeItems.map((storeItem) => {
-    //     if (storeItem.type === 'payment') {
-    //       if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
-    //         return dedent`
-    //           <Payment
-    //             name={${JSON.stringify(storeItem.props.name)}}
-    //             ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
-    //             amount={${JSON.stringify(storeItem.props.amount)}}
-    //             currency={${JSON.stringify(storeItem.props.currency)}}
-    //           />
-    //         `;
-    //       } else {
-    //         return '';
-    //       }
-    //     } else if (storeItem.type === 'subscription') {
-    //       if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
-    //         return dedent`
-    //           <Subscription
-    //             name={${JSON.stringify(storeItem.props.name)}}
-    //             ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
-    //             amount={${JSON.stringify(storeItem.props.amount)}}
-    //             currency={${JSON.stringify(storeItem.props.currency)}}
-    //             interval={${JSON.stringify(storeItem.props.interval)}}
-    //             intervalCount={${JSON.stringify(storeItem.props.intervalCount)}}
-    //           />
-    //         `;
-    //       } else {
-    //         return '';
-    //       }
-    //     } else {
-    //       throw new Error(`unexpected store item type: ${storeItem.type}`);
-    //     }
-    //   });
-    // },
   },
 ];

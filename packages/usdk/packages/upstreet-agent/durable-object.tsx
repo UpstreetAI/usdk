@@ -1,11 +1,14 @@
+import React from 'react';
 import dotenv from 'dotenv';
-import { AgentMain } from 'react-agents/entry.ts';
+import { createRoot, Root } from 'react-agents/root.ts';
 import * as codecs from 'codecs/ws-codec-runtime-edge.mjs';
-import userRender from './agent.tsx';
+import App from './agent.tsx';
 import agentJsonSource from './agent.json';
 import envTxt from './.env.txt';
 
 Error.stackTraceLimit = 300;
+
+const alarmTimeout = 10 * 1000;
 
 const parseAgentJson = (agentJsonSource) => {
   try {
@@ -25,29 +28,37 @@ const agentJson = parseAgentJson(agentJsonSource);
 
 // CloudFlare Worker Durable Object class
 export class DurableObject {
-  agentMain: AgentMain;
-  loadPromise: Promise<AgentMain> = null;
+  state: any;
+  env: any;
+  loadPromise: Promise<Root> = null;
 
   constructor(state: any, env: any) {
+    this.state = state;
+    this.env = env;
+
+    const env2 = dotenv.parse(envTxt);
     const state2 = {
-      ...state,
-      config: agentJson,
-      userRender,
+      agentJson,
+      env: env2,
+      enivronment: env?.WORKER_ENV ?? 'production',
       codecs,
     };
-    const auth2 = dotenv.parse(envTxt);
     this.loadPromise = (async() => {
-      const agentMain = new AgentMain(state2, env, auth2);
-      // await agentMain.waitForLoad();
-      return agentMain;
+      const root = createRoot(state2);
+      root.render(<App />);
+      return root;
+    })();
+
+    // initialize the alarm to prevent the worker from being evicted
+    (async () => {
+      await this.alarm();
     })();
   }
   async fetch(request: Request) {
-    const agentMain = await this.loadPromise;
-    return await agentMain.fetch(request);
+    const root = await this.loadPromise;
+    return await root.fetch(request);
   }
   async alarm() {
-    const agentMain = await this.loadPromise;
-    return await agentMain.alarm();
+    this.state.storage.setAlarm(alarmTimeout);
   }
 }

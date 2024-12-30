@@ -37,7 +37,7 @@ import {
 } from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env'
-import { defaultAgentSourceCode } from 'react-agents/util/agent-source-code-formatter.mjs';
+import defaultAgentSourceCode from 'react-agents/util/agent-default.mjs';
 import { currencies, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
@@ -324,7 +324,7 @@ export default function AgentEditor({
         const agentJsonString = JSON.stringify(agentJson);
 
         const mnemonic = generateMnemonic();
-        const auth = {
+        const env = {
           AGENT_TOKEN: agentToken,
           WALLET_MNEMONIC: mnemonic,
         };
@@ -349,12 +349,12 @@ export default function AgentEditor({
         console.log('start worker', {
           agentJson,
           agentModuleSrc,
-          auth,
+          env,
         });
         const newWorker = new ReactAgentsWorker({
           agentJson,
           agentModuleSrc,
-          auth,
+          env,
         });
         setWorker(newWorker);
 

@@ -4,6 +4,7 @@ import type {
   AgentObject,
   Attachment,
   FormattedAttachment,
+  Player,
 } from '../../types';
 import {
   useAgent,
@@ -117,53 +118,47 @@ const ScenePrompt = () => {
 };
 const CharactersPrompt = () => {
   const conversation = useConversation();
-  if (conversation) {
-    const agents = conversation.getAgents();
-    const currentAgentPlayerSpec = conversation.getCurrentAgentPlayer().getPlayerSpec();
-    const agentSpecs = agents.map((agent) =>  {
-      const agentSpecs = agent.getPlayerSpec() as any;
-      const agentSpec = {
-        id: agent.playerId,
-        name: agentSpecs?.name,
-        bio: agentSpecs?.bio,
-      }
-      return agentSpec;
-    });
+  const activeAgent = useAgent();
 
-    const formatAgent = (agent: any) => {
-      return [
-        `UserId: ${agent.id}`,
-        `Name: ${agent.name}`,
-        `Bio: ${agent.bio}`,
-      ].join('\n');
-    };
+  if (!conversation) return null;
 
-    return (
-      <Prompt>
-        {dedent`
-          # Your Character
-        ` +
-          '\n\n' +
-          formatAgent(currentAgentPlayerSpec) +
-          (agents.length > 0
-            ? (
-              '\n\n' +
-              dedent`
-                # Other Characters
-              ` +
-              '\n\n' +
-              agentSpecs
-                .map(formatAgent)
-                .join('\n\n')
-            )
-            : ''
+  const agents = conversation.getAgents();
+  const agentCharacter = agents.find(agent => agent.playerId === activeAgent.id);
+    const otherAgents = agents
+      .filter(agent => agent.playerId !== activeAgent.id);
+
+  const formatAgent = (agent: Player) => {
+    const agentSpecs = agent.getPlayerSpec() as any;
+    return [
+      `Name: ${agentSpecs?.name}`,
+      `UserId: ${agent.playerId}`,
+      `Bio: ${agentSpecs?.bio}`,
+    ].join('\n');
+  };
+
+  return (
+    <Prompt>
+      {dedent`
+        # Your Character
+      ` +
+        '\n\n' +
+        formatAgent(agentCharacter) +
+        (agents.length > 0
+          ? (
+            '\n\n' +
+            dedent`
+              # Other Characters
+            ` +
+            '\n\n' +
+            otherAgents
+              .map(formatAgent)
+              .join('\n\n')
           )
-        }
-      </Prompt>
-    );
-  } else {
-    return null;
-  }
+          : ''
+        )
+      }
+    </Prompt>
+  );
 };
 const ActionsPromptInternal = () => {
   const actions = useActions();

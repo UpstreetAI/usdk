@@ -68,8 +68,8 @@ export const installAgent = async (directory) => {
   const dstNodeModules = path.join(directory, 'node_modules');
   await mkdirp(dstNodeModules);
 
-  const srcEntryJs = path.join(upstreetAgentDir, 'packages', 'react-agents-node', 'entry.mjs');
-  const dstEntryJs = path.join(directory, 'entry.mjs');
+  const srcRootMainTsx = path.join(upstreetAgentDir, 'packages', 'react-agents-node', 'root-main.tsx');
+  const dstRootMainTsx = path.join(directory, 'root-main.tsx');
 
   const srcMainJsx = path.join(upstreetAgentDir, 'main.jsx');
   const dstMainJsx = path.join(directory, 'main.jsx');
@@ -135,7 +135,7 @@ export const installAgent = async (directory) => {
     // durable-object.tsx
     copyWithStringTransform(srcDurableObjectTsx, dstDurableObjectTsx),
     // entry.mjs
-    copyWithStringTransform(srcEntryJs, dstEntryJs),
+    copyWithStringTransform(srcRootMainTsx, dstRootMainTsx),
   ]);
 
   const cleanup = async () => {
@@ -143,14 +143,13 @@ export const installAgent = async (directory) => {
       rimraf(dstWranglerToml),
       rimraf(dstMainJsx),
       rimraf(dstDurableObjectTsx),
-      rimraf(dstEntryJs),
+      rimraf(dstRootMainTsx),
       removeDependencies(),
     ]);
   };
 
   return {
     agentPath,
-    entryJsPath: dstEntryJs,
     wranglerTomlPath: dstWranglerToml,
     cleanup,
   };

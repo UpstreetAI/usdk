@@ -1,4 +1,4 @@
-import { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useAgent, useAuthToken, useConversation } from 'react-agents';
 import type {
   DiscordArgs,
