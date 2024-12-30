@@ -26,6 +26,7 @@ async function encodeMessage(message, jwt, userId, conversationId) {
     args: message.args,
   }), { jwt });
   return {
+    id: message.id,
     method: message.method,
     args: message.args,
     attachments: message.attachments,

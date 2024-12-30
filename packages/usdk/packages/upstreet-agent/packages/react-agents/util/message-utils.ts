@@ -16,7 +16,7 @@ export const formatConversationMessage = (rawMessage: PendingActionMessage, {
 }): ActionMessage => {
   const { id: userId, name } = agent;
   const { method, args, attachments } = rawMessage;
-  const id = crypto.randomUUID().slice(0, 8); // generate a new id for the message
+  const id = crypto.randomUUID(); // generate a new id for the message
 
   const timestamp = new Date();
   const newMessage = {

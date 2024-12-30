@@ -7,6 +7,7 @@ export async function loadMessagesFromDatabase({
   const { error, data } = await supabase
     .from( 'agent_messages' )
     .select([
+      'id',
       'method',
       'args',
       'attachments',
@@ -27,6 +28,7 @@ export async function loadMessagesFromDatabase({
 
 function decodeMessages(messages) {
   return messages.map( message => ({
+    id: message.id,
     method: message.method,
     args: message.args,
     attachments: message.attachments,
