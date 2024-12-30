@@ -575,7 +575,7 @@ export default function AgentEditor({
                   steps={
                     [
                       {
-                        title: 'Build',
+                        title: 'Customize',
                         Icon: 'Tiling',
                         description: 'Customize your agents personality',
                       },
@@ -707,7 +707,7 @@ export default function AgentEditor({
                 }}>
 
                   <div className='text-lg text-zinc-200 font-bold flex flex-row items-center justify-center mb-4 mt-2'>
-                    <Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select The Features You Want Your Agent To Have</h2>
+                    <Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select features for your agent.</h2>
                   </div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
@@ -747,7 +747,7 @@ export default function AgentEditor({
                             <div className="mt-4">
                               <label>
                                 <span className="mb-2">Name</span>
-                                <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => (e.target.value)} />
+                                <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
                               </label>
                               <label>
                                 <span className="mb-2">Bio</span>
@@ -883,6 +883,7 @@ export default function AgentEditor({
                                       ...features,
                                       [name]: null,
                                     });
+                                    setModalOpen(null);
                                   }}
                                 >
                                   <div className="w-full">
@@ -965,7 +966,6 @@ export default function AgentEditor({
             </div>
 
           </div>
-
 
           {/* assistant */}
 
