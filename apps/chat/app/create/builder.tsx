@@ -842,7 +842,7 @@ export default function AgentEditor({
                       .map((featureSpec) => {
                         const { name, form, displayName, displayDescription, displayIcon } = featureSpec;
 
-                        // Extract default values from the form object
+                        // Extract default values from the form object in featureSpec
                         const defaultValues = Object.keys(form).reduce((acc, key) => {
                           acc[key] = form[key].defaultValue;
                           return acc;
@@ -883,10 +883,8 @@ export default function AgentEditor({
                                     });
                                   }}
                                 >
-                                  <div>
-                                    <div className="flex flex-col">
-                                      <FeatureForm featureSpec={featureSpec} featureName={name} features={features} setFeatures={setFeatures} />
-                                    </div>
+                                  <div className="w-full">
+                                    <FeatureForm featureSpec={featureSpec} featureName={name} features={features} setFeatures={setFeatures} />
                                   </div>
                                 </Modal>
 
