@@ -100,15 +100,15 @@ const bindOutgoing = ({
     } else if (method === 'messageReaction') {
       const {
         reaction,
-        messageId,
+        id,
       } = args as {
         reaction: string,
-        messageId: string,
+        id: string,
       };
 
 
       // get message from conversation by messageId
-      const message = conversation.getCachedMessages().find(m => m.args.messageId === messageId);
+      const message = conversation.getCachedMessages().find(m => m.args.id === id);
 
       const getDiscordIdForUserId = (userId: string) => {
         const agents = conversation.getAgents();
@@ -122,16 +122,17 @@ const bindOutgoing = ({
 
       // get userId from message
       const userId = message?.userId;
+      const discordMessageId = message?.metadata?.discordMessageId;
 
       const discordId = getDiscordIdForUserId(userId);
       console.log('discord manager message reaction', {
         reaction,
-        messageId,
+        discordMessageId,
         userId,
         channelId,
         discordId,
       });
-      discordBotClient.input.reactToMessage(reaction, messageId, {
+      discordBotClient.input.reactToMessage(reaction, discordMessageId, {
         channelId,
         userId: discordId,
       });
@@ -513,6 +514,9 @@ export class DiscordBot extends EventTarget {
           method: 'messageReaction',
           args: {
             text: `${eventType === 'messagereactionadd' ? 'Added' : 'Removed'} reaction '${emoji}' ${eventType === 'messagereactionadd' ? 'to' : 'from'} message ${messageId}`,
+          },
+          metadata: {
+            discordMessageId: messageId,
           },
         };
 

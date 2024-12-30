@@ -226,6 +226,7 @@ export type ActionMessage = {
   human: boolean; // XXX can be converted to flags
   hidden: boolean;
   timestamp: Date;
+  metadata?: any;
 };
 export type PendingActionMessage = {
   method: string;
