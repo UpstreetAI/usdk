@@ -975,6 +975,9 @@ importers:
       '@elizaos/plugin-evm':
         specifier: file:./packages/react-agents/components/plugins/plugin-evm
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
+      '@elizaos/plugin-ferePro':
+        specifier: file:./packages/react-agents/components/plugins/plugin-ferePro
+        version: '@elizaos/plugin-ferepro@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-ferePro(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(yaml@2.6.1)'
       '@elizaos/plugin-flow':
         specifier: file:./packages/react-agents/components/plugins/plugin-flow
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(@types/react@18.3.16)(@vercel/kv@1.0.1)(bufferutil@4.0.9)(google-protobuf@3.21.4)(jiti@1.21.6)(postcss@8.4.49)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
@@ -2525,6 +2528,9 @@ packages:
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm, type: directory}
     peerDependencies:
       whatwg-url: 7.1.0
+
+  '@elizaos/plugin-ferepro@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-ferePro':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-ferePro, type: directory}
 
   '@elizaos/plugin-flow@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow, type: directory}
@@ -20343,6 +20349,22 @@ snapshots:
       - utf-8-validate
       - yaml
       - zod
+
+  '@elizaos/plugin-ferepro@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-ferePro(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(yaml@2.6.1)':
+    dependencies:
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      ws: 8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - bufferutil
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - utf-8-validate
+      - yaml
 
   '@elizaos/plugin-flow@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(@types/react@18.3.16)(@vercel/kv@1.0.1)(bufferutil@4.0.9)(google-protobuf@3.21.4)(jiti@1.21.6)(postcss@8.4.49)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)':
     dependencies:
@@ -41519,6 +41541,7 @@ snapshots:
       '@elizaos/plugin-cronoszkevm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-cronoszkevm(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@elizaos/plugin-echochambers': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-echochambers
       '@elizaos/plugin-evm': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-evm(@solana/wallet-adapter-base@0.9.23(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)))(@solana/web3.js@1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10))(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
+      '@elizaos/plugin-ferePro': '@elizaos/plugin-ferepro@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-ferePro(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(yaml@2.6.1)'
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       '@elizaos/plugin-fuel': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-fuel(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(form-data@4.0.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-gitbook': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-gitbook(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
