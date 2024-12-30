@@ -8,6 +8,7 @@ import { videoGenerationPlugin } from '@elizaos/plugin-video-generation';
 import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import evmPlugin from '@elizaos/plugin-evm';
+import { zgPlugin } from '@elizaos/plugin-0g';
 import avalanchePlugin from '@elizaos/plugin-avalanche';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import multiversxPlugin from '@elizaos/plugin-multiversx';
@@ -216,6 +217,7 @@ export const plugins = {
   '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
   '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
+  '@elizaos/plugin-0g': pluginWrap(zgPlugin),
   '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
