@@ -20,6 +20,7 @@ import suiPlugin from '@elizaos/plugin-sui';
 import flowPlugin from '@elizaos/plugin-flow';
 import storyPlugin from '@elizaos/plugin-story';
 import { webSearchPlugin } from '@elizaos/plugin-web-search';
+import zksyncEraPlugin from '@elizaos/plugin-zksync-era';
 import createGoatPlugin from '@elizaos/plugin-goat';
 
 function generateZodSchema(obj: any): z.ZodTypeAny {
@@ -226,6 +227,7 @@ export const plugins = {
   '@elizaos/plugin-flow': pluginWrap(flowPlugin),
   '@elizaos/plugin-story': pluginWrap(storyPlugin),
   '@elizaos/plugin-web-search': pluginWrap(webSearchPlugin),
+  '@elizaos/plugin-zksync-era': pluginWrap(zksyncEraPlugin),
   '@elizaos/plugin-trustdb': adapterWrap(TrustScoreDatabase),
   // '@elizaos/plugin-goat': pluginWrap(goatPlugin),
 };

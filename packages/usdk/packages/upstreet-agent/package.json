@@ -25,6 +25,7 @@
     "@elizaos/plugin-twitter": "file:./packages/react-agents/components/plugins/plugin-twitter",
     "@elizaos/plugin-video-generation": "file:./packages/react-agents/components/plugins/plugin-video-generation",
     "@elizaos/plugin-web-search": "file:./packages/react-agents/components/plugins/plugin-web-search",
+    "@elizaos/plugin-zksync-era": "file:./packages/react-agents/components/plugins/plugin-zksync-era",
     "@iarna/toml": "^2.2.5",
     "@supabase/postgrest-js": "^1.17.7",
     "@supabase/supabase-js": "^2.47.1",
