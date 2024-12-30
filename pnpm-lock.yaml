@@ -969,6 +969,9 @@ importers:
       '@elizaos/plugin-twitter':
         specifier: file:./packages/react-agents/components/plugins/plugin-twitter
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      '@elizaos/plugin-web-search':
+        specifier: file:./packages/react-agents/components/plugins/plugin-web-search
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-whatsapp':
         specifier: file:./packages/react-agents/components/clients/plugin-whatsapp
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
@@ -2393,6 +2396,11 @@ packages:
 
   '@elizaos/plugin-twitter@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter, type: directory}
+
+  '@elizaos/plugin-web-search@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search, type: directory}
+    peerDependencies:
+      whatwg-url: 7.1.0
 
   '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp, type: directory}
@@ -18552,6 +18560,21 @@ snapshots:
     dependencies:
       agent-twitter-client: 0.0.17
       tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - yaml
+
+  '@elizaos/plugin-web-search@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)':
+    dependencies:
+      '@elizaos/core': link:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      whatwg-url: 11.0.0
     transitivePeerDependencies:
       - '@microsoft/api-extractor'
       - '@swc/core'
@@ -36340,6 +36363,7 @@ snapshots:
       '@elizaos/plugin-tee': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-tee(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(jiti@1.21.6)(postcss@8.4.49)(rollup@4.28.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
       '@elizaos/plugin-trustdb': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-trustdb(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-twitter': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      '@elizaos/plugin-web-search': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-whatsapp': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
