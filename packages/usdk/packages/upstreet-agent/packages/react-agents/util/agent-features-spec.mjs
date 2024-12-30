@@ -290,7 +290,7 @@ export const featureSpecs = [
     displayDescription: 'Enable phone call and SMS support for your agent.',
 
     // Feature active ( true, false )
-    active: true,
+    active: false,
 
     // imports: (telnyx) => {
     //   if (telnyx.apiKey) {
