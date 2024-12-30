@@ -561,40 +561,41 @@ export default function AgentEditor({
     <div className="relative">
       <div className='w-full h-screen text-zinc-950 bg-[url("/images/backgrounds/builder-background.jpg")] bg-center bg-cover'>
         <div className="flex h-full overflow-y-auto">
-          <div className="container mx-auto max-w-4xl px-4 py-8 text-gray-100">
+          <div className="container h-full flex flex-col justify-center mx-auto max-w-4xl px-4 py-8 text-gray-100">
+            <div>
+              <h1 className="text-4xl font-bold mb-6 text-center mt-4">Create Agent</h1>
 
-            <h1 className="text-4xl font-bold mb-4 text-center mt-8">Create Agent</h1>
+              {/* <p className="text-lg mb-8 text-center">
+                Build and deploy your agent in 3 steps.
+              </p> */}
 
-            <p className="text-lg mb-8 text-center">
-              Build and deploy your agent in 3 steps.
-            </p>
-
-            <div className='mx-auto max-w-xl mb-4'>
-              <Progress
-                currentStep={step}
-                steps={
-                  [
-                    {
-                      title: 'Build',
-                      Icon: 'Tiling',
-                      description: 'Customize your agents personality',
-                    },
-                    {
-                      title: 'Test',
-                      Icon: 'Head',
-                      description: 'Test your agent',
-                    },
-                    {
-                      title: 'Deploy',
-                      Icon: 'Upload',
-                      description: 'Deploy your agent',
-                    },
-                  ]
-                }
-              />
+              <div className='mx-auto max-w-xl mb-4'>
+                <Progress
+                  currentStep={step}
+                  steps={
+                    [
+                      {
+                        title: 'Build',
+                        Icon: 'Tiling',
+                        description: 'Customize your agents personality',
+                      },
+                      {
+                        title: 'Test',
+                        Icon: 'Head',
+                        description: 'Test your agent',
+                      },
+                      {
+                        title: 'Deploy',
+                        Icon: 'Upload',
+                        description: 'Deploy your agent',
+                      },
+                    ]
+                  }
+                />
+              </div>
             </div>
 
-            <div>
+            <div className="h-full overflow-y-auto">
 
               {/* STEP 1 */}
 
@@ -705,7 +706,9 @@ export default function AgentEditor({
                   }
                 }}>
 
-                  <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select Features</h2></div>
+                  <div className='text-lg text-zinc-200 font-bold flex flex-row items-center justify-center mb-4 mt-2'>
+                    <Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select The Features You Want Your Agent To Have</h2>
+                  </div>
 
                   <div className="flex flex-wrap justify-center w-full mb-8">
 
@@ -834,7 +837,6 @@ export default function AgentEditor({
                       </div>
                     </div>
 
-
                     {/* ACTIVE FEATURES (featureSpec.active === true) */}
 
                     {featureSpecs
@@ -942,24 +944,24 @@ export default function AgentEditor({
               {/* STEP 3 */}
 
               <div className={cn('flex flex-row h-full', step !== 3 && 'hidden')}>
-
+                <Button>DEPLOY</Button>
               </div>
 
-              <div className='flex flex-row justify-center mt-8 absolute bottom-8 left-8 right-8'>
-                {step === 1 && (
-                  <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>
-                )}
-                {step === 3 && (
-                  <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>
-                )}
-                {step !== 1 && step !== 3 && (
-                  <>
-                    <Button variant='secondary' className='p-2 mr-auto' size='large' onClick={() => setStep(step - 1)}>Back</Button>
-                    <Button variant='secondary' className='p-2 ml-auto' size='large' onClick={() => setStep(step + 1)}>Next</Button>
-                  </>
-                )}
-              </div>
+            </div>
 
+            <div className='flex flex-row justify-center mt-8'>
+              {step === 1 && (
+                <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+              )}
+              {step === 3 && (
+                <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+              )}
+              {step !== 1 && step !== 3 && (
+                <>
+                  <Button variant='secondary' className='p-2 mr-auto' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+                  <Button variant='secondary' className='p-2 ml-auto' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+                </>
+              )}
             </div>
 
           </div>
