@@ -2,6 +2,7 @@ import {
   PendingActionMessage,
   AgentSpec,
   ActiveAgentObject,
+  ActionMessage,
   // AgentObject,
   // ActiveAgentObject,
 } from '../types';
@@ -12,11 +13,14 @@ export const formatConversationMessage = (rawMessage: PendingActionMessage, {
   agent,
 }: {
   agent: AgentSpec,
-}) => {
+}): ActionMessage => {
   const { id: userId, name } = agent;
   const { method, args, attachments } = rawMessage;
+  const id = crypto.randomUUID().slice(0, 8); // generate a new id for the message
+
   const timestamp = new Date();
   const newMessage = {
+    id,
     userId,
     name,
     method,

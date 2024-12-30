@@ -455,7 +455,9 @@ export class DiscordBot extends EventTarget {
             method: 'say',
             args: {
               text: formattedMessage,
-              messageId,
+            },
+            metadata: {
+              discordMessageId: messageId,
             },
           };
           const id = getIdFromUserId(userId);

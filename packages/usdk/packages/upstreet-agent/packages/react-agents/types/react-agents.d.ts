@@ -217,6 +217,7 @@ export type Attachment = FormattedAttachment & {
   url?: string;
 };
 export type ActionMessage = {
+  id: string; // 8 characters max for prompt optimisation
   userId: string;
   name: string;
   method: string;
