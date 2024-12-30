@@ -1,16 +1,22 @@
 import React from 'react';
 
 const FeatureForm = ({ featureSpec, featureName, features, setFeatures }) => {
+
+  const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
+  const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
+
+
   const renderFormElement = (key, config) => {
     switch (config.type) {
       case 'text':
         return (
           <div key={key}>
-            <label>
+            <label className="text-black">
               {config.label}
               <input
                 type="text"
                 value={features[featureName] && features[featureName][key]}
+                className={inputClass}
                 onChange={(e) => setFeatures({
                   ...features,
                   [featureName]: {
@@ -26,11 +32,13 @@ const FeatureForm = ({ featureSpec, featureName, features, setFeatures }) => {
       case 'number':
         return (
           <div key={key}>
-            <label>
+            <label htmlFor={key} className="text-black">
               {config.label}
               <input
+                id={key}
                 type="number"
                 value={features[featureName] && features[featureName][key]}
+                className={inputClass}
                 onChange={(e) => setFeatures({
                   ...features,
                   [featureName]: {
@@ -46,10 +54,11 @@ const FeatureForm = ({ featureSpec, featureName, features, setFeatures }) => {
       case 'select':
         return (
           <div key={key}>
-            <label>
+            <label className="text-black">
               {config.label}
               <select
                 value={features[featureName] && features[featureName][key]}
+                className={inputClass}
                 onChange={(e) => setFeatures({
                   ...features,
                   [featureName]: {
@@ -70,7 +79,7 @@ const FeatureForm = ({ featureSpec, featureName, features, setFeatures }) => {
       case 'checkbox':
         return (
           <div key={key}>
-            <label>
+            <label className="text-black">
               <input
                 type="checkbox"
                 checked={features[featureName] && features[featureName][key]}
