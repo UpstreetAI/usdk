@@ -954,6 +954,9 @@ importers:
       '@elizaos/plugin-goat':
         specifier: file:./packages/react-agents/components/plugins/plugin-goat
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
+      '@elizaos/plugin-image-generation':
+        specifier: file:./packages/react-agents/components/plugins/plugin-image-generation
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-solana':
         specifier: file:./packages/react-agents/components/plugins/plugin-solana
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-solana(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(form-data@4.0.1)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(rollup@4.28.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)
@@ -2369,6 +2372,11 @@ packages:
 
   '@elizaos/plugin-goat@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat, type: directory}
+    peerDependencies:
+      whatwg-url: 7.1.0
+
+  '@elizaos/plugin-image-generation@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation, type: directory}
     peerDependencies:
       whatwg-url: 7.1.0
 
@@ -18300,6 +18308,20 @@ snapshots:
       - utf-8-validate
       - yaml
       - zod
+
+  '@elizaos/plugin-image-generation@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)':
+    dependencies:
+      tsup: 8.3.5(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
+      whatwg-url: 11.0.0
+    transitivePeerDependencies:
+      - '@microsoft/api-extractor'
+      - '@swc/core'
+      - jiti
+      - postcss
+      - supports-color
+      - tsx
+      - typescript
+      - yaml
 
   '@elizaos/plugin-solana@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-solana(@edge-runtime/vm@3.2.0)(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(form-data@4.0.1)(jiti@1.21.6)(jsdom@20.0.3(bufferutil@4.0.9)(utf-8-validate@5.0.10))(postcss@8.4.49)(rollup@4.28.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)':
     dependencies:
@@ -36358,6 +36380,7 @@ snapshots:
       '@elizaos/plugin-coinbase': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-coinbase(bufferutil@4.0.9)(typescript@5.7.2)(utf-8-validate@5.0.10)(zod@3.24.1)
       '@elizaos/plugin-flow': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-flow(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       '@elizaos/plugin-goat': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-goat(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
+      '@elizaos/plugin-image-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-image-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-solana': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-solana(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(bufferutil@4.0.9)(form-data@4.0.1)(rollup@4.28.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)
       '@elizaos/plugin-sui': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-sui(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(form-data@4.0.1)(sass@1.82.0)(terser@5.37.0)(typescript@5.7.2)(whatwg-url@11.0.0)
       '@elizaos/plugin-tee': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-tee(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(jiti@1.21.6)(postcss@8.4.49)(rollup@4.28.1)(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
