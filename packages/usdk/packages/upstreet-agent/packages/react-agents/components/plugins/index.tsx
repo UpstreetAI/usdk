@@ -12,6 +12,7 @@ import intifacePlugin from '@elizaos/plugin-intiface';
 import evmPlugin from '@elizaos/plugin-evm';
 import { zgPlugin } from '@elizaos/plugin-0g';
 import icpPlugin from '@elizaos/plugin-icp';
+import abstractPlugin from '@elizaos/plugin-abstract';
 import avalanchePlugin from '@elizaos/plugin-avalanche';
 import aptosPlugin from '@elizaos/plugin-aptos';
 import { bootstrapPlugin } from '@elizaos/plugin-bootstrap';
@@ -230,6 +231,7 @@ export const plugins = {
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
   '@elizaos/plugin-0g': pluginWrap(zgPlugin),
   '@elizaos/plugin-icp': pluginWrap(icpPlugin),
+  '@elizaos/plugin-abstract': pluginWrap(abstractPlugin),
   '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
   '@elizaos/plugin-aptos': pluginWrap(aptosPlugin),
   '@elizaos/plugin-bootstrap': pluginWrap(bootstrapPlugin),
