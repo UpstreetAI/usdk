@@ -4,13 +4,6 @@ export * from "./generation.ts";
 export * from "./memory.ts";
 export * from "./parsing.ts";
 
-//
-
-type State = {};
-type IAgentRuntime = {};
-
-//
-
 export const elizaLogger = console;
 export const settings = {
   SOL_ADDRESS: 'So11111111111111111111111111111111111111112',
