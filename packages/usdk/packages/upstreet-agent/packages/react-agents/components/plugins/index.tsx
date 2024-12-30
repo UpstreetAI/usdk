@@ -147,7 +147,7 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
             return null;
           }
         }).filter(Boolean);
-        console.log('got examples', examples);
+        // console.log('got examples', examples);
         if (examples.length > 0) {
           const schema = generateZodSchema(examples[0]);
           // console.log('got schema', schema);
