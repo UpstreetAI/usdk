@@ -1,11 +1,9 @@
 {
   "name": "@elizaos/plugin-flow",
   "version": "0.1.7-alpha.2",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "dist/index.d.ts",
   "dependencies": {
-    "@elizaos/core": "workspace:*",
     "@onflow/config": "1.5.1",
     "@onflow/fcl": "1.13.1",
     "@onflow/typedefs": "1.4.0",
