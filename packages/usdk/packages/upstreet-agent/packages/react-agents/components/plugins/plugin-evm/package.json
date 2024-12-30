@@ -1,11 +1,9 @@
 {
   "name": "@elizaos/plugin-evm",
   "version": "0.1.7-alpha.2",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "dist/index.d.ts",
   "dependencies": {
-    "@elizaos/core": "workspace:*",
     "@lifi/data-types": "5.15.5",
     "@lifi/sdk": "3.4.1",
     "@lifi/types": "16.3.0",
