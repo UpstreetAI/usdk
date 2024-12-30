@@ -5,6 +5,7 @@ import util from 'util';
 import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
 import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
+import gitbookPlugin from '@elizaos/plugin-gitbook';
 import evmPlugin from '@elizaos/plugin-evm';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import { teePlugin } from '@elizaos/plugin-tee';
@@ -207,6 +208,7 @@ export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-image-generation': pluginWrap(imageGenerationPlugin),
   '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
+  '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
