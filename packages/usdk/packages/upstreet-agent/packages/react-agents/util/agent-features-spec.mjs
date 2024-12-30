@@ -88,8 +88,8 @@ export const featureSpecs = [
     icon: 'Voice',
     displayName: 'Voice',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: () => [
     //   'TTS',
@@ -125,8 +125,8 @@ export const featureSpecs = [
     icon: 'Chat',
     displayName: 'Rate Limit',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: () => [
     //   'RateLimit',
@@ -168,8 +168,8 @@ export const featureSpecs = [
     icon: 'Discord',
     displayName: 'Discord',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (discord) => {
     //   if (discord.token) {
@@ -213,8 +213,8 @@ export const featureSpecs = [
     icon: 'X',
     displayName: 'X (Twitter)',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (twitterBot) => {
     //   if (twitterBot.token) {
@@ -259,8 +259,8 @@ export const featureSpecs = [
     icon: 'Upstreet',
     displayName: 'Telnyx',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (telnyx) => {
     //   if (telnyx.apiKey) {
@@ -302,8 +302,8 @@ export const featureSpecs = [
     icon: 'ModuleStore',
     displayName: 'Store',
 
-    // Status ( enabled, disabled )
-    status: 'enabled',
+    // Feature active ( true, false )
+    active: true,
 
     // imports: (storeItems) => {
     //   const isValidStoreItem = (storeItem) =>
