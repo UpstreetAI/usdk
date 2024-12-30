@@ -1265,7 +1265,7 @@ export default function AgentEditor({
                               <Modal
                                 icon={featureSpec.icon ?? 'Upstreet'}
                                 title={featureSpec.displayName ?? featureSpec.name}
-                                description={featureSpec.description}
+                                description={featureSpec.displayDescription}
                                 open={modalOpen === featureSpec.name}
                                 close={() => setModalOpen(null)}
                                 disableFeature={() => {
