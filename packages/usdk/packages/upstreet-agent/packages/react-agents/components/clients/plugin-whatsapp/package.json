@@ -2,8 +2,7 @@
   "name": "@elizaos/plugin-whatsapp",
   "version": "0.1.7-alpha.2",
   "description": "WhatsApp Cloud API plugin",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
   "scripts": {
     "build": "tsup --format esm --dts",
     "dev": "tsup --format esm --dts --watch",
@@ -11,7 +10,6 @@
     "lint": "eslint --fix  --cache ."
   },
   "dependencies": {
-    "@elizaos/core": "workspace:*",
     "axios": "1.7.8"
   },
   "devDependencies": {
