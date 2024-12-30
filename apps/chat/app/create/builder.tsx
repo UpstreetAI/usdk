@@ -944,8 +944,16 @@ export default function AgentEditor({
 
               {/* STEP 3 */}
 
-              <div className={cn('flex flex-row h-full', step !== 3 && 'hidden')}>
-                <Button>DEPLOY</Button>
+              <div className={cn('flex flex-col items-center justify-center h-full', step !== 3 && 'hidden')}>
+
+                <Button
+                  onClick={() => {
+                    setDeploying(true);
+                    editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  DEPLOY
+                </Button>
               </div>
 
             </div>
