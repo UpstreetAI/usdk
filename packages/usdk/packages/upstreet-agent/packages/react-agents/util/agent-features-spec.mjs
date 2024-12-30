@@ -89,6 +89,14 @@ export const featureSpecs = [
     displayIcon: 'Voice',
     displayName: 'Voice',
     displayDescription: 'Select a voice for your agent.',
+    form: {
+      voiceEndpoint: {
+        type: 'select',
+        label: 'Voice',
+        description: 'Select a voice for your agent.',
+        options: defaultVoices.map( v => ({ value: v.voiceEndpoint, label: v.name }) ),
+      },
+    },
 
     // Feature active ( true, false )
     active: true,
@@ -134,6 +142,23 @@ export const featureSpecs = [
     displayIcon: 'Chat',
     displayName: 'Rate Limit',
     displayDescription: 'Control how often users can message the agent.',
+    form: {
+      maxUserMessages: {
+        type: 'number',
+        label: 'Max User Messages',
+        description: 'The maximum number of messages a user can send to the agent.',
+      },
+      maxUserMessagesTime: {
+        type: 'number',
+        label: 'Max User Messages Time',
+        description: 'The time in milliseconds after which a user can send another message to the agent.',
+      },
+      message: {
+        type: 'text',
+        label: 'Message',
+        description: 'The message to send to the agent when the rate limit is exceeded.',
+      },
+    },
     // Feature active ( true, false )
     active: true,
 
@@ -183,6 +208,22 @@ export const featureSpecs = [
     displayIcon: 'Discord',
     displayName: 'Discord',
     displayDescription: 'Connect your agent to Discord.',
+    form: {
+      token: {
+        type: 'text',
+        label: 'Token',
+        description: 'The token for your Discord bot.',
+      },
+      channels: {
+        type: 'array',
+        label: 'Channels',
+        description: 'The channels to join.',
+        options: [
+          { value: 'general', label: 'General' },
+          { value: 'voice', label: 'Voice' },
+        ],
+      },
+    },
     // Feature active ( true, false )
     active: true,
 
@@ -233,6 +274,13 @@ export const featureSpecs = [
     displayIcon: 'X',
     displayName: 'X (Twitter)',
     displayDescription: 'Add a Twitter bot to your agent.',
+    form: {
+      token: {
+        type: 'text',
+        label: 'Token',
+        description: 'The token for your Twitter bot.',
+      },
+    },
 
     // Feature active ( true, false )
     active: true,
@@ -288,6 +336,29 @@ export const featureSpecs = [
     displayIcon: 'Upstreet',
     displayName: 'Telnyx',
     displayDescription: 'Enable phone call and SMS support for your agent.',
+    // Form
+    form: {
+      apiKey: {
+        type: 'text',
+        label: 'API Key',
+        description: 'The API key for your Telnyx account.',
+      },
+      phoneNumber: {
+        type: 'text',
+        label: 'Phone Number',
+        description: 'The phone number to use for Telnyx.',
+      },
+      message: {
+        type: 'checkbox',
+        label: 'Message',
+        description: 'Enable message support.',
+      },
+      voice: {
+        type: 'checkbox',
+        label: 'Voice',
+        description: 'Enable voice support.',
+      },
+    },
 
     // Feature active ( true, false )
     active: false,
