@@ -93,7 +93,7 @@ export const featureSpecs = [
 
     // Default values
     default: {
-      voiceEndpoint: voices[0].voiceEndpoint,
+      voiceEndpoint: defaultVoices[0].voiceEndpoint,
     },
 
     // imports: () => [
