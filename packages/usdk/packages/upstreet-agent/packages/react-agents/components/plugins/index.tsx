@@ -13,6 +13,7 @@ import evmPlugin from '@elizaos/plugin-evm';
 import { zgPlugin } from '@elizaos/plugin-0g';
 import icpPlugin from '@elizaos/plugin-icp';
 import avalanchePlugin from '@elizaos/plugin-avalanche';
+import { confluxPlugin } from '@elizaos/plugin-conflux';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import starknetPlugin from '@elizaos/plugin-starknet';
 import multiversxPlugin from '@elizaos/plugin-multiversx';
@@ -226,6 +227,7 @@ export const plugins = {
   '@elizaos/plugin-0g': pluginWrap(zgPlugin),
   '@elizaos/plugin-icp': pluginWrap(icpPlugin),
   '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
+  '@elizaos/plugin-conflux': pluginWrap(confluxPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-starknet': pluginWrap(starknetPlugin),
   '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
