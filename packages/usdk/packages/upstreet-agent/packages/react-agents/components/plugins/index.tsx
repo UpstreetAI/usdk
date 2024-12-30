@@ -6,6 +6,7 @@ import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
 import { videoGenerationPlugin } from '@elizaos/plugin-video-generation';
 import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
+import echoChamberPlugin from '@elizaos/plugin-echochambers';
 import gitbookPlugin from '@elizaos/plugin-gitbook';
 import intifacePlugin from '@elizaos/plugin-intiface';
 import evmPlugin from '@elizaos/plugin-evm';
@@ -217,6 +218,7 @@ export const plugins = {
   '@elizaos/plugin-image-generation': pluginWrap(imageGenerationPlugin),
   '@elizaos/plugin-video-generation': pluginWrap(videoGenerationPlugin),
   '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
+  '@elizaos/plugin-echochambers': pluginWrap(echoChamberPlugin),
   '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
   '@elizaos/plugin-intiface': pluginWrap(intifacePlugin),
   '@elizaos/plugin-evm': pluginWrap(evmPlugin),

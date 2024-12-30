@@ -9,6 +9,7 @@
     "@elizaos/plugin-0g": "file:./packages/react-agents/components/plugins/plugin-0g",
     "@elizaos/plugin-3d-generation": "file:./packages/react-agents/components/plugins/plugin-3d-generation",
     "@elizaos/plugin-coinbase": "file:./packages/react-agents/components/plugins/plugin-coinbase",
+    "@elizaos/plugin-echochambers": "file:./packages/react-agents/components/plugins/plugin-echochambers",
     "@elizaos/plugin-evm": "file:./packages/react-agents/components/plugins/plugin-evm",
     "@elizaos/plugin-avalanche": "file:./packages/react-agents/components/plugins/plugin-avalanche",
     "@elizaos/plugin-flow": "file:./packages/react-agents/components/plugins/plugin-flow",
