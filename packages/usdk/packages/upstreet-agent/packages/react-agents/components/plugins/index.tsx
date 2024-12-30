@@ -1,10 +1,12 @@
 import React from 'react';
 import { Action, useEnv } from 'react-agents';
 import { z } from 'zod';
+import util from 'util';
 import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { solanaPlugin } from '@elizaos/plugin-solana';
-import util from 'util';
-
+import { teePlugin } from '@elizaos/plugin-tee';
+import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
+import { twitterPlugin } from '@elizaos/plugin-twitter';
 
 function generateZodSchema(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();
@@ -93,6 +95,10 @@ type IPlugin = {
   providers: IProvider[];
 };
 
+type Database = {};
+
+type IAdapter = (database: Database) => void;
+
 //
 
 const pluginWrap = (plugin: IPlugin) => (props: any) => {
@@ -166,8 +172,15 @@ const pluginWrap = (plugin: IPlugin) => (props: any) => {
     </>
   );
 };
+const adapterWrap = (adapter: IAdapter) => (props: any) => {
+  console.log('load adapter', adapter);
+  return null;
+};
 
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
+  '@elizaos/plugin-tee': pluginWrap(teePlugin),
+  '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
+  '@elizaos/plugin-trustdb': adapterWrap(TrustScoreDatabase),
 };
