@@ -1,12 +1,9 @@
 {
   "name": "@elizaos/plugin-starknet",
   "version": "0.1.7-alpha.2",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "dist/index.d.ts",
   "dependencies": {
-    "@elizaos/core": "workspace:*",
-    "@elizaos/plugin-trustdb": "workspace:*",
     "@avnu/avnu-sdk": "2.1.1",
     "@uniswap/sdk-core": "6.0.0",
     "unruggable-sdk": "1.4.0",
