@@ -11,6 +11,7 @@
     "@elizaos/plugin-flow": "file:./packages/react-agents/components/plugins/plugin-flow",
     "@elizaos/plugin-goat": "file:./packages/react-agents/components/plugins/plugin-goat",
     "@elizaos/plugin-image-generation": "file:./packages/react-agents/components/plugins/plugin-image-generation",
+    "@elizaos/plugin-nft-generation": "file:./packages/react-agents/components/plugins/plugin-nft-generation",
     "@elizaos/plugin-solana": "file:./packages/react-agents/components/plugins/plugin-solana",
     "@elizaos/plugin-story": "file:./packages/react-agents/components/plugins/plugin-story",
     "@elizaos/plugin-sui": "file:./packages/react-agents/components/plugins/plugin-sui",

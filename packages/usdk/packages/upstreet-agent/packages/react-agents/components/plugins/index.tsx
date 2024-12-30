@@ -4,6 +4,7 @@ import { z } from 'zod';
 import util from 'util';
 import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
 import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
+import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
 import { solanaPlugin } from '@elizaos/plugin-solana';
 import { teePlugin } from '@elizaos/plugin-tee';
 import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
@@ -204,6 +205,7 @@ const adapterWrap = (adapter: IAdapter) => (props: any) => {
 export const plugins = {
   '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
   '@elizaos/plugin-image-generation': pluginWrap(imageGenerationPlugin),
+  '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
   '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
   '@elizaos/plugin-tee': pluginWrap(teePlugin),
   '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
