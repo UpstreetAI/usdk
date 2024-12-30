@@ -1039,8 +1039,8 @@ importers:
         specifier: file:./packages/react-agents/components/plugins/plugin-web-search
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-whatsapp':
-        specifier: file:./packages/react-agents/components/clients/plugin-whatsapp
-        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
+        specifier: file:./packages/react-agents/components/plugins/plugin-whatsapp
+        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-whatsapp
       '@elizaos/plugin-zksync-era':
         specifier: file:./packages/react-agents/components/plugins/plugin-zksync-era
         version: file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-zksync-era(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(jiti@1.21.6)(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(yaml@2.6.1)(zod@3.24.1)
@@ -2630,8 +2630,8 @@ packages:
     peerDependencies:
       whatwg-url: 7.1.0
 
-  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp':
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp, type: directory}
+  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-whatsapp':
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-whatsapp, type: directory}
 
   '@elizaos/plugin-zksync-era@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-zksync-era':
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-zksync-era, type: directory}
@@ -21154,7 +21154,7 @@ snapshots:
       - typescript
       - yaml
 
-  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp':
+  '@elizaos/plugin-whatsapp@file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-whatsapp':
     dependencies:
       axios: 1.7.8
     transitivePeerDependencies:
@@ -41562,7 +41562,7 @@ snapshots:
       '@elizaos/plugin-twitter': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-twitter(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(yaml@2.6.1)
       '@elizaos/plugin-video-generation': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-video-generation(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
       '@elizaos/plugin-web-search': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-web-search(@swc/core@1.10.1(@swc/helpers@0.5.13))(jiti@1.21.6)(postcss@8.4.49)(typescript@5.7.2)(whatwg-url@11.0.0)(yaml@2.6.1)
-      '@elizaos/plugin-whatsapp': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/clients/plugin-whatsapp
+      '@elizaos/plugin-whatsapp': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-whatsapp
       '@elizaos/plugin-zksync-era': file:packages/usdk/packages/upstreet-agent/packages/react-agents/components/plugins/plugin-zksync-era(@swc/core@1.10.1(@swc/helpers@0.5.13))(bufferutil@4.0.9)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(typescript@5.7.2)(utf-8-validate@5.0.10)(whatwg-url@11.0.0)(zod@3.24.1)
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
