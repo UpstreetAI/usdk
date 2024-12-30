@@ -5,9 +5,8 @@
   "type": "module",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@elizaos/core": "workspace:*",
     "coinbase-api": "1.0.5",
-    "coinbase-advanced-sdk": "file:../../packages/plugin-coinbase/advanced-sdk-ts",
+    "coinbase-advanced-sdk": "file:./advanced-sdk-ts",
     "jsonwebtoken": "^9.0.2",
     "@types/jsonwebtoken": "^9.0.7",
     "node-fetch": "^2.6.1"
