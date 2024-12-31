@@ -31,7 +31,7 @@ export const defaultVoiceModels = [
 ];
 
 export const defaultImageGenerationModels = [
-  'black-forest-labs:flux',
+  'black-forest-labs:flux1-dev',
   'openai:dall-e-3',
 ];
 

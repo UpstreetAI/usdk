@@ -133,10 +133,10 @@ export default function AgentEditor({
       const jwt = await getJWT();
       const cost = await calculateFeatureCosts(features, jwt);
       setCostEstimate(cost.totalCost);
+      console.log('cost estimate', cost.totalCost);
     };
     updateCostEstimate();
 
-    console.log('cost estimate', costEstimate);
   }, [features]);
   
   // effects
