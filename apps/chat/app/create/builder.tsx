@@ -933,6 +933,13 @@ export default function AgentEditor({
                       })}
 
                   </div>
+
+                  {/* Add cost display below the grid */}
+                  <div className="text-center text-zinc-200 mb-8">
+                    <span className="font-medium">Agent's Estimated Inference Cost: </span>
+                    <span className="font-bold">${costEstimate.toFixed(4)}</span>
+                  </div>
+
                 </form>
               </div>
 
