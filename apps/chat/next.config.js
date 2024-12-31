@@ -165,6 +165,11 @@ module.exports = {
       type: 'asset/resource',
     });
 
+    config.module.rules.push({
+      test: /\.cdc$/,
+      type: 'asset/source'
+    });
+
     return config;
   },
   async headers() {
