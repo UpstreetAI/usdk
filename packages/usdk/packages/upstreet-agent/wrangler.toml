@@ -4,6 +4,10 @@ compatibility_date = "2023-11-21"
 node_compat = true
 workers_dev = true
 
+rules = [
+  { type = "Text", globs = ["**/*.cdc", "**/*.cdc?raw"], fallthrough = true }
+]
+
 [[durable_objects.bindings]]
 name = "AGENT"
 class_name = "DurableObject"
