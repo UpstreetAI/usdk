@@ -430,13 +430,6 @@ export type TelnyxManager = EventTarget & {
   live: () => void;
   destroy: () => void;
 };
-export type LiveManager = {
-  getTimeouts: (conversation: ConversationObject) => number[];
-  useTimeouts: (conversation: ConversationObject) => number[];
-  setTimeout: (updateFn: () => void, conversation: ConversationObject, timestamp: number) => void;
-  process: () => void;
-  getNextTimeout: () => number;
-};
 export type PingManager = {
   userId: string;
   supabase: any;
@@ -456,7 +449,6 @@ export type ActiveAgentObject = AgentObject & {
   twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
   pingManager: PingManager;
-  liveManager: LiveManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
@@ -588,7 +580,6 @@ export type ConversationInstanceProps = {
 export type ActionProps = {
   type: string;
   description: string;
-  state?: string;
   schema: ZodTypeAny;
   examples: Array<object>,
   handler?: ((e: PendingActionEvent) => void) | ((e: PendingActionEvent) => Promise<void>);
@@ -719,7 +710,6 @@ export type AgentRegistry = {
   actionsMap: Map<symbol, ActionPropsAux | null>;
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null>;
   perceptionsMap: Map<symbol, PerceptionPropsAux | null>;
-  // perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null>;
   uniformsMap: Map<symbol, UniformPropsAux | null>;
 
   storeItemsMap: Map<symbol, StoreItem | null>;
@@ -834,7 +824,3 @@ export type ReadableVideoStream = ReadableStream & {
 export type PlayableVideoStream = ReadableAudioStream & {
   id: string;
 };
-
-// user handler
-
-export type UserHandler = FC;

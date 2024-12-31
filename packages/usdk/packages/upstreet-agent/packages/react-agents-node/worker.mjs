@@ -8,7 +8,6 @@ import { serve } from '@hono/node-server';
 
 //
 
-const dirname = path.dirname(import.meta.url.replace('file://', ''));
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     process.send({
@@ -32,8 +31,8 @@ const loadModule = async (directory, p) => {
   // console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const startAgentMainServer = async ({
-  agentMain,
+const startRootServer = async ({
+  root,
   ip,
   port,
 }) => {
@@ -41,7 +40,7 @@ const startAgentMainServer = async ({
 
   app.all('*', (c) => {
     const req = c.req.raw;
-    return agentMain.fetch(req);
+    return root.fetch(req);
   });
 
   // create server
@@ -70,20 +69,18 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const main = await loadModule(directory, 'entry.mjs');
-  // console.log('worker loaded module', main);
-  const agentMain = await main({
-    // directory,
+  // we load it lioke this to perform a compilation
+  const createRootMain = await loadModule(directory, 'root-main.tsx');
+  const root = createRootMain({
     init,
     debug,
   });
-  // console.log('agentMain', agentMain);
 
   // wait for first render
-  // await agentMain.waitForLoad();
+  // await root.waitForLoad();
 
-  await startAgentMainServer({
-    agentMain,
+  await startRootServer({
+    root,
     ip,
     port,
   });
@@ -105,7 +102,7 @@ const makeViteServer = async (directory) => {
     },
     optimizeDeps: {
       entries: [
-        './entry.mjs',
+        './root-main.tsx',
       ],
     },
     ssr: {

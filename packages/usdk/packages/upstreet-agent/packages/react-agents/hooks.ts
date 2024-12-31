@@ -29,7 +29,7 @@ import {
 import { ExtendableMessageEvent } from './util/extendable-message-event';
 import {
   supabaseSubscribe,
-} from './util/supabase-client.mjs';
+} from './util/supabase-utils.mjs';
 import {
   QueueManager,
 } from 'queue-manager';

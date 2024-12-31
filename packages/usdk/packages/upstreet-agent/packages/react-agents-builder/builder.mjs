@@ -54,8 +54,8 @@ export const buildAgentSrc = async (opts = {}) => {
     stdin: {
       contents: `export { default } from './agent.tsx';`,
       resolveDir: '/', // Optional: helps with resolving imports
-      sourcefile: 'entry.ts', // Optional: helps with error messages
-      loader: 'tsx', // Set the appropriate loader based on the source type
+      sourcefile: 'agent-app.ts', // Optional: helps with error messages
+      loader: 'ts', // Optional: use the JS loader
     },
     bundle: true,
     write: false,

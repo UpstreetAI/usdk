@@ -1,17 +1,13 @@
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 
 import { mkdirp } from 'mkdirp';
 import pc from 'picocolors';
 import { Jimp } from 'jimp';
 import ansi from 'ansi-escapes';
-// import toml from '@iarna/toml';
 import mime from 'mime/lite';
-// import dedent from 'dedent';
 import ora from 'ora';
 import { cleanDir } from '../lib/directory-util.mjs';
-// import { hasNpm, npmInstall } from '../lib/npm-util.mjs';
 import { hasGit, gitInit } from '../lib/git-util.mjs';
 import {
   BASE_DIRNAME,
@@ -20,9 +16,6 @@ import {
   ImageRenderer,
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import { AgentInterview } from '../packages/upstreet-agent/packages/react-agents/util/agent-interview.mjs';
-// import {
-//   getAgentName,
-// } from '../packages/upstreet-agent/packages/react-agents/agent-defaults.mjs';
 import {
   getAgentAuthSpec,
 } from '../util/agent-auth-util.mjs';
@@ -33,14 +26,13 @@ import {
   updateAgentJsonAuth,
   ensureAgentJsonDefaults,
 } from '../packages/upstreet-agent/packages/react-agents/util/agent-json-util.mjs';
-import { defaultAgentSourceCode } from '../packages/upstreet-agent/packages/react-agents/util/agent-source-code-formatter.mjs';
+import defaultAgentSourceCode from '../packages/upstreet-agent/packages/react-agents/util/agent-default.mjs';
 import { consoleImagePreviewWidth } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import InterviewLogger from '../util/logger/interview-logger.mjs';
 import ReadlineStrategy from '../util/logger/readline.mjs';
 import StreamStrategy from '../util/logger/stream.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { recursiveCopyAll } from '../util/copy-utils.mjs';
-// import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { CharacterCardParser, LorebookParser } from '../util/character-card.mjs';
 import ImagePreviewServer from '../util/image-preview-server.mjs';
 import { imagePreviewPort } from '../util/ports.mjs';
@@ -86,22 +78,7 @@ const writeFile = async (dstPath, s) => {
   await mkdirp(path.dirname(dstPath));
   await fs.promises.writeFile(dstPath, s);
 };
-// const copyWithStringTransform = async (src, dst, transformFn) => {
-//   let s = await fs.promises.readFile(src, 'utf8');
-//   s = transformFn(s);
-//   await mkdirp(path.dirname(dst));
-//   await fs.promises.writeFile(dst, s);
-// };
 
-// const buildWranglerToml = (
-//   t,
-//   { name } = {},
-// ) => {
-//   if (name !== undefined) {
-//     t.name = name;
-//   }
-//   return t;
-// };
 const interview = async (agentJson, {
   prompt,
   mode,
