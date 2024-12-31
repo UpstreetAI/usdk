@@ -8,6 +8,7 @@
     "@elizaos/client-discord": "file:./packages/react-agents/components/clients/client-discord",
     "@elizaos/client-github": "file:./packages/react-agents/components/clients/client-github",
     "@elizaos/client-slack": "file:./packages/react-agents/components/clients/client-slack",
+    "@elizaos/client-telegram": "file:./packages/react-agents/components/clients/client-telegram",
     "@elizaos/client-twitter": "file:./packages/react-agents/components/clients/client-twitter",
     "@elizaos/plugin-0g": "file:./packages/react-agents/components/plugins/plugin-0g",
     "@elizaos/plugin-3d-generation": "file:./packages/react-agents/components/plugins/plugin-3d-generation",
