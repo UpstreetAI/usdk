@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { aiProxyHost } from './const/endpoints.js';
-import { defaultModel, defaultOpenAIModel } from 'react-agents/defaults.mjs';
+import { defaultChatModel } from 'react-agents/constants.mjs';
 
 export type ChatMessage = {
   role: string,
@@ -112,7 +112,7 @@ const fetchChatCompletionFns = new Map<
   },
 }));
 export const fetchChatCompletion = async ({
-  model = defaultModel,
+  model = defaultChatModel,
   messages,
   stream,
   signal,
@@ -150,7 +150,7 @@ export const fetchChatCompletion = async ({
 };
 
 export const fetchJsonCompletion = async ({
-  model = defaultModel, // XXX support multiple models here
+  model = defaultChatModel, // XXX support multiple models here
   messages,
   stream,
   signal,

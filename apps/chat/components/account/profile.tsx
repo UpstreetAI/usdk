@@ -14,7 +14,7 @@ import {
 import {
   fetchJsonCompletion,
 } from 'react-agents/util/fetch.mjs';
-import { defaultModels } from 'react-agents/constants.mjs';
+import { defaultChatModel } from 'react-agents/constants.mjs';
 import {
   r2EndpointUrl,
 } from 'react-agents/util/endpoints.mjs';
@@ -126,7 +126,7 @@ export function Profile({
 
       const updateObject = await fetchJsonCompletion({
         // model: 'profile',
-        model: defaultModels[0],
+        model: defaultChatModel,
         messages,
         // stream: false,
         // signal: undefined,

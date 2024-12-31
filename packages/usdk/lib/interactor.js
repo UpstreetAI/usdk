@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import dedent from 'dedent';
-import { defaultModels } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
+import { defaultChatModel } from '../packages/upstreet-agent/packages/react-agents/constants.mjs';
 import { fetchJsonCompletion } from '../packages/upstreet-agent/packages/react-agents/util/fetch.mjs';
 import { QueueManager } from 'queue-manager';
 
@@ -117,7 +117,7 @@ export class Interactor extends EventTarget {
           });
         }
         const o = await fetchJsonCompletion({
-          model: defaultModels[0],
+          model: defaultChatModel,
           messages,
         }, z.object({
           response: z.string(),
@@ -170,7 +170,7 @@ export class Interactor extends EventTarget {
         }
 
         let o = await fetchJsonCompletion({
-          model: defaultModels[0],
+          model: defaultChatModel,
           messages,
         }, z.object({
           output: objectFormat,

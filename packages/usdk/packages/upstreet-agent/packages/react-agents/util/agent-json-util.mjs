@@ -1,8 +1,8 @@
 import packageJson from '../../../../../package.json' with { type: 'json' };
 import {
-  defaultModels,
-  defaultSmallModels,
-  defaultLargeModels,
+  defaultChatModel,
+  defaultSmallChatModel,
+  defaultLargeChatModel,
 } from '../constants.mjs';
 import {
   getCloudAgentHost,
@@ -30,13 +30,13 @@ export const ensureAgentJsonDefaults = (spec) => {
     spec.ownerId = '';
   }
   if (typeof spec.model !== 'string' || !spec.model) {
-    spec.model = defaultModels[0];
+    spec.model = defaultChatModel;
   }
   if (typeof spec.smallModel !== 'string' || !spec.smallModel) {
-    spec.smallModel = defaultSmallModels[0];
+    spec.smallModel = defaultSmallChatModel;
   }
   if (typeof spec.largeModel !== 'string' || !spec.largeModel) {
-    spec.largeModel = defaultLargeModels[0];
+    spec.largeModel = defaultLargeChatModel;
   }
   if (typeof spec.startUrl !== 'string' || !spec.startUrl) {
     spec.startUrl = getCloudAgentHost(spec.id);

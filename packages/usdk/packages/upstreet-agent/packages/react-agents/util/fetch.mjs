@@ -3,7 +3,7 @@ import dedent from 'dedent';
 // import Together from 'together-ai';
 import { aiProxyHost } from './endpoints.mjs';
 // import { getAiFetch } from './ai-util.mjs';
-import { defaultModel } from '../defaults.mjs';
+import { defaultChatModel } from '../constants.mjs';
 import { NotEnoughCreditsError } from './error-utils.mjs';
 import zodToJsonSchemaImpl from 'zod-to-json-schema';
 
@@ -366,7 +366,7 @@ const fetchChatCompletionFns = {
 //
 
 export const fetchChatCompletion = async ({
-  model = defaultModel,
+  model = defaultChatModel,
   messages,
   stream = undefined,
   signal = undefined,
@@ -404,7 +404,7 @@ export const fetchChatCompletion = async ({
   }
 };
 export const fetchJsonCompletion = async ({
-  model = defaultModel,
+  model = defaultChatModel,
   messages,
   stream = undefined,
   signal = undefined,
