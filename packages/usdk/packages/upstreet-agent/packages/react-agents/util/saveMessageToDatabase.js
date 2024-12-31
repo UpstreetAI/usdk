@@ -36,5 +36,6 @@ async function encodeMessage(message, jwt, userId, conversationId) {
     src_user_id: message.userId,
     src_name: message.name,
     embedding,
+    metadata: message.metadata,
   };
 }

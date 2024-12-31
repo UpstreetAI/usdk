@@ -14,6 +14,7 @@ export async function loadMessagesFromDatabase({
       'src_user_id',
       'src_name',
       'created_at',
+      'metadata',
     ].join(','))
     .eq('user_id', agentId)
     .eq('conversation_id', conversationId)
@@ -35,5 +36,6 @@ function decodeMessages(messages) {
     userId: message.src_user_id,
     name: message.src_name,
     timestamp: message.created_at,
+    metadata: message.metadata,
   }));
 }
