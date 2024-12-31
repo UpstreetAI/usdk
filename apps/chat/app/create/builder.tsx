@@ -943,10 +943,17 @@ export default function AgentEditor({
                     </div>
                     {modelCosts.chat && (
                       <div className="mt-2">
-                        <div><span className="font-medium">- Chat Inference Input Cost: ${modelCosts.chat.cost.inputCost.toFixed(7)} </span></div>
-                        <div><span className="font-medium">- Chat Inference Output Cost: ${modelCosts.chat.cost.outputCost.toFixed(7)} </span></div>
-                        <div><span className="font-medium">- Vision Inference Cost: ${modelCosts.vision.cost.inputCost.toFixed(7)} </span></div>
-                        <div><span className="font-medium">- Voice Inference Cost: ${modelCosts.voice.cost.inputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">Base Cost: </span></div>
+                        <div><span className="font-medium">- Chat Client Inference Input Cost: ${modelCosts.chat.cost.inputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">- Chat Client Inference Output Cost: ${modelCosts.chat.cost.outputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">Added Features Cost: </span></div>
+                        {/* need to make image generation optional for the agent as its costly */}
+                        {/* {features.vision && modelCosts.vision && (
+                          <div><span className="font-medium">- Vision Inference Cost: ${modelCosts.vision.cost.inputCost.toFixed(7)} </span></div>
+                        )} */}
+                        {features.tts && modelCosts.voice && (
+                          <div><span className="font-medium">- Voice Inference Cost: ${modelCosts.voice.cost.inputCost.toFixed(7)} </span></div>
+                        )}
                       </div>
                     )}
                   </div>
