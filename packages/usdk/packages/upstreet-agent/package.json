@@ -6,6 +6,7 @@
     "@electric-sql/pglite": "^0.2.15",
     "@elizaos/core": "file:./packages/elizaos-core-proxy",
     "@elizaos/client-discord": "file:./packages/react-agents/components/clients/client-discord",
+    "@elizaos/client-farcaster": "file:./packages/react-agents/components/clients/client-farcaster",
     "@elizaos/client-github": "file:./packages/react-agents/components/clients/client-github",
     "@elizaos/client-slack": "file:./packages/react-agents/components/clients/client-slack",
     "@elizaos/client-telegram": "file:./packages/react-agents/components/clients/client-telegram",
