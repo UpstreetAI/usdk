@@ -30,6 +30,7 @@ import Progress from './progress';
 
 import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
 import FeatureForm from './forms';
+import { calculateFeatureCosts } from '@/utils/cost-calculator';
 
 //
 
@@ -125,6 +126,19 @@ export default function AgentEditor({
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
 
+  const [costEstimate, setCostEstimate] = useState(0);
+
+  useEffect(() => {
+    const updateCostEstimate = async () => {
+      const jwt = await getJWT();
+      const cost = await calculateFeatureCosts(features, jwt);
+      setCostEstimate(cost.totalCost);
+    };
+    updateCostEstimate();
+
+    console.log('cost estimate', costEstimate);
+  }, [features]);
+  
   // effects
   // sync previewBlob -> previewUrl
   useEffect(() => {
