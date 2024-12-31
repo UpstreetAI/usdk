@@ -20,7 +20,6 @@ import type {
   IRuntime,
   Client as ElizaClient,
 } from '../types/eliza.d.ts';
-import { DiscordClientInterface } from '@elizaos/client-discord';
 import { FarcasterAgentClient } from '@elizaos/client-farcaster';
 import { GitHubClientInterface } from '@elizaos/client-github';
 import { LensClientInterface } from '@elizaos/client-lens';
@@ -80,7 +79,6 @@ const clientWrap = (client: ElizaClient) => (opts: any) => {
 };
 
 export const clients = {
-  '@elizaos/client-discord': clientWrap(DiscordClientInterface),
   '@elizaos/client-farcaster': clientWrap(FarcasterAgentClient),
   '@elizaos/client-github': clientWrap(GitHubClientInterface),
   '@elizaos/client-lens': clientWrap(LensClientInterface),

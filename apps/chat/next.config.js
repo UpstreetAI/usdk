@@ -15,7 +15,6 @@ module.exports = {
     'ecctrl',
     'ucom',
     '@elizaos/core',
-    '@elizaos/client-discord',
     '@elizaos/client-farcaster',
     '@elizaos/client-github',
     '@elizaos/client-lens',
