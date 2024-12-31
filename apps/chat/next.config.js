@@ -21,6 +21,7 @@ module.exports = {
     '@elizaos/client-lens',
     '@elizaos/client-slack',
     '@elizaos/client-telegram',
+    '@elizaos/client-twitter',
     '@elizaos/plugin-0g',
     '@elizaos/plugin-3d-generation',
     '@elizaos/plugin-abstract',
