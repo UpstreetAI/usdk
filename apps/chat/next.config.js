@@ -33,7 +33,7 @@ module.exports = {
     '@elizaos/plugin-cronoszkevm',
     '@elizaos/plugin-echochambers',
     '@elizaos/plugin-evm',
-    '@elizaos/plugin-ferePro',
+    '@elizaos/plugin-ferepro',
     '@elizaos/plugin-flow',
     '@elizaos/plugin-fuel',
     '@elizaos/plugin-gitbook',
