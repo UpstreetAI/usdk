@@ -95,17 +95,6 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
-
-    // imports: () => [
-    //   'TTS',
-    // ],
-    // components: ({
-    //   voiceEndpoint,
-    // }) => [
-    //   dedent`
-    //     <TTS voiceEndpoint=${JSON.stringify(voiceEndpoint)} />
-    //   `,
-    // ],
   },
   {
     name: 'rateLimit',
@@ -152,19 +141,6 @@ export const featureSpecs = [
     },
     // Feature active ( true, false )
     active: true,
-
-    // imports: () => [
-    //   'RateLimit',
-    // ],
-    // components: ({
-    //   maxUserMessages,
-    //   maxUserMessagesTime,
-    //   message,
-    // }) => [
-    //   dedent`
-    //     <RateLimit ${maxUserMessages ? `maxUserMessages={${JSON.stringify(maxUserMessages)}} ` : ''}${maxUserMessagesTime ? `maxUserMessagesTime={${JSON.stringify(maxUserMessagesTime)}} ` : ''}${message ? `message={${JSON.stringify(message)}} ` : ''}/>
-    //   `,
-    // ],
   },
   {
     name: 'discord',
@@ -213,29 +189,6 @@ export const featureSpecs = [
     },
     // Feature active ( true, false )
     active: true,
-
-    // imports: (discord) => {
-    //   if (discord.token) {
-    //     return ['Discord'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (discord) => {
-    //   const channels = formatDiscordBotChannels(discord.channels);
-    //   if (discord.token && channels.length > 0) {
-    //     return [
-    //       dedent`
-    //         <Discord
-    //           token=${JSON.stringify(discord.token)}
-    //           ${discord.channels ? `channels={${JSON.stringify(channels)}}` : ''}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'twitterBot',
@@ -267,27 +220,6 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: true,
-
-    // imports: (twitterBot) => {
-    //   if (twitterBot.token) {
-    //     return ['TwitterBot'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (twitterBot) => {
-    //   if (twitterBot.token) {
-    //     return [
-    //       dedent`
-    //         <TwitterBot
-    //           token=${JSON.stringify(twitterBot.token)}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'telnyx',
@@ -341,30 +273,6 @@ export const featureSpecs = [
 
     // Feature active ( true, false )
     active: false,
-
-    // imports: (telnyx) => {
-    //   if (telnyx.apiKey) {
-    //     return ['Telnyx'];
-    //   } else {
-    //     return [];
-    //   }
-    // },
-    // components: (telnyx) => {
-    //   if (telnyx.apiKey) {
-    //     return [
-    //       dedent`
-    //         <Telnyx
-    //           apiKey=${JSON.stringify(telnyx.apiKey)}
-    //           ${telnyx.phoneNumber ? `phoneNumber=${JSON.stringify(telnyx.phoneNumber)}` : ''}
-    //           ${telnyx.message ? `message` : ''}
-    //           ${telnyx.voice ? `voice` : ''}
-    //         />
-    //       `,
-    //     ];
-    //   } else {
-    //     return [];
-    //   }
-    // },
   },
   {
     name: 'storeItems',
@@ -406,56 +314,7 @@ export const featureSpecs = [
       },
     },
 
-    // Feature active ( true, false )
+    // Feature IN development ( true, false )
     active: false,
-
-    // imports: (storeItems) => {
-    //   const isValidStoreItem = (storeItem) =>
-    //     !!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency;
-
-    //   const result = [];
-    //   if (storeItems.some((storeItem) => storeItem.type === 'payment' && isValidStoreItem(storeItem))) {
-    //     result.push('Payment');
-    //   }
-    //   if (storeItems.some((storeItem) => storeItem.type === 'subscription' && isValidStoreItem(storeItem))) {
-    //     result.push('Subscription');
-    //   }
-    //   return result;
-    // },
-    // components: (storeItems) => {
-    //   return storeItems.map((storeItem) => {
-    //     if (storeItem.type === 'payment') {
-    //       if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
-    //         return dedent`
-    //           <Payment
-    //             name={${JSON.stringify(storeItem.props.name)}}
-    //             ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
-    //             amount={${JSON.stringify(storeItem.props.amount)}}
-    //             currency={${JSON.stringify(storeItem.props.currency)}}
-    //           />
-    //         `;
-    //       } else {
-    //         return '';
-    //       }
-    //     } else if (storeItem.type === 'subscription') {
-    //       if (!!storeItem.props.name && !!storeItem.props.amount && !!storeItem.props.currency) {
-    //         return dedent`
-    //           <Subscription
-    //             name={${JSON.stringify(storeItem.props.name)}}
-    //             ${storeItem.props.description ? `description={${JSON.stringify(storeItem.props.description)}}` : ''}
-    //             amount={${JSON.stringify(storeItem.props.amount)}}
-    //             currency={${JSON.stringify(storeItem.props.currency)}}
-    //             interval={${JSON.stringify(storeItem.props.interval)}}
-    //             intervalCount={${JSON.stringify(storeItem.props.intervalCount)}}
-    //           />
-    //         `;
-    //       } else {
-    //         return '';
-    //       }
-    //     } else {
-    //       throw new Error(`unexpected store item type: ${storeItem.type}`);
-    //     }
-    //   });
-    // },
   },
 ];
