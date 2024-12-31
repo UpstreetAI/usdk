@@ -112,6 +112,8 @@ const makeViteServer = async (directory) => {
       mainFields: ['main', 'module', 'browser'],
       // these proxies are necessary for vite to polyfill node builtins
       fs: import.meta.resolve('fs').replace('file://', ''),
+      child_process: import.meta.resolve('child_process').replace('file://', ''),
+      tls: import.meta.resolve('tls').replace('file://', ''),
     },
     assetsInclude: [/\.cdc$/],
   });
