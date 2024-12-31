@@ -130,6 +130,12 @@ module.exports = {
       use: [options.defaultLoaders.babel],
     }); */
 
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(/^node:(.*)$/, (resource) => {
+        resource.request = resource.request.replace(/^node:/, '');
+      })
+    );
+
     // fix react resolution in sdk subpackage
     const usdkPath = path.resolve(__dirname, '../../packages/usdk');
     const upstreetAgentPath = path.resolve(__dirname, '../../packages/usdk/packages/upstreet-agent');
