@@ -23,6 +23,7 @@ import type {
 import { DiscordClientInterface } from '@elizaos/client-discord';
 import { FarcasterAgentClient } from '@elizaos/client-farcaster';
 import { GitHubClientInterface } from '@elizaos/client-github';
+import { LensClientInterface } from '@elizaos/client-lens';
 import { SlackClientInterface } from '@elizaos/client-slack';
 import { TelegramClientInterface } from '@elizaos/client-telegram';
 import { TwitterClientInterface } from '@elizaos/client-twitter';
@@ -82,6 +83,7 @@ export const clients = {
   '@elizaos/client-discord': clientWrap(DiscordClientInterface),
   '@elizaos/client-farcaster': clientWrap(FarcasterAgentClient),
   '@elizaos/client-github': clientWrap(GitHubClientInterface),
+  '@elizaos/client-lens': clientWrap(LensClientInterface),
   '@elizaos/client-telegram': clientWrap(TelegramClientInterface),
   '@elizaos/client-twitter': clientWrap(TwitterClientInterface),
   '@elizaos/client-slack': clientWrap(SlackClientInterface),
