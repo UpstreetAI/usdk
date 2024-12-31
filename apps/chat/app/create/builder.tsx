@@ -127,13 +127,14 @@ export default function AgentEditor({
   const [isChatVisible, setIsChatVisible] = useState(false);
 
   const [costEstimate, setCostEstimate] = useState(0);
+  const [modelCosts, setModelCosts] = useState({});
 
   useEffect(() => {
     const updateCostEstimate = async () => {
       const jwt = await getJWT();
       const cost = await calculateFeatureCosts(features, jwt);
       setCostEstimate(cost.totalCost);
-      console.log('cost estimate', cost.totalCost);
+      setModelCosts(cost.featureCosts);
     };
     updateCostEstimate();
 
@@ -936,8 +937,18 @@ export default function AgentEditor({
 
                   {/* Add cost display below the grid */}
                   <div className="text-center text-zinc-200 mb-8">
-                    <span className="font-medium">Agent's Estimated Inference Cost: </span>
-                    <span className="font-bold">${costEstimate.toFixed(4)}</span>
+                    <div>
+                      <span className="font-medium">Agent's Estimated Inference Cost: </span>
+                      <span className="font-bold">${costEstimate.toFixed(4)}</span>
+                    </div>
+                    {modelCosts.chat && (
+                      <div className="mt-2">
+                        <div><span className="font-medium">- Chat Inference Input Cost: ${modelCosts.chat.cost.inputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">- Chat Inference Output Cost: ${modelCosts.chat.cost.outputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">- Vision Inference Cost: ${modelCosts.vision.cost.inputCost.toFixed(7)} </span></div>
+                        <div><span className="font-medium">- Voice Inference Cost: ${modelCosts.voice.cost.inputCost.toFixed(7)} </span></div>
+                      </div>
+                    )}
                   </div>
 
                 </form>
