@@ -21,10 +21,11 @@ import type {
   Client as ElizaClient,
 } from '../types/eliza.d.ts';
 import { DiscordClientInterface } from '@elizaos/client-discord';
+import { FarcasterAgentClient } from '@elizaos/client-farcaster';
 import { GitHubClientInterface } from '@elizaos/client-github';
 import { SlackClientInterface } from '@elizaos/client-slack';
-import { TelegramClientInterface } from '@elizaos/client-twitter';
-import { TwitterClientInterface } from '@elizaos/client-telegram';
+import { TelegramClientInterface } from '@elizaos/client-telegram';
+import { TwitterClientInterface } from '@elizaos/client-twitter';
 
 //
 
@@ -79,6 +80,7 @@ const clientWrap = (client: ElizaClient) => (opts: any) => {
 
 export const clients = {
   '@elizaos/client-discord': clientWrap(DiscordClientInterface),
+  '@elizaos/client-farcaster': clientWrap(FarcasterAgentClient),
   '@elizaos/client-github': clientWrap(GitHubClientInterface),
   '@elizaos/client-telegram': clientWrap(TelegramClientInterface),
   '@elizaos/client-twitter': clientWrap(TwitterClientInterface),
