@@ -67,13 +67,16 @@ export const pull = async (args, opts) => {
           }
         } catch (err) {
           console.warn('npm install failed:', err.stack);
+          throw err;
         }
       } else {
         const text = await req.text();
         console.warn('pull request error', text);
+        throw new Error(`pull request error: ${text}`);
       }
     } catch (err) {
       console.warn('pull request failed', err);
+      throw err;
     }
   } else {
     console.log('not logged in');
