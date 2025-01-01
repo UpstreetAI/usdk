@@ -29,32 +29,13 @@ export async function getModelCost(model: string, jwt: string): Promise<any> {
   return res.json();
 }
 
-export async function calculateFeatureCosts(
+export function calculateFeatureCosts(
     features: FeaturesObject,
-    jwt: string,
+    costs: any,
     chatInputTokens?: number,
   ) {
-  const costs: Record<string, object> = {};
-  const [chatCost, visionCost, voiceCost, imageGenerationCost] = await Promise.all([
-    getModelCost(defaultChatModel.split(':')[1], jwt),
-    getModelCost(defaultVisionModel.split(':')[1], jwt),
-    getModelCost(defaultVoiceModel.split(':')[1], jwt),
-    getModelCost(defaultImageGenerationModel.split(':')[1], jwt),
-  ]);
-
-
-  costs['chat'] = chatCost; 
-  costs['vision'] = visionCost;
-  costs['voice'] = voiceCost;
-  costs['imageGeneration'] = imageGenerationCost;
-
-  console.log('costing: ', {
-    chatCost,
-    visionCost,
-    voiceCost,
-    imageGenerationCost,
-  });
-
+  const { chat: chatCost, vision: visionCost, voice: voiceCost, imageGeneration: imageGenerationCost } = costs;
+  
   const breakdown: Record<string, any> = {};
   
   // Calculate chat costs

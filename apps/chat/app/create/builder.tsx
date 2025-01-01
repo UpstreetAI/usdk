@@ -20,7 +20,7 @@ import { defaultVoices } from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
 import defaultAgentSourceCode from 'react-agents/util/agent-default.mjs';
-import { currencies, intervals } from 'react-agents/constants.mjs';
+import { currencies, defaultImageGenerationModel, defaultVoiceModel, defaultChatModel, defaultVisionModel, intervals } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
@@ -30,7 +30,7 @@ import Progress from './progress';
 
 import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
 import FeatureForm from './forms';
-import { calculateFeatureCosts } from '@/utils/cost-calculator';
+import { calculateFeatureCosts, getModelCost } from '@/utils/cost-calculator';
 import { FeaturesObject, ChatMessage, AgentEditorProps } from '@/lib/types';
 //
 
@@ -98,16 +98,39 @@ export default function AgentEditor({
   const [modelCosts, setModelCosts] = useState({});
   const [costBreakdown, setCostBreakdown] = useState<Record<string, any>>({});
 
+  // Add new state for base model costs
+  const [baseCosts, setBaseCosts] = useState<any>(null);
+
+  // Fetch costs once on mount
   useEffect(() => {
-    const updateCostEstimate = async () => {
+    const fetchBaseCosts = async () => {
       const jwt = await getJWT();
-      const cost = await calculateFeatureCosts(features, jwt);
+      const [chatCost, visionCost, voiceCost, imageGenerationCost] = await Promise.all([
+        getModelCost(defaultChatModel.split(':')[1], jwt),
+        getModelCost(defaultVisionModel.split(':')[1], jwt),
+        getModelCost(defaultVoiceModel.split(':')[1], jwt),
+        getModelCost(defaultImageGenerationModel.split(':')[1], jwt),
+      ]);
+      
+      setBaseCosts({
+        chat: chatCost,
+        vision: visionCost,
+        voice: voiceCost,
+        imageGeneration: imageGenerationCost
+      });
+    };
+    fetchBaseCosts();
+  }, []);
+
+    // Update costs whenever features change, using cached base costs
+  useEffect(() => {
+    if (baseCosts) {
+      const cost = calculateFeatureCosts(features, baseCosts);
       setCostEstimate(cost.totalCost);
       setModelCosts(cost.featureCosts);
       setCostBreakdown(cost.breakdown);
-    };
-    updateCostEstimate();
-  }, [features]);
+    }
+  }, [features, baseCosts]);
   
   // effects
   // sync previewBlob -> previewUrl
