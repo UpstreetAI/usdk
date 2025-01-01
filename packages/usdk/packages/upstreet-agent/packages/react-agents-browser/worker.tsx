@@ -25,7 +25,7 @@ globalThis.onmessage = (event: any) => {
       if (!rootPromise) {
         rootPromise = (async () => {
           const { args } = event.data;
-          const { agentJson, env, agentModuleSrc } = args;
+          const { agentJson, env, agentModuleSrc, storageAdapter } = args;
           if (typeof agentModuleSrc !== 'string') {
             throw new Error('agent worker: missing agentModuleSrc');
           }
@@ -38,6 +38,7 @@ globalThis.onmessage = (event: any) => {
             agentJson,
             codecs,
             env,
+            storageAdapter,
           };
           const root = createRoot(rootOpts);
           root.render(<App />);

@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import { headers } from './constants.mjs';
 import { SupabaseStorage } from './storage/supabase-storage.mjs';
+import { PGliteStorage } from './storage/pglite-storage.mjs';
 import { AgentRenderer } from './classes/agent-renderer.tsx';
 import { ChatsSpecification } from './classes/chats-specification.ts';
 import { multiplayerEndpointUrl } from './util/endpoints.mjs';
@@ -32,11 +33,30 @@ export class Root extends EventTarget {
     const {
       agentJson = {},
       env = {},
-      storageAdapter = new SupabaseStorage({
-        jwt: env.AGENT_TOKEN,
-      }),
       codecs = {},
     } = opts;
+    const storageAdapter = (() => {
+      const _storageAdapter = opts.storageAdapter ?? 'supabase';
+      if (typeof _storageAdapter === 'string') {
+        switch (_storageAdapter) {
+          case 'supabase': {
+            return new SupabaseStorage({
+              jwt: env.AGENT_TOKEN,
+            });
+          }
+          case 'pglite': {
+            return new PGliteStorage({
+              path: env.PGLITE_PATH,
+            });
+          }
+          default: {
+            throw new Error('unknown storage adapter type: ' + _storageAdapter);
+          }
+        }
+      } else {
+        return _storageAdapter;
+      }
+    })();
 
     this.chatsSpecification = new ChatsSpecification({
       agentId: agentJson.id,
@@ -46,6 +66,7 @@ export class Root extends EventTarget {
       env,
       config: agentJson,
       codecs,
+      supabase: storageAdapter,
       chatsSpecification: this.chatsSpecification,
     });
     // const bindAlarm = () => {
