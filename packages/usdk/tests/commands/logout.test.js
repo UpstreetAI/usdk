@@ -23,6 +23,15 @@ describe('logout', () => {
         expect(mockGetLoginJwt).toHaveBeenCalledTimes(1);
     });
 
+    it('should return false when jwt is empty', async () => {
+        mockGetLoginJwt.mockResolvedValue('');
+
+        const result = await logout({});
+
+        expect(result).toBe(false);
+        expect(mockGetLoginJwt).toHaveBeenCalledTimes(1);
+    });
+
     it('should return false when jwt is null', async () => {
         mockGetLoginJwt.mockResolvedValue(null);
 
