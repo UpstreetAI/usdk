@@ -177,7 +177,7 @@ export const featureSpecs = [
         defaultValue: '',
       },
       channels: {
-        type: 'array',
+        type: 'text',
         label: 'Channels',
         description: 'The channels to join.',
         options: [
