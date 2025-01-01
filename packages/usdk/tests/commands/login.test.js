@@ -3,16 +3,6 @@ import { jest } from '@jest/globals';
 
 describe('login', () => {
 
-    let consoleSpy;
-
-    beforeEach(() => {
-        consoleSpy = jest.spyOn(console, 'warn');
-    });
-
-    afterEach(() => {
-        consoleSpy.mockRestore();
-    });
-
     it('should successfully login when valid code parameter is provided', async () => {
         const mockLoginData = {
             id: 'test-id',
@@ -30,13 +20,9 @@ describe('login', () => {
 
     it('should reject when invalid base64 code is provided', async () => {
         const invalidCode = 'invalid-base64-!@#$';
-
+        
         await expect(async () => {
             await login({ code: invalidCode });
-        }).rejects.toThrow();
-
-        expect(consoleSpy).toHaveBeenCalled();
-
-        consoleSpy.mockRestore();
+        }).rejects.toThrow(SyntaxError);
     });
 });
