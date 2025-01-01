@@ -27,9 +27,9 @@ import {
   ConversationContext,
 } from './context';
 import { ExtendableMessageEvent } from './util/extendable-message-event';
-import {
-  supabaseSubscribe,
-} from './util/supabase-utils.mjs';
+// import {
+//   supabaseSubscribe,
+// } from './util/supabase-utils.mjs';
 import {
   QueueManager,
 } from 'queue-manager';
@@ -404,23 +404,23 @@ export const usePurchases = () => {
       live = false;
     };
   }, []);
-  // subscribe to webhooks
-  useEffect(() => {
-    const channel = supabaseSubscribe({
-      supabase,
-      table: 'webhooks',
-      userId: ownerId,
-    }, (payload: any) => {
-      // console.log('subscription payload', payload);
-      const webhook = payload.new;
-      queueManager.waitForTurn(async () => {
-        await handleWebhook(webhook);
-      });
-    });
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  // // subscribe to webhooks
+  // useEffect(() => {
+  //   const channel = supabaseSubscribe({
+  //     supabase,
+  //     table: 'webhooks',
+  //     userId: ownerId,
+  //   }, (payload: any) => {
+  //     // console.log('subscription payload', payload);
+  //     const webhook = payload.new;
+  //     queueManager.waitForTurn(async () => {
+  //       await handleWebhook(webhook);
+  //     });
+  //   });
+  //   return () => {
+  //     supabase.removeChannel(channel);
+  //   };
+  // }, []);
 
   const purchases = agentWebhooksState.webhooks.map((webhook) => {
     const {
