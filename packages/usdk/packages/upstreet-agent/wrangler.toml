@@ -17,5 +17,4 @@ tag = "v1"
 new_classes = ["DurableObject"]
 
 [vars]
-AGENT_JSON = ""
 WORKER_ENV = "production"
