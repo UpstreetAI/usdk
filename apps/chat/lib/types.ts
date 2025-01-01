@@ -80,3 +80,5 @@ export type FeaturesObject = {
 export type AgentEditorProps = {
   user: any;
 };
+
+export type ModelType = 'chat' | 'vision' | 'voice' | 'imageGeneration' |  'imageToVideo' | 'transcription' | 'translation' | 'embedding';

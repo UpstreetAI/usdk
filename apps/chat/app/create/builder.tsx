@@ -20,7 +20,7 @@ import { defaultVoices } from 'react-agents/util/agent-features-spec.mjs';
 import { makeAnonymousClient } from '@/utils/supabase/supabase-client';
 import { env } from '@/lib/env';
 import defaultAgentSourceCode from 'react-agents/util/agent-default.mjs';
-import { currencies, defaultImageGenerationModel, defaultVoiceModel, defaultChatModel, defaultVisionModel, intervals } from 'react-agents/constants.mjs';
+import { currencies, defaultImageGenerationModel, defaultVoiceModel, defaultChatModel, defaultVisionModel, intervals, defaultEmbeddingModel } from 'react-agents/constants.mjs';
 import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
@@ -30,8 +30,8 @@ import Progress from './progress';
 
 import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
 import FeatureForm from './forms';
-import { calculateFeatureCosts, getModelCost } from '@/utils/cost-calculator';
-import { FeaturesObject, ChatMessage, AgentEditorProps } from '@/lib/types';
+import { calculateFeatureCosts, getModelsCosts } from '@/utils/cost-calculator';
+import { FeaturesObject, ChatMessage, AgentEditorProps, ModelType } from '@/lib/types';
 //
 
 const maxUserMessagesDefault = 5;
@@ -93,43 +93,44 @@ export default function AgentEditor({
   const [isAssistantVisible, setIsAssistantVisible] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
   const [isChatVisible, setIsChatVisible] = useState(false);
-
   const [costEstimate, setCostEstimate] = useState(0);
   const [modelCosts, setModelCosts] = useState({});
   const [costBreakdown, setCostBreakdown] = useState<Record<string, any>>({});
-
+  
   // Add new state for base model costs
   const [baseCosts, setBaseCosts] = useState<any>(null);
-
+  
   // Fetch costs once on mount
   useEffect(() => {
-    const fetchBaseCosts = async () => {
-      const jwt = await getJWT();
-      const [chatCost, visionCost, voiceCost, imageGenerationCost] = await Promise.all([
-        getModelCost(defaultChatModel.split(':')[1], jwt),
-        getModelCost(defaultVisionModel.split(':')[1], jwt),
-        getModelCost(defaultVoiceModel.split(':')[1], jwt),
-        getModelCost(defaultImageGenerationModel.split(':')[1], jwt),
-      ]);
-      
-      setBaseCosts({
-        chat: chatCost,
-        vision: visionCost,
-        voice: voiceCost,
-        imageGeneration: imageGenerationCost
-      });
-    };
-    fetchBaseCosts();
-  }, []);
+    const updateCosts = async () => {
+      try {
+        // Only fetch base costs if we don't have them yet
+        if (!baseCosts) {
+          const jwt = await getJWT();
 
-    // Update costs whenever features change, using cached base costs
-  useEffect(() => {
-    if (baseCosts) {
-      const cost = calculateFeatureCosts(features, baseCosts);
-      setCostEstimate(cost.totalCost);
-      setModelCosts(cost.featureCosts);
-      setCostBreakdown(cost.breakdown);
-    }
+          // base model costs
+          const modelConfig: Partial<Record<ModelType, string>> = {
+            chat: defaultChatModel,
+            embedding: defaultEmbeddingModel,
+            vision: defaultVisionModel,
+            voice: defaultVoiceModel,
+            imageGeneration: defaultImageGenerationModel,
+          };
+          const costs = await getModelsCosts(jwt, modelConfig);
+          setBaseCosts(costs);
+          return; // Return early as the next useEffect will handle calculation
+        }
+        // Calculate costs using existing base costs
+        const cost = calculateFeatureCosts(features, baseCosts);
+        setCostEstimate(cost.totalCost);
+        setModelCosts(cost.featureCosts);
+        setCostBreakdown(cost.breakdown);
+      } catch (error) {
+        console.error('Error updating costs:', error);
+      }
+    };
+  
+    updateCosts();
   }, [features, baseCosts]);
   
   // effects
@@ -941,7 +942,7 @@ export default function AgentEditor({
                           <div><span className="font-medium">Base Chat Costs:</span></div>
                           <div>- Input Cost: ${costBreakdown.chat.inputCost.toFixed(7)}</div>
                           <div>- Output Cost: ${costBreakdown.chat.outputCost.toFixed(7)}</div>
-                          <div>- Total Chat Cost: ${costBreakdown.chat.total.toFixed(7)}</div>
+                          <div>- Total Estimated Daily Chat Cost: ${costBreakdown.chat.total.toFixed(7)}</div>
                         </div>
                       )}
 
@@ -957,19 +958,26 @@ export default function AgentEditor({
                       {/* Voice Costs */}
                       {costBreakdown.voice && (
                         <div className="mt-2">
-                          <div><span className="font-medium">Text-to-Speech:</span></div>
-                          <div>- Voice Cost per Token: ${costBreakdown.voice.inputCost.toFixed(7)}</div>
-                          <div>- Total Voice Cost: ${costBreakdown.voice.total.toFixed(7)}</div>
+                          <div><span className="font-medium">Voice:</span></div>
+                          <div>- Voice Cost per generation: ${costBreakdown.voice.inputCost.toFixed(7)}</div>
+                          <div>- Total Estimated Voice Cost: ${costBreakdown.voice.total.toFixed(7)}</div>
                         </div>
                       )}
 
                       {/* Discord Costs */}
                       {costBreakdown.discord && (
                         <div className="mt-2">
-                          <div><span className="font-medium">Discord Bot:</span></div>
+                          <div><span className="font-medium">Discord:</span></div>
                           <div>- Estimated Daily Interactions: {costBreakdown.discord.interactionCount}</div>
-                          <div>- Cost per Interaction: ${costBreakdown.discord.costPerInteraction.toFixed(7)}</div>
-                          <div>- Total Discord Cost: ${costBreakdown.discord.total.toFixed(7)}</div>
+                          <div>- Total Estimated Discord Cost: ${costBreakdown.discord.total.toFixed(7)}</div>
+                        </div>
+                      )}
+                      {/* Discord Costs */}
+                      {costBreakdown.twitter && (
+                        <div className="mt-2">
+                          <div><span className="font-medium">Twitter:</span></div>
+                          <div>- Estimated Daily Interactions: {costBreakdown.twitter.interactionCount}</div>
+                          <div>- Total Estimated Twitter Cost: ${costBreakdown.twitter.total.toFixed(7)}</div>
                         </div>
                       )}
                     </div>

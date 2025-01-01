@@ -40,6 +40,8 @@ export const defaultVoiceCloningModels = [
   'elevenlabs:eleven_turbo_v2',
 ];
 
+export const defaultEmbeddingModel = 'openai:text-embedding-3-small';
+
 export const defaultChatModel = defaultChatModels[0];
 export const defaultSmallChatModel = defaultSmallChatModels[0];
 export const defaultLargeChatModel = defaultLargeChatModels[0];
