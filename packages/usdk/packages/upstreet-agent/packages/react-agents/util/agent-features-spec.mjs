@@ -93,8 +93,8 @@ export const featureSpecs = [
       },
     },
 
-    // Feature active ( true, false )
-    active: true,
+    // Feature in development ( true, false )
+    dev: false,
   },
   {
     name: 'rateLimit',
@@ -139,8 +139,8 @@ export const featureSpecs = [
         defaultValue: 'Whoa there! Take a moment.',
       },
     },
-    // Feature active ( true, false )
-    active: true,
+    // Feature in development ( true, false )
+    dev: false,
   },
   {
     name: 'discord',
@@ -187,8 +187,8 @@ export const featureSpecs = [
         defaultValue: [],
       },
     },
-    // Feature active ( true, false )
-    active: true,
+    // Feature in development ( true, false )
+    dev: false,
   },
   {
     name: 'twitterBot',
@@ -218,8 +218,8 @@ export const featureSpecs = [
       },
     },
 
-    // Feature active ( true, false )
-    active: true,
+    // Feature in development ( true, false )
+    dev: false,
   },
   {
     name: 'telnyx',
@@ -271,8 +271,8 @@ export const featureSpecs = [
       },
     },
 
-    // Feature active ( true, false )
-    active: false,
+    // Feature in development ( true, false )
+    dev: true,
   },
   {
     name: 'storeItems',
@@ -314,7 +314,7 @@ export const featureSpecs = [
       },
     },
 
-    // Feature IN development ( true, false )
-    active: false,
+    // Feature in development ( true, false )
+    dev: true,
   },
 ];
