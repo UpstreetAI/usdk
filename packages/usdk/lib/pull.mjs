@@ -5,6 +5,9 @@ import { extractZip } from './zip-util.mjs';
 import { npmInstall } from './npm-util.mjs';
 import { aiProxyHost } from '../packages/upstreet-agent/packages/react-agents/util/endpoints.mjs';
 import pc from 'picocolors';
+import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
+import path from 'path';
+import { mkdirp } from 'mkdirp';
 
 export const pull = async (args, opts) => {
   const agentId = args._[0] ?? '';
