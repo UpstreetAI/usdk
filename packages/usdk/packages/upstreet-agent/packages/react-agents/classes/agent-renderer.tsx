@@ -95,6 +95,7 @@ export class AgentRenderer {
   env: any;
   config: any;
   chatsSpecification: ChatsSpecification;
+  supabase: any;
   codecs: any;
 
   registry: RenderRegistry;
@@ -114,17 +115,20 @@ export class AgentRenderer {
     env,
     config,
     chatsSpecification,
+    supabase,
     codecs,
   }: {
     env: any;
     config: any;
     chatsSpecification: ChatsSpecification;
+    supabase: any;
     codecs: any;
   }) {
     // latch arguments
     this.env = env;
     this.config = config;
     this.chatsSpecification = chatsSpecification;
+    this.supabase = supabase;
     this.codecs = codecs;
 
     // create the app context
@@ -151,9 +155,7 @@ export class AgentRenderer {
       return this.env.AGENT_TOKEN;
     };
     const useSupabase = () => {
-      const jwt = useAuthToken();
-      const supabase = new SupabaseStorage({ jwt });
-      return supabase;
+      return this.supabase;
     };
     const useConversationManager = () => {
       return this.conversationManager;

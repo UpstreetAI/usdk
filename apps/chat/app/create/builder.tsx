@@ -3,7 +3,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Editor, { useMonaco } from '@monaco-editor/react';
-import { Button, Icon } from 'ucom';
+import { Button, Icon, IconButton } from 'ucom';
 import { deployEndpointUrl, r2EndpointUrl } from '@/utils/const/endpoints';
 import { getJWT } from '@/lib/jwt';
 import { getUserForJwt } from '@/utils/supabase/supabase-client';
@@ -25,6 +25,11 @@ import { buildAgentSrc } from 'react-agents-builder';
 import { ReactAgentsWorker } from 'react-agents-browser';
 import type { FetchableWorker } from 'react-agents-browser/types';
 import { BackButton } from '@/components/back';
+import { Modal } from './modal';
+import Progress from './progress';
+
+import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
+import FeatureForm from './forms';
 
 //
 
@@ -40,6 +45,12 @@ type ChatMessage = {
 };
 
 type FeaturesObject = {
+  personality: {
+    name: string;
+    bio: string;
+    visualDescription: string;
+    homespaceDescription: string;
+  } | null;
   tts: {
     voiceEndpoint: string;
   } | null;
@@ -57,6 +68,7 @@ type FeaturesObject = {
     token: string;
   } | null;
 };
+
 type AgentEditorProps = {
   user: any;
 };
@@ -98,6 +110,7 @@ export default function AgentEditor({
 
   const [voices, setVoices] = useState(() => defaultVoices.slice());
   const [features, setFeatures] = useState<FeaturesObject>({
+    personality: null,
     tts: null,
     rateLimit: null,
     storeItems: null,
@@ -392,6 +405,7 @@ export default function AgentEditor({
       stopAgent();
     }
   };
+
   const ensureAgentInterview = () => {
     if (!agentInterviewPromiseRef.current) {
       agentInterviewPromiseRef.current = (async () => {
@@ -479,666 +493,500 @@ export default function AgentEditor({
     </button>
   );
 
-  const gridClass = 'border-2 relative cursor-pointer text-gray-900 p-4 hover:shadow-lg col-span-6 md:col-span-2 lg:col-span-3';
-  const expandedClass = 'bg-gray-900 text-white';
   const inputClass = 'w-60 px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm w-full mb-2';
   const textareaClass = 'w-full px-4 py-2 bg-[#E4E8EF] border-2 border-[#475461] text-gray-900 text-sm mb-2 resize-none';
+
+
+  const featureWrapperClass = 'bg-gradient-to-t from-[#6AA6EB] to-[#0E468A] hover:from-[#003A82] hover:to-[#003A82] p-[2px] cursor-pointer relative inline-block text-center border w-full md:w-[calc(33.333%-1rem)] sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] m-2 transition-colors duration-300';
+  const featureClass = 'bg-[#000C19] px-4 py-6 text-[#85B0E5] hover:bg-[#003A82] transition-colors duration-300';
+  const featureClassActive = 'bg-[#0155BC]';
+  const featureClassInDevelopment = 'opacity-50 hover:opacity-80';
+  const featureIconClass = 'size-10 mx-auto';
+  const featureTextClass = 'pt-4 text-sm font-medium capitalize font-body lg:text-lg md:text-base md:pt-2';
+
+  const [modalOpen, setModalOpen] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+
+  const enablePersonality = () => {
+    setModalOpen('personality');
+    setIsPersonalityExpanded(true);
+  };
+
+  const disablePersonality = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setName('');
+    setBio('');
+    setVisualDescription('');
+    setHomespaceDescription('');
+    setIsPersonalityExpanded(false);
+    setModalOpen(null);
+  };
+
+
+  useEffect(() => {
+    if (step === 1) {
+      if (worker) {
+        stopAgent();
+      }
+    }
+    if (step === 2) {
+      if (!worker && monaco && user) {
+        startAgent();
+      }
+    }
+  }, [worker, monaco, user, step]);
+
+  // Add Feature
+  const addFeature = (featureType: keyof FeaturesObject, defaultValue: any) => {
+    setFeatures((prevFeatures) => ({
+      ...prevFeatures,
+      [featureType]: defaultValue,
+    }));
+  };
+
+  // Remove Feature
+  const removeFeature = (featureType: keyof FeaturesObject, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFeatures((prevFeatures) => ({
+      ...prevFeatures,
+      [featureType]: null,
+    }));
+  };
+
+
+  console.log('featureSpecs', featureSpecs);
+
   // render
   return (
     <div className="relative">
-      <div className='w-full h-full text-zinc-950'>
-        <div className="flex">
-          <div className="container mx-auto max-w-2xl px-4 py-8">
-            <form className="relative" ref={editorForm} onSubmit={e => {
-              e.preventDefault();
+      <div className='w-full h-screen text-zinc-950 bg-[url("/images/backgrounds/builder-background.jpg")] bg-center bg-cover'>
+        <div className="flex h-full overflow-y-auto">
+          <div className="container h-full flex flex-col justify-center mx-auto max-w-4xl px-4 py-8 text-gray-100">
+            <div>
+              <h1 className="text-4xl font-bold mb-6 text-center mt-4">Create Agent</h1>
 
-              // check if the form is validated
-              const valid = builderForm.current?.checkValidity();
-              if (valid) {
-                (async () => {
-                  try {
-                    setDeploying(true);
+              {/* <p className="text-lg mb-8 text-center">
+                Build and deploy your agent in 3 steps.
+              </p> */}
 
-                    // get the value from monaco editor
-                    const value = getEditorValue();
-                    console.log('deploy 1', {
-                      name,
-                      bio,
-                      visualDescription,
-                      previewBlob,
-                      value,
-                    });
-
-                    const jwt = await getJWT();
-                    if (jwt) {
-                      const [
-                        userPrivate,
-                        id,
-                        previewUrl,
-                        homespaceUrl,
-                      ] = await Promise.all([
-                        getUserForJwt(jwt, { private: true }),
-                        createAgentGuid({ jwt }),
-                        getCloudPreviewUrl(previewBlob),
-                        getCloudPreviewUrl(homespaceBlob),
-                      ]);
-                      const {
-                        id: ownerId,
-                        stripe_connect_account_id: stripeConnectAccountId,
-                      } = userPrivate;
-
-                      // agent.json
-                      let agentJson = {
-                        id,
-                        ownerId,
-                        name,
-                        bio,
-                        visualDescription,
-                        previewUrl,
-                        homespaceUrl,
-                        stripeConnectAccountId,
-                      };
-                      agentJson = ensureAgentJsonDefaults(agentJson);
-                      console.log('deploy 2', {
-                        agentJson,
-                      });
-                      const agentJsonString = JSON.stringify(agentJson, null, 2);
-                      const agentJsonFile = new File([agentJsonString], 'agent.json');
-
-                      // .env.txt
-                      const mnemonic = generateMnemonic();
-                      const envTxt = [
-                        `AGENT_TOKEN=${JSON.stringify(jwt)}`,
-                        `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
-                      ].join('\n');
-                      const envTxtFile = new File([envTxt], '.env.txt');
-
-                      // agent.tsx
-                      const agentTsxFile = new File([sourceCode], 'agent.tsx');
-
-                      const files = [
-                        agentJsonFile,
-                        envTxtFile,
-                        agentTsxFile,
-                      ];
-                      const formData = new FormData();
-                      files.forEach(file => {
-                        formData.append(file.name, file);
-                      });
-
-                      const res = await fetch(`${deployEndpointUrl}/agent`, {
-                        method: 'PUT',
-                        headers: {
-                          Authorization: `Bearer ${jwt}`,
-                        },
-                        body: formData,
-                      });
-                      if (res.ok) {
-                        const j = await res.json();
-                        console.log('deploy 3', j);
-                        // const agentJsonOutputString = j.vars.AGENT_JSON;
-                        // const agentJsonOutput = JSON.parse(agentJsonOutputString);
-                        // const guid = agentJsonOutput.id;
-                        // location.href = `/agents/${guid}`;
-                      } else {
-                        const text = await res.text();
-                        console.error('failed to deploy agent', res.status, text);
-                      }
-                    } else {
-                      throw new Error('not logged in');
-                    }
-                  } finally {
-                    setDeploying(false);
+              <div className='mx-auto max-w-xl mb-4'>
+                <Progress
+                  currentStep={step}
+                  steps={
+                    [
+                      {
+                        title: 'Customize',
+                        Icon: 'Tiling',
+                        description: 'Customize your agents personality',
+                      },
+                      {
+                        title: 'Test',
+                        Icon: 'Head',
+                        description: 'Test your agent',
+                      },
+                      {
+                        title: 'Deploy',
+                        Icon: 'Upload',
+                        description: 'Deploy your agent',
+                      },
+                    ]
                   }
-                })();
-              }
-            }}>
-              <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold mb-4">Build your agent</h1>
-                <div className="flex gap-2 -mt-4">
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      setIsAssistantVisible(!isAssistantVisible);
-                      setIsChatVisible(false);
-                      setIsCodeVisible(false);
-                      worker && toggleAgent();
-                    }}
-                    active={isAssistantVisible}
-                  >
-                    {'Assistant'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      toggleAgent();
-                      setIsChatVisible(!isChatVisible);
-                      setIsAssistantVisible(false);
-                      setIsCodeVisible(false);
-                    }}
-                    disabled={starting || connecting}
-                    active={isChatVisible}
-                  >
-                    {starting ? 'Starting...' : connecting ? 'Connecting...' : worker ? 'Stop Chat' : 'Chat'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      setIsCodeVisible(!isCodeVisible);
-                      setIsChatVisible(false);
-                      setIsAssistantVisible(false);
-                      worker && toggleAgent();
-                    }}
-                    active={isCodeVisible}
-                  >
-                    {'Code'}
-                  </Button>
-
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (starting || connecting) return;
-                      editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                    }}
-                    disabled={deploying}
-                  >
-                    {!deploying ? `Deploy` : 'Deploying...'}
-                  </Button>
-                </div>
+                />
               </div>
-              <p className="text-lg text-gray-800 mb-4">
-                Select the features you want to enable for your agent.
-              </p>
-              <div className="grid grid-cols-1 gap-6">
-                <div
-                  className={`${gridClass} ${isPersonalityExpanded ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => !isPersonalityExpanded && setIsPersonalityExpanded(true)}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {isPersonalityExpanded && (
-                      <CloseButton onClick={() => setIsPersonalityExpanded(false)} />
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">Personality <span className="text-sm text-gray-500">(default)</span></h2>
-                  <div>
-                    {isPersonalityExpanded ? (
-                      <div className="mt-4">
-                        <label>
-                          <span className="mb-2">Name</span>
-                          <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
-                        </label>
-                        <label>
-                          <span className="mb-2">Bio</span>
-                          <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
-                        </label>
+            </div>
 
-                        <div className="flex items-center mb-4 mt-4">
-                          {previewUrl ? (
-                            <Link href={previewUrl} target="_blank">
-                              <div
-                                className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                                style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                              />
-                            </Link>
-                          ) : (
-                            <div
-                              className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                              style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                            />
-                          )}
-                          <div className="w-full">
-                            <textarea
-                              className={textareaClass}
-                              value={visualDescription}
-                              placeholder="Describe your agent's appearance"
-                              onChange={e => setVisualDescription(e.target.value)}
-                            />
-                            <Button
-                              onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (visualDescription) {
-                                  (async () => {
-                                    const jwt = await getJWT();
-                                    const result = await generateCharacterImage(visualDescription, undefined, { jwt });
-                                    setPreviewBlob(result.blob);
-                                  })();
-                                }
-                              }}
-                              className="w-full"
-                            >
-                              {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="flex items-center mb-4">
-                          {homespaceUrl ? (
-                            <Link href={homespaceUrl} target="_blank">
-                              <div
-                                className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                                style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-                              />
-                            </Link>
-                          ) : (
-                            <div
-                              className='w-28 h-28 min-w-28 mr-4 bg-primary/10 rounded'
-                              style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
-                            />
-                          )}
-                          <div className="w-full">
-                            <textarea
-                              className={textareaClass}
-                              value={homespaceDescription}
-                              placeholder="Describe your agent's home space and environment"
-                              onChange={e => setHomespaceDescription(e.target.value)}
-                            />
-                            <Button
-                              onClick={e => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                if (homespaceDescription) {
-                                  (async () => {
-                                    const jwt = await getJWT();
-                                    const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
-                                    setHomespaceBlob(result.blob);
-                                  })();
-                                }
-                              }}
-                              className="w-full"
-                            >
-                              {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>Customize your agents personality, including visuals.</div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`${gridClass} ${features.tts ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => {
-                    !features.tts && setFeatures({
-                      ...features,
-                      tts: makeDefaultTts(),
-                    });
-                  }}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {features.tts && (
-                      <CloseButton onClick={() => {
-                        setFeatures({
-                          ...features,
-                          tts: null,
-                        });
-                      }} />
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">Voice (TTS) <span className="text-sm text-gray-500">(default)</span></h2>
-                  <div>
-                    {features.tts ? (
-                      <div>
-                        <select
-                          className={inputClass}
-                          value={features.tts?.voiceEndpoint ?? ''}
-                          onChange={e => {
-                            setFeatures(features => (
-                              {
-                                ...features,
-                                tts: {
-                                  voiceEndpoint: e.target.value,
-                                },
-                              }
-                            ));
-                          }}
-                        >
-                          {voices.map(voice => {
-                            return (
-                              <option key={voice.voiceEndpoint} value={voice.voiceEndpoint}>{voice.name}</option>
-                            );
-                          })}
-                        </select>
-                      </div>
-                    ) : (
-                      <div>Convert text to speech with customizable voice options.</div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`${gridClass} ${features.rateLimit ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => {
-                    !features.rateLimit && setFeatures({
-                      ...features,
-                      rateLimit: makeDefaultRateLimit(),
-                    });
-                  }}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {features.rateLimit && (
-                      <CloseButton onClick={() => {
-                        setFeatures({
-                          ...features,
-                          rateLimit: null,
-                        });
-                      }} />
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">Rate Limit</h2>
-                  <div>
-                    {features.rateLimit ? (
-                      <div>
-                        <div className="flex flex-col">
-                          <label className="flex">
-                            <div className="mr-2 min-w-32"># messages</div>
-                            <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessages ?? ''} onChange={e => {
-                              setFeatures(features => {
-                                features = {
-                                  ...features,
-                                  rateLimit: {
-                                    maxUserMessages: parseInt(e.target.value, 10) || 0,
-                                    maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                                    message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                                  },
-                                };
-                                e.target.value = (features.rateLimit as any).maxUserMessages + '';
-                                return features;
-                              });
-                            }} min={0} step={1} placeholder={maxUserMessagesDefault + ''} />
-                          </label>
-                          <label className="flex">
-                            <div className="mr-2 min-w-32">time (ms)</div>
-                            <input type="number" className={inputClass} value={features.rateLimit?.maxUserMessagesTime ?? ''} onChange={e => {
-                              setFeatures(features => {
-                                features = {
-                                  ...features,
-                                  rateLimit: {
-                                    maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                                    maxUserMessagesTime: parseInt(e.target.value, 10) || 0,
-                                    message: features.rateLimit?.message ?? rateLimitMessageDefault,
-                                  },
-                                };
-                                e.target.value = (features.rateLimit as any).maxUserMessagesTime + '';
-                                return features;
-                              });
-                            }} min={0} step={1} placeholder={maxUserMessagesTimeDefault + ''} />
-                          </label>
-                          <label className="flex">
-                            <div className="mr-2 min-w-32">message</div>
-                            <input type="text" className={inputClass} value={features.rateLimit?.message ?? ''} onChange={e => {
-                              setFeatures(features => (
-                                {
-                                  ...features,
-                                  rateLimit: {
-                                    maxUserMessages: features.rateLimit?.maxUserMessages ?? 0,
-                                    maxUserMessagesTime: features.rateLimit?.maxUserMessagesTime ?? 0,
-                                    message: e.target.value,
-                                  },
-                                }
-                              ));
-                            }} placeholder="Rate limit message" />
-                          </label>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>Control message frequency to prevent spam and ensure fair usage.</div>
-                    )}
-                  </div>
-                </div>
+            <div className="h-full overflow-y-auto">
 
-                <div
-                  className={`${gridClass} ${features.discord ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => {
-                    !features.discord && setFeatures({
-                      ...features,
-                      discord: makeDefaultDiscord(),
-                    });
-                  }}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {features.discord && (
-                      <CloseButton onClick={() => {
-                        setFeatures({
-                          ...features,
-                          discord: null,
+              {/* STEP 1 */}
+
+              <div className={cn('flex flex-row h-full', step !== 1 && 'hidden')}>
+
+                <form className="w-full relative" ref={editorForm} onSubmit={e => {
+                  e.preventDefault();
+
+                  // check if the form is validated
+                  const valid = builderForm.current?.checkValidity();
+                  if (valid) {
+                    (async () => {
+                      try {
+                        setDeploying(true);
+
+                        // get the value from monaco editor
+                        const value = getEditorValue();
+                        console.log('deploy 1', {
+                          name,
+                          bio,
+                          visualDescription,
+                          previewBlob,
+                          value,
                         });
-                      }} />
-                    )}
+
+                        const jwt = await getJWT();
+                        if (jwt) {
+                          const [
+                            userPrivate,
+                            id,
+                            previewUrl,
+                            homespaceUrl,
+                          ] = await Promise.all([
+                            getUserForJwt(jwt, { private: true }),
+                            createAgentGuid({ jwt }),
+                            getCloudPreviewUrl(previewBlob),
+                            getCloudPreviewUrl(homespaceBlob),
+                          ]);
+                          const {
+                            id: ownerId,
+                            stripe_connect_account_id: stripeConnectAccountId,
+                          } = userPrivate;
+
+                          // agent.json
+                          let agentJson = {
+                            id,
+                            ownerId,
+                            name,
+                            bio,
+                            visualDescription,
+                            previewUrl,
+                            homespaceUrl,
+                            stripeConnectAccountId,
+                          };
+                          agentJson = ensureAgentJsonDefaults(agentJson);
+                          console.log('deploy 2', {
+                            agentJson,
+                          });
+                          const agentJsonString = JSON.stringify(agentJson, null, 2);
+                          const agentJsonFile = new File([agentJsonString], 'agent.json');
+
+                          // .env.txt
+                          const mnemonic = generateMnemonic();
+                          const envTxt = [
+                            `AGENT_TOKEN=${JSON.stringify(jwt)}`,
+                            `WALLET_MNEMONIC=${JSON.stringify(mnemonic)}`,
+                          ].join('\n');
+                          const envTxtFile = new File([envTxt], '.env.txt');
+
+                          // agent.tsx
+                          const agentTsxFile = new File([sourceCode], 'agent.tsx');
+
+                          const files = [
+                            agentJsonFile,
+                            envTxtFile,
+                            agentTsxFile,
+                          ];
+                          const formData = new FormData();
+                          files.forEach(file => {
+                            formData.append(file.name, file);
+                          });
+
+                          const res = await fetch(`${deployEndpointUrl}/agent`, {
+                            method: 'PUT',
+                            headers: {
+                              Authorization: `Bearer ${jwt}`,
+                            },
+                            body: formData,
+                          });
+                          if (res.ok) {
+                            const j = await res.json();
+                            console.log('deploy 3', j);
+                            // const agentJsonOutputString = j.vars.AGENT_JSON;
+                            // const agentJsonOutput = JSON.parse(agentJsonOutputString);
+                            // const guid = agentJsonOutput.id;
+                            // location.href = `/agents/${guid}`;
+                          } else {
+                            const text = await res.text();
+                            console.error('failed to deploy agent', res.status, text);
+                          }
+                        } else {
+                          throw new Error('not logged in');
+                        }
+                      } finally {
+                        setDeploying(false);
+                      }
+                    })();
+                  }
+                }}>
+
+                  <div className='text-lg text-zinc-200 font-bold flex flex-row items-center justify-center mb-4 mt-2'>
+                    <Icon icon="Tiling" className='size-5 mr-2' /> <h2>Select features for your agent.</h2>
                   </div>
-                  <h2 className="text-lg font-bold mb-2">Discord</h2>
-                  <div>
-                    {features.discord ? (
-                      <div>
-                        <div className="flex flex-col">
-                          {/* token */}
-                          <label className="flex">
-                            <div className="mr-2 min-w-32">Token</div>
-                            <input type="text" className={inputClass} value={features.discord.token} onChange={e => {
-                              setFeatures(features => ({
-                                ...features,
-                                discord: {
-                                  token: e.target.value,
-                                  channels: features.discord?.channels ?? '',
-                                },
-                              }));
-                            }} placeholder="<bot token>" required />
-                          </label>
-                          {/* channels */}
-                          <label className="flex">
-                            <div className="mr-2 min-w-32">Channels</div>
-                            <input type="text" className={inputClass} value={features.discord.channels} onChange={e => {
-                              setFeatures(features => ({
-                                ...features,
-                                discord: {
-                                  token: features.discord?.token ?? '',
-                                  channels: e.target.value,
-                                },
-                              }));
-                            }} placeholder="text, voice" required />
-                          </label>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>Integrate with Discord to enable agent interactions in channels.</div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`${gridClass} ${features.twitterBot ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => {
-                    !features.twitterBot && setFeatures({
-                      ...features,
-                      twitterBot: makeDefaultTwitterBot(),
-                    });
-                  }}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {features.twitterBot && (
-                      <CloseButton onClick={() => {
-                        setFeatures({
-                          ...features,
-                          twitterBot: null,
-                        });
-                      }} />
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">Twitter</h2>
-                  <div>
-                    {features.twitterBot ? (
-                      <div>
-                        <div className="flex flex-col">
-                          <label className="flex">
-                            <div className="mr-2 min-w-32">Token</div>
-                            <input type="text" className={inputClass} value={features.twitterBot.token} onChange={e => {
-                              setFeatures(features => ({
-                                ...features,
-                                twitterBot: {
-                                  token: e.target.value,
-                                },
-                              }));
-                            }} placeholder="<bot token>" required />
-                          </label>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>Enable your agent to post and interact on Twitter automatically.</div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  className={`${gridClass} ${features.storeItems ? `col-span-12 ${expandedClass}` : 'col-span-6 md:col-span-4 lg:col-span-3'}`}
-                  onClick={() => {
-                    !features.storeItems && setFeatures({
-                      ...features,
-                      storeItems: makeEmptyStoreItems(),
-                    });
-                  }}
-                >
-                  <div className='absolute top-2 right-2'>
-                    {features.storeItems && (
-                      <CloseButton onClick={() => {
-                        setFeatures({
-                          ...features,
-                          storeItems: null,
-                        });
-                      }} />
-                    )}
-                  </div>
-                  <h2 className="text-lg font-bold mb-2">Store</h2>
-                  <div>
-                    {features.storeItems ? (
-                      <div>
-                        <div className="flex flex-col">
-                          {features.storeItems.map((item, index) => {
-                            const {
-                              type,
-                              props,
-                            } = item;
-                            const setStoreItem = (fn: (storeItem: StoreItem) => void) => {
-                              setFeatures(features => {
-                                const storeItems = features.storeItems ?? [];
-                                const newStoreItems = [...storeItems];
-                                const newStoreItem = { ...item };
-                                fn(newStoreItem);
-                                newStoreItems[index] = newStoreItem;
-                                return {
-                                  ...features,
-                                  storeItems: newStoreItems,
-                                };
-                              });
-                            };
-                            return (
-                              <div className="flex" key={index}>
-                                {props.previewUrl ?
-                                  <img
-                                    src={props.previewUrl}
-                                    className="w-16 h-16 mr-2 bg-primary/10 rounded"
-                                  />
-                                  :
+
+                  <div className="flex flex-wrap justify-center w-full mb-8">
+
+
+                    <div className={featureWrapperClass}>
+                      <div
+                        onClick={enablePersonality}
+                        className={cn(featureClass, isPersonalityExpanded ? featureClassActive : '')}
+                      >
+                        <div>
+                          <Icon
+                            icon="Close"
+                            className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !isPersonalityExpanded && 'hidden')}
+                            onClick={disablePersonality}
+                          />
+                          <Icon icon="Head" className={featureIconClass} />
+                          <p className={featureTextClass}>
+                            Personality
+                          </p>
+                          {/* modal */}
+                          <Modal
+                            icon="Head"
+                            title="Personality"
+                            description="Customize your agents personality, including visuals."
+                            open={modalOpen === 'personality'}
+                            close={() => setModalOpen(null)}
+                            disableFeature={() => {
+                              setName('');
+                              setBio('');
+                              setVisualDescription('');
+                              setHomespaceDescription('');
+                              setIsPersonalityExpanded(false);
+                              setModalOpen(null);
+                            }}
+                          >
+                            <div className="mt-4">
+                              <label>
+                                <span className="mb-2">Name</span>
+                                <input type="text" className={inputClass} value={name} placeholder="Give your agent a name" onChange={e => setName(e.target.value)} />
+                              </label>
+                              <label>
+                                <span className="mb-2">Bio</span>
+                                <input type="text" className={inputClass} value={bio} placeholder="Describe your agent's personality" onChange={e => setBio(e.target.value)} />
+                              </label>
+                              <div className="flex items-center mb-4 mt-4">
+                                {previewUrl ? (
+                                  <Link href={previewUrl} target="_blank">
+                                    <div
+                                      className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                      style={{ backgroundImage: `url(${previewUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    />
+                                  </Link>
+                                ) : (
                                   <div
-                                    className="w-16 h-16 mr-2 bg-primary/10 rounded"
+                                    className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                    style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
                                   />
-                                }
-                                <div className="flex flex-col">
-                                  <select value={type} className={inputClass} onChange={e => {
-                                    setStoreItem((storeItem) => {
-                                      storeItem.type = e.target.value;
-                                    });
-                                  }}>
-                                    <option value="payment">payment</option>
-                                    <option value="subscription">subscription</option>
-                                  </select>
-                                  <input type="text" className={inputClass} value={props.name} onChange={e => {
-                                    setStoreItem((storeItem) => {
-                                      storeItem.props.name = e.target.value;
-                                    });
-                                  }} placeholder="Name" />
-                                  <input type="text" className={inputClass} value={props.description} onChange={e => {
-                                    setStoreItem((storeItem) => {
-                                      storeItem.props.description = e.target.value;
-                                    });
-                                  }} placeholder="Description" />
-                                  <input type="number" className={inputClass} value={props.amount} onChange={e => {
-                                    setStoreItem((storeItem) => {
-                                      storeItem.props.amount = parseFloat(e.target.value);
-                                    });
-                                  }} placeholder="Amount" />
-                                  <select className={inputClass} value={props.currency} onChange={e => {
-                                    setStoreItem((storeItem) => {
-                                      storeItem.props.currency = e.target.value as Currency;
-                                    });
-                                  }}>
-                                    {currencies.map(currency => {
-                                      return (
-                                        <option value={currency} key={currency}>{currency}</option>
-                                      );
-                                    })}
-                                  </select>
-                                  {type === 'subscription' && <>
-                                    {/* interval */}
-                                    <select className={inputClass} value={(props as SubscriptionProps).interval} onChange={e => {
-                                      setStoreItem((storeItem) => {
-                                        (storeItem.props as SubscriptionProps).interval = e.target.value as Interval;
-                                      });
-                                    }}>
-                                      <option value="day">day</option>
-                                      <option value="week">week</option>
-                                      <option value="month">month</option>
-                                      <option value="year">year</option>
-                                    </select>
-                                    {/* intervalCount */}
-                                    <input type="number" className={inputClass} value={(props as SubscriptionProps).intervalCount} onChange={e => {
-                                      setStoreItem((storeItem) => {
-                                        (storeItem.props as SubscriptionProps).intervalCount = parseFloat(e.target.value);
-                                      });
-                                    }} placeholder="Interval count" />
-                                  </>}
+                                )}
+                                <div className="w-full">
+                                  <textarea
+                                    className={textareaClass}
+                                    value={visualDescription}
+                                    placeholder="Describe your agent's appearance"
+                                    onChange={e => setVisualDescription(e.target.value)}
+                                  />
+                                  <Button
+                                    onClick={e => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      if (visualDescription) {
+                                        (async () => {
+                                          const jwt = await getJWT();
+                                          const result = await generateCharacterImage(visualDescription, undefined, { jwt });
+                                          setPreviewBlob(result.blob);
+                                        })();
+                                      }
+                                    }}
+                                    className="w-full"
+                                  >
+                                    {previewUrl ? 'ReGenerate' : 'Generate'} Agent Avatar
+                                  </Button>
                                 </div>
                               </div>
-                            );
-                          })}
+                              <div className="flex items-center mb-4">
+                                {homespaceUrl ? (
+                                  <Link href={homespaceUrl} target="_blank">
+                                    <div
+                                      className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                      style={{ backgroundImage: `url(${homespaceUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                    />
+                                  </Link>
+                                ) : (
+                                  <div
+                                    className='w-28 h-28 min-w-28 mr-4 bg-zinc-300'
+                                    style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}
+                                  />
+                                )}
+                                <div className="w-full">
+                                  <textarea
+                                    className={textareaClass}
+                                    value={homespaceDescription}
+                                    placeholder="Describe your agent's home space and environment"
+                                    onChange={e => setHomespaceDescription(e.target.value)}
+                                  />
+                                  <Button
+                                    onClick={e => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      if (homespaceDescription) {
+                                        (async () => {
+                                          const jwt = await getJWT();
+                                          const result = await generateBackgroundImage(homespaceDescription, undefined, { jwt });
+                                          setHomespaceBlob(result.blob);
+                                        })();
+                                      }
+                                    }}
+                                    className="w-full"
+                                  >
+                                    {homespaceUrl ? 'Re-generate' : 'Generate'} Agent Homespace
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </Modal>
                         </div>
                       </div>
-                    ) : (
-                      <div>Define items for sale, including subscriptions and one-time purchases.</div>
-                    )}
+                    </div>
+
+                    {/* ACTIVE FEATURES (featureSpec.active === true) */}
+
+                    {featureSpecs
+                      .filter(featureSpec => featureSpec.active)
+                      .map((featureSpec) => {
+                        const { name, form, displayName, displayDescription, displayIcon } = featureSpec;
+
+                        // Extract default values from the form object in featureSpec
+                        const defaultValues = Object.keys(form).reduce((acc, key) => {
+                          acc[key] = form[key].defaultValue;
+                          return acc;
+                        }, {});
+
+                        return (
+                          <div className={featureWrapperClass} key={name}>
+                            <div
+                              onClick={() => {
+                                setModalOpen(name);
+                                !features[name] && addFeature(name as keyof FeaturesObject, defaultValues);
+                              }}
+                              className={cn(featureClass, features[name] ? featureClassActive : '')}
+                            >
+                              <div>
+                                <Icon
+                                  icon="Close"
+                                  className={cn('size-5 text-white cursor-pointer absolute top-2 right-2', !features[name] && 'hidden')}
+                                  onClick={(e) => removeFeature(name as keyof FeaturesObject, e)}
+                                />
+
+                                <Icon icon={displayIcon ?? 'Upstreet'} className={featureIconClass} />
+
+                                <p className={featureTextClass}>
+                                  {displayName ?? name}
+                                </p>
+
+                                <Modal
+                                  icon={displayIcon ?? 'Upstreet'}
+                                  title={displayName ?? name}
+                                  description={displayDescription}
+                                  open={modalOpen === name}
+                                  close={() => setModalOpen(null)}
+                                  disableFeature={() => {
+                                    setFeatures({
+                                      ...features,
+                                      [name]: null,
+                                    });
+                                    setModalOpen(null);
+                                  }}
+                                >
+                                  <div className="w-full">
+                                    <FeatureForm featureSpec={featureSpec} featureName={name} features={features} setFeatures={setFeatures} />
+                                  </div>
+                                </Modal>
+
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    {/* INACTIVE FEATURES ( In development, featureSpec.active === false) */}
+
+                    {featureSpecs
+                      .filter(featureSpec => !featureSpec.active)
+                      .map((featureSpec) => {
+                        return (
+                          <div className={cn(featureWrapperClass, featureClassInDevelopment)} key={featureSpec.name}>
+                            <div
+                              className={cn(featureClass)}
+                            >
+                              <div>
+                                <Icon icon={'Lock'} className={featureIconClass} />
+                                <p className={featureTextClass}>
+                                  {featureSpec.displayName ?? featureSpec.name}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                  </div>
+                </form>
+              </div>
+
+              {/* STEP 2 */}
+
+              <div className={cn('flex flex-row h-full items-center justify-center', step !== 2 && 'hidden')}>
+                <div className={`flex flex-col w-[400px] h-full`}>
+
+                  <div className='text-lg font-bold flex flex-row items-center justify-center mb-4'><Icon icon="Chat" className='size-5 mr-2' /> <h2>Test Agent</h2></div>
+                  <div className='h-full w-full relative'>
+                    <Chat
+                      room={room}
+                      mode={'builder'}
+                      onConnect={(connected) => {
+                        if (connected) {
+                          setConnecting(false);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               </div>
-            </form>
-          </div>
 
-          {/* chat */}
+              {/* STEP 3 */}
 
-          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isChatVisible ? '' : 'hidden'}`}>
-            <Chat
-              room={room}
-              mode={'builder'}
-              onConnect={(connected) => {
-                if (connected) {
-                  setConnecting(false);
-                }
-              }}
-            />
+              <div className={cn('flex flex-col items-center justify-center h-full', step !== 3 && 'hidden')}>
+
+                <Button
+                  onClick={() => {
+                    setDeploying(true);
+                    editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                  }}
+                >
+                  {!deploying ? `Deploy` : 'Deploying...'}
+                </Button>
+              </div>
+
+            </div>
+
+            <div className='flex flex-row justify-center mt-8'>
+              {step === 1 && (
+                <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+              )}
+              {step === 3 && (
+                <Button variant='secondary' className='p-2' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+              )}
+              {step !== 1 && step !== 3 && (
+                <>
+                  <Button variant='secondary' className='p-2 mr-auto' size='large' onClick={() => setStep(step - 1)}>Back</Button>
+                  <Button variant='secondary' className='p-2 ml-auto' size='large' onClick={() => setStep(step + 1)}>Next</Button>
+                </>
+              )}
+            </div>
+
           </div>
 
           {/* assistant */}
 
-          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isAssistantVisible ? '' : 'hidden'}`}>
-            <div className="flex flex-col flex-1 h-full bg-primary/10 overflow-scroll pt-14">
+          <div className={`flex-col relative right-4 bottom-4 h-full w-[300px] bg-white ${isAssistantVisible ? '' : 'hidden'}`}>
+            <div className="flex flex-col flex-1 h-[calc(100%-40px)] overflow-scroll px-1 pb-8 pt-6">
               {builderMessages.map((message, index) => (
                 <div key={index} className={cn('flex gap-2 mb-4 px-4')}>
                   <div className='w-6 min-w-6'><Icon icon={message.role === 'assistant' ? 'Upstreet' : 'Head'} className="size-5" /></div>
-                   <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
+                  <div className={message.role === 'assistant' ? '' : ' opacity-70'}>{message.content}</div>
                 </div>
               ))}
             </div>
-            <div className="flex absolute bottom-0 left-0 w-full px-2">
+            <div className="flex absolute h-[40px] bg-green-500 bottom-0 left-0 w-full">
               <form
                 className="flex w-full"
                 onSubmit={async e => {
@@ -1187,39 +1035,40 @@ export default function AgentEditor({
             </div>
           </div>
 
-          {/* code editor */}
-
-          <div className={`flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900 ${isCodeVisible ? '' : 'hidden'}`}>
-            <Editor
-              theme="vs-dark"
-              defaultLanguage="javascript"
-              defaultValue={sourceCode}
-              options={{
-                readOnly: deploying,
-              }}
-              onMount={(editor, monaco) => {
-                (editor as any)._domElement.parentNode.style.flex = 1;
-
-                const model = editor.getModel();
-                if (model) {
-                  model.onDidChangeContent(() => {
-                    const s = getEditorValue(monaco);
-                    setSourceCode(s);
-                  });
-                } else {
-                  console.warn('no model', editor);
-                }
-
-                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
-                  startAgent({
-                    sourceCode: getEditorValue(monaco),
-                  });
-                });
-              }}
-            />
-          </div>
-
         </div>
+
+        {/* code editor */}
+
+        <div className={`hidden flex-col h-screen w-[30vw] max-w-[30vw] flex-1 relative border-l border-zinc-900`}>
+          <Editor
+            theme="vs-dark"
+            defaultLanguage="javascript"
+            defaultValue={sourceCode}
+            options={{
+              readOnly: deploying,
+            }}
+            onMount={(editor, monaco) => {
+              (editor as any)._domElement.parentNode.style.flex = 1;
+
+              const model = editor.getModel();
+              if (model) {
+                model.onDidChangeContent(() => {
+                  const s = getEditorValue(monaco);
+                  setSourceCode(s);
+                });
+              } else {
+                console.warn('no model', editor);
+              }
+
+              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+                startAgent({
+                  sourceCode: getEditorValue(monaco),
+                });
+              });
+            }}
+          />
+        </div>
+
       </div>
     </div>
   );

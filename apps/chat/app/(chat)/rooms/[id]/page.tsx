@@ -27,6 +27,7 @@ export default async function RoomPage({ params, searchParams }: Params) {
       <Chat
         room={roomName}
         desktop={desktop}
+        mode="web"
       />
 
       <SidebarDesktopRight />
