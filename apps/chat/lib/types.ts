@@ -1,4 +1,5 @@
 import { CoreMessage } from 'ai'
+import { StoreItem } from 'react-agents/types';
 
 export type Message = CoreMessage & {
   id: string
@@ -44,3 +45,38 @@ export interface User extends Record<string, any> {
   password: string
   salt: string
 }
+
+
+export type ChatMessage = {
+  role: string;
+  content: string;
+};
+
+export type FeaturesObject = {
+  personality: {
+    name: string;
+    bio: string;
+    visualDescription: string;
+    homespaceDescription: string;
+  } | null;
+  tts: {
+    voiceEndpoint: string;
+  } | null;
+  rateLimit: {
+    maxUserMessages: number;
+    maxUserMessagesTime: number;
+    message: string;
+  } | null;
+  storeItems: StoreItem[] | null;
+  discord: {
+    token: string;
+    channels: string;
+  } | null;
+  twitterBot: {
+    token: string;
+  } | null;
+};
+
+export type AgentEditorProps = {
+  user: any;
+};

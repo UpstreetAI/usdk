@@ -8,6 +8,8 @@ import {
     defaultVoiceModels
 } from 'react-agents/constants.mjs';
 import { aiProxyHost } from './const/endpoints';
+import { FeaturesObject } from '@/lib/types';
+
 
 export async function getModelCost(model: string, jwt: string): Promise<any> {
   const url = new URL(`/api/getModelCosting`, `http://${aiProxyHost}`);
@@ -28,11 +30,10 @@ export async function getModelCost(model: string, jwt: string): Promise<any> {
 }
 
 export async function calculateFeatureCosts(
-    features: any,
+    features: FeaturesObject,
     jwt: string,
     chatInputTokens?: number,
   ) {
-  let totalCost = 0;
   const costs: Record<string, object> = {};
   const [chatCost, visionCost, voiceCost, imageGenerationCost] = await Promise.all([
     getModelCost(defaultChatModel.split(':')[1], jwt),
@@ -54,30 +55,59 @@ export async function calculateFeatureCosts(
     imageGenerationCost,
   });
 
-  // XXX test basic chat token values
-  const inputChatTokens = chatInputTokens || 4000; // 4000 estimated tokens for the 1st conversation prompt being inferenced
-  const averageChatOutputTokens = 30; // 30 estimated tokens for the average chat generated response
+  const breakdown: Record<string, any> = {};
+  
+  // Calculate chat costs
+  const inputChatTokens = chatInputTokens || 4000;
+  const averageChatOutputTokens = 30;
   const chatInputCost = chatCost.cost.inputCost * inputChatTokens;
   const chatOutputCost = chatCost.cost.outputCost * averageChatOutputTokens;
   const totalEstimatedChatCost = chatInputCost + chatOutputCost;
-
-  // Calculate basic chat model costs
-  totalCost += totalEstimatedChatCost;
-
-  // XXX add in image generation costs
-  const defaultImageGenerationCost = typeof imageGenerationCost.cost.inputCost === 'number' ? imageGenerationCost.cost.inputCost : imageGenerationCost.cost.inputCost.default.default;
-  const totalImageGenerationCost = defaultImageGenerationCost * 2; // 2 images generated for Personality
-  totalCost += totalImageGenerationCost;
-
-  // XXX add in voice costs if enabled
+  breakdown.chat = {
+    inputCost: chatInputCost,
+    outputCost: chatOutputCost,
+    total: totalEstimatedChatCost
+  };
+  
+  // Calculate image generation costs if personality is enabled
+  if (features.personality) {
+    const defaultImageGenerationCost = typeof imageGenerationCost.cost.inputCost === 'number' 
+      ? imageGenerationCost.cost.inputCost 
+      : imageGenerationCost.cost.inputCost.default.default;
+    const totalImageGenerationCost = defaultImageGenerationCost * 2;
+    breakdown.imageGeneration = {
+      cost: defaultImageGenerationCost,
+      total: totalImageGenerationCost
+    };
+  }
+  
+  // Calculate voice costs if TTS is enabled
   if (features.tts) {
     const voiceInputCost = voiceCost.cost.inputCost * averageChatOutputTokens;
-    totalCost += voiceInputCost;
+    breakdown.voice = {
+      inputCost: voiceCost.cost.inputCost,
+      total: voiceInputCost
+    };
   }
 
+  // Calculate Discord costs if enabled
+  if (features.discord) {
+    const averageDiscordChatInteractions = 500;
+    const discordCost = averageDiscordChatInteractions * totalEstimatedChatCost;
+    breakdown.discord = {
+      interactionCount: averageDiscordChatInteractions,
+      costPerInteraction: totalEstimatedChatCost,
+      total: discordCost
+    };
+  }
+
+  const totalCost = Object.values(breakdown).reduce((sum, feature: any) => 
+    sum + (feature.total || 0), 0
+  );
 
   return {
     featureCosts: costs,
-    totalCost: totalCost
+    totalCost,
+    breakdown
   };
 }

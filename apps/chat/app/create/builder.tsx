@@ -31,7 +31,7 @@ import Progress from './progress';
 import { featureSpecs } from 'react-agents/util/agent-features-spec.mjs';
 import FeatureForm from './forms';
 import { calculateFeatureCosts } from '@/utils/cost-calculator';
-
+import { FeaturesObject, ChatMessage, AgentEditorProps } from '@/lib/types';
 //
 
 const maxUserMessagesDefault = 5;
@@ -40,39 +40,7 @@ const rateLimitMessageDefault = '';
 
 //
 
-type ChatMessage = {
-  role: string;
-  content: string;
-};
 
-type FeaturesObject = {
-  personality: {
-    name: string;
-    bio: string;
-    visualDescription: string;
-    homespaceDescription: string;
-  } | null;
-  tts: {
-    voiceEndpoint: string;
-  } | null;
-  rateLimit: {
-    maxUserMessages: number;
-    maxUserMessagesTime: number;
-    message: string;
-  } | null;
-  storeItems: StoreItem[] | null;
-  discord: {
-    token: string;
-    channels: string;
-  } | null;
-  twitterBot: {
-    token: string;
-  } | null;
-};
-
-type AgentEditorProps = {
-  user: any;
-};
 
 export default function AgentEditor({
   user,
@@ -128,6 +96,7 @@ export default function AgentEditor({
 
   const [costEstimate, setCostEstimate] = useState(0);
   const [modelCosts, setModelCosts] = useState({});
+  const [costBreakdown, setCostBreakdown] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const updateCostEstimate = async () => {
@@ -135,9 +104,9 @@ export default function AgentEditor({
       const cost = await calculateFeatureCosts(features, jwt);
       setCostEstimate(cost.totalCost);
       setModelCosts(cost.featureCosts);
+      setCostBreakdown(cost.breakdown);
     };
     updateCostEstimate();
-
   }, [features]);
   
   // effects
@@ -934,30 +903,55 @@ export default function AgentEditor({
                       })}
 
                   </div>
-
-                  {/* Add cost display below the grid */}
-                  <div className="text-center text-zinc-200 mb-8">
-                    <div>
-                      <span className="font-medium">Agent's Estimated Inference Cost: </span>
-                      <span className="font-bold">${costEstimate.toFixed(4)}</span>
-                    </div>
-                    {modelCosts.chat && (
-                      <div className="mt-2">
-                        <div><span className="font-medium">Base Cost: </span></div>
-                        <div><span className="font-medium">- Chat Client Inference Input Cost: ${modelCosts.chat.cost.inputCost.toFixed(7)} </span></div>
-                        <div><span className="font-medium">- Chat Client Inference Output Cost: ${modelCosts.chat.cost.outputCost.toFixed(7)} </span></div>
-                        {Object.entries(features).some(([_, value]) => value !== null) && (
-                          <>
-                            <div><span className="font-medium">Added Features Cost: </span></div>
-                            {features.tts && modelCosts?.voice && (
-                              <div><span className="font-medium">- Voice Inference Cost: ${modelCosts?.voice?.cost?.inputCost.toFixed(7)} </span></div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    )}
+                     {/* Add cost display below the grid */}
+                 <div className="text-center text-zinc-200 mb-8">
+                  <div>
+                    <span className="font-medium">Agent's Estimated Inference Cost: </span>
+                    <span className="font-bold">${costEstimate.toFixed(4)}</span>
                   </div>
+                  
+                  {costBreakdown && (
+                    <div className="mt-2">
+                      {/* Base Chat Costs */}
+                      {costBreakdown.chat && (
+                        <div>
+                          <div><span className="font-medium">Base Chat Costs:</span></div>
+                          <div>- Input Cost: ${costBreakdown.chat.inputCost.toFixed(7)}</div>
+                          <div>- Output Cost: ${costBreakdown.chat.outputCost.toFixed(7)}</div>
+                          <div>- Total Chat Cost: ${costBreakdown.chat.total.toFixed(7)}</div>
+                        </div>
+                      )}
 
+                      {/* Image Generation Costs */}
+                      {costBreakdown.imageGeneration && (
+                        <div className="mt-2">
+                          <div><span className="font-medium">Personality Image Generation:</span></div>
+                          <div>- Cost per Image: ${costBreakdown.imageGeneration.cost.toFixed(7)}</div>
+                          <div>- Total Image Cost: ${costBreakdown.imageGeneration.total.toFixed(7)}</div>
+                        </div>
+                      )}
+
+                      {/* Voice Costs */}
+                      {costBreakdown.voice && (
+                        <div className="mt-2">
+                          <div><span className="font-medium">Text-to-Speech:</span></div>
+                          <div>- Voice Cost per Token: ${costBreakdown.voice.inputCost.toFixed(7)}</div>
+                          <div>- Total Voice Cost: ${costBreakdown.voice.total.toFixed(7)}</div>
+                        </div>
+                      )}
+
+                      {/* Discord Costs */}
+                      {costBreakdown.discord && (
+                        <div className="mt-2">
+                          <div><span className="font-medium">Discord Bot:</span></div>
+                          <div>- Estimated Daily Interactions: {costBreakdown.discord.interactionCount}</div>
+                          <div>- Cost per Interaction: ${costBreakdown.discord.costPerInteraction.toFixed(7)}</div>
+                          <div>- Total Discord Cost: ${costBreakdown.discord.total.toFixed(7)}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 </form>
               </div>
 
@@ -984,7 +978,6 @@ export default function AgentEditor({
               {/* STEP 3 */}
 
               <div className={cn('flex flex-col items-center justify-center h-full', step !== 3 && 'hidden')}>
-
                 <Button
                   onClick={() => {
                     setDeploying(true);
