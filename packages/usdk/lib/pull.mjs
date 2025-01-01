@@ -64,19 +64,15 @@ export const pull = async (args, opts) => {
           }
         } catch (err) {
           console.warn('npm install failed:', err.stack);
-          process.exit(1);
         }
       } else {
         const text = await req.text();
         console.warn('pull request error', text);
-        process.exit(1);
       }
     } catch (err) {
       console.warn('pull request failed', err);
-      process.exit(1);
     }
   } else {
     console.log('not logged in');
-    process.exit(1);
   }
 };
