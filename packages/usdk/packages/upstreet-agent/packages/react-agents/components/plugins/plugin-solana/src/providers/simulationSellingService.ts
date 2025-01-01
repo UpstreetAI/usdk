@@ -10,7 +10,7 @@ import { TokenProvider } from "./token.ts";
 // import { settings } from "@elizaos/core";
 import { IAgentRuntime } from "@elizaos/core";
 import { WalletProvider } from "./wallet.ts";
-import * as amqp from "amqplib";
+import rhea from "rhea";
 import { ProcessedTokenData } from "../types/token.ts";
 import { getWalletKey } from "../keypairUtils.ts";
 
@@ -28,8 +28,9 @@ export class SimulationSellingService {
     private MAX_DECAY_DAYS = 30;
     private backend: string;
     private backendToken: string;
-    private amqpConnection: amqp.Connection;
-    private amqpChannel: amqp.Channel;
+    private rheaContainer: rhea.Container;
+    private rheaSender: rhea.Sender;
+    private rheaReceiver: rhea.Receiver;
     private sonarBe: string;
     private sonarBeToken: string;
     private runtime: IAgentRuntime;
@@ -47,49 +48,58 @@ export class SimulationSellingService {
         );
         this.backend = runtime.getSetting("BACKEND_URL");
         this.backendToken = runtime.getSetting("BACKEND_TOKEN");
-        this.initializeRabbitMQ(runtime.getSetting("AMQP_URL"));
+        this.initializeRhea(runtime.getSetting("AMQP_URL"));
         this.sonarBe = runtime.getSetting("SONAR_BE");
         this.sonarBeToken = runtime.getSetting("SONAR_BE_TOKEN");
         this.runtime = runtime;
     }
+
     /**
-     * Initializes the RabbitMQ connection and starts consuming messages.
-     * @param amqpUrl The RabbitMQ server URL.
+     * Initializes the Rhea AMQP connection and starts consuming messages.
+     * @param amqpUrl The AMQP server URL.
      */
-    private async initializeRabbitMQ(amqpUrl: string) {
+    private async initializeRhea(amqpUrl: string) {
         try {
-            this.amqpConnection = await amqp.connect(amqpUrl);
-            this.amqpChannel = await this.amqpConnection.createChannel();
-            console.log("Connected to RabbitMQ");
+            this.rheaContainer = rhea.create_container();
+            
+            const connection = this.rheaContainer.connect({
+                host: new URL(amqpUrl).hostname,
+                port: parseInt(new URL(amqpUrl).port) || 5672,
+                username: new URL(amqpUrl).username,
+                password: new URL(amqpUrl).password
+            });
+
+            // Create sender and receiver
+            this.rheaSender = connection.open_sender("process_eliza_simulation");
+            this.rheaReceiver = connection.open_receiver("process_eliza_simulation");
+
+            console.log("Connected to AMQP broker");
+            
             // Start consuming messages
             this.consumeMessages();
         } catch (error) {
-            console.error("Failed to connect to RabbitMQ:", error);
+            console.error("Failed to connect to AMQP broker:", error);
         }
     }
 
     /**
-     * Sets up the consumer for the specified RabbitMQ queue.
+     * Sets up the consumer for the specified AMQP queue.
      */
     private async consumeMessages() {
-        const queue = "process_eliza_simulation";
-        await this.amqpChannel.assertQueue(queue, { durable: true });
-        this.amqpChannel.consume(
-            queue,
-            (msg) => {
-                if (msg !== null) {
-                    const content = msg.content.toString();
-                    this.processMessage(content);
-                    this.amqpChannel.ack(msg);
-                }
-            },
-            { noAck: false }
-        );
-        console.log(`Listening for messages on queue: ${queue}`);
+        this.rheaReceiver.on("message", (context) => {
+            const message = context.message;
+            if (message && message.body) {
+                const content = message.body.toString();
+                this.processMessage(content);
+                this.rheaReceiver.accept(context);
+            }
+        });
+
+        console.log(`Listening for messages on queue: process_eliza_simulation`);
     }
 
     /**
-     * Processes incoming messages from RabbitMQ.
+     * Processes incoming messages from AMQP.
      * @param message The message content as a string.
      */
     private async processMessage(message: string) {
