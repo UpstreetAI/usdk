@@ -88,14 +88,14 @@ export const installAgent = async (directory) => {
   // remove old dependencies in node_modules
   const removeDependencies = async () => {
     await Promise.all(dependencies.map(async (name) => {
-      const d = path.dirname(name);
-      if (d !== '.') { // has /
+      // const d = path.dirname(name);
+      // if (d !== '.') { // has /
         // remove the directory
-        await rimraf(path.join(dstNodeModules, d));
-      } else {
-        const dst = path.join(dstNodeModules, name);
-        await rimraf(dst);
-      }
+        await rimraf(path.join(dstNodeModules, name));
+      // } else {
+      //   const dst = path.join(dstNodeModules, name);
+      //   await rimraf(dst);
+      // }
     }));
   };
   await removeDependencies();
