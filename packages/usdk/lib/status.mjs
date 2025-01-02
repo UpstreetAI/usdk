@@ -1,11 +1,5 @@
-// import { getLoginJwt } from '../util/login-util.mjs';
-import {
-  makeAnonymousClient,
-  getUserIdForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
-// import {
-//   env,
-// } from './env.mjs';
+import { getUserIdForJwt } from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { SupabaseStorage } from '../packages/upstreet-agent/packages/react-agents/storage/supabase-storage.mjs';
 
 export const status = async (args, {
   jwt,
@@ -18,7 +12,7 @@ export const status = async (args, {
       wearing: null,
     };
 
-    const supabase = makeAnonymousClient(jwt);
+    const supabase = new SupabaseStorage({ jwt });
     // get user
     const { error, data } = await supabase
       .from('accounts')

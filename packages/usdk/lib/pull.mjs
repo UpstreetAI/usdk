@@ -1,4 +1,4 @@
-import { getUserIdForJwt } from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import { getUserIdForJwt } from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 import { cwd } from '../util/directory-utils.mjs';
 import { cleanDir } from './directory-util.mjs';
 import { extractZip } from './zip-util.mjs';

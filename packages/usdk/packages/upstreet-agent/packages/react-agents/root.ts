@@ -1,66 +1,91 @@
-import type { ActiveAgentObject } from './types';
+import { ReactNode } from 'react';
 import { headers } from './constants.mjs';
-import { makeAnonymousClient } from './util/supabase-client.mjs';
+import { SupabaseStorage } from './storage/supabase-storage.mjs';
+import { PGliteStorage } from './storage/pglite-storage.mjs';
 import { AgentRenderer } from './classes/agent-renderer.tsx';
 import { ChatsSpecification } from './classes/chats-specification.ts';
-import { pingRate } from './classes/ping-manager.ts';
-import { serverHandler } from './routes/server.ts';
 import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
-//
+type RootOpts = {
+  agentJson?: any;
+  storageAdapter?: any;
+  blockchainAdapter?: any;
+  env?: any;
+  codecs?: any;
+  environment?: string;
+};
 
-export class AgentMain extends EventTarget {
-  state: any;
-  env: any;
-  auth: any;
-  supabase: any;
+export class Root extends EventTarget {
+  opts: RootOpts;
   chatsSpecification: ChatsSpecification;
   agentRenderer: AgentRenderer;
   loadPromise: Promise<void>;
 
-  constructor(state: any, env: any, auth: any) {
+  constructor(opts: RootOpts = {}) {
     super();
 
-    this.state = state;
-    this.env = env;
-    this.auth = auth;
-    const jwt = auth.AGENT_TOKEN;
-    this.supabase = makeAnonymousClient(jwt);
+    if (!(opts.storageAdapter || opts.env?.AGENT_TOKEN)) {
+      throw new Error('either storageAdapter or auth.jwt are required');
+    }
 
+    this.opts = opts;
+    // XXX pass in models adapters
     const {
-      userRender,
-      config,
-      codecs,
-    } = state;
+      agentJson = {},
+      env = {},
+      codecs = {},
+    } = opts;
+    const storageAdapter = (() => {
+      const _storageAdapter = opts.storageAdapter ?? 'supabase';
+      if (typeof _storageAdapter === 'string') {
+        switch (_storageAdapter) {
+          case 'supabase': {
+            return new SupabaseStorage({
+              jwt: env.AGENT_TOKEN,
+            });
+          }
+          case 'pglite': {
+            return new PGliteStorage({
+              path: env.PGLITE_PATH,
+            });
+          }
+          default: {
+            throw new Error('unknown storage adapter type: ' + _storageAdapter);
+          }
+        }
+      } else {
+        return _storageAdapter;
+      }
+    })();
+
     this.chatsSpecification = new ChatsSpecification({
-      agentId: config.id,
-      supabase: this.supabase,
+      agentId: agentJson.id,
+      supabase: storageAdapter,
     });
     this.agentRenderer = new AgentRenderer({
       env,
-      auth,
-      userRender,
-      config,
+      config: agentJson,
       codecs,
+      supabase: storageAdapter,
       chatsSpecification: this.chatsSpecification,
     });
-    const bindAlarm = () => {
-      const updatealarm = () => {
-        this.updateAlarm();
-      };
-      this.agentRenderer.registry.addEventListener('updatealarm', updatealarm);
-    };
-    bindAlarm();
+    // const bindAlarm = () => {
+    //   const updatealarm = () => {
+    //     this.updateAlarm();
+    //   };
+    //   this.agentRenderer.registry.addEventListener('updatealarm', updatealarm);
+    // };
+    // bindAlarm();
 
     this.loadPromise = this.agentRenderer.waitForRender();
 
-    // initial alarm
-    (async () => {
-      await this.alarm();
-    })();
+    // // initial alarm
+    // (async () => {
+    //   await this.alarm();
+    // })();
   }
 
-  waitForLoad() {
+  #waitForLoad() {
     return this.loadPromise;
   }
 
@@ -72,7 +97,7 @@ export class AgentMain extends EventTarget {
       const u = new URL(request.url);
       // console.log('worker request', request.method, u.href);
 
-      await this.waitForLoad();
+      await this.#waitForLoad();
 
       // parse the url
       let match;
@@ -355,11 +380,15 @@ export class AgentMain extends EventTarget {
           }
         };
         const handleDefaultRequest = async () => {
-          const serverResponse = await serverHandler(request, {
-            agentRenderer: this.agentRenderer,
-            env: this.env,
+          // return a "Hello, World!" response
+          return new Response(`Hello! I am an AI agent with the following agent.json:\n${JSON.stringify(this.opts.agentJson ?? {}, null, 2)}`, {
+            headers,
           });
-          return serverResponse;
+          // const serverResponse = await serverHandler(request, {
+          //   agentRenderer: this.agentRenderer,
+          //   env: this.env,
+          // });
+          // return serverResponse;
         };
 
         switch (subpath) {
@@ -395,7 +424,13 @@ export class AgentMain extends EventTarget {
       });
     }
   }
-  async updateAlarm() {
+  render(node: ReactNode) {
+    this.agentRenderer.render(node);
+  }
+  unmount() {
+    return this.agentRenderer.unmount();
+  }
+  /* async updateAlarm() {
     // get the next timeout
     const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
     const timeouts = agents.map((agent) =>
@@ -419,7 +454,7 @@ export class AgentMain extends EventTarget {
   }
   async alarm() {
     // wait for load just in case
-    await this.waitForLoad();
+    await this.#waitForLoad();
 
     // process the agent's live managers
     const agents = this.agentRenderer.registry.agents as ActiveAgentObject[];
@@ -429,5 +464,9 @@ export class AgentMain extends EventTarget {
     await Promise.all(processPromises);
 
     this.updateAlarm();
-  }
+  } */
+}
+
+export function createRoot(opts: RootOpts) {
+  return new Root(opts);
 }

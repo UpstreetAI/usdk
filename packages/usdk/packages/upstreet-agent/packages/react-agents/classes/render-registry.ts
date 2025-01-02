@@ -1,28 +1,18 @@
 import type {
   ActiveAgentObject,
-  // AgentProps,
-  // ActionProps,
-  // ActionModifierProps,
-  // PromptProps,
   PromptPropsAux,
   UniformPropsAux,
   DeferProps,
   DeferPropsAux,
-  // ParserProps,
-  // PerceptionProps,
-  // PerceptionModifierProps,
-  TaskProps,
   NameProps,
   PersonalityProps,
   ServerProps,
-  // StoreItemProps,
   StoreItem,
   PaymentProps,
   SubscriptionProps,
   ActionPropsAux,
   ActionModifierPropsAux,
   PerceptionPropsAux,
-  PerceptionModifierPropsAux,
 } from '../types';
 
 //
@@ -68,7 +58,6 @@ export class AgentRegistry {
   actionsMap: Map<symbol, ActionPropsAux | null> = new Map();
   actionModifiersMap: Map<symbol, ActionModifierPropsAux | null> = new Map();
   perceptionsMap: Map<symbol, PerceptionPropsAux | null> = new Map();
-  perceptionModifiersMap: Map<symbol, PerceptionModifierPropsAux | null> = new Map();
   uniformsMap: Map<symbol, UniformPropsAux | null> = new Map();
   deferMap: Map<symbol, DeferProps | null> = new Map();
   tasksMap: Map<symbol, TaskProps | null> = new Map();
@@ -88,9 +77,6 @@ export class AgentRegistry {
   }
   get perceptions() {
     return Array.from(this.perceptionsMap.values()).filter(Boolean);
-  }
-  get perceptionModifiers() {
-    return Array.from(this.perceptionModifiersMap.values()).filter(Boolean);
   }
   get uniforms() {
     return Array.from(this.uniformsMap.values()).filter(Boolean);
@@ -126,7 +112,7 @@ export class AgentRegistry {
       if (!conversationActionExists) {
         this.actionsMap.set(key, action);
       } else {
-        throw new Error(`Duplicate action with same name ${JSON.stringify(action.name)}`);
+        throw new Error(`Duplicate action with same name ${JSON.stringify(action.type)}`);
       }
     }
   }
@@ -145,12 +131,6 @@ export class AgentRegistry {
   unregisterPerception(key: symbol) {
     this.perceptionsMap.set(key, null);
   }
-  registerPerceptionModifier(key: symbol, perception: PerceptionModifierPropsAux) {
-    this.perceptionModifiersMap.set(key, perception);
-  }
-  unregisterPerceptionModifier(key: symbol) {
-    this.perceptionModifiersMap.set(key, null);
-  }
   registerUniform(key: symbol, uniform: ActionPropsAux) {
     if (!uniform.conversation) {
       this.uniformsMap.set(key, uniform);
@@ -158,7 +138,7 @@ export class AgentRegistry {
       const conversationUniformExists = Array.from(this.uniformsMap.values())
         .some((u) => {
           if (u) {
-            return u.name === uniform.name && u.conversation === uniform.conversation;
+            return u.type === uniform.type && u.conversation === uniform.conversation;
           } else {
             return false;
           }
@@ -166,7 +146,7 @@ export class AgentRegistry {
       if (!conversationUniformExists) {
         this.uniformsMap.set(key, uniform);
       } else {
-        throw new Error(`Duplicate uniform with same name ${JSON.stringify(uniform.name)}`);
+        throw new Error(`Duplicate uniform with same name ${JSON.stringify(uniform.type)}`);
       }
     }
   }
