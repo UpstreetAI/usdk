@@ -840,7 +840,7 @@ export default function AgentEditor({
                     {/* ACTIVE FEATURES (featureSpec.active === true) */}
 
                     {featureSpecs
-                      .filter(featureSpec => featureSpec.active)
+                      .filter(featureSpec => !featureSpec.dev)
                       .map((featureSpec) => {
                         const { name, form, displayName, displayDescription, displayIcon } = featureSpec;
 
@@ -900,7 +900,7 @@ export default function AgentEditor({
                     {/* INACTIVE FEATURES ( In development, featureSpec.active === false) */}
 
                     {featureSpecs
-                      .filter(featureSpec => !featureSpec.active)
+                      .filter(featureSpec => featureSpec.dev)
                       .map((featureSpec) => {
                         return (
                           <div className={cn(featureWrapperClass, featureClassInDevelopment)} key={featureSpec.name}>
