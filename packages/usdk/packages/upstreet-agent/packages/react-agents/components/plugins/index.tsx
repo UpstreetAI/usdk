@@ -1,79 +1,138 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Action, useEnv } from 'react-agents';
-import { z } from 'zod';
-import util from 'util';
+import { jsonSchemaToZod } from 'json-schema-to-zod-object';
+import { printNode, zodToTs } from 'zod-to-ts';
+import { z, ZodTypeAny } from 'zod';
 import type {
   IActionHandlerCallbackArgs,
   IPlugin,
   IAdapter,
   IRuntime,
 } from '../types/eliza.d.ts';
-import { ThreeDGenerationPlugin } from '@elizaos/plugin-3d-generation';
-import { imageGenerationPlugin } from '@elizaos/plugin-image-generation';
-import { videoGenerationPlugin } from '@elizaos/plugin-video-generation';
-import { nftGenerationPlugin } from '@elizaos/plugin-nft-generation';
-import echoChamberPlugin from '@elizaos/plugin-echochambers';
-import gitbookPlugin from '@elizaos/plugin-gitbook';
-import intifacePlugin from '@elizaos/plugin-intiface';
-import { webSearchPlugin } from '@elizaos/plugin-web-search';
-import evmPlugin from '@elizaos/plugin-evm';
-import { zgPlugin } from '@elizaos/plugin-0g';
-import icpPlugin from '@elizaos/plugin-icp';
-import abstractPlugin from '@elizaos/plugin-abstract';
-import avalanchePlugin from '@elizaos/plugin-avalanche';
-import aptosPlugin from '@elizaos/plugin-aptos';
-import { bootstrapPlugin } from '@elizaos/plugin-bootstrap';
-import { confluxPlugin } from '@elizaos/plugin-conflux';
-import cronosZkEVMPlugin from '@elizaos/plugin-cronoszkevm';
-import { solanaPlugin } from '@elizaos/plugin-solana';
-import starknetPlugin from '@elizaos/plugin-starknet';
-import multiversxPlugin from '@elizaos/plugin-multiversx';
-import nearPlugin from '@elizaos/plugin-near';
-import { teePlugin } from '@elizaos/plugin-tee';
-import tonPlugin from '@elizaos/plugin-ton';
-import { TrustScoreDatabase } from '@elizaos/plugin-trustdb';
-import { twitterPlugin } from '@elizaos/plugin-twitter';
-import { plugins as coinbasePlugins } from '@elizaos/plugin-coinbase';
-import suiPlugin from '@elizaos/plugin-sui';
-import fereProPlugin from '@elizaos/plugin-ferePro';
-import flowPlugin from '@elizaos/plugin-flow';
-import fuelPlugin from '@elizaos/plugin-fuel';
-import storyPlugin from '@elizaos/plugin-story';
-import zksyncEraPlugin from '@elizaos/plugin-zksync-era';
-import createGoatPlugin from '@elizaos/plugin-goat';
-import { WhatsAppPlugin } from '@elizaos/plugin-whatsapp';
 
-function generateZodSchema(obj: any): z.ZodTypeAny {
+function generateZodSchemaFromExample(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();
   if (typeof obj === "number") return z.number();
   if (typeof obj === "boolean") return z.boolean();
   if (Array.isArray(obj)) {
-    return z.array(generateZodSchema(obj[0] || z.any()));
+    return z.array(generateZodSchemaFromExample(obj[0] || z.any()));
   }
   if (typeof obj === "object" && obj !== null) {
     const shape: Record<string, z.ZodTypeAny> = {};
     for (const key in obj) {
-      shape[key] = generateZodSchema(obj[key]);
+      shape[key] = generateZodSchemaFromExample(obj[key]);
     }
     return z.object(shape);
   }
   return z.any();
 }
+function formatParameters({
+  pluginParameters,
+  pluginEnv,
+  parameters,
+  env,
+}: {
+  pluginParameters: object; // JSON schema
+  pluginEnv: object; // key-value object mapping the environment variable name to the parameter name (must appear in pluginParameters)
+  parameters: object; // key-value object contaning parameters, must match JSON schema with zod
+  env: object; // key-value object of the current env, for mapping env, via pluginEnv, to the parameters. second preference to parameters
+}) {
+  // Generate zod schema from plugin parameters JSON schema
+  const zodSchema = jsonSchemaToZod(pluginParameters);
+
+  // Create merged parameters object, with env values as fallback
+  const mergedParameters = {...parameters};
+  if (pluginEnv) {
+    for (const [envKey, paramName] of Object.entries(pluginEnv)) {
+      if (env[envKey] && !mergedParameters.hasOwnProperty(paramName)) {
+        mergedParameters[paramName] = env[envKey];
+      }
+    }
+  }
+
+  // Validate parameters against schema
+  try {
+    zodSchema.parse(mergedParameters);
+  } catch (err) {
+    throw new Error(`Invalid plugin parameters: ${err.message}`);
+  }
+
+  return mergedParameters;
+}
 
 //
 
-const Plugin = (props: {
-  plugin: IPlugin;
-  opts: any;
-}) => {
+type PluginProps = {
+  plugin?: IPlugin;
+  name?: string;
+  parameters: any;
+};
+export const Plugin: React.FC<PluginProps> = (props: PluginProps) => {
   const {
-    plugin,
-    opts,
+    // plugin,
+    name,
+    parameters,
   } = props;
+  // if (!plugin && !name) {
+  //   throw new Error('Plugin or name must be provided');
+  // }
+
+  // const [localPluginPromise, setLocalPluginPromise] = useState(false);
+  const [localPlugin, setLocalPlugin] = useState<IPlugin | null>(null);
+  const [localPluginPackageJson, setLocalPluginPackageJson] = useState<any | null>(null);
+  useEffect(() => {
+    if (name) {
+      let live = true;
+      (async () => {
+        // const {
+        //   promise: pluginPromise,
+        //   resolve: pluginResolve,
+        //   reject: pluginReject,
+        // } = Promise.withResolvers<IPlugin | null>();
+        // setLocalPluginPromise(true);
+
+        const [
+          pluginDefault,
+          pluginPackageJson,
+        ] = await Promise.all([
+          (async () => {
+            const plugin = await globalThis.dynamicImport(name);
+            // console.log('got plugin', plugin);
+            return plugin;
+          })(),
+          (async () => {
+            const packageJson = await globalThis.dynamicImport(`${name}/package.json`);
+            return packageJson;
+          })(),
+        ]);
+        // pluginResolve(pluginDefault);
+        if (!live) return;
+        // console.log('load plugin', name);
+
+        // console.log('plugin setState', {
+        //   pluginDefault,
+        //   pluginPackageJson,
+        // });
+
+        setLocalPlugin(pluginDefault);
+        setLocalPluginPackageJson(pluginPackageJson);
+      })();
+      return () => {
+        // console.log('cancel', name);
+        live = false;
+      };
+    }
+  }, [
+    // plugin,
+    name,
+  ]);
   const env = useEnv();
-  return (
+
+  // console.log('render local plugin', localPlugin);
+
+  return localPlugin && localPluginPackageJson && (
     <>
-      {(plugin.actions ?? []).map((action: any) => {
+      {(localPlugin.actions ?? []).map((action: any) => {
         const examples = action.examples.map(exampleMessages => {
           const agentMessages = exampleMessages.filter(message => {
             return /agentName/.test(message.user);
@@ -91,7 +150,7 @@ const Plugin = (props: {
         }).filter(Boolean);
         // console.log('got examples', examples);
         if (examples.length > 0) {
-          const schema = generateZodSchema(examples[0]);
+          const schema = generateZodSchemaFromExample(examples[0]);
           // console.log('got schema', schema);
           return (
             <Action
@@ -101,7 +160,7 @@ const Plugin = (props: {
               examples={examples}
               handler={async e => {
                 const { args } = e.data.message; 
-                console.log('got handler', args);
+                // console.log('got handler', args);
 
                 await new Promise((resolve, reject) => {
                   const runtime: IRuntime = {
@@ -109,9 +168,15 @@ const Plugin = (props: {
                       return env[key];
                     },
                   };
+                  const parameters2 = formatParameters({
+                    pluginParameters: localPluginPackageJson.pluginParameters,
+                    pluginEnv: localPluginPackageJson.pluginEnv,
+                    parameters,
+                    env,
+                  });
                   const message = {
                     content: args,
-                  }
+                  };
                   const state = {};
                   const options = {};
                   const callback = (result: IActionHandlerCallbackArgs) => {
@@ -124,7 +189,14 @@ const Plugin = (props: {
                     resolve(null);
                   };
                   console.log('call action handler', action.handler);
-                  action.handler(runtime, message, state, options, callback);
+                  action.handler({
+                    runtime,
+                    parameters: parameters2,
+                    message,
+                    state,
+                    options,
+                    callback,
+                  });
                 });
               }}
               key={action.name}
@@ -136,70 +208,4 @@ const Plugin = (props: {
       }).filter(Boolean)}
     </>
   );
-};
-const pluginWrap = (plugin: IPlugin) => (opts: any) => {
-  console.log('render plugin', util.inspect(plugin, {
-    depth: 7,
-  }));
-  return (
-    <Plugin plugin={plugin} opts={opts} />
-  );
-};
-const pluginWrapObject = (plugins: {
-  [key: string]: IPlugin;
-}) => (props: any) => {
-  return (
-    <>
-      {Object.keys(plugins).map((key) => {
-        const value = plugins[key];
-        const Plugin = pluginWrap(value);
-        return (
-          <Plugin plugin={value} key={key} />
-        );
-      })}
-    </>
-  );
-};
-const adapterWrap = (adapter: IAdapter) => (props: any) => {
-  console.log('load adapter', adapter);
-  return null;
-};
-
-// const goatPlugin = awaitcreateGoatPlugin(function getSetting(key: string) {
-//   return '';
-// });
-export const plugins = {
-  '@elizaos/plugin-3d-generation': pluginWrap(ThreeDGenerationPlugin),
-  '@elizaos/plugin-image-generation': pluginWrap(imageGenerationPlugin),
-  '@elizaos/plugin-video-generation': pluginWrap(videoGenerationPlugin),
-  '@elizaos/plugin-nft-generation': pluginWrap(nftGenerationPlugin),
-  '@elizaos/plugin-echochambers': pluginWrap(echoChamberPlugin),
-  '@elizaos/plugin-gitbook': pluginWrap(gitbookPlugin),
-  '@elizaos/plugin-intiface': pluginWrap(intifacePlugin),
-  '@elizaos/plugin-evm': pluginWrap(evmPlugin),
-  '@elizaos/plugin-0g': pluginWrap(zgPlugin),
-  '@elizaos/plugin-icp': pluginWrap(icpPlugin),
-  '@elizaos/plugin-abstract': pluginWrap(abstractPlugin),
-  '@elizaos/plugin-avalanche': pluginWrap(avalanchePlugin),
-  '@elizaos/plugin-aptos': pluginWrap(aptosPlugin),
-  '@elizaos/plugin-bootstrap': pluginWrap(bootstrapPlugin),
-  '@elizaos/plugin-conflux': pluginWrap(confluxPlugin),
-  '@elizaos/plugin-cronoszkevm': pluginWrap(cronosZkEVMPlugin),
-  '@elizaos/plugin-solana': pluginWrap(solanaPlugin),
-  '@elizaos/plugin-starknet': pluginWrap(starknetPlugin),
-  '@elizaos/plugin-multiversx': pluginWrap(multiversxPlugin),
-  '@elizaos/plugin-near': pluginWrap(nearPlugin),
-  '@elizaos/plugin-tee': pluginWrap(teePlugin),
-  '@elizaos/plugin-ton': pluginWrap(tonPlugin),
-  '@elizaos/plugin-twitter': pluginWrap(twitterPlugin),
-  '@elizaos/plugin-coinbase': pluginWrapObject(coinbasePlugins),
-  '@elizaos/plugin-sui': pluginWrap(suiPlugin),
-  '@elizaos/plugin-ferePro': pluginWrap(fereProPlugin),
-  '@elizaos/plugin-flow': pluginWrap(flowPlugin),
-  '@elizaos/plugin-fuel': pluginWrap(fuelPlugin),
-  '@elizaos/plugin-story': pluginWrap(storyPlugin),
-  '@elizaos/plugin-web-search': pluginWrap(webSearchPlugin),
-  '@elizaos/plugin-zksync-era': pluginWrap(zksyncEraPlugin),
-  '@elizaos/plugin-trustdb': adapterWrap(TrustScoreDatabase),
-  // '@elizaos/plugin-goat': pluginWrap(goatPlugin),
 };

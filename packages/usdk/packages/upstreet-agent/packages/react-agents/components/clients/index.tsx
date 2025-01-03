@@ -20,22 +20,17 @@ import type {
   IRuntime,
   Client as ElizaClient,
 } from '../types/eliza.d.ts';
-import { FarcasterAgentClient } from '@elizaos/client-farcaster';
-import { GitHubClientInterface } from '@elizaos/client-github';
-import { LensAgentClient } from '@elizaos/client-lens';
-import { SlackClientInterface } from '@elizaos/client-slack';
-import { TelegramClientInterface } from '@elizaos/client-telegram';
-import { TwitterClientInterface } from '@elizaos/client-twitter';
 
 //
 
-const Client = (props: {
+type ClientProps = {
   client: ElizaClient;
-  opts: any;
-}) => {
+  parameters: any;
+};
+export const Client: React.FC<ClientProps> = (props: ClientProps) => {
   const {
     client,
-    opts,
+    parameters,
   } = props;
   const runtime = useRuntime();
 
@@ -68,21 +63,4 @@ const Client = (props: {
     <>
     </>
   );
-};
-const clientWrap = (client: ElizaClient) => (opts: any) => {
-  console.log('render client', util.inspect(client, {
-    depth: 7,
-  }));
-  return (
-    <Client client={client} opts={opts} />
-  );
-};
-
-export const clients = {
-  '@elizaos/client-farcaster': clientWrap(FarcasterAgentClient),
-  '@elizaos/client-github': clientWrap(GitHubClientInterface),
-  '@elizaos/client-lens': clientWrap(LensAgentClient),
-  '@elizaos/client-telegram': clientWrap(TelegramClientInterface),
-  '@elizaos/client-twitter': clientWrap(TwitterClientInterface),
-  '@elizaos/client-slack': clientWrap(SlackClientInterface),
 };

@@ -69,6 +69,10 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
+  globalThis.dynamicImport = async (specifier) => {
+    return await loadModule(directory, specifier);
+  };
+
   // we load it lioke this to perform a compilation
   const createRootMain = await loadModule(directory, 'root-main.tsx');
   const root = createRootMain({
