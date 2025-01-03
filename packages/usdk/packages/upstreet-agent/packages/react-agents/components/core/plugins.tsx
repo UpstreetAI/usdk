@@ -17,11 +17,6 @@ export const Plugins = (props: PluginsProps) => {
           name,
           parameters,
         } = plugin;
-        // const value = pluginsConfig[key];
-        // const Plugin = plugins[key];
-        // if (!Plugin) {
-        //   throw new Error(`Plugin not found: ${key}`);
-        // }
         return (
           <Plugin name={name} parameters={parameters} key={name} />
         );
