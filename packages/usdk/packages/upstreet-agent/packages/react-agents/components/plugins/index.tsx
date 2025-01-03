@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Action, useEnv } from 'react-agents';
+import { Action, useEnv, useRuntime } from 'react-agents';
 import { jsonSchemaToZod } from 'json-schema-to-zod-object';
 import { printNode, zodToTs } from 'zod-to-ts';
 import { z, ZodTypeAny } from 'zod';
@@ -52,7 +52,11 @@ function formatParameters({
 
   // Validate parameters against schema
   try {
-    zodSchema.parse(mergedParameters);
+    const parsed = zodSchema.parse(mergedParameters);
+    // console.log('got parsed', {
+    //   mergedParameters,
+    //   parsed,
+    // });
   } catch (err) {
     throw new Error(`Invalid plugin parameters: ${err.message}`);
   }
@@ -96,8 +100,13 @@ export const Plugin: React.FC<PluginProps> = (props: PluginProps) => {
           pluginPackageJson,
         ] = await Promise.all([
           (async () => {
-            const plugin = await globalThis.dynamicImport(name);
+            let plugin = await globalThis.dynamicImport(name);
             // console.log('got plugin', plugin);
+            if (typeof plugin === 'function') {
+              plugin = await plugin({
+                runtime,
+              });
+            }
             return plugin;
           })(),
           (async () => {
@@ -127,6 +136,7 @@ export const Plugin: React.FC<PluginProps> = (props: PluginProps) => {
     name,
   ]);
   const env = useEnv();
+  const runtime = useRuntime();
 
   // console.log('render local plugin', localPlugin);
 
@@ -163,11 +173,6 @@ export const Plugin: React.FC<PluginProps> = (props: PluginProps) => {
                 // console.log('got handler', args);
 
                 await new Promise((resolve, reject) => {
-                  const runtime: IRuntime = {
-                    getSetting(key: string) {
-                      return env[key];
-                    },
-                  };
                   const parameters2 = formatParameters({
                     pluginParameters: localPluginPackageJson.pluginParameters,
                     pluginEnv: localPluginPackageJson.pluginEnv,
@@ -188,15 +193,16 @@ export const Plugin: React.FC<PluginProps> = (props: PluginProps) => {
                     } = result;
                     resolve(null);
                   };
-                  console.log('call action handler', action.handler);
-                  action.handler({
+                  const opts = {
                     runtime,
                     parameters: parameters2,
                     message,
                     state,
                     options,
                     callback,
-                  });
+                  };
+                  console.log('call action handler', action.handler);
+                  action.handler(opts);
                 });
               }}
               key={action.name}
