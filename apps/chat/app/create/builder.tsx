@@ -948,6 +948,7 @@ export default function AgentEditor({
               <div className={cn('flex flex-col items-center justify-center h-full', step !== 3 && 'hidden')}>
 
                 <Button
+                  size='large'
                   onClick={() => {
                     setDeploying(true);
                     editorForm.current?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
