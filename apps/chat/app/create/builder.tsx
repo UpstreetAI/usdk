@@ -912,6 +912,7 @@ export default function AgentEditor({
                                 <p className={featureTextClass}>
                                   {featureSpec.displayName ?? featureSpec.name}
                                 </p>
+                                <p className='absolute bottom-3 right-0 left-0 text-xs'>In development.</p>
                               </div>
                             </div>
                           </div>
