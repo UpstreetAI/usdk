@@ -6,7 +6,7 @@ import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 
 import React from 'react';
-import { createRoot } from 'react-agents';
+import { createRoot, Agent } from 'react-agents';
 import * as codecs from 'codecs/ws-codec-runtime-fs.mjs';
 
 const registryHash = `f3689d8c6118c97390779a3322ebca8c61a34a2d`;
@@ -106,7 +106,8 @@ test('createRoot', async () => {
       codecs,
     };
     const root = createRoot(state);
-    root.render(<></>);
+    const { agents } = await root.render(<Agent />);
+    console.log('agents', agents);
 
     if (++i >= numPlugins) {
       break;
