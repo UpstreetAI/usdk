@@ -450,7 +450,6 @@ export type ActiveAgentObject = AgentObject & {
   twitterManager: TwitterManager;
   twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
-  pingManager: PingManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //

@@ -32,7 +32,6 @@ import {
 import {
   ConversationManager,
 } from './conversation-manager';
-import { PingManager } from './ping-manager';
 import { AgentRegistry } from './render-registry';
 
 //
@@ -49,7 +48,6 @@ export class ActiveAgentObject extends AgentObject {
   twitterManager: TwitterManager;
   twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
-  pingManager: PingManager;
   generativeAgentsMap = new WeakMap<ConversationObject, GenerativeAgentObject>();
 
   //
@@ -91,10 +89,6 @@ export class ActiveAgentObject extends AgentObject {
       codecs: appContextValue.useCodecs(),
     });
     this.telnyxManager = new TelnyxManager();
-    this.pingManager = new PingManager({
-      userId: this.id,
-      supabase: this.useSupabase(),
-    });
   }
 
   // static hooks
@@ -223,12 +217,12 @@ export class ActiveAgentObject extends AgentObject {
     this.chatsManager.live();
     this.discordManager.live();
     this.telnyxManager.live();
-    this.pingManager.live();
+    // this.pingManager.live();
   }
   destroy() {
     this.chatsManager.destroy();
     this.discordManager.destroy();
     this.telnyxManager.destroy();
-    this.pingManager.destroy();
+    // this.pingManager.destroy();
   }
 }

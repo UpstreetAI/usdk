@@ -18,6 +18,7 @@ import {
 } from '../../hooks';
 import { Prompt } from '../core/prompt';
 import { ChatLoop } from '../../loops/chat-loop';
+import { Ping } from '../core/ping';
 // import { ActionLoop } from '../../loops/action-loop';
 import { ChatActions } from '../core/chat';
 import {
@@ -46,6 +47,7 @@ export const DefaultAgentComponents = (props: DefaultAgentComponentProps) => {
         <DefaultPrompts />
       </ConversationProvider>
       <ChatLoop />
+      <Ping />
     </>
   );
 };
