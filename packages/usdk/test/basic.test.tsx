@@ -113,5 +113,5 @@ test('createRoot', async () => {
   }
 
   // remove the agents directory
-  // await rimraf(agentsDir);
+  await rimraf(agentsDir);
 });
