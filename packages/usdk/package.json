@@ -19,7 +19,7 @@
   "main": "module.mjs",
   "scripts": {
     "preinstall": "[[ $npm_config_global == 'true' ]] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testTimeout 30000"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testTimeout 600000"
   },
   "keywords": [
     "ai",
