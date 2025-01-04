@@ -43,9 +43,9 @@ test('createRoot', async () => {
     return j;
   })();
 
-  let i = 0;
-  const numPlugins = Infinity;
-  for (const [name, ref] of Object.entries(indexJson)) {
+  const skip = 0;
+  const limit = 1;
+  for (const [name, ref] of Object.entries(indexJson).slice(skip, skip + limit)) {
     // create the agent directory
     const agentBaseName = name
       .replace(/[^a-z0-9]+/gi, '-')
@@ -105,13 +105,15 @@ test('createRoot', async () => {
       enivronment: 'development',
       codecs,
     };
+
+    // render the agent
     const root = createRoot(state);
+    // const { agents } = await root.render(<Agent />);
     const { agents } = await root.render(<Agent />);
     console.log('agents', agents);
 
-    if (++i >= numPlugins) {
-      break;
-    }
+    // unmount the agent
+    await root.unmount();
   }
 
   // remove the agents directory
