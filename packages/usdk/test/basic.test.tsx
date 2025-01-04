@@ -19,9 +19,6 @@ const npmInstallDirectory = async (cwd: string) => {
   });
   await new Promise((resolve, reject) => {
     cp.on('close', (code) => {
-      // console.log('close code', {
-      //   code,
-      // });
       if (code === 0) {
         resolve(null);
       } else {
@@ -45,7 +42,9 @@ test('createRoot', async () => {
     const j = res.json();
     return j;
   })();
-  
+
+  let i = 0;
+  const numPlugins = 3;
   for (const [name, ref] of Object.entries(indexJson)) {
     // create the agent directory
     const agentBaseName = name
@@ -109,7 +108,9 @@ test('createRoot', async () => {
     const root = createRoot(state);
     root.render(<></>);
 
-    break;
+    if (++i >= numPlugins) {
+      break;
+    }
   }
 
   // remove the agents directory
