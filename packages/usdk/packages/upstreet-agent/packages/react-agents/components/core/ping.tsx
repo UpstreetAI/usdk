@@ -1,25 +1,24 @@
-//   userId: this.id,
-//   supabase: this.useSupabase(),
-
-import React, { useContext } from 'react';
-import type {
-  PromptProps,
-} from '../../types';
+import React, { useState, useEffect } from 'react';
+import { useAgent, useSupabase } from '../../hooks';
 import {
-  ConversationContext,
-} from '../../context';
+  PingManager,
+} from '../../classes/ping-manager';
 
-export const Prompt: React.FC<PromptProps> = /*memo(*/(props: PromptProps) => {
-  // const agent = useContext(AgentContext);
-  const conversation = useContext(ConversationContext).conversation;
+export const Ping = () => {
+  const agent = useAgent();
+  const supabase = useSupabase();
 
-  // const deps = [
-  //   props.children,
-  // ];
-  // agent.useEpoch(deps);
+  const [pingManager, setPingManager] = useState(() => new PingManager({
+    userId: agent.id,
+    supabase,
+  }));
 
-  return <prompt value={{
-    ...props,
-    conversation,
-  }} />;
-}//);
+  useEffect(() => {
+    pingManager.live();
+    return () => {
+      pingManager.destroy();
+    };
+  }, []);
+
+  return null;
+};
