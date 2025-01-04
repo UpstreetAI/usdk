@@ -44,7 +44,7 @@ test('createRoot', async () => {
   })();
 
   const skip = 0;
-  const limit = 1;
+  const limit = Infinity;
   for (const [name, ref] of Object.entries(indexJson).slice(skip, skip + limit)) {
     // create the agent directory
     const agentBaseName = name
