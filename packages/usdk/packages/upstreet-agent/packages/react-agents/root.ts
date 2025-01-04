@@ -24,9 +24,9 @@ export class Root extends EventTarget {
   constructor(opts: RootOpts = {}) {
     super();
 
-    if (!(opts.storageAdapter || opts.env?.AGENT_TOKEN)) {
-      throw new Error('either storageAdapter or auth.jwt are required');
-    }
+    // if (!(opts.storageAdapter || opts.env?.AGENT_TOKEN)) {
+    //   throw new Error('either storageAdapter or env.AGENT_TOKEN are required');
+    // }
 
     this.opts = opts;
     // XXX pass in models adapters

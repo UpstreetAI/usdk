@@ -14,7 +14,7 @@ import type {
   ChatsSpecification,
 } from '../types';
 import { RenderLoader } from './render-loader';
-import { SupabaseStorage } from '../storage/supabase-storage.mjs';
+// import { SupabaseStorage } from '../storage/supabase-storage.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';
 import { AppContextValue } from './app-context-value';
