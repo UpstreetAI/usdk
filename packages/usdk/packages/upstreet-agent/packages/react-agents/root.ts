@@ -425,7 +425,7 @@ export class Root extends EventTarget {
     }
   }
   render(node: ReactNode) {
-    this.agentRenderer.render(node);
+    return this.agentRenderer.render(node);
   }
   unmount() {
     return this.agentRenderer.unmount();

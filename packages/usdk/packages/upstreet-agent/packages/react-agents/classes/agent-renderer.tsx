@@ -359,17 +359,19 @@ export class AgentRenderer {
       node,
       appContextValue,
     };
-    try {
+    // try {
       await this.#renderProps(props);
 
       if (!this.renderPromiseResolved) {
         this.renderPromiseResolved = true;
         this.renderPromise.resolve(null);
       }
-    } catch (error) {
-      console.warn('Error during render', error.stack);
-      throw error;
-    }
+    // } catch (error) {
+    //   console.warn('Error during render', error.stack);
+    //   throw error;
+    // }
+
+    return this.registry.agents;
   }
   unmount() {
     this.reconciler.updateContainer(null, this.root, null, () => {});
