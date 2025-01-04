@@ -792,6 +792,9 @@ importers:
       queue-manager:
         specifier: file:./packages/upstreet-agent/packages/queue-manager
         version: link:packages/upstreet-agent/packages/queue-manager
+      react:
+        specifier: file:./packages/upstreet-agent/packages/react
+        version: link:packages/upstreet-agent/packages/react
       react-agents:
         specifier: file:./packages/upstreet-agent/packages/react-agents
         version: link:packages/upstreet-agent/packages/react-agents
@@ -1364,6 +1367,7 @@ packages:
 
   '@ai-sdk/react@0.0.70':
     resolution: {integrity: sha512-GnwbtjW4/4z7MleLiW+TOZC2M29eCg1tOUpuEiYFMmFNZK8mkrqM0PFZMo6UsYeUYMWqEOOcPOU9OQVJMJh7IQ==}
+    version: 0.0.70
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -6660,6 +6664,7 @@ packages:
 
   ai@3.4.33:
     resolution: {integrity: sha512-plBlrVZKwPoRTmM8+D1sJac9Bq8eaa2jiZlHLZIWekKWI1yMWYZvCCEezY9ASPwRhULYDJB2VhKOBUUeg3S5JQ==}
+    version: 3.4.33
     engines: {node: '>=18'}
     peerDependencies:
       openai: ^4.42.0
@@ -13941,6 +13946,7 @@ packages:
 
   swr@2.3.0:
     resolution: {integrity: sha512-NyZ76wA4yElZWBHzSgEJc28a0u6QZvhb6w0azeL2k7+Q1gAzVK+IqQYXhVOC/mzi+HZIozrZvBVeSeOZNR2bqA==}
+    version: 2.3.0
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -16441,58 +16447,6 @@ snapshots:
       global-agent: 3.0.0
     transitivePeerDependencies:
       - supports-color
-
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@ai-sdk/anthropic': 0.0.56(zod@3.23.8)
-      '@ai-sdk/google': 0.0.55(zod@3.23.8)
-      '@ai-sdk/google-vertex': 0.0.43(@google-cloud/vertexai@1.9.2)(zod@3.23.8)
-      '@ai-sdk/groq': 0.0.3(zod@3.23.8)
-      '@ai-sdk/openai': 1.0.5(zod@3.23.8)
-      '@anthropic-ai/sdk': 0.30.1
-      '@fal-ai/client': 1.2.0
-      '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@types/uuid': 10.0.0
-      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8)
-      anthropic-vertex-ai: 1.0.2(zod@3.23.8)
-      fastestsmallesttextencoderdecoder: 1.0.22
-      gaxios: 6.7.1
-      glob: 11.0.0
-      handlebars: 4.7.8
-      js-sha1: 0.7.0
-      js-tiktoken: 1.0.15
-      langchain: 0.3.6(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(handlebars@4.7.8)(openai@4.73.0(zod@3.23.8))
-      ollama-ai-provider: 0.16.1(zod@3.23.8)
-      openai: 4.73.0(zod@3.23.8)
-      tinyld: 1.3.4
-      together-ai: 0.7.0
-      unique-names-generator: 4.7.1
-      uuid: 11.0.3
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - '@google-cloud/vertexai'
-      - '@langchain/anthropic'
-      - '@langchain/aws'
-      - '@langchain/cohere'
-      - '@langchain/core'
-      - '@langchain/google-genai'
-      - '@langchain/google-vertexai'
-      - '@langchain/groq'
-      - '@langchain/mistralai'
-      - '@langchain/ollama'
-      - axios
-      - bufferutil
-      - cheerio
-      - encoding
-      - peggy
-      - react
-      - solid-js
-      - sswr
-      - supports-color
-      - svelte
-      - typeorm
-      - utf-8-validate
-      - vue
 
   '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
     dependencies:
@@ -22205,31 +22159,6 @@ snapshots:
       zod: 3.24.1
 
   ai@3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(solid-js@1.9.3)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(vue@3.5.13(typescript@5.7.2))(zod@3.23.8):
-    dependencies:
-      '@ai-sdk/provider': 0.0.26
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
-      '@ai-sdk/react': 0.0.70(react@19.0.0-rc-df5f2736-20240712)(zod@3.23.8)
-      '@ai-sdk/solid': 0.0.54(solid-js@1.9.3)(zod@3.23.8)
-      '@ai-sdk/svelte': 0.0.57(svelte@4.2.19)(zod@3.23.8)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.23.8)
-      '@ai-sdk/vue': 0.0.59(vue@3.5.13(typescript@5.7.2))(zod@3.23.8)
-      '@opentelemetry/api': 1.9.0
-      eventsource-parser: 1.1.2
-      json-schema: 0.4.0
-      jsondiffpatch: 0.6.0
-      secure-json-parse: 2.7.0
-      zod-to-json-schema: 3.24.1(zod@3.23.8)
-    optionalDependencies:
-      openai: 4.73.0(zod@3.23.8)
-      react: 19.0.0-rc-df5f2736-20240712
-      sswr: 2.1.0(svelte@4.2.19)
-      svelte: 4.2.19
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - solid-js
-      - vue
-
-  ai@3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8):
     dependencies:
       '@ai-sdk/provider': 0.0.26
       '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
@@ -32236,7 +32165,7 @@ snapshots:
     dependencies:
       '@aws-sdk/util-format-url': 3.709.0
       '@electric-sql/pglite': 0.2.15
-      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
+      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
       '@supabase/supabase-js': 2.47.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
