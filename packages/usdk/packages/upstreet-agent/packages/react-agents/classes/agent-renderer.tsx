@@ -378,8 +378,12 @@ export class AgentRenderer {
       agents,
     };
   }
-  unmount() {
-    this.reconciler.updateContainer(null, this.root, null, () => {});
+  async unmount() {
+    await new Promise((accept, reject) => {
+      this.reconciler.updateContainer(null, this.root, null, () => {
+        accept(null);
+      });
+    });
   }
 
   // note: needs to be async to wait for React to resolves
