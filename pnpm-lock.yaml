@@ -560,7 +560,7 @@ importers:
         version: 29.7.0(@babel/core@7.26.0)
       jest:
         specifier: ^29.7.0
-        version: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
       jest-environment-jsdom:
         specifier: ^29.7.0
         version: 29.7.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -587,7 +587,7 @@ importers:
         version: 6.1.1(rollup@3.29.5)(typescript@5.7.2)
       rollup-plugin-postcss:
         specifier: ^4.0.2
-        version: 4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
+        version: 4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
       sass:
         specifier: ^1.76.0
         version: 1.82.0
@@ -830,7 +830,7 @@ importers:
         version: link:packages/update-notifier
       upstreet-agent:
         specifier: file:./packages/upstreet-agent
-        version: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@google-cloud/vertexai@1.9.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(@types/node@18.19.68)(axios@1.7.9)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)
+        version: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10)
       vercel:
         specifier: ^34.2.6
         version: 34.4.0(@swc/core@1.10.1(@swc/helpers@0.5.13))
@@ -872,6 +872,9 @@ importers:
         specifier: ^0.5.5
         version: 0.5.5
     devDependencies:
+      '@types/jest':
+        specifier: ^29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: ^18.0.0
         version: 18.19.68
@@ -1358,6 +1361,7 @@ packages:
 
   '@ai-sdk/react@0.0.70':
     resolution: {integrity: sha512-GnwbtjW4/4z7MleLiW+TOZC2M29eCg1tOUpuEiYFMmFNZK8mkrqM0PFZMo6UsYeUYMWqEOOcPOU9OQVJMJh7IQ==}
+    version: 0.0.70
     engines: {node: '>=18'}
     peerDependencies:
       react: ^18 || ^19 || ^19.0.0-rc
@@ -4020,16 +4024,19 @@ packages:
   '@nut-tree-fork/libnut-darwin@2.7.3':
     resolution: {integrity: sha512-9Cigcyl1285uJtQ3srt2eJQB6+yF16Bu/BN6szmP7GG/K3JZeNOR5g2SYzS0jPuFUe1uY6MMuW5m+HSps4R3RQ==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-linux@2.7.3':
     resolution: {integrity: sha512-6Sb5CVee+Av+8JtHOmn0+xlS8czivSt/ZVGttErondobBLTbrUZcVg/OEcxTMGWq5tM4hIYYsYlqEOSj3hapQw==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut-win32@2.7.3':
     resolution: {integrity: sha512-3HDHgX6IuZ8vYJYocvYQiHrsiAFInVl6ad7/I7Woy43on67UGVX0jrCPxUqzNqcAcnPga0oJJ7Ktjjj9jqb3Dg==}
     engines: {node: '>=10.15.3'}
+    cpu: [x64, arm64]
     os: [darwin, linux, win32]
 
   '@nut-tree-fork/libnut@4.2.2':
@@ -4043,6 +4050,7 @@ packages:
   '@nut-tree-fork/nut-js@4.2.2':
     resolution: {integrity: sha512-QA3UM47/XI7CWhR03MtZ93QPdO0GQRa3DbqfRF+3PcO8rrEk29lmC+c9BDf8X8uK4D+SVJUEF5VEbYwDeV55qA==}
     engines: {node: '>=16'}
+    cpu: [x64, arm64]
     os: [linux, darwin, win32]
 
   '@nut-tree-fork/provider-interfaces@4.2.2':
@@ -6654,6 +6662,7 @@ packages:
 
   ai@3.4.33:
     resolution: {integrity: sha512-plBlrVZKwPoRTmM8+D1sJac9Bq8eaa2jiZlHLZIWekKWI1yMWYZvCCEezY9ASPwRhULYDJB2VhKOBUUeg3S5JQ==}
+    version: 3.4.33
     engines: {node: '>=18'}
     peerDependencies:
       openai: ^4.42.0
@@ -13935,6 +13944,7 @@ packages:
 
   swr@2.3.0:
     resolution: {integrity: sha512-NyZ76wA4yElZWBHzSgEJc28a0u6QZvhb6w0azeL2k7+Q1gAzVK+IqQYXhVOC/mzi+HZIozrZvBVeSeOZNR2bqA==}
+    version: 2.3.0
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -16436,7 +16446,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
     dependencies:
       '@ai-sdk/anthropic': 0.0.56(zod@3.23.8)
       '@ai-sdk/google': 0.0.55(zod@3.23.8)
@@ -16447,7 +16457,7 @@ snapshots:
       '@fal-ai/client': 1.2.0
       '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/uuid': 10.0.0
-      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8)
+      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8)
       anthropic-vertex-ai: 1.0.2(zod@3.23.8)
       fastestsmallesttextencoderdecoder: 1.0.22
       gaxios: 6.7.1
@@ -16488,7 +16498,7 @@ snapshots:
       - utf-8-validate
       - vue
 
-  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)':
+  '@elizaos/core@file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(utf-8-validate@5.0.10)':
     dependencies:
       '@ai-sdk/anthropic': 0.0.56(zod@3.23.8)
       '@ai-sdk/google': 0.0.55(zod@3.23.8)
@@ -16499,7 +16509,7 @@ snapshots:
       '@fal-ai/client': 1.2.0
       '@solana/web3.js': 1.95.8(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/uuid': 10.0.0
-      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8)
+      ai: 3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(zod@3.23.8)
       anthropic-vertex-ai: 1.0.2(zod@3.23.8)
       fastestsmallesttextencoderdecoder: 1.0.22
       gaxios: 6.7.1
@@ -17207,41 +17217,6 @@ snapshots:
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
       jest-config: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
-      jest-haste-map: 29.7.0
-      jest-message-util: 29.7.0
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-resolve-dependencies: 29.7.0
-      jest-runner: 29.7.0
-      jest-runtime: 29.7.0
-      jest-snapshot: 29.7.0
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      jest-watcher: 29.7.0
-      micromatch: 4.0.8
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-ansi: 6.0.1
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
-  '@jest/core@29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))':
-    dependencies:
-      '@jest/console': 29.7.0
-      '@jest/reporters': 29.7.0
-      '@jest/test-result': 29.7.0
-      '@jest/transform': 29.7.0
-      '@jest/types': 29.6.3
-      '@types/node': 20.11.5
-      ansi-escapes: 4.3.2
-      chalk: 4.1.2
-      ci-info: 3.9.0
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -21228,13 +21203,13 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       '@types/responselike': 1.0.3
 
   '@types/connect@3.4.38':
@@ -21245,7 +21220,7 @@ snapshots:
 
   '@types/cross-spawn@6.0.6':
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/d3-color@3.1.3': {}
 
@@ -21316,7 +21291,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.19.6':
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       '@types/qs': 6.9.17
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -21332,7 +21307,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.9':
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/hast@2.3.10':
     dependencies:
@@ -21377,7 +21352,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/lodash@4.17.13': {}
 
@@ -21499,7 +21474,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/retry@0.12.0': {}
 
@@ -21510,12 +21485,12 @@ snapshots:
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
 
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       '@types/send': 0.17.4
 
   '@types/stack-utils@2.0.3': {}
@@ -22223,31 +22198,6 @@ snapshots:
       - solid-js
       - vue
 
-  ai@3.4.33(openai@4.73.0(zod@3.23.8))(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8):
-    dependencies:
-      '@ai-sdk/provider': 0.0.26
-      '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
-      '@ai-sdk/react': 0.0.70(react@19.0.0-rc-df5f2736-20240712)(zod@3.23.8)
-      '@ai-sdk/solid': 0.0.54(solid-js@1.9.3)(zod@3.23.8)
-      '@ai-sdk/svelte': 0.0.57(svelte@4.2.19)(zod@3.23.8)
-      '@ai-sdk/ui-utils': 0.0.50(zod@3.23.8)
-      '@ai-sdk/vue': 0.0.59(vue@3.5.13(typescript@5.7.2))(zod@3.23.8)
-      '@opentelemetry/api': 1.9.0
-      eventsource-parser: 1.1.2
-      json-schema: 0.4.0
-      jsondiffpatch: 0.6.0
-      secure-json-parse: 2.7.0
-      zod-to-json-schema: 3.24.1(zod@3.23.8)
-    optionalDependencies:
-      openai: 4.73.0(zod@3.23.8)
-      react: 19.0.0-rc-df5f2736-20240712
-      sswr: 2.1.0(svelte@4.2.19)
-      svelte: 4.2.19
-      zod: 3.23.8
-    transitivePeerDependencies:
-      - solid-js
-      - vue
-
   ai@3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(zod@3.23.8):
     dependencies:
       '@ai-sdk/provider': 0.0.26
@@ -22268,6 +22218,29 @@ snapshots:
       react: file:packages/usdk/packages/upstreet-agent/packages/react
       sswr: 2.1.0(svelte@4.2.19)
       svelte: 4.2.19
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - solid-js
+      - vue
+
+  ai@3.4.33(openai@4.73.0(zod@3.23.8))(react@file:packages/usdk/packages/upstreet-agent/packages/react)(zod@3.23.8):
+    dependencies:
+      '@ai-sdk/provider': 0.0.26
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
+      '@ai-sdk/react': 0.0.70(react@file:packages/usdk/packages/upstreet-agent/packages/react)(zod@3.23.8)
+      '@ai-sdk/solid': 0.0.54(solid-js@1.9.3)(zod@3.23.8)
+      '@ai-sdk/svelte': 0.0.57(svelte@4.2.19)(zod@3.23.8)
+      '@ai-sdk/ui-utils': 0.0.50(zod@3.23.8)
+      '@ai-sdk/vue': 0.0.59(vue@3.5.13(typescript@5.7.2))(zod@3.23.8)
+      '@opentelemetry/api': 1.9.0
+      eventsource-parser: 1.1.2
+      json-schema: 0.4.0
+      jsondiffpatch: 0.6.0
+      secure-json-parse: 2.7.0
+      zod-to-json-schema: 3.24.1(zod@3.23.8)
+    optionalDependencies:
+      openai: 4.73.0(zod@3.23.8)
+      react: file:packages/usdk/packages/upstreet-agent/packages/react
       zod: 3.23.8
     transitivePeerDependencies:
       - solid-js
@@ -23460,21 +23433,6 @@ snapshots:
       - supports-color
       - ts-node
 
-  create-jest@29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
-    dependencies:
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
-      jest-util: 29.7.0
-      prompts: 2.4.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
   create-jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)):
     dependencies:
       '@jest/types': 29.6.3
@@ -23743,7 +23701,7 @@ snapshots:
 
   debug@4.1.1:
     dependencies:
-      ms: 2.1.1
+      ms: 2.1.3
 
   debug@4.4.0:
     dependencies:
@@ -26670,7 +26628,7 @@ snapshots:
       '@jest/expect': 29.7.0
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       chalk: 4.1.2
       co: 4.6.0
       dedent: 1.5.3(babel-plugin-macros@3.1.0)
@@ -26700,25 +26658,6 @@ snapshots:
       exit: 0.1.2
       import-local: 3.2.0
       jest-config: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
-  jest-cli@29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
-    dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
-      '@jest/test-result': 29.7.0
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
-      exit: 0.1.2
-      import-local: 3.2.0
-      jest-config: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -26805,37 +26744,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.11.5
       ts-node: 10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-
-  jest-config@29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
-    dependencies:
-      '@babel/core': 7.26.0
-      '@jest/test-sequencer': 29.7.0
-      '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.26.0)
-      chalk: 4.1.2
-      ci-info: 3.9.0
-      deepmerge: 4.3.1
-      glob: 7.2.3
-      graceful-fs: 4.2.11
-      jest-circus: 29.7.0(babel-plugin-macros@3.1.0)
-      jest-environment-node: 29.7.0
-      jest-get-type: 29.6.3
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-runner: 29.7.0
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      micromatch: 4.0.8
-      parse-json: 5.2.0
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-json-comments: 3.1.1
-    optionalDependencies:
-      '@types/node': 20.11.5
-      ts-node: 10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -26941,7 +26849,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       jest-mock: 29.7.0
       jest-util: 29.7.0
 
@@ -26951,7 +26859,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.9
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -27132,13 +27040,13 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 20.11.5
+      '@types/node': 18.19.68
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -27149,18 +27057,6 @@ snapshots:
       '@jest/types': 29.6.3
       import-local: 3.2.0
       jest-cli: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
-  jest@29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
-    dependencies:
-      '@jest/core': 29.7.0(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
-      '@jest/types': 29.6.3
-      import-local: 3.2.0
-      jest-cli: 29.7.0(@types/node@20.11.5)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -29482,13 +29378,13 @@ snapshots:
       camelcase-css: 2.0.1
       postcss: 8.4.49
 
-  postcss-load-config@3.1.4(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
+  postcss-load-config@3.1.4(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)):
     dependencies:
       lilconfig: 2.1.0
       yaml: 1.10.2
     optionalDependencies:
       postcss: 8.4.49
-      ts-node: 10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)
+      ts-node: 10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)
 
   postcss-load-config@4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
     dependencies:
@@ -30604,7 +30500,7 @@ snapshots:
     dependencies:
       rollup-plugin-inject: 3.0.2
 
-  rollup-plugin-postcss@4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2)):
+  rollup-plugin-postcss@4.0.2(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)):
     dependencies:
       chalk: 4.1.2
       concat-with-sourcemaps: 1.1.0
@@ -30613,7 +30509,7 @@ snapshots:
       p-queue: 6.6.2
       pify: 5.0.0
       postcss: 8.4.49
-      postcss-load-config: 3.1.4(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@20.11.5)(typescript@5.7.2))
+      postcss-load-config: 3.1.4(postcss@8.4.49)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
       postcss-modules: 4.3.1(postcss@8.4.49)
       promise.series: 0.2.0
       resolve: 1.22.8
@@ -32206,11 +32102,11 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@google-cloud/vertexai@1.9.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(@types/node@18.19.68)(axios@1.7.9)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10):
+  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(bufferutil@4.0.9)(esbuild@0.20.2)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))(utf-8-validate@5.0.10):
     dependencies:
       '@aws-sdk/util-format-url': 3.709.0
       '@electric-sql/pglite': 0.2.15
-      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(@google-cloud/vertexai@1.9.2)(@langchain/core@0.3.26(openai@4.76.1(zod@3.24.1)))(axios@1.7.9)(bufferutil@4.0.9)(react@19.0.0-rc-df5f2736-20240712)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(utf-8-validate@5.0.10)
+      '@elizaos/core': file:packages/usdk/packages/upstreet-agent/packages/elizaos-core-proxy(bufferutil@4.0.9)(react@file:packages/usdk/packages/upstreet-agent/packages/react)(utf-8-validate@5.0.10)
       '@iarna/toml': 2.2.5
       '@supabase/postgrest-js': 1.17.7
       '@supabase/supabase-js': 2.47.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
