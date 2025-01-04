@@ -53,7 +53,7 @@ export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
   
-  get location(): URL;
+  // get location(): URL;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
@@ -204,6 +204,7 @@ export type LoopProps = {
   hint?: string;
   evaluator?: Evaluator;
   actOpts?: ActOpts;
+  children?: ReactNode;
 }
 
 // actions
@@ -439,7 +440,7 @@ export type PingManager = {
   destroy: () => void;
 };
 export type ActiveAgentObject = AgentObject & {
-  agentJson: AgentObject;
+  config: AgentObjectData;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 
@@ -679,16 +680,16 @@ export type ServerProps = {
 
 // contexts
 
-type Compartment = {
-  evaluate: (s: string) => any;
-};
+// type Compartment = {
+//   evaluate: (s: string) => any;
+// };
 
-type Kv = {
+export type Kv = {
   get: <T = any>(key: string, defaultValue?: T | (() => T)) => Promise<T | undefined>;
   set: <T = any>(key: string, value: T | ((oldValue: T | undefined) => T)) => Promise<void>;
   use: <T = any>(key: string, defaultValue?: T | (() => T)) => [T, (value: T | ((oldValue: T | undefined) => T)) => void];
 }
-type Tts = {
+export type Tts = {
   getVoiceStream: (text: string, opts?: any) => ReadableAudioStream;
   getVoiceConversionStream: (blob: Blob, opts?: any) => ReadableAudioStream;
 };
