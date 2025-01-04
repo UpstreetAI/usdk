@@ -6,7 +6,7 @@ import {
   ConversationContext,
 } from '../../context';
 
-export const Prompt = /*memo(*/(props: PromptProps) => {
+export const Prompt: React.FC<PromptProps> = /*memo(*/(props: PromptProps) => {
   // const agent = useContext(AgentContext);
   const conversation = useContext(ConversationContext).conversation;
 

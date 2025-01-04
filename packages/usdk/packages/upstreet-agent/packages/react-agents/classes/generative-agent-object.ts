@@ -55,9 +55,9 @@ export class GenerativeAgentObject {
 
   //
 
-  get location() {
-    return new URL(`${chatEndpointUrl}/rooms/${this.conversation.room}`);
-  }
+  // get location() {
+  //   return new URL(`${chatEndpointUrl}/rooms/${this.conversation.room}`);
+  // }
 
   //
 
@@ -180,8 +180,8 @@ export class GenerativeAgentObject {
       };
       const step = await generateAgentActionStep({
         generativeAgent: this,
-        hint: 'Comment on the following:' + '\n' +
-          text,
+        hint: 'Comment on the following:' + '\n' + text,
+        mode: 'basic',
         actOpts,
         debugOpts,
       });

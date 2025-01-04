@@ -8,6 +8,7 @@ import {
   ActionMessageEventData,
   // PlayableAudioStream,
   TwitterArgs,
+  AgentSpec,
 } from '../types';
 import {
   ConversationObject,
@@ -230,7 +231,7 @@ class TwitterBot {
           }
         };
         const newMessage = formatConversationMessage(rawMessage, {
-          agent: this.agent,
+          agent: this.agent as AgentSpec,
         });
 
         const steps = await conversation.addLocalMessage(newMessage);

@@ -13,7 +13,7 @@ import { SceneObject } from '../classes/scene-object';
 import { Player } from 'react-agents-client/util/player.mjs';
 import { ExtendableMessageEvent } from '../util/extendable-message-event';
 import { MessageCache as MessageCacheConstructor, CACHED_MESSAGES_LIMIT } from './message-cache';
-import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase';
+import { loadMessagesFromDatabase } from '../util/loadMessagesFromDatabase.mjs';
 
 //
 
@@ -127,7 +127,7 @@ export class ConversationObject extends EventTarget {
     const allAgents: object[] = [
       ...Array.from(this.agentsMap.values()).map(player => player.playerSpec),
     ];
-    this.agent && allAgents.push(this.agent.agentJson);
+    this.agent && allAgents.push(this.agent.config);
     return allAgents;
   }
   getEmbeddingString() {

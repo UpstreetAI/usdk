@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { headers } from './constants.mjs';
 import { SupabaseStorage } from './storage/supabase-storage.mjs';
 import { PGliteStorage } from './storage/pglite-storage.mjs';
-import { AgentRenderer } from './classes/agent-renderer.tsx';
-import { ChatsSpecification } from './classes/chats-specification.ts';
+import { AgentRenderer } from './classes/agent-renderer';
+import { ChatsSpecification } from './classes/chats-specification';
 import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 type RootOpts = {

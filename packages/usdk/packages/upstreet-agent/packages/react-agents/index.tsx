@@ -13,6 +13,7 @@ export * from './components/core/plugins';
 
 export * from './components/features/index';
 
+export * from './components/clients/index';
 export * from './components/plugins/index';
 
 export * from './components/util/default-components';
@@ -22,3 +23,5 @@ export * from './loops/chat-loop';
 export * from './loops/action-loop';
 
 export * from './hooks';
+
+export * from './root';

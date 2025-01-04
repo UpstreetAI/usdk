@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Action, useEnv, useRuntime } from 'react-agents';
 import { jsonSchemaToZod } from 'json-schema-to-zod-object';
-import { printNode, zodToTs } from 'zod-to-ts';
 import { z, ZodTypeAny } from 'zod';
 import type {
   IActionHandlerCallbackArgs,
   IPlugin,
   IAdapter,
   IRuntime,
-} from '../types/eliza.d.ts';
+} from '../types/eliza';
 
 function generateZodSchemaFromExample(obj: any): z.ZodTypeAny {
   if (typeof obj === "string") return z.string();

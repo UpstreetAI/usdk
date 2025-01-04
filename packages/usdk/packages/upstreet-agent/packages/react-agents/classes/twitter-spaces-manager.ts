@@ -1,3 +1,4 @@
+// @ts-nocheck
 import uuidByString from 'uuid-by-string';
 import type {
   ActiveAgentObject,

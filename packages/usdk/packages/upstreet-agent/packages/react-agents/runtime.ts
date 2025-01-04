@@ -33,7 +33,7 @@ import {
 } from './util/extendable-message-event';
 import {
   saveMessageToDatabase,
-} from './util/saveMessageToDatabase.js';
+} from './util/saveMessageToDatabase.mjs';
 import {
   uniquifyActions,
   formatBasicSchema,

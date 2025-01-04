@@ -19,7 +19,7 @@ import type {
   IAdapter,
   IRuntime,
   Client as ElizaClient,
-} from '../types/eliza.d.ts';
+} from '../types/eliza';
 
 //
 
