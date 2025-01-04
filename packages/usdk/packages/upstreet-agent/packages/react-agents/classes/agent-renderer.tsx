@@ -371,7 +371,12 @@ export class AgentRenderer {
     //   throw error;
     // }
 
-    return this.registry.agents;
+    const {
+      agents,
+    } = this.registry;
+    return {
+      agents,
+    };
   }
   unmount() {
     this.reconciler.updateContainer(null, this.root, null, () => {});
