@@ -44,7 +44,7 @@ test('createRoot', async () => {
   })();
 
   let i = 0;
-  const numPlugins = 3;
+  const numPlugins = Infinity;
   for (const [name, ref] of Object.entries(indexJson)) {
     // create the agent directory
     const agentBaseName = name
