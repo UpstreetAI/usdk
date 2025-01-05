@@ -10,6 +10,7 @@
     "@supabase/supabase-js": "^2.47.1",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/jest": "^29.5.13",
+    "@types/react": "19.0.0",
     "browser-util-inspect": "^0.2.0",
     "child_process": "file:./packages/fs-proxy",
     "codecs": "file:./packages/codecs",
