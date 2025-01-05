@@ -1,4 +1,4 @@
-import type { ReactNode, FC, Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 
 // intrinsics
