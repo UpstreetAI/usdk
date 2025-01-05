@@ -639,6 +639,9 @@ importers:
       '@types/estree':
         specifier: ^1.0.5
         version: 1.0.6
+      '@types/react':
+        specifier: 19.0.0
+        version: 19.0.0
       '@wasm-audio-decoders/common':
         specifier: file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common
         version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common
@@ -963,6 +966,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.14
+      '@types/react':
+        specifier: 19.0.0
+        version: 19.0.0
       browser-util-inspect:
         specifier: ^0.2.0
         version: 0.2.0
@@ -1000,8 +1006,8 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0
       json-schema-to-zod-object:
-        specifier: ^2.6.5
-        version: 2.6.5
+        specifier: ^2.6.7
+        version: 2.6.7
       memfs:
         specifier: ^4.15.1
         version: 4.15.1
@@ -6157,6 +6163,9 @@ packages:
   '@types/react@18.3.16':
     resolution: {integrity: sha512-oh8AMIC4Y2ciKufU8hnKgs+ufgbA/dhPTACaZPM86AbwX9QwnFtSoPWEeRUj8fge+v6kFt78BXcDhAU1SrrAsw==}
 
+  '@types/react@19.0.0':
+    resolution: {integrity: sha512-MY3oPudxvMYyesqs/kW1Bh8y9VqSmf+tzqw3ae8a9DZW68pUe3zAdHeI1jc6iAysuRdACnVknHP8AhwD4/dxtg==}
+
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
@@ -10597,9 +10606,8 @@ packages:
   json-schema-to-ts@1.6.4:
     resolution: {integrity: sha512-pR4yQ9DHz6itqswtHCm26mw45FSNfQ9rEQjosaZErhn5J3J2sIViQiz8rDaezjKAhFGpmsoczYVBgGHzFw/stA==}
 
-  json-schema-to-zod-object@2.6.5:
-    resolution: {integrity: sha512-zxu62QagB8Qzzp5uZKUe+iB774Hg/BiudsSYYzAMpFYRlpapf2IHZmyDivM7eDVnbmIF0uT5uWf49R21Yf89IQ==}
-    hasBin: true
+  json-schema-to-zod-object@2.6.7:
+    resolution: {integrity: sha512-fSjVR1MXsRQJMeNa9lrPyZEf3Rmie9KuDlZeDbvk5IZN/7dHhHLF+8Wt1ejnWsJA6NXAghvRcYKtfW76bnSSuw==}
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
@@ -17959,7 +17967,7 @@ snapshots:
   '@mdx-js/react@2.3.0(react@18.2.0)':
     dependencies:
       '@types/mdx': 2.0.13
-      '@types/react': 18.3.16
+      '@types/react': 18.2.48
       react: 18.2.0
 
   '@mediapipe/tasks-vision@0.10.17': {}
@@ -21419,7 +21427,7 @@ snapshots:
 
   '@types/react-reconciler@0.26.7':
     dependencies:
-      '@types/react': 18.3.16
+      '@types/react': 18.2.48
 
   '@types/react-reconciler@0.28.9(@types/react@18.2.48)':
     dependencies:
@@ -21452,6 +21460,10 @@ snapshots:
   '@types/react@18.3.16':
     dependencies:
       '@types/prop-types': 15.7.14
+      csstype: 3.1.3
+
+  '@types/react@19.0.0':
+    dependencies:
       csstype: 3.1.3
 
   '@types/resolve@1.20.2': {}
@@ -27269,7 +27281,7 @@ snapshots:
       '@types/json-schema': 7.0.15
       ts-toolbelt: 6.15.5
 
-  json-schema-to-zod-object@2.6.5: {}
+  json-schema-to-zod-object@2.6.7: {}
 
   json-schema-traverse@0.4.1: {}
 
@@ -32172,6 +32184,7 @@ snapshots:
       '@supabase/supabase-js': 2.47.5(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@tsndr/cloudflare-worker-jwt': 2.5.3
       '@types/jest': 29.5.14
+      '@types/react': 19.0.0
       browser-util-inspect: 0.2.0
       child_process: fs@file:packages/usdk/packages/upstreet-agent/packages/fs-proxy
       codecs: file:packages/usdk/packages/upstreet-agent/packages/codecs
@@ -32184,7 +32197,7 @@ snapshots:
       javascript-time-ago: 2.5.11
       jest: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
       jimp: 1.6.0
-      json-schema-to-zod-object: 2.6.5
+      json-schema-to-zod-object: 2.6.7
       memfs: 4.15.1
       memoize-one: 6.0.0
       minimatch: 9.0.5
