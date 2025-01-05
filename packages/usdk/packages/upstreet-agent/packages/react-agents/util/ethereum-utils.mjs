@@ -14,10 +14,12 @@ export const getWalletFromMnemonic = (mnemonic, accountIndex = 0) => {
   return wallet;
 };
 export const getConnectedWalletsFromMnemonic = (mnemonic, accountIndex = 0) => {
-  const wallet = getWalletFromMnemonic(mnemonic, accountIndex);
+  const wallet = mnemonic ?
+    getWalletFromMnemonic(mnemonic, accountIndex)
+  : null;
   const result = {};
   for (const [name, provider] of Object.entries(providers)) {
-    result[name] = wallet.connect(provider);
+    result[name] = wallet?.connect(provider);
   }
   return result;
 };

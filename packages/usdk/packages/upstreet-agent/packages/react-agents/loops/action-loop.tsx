@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAgent, useConversation } from '../hooks';
-import { LoopProps } from './types';
+import { LoopProps } from '../types';
 import { ReACTEvaluator } from '../evaluators/react-evaluator';
 // import { PerceptionEvent } from '../classes/perception-event';
 import { ConversationObject } from '../classes/conversation-object';

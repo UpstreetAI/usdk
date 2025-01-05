@@ -10,6 +10,9 @@ on:
 jobs:
   test-usdk:
     runs-on: ubuntu-22.04
+    env:
+      FAL_API_KEY: ${{ secrets.FAL_API_KEY }}
+
     strategy:
       matrix:
         node-version: [22]
@@ -28,3 +31,5 @@ jobs:
         run: cd packages/usdk && pnpm install --no-optional --no-frozen-lockfile
       - name: Run USDK command
         run: cd packages/usdk && ./usdk.js --version
+      - name: Run Jest tests
+        run: cd packages/usdk && pnpm test

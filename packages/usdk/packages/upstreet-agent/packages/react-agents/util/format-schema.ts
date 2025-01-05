@@ -62,7 +62,6 @@ const formatAction = (action: ActionPropsAux) => {
   const {
     type,
     description,
-    state,
     examples,
   } = action;
 
@@ -84,7 +83,6 @@ const formatAction = (action: ActionPropsAux) => {
     ) : ''
   ) +
   (description ? (description + '\n') : '') +
-  (state ? (state + '\n') : '') +
   (examplesJsonString
     ? (
       dedent`

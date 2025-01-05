@@ -1,4 +1,4 @@
-import type { ReactNode, FC, Ref } from 'react';
+import type { ReactNode, Ref } from 'react';
 import type { ZodTypeAny } from 'zod';
 
 // intrinsics
@@ -37,6 +37,8 @@ export type AgentObjectData = {
   smallModel?: string;
   largeModel?: string;
   features?: string[];
+  clients?: string[];
+  plugins?: string[];
   address?: string;
   stripeConnectAccountId?: string;
 };
@@ -51,7 +53,7 @@ export type GenerativeAgentObject =  {
   agent: ActiveAgentObject;
   conversation: ConversationObject;
   
-  get location(): URL;
+  // get location(): URL;
 
   embed: (text: string) => Promise<Array<number>>;
   complete: (
@@ -202,6 +204,7 @@ export type LoopProps = {
   hint?: string;
   evaluator?: Evaluator;
   actOpts?: ActOpts;
+  children?: ReactNode;
 }
 
 // actions
@@ -437,7 +440,7 @@ export type PingManager = {
   destroy: () => void;
 };
 export type ActiveAgentObject = AgentObject & {
-  agentJson: AgentObject;
+  config: AgentObjectData;
   appContextValue: AppContextValue;
   registry: AgentRegistry;
 
@@ -447,7 +450,6 @@ export type ActiveAgentObject = AgentObject & {
   twitterManager: TwitterManager;
   twitterSpacesManager: TwitterSpacesManager;
   telnyxManager: TelnyxManager;
-  pingManager: PingManager;
   generativeAgentsMap: WeakMap<ConversationObject, GenerativeAgentObject>;
 
   //
@@ -677,16 +679,16 @@ export type ServerProps = {
 
 // contexts
 
-type Compartment = {
-  evaluate: (s: string) => any;
-};
+// type Compartment = {
+//   evaluate: (s: string) => any;
+// };
 
-type Kv = {
+export type Kv = {
   get: <T = any>(key: string, defaultValue?: T | (() => T)) => Promise<T | undefined>;
   set: <T = any>(key: string, value: T | ((oldValue: T | undefined) => T)) => Promise<void>;
   use: <T = any>(key: string, defaultValue?: T | (() => T)) => [T, (value: T | ((oldValue: T | undefined) => T)) => void];
 }
-type Tts = {
+export type Tts = {
   getVoiceStream: (text: string, opts?: any) => ReadableAudioStream;
   getVoiceConversionStream: (blob: Blob, opts?: any) => ReadableAudioStream;
 };
@@ -765,6 +767,7 @@ export type AppContextValue = {
   useChatsSpecification: () => ChatsSpecification;
   useCodecs: () => any;
   useInit: () => any;
+  useRuntime: () => any;
   useDebug: () => number;
   useRegistry: () => RenderRegistry;
 

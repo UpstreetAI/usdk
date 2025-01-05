@@ -23,8 +23,6 @@ export class PingManager {
 
     this.interval = null;
     this.queueManager = new QueueManager();
-
-    this.live();
   }
   live() {
     this.interval = setInterval(async () => {

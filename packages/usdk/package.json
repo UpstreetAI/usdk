@@ -18,7 +18,8 @@
   "type": "module",
   "main": "module.mjs",
   "scripts": {
-    "preinstall": "[[ $npm_config_global == 'true' ]] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile"
+    "preinstall": "[[ $npm_config_global == 'true' ]] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testTimeout 600000"
   },
   "keywords": [
     "ai",
@@ -60,6 +61,7 @@
     "@supabase/supabase-js": "^2.47.1",
     "@tsndr/cloudflare-worker-jwt": "2.5.3",
     "@types/estree": "^1.0.5",
+    "@types/react": "19.0.0",
     "@wasm-audio-decoders/common": "file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common",
     "alea": "^1.0.1",
     "ansi-escape-sequences": "^6.2.2",
@@ -103,6 +105,7 @@
     "png-chunks-extract": "^1.0.0",
     "pnpm": "^9.12.3",
     "pretty-bytes": "^6.1.1",
+    "react": "file:./packages/upstreet-agent/packages/react",
     "react-agents": "file:./packages/upstreet-agent/packages/react-agents",
     "queue-manager": "file:./packages/upstreet-agent/packages/queue-manager",
     "react-agents-electron": "file:./packages/upstreet-agent/packages/react-agents-electron",
@@ -130,7 +133,6 @@
     "web-worker": "1.2.0",
     "webp-wasm": "^1.0.6",
     "winston": "^3.16.0",
-    "wrangler": "^3.95.0",
     "ws": "^8.17.0",
     "yjs": "^13.6.18",
     "zjs": "file:./packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs",
@@ -150,7 +152,9 @@
     "whatwg-url": "14.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^18.0.0",
-    "jest": "^29.0.0"
+    "jest": "^29.0.0",
+    "ts-jest": "^29.2.5"
   }
 }

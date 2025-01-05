@@ -2,13 +2,11 @@ import type {
   GenerativeAgentObject,
   PerceptionEventData,
   PerceptionMessage,
+  AgentObject,
 } from '../types';
 import {
   AbortableMessageEvent,
 } from './abortable-message-event';
-import {
-  AgentObject,
-} from './agent-object';
 
 export class AbortablePerceptionEvent extends AbortableMessageEvent<PerceptionEventData> {
   constructor({

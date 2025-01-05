@@ -39,7 +39,7 @@ export const ConversationProvider = (props: ConversationProps) => {
   });
 };
 // use this to defer rendering until the conversation is actually used
-export const DeferConversation = (props: DeferProps) => {
+export const DeferConversation: React.FC<DeferProps> = (props: DeferProps) => {
   const appContextValue = useContext(AppContext);
   const conversationManager = appContextValue.useConversationManager();
   const agentRegistry = useContext(AgentRegistryContext).agentRegistry;

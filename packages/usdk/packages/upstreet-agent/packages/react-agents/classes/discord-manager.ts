@@ -12,7 +12,7 @@ import {
   ConversationObject,
 } from './conversation-object';
 import { Player } from 'react-agents-client/util/player.mjs';
-import { DiscordBotClient } from '../lib/discord/discord-client';
+import { DiscordBotClient } from '../lib/discord/discord-client.mjs';
 import { formatConversationMessage } from '../util/message-utils';
 import {
   bindConversationToAgent,

@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { headers } from './constants.mjs';
 import { SupabaseStorage } from './storage/supabase-storage.mjs';
 import { PGliteStorage } from './storage/pglite-storage.mjs';
-import { AgentRenderer } from './classes/agent-renderer.tsx';
-import { ChatsSpecification } from './classes/chats-specification.ts';
+import { AgentRenderer } from './classes/agent-renderer';
+import { ChatsSpecification } from './classes/chats-specification';
 import { multiplayerEndpointUrl } from './util/endpoints.mjs';
 
 type RootOpts = {
@@ -24,9 +24,9 @@ export class Root extends EventTarget {
   constructor(opts: RootOpts = {}) {
     super();
 
-    if (!(opts.storageAdapter || opts.env?.AGENT_TOKEN)) {
-      throw new Error('either storageAdapter or auth.jwt are required');
-    }
+    // if (!(opts.storageAdapter || opts.env?.AGENT_TOKEN)) {
+    //   throw new Error('either storageAdapter or env.AGENT_TOKEN are required');
+    // }
 
     this.opts = opts;
     // XXX pass in models adapters
@@ -425,7 +425,7 @@ export class Root extends EventTarget {
     }
   }
   render(node: ReactNode) {
-    this.agentRenderer.render(node);
+    return this.agentRenderer.render(node);
   }
   unmount() {
     return this.agentRenderer.unmount();

@@ -14,7 +14,7 @@ import type {
   ChatsSpecification,
 } from '../types';
 import { RenderLoader } from './render-loader';
-import { SupabaseStorage } from '../storage/supabase-storage.mjs';
+// import { SupabaseStorage } from '../storage/supabase-storage.mjs';
 import { makePromise } from '../util/util.mjs';
 import { ConversationManager } from './conversation-manager';
 import { AppContextValue } from './app-context-value';
@@ -169,6 +169,13 @@ export class AgentRenderer {
     const useInit = () => {
       return this.env.init ?? {};
     };
+    const useRuntime = () => {
+      return {
+        getSetting: (key: string) => {
+          return ''; // XXX finish this
+        },
+      };
+    };
     const useDebug = () => {
       return this.env.debug ?? 0;
     };
@@ -187,6 +194,7 @@ export class AgentRenderer {
       chatsSpecification: useChatsSpecification(),
       codecs: useCodecs(),
       init: useInit(),
+      runtime: useRuntime(),
       debug: useDebug(),
       registry: useRegistry(),
     });
@@ -351,20 +359,31 @@ export class AgentRenderer {
       node,
       appContextValue,
     };
-    try {
+    // try {
       await this.#renderProps(props);
 
       if (!this.renderPromiseResolved) {
         this.renderPromiseResolved = true;
         this.renderPromise.resolve(null);
       }
-    } catch (error) {
-      console.warn('Error during render', error.stack);
-      throw error;
-    }
+    // } catch (error) {
+    //   console.warn('Error during render', error.stack);
+    //   throw error;
+    // }
+
+    const {
+      agents,
+    } = this.registry;
+    return {
+      agents,
+    };
   }
-  unmount() {
-    this.reconciler.updateContainer(null, this.root, null, () => {});
+  async unmount() {
+    await new Promise((accept, reject) => {
+      this.reconciler.updateContainer(null, this.root, null, () => {
+        accept(null);
+      });
+    });
   }
 
   // note: needs to be async to wait for React to resolves
