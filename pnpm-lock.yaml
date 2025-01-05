@@ -1000,8 +1000,8 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0
       json-schema-to-zod-object:
-        specifier: ^2.6.4
-        version: 2.6.4
+        specifier: ^2.6.5
+        version: 2.6.5
       memfs:
         specifier: ^4.15.1
         version: 4.15.1
@@ -10597,8 +10597,9 @@ packages:
   json-schema-to-ts@1.6.4:
     resolution: {integrity: sha512-pR4yQ9DHz6itqswtHCm26mw45FSNfQ9rEQjosaZErhn5J3J2sIViQiz8rDaezjKAhFGpmsoczYVBgGHzFw/stA==}
 
-  json-schema-to-zod-object@2.6.4:
-    resolution: {integrity: sha512-N41B8qVH0BCzTqeoizS57jFhdlAKZwsKre+3Rax9AM3MWHiXcENyKzd9BicIKsFClHUsEGR0jEjIkqPfh/GNpg==}
+  json-schema-to-zod-object@2.6.5:
+    resolution: {integrity: sha512-zxu62QagB8Qzzp5uZKUe+iB774Hg/BiudsSYYzAMpFYRlpapf2IHZmyDivM7eDVnbmIF0uT5uWf49R21Yf89IQ==}
+    hasBin: true
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
@@ -27268,7 +27269,7 @@ snapshots:
       '@types/json-schema': 7.0.15
       ts-toolbelt: 6.15.5
 
-  json-schema-to-zod-object@2.6.4: {}
+  json-schema-to-zod-object@2.6.5: {}
 
   json-schema-traverse@0.4.1: {}
 
@@ -32183,7 +32184,7 @@ snapshots:
       javascript-time-ago: 2.5.11
       jest: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
       jimp: 1.6.0
-      json-schema-to-zod-object: 2.6.4
+      json-schema-to-zod-object: 2.6.5
       memfs: 4.15.1
       memoize-one: 6.0.0
       minimatch: 9.0.5
