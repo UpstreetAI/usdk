@@ -107,7 +107,8 @@ const DataSourcesPrompt = () => {
           - ${source.name} (ID: ${source.id})
             Description: ${source.description}
             Type: ${source.type}
-            ${source.type === 'api' ? `Endpoint: ${(source as any).endpoint}` : ''}
+            ${source.type === 'api' ? `Required args: ${(source as any).requiredArgs}` : ''}
+            ${source.type === 'api' ? `Examples: ${(source as any).examples}` : ''}
         `).join('\n')}
       `}
     </Prompt>
@@ -343,14 +344,6 @@ const InstructionsPrompt = () => {
         # Instructions
         Respond with the next action taken by your character: ${agent.name}
         The method/args of your response must match one of the allowed actions.
-
-        Before choosing an action, decide if you should respond at all:
-        - Return null (no action) if:
-          * Message is clearly meant for others (unless you have crucial information)
-          * Your input wouldn't add value to the conversation
-          * The conversation is naturally concluding
-          * You've already responded frequently in the last few messages (2-3 messages max)
-          * Multiple other agents are already actively participating
       `}
     </Prompt>
   );

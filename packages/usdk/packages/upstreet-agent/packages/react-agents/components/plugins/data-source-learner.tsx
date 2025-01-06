@@ -37,7 +37,7 @@ export const DataSourceLearner: React.FC = () => {
       <AutoTask hint="You are provided with data sources to help you learn and obtain knowledge. Use the data sources to learn and use the knowledge to answer the user's question." />
 
       <Action
-        type="queryAndLearn"
+        type="queryDataSource"
         description={dedent`\
           Query a data source and store the learned information in memory.
           IMPORTANT: You must provide all required arguments for the data source!

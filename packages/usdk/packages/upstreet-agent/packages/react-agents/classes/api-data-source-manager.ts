@@ -10,6 +10,7 @@ export class APIDataSourceManager implements BaseDataSource {
   headers?: Record<string, string>;
   params?: Record<string, string>;
   requiredArgs?: string[];
+  examples?: string[];
 
   constructor(config: APIDataSourceProps) {
     this.id = config.id;
@@ -20,6 +21,7 @@ export class APIDataSourceManager implements BaseDataSource {
     this.headers = config.headers;
     this.params = config.params;
     this.requiredArgs = config.requiredArgs;
+    this.examples = config.examples;
   }
 
   async pull(args: object = {}): Promise<any> {

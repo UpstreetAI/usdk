@@ -130,6 +130,7 @@ export interface APIDataSourceProps {
   name?: string;
   description?: string;
   endpoint: string;
+  examples: string[];
   headers?: Record<string, string>;
   params?: Record<string, string>;
   requiredArgs?: string[];
