@@ -34,6 +34,9 @@ export const ConfigAgentComponents = (props: ConfigAgentComponentProps) => {
       })}
 
       {Object.entries(dataSources).map(([key, config]) => {
+        if (!config.type) {
+          throw new Error(`Data source ${key} is missing required 'type' field`);
+        }
         const DataSourceRenderer = dataSourceRenderers[config.type];
         if (!DataSourceRenderer) return null;
         return <DataSourceRenderer key={key} {...(config as any)} />;
