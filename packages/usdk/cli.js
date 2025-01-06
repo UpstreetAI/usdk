@@ -24,10 +24,9 @@ import {
   callbackPort,
 } from './util/ports.mjs';
 import {
-  makeAnonymousClient,
   getUserIdForJwt,
-  getUserForJwt,
-} from './packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+} from './packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
+import { SupabaseStorage } from './packages/upstreet-agent/packages/react-agents/storage/supabase-storage.mjs';
 import packageJson from './package.json' with { type: 'json' };
 
 import {
@@ -35,7 +34,6 @@ import {
   getWalletFromMnemonic,
   getConnectedWalletsFromMnemonic,
 } from './packages/upstreet-agent/packages/react-agents/util/ethereum-utils.mjs';
-// import { ReactAgentsWranglerRuntime } from './packages/upstreet-agent/packages/react-agents-wrangler/wrangler-runtime.mjs';
 import {
   deployEndpointUrl,
   chatEndpointUrl,
@@ -77,8 +75,8 @@ import {
   create,
   edit,
   pull,
+  build,
   deploy,
-  update,
   authenticate,
   chat,
   runAgent,
@@ -125,7 +123,7 @@ const logger = LoggerFactory.getLogger();
 
 //
 
-const makeSupabase = (jwt) => makeAnonymousClient(jwt);
+const makeSupabase = (jwt) => new SupabaseStorage({ jwt });
 const jsonParse = (s) => {
   try {
     return JSON.parse(s);
@@ -790,17 +788,16 @@ const agents = async (args, opts) => {
       head: [
         'ID',
         'Name',
-        // 'enabled',
         // 'location',
         // 'balance',
         // 'battery',
         'Bio',
-        'Server',
-        'Created',
-        'Active Room IDs',
-        'Last Active',
+        // 'Server',
+        // 'Created',
+        // 'Active Room IDs',
+        // 'Last Active',
       ],
-      colWidths: [20, 30, 40, 30, 10, 30, 20],
+      colWidths: [38, 20, 38],
       wordWrap: true,
       wrapOnWordBoundary: false,
     });
@@ -837,59 +834,6 @@ const agents = async (args, opts) => {
 
           return rooms;
         })();
-        // const statusPromise = (async () => {
-        //   // const u = `${agentHost}/status`;
-        //   // const proxyRes = await fetch(u);
-        //   // if (proxyRes.ok) {
-        //   //   const j = await proxyRes.json();
-        //   //   return j;
-        //   // } else {
-        //   //   return null;
-        //   // }
-        // })();
-        // const creditsPromise = (async () => {
-        //   const creditsResult = await supabase
-        //     .from('credits')
-        //     .select('credits')
-        //     .eq('agent_id', agent.id)
-        //     .maybeSingle();
-        //   const { error, data } = creditsResult;
-        //   if (!error) {
-        //     return data?.credits ?? 0;
-        //   } else {
-        //     throw new Error(
-        //       `could not get credits for agent ${agent.id}: ${error}`,
-        //     );
-        //   }
-        // })();
-
-        // const res = await fetch(`${agent.start_url}/agent.json`);
-        // if (res.ok) {
-        //   const agentJson = await res.json();
-        //   if (
-        //     agentJson.id &&
-        //     agentJson.name &&
-        //     agentJson.address &&
-        //     agentJson.bio
-        //   ) {
-        //     // const balancePromise = (async () => {
-        //     //   const provider = providers[network];
-        //     //   const balance = await provider.getBalance(agentJson.address);
-        //     //   const ethBalance = ethers.formatEther(balance);
-        //     //   return ethBalance;
-        //     // })();
-        //     const [status, credits, balance] = await Promise.all([
-        //       statusPromise,
-        //       // creditsPromise,
-        //       // balancePromise,
-        //     ]);
-
-        //     const serverUrl = agentHost;
-
-           
-        //   // } else {
-        //   //   console.warn('skipping agent', agentJson);
-        //   }
         
         const [
           latestTimestamp,
@@ -910,15 +854,11 @@ const agents = async (args, opts) => {
         table.push([
           agentJson.id,
           agentJson.name,
-          // status?.enabled ?? false,
           agentJson.bio || 'N/A', // Default to 'N/A' if bio is not available
-          // status?.room ?? '',
-          // balance,
-          // credits,
-          { content: serverUrl, href: serverUrl },
-          timeAgo(new Date(agent.created_at)),
-          rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
-          timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
+          // { content: serverUrl, href: serverUrl },
+          // timeAgo(new Date(agent.created_at)),
+          // rooms.map(room => `- ${room}`).join('\n'), // Display each room as "- room:12345"
+          // timeAgo(new Date(latestTimestamp?.timestamp ?? 0)),
         ]);
       });
       promises.push(p);
@@ -1556,6 +1496,27 @@ export const createProgram = () => {
           });
         });
       });
+    program
+      .command('build')
+      .description('Build an agent for deployment')
+      .argument('[directories...]', 'Directories of agents to build')
+      .action(async (directories = [], opts = {}) => {
+        await handleError(async () => {
+          commandExecuted = true;
+          let args = {
+            _: [directories],
+            ...opts,
+          };
+
+          const results = await build(args);
+          for (const result of results) {
+            const {
+              agentPath,
+            } = result;
+            console.log(`Built agent at ${agentPath}`);
+          }
+        });
+      });
     const runtimes = [
       'node',
       'wrangler',
@@ -1585,7 +1546,6 @@ export const createProgram = () => {
       });
     program
       .command('chat')
-      // .alias('c')
       .description(`Chat with agents in a multiplayer room`)
       .argument(`[guids...]`, `Guids of the agents to join the room`)
       .option(`-b, --browser`, `Open the chat room in a browser window`)
@@ -1755,26 +1715,6 @@ export const createProgram = () => {
           const jwt = await getLoginJwt();
 
           await authenticate(args, {
-            jwt,
-          });
-        });
-      });
-    program
-      .command('update')
-      .description('Update an agent to the latest sdk version')
-      .argument(`[directories...]`, `Path to the agents to update`)
-      .option(`-f, --force`, `Force update even if there are conflicts`)
-      .action(async (directories = '', opts) => {
-        await handleError(async () => {
-          commandExecuted = true;
-          const args = {
-            _: [directories],
-            ...opts,
-          };
-
-          const jwt = await getLoginJwt();
-
-          await update(args, {
             jwt,
           });
         });

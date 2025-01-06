@@ -1,14 +1,12 @@
 import { z } from 'zod';
-// import type { ZodTypeAny } from 'zod';
-// import { printNode, zodToTs } from 'zod-to-ts';
 import dedent from 'dedent';
 import {
   ChatMessages,
   PendingActionMessage,
   ActiveAgentObject,
   GenerativeAgentObject,
-  ActionMessage,
-  ActionProps,
+  // ActionMessage,
+  // ActionProps,
   ActionMessageEvent,
   ActionMessageEventData,
   ConversationObject,
@@ -19,7 +17,7 @@ import {
   ActionPropsAux,
   AbortableMessageEvent,
   PendingActionEventData,
-  PerceptionPropsAux,
+  // PerceptionPropsAux,
 } from './types';
 import {
   PendingActionEvent,

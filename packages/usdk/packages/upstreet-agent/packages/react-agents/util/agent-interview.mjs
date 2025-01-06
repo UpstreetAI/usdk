@@ -37,7 +37,6 @@ const processFeatures = (agentJson) => {
     }
   }
 
-
   // console.log('process features', {
   //   result,
   //   userSpecifiedFeatures,
@@ -161,7 +160,8 @@ export class AgentInterview extends EventTarget {
           e.g. 'girl with medium blond hair and blue eyes, purple dress, green hoodie, jean shorts, sneakers'
           \`homespacecDescription\` visually describe the character's homespace. This is also an image prompt, meant to describe the natural habitat of the character. Update it whenever the character's homespace changes.
           e.g. 'neotokyo, sakura trees, neon lights, path, ancient ruins, jungle, lush curved vine plants'
-          
+          \`private\` is a boolean that determines whether the agent is private (true) or public (false).
+
           Do not use placeholder values for fields and do not copy the above examples. Instead, make up something unique and appropriate for the character.
           ${mode == 'auto' ?
             `When you think the session is over, set the \`done\` flag.`
@@ -179,6 +179,7 @@ export class AgentInterview extends EventTarget {
         visualDescription: z.string().optional(),
         homespaceDescription: z.string().optional(),
         features: z.object(featureSchemas).optional(),
+        private: z.boolean().optional(),
       }),
       formatFn: (updateObject) => {
         updateObject = structuredClone(updateObject);
@@ -277,7 +278,7 @@ export class AgentInterview extends EventTarget {
               jwt,
             });
           } else if (result === null) {
-            return null;
+            return '';
           } else {
             console.warn('invalid result type', result);
             throw new Error('invalid result type: ' + typeof result);

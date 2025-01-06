@@ -1,24 +1,24 @@
 'use client';
 
-import BackgroundSlider from 'react-background-slider';
-import styles from './Homepage.module.css';
-import { Carousel } from 'react-responsive-carousel';
+// import BackgroundSlider from 'react-background-slider';
+// import styles from './Homepage.module.css';
+// import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { newChat } from "@/lib/chat/actions";
+// import { newChat } from "@/lib/chat/actions";
 import Image from 'next/image';
 import Link from 'next/link';
-import { Agents } from '../agents';
-import Dev from '../development';
+// import { Agents } from '../agents';
+// import Dev from '../development';
 import { Button } from 'ucom';
-import { useMultiplayerActions } from '../ui/multiplayer-actions';
+// import { useMultiplayerActions } from '../ui/multiplayer-actions';
 import { useSupabase } from '@/lib/hooks/use-supabase';
 import { useEffect, useState } from 'react';
 
-const HeroImages = [
-  '/images/backgrounds/homepage-hero.jpg',
-  '/images/backgrounds/homepage-hero-2.jpg',
-  '/images/backgrounds/homepage-hero-3.jpg'
-];
+// const HeroImages = [
+//   '/images/backgrounds/homepage-hero.jpg',
+//   '/images/backgrounds/homepage-hero-2.jpg',
+//   '/images/backgrounds/homepage-hero-3.jpg'
+// ];
 
 export default function Home() {
 

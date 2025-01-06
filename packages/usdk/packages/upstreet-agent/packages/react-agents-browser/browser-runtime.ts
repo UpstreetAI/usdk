@@ -1,8 +1,4 @@
 import { FetchOpts } from './types';
-// import {
-//   SUPABASE_URL,
-//   SUPABASE_PUBLIC_API_KEY,
-// } from './secrets.mjs';
 
 //
 
@@ -10,63 +6,43 @@ export class ReactAgentsWorker {
   worker: Worker;
   constructor({
     agentJson,
-    agentSrc,
-    apiKey,
-    mnemonic,
+    agentModuleSrc,
+    env,
+    storageAdapter,
   }: {
     agentJson: any,
-    agentSrc: string,
-    apiKey: string,
-    mnemonic: string,
+    agentModuleSrc: string,
+    env: any,
+    storageAdapter?: string,
   }) {
     if (
       !agentJson ||
-      !agentSrc ||
-      !apiKey ||
-      !mnemonic
+      !agentModuleSrc ||
+      !env
     ) {
       throw new Error('missing required options: ' + JSON.stringify({
         agentJson,
-        agentSrc,
-        apiKey,
-        mnemonic,
+        agentModuleSrc,
+        env,
       }));
     }
+    console.log('got agent src', agentModuleSrc);
 
-    console.log('got agent src', agentSrc);
+    this.worker = new Worker(new URL('./worker.tsx', import.meta.url));
 
-    this.worker = new Worker(new URL('./worker.ts', import.meta.url));
-
-    const env = {
-      // AGENT_JSON: JSON.stringify(agentJson),
-      // SUPABASE_URL,
-      // SUPABASE_PUBLIC_API_KEY,
-      WORKER_ENV: 'development', // 'production',
-    };
-    const auth = {
-      AGENT_TOKEN: apiKey,
-      WALLET_MNEMONIC: mnemonic,
-    };
-    console.log('starting worker with env:', env);
     this.worker.postMessage({
       method: 'init',
       args: {
+        agentJson,
         env,
-        auth,
-        config: agentJson,
-        agentSrc,
+        agentModuleSrc,
+        storageAdapter,
       },
     });
     this.worker.addEventListener('error', e => {
       console.warn('got error', e);
     });
   }
-  // addEventListener(...args: Parameters<Worker['addEventListener']>) {
-  //   return this.worker.addEventListener(...args);
-  // }
-  // removeEventListener(...args: Parameters<Worker['removeEventListener']>) {
-  //   return this.worker.removeEventListener(...args);
-  // }
   async fetch(url: string, opts: FetchOpts) {
     const requestId = crypto.randomUUID();
     const {

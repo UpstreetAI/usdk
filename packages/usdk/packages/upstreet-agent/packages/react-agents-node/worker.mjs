@@ -1,4 +1,5 @@
 import path from 'path';
+// import fs from 'fs';
 import os from 'os';
 import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
@@ -15,7 +16,6 @@ import { serve } from '@hono/node-server';
     });
   });
 });
-
 process.addListener('SIGTERM', () => {
   process.exit(0);
 });
@@ -31,8 +31,8 @@ const loadModule = async (directory, p) => {
   // console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const startAgentMainServer = async ({
-  agentMain,
+const startRootServer = async ({
+  root,
   ip,
   port,
 }) => {
@@ -40,7 +40,7 @@ const startAgentMainServer = async ({
 
   app.all('*', (c) => {
     const req = c.req.raw;
-    return agentMain.fetch(req);
+    return root.fetch(req);
   });
 
   // create server
@@ -69,20 +69,18 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const main = await loadModule(directory, p);
-  // console.log('worker loaded module', main);
-  const agentMain = main({
+  // we load it lioke this to perform a compilation
+  const createRootMain = await loadModule(directory, 'root-main.tsx');
+  const root = createRootMain({
     init,
     debug,
   });
-  // console.log('agentMain', agentMain);
 
   // wait for first render
-  // await agentMain.waitForLoad();
+  // await root.waitForLoad();
 
-  await startAgentMainServer({
-    agentMain,
+  await startRootServer({
+    root,
     ip,
     port,
   });
@@ -94,20 +92,21 @@ const runAgent = async (directory, opts) => {
   });
   // console.log('worker send 2');
 };
-const makeViteServer = (directory) => {
-  return createViteServer({
+const makeViteServer = async (directory) => {
+  return await createViteServer({
     root: directory,
     server: { middlewareMode: 'ssr' },
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
-      // jsxFactory: 'React.createElement',
-      // jsxFragment: 'React.Fragment',
     },
     optimizeDeps: {
       entries: [
-        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
+        './root-main.tsx',
       ],
+    },
+    ssr: {
+      external: ['react', 'react-reconciler'],
     },
   });
 };

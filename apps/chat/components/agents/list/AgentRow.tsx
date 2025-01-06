@@ -76,6 +76,7 @@ export function AgentRow({ agent, user, author }: AgentListProps) {
             <div className="font-bold text-lg line-clamp-1 uppercase">{agent.name}</div>
             <div className="font-italic text-sm">Created by: <span className="font-bold underline">{user ? `You` : `@${author}`}</span></div>
             <div className="line-clamp-2">{agent.description}</div>
+            {agent.private && <div className="text-xs text-red-500">[private]</div>}
           </a>
           <div className="flex absolute bottom-0 right-0">
             <AgentJoin agent={agent} />

@@ -187,7 +187,7 @@ importers:
         version: link:../../packages/usdk/packages/upstreet-agent/packages/react-agents
       react-agents-browser:
         specifier: file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-browser
-        version: file:packages/usdk/packages/upstreet-agent/packages/react-agents-browser(babel-plugin-macros@3.1.0)
+        version: link:../../packages/usdk/packages/upstreet-agent/packages/react-agents-browser
       react-agents-builder:
         specifier: file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-builder
         version: link:../../packages/usdk/packages/upstreet-agent/packages/react-agents-builder
@@ -654,6 +654,9 @@ importers:
       archiver:
         specifier: ^7.0.1
         version: 7.0.1
+      boxen:
+        specifier: ^8.0.1
+        version: 8.0.1
       chalk:
         specifier: ^5.3.0
         version: 5.3.0
@@ -669,6 +672,9 @@ importers:
       commander:
         specifier: ^12.0.0
         version: 12.1.0
+      configstore:
+        specifier: ^7.0.0
+        version: 7.0.0
       cookie:
         specifier: ^0.6.0
         version: 0.6.0
@@ -705,9 +711,21 @@ importers:
       form-data:
         specifier: ^4.0.0
         version: 4.0.1
+      gitignore-parser:
+        specifier: 0.0.2
+        version: 0.0.2
       hono:
         specifier: ^4.6.9
         version: 4.6.13
+      is-in-ci:
+        specifier: ^1.0.0
+        version: 1.0.0
+      is-installed-globally:
+        specifier: ^1.0.0
+        version: 1.0.0
+      is-npm:
+        specifier: ^6.0.0
+        version: 6.0.0
       javascript-time-ago:
         specifier: ^2.5.11
         version: 2.5.11
@@ -726,6 +744,9 @@ importers:
       lamejs:
         specifier: file:./packages/upstreet-agent/packages/codecs/packages/lamejs
         version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs
+      latest-version:
+        specifier: ^9.0.0
+        version: 9.0.0
       libopusjs:
         specifier: file:./packages/upstreet-agent/packages/codecs/packages/libopusjs
         version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs
@@ -765,9 +786,15 @@ importers:
       pretty-bytes:
         specifier: ^6.1.1
         version: 6.1.1
+      pupa:
+        specifier: ^3.1.0
+        version: 3.1.0
       queue-manager:
         specifier: file:./packages/upstreet-agent/packages/queue-manager
         version: link:packages/upstreet-agent/packages/queue-manager
+      react-agents:
+        specifier: file:./packages/upstreet-agent/packages/react-agents
+        version: link:packages/upstreet-agent/packages/react-agents
       react-agents-electron:
         specifier: file:./packages/upstreet-agent/packages/react-agents-electron
         version: link:packages/upstreet-agent/packages/react-agents-electron
@@ -786,6 +813,9 @@ importers:
       rimraf:
         specifier: ^5.0.5
         version: 5.0.10
+      semver:
+        specifier: ^7.6.3
+        version: 7.6.3
       shell-escape-tag:
         specifier: ^2.0.2
         version: 2.0.2
@@ -798,6 +828,9 @@ importers:
       update-notifier:
         specifier: file:./packages/update-notifier
         version: link:packages/update-notifier
+      upstreet-agent:
+        specifier: file:./packages/upstreet-agent
+        version: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(esbuild@0.20.2)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
       vercel:
         specifier: ^34.2.6
         version: 34.4.0(@swc/core@1.10.1(@swc/helpers@0.5.13))
@@ -814,11 +847,14 @@ importers:
         specifier: ^3.16.0
         version: 3.17.0
       wrangler:
-        specifier: ^3.60.2
+        specifier: ^3.95.0
         version: 3.95.0
       ws:
         specifier: ^8.17.0
         version: 8.18.0
+      xdg-basedir:
+        specifier: ^5.1.0
+        version: 5.1.0
       yjs:
         specifier: ^13.6.18
         version: 13.6.20
@@ -828,6 +864,9 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.24.1
+      zod-to-json-schema:
+        specifier: ^3.23.5
+        version: 3.24.1(zod@3.24.1)
       zod-to-ts:
         specifier: ^1.2.0
         version: 1.2.0(typescript@4.9.5)(zod@3.24.1)
@@ -897,9 +936,15 @@ importers:
       '@aws-sdk/util-format-url':
         specifier: ^3.577.0
         version: 3.709.0
+      '@electric-sql/pglite':
+        specifier: ^0.2.15
+        version: 0.2.15
       '@iarna/toml':
         specifier: ^2.2.5
         version: 2.2.5
+      '@supabase/postgrest-js':
+        specifier: ^1.17.7
+        version: 1.17.7
       '@supabase/supabase-js':
         specifier: ^2.47.1
         version: 2.47.5
@@ -909,9 +954,6 @@ importers:
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.14
-      '@types/react':
-        specifier: ^18.3.3
-        version: 18.3.16
       browser-util-inspect:
         specifier: ^0.2.0
         version: 0.2.0
@@ -936,6 +978,9 @@ importers:
       javascript-time-ago:
         specifier: ^2.5.11
         version: 2.5.11
+      jest:
+        specifier: ^29.0.0
+        version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
       jimp:
         specifier: ^1.6.0
         version: 1.6.0
@@ -948,6 +993,9 @@ importers:
       openai:
         specifier: ^4.56.0
         version: 4.76.1(zod@3.24.1)
+      path-util:
+        specifier: file:./packages/path-util
+        version: link:packages/path-util
       playwright-core-lite:
         specifier: file:./packages/playwright-core-lite
         version: link:packages/playwright-core-lite
@@ -955,17 +1003,20 @@ importers:
         specifier: file:./packages/queue-manager
         version: link:packages/queue-manager
       react:
-        specifier: 19.0.0-rc-df5f2736-20240712
-        version: 19.0.0-rc-df5f2736-20240712
+        specifier: file:./packages/react
+        version: link:packages/react
       react-agents:
         specifier: file:./packages/react-agents
         version: link:packages/react-agents
       react-agents-client:
         specifier: file:./packages/react-agents-client
         version: link:packages/react-agents-client
+      react-agents-node:
+        specifier: file:./packages/react-agents-node
+        version: link:packages/react-agents-node
       react-reconciler:
-        specifier: 0.31.0-rc-df5f2736-20240712
-        version: 0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712)
+        specifier: file:./packages/react-reconciler
+        version: link:packages/react-reconciler
       stripe:
         specifier: ^16.10.0
         version: 16.12.0
@@ -1030,9 +1081,13 @@ importers:
 
   packages/usdk/packages/upstreet-agent/packages/debouncer: {}
 
+  packages/usdk/packages/upstreet-agent/packages/path-util: {}
+
   packages/usdk/packages/upstreet-agent/packages/playwright-core-lite: {}
 
   packages/usdk/packages/upstreet-agent/packages/queue-manager: {}
+
+  packages/usdk/packages/upstreet-agent/packages/react: {}
 
   packages/usdk/packages/upstreet-agent/packages/react-agents: {}
 
@@ -1041,9 +1096,9 @@ importers:
       codecs:
         specifier: file:../codecs
         version: link:../codecs
-      upstreet-agent:
-        specifier: file:../..
-        version: link:../..
+      react-agents:
+        specifier: file:../react-agents
+        version: link:../react-agents
 
   packages/usdk/packages/upstreet-agent/packages/react-agents-builder:
     dependencies:
@@ -1059,6 +1114,9 @@ importers:
       '@upstreet/multiplayer':
         specifier: file:./packages/multiplayer
         version: multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
+      react-agents:
+        specifier: file:../react-agents
+        version: link:../react-agents
 
   packages/usdk/packages/upstreet-agent/packages/react-agents-electron: {}
 
@@ -1080,6 +1138,15 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
+
+  packages/usdk/packages/upstreet-agent/packages/react-reconciler:
+    dependencies:
+      react:
+        specifier: file:../react
+        version: link:../react
+      scheduler:
+        specifier: 0.25.0-rc-df5f2736-20240712
+        version: 0.25.0-rc-df5f2736-20240712
 
 packages:
 
@@ -1958,6 +2025,9 @@ packages:
   '@edge-runtime/vm@3.2.0':
     resolution: {integrity: sha512-0dEVyRLM/lG4gp1R/Ik5bfPl/1wX00xFwd5KcNH602tzBa09oF7pbTKETEhR1GjZ75K6OJnYFu8II2dyMhONMw==}
     engines: {node: '>=16'}
+
+  '@electric-sql/pglite@0.2.15':
+    resolution: {integrity: sha512-Jiq31Dnk+rg8rMhcSxs4lQvHTyizNo5b269c1gCC3ldQ0sCLrNVPGzy+KnmonKy1ZArTUuXZf23/UamzFMKVaA==}
 
   '@electron/get@2.0.3':
     resolution: {integrity: sha512-Qkzpg2s9GnVV2I2BjRksUi43U5e6+zaQMcjoJy0C+C5oxaKl+fmckGDQFtRpZpZV0NQekuZZ+tGz7EA9TVnQtQ==}
@@ -9022,6 +9092,10 @@ packages:
   github-slugger@2.0.0:
     resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
 
+  gitignore-parser@0.0.2:
+    resolution: {integrity: sha512-X6mpqUv59uWLGD4n3hZ8Cu8KbF2PMWPSFYmxZjdkpm3yOU7hSUYnzTkZI1mcWqchphvqyuz3/BhgBR4E/JtkCg==}
+    engines: {node: '>=0.10.0'}
+
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
     engines: {node: '>= 6'}
@@ -11475,6 +11549,9 @@ packages:
     resolution: {integrity: sha512-5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==}
     engines: {node: '>=12'}
 
+  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/path-util, type: directory}
+
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
 
@@ -12135,11 +12212,14 @@ packages:
     resolution: {integrity: sha512-y3bGgqKj3QBdxLbLkomlohkvsA8gdAiUQlSBJnBhfn+BPxg4bc62d8TcBW15wavDfgexCgccckhcZvywyQYPOw==}
     hasBin: true
 
-  react-agents-browser@file:packages/usdk/packages/upstreet-agent/packages/react-agents-browser:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-browser, type: directory}
+  react-agents-builder@file:packages/usdk/packages/upstreet-agent/packages/react-agents-builder:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-builder, type: directory}
 
   react-agents-client@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-client, type: directory}
+
+  react-agents-node@file:packages/usdk/packages/upstreet-agent/packages/react-agents-node:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-node, type: directory}
 
   react-agents@file:packages/usdk/packages/upstreet-agent/packages/react-agents:
     resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents, type: directory}
@@ -12232,11 +12312,9 @@ packages:
     peerDependencies:
       react: ^18.0.0
 
-  react-reconciler@0.31.0-rc-df5f2736-20240712:
-    resolution: {integrity: sha512-dISmKM+MEZ0jRpE+jXkqLR+mTpYRhQuMLJNyYRcieECYmR3ka3c8XTyo/U0iTueSJltzUM4p59VnBm42jLbkqQ==}
+  react-reconciler@file:packages/usdk/packages/upstreet-agent/packages/react-reconciler:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-reconciler, type: directory}
     engines: {node: '>=0.10.0'}
-    peerDependencies:
-      react: 19.0.0-rc-df5f2736-20240712
 
   react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -12312,8 +12390,8 @@ packages:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
 
-  react@19.0.0-rc-df5f2736-20240712:
-    resolution: {integrity: sha512-EskZQiyMOtoyC5P22HjB2vfLywcdko3TxknC6c+NBmlqjWxi4P70iR5/79PD6xj5f49jljuV9+/CH0N0brSxJg==}
+  react@file:packages/usdk/packages/upstreet-agent/packages/react:
+    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react, type: directory}
     engines: {node: '>=0.10.0'}
 
   read-cache@1.0.0:
@@ -15537,6 +15615,8 @@ snapshots:
   '@edge-runtime/vm@3.2.0':
     dependencies:
       '@edge-runtime/primitives': 4.1.0
+
+  '@electric-sql/pglite@0.2.15': {}
 
   '@electron/get@2.0.3':
     dependencies:
@@ -23318,7 +23398,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1):
+  eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1):
     dependencies:
       debug: 3.2.7
       enhanced-resolve: 0.9.1
@@ -23346,14 +23426,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1))(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 7.18.0(eslint@8.57.1)(typescript@5.7.2)
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1)
+      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -23422,7 +23502,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-webpack@0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1))(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.15.1
       is-glob: 4.0.3
@@ -24435,6 +24515,8 @@ snapshots:
   github-slugger@1.5.0: {}
 
   github-slugger@2.0.0: {}
+
+  gitignore-parser@0.0.2: {}
 
   glob-parent@5.1.2:
     dependencies:
@@ -27813,6 +27895,8 @@ snapshots:
 
   path-type@5.0.0: {}
 
+  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util: {}
+
   pathe@1.1.2: {}
 
   peek-readable@4.1.0: {}
@@ -28401,25 +28485,20 @@ snapshots:
       minimist: 1.2.8
       strip-json-comments: 2.0.1
 
-  react-agents-browser@file:packages/usdk/packages/upstreet-agent/packages/react-agents-browser(babel-plugin-macros@3.1.0):
+  react-agents-builder@file:packages/usdk/packages/upstreet-agent/packages/react-agents-builder:
     dependencies:
-      codecs: file:packages/usdk/packages/upstreet-agent/packages/codecs
-      upstreet-agent: file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)))
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@jest/transform'
-      - '@jest/types'
-      - babel-jest
-      - babel-plugin-macros
-      - bufferutil
-      - encoding
-      - esbuild
-      - jest
-      - utf-8-validate
+      esbuild-wasm: 0.24.0
+      react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
 
   react-agents-client@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     dependencies:
       '@upstreet/multiplayer': multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
+      react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
+
+  react-agents-node@file:packages/usdk/packages/upstreet-agent/packages/react-agents-node:
+    dependencies:
+      '@iarna/toml': 2.2.5
+      react-agents-builder: file:packages/usdk/packages/upstreet-agent/packages/react-agents-builder
 
   react-agents@file:packages/usdk/packages/upstreet-agent/packages/react-agents: {}
 
@@ -28533,9 +28612,9 @@ snapshots:
       react: 18.2.0
       scheduler: 0.21.0
 
-  react-reconciler@0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712):
+  react-reconciler@file:packages/usdk/packages/upstreet-agent/packages/react-reconciler:
     dependencies:
-      react: 19.0.0-rc-df5f2736-20240712
+      react: file:packages/usdk/packages/upstreet-agent/packages/react
       scheduler: 0.25.0-rc-df5f2736-20240712
 
   react-refresh@0.14.2: {}
@@ -28668,7 +28747,7 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  react@19.0.0-rc-df5f2736-20240712: {}
+  react@file:packages/usdk/packages/upstreet-agent/packages/react: {}
 
   read-cache@1.0.0:
     dependencies:
@@ -30184,6 +30263,26 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
+  ts-jest@29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(esbuild@0.20.2)(jest@29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)))(typescript@5.7.2):
+    dependencies:
+      bs-logger: 0.2.6
+      ejs: 3.1.10
+      fast-json-stable-stringify: 2.1.0
+      jest: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
+      jest-util: 29.7.0
+      json5: 2.2.3
+      lodash.memoize: 4.1.2
+      make-error: 1.3.6
+      semver: 7.6.3
+      typescript: 5.7.2
+      yargs-parser: 21.1.1
+    optionalDependencies:
+      '@babel/core': 7.26.0
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.26.0)
+      esbuild: 0.20.2
+
   ts-jest@29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)))(typescript@5.7.2):
     dependencies:
       bs-logger: 0.2.6
@@ -30600,14 +30699,15 @@ snapshots:
       escalade: 3.2.0
       picocolors: 1.1.1
 
-  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))):
+  upstreet-agent@file:packages/usdk/packages/upstreet-agent(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@18.19.68)(babel-jest@29.7.0(@babel/core@7.26.0))(babel-plugin-macros@3.1.0)(esbuild@0.20.2)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)):
     dependencies:
       '@aws-sdk/util-format-url': 3.709.0
+      '@electric-sql/pglite': 0.2.15
       '@iarna/toml': 2.2.5
+      '@supabase/postgrest-js': 1.17.7
       '@supabase/supabase-js': 2.47.5
       '@tsndr/cloudflare-worker-jwt': 2.5.3
       '@types/jest': 29.5.14
-      '@types/react': 18.3.16
       browser-util-inspect: 0.2.0
       codecs: file:packages/usdk/packages/upstreet-agent/packages/codecs
       debouncer: file:packages/usdk/packages/upstreet-agent/packages/debouncer
@@ -30616,19 +30716,22 @@ snapshots:
       ethers: 6.13.4
       format-util: 1.0.5
       javascript-time-ago: 2.5.11
+      jest: 29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5))
       jimp: 1.6.0
       memoize-one: 6.0.0
       minimatch: 9.0.5
       openai: 4.76.1(zod@3.24.1)
+      path-util: file:packages/usdk/packages/upstreet-agent/packages/path-util
       playwright-core-lite: file:packages/usdk/packages/upstreet-agent/packages/playwright-core-lite
       queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
-      react: 19.0.0-rc-df5f2736-20240712
+      react: file:packages/usdk/packages/upstreet-agent/packages/react
       react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
       react-agents-client: file:packages/usdk/packages/upstreet-agent/packages/react-agents-client
-      react-reconciler: 0.31.0-rc-df5f2736-20240712(react@19.0.0-rc-df5f2736-20240712)
+      react-agents-node: file:packages/usdk/packages/upstreet-agent/packages/react-agents-node
+      react-reconciler: file:packages/usdk/packages/upstreet-agent/packages/react-reconciler
       stripe: 16.12.0
       together-ai: 0.6.0
-      ts-jest: 29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(jest@29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2)))(typescript@5.7.2)
+      ts-jest: 29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(esbuild@0.20.2)(jest@29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)))(typescript@5.7.2)
       twitter-api-sdk: 1.2.1
       typescript: 5.7.2
       uuid-by-string: 4.0.0
@@ -30641,12 +30744,15 @@ snapshots:
       - '@babel/core'
       - '@jest/transform'
       - '@jest/types'
+      - '@types/node'
       - babel-jest
       - babel-plugin-macros
       - bufferutil
       - encoding
       - esbuild
-      - jest
+      - node-notifier
+      - supports-color
+      - ts-node
       - utf-8-validate
 
   uri-js@4.4.1:
@@ -31220,7 +31326,7 @@ snapshots:
       eslint-config-xo: 0.45.0(eslint@8.57.1)
       eslint-config-xo-typescript: 5.0.0(@typescript-eslint/eslint-plugin@7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1)(typescript@5.7.2))(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1)(typescript@5.7.2)
       eslint-formatter-pretty: 6.0.1
-      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0)(webpack@5.97.1)
+      eslint-import-resolver-webpack: 0.13.10(eslint-plugin-import@2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1))(webpack@5.97.1)
       eslint-plugin-ava: 14.0.0(eslint@8.57.1)
       eslint-plugin-eslint-comments: 3.2.0(eslint@8.57.1)
       eslint-plugin-import: 2.31.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.2))(eslint-import-resolver-webpack@0.13.10)(eslint@8.57.1)

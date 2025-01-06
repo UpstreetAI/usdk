@@ -11,10 +11,7 @@ import { QueueManager } from '../packages/upstreet-agent/packages/queue-manager/
 // import { lembed } from '../packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { parseAgentSpecs } from '../lib/agent-spec-utils.mjs';
-import {
-  makeAnonymousClient,
-  getUserForJwt,
-} from '../packages/upstreet-agent/packages/react-agents/util/supabase-client.mjs';
+import { getUserForJwt } from '../packages/upstreet-agent/packages/react-agents/util/jwt-utils.mjs';
 
 import {
   deployEndpointUrl,

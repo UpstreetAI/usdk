@@ -6,16 +6,14 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { app, screen, session, BrowserWindow, desktopCapturer, ipcMain } from 'electron';
 import { WebSocket } from 'ws';
-import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { Button, Key, keyboard, mouse, Point } from '@nut-tree-fork/nut-js';
+import * as debugLevels from '../react-agents/util/debug-levels.mjs';
 import { fileURLToPath } from 'url';
 import { updateIgnoreMouseEvents } from './lib/updateIgnoreMouseEvents.js';
+
 //
 
-console.log('electron start script!');
-
 const UPDATE_INTERVAL = 1000 / 60;
-
 ['uncaughtException', 'unhandledRejection'].forEach(event => {
   process.on(event, err => {
     console.warn(err.stack);
@@ -40,8 +38,8 @@ const loadModule = async (directory, p) => {
   // console.log('get agent module 2', entryModule);
   return entryModule.default;
 };
-const startAgentMainServer = async ({
-  agentMain,
+const startRootServer = async ({
+  root,
   ip,
   port,
 }) => {
@@ -103,7 +101,7 @@ const startAgentMainServer = async ({
   });
   app.all('*', (c) => {
     const req = c.req.raw;
-    return agentMain.fetch(req);
+    return root.fetch(req);
   });
 
   // create server
@@ -132,20 +130,18 @@ const runAgent = async (directory, opts) => {
   const init = initString && JSON.parse(initString);
   const debug = parseInt(opts.debug, 10);
 
-  const p = '/packages/upstreet-agent/packages/react-agents-node/entry.mjs';
-  const main = await loadModule(directory, p);
-  // console.log('worker loaded module', main);
-  const agentMain = main({
+  const createRootMain = await loadModule(directory, 'root-main.tsx');
+  const root = createRootMain({
     init,
     debug,
   });
-  // console.log('agentMain', agentMain);
+  // console.log('root', root);
 
   // wait for first render
-  // await agentMain.waitForLoad();
+  // await root.waitForLoad();
 
-  await startAgentMainServer({
-    agentMain,
+  await startRootServer({
+    root,
     ip,
     port,
   });
@@ -157,13 +153,14 @@ const makeViteServer = (directory) => {
     cacheDir: path.join(homeDir, '.usdk', 'vite'),
     esbuild: {
       jsx: 'transform',
-      // jsxFactory: 'React.createElement',
-      // jsxFragment: 'React.Fragment',
     },
     optimizeDeps: {
       entries: [
-        './packages/upstreet-agent/packages/react-agents-node/entry.mjs',
+        './entry.mjs',
       ],
+    },
+    ssr: {
+      external: ['react', 'react-reconciler'],
     },
   });
 };
@@ -191,6 +188,7 @@ const host = 'http://127.0.0.1:3000';
 // Convert import.meta.url to a file path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const reactAgentsNodeDirectory = path.join(__dirname, '..', 'react-agents-node');
 
 const openFrontend = async ({
   room,
@@ -269,7 +267,7 @@ const openFrontend = async ({
     setInterval(() => {
       // Allow mouse events to pass through the window.
       updateIgnoreMouseEvents( win )
-    }, UPDATE_INTERVAL )
+    }, UPDATE_INTERVAL);
 
     await win.loadURL(dstUrl.href);
   }

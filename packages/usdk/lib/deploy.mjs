@@ -1,8 +1,10 @@
+import fs from 'fs';
 import stream from 'stream';
 import https from 'https';
 import prettyBytes from 'pretty-bytes';
 import pc from 'picocolors';
 import {createParser} from 'eventsource-parser'
+import gitignoreParser from 'gitignore-parser';
 // import { getLoginJwt } from '../util/login-util.mjs';
 import { packZip } from './zip-util.mjs';
 import {
@@ -134,9 +136,34 @@ export const deploy = async (args, opts) => {
 
     console.log(pc.italic('Deploying agent...'));
 
+    const gitignoreString = await (async () => {
+      try {
+        return await fs.promises.readFile('.gitignore', 'utf8');
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          return '';
+        } else {
+          throw err;
+        }
+      }
+    })();
+    const gitignore = gitignoreParser.compile(gitignoreString);
+
     const uint8Array = await packZip(directory, {
       exclude: [
-        /[\/\\]node_modules[\/\\]/, // linux and windows
+        // /[\/\\]node_modules[\/\\]/, // linux and windows
+        {
+          test: (p) => {
+            p = p.slice(directory.length + 1);
+            const result =
+              /^\.git(?:\/|$)/.test(p) || // exclude .git
+              (
+                gitignore.denies(p) && // exclude .gitignore
+                p !== '.env.txt' // ...but include .env.txt
+              );
+            return result;
+          },
+        },
       ],
     });
 

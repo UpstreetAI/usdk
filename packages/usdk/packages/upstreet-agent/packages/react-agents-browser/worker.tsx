@@ -1,6 +1,7 @@
-import 'upstreet-agent/packages/react-agents/util/worker-globals.mjs';
+import React from 'react';
+import 'react-agents/util/worker-globals.mjs';
 import * as codecs from 'codecs/ws-codec-runtime-worker.mjs';
-import { AgentMain } from 'react-agents/entry.ts';
+import { createRoot, Root } from 'react-agents/root.ts';
 
 //
 
@@ -15,63 +16,45 @@ const headersToObject = (headers: Headers) => {
 
 //
 
-let agentMainPromise: Promise<AgentMain> | null = null;
+let rootPromise: Promise<Root> | null = null;
 globalThis.onmessage = (event: any) => {
   // console.log('got event', event.data);
   const method = event.data?.method;
   switch (method) {
     case 'init': {
-      if (!agentMainPromise) {
-        agentMainPromise = (async () => {
+      if (!rootPromise) {
+        rootPromise = (async () => {
           const { args } = event.data;
-          const { env, auth, config, agentSrc } = args;
-          if (typeof agentSrc !== 'string') {
-            throw new Error('agent worker: missing agentSrc');
+          const { agentJson, env, agentModuleSrc, storageAdapter } = args;
+          if (typeof agentModuleSrc !== 'string') {
+            throw new Error('agent worker: missing agentModuleSrc');
           }
 
-          const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentSrc)}`);
-          const userRender = agentModule.default;
-          // console.log('got user render', userRender.toString());
+          const agentModule = await nativeImport(`data:application/javascript,${encodeURIComponent(agentModuleSrc)}`);
+          const App = agentModule.default;
+          // console.log('got app', App.toString());
 
-          let alarmTimestamp: number | null = null;
-          const state = {
-            config,
-            userRender,
+          const rootOpts = {
+            agentJson,
             codecs,
-            storage: {
-              async getAlarm() {
-                return alarmTimestamp;
-              },
-              setAlarm(timestamp: number) {
-                alarmTimestamp = timestamp;
-              },
-            },
+            env,
+            storageAdapter,
           };
-          // console.log('worker init 1', {
-          //   state,
-          //   env,
-          // });
-          const agentMain = new AgentMain(state, env, auth);
-          // console.log('worker init 2', {
-          //   agentMain,
-          // });
-
-          // wait for first render
-          // await agentMain.waitForLoad();
-
-          return agentMain;
+          const root = createRoot(rootOpts);
+          root.render(<App />);
+          return root;
         })();
       } else {
-        console.warn('agent worker: AgentMain already initialized', new Error().stack);
+        console.warn('agent worker: root already initialized', new Error().stack);
       }
       break;
     }
     case 'request': {
       (async () => {
-        if (!agentMainPromise) {
-          throw new Error('agent worker: AgentMain not initialized');
+        if (!rootPromise) {
+          throw new Error('agent worker: root not initialized');
         }
-        const agentMain = await agentMainPromise;
+        const root = await rootPromise;
 
         const { args } = event.data;
         const {
@@ -95,7 +78,7 @@ globalThis.onmessage = (event: any) => {
             body,
           });
 
-          const res = await agentMain.fetch(request);
+          const res = await root.fetch(request);
           // console.log('got agent main response', res.ok, res.status, res.headers);
           if (res.ok) {
             resultArrayBuffer = await res.arrayBuffer();

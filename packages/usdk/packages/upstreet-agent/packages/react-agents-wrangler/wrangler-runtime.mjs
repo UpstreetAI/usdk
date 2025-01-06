@@ -1,6 +1,8 @@
 import crossSpawn from 'cross-spawn';
+import { rimraf } from 'rimraf';
 import { wranglerBinPath } from './util/locations.mjs';
 import { devServerPort } from './util/ports.mjs';
+import { installAgent } from '../react-agents-node/install-agent.mjs';
 
 //
 
@@ -86,6 +88,7 @@ const waitForProcessIo = async (cp, matcher, timeout = 60 * 1000) => {
 
 export class ReactAgentsWranglerRuntime {
   agentSpec;
+  dstDir = null;
   cp = null;
   constructor(agentSpec) {
     this.agentSpec = agentSpec;
@@ -99,11 +102,18 @@ export class ReactAgentsWranglerRuntime {
       portIndex,
     } = this.agentSpec;
 
+    const {
+      agentPath: dstDir,
+      wranglerTomlPath,
+      cleanup: cleanupInstall,
+    } = await installAgent(directory);
+
     // spawn the wrangler child process
     const cp = crossSpawn(
       wranglerBinPath,
       [
         'dev',
+        '-c', wranglerTomlPath,
         '--var', 'WORKER_ENV:development',
         '--ip', '0.0.0.0',
         '--port', devServerPort + portIndex,
@@ -115,10 +125,12 @@ export class ReactAgentsWranglerRuntime {
       ]: []),
       {
         stdio: 'pipe',
-        // stdio: 'inherit',
-        cwd: directory,
+        cwd: dstDir,
       },
     );
+    cp.on('exit', (code) => {
+      cleanupInstall();
+    });
     bindProcess(cp);
     await waitForProcessIo(cp, /ready on /i);
     if (debug) {
@@ -156,5 +168,8 @@ export class ReactAgentsWranglerRuntime {
         }
       }
     });
+
+    // clean up the temporary directory
+    await rimraf(this.dstDir);
   }
 }

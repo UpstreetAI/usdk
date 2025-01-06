@@ -14,8 +14,11 @@ export function MainWrap({ children }: MainProps) {
   const { isFetchingUser } = useSupabase();
   const [globalState] = useGlobalState();
 
-  return (
-    <main className={cn("flex flex-col min-h-screen flex-1")}>
+  return globalState.mode && (
+    <main className={cn(
+      "flex flex-col min-h-screen flex-1",
+      globalState.mode.name !== 'desktop' && "bg-[url('/images/backgrounds/main-background.jpg')] bg-center bg-cover"
+    )}>
       {isFetchingUser ? (
         <Loading />
       ) : (
