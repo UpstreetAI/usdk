@@ -1,5 +1,5 @@
 import type { ReactNode, FC, Ref } from 'react';
-import type { ZodTypeAny } from 'zod';
+import type { z, ZodTypeAny } from 'zod';
 
 // intrinsics
 
@@ -131,6 +131,7 @@ export interface APIDataSourceProps {
   description?: string;
   endpoint: string;
   examples: string[];
+  schema: z.ZodSchema; // Add schema property
   headers?: Record<string, string>;
   params?: Record<string, string>;
   requiredArgs?: string[];

@@ -6,11 +6,12 @@ import { z } from 'zod';
 import dedent from 'dedent';
 import type { PendingActionEvent } from '../../types';
 import { AutoTask } from './auto-task';
+import { ConversationProvider } from '../core/conversation';
+import { RAGMemory } from './rag-memory';
 
 export const DataSourceLearner: React.FC = () => {
   const agent = useAgent();
 
-  /// XXX TODO: NEED TO ENFORCE API SCHEME BETTER, PERHAPS USE OPENAPI SPEC APPROACH
   return (
     <>
       <Prompt>
@@ -34,79 +35,14 @@ export const DataSourceLearner: React.FC = () => {
           NOTE: Queries will fail if required arguments are not provided!
         `}
       </Prompt>
+
+      {/* add the RAG Memory Component */}
+      <ConversationProvider>
+        <RAGMemory chunkMessages={10} refreshMemoryEveryNMessages={1} />
+      </ConversationProvider>
+      
+      {/* Add AutoTask for Self-learning from the data sources */}
       <AutoTask hint="You are provided with data sources to help you learn and obtain knowledge. Use the data sources to learn and use the knowledge to answer the user's question." />
-
-      <Action
-        type="queryDataSource"
-        description={dedent`\
-          Query a data source and store the learned information in memory.
-          IMPORTANT: You must provide all required arguments for the data source!
-        `}
-        schema={
-          z.object({
-            sourceId: z.string(),
-            jsonArgs: z.string(),
-            reason: z.string()
-          })
-        }
-        examples={[
-          {
-            sourceId: "weather-api",
-            jsonArgs: "{\"q\": \"London\"}",
-            reason: "Learning about current weather conditions in London",
-          }
-        ]}
-        handler={async (e: PendingActionEvent) => {
-          const { message, agent } = e.data;
-          const { args } = message;
-
-          try {
-            // Query the data source
-            const data = await agent.agent.dataSourceManager.pullFromDataSource(
-              args.sourceId, 
-              JSON.parse(args.jsonArgs)
-            );
-
-            console.log('data: ', data);
-
-            // Analyze and summarize the data
-            const dataSummary = await agent.complete([
-              {
-                role: 'user',
-                content: dedent`\
-                  Analyze and summarize the following data from ${args.sourceId}:
-                  \`\`\`
-                  ${JSON.stringify(data, null, 2)}
-                  \`\`\`
-
-                  Context for why this data was queried: ${args.reason}
-                  
-                  Provide a concise summary focusing on the most relevant and interesting information.
-                `,
-              },
-            ], {
-              model: agent.agent.smallModel,
-            });
-
-            console.log('data summary: ', dataSummary);
-            // Store the learned information in memory
-            await agent.agent.addMemory(
-              `Learned from ${args.sourceId}: ${dataSummary.content}`,
-              {
-                sourceId: args.sourceId,
-                query: args.args,
-                rawData: data,
-                summary: dataSummary.content,
-                timestamp: Date.now(),
-                reason: args.reason
-              }
-            );
-          } catch (error) {
-            console.error('Error in queryAndLearn:', error);
-            throw error;
-          }
-        }}
-      />
     </>
   );
 };
