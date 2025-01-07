@@ -4,7 +4,6 @@ import EmscriptenWASM from "./EmscriptenWasm.js";
 
 import path from 'path';
 import fs from 'fs';
-import { getCurrentDirname } from "path-util";
 
 const loadWasm = p => {
   const b = fs.readFileSync(p);
@@ -12,7 +11,7 @@ const loadWasm = p => {
   return m;
 };
 
-let dirname = getCurrentDirname(import.meta, process);
+let dirname = import.meta.dirname;
 const wasmAudioDecoderCommon = loadWasm(path.join(dirname, '/wasm-audio-decoder-common.wasm'));
 const emscriptenWasm = loadWasm(path.join(dirname, '/emscripten-wasm.wasm'));
 
