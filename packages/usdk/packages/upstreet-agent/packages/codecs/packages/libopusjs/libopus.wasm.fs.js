@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import { getCurrentDirname } from 'path-util';
 
 const loadWasm = p => {
   const b = fs.readFileSync(p);
@@ -8,7 +7,7 @@ const loadWasm = p => {
   return m;
 };
 
-let dirname = getCurrentDirname(import.meta, process);
+const dirname = path.dirname(new URL(import.meta.url).pathname);
 const wasm = loadWasm(path.join(dirname, '/libopus.wasm'));
 
 const location = new URL('http://localhost');
