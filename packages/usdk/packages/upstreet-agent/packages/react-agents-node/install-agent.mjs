@@ -3,6 +3,8 @@ import fs from 'fs';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import toml from '@iarna/toml';
+import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
+import { npmInstall } from '../../../../lib/npm-util.mjs';
 
 const dirname = path.dirname(new URL(import.meta.url).pathname);
 const copyWithStringTransform = async (src, dst, transformFn = (s) => s) => {
@@ -95,6 +97,9 @@ export const installAgent = async (directory) => {
     }));
   };
   await removeDependencies();
+
+  // install local dependencies (from the agent's package.json)
+  await npmInstall(directory);
 
   // symlink node_modules deps
   const addDependencies = async () => {
