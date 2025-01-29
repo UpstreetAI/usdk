@@ -3,7 +3,6 @@ import fs from 'fs';
 import { mkdirp } from 'mkdirp';
 import { rimraf } from 'rimraf';
 import toml from '@iarna/toml';
-// import { npmInstall } from '../../../../lib/npm-util.mjs';
 
 const dirname = path.dirname(new URL(import.meta.url).pathname);
 const copyWithStringTransform = async (src, dst, transformFn = (s) => s) => {
