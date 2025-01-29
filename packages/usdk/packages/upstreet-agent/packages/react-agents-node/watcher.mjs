@@ -3,11 +3,10 @@ import crossSpawn from 'cross-spawn';
 import { program } from 'commander';
 import { createServer as createViteServer } from 'vite';
 import { Debouncer } from 'debouncer';
-import { getCurrentDirname } from '../react-agents/util/path-util.mjs';
 
 //
 
-const dirname = getCurrentDirname(import.meta, process);
+const dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // watch SIGTERM
 process.on('SIGTERM', () => {
