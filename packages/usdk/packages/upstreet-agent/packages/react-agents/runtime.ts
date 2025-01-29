@@ -79,7 +79,7 @@ const getPrompts = (generativeAgent: GenerativeAgentObject) => {
 export async function generateAgentActionStep({
   generativeAgent,
   hint,
-  mode,
+  mode='basic',
   actOpts,
   debugOpts,
 }: {
