@@ -184,6 +184,7 @@ export class GenerativeAgentObject {
           text,
         actOpts,
         debugOpts,
+        mode: 'basic' // hardcode basic for now. TODO: Make this an argument
       });
       await executeAgentActionStep(this, step);
     });

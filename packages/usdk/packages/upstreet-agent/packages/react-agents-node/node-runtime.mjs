@@ -1,12 +1,11 @@
 import path from 'path';
 import crossSpawn from 'cross-spawn';
 import { devServerPort } from './util/ports.mjs';
-import { getCurrentDirname} from '../react-agents/util/path-util.mjs'
 import { installAgent } from '../react-agents-node/install-agent.mjs';
 
 //
 
-const localDirectory = getCurrentDirname(import.meta, process);
+const localDirectory = path.dirname(new URL(import.meta.url).pathname);
 
 //
 
