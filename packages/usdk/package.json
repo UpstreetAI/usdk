@@ -18,7 +18,7 @@
   "type": "module",
   "main": "module.mjs",
   "scripts": {
-    "preinstall": "[[ $npm_config_global == 'true' ]] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile"
+    "preinstall": "[ \"${npm_config_global:-}\" = 'true' ] || exit 0; cd packages/upstreet-agent && pnpm install --ignore-workspace --no-frozen-lockfile"
   },
   "keywords": [
     "ai",
