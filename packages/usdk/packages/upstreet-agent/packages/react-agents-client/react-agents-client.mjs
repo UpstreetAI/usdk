@@ -1,8 +1,9 @@
 import {
   multiplayerEndpointUrl,
 } from 'react-agents/util/endpoints.mjs';
-import { NetworkRealms } from './packages/multiplayer/public/network-realms.mjs'; // XXX should be a deduplicated import, in a separate npm module
-// import { webbrowserActionsToText } from './packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
+import * as agentMultiplayer from 'agent-multiplayer';
+import { METHODS, METHOD_NAMES } from 'agent-multiplayer';
+// import type { AgentMultiplayerApi } from 'agent-multiplayer';
 import {
   Player,
 } from './util/player.mjs';
@@ -12,7 +13,8 @@ import {
   SpeakerMap,
 } from './util/maps.mjs';
 
-export class ReactAgentsClient {
+// XXX handle joins
+/* export class ReactAgentsClient {
   url;
   constructor(url) {
     this.url = url;
@@ -56,9 +58,81 @@ export class ReactAgentsClient {
       }
     }
   }
-}
+} */
 
-export class ReactAgentsMultiplayerConnection extends EventTarget {
+const waitForMessageType = (agentMultiplayerApi, method) => {
+  const methodName = METHOD_NAMES[method];
+  if (!methodName) {
+    throw new Error(`Unknown method: ${method}`);
+  }
+
+  return new Promise((resolve, reject) => {
+    const onmethod = (o) => {
+      resolve(o);
+      webSocket.removeEventListener(methodName, onmethod);
+      webSocket.removeEventListener('close', onclose);
+      webSocket.removeEventListener('error', onerror);
+    };
+    agentMultiplayerApi.addEventListener(methodName, onmethod);
+
+    const onclose = () => {
+      reject(new Error('AgentMultiplayerApi closed'));
+    };
+    agentMultiplayerApi.addEventListener('close', onclose);
+
+    const onerror = (e) => {
+      reject(e);
+    };
+    agentMultiplayerApi.addEventListener('error', onerror);
+  });
+};
+
+class ReactAgentsMultiplayerConnection {
+  static async connect({
+    agentMultiplayerConnection,
+    profile,
+    signal,
+  }) {
+    // 1. set the player data
+    // 2. wait for network init message
+    // 3. bind listeners
+
+    agentMultiplayerConnection.send({
+      method: METHODS.SET_PLAYER_DATA,
+      args: {
+        playerData: profile,
+      },
+    });
+
+    const networkInitMessage = await waitForMessageType(agentMultiplayerConnection, METHODS.NETWORK_INIT);
+    if (signal?.aborted) {
+      throw new Error('Connection aborted');
+    }
+    const {
+      playerId,
+      players,
+    } = networkInitMessage.args;
+
+    // set up result
+
+    const result = new EventTarget();
+
+    const playersMap = new PlayersMap();
+    result.playersMap = playersMap;
+    const typingMap = new TypingMap();
+    result.typingMap = typingMap;
+    const speakerMap = new SpeakerMap();
+    result.speakerMap = speakerMap;
+
+    // initialize local player
+
+    // initialize remote players
+
+    // XXX
+
+    return result;
+  }
+
   static logLevels = {
     error: 0,
     warn: 1,
@@ -66,6 +140,7 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     debug: 3,
   };
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
+
   room;
   profile;
   metadata;
@@ -74,19 +149,19 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
   speakerMap = new SpeakerMap();
   realms;
   connectPromise;
-  constructor({
-    room,
-    profile,
-    metadata = {},
-  }) {
-    super();
+  // constructor({
+  //   room,
+  //   profile,
+  //   metadata = {},
+  // }) {
+  //   super();
 
-    this.room = room;
-    this.profile = profile;
-    this.metadata = metadata;
+  //   this.room = room;
+  //   this.profile = profile;
+  //   this.metadata = metadata;
 
-    this.connectPromise = this.connect();
-  }
+  //   this.connectPromise = this.connect();
+  // }
   log(...args) {
     this.dispatchEvent(new MessageEvent('log', {
       data: {
@@ -315,14 +390,20 @@ export class ReactAgentsMultiplayerConnection extends EventTarget {
     return this.realms.removeVideoSource(videoSource);
   }
 }
+
 export const connect = async ({
   room,
   profile,
+  signal,
 }) => {
-  const connection = new ReactAgentsMultiplayerConnection({
-    room,
-    profile,
+  const u = `${multiplayerEndpointUrl}/room/${room}/websocket`;
+  const agentMultiplayerConnection = await agentMultiplayer.connect(u, {
+    signal,
   });
-  await connection.waitForConnect();
-  return connection;
+  const ramConnection = await ReactAgentsMultiplayerConnection.connect({
+    agentMultiplayerConnection,
+    profile,
+    signal,
+  });
+  return ramConnection;
 };
