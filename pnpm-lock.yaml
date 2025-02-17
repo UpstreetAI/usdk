@@ -176,9 +176,9 @@ importers:
       openai:
         specifier: ^4.55.4
         version: 4.76.1(zod@3.24.1)
-      queue-manager:
-        specifier: file:../../packages/usdk/packages/upstreet-agent/packages/queue-manager
-        version: link:../../packages/usdk/packages/upstreet-agent/packages/queue-manager
+      queue-manager-async:
+        specifier: ^0.0.1
+        version: 0.0.1
       react:
         specifier: ^18.2.0
         version: 18.2.0
@@ -242,6 +242,9 @@ importers:
       three:
         specifier: ^0.167.1
         version: 0.167.1
+      u8-encoder:
+        specifier: ^0.0.3
+        version: 0.0.3
       ucom:
         specifier: file:../../packages/ucom/src
         version: file:packages/ucom/src
@@ -251,9 +254,6 @@ importers:
       web-worker:
         specifier: 1.2.0
         version: 1.2.0
-      zjs:
-        specifier: file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs
-        version: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
       zod:
         specifier: ^3.23.8
         version: 3.24.1
@@ -789,9 +789,9 @@ importers:
       pupa:
         specifier: ^3.1.0
         version: 3.1.0
-      queue-manager:
-        specifier: file:./packages/upstreet-agent/packages/queue-manager
-        version: link:packages/upstreet-agent/packages/queue-manager
+      queue-manager-async:
+        specifier: ^0.0.1
+        version: 0.0.1
       react-agents:
         specifier: file:./packages/upstreet-agent/packages/react-agents
         version: link:packages/upstreet-agent/packages/react-agents
@@ -822,6 +822,9 @@ importers:
       simple-yenc:
         specifier: ^1.0.4
         version: 1.0.4
+      u8-encoder:
+        specifier: ^0.0.3
+        version: 0.0.3
       unique-names-generator:
         specifier: ^4.7.1
         version: 4.7.1
@@ -858,9 +861,6 @@ importers:
       yjs:
         specifier: ^13.6.18
         version: 13.6.20
-      zjs:
-        specifier: file:./packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs
-        version: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
       zod:
         specifier: ^3.23.8
         version: 3.24.1
@@ -993,15 +993,12 @@ importers:
       openai:
         specifier: ^4.56.0
         version: 4.76.1(zod@3.24.1)
-      path-util:
-        specifier: file:./packages/path-util
-        version: link:packages/path-util
       playwright-core-lite:
         specifier: file:./packages/playwright-core-lite
         version: link:packages/playwright-core-lite
-      queue-manager:
-        specifier: file:./packages/queue-manager
-        version: link:packages/queue-manager
+      queue-manager-async:
+        specifier: ^0.0.1
+        version: 0.0.1
       react:
         specifier: file:./packages/react
         version: link:packages/react
@@ -1032,15 +1029,15 @@ importers:
       typescript:
         specifier: ^5.6.2
         version: 5.7.2
+      u8-encoder:
+        specifier: ^0.0.3
+        version: 0.0.3
       uuid-by-string:
         specifier: ^4.0.0
         version: 4.0.0
       yjs:
         specifier: ^13.6.18
         version: 13.6.20
-      zjs:
-        specifier: file:./packages/react-agents-client/packages/multiplayer/packages/zjs
-        version: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
       zod:
         specifier: ^3.23.8
         version: 3.24.1
@@ -1072,20 +1069,16 @@ importers:
       mpg123-decoder:
         specifier: file:./packages/mpg123-decoder
         version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
-      queue-manager:
-        specifier: file:../queue-manager
-        version: link:../queue-manager
-      zjs:
-        specifier: file:../react-agents-client/packages/multiplayer/packages/zjs
-        version: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
+      queue-manager-async:
+        specifier: ^0.0.1
+        version: 0.0.1
+      u8-encoder:
+        specifier: ^0.0.3
+        version: 0.0.3
 
   packages/usdk/packages/upstreet-agent/packages/debouncer: {}
 
-  packages/usdk/packages/upstreet-agent/packages/path-util: {}
-
   packages/usdk/packages/upstreet-agent/packages/playwright-core-lite: {}
-
-  packages/usdk/packages/upstreet-agent/packages/queue-manager: {}
 
   packages/usdk/packages/upstreet-agent/packages/react: {}
 
@@ -6044,9 +6037,6 @@ packages:
 
   '@upstash/redis@1.25.1':
     resolution: {integrity: sha512-ACj0GhJ4qrQyBshwFgPod6XufVEfKX2wcaihsEvSdLYnY+m+pa13kGt1RXm/yTHKf4TQi/Dy2A8z/y6WUEOmlg==}
-
-  '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs':
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs, type: directory}
 
   '@use-gesture/core@10.3.1':
     resolution: {integrity: sha512-WcINiDt8WjqBdUXye25anHiNxPc0VOrlT8F6LLkU6cycrOGUDyY/yyFmsg3k8i5OLvv25llc0QC45GhR/C8llw==}
@@ -11549,9 +11539,6 @@ packages:
     resolution: {integrity: sha512-5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==}
     engines: {node: '>=12'}
 
-  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/path-util, type: directory}
-
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
 
@@ -12155,8 +12142,8 @@ packages:
   querystringify@2.2.0:
     resolution: {integrity: sha512-FIqgj2EUvTa7R50u0rGsyTftzjYmv/a3hO345bZNrqabNqjtgiDMgmo4mkUjd+nzU5oF3dClKqFIPUKybUyqoQ==}
 
-  queue-manager@file:packages/usdk/packages/upstreet-agent/packages/queue-manager:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/queue-manager, type: directory}
+  queue-manager-async@0.0.1:
+    resolution: {integrity: sha512-vyc19znNJbJSWcomO7VG0G+AbSBgk3wmhBbKKSHC0X12L/ceIDkvyMPcW+sBemkXe6iTHXLIfRbnAuUYRnNStg==}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -13738,6 +13725,9 @@ packages:
     resolution: {integrity: sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg==}
     engines: {node: '>=14.17'}
     hasBin: true
+
+  u8-encoder@0.0.3:
+    resolution: {integrity: sha512-s/D0gcsrw2QhgK3vXbIOP10laR42GvhVnBGFBuApkN46IJ0uBCbK7sn6vUCHRukjLFHWgvcxy02wCUx5uTVJ1g==}
 
   ucom@file:packages/ucom/src:
     resolution: {directory: packages/ucom/src, type: directory}
@@ -20692,8 +20682,6 @@ snapshots:
     dependencies:
       crypto-js: 4.2.0
 
-  '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs': {}
-
   '@use-gesture/core@10.3.1': {}
 
   '@use-gesture/react@10.3.1(react@18.2.0)':
@@ -22050,8 +22038,8 @@ snapshots:
       lamejs: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs
       libopusjs: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs
       mpg123-decoder: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
-      queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
-      zjs: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
+      queue-manager-async: 0.0.1
+      u8-encoder: 0.0.3
 
   collapse-white-space@2.1.0: {}
 
@@ -27895,8 +27883,6 @@ snapshots:
 
   path-type@5.0.0: {}
 
-  path-util@file:packages/usdk/packages/upstreet-agent/packages/path-util: {}
-
   pathe@1.1.2: {}
 
   peek-readable@4.1.0: {}
@@ -28424,7 +28410,7 @@ snapshots:
 
   querystringify@2.2.0: {}
 
-  queue-manager@file:packages/usdk/packages/upstreet-agent/packages/queue-manager: {}
+  queue-manager-async@0.0.1: {}
 
   queue-microtask@1.2.3: {}
 
@@ -30532,6 +30518,8 @@ snapshots:
 
   typescript@5.7.2: {}
 
+  u8-encoder@0.0.3: {}
+
   ucom@file:packages/ucom/src: {}
 
   ufo@1.5.4: {}
@@ -30721,9 +30709,8 @@ snapshots:
       memoize-one: 6.0.0
       minimatch: 9.0.5
       openai: 4.76.1(zod@3.24.1)
-      path-util: file:packages/usdk/packages/upstreet-agent/packages/path-util
       playwright-core-lite: file:packages/usdk/packages/upstreet-agent/packages/playwright-core-lite
-      queue-manager: file:packages/usdk/packages/upstreet-agent/packages/queue-manager
+      queue-manager-async: 0.0.1
       react: file:packages/usdk/packages/upstreet-agent/packages/react
       react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
       react-agents-client: file:packages/usdk/packages/upstreet-agent/packages/react-agents-client
@@ -30734,9 +30721,9 @@ snapshots:
       ts-jest: 29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(esbuild@0.20.2)(jest@29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)))(typescript@5.7.2)
       twitter-api-sdk: 1.2.1
       typescript: 5.7.2
+      u8-encoder: 0.0.3
       uuid-by-string: 4.0.0
       yjs: 13.6.20
-      zjs: '@upstreet/zjs@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs'
       zod: 3.24.1
       zod-to-json-schema: 3.24.1(zod@3.24.1)
       zod-to-ts: 1.2.0(typescript@5.7.2)(zod@3.24.1)
