@@ -7,7 +7,7 @@ import alea from 'alea';
 import pc from 'picocolors';
 import { uniqueNamesGenerator, adjectives, colors, animals } from 'unique-names-generator';
 
-import { QueueManager } from '../packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
+import { QueueManager } from 'queue-manager-async';
 // import { lembed } from '../packages/upstreet-agent/packages/react-agents/util/embedding.mjs';
 import { makeId } from '../packages/upstreet-agent/packages/react-agents/util/util.mjs';
 import { parseAgentSpecs } from '../lib/agent-spec-utils.mjs';
@@ -33,8 +33,8 @@ import {
 } from '../packages/upstreet-agent/packages/react-agents/devices/video-input.mjs';
 import { getLoginJwt } from '../util/login-util.mjs';
 import { ReactAgentsClient, ReactAgentsMultiplayerConnection } from '../packages/upstreet-agent/packages/react-agents-client/react-agents-client.mjs';
-import { AudioDecodeStream } from '../packages/upstreet-agent/packages/codecs/audio-decode.mjs';
-import * as codecs from '../packages/upstreet-agent/packages/codecs/ws-codec-runtime-fs.mjs';
+import { AudioDecodeStream } from 'agent-codecs/audio-decode.mjs';
+import * as codecs from 'agent-codecs/ws-codec-runtime-fs.mjs';
 import { webbrowserActionsToText } from '../packages/upstreet-agent/packages/react-agents/util/browser-action-utils.mjs';
 
 import {
