@@ -5,7 +5,7 @@
     "lamejs": "file:./packages/lamejs",
     "libopusjs": "file:./packages/libopusjs",
     "mpg123-decoder": "file:./packages/mpg123-decoder",
-    "queue-manager": "file:../queue-manager",
-    "zjs": "file:../react-agents-client/packages/multiplayer/packages/zjs"
+    "queue-manager-async": "^0.0.1",
+    "u8-encoder": "^0.0.3"
   }
 }

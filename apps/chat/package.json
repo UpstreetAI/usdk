@@ -79,7 +79,7 @@
     "next-auth": "5.0.0-beta.4",
     "next-themes": "0.3.0",
     "openai": "^4.55.4",
-    "queue-manager": "file:../../packages/usdk/packages/upstreet-agent/packages/queue-manager",
+    "queue-manager-async": "^0.0.1",
     "react": "^18.2.0",
     "react-agents": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents",
     "react-agents-browser": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-browser",
@@ -104,7 +104,7 @@
     "ucom": "file:../../packages/ucom/src",
     "usehooks-ts": "2.16.0",
     "web-worker": "1.2.0",
-    "zjs": "file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer/packages/zjs",
+    "u8-encoder": "^0.0.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
