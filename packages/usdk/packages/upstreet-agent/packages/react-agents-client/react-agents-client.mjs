@@ -87,6 +87,13 @@ const waitForMessageType = (agentMultiplayerApi, method) => {
   });
 };
 
+// type ReactAgentsMultiplayerConnectionApi = {
+//   playersMap: PlayersMap;
+//   typingMap: TypingMap;
+//   speakerMap: SpeakerMap;
+//   log: (...args: any[]) => void;
+// };
+
 class ReactAgentsMultiplayerConnection {
   static async connect({
     agentMultiplayerConnection,
@@ -114,21 +121,163 @@ class ReactAgentsMultiplayerConnection {
     } = networkInitMessage.args;
 
     // set up result
-
     const result = new EventTarget();
-
+    // members
+    result.playerId = playerId;
     const playersMap = new PlayersMap();
     result.playersMap = playersMap;
     const typingMap = new TypingMap();
     result.typingMap = typingMap;
     const speakerMap = new SpeakerMap();
     result.speakerMap = speakerMap;
+    // methods
+    result.log = (...args) => {
+      agentMultiplayerConnection.send({
+        method: METHODS.LOG,
+        args: {
+          playerId,
+          args,
+        },
+      });
+    };
+    result.sendChatMessage = (message, attachments) => {
+      agentMultiplayerConnection.send({
+        method: METHODS.CHAT,
+        args: {
+          playerId,
+          message,
+          attachments,
+        },
+      });
+    };
+    result.setTyping = (typing) => {
+      agentMultiplayerConnection.send({
+        method: METHODS.TYPING,
+        args: {
+          playerId,
+          typing,
+        },
+      });
+    };
+    result.setSpeaking = (speaking) => {
+      agentMultiplayerConnection.send({
+        method: METHODS.SPEAKING,
+        args: {
+          playerId,
+          speaking,
+        },
+      });
+    };
 
     // initialize local player
+    const localPlayer = new Player(playerId, profile);
+    playersMap.add(playerId, localPlayer);
 
     // initialize remote players
+    for (const player of players) {
+      const {
+        playerId,
+        playerData,
+      } = player;
+      const remotePlayer = new Player(playerId, playerData);
+      playersMap.add(playerId, remotePlayer);
+    }
 
-    // XXX
+    // bind listeners
+    [
+      [METHODS.CHAT, 'chat'],
+      [METHODS.LOG, 'log'],
+      [METHODS.AUDIO, 'audio'],
+      [METHODS.AUDIOSTART, 'audiostart'],
+      [METHODS.AUDIOEND, 'audioend'],
+      [METHODS.VIDEO, 'video'],
+      [METHODS.VIDEOSTART, 'videostart'],
+      [METHODS.VIDEOEND, 'videoend'],
+    ].forEach(([method, eventName]) => {
+      const methodName = METHOD_NAMES[method];
+      if (!methodName) {
+        throw new Error(`Unknown method: ${method}`);
+      }
+      agentMultiplayerConnection.addEventListener(methodName, e => {
+        result.dispatchEvent(new MessageEvent(eventName, {
+          data: e.data,
+        }));
+      });
+    });
+    agentMultiplayerConnection.addEventListener(METHOD_NAMES[METHODS.JOIN], e => {
+      const {
+        playerId,
+        playerData,
+      } = e.data;
+      let remotePlayer = playersMap.get(playerId);
+      if (!remotePlayer) {
+        remotePlayer = new Player(playerId, playerData);
+        playersMap.add(playerId, remotePlayer);
+
+        result.dispatchEvent(new MessageEvent('join', {
+          data: {
+            player: remotePlayer,
+          },
+        }));
+      } else {
+        result.log('remote player already in playersMap', playerId);
+        throw new Error('remote player already in playersMap: ' + playerId);
+      }
+    });
+    agentMultiplayerConnection.addEventListener(METHOD_NAMES[METHODS.LEAVE], e => {
+      const {
+        playerId,
+      } = e.data;
+      const remotePlayer = playersMap.get(playerId);
+      if (remotePlayer) {
+        playersMap.remove(playerId);
+        result.dispatchEvent(new MessageEvent('leave', {
+          data: {
+            player: remotePlayer,
+          },
+        }));
+      } else {
+        result.log('remote player not found during leave', playerId);
+        throw new Error('remote player not found during leave');
+      }
+    });
+    agentMultiplayerConnection.addEventListener(METHOD_NAMES[METHODS.TYPING], e => {
+      const {
+        playerId,
+        typing,
+      } = e.data;
+      typingMap.set(playerId, typing);
+    });
+    agentMultiplayerConnection.addEventListener(METHOD_NAMES[METHODS.SPEAKING], e => {
+      const {
+        playerId,
+        speaking,
+      } = e.data;
+      speakerMap.set(playerId, speaking);
+    });
+    agentMultiplayerConnection.addEventListener(METHOD_NAMES[METHODS.SET_PLAYER_DATA], e => {
+      const {
+        playerId,
+        playerData,
+      } = e.data;
+      const player = playersMap.get(playerId);
+      if (player) {
+        player.setPlayerData(playerData);
+      } else {
+        result.log('player not found during set player data', playerId);
+        throw new Error('player not found during set player data: ' + playerId);
+      }
+    });
+    [
+      'close',
+      'error',
+    ].forEach(eventName => {
+      agentMultiplayerConnection.addEventListener(eventName, e => {
+        result.dispatchEvent(new MessageEvent(eventName, {
+          data: e.data,
+        }));
+      });
+    });
 
     return result;
   }
@@ -141,7 +290,7 @@ class ReactAgentsMultiplayerConnection {
   };
   static defaultLogLevel = ReactAgentsMultiplayerConnection.logLevels.info;
 
-  room;
+  /* room;
   profile;
   metadata;
   playersMap = new PlayersMap();
@@ -388,7 +537,7 @@ class ReactAgentsMultiplayerConnection {
   }
   removeVideoSource(videoSource) {
     return this.realms.removeVideoSource(videoSource);
-  }
+  } */
 }
 
 export const connect = async ({
