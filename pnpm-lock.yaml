@@ -108,8 +108,8 @@ importers:
         specifier: 0.6.2
         version: 0.6.2
       agent-codecs:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       agent-multiplayer:
         specifier: ^0.0.4
         version: 0.0.4
@@ -640,8 +640,8 @@ importers:
         specifier: ^1.0.5
         version: 1.0.6
       agent-codecs:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       alea:
         specifier: ^1.0.1
         version: 1.0.1
@@ -678,9 +678,9 @@ importers:
       cross-spawn:
         specifier: ^7.0.3
         version: 7.0.6
-      debouncer:
-        specifier: file:./packages/upstreet-agent/packages/debouncer
-        version: link:packages/upstreet-agent/packages/debouncer
+      debouncer-async:
+        specifier: ^0.0.1
+        version: 0.0.1
       dedent:
         specifier: ^1.5.3
         version: 1.5.3(babel-plugin-macros@3.1.0)
@@ -943,14 +943,14 @@ importers:
         specifier: ^29.5.13
         version: 29.5.14
       agent-codecs:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       browser-util-inspect:
         specifier: ^0.2.0
         version: 0.2.0
-      debouncer:
-        specifier: file:./packages/debouncer
-        version: link:packages/debouncer
+      debouncer-async:
+        specifier: ^0.0.1
+        version: 0.0.1
       dedent:
         specifier: ^1.5.3
         version: 1.5.3(babel-plugin-macros@3.1.0)
@@ -1046,8 +1046,6 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
 
-  packages/usdk/packages/upstreet-agent/packages/debouncer: {}
-
   packages/usdk/packages/upstreet-agent/packages/playwright-core-lite: {}
 
   packages/usdk/packages/upstreet-agent/packages/react: {}
@@ -1057,8 +1055,8 @@ importers:
   packages/usdk/packages/upstreet-agent/packages/react-agents-browser:
     dependencies:
       agent-codecs:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.0.3
+        version: 0.0.3
       react-agents:
         specifier: file:../react-agents
         version: link:../react-agents
@@ -6271,8 +6269,8 @@ packages:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
 
-  agent-codecs@0.0.2:
-    resolution: {integrity: sha512-IdhYyL/DgTukr1nkGpZerBoqAosR66jheA1ETOCyfgO0SC2NP5sLy3zsKF+cMyBoYX4IK1Bk7JRreWkQGuPMSw==}
+  agent-codecs@0.0.3:
+    resolution: {integrity: sha512-xVZPYW5UqRBOuB7hQxASh/+h1bqJLEgRgKBItqpPQKvF0NyCCwWsML3Z825K9tVE4Aro1hiWEhosEOyeHx0ybg==}
 
   agent-multiplayer@0.0.4:
     resolution: {integrity: sha512-hTQm8YudSiL197UUk8BmxyR30tKxHGoSi3SaUnW7vqtIjzqgwMo/eGBe6v8IlpJy5lY1U1DAOn0XP8QtevFKtQ==}
@@ -7555,8 +7553,8 @@ packages:
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
 
-  debouncer@file:packages/usdk/packages/upstreet-agent/packages/debouncer:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/debouncer, type: directory}
+  debouncer-async@0.0.1:
+    resolution: {integrity: sha512-6H5dq8Cz9Gz9LnwUJr8MiFLXXnGy+jlBflBzB0X/tAGS0RWHT1kS+7X/vcFDn55cDpOengu0fi09iwfQrSVW5A==}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -21054,7 +21052,7 @@ snapshots:
 
   agent-base@7.1.3: {}
 
-  agent-codecs@0.0.2:
+  agent-codecs@0.0.3:
     dependencies:
       queue-manager-async: 0.0.1
       u8-encoder: 0.0.5
@@ -22493,7 +22491,7 @@ snapshots:
 
   debounce@1.2.1: {}
 
-  debouncer@file:packages/usdk/packages/upstreet-agent/packages/debouncer: {}
+  debouncer-async@0.0.1: {}
 
   debug@2.6.9:
     dependencies:
@@ -30639,9 +30637,9 @@ snapshots:
       '@supabase/supabase-js': 2.47.5
       '@tsndr/cloudflare-worker-jwt': 2.5.3
       '@types/jest': 29.5.14
-      agent-codecs: 0.0.2
+      agent-codecs: 0.0.3
       browser-util-inspect: 0.2.0
-      debouncer: file:packages/usdk/packages/upstreet-agent/packages/debouncer
+      debouncer-async: 0.0.1
       dedent: 1.5.3(babel-plugin-macros@3.1.0)
       dotenv: 16.4.7
       ethers: 6.13.4
