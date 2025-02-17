@@ -53,7 +53,7 @@
     "@tsndr/cloudflare-worker-jwt": "^2.5.3",
     "@types/eventsource": "^1.1.15",
     "@types/three": "^0.167.1",
-    "agent-multiplayer": "^0.0.6",
+    "agent-multiplayer": "^0.0.7",
     "@vercel/analytics": "1.1.2",
     "@vercel/kv": "1.0.1",
     "@vercel/og": "0.6.2",
