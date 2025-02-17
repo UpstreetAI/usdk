@@ -111,8 +111,8 @@ importers:
         specifier: ^0.0.3
         version: 0.0.3
       agent-multiplayer:
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.0.8
+        version: 0.0.8
       ai:
         specifier: 3.1.5
         version: 3.1.5(openai@4.76.1(zod@3.24.1))(react@18.2.0)(solid-js@1.9.3)(svelte@4.2.19)(vue@3.5.13(typescript@5.7.2))(zod@3.24.1)
@@ -1073,8 +1073,8 @@ importers:
   packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     dependencies:
       agent-multiplayer:
-        specifier: ^0.0.7
-        version: 0.0.7
+        specifier: ^0.0.8
+        version: 0.0.8
       react-agents:
         specifier: file:../react-agents
         version: link:../react-agents
@@ -6272,8 +6272,8 @@ packages:
   agent-codecs@0.0.3:
     resolution: {integrity: sha512-xVZPYW5UqRBOuB7hQxASh/+h1bqJLEgRgKBItqpPQKvF0NyCCwWsML3Z825K9tVE4Aro1hiWEhosEOyeHx0ybg==}
 
-  agent-multiplayer@0.0.7:
-    resolution: {integrity: sha512-++vBmIhoAhQ4oqZlK3ZOv2U+VnUo0x+ZOSu5FbQJPNrD9GO7pOaPZkQ6KCO7T/RzRdkENjTblwLHv/ZSYvFabQ==}
+  agent-multiplayer@0.0.8:
+    resolution: {integrity: sha512-/R19mMbGKVvQn41lqk43nAni251rCMXqDxylKOJ3WF5ximus/gw0D1yHfcLu+2ImVSSHwYhhgONWk6FwjwQKPA==}
 
   agentkeepalive@4.5.0:
     resolution: {integrity: sha512-5GG/5IbQQpC9FpkRGsSvZI5QYeSCzlJHdpBQntCsuTOxhKD8lqKhrleg2Yi7yvMIf82Ycmmqln9U8V9qwEiJew==}
@@ -21057,7 +21057,7 @@ snapshots:
       queue-manager-async: 0.0.1
       u8-encoder: 0.0.5
 
-  agent-multiplayer@0.0.7:
+  agent-multiplayer@0.0.8:
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       u8-encoder: 0.0.4
@@ -28417,7 +28417,7 @@ snapshots:
 
   react-agents-client@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     dependencies:
-      agent-multiplayer: 0.0.7
+      agent-multiplayer: 0.0.8
       react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
 
   react-agents-node@file:packages/usdk/packages/upstreet-agent/packages/react-agents-node:
