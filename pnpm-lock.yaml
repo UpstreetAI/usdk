@@ -98,9 +98,6 @@ importers:
       '@types/three':
         specifier: ^0.167.1
         version: 0.167.2
-      '@upstreet/multiplayer':
-        specifier: file:../../packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
-        version: multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
       '@vercel/analytics':
         specifier: 1.1.2
         version: 1.1.2
@@ -110,6 +107,12 @@ importers:
       '@vercel/og':
         specifier: 0.6.2
         version: 0.6.2
+      agent-codecs:
+        specifier: ^0.0.2
+        version: 0.0.2
+      agent-multiplayer:
+        specifier: ^0.0.4
+        version: 0.0.4
       ai:
         specifier: 3.1.5
         version: 3.1.5(openai@4.76.1(zod@3.24.1))(react@18.2.0)(solid-js@1.9.3)(svelte@4.2.19)(vue@3.5.13(typescript@5.7.2))(zod@3.24.1)
@@ -122,9 +125,6 @@ importers:
       clsx:
         specifier: 2.1.0
         version: 2.1.0
-      codecs:
-        specifier: file:../../packages/usdk/packages/upstreet-agent/packages/codecs
-        version: link:../../packages/usdk/packages/upstreet-agent/packages/codecs
       cookie:
         specifier: ^0.6.0
         version: 0.6.0
@@ -243,8 +243,8 @@ importers:
         specifier: ^0.167.1
         version: 0.167.1
       u8-encoder:
-        specifier: ^0.0.3
-        version: 0.0.3
+        specifier: ^0.0.5
+        version: 0.0.5
       ucom:
         specifier: file:../../packages/ucom/src
         version: file:packages/ucom/src
@@ -639,9 +639,9 @@ importers:
       '@types/estree':
         specifier: ^1.0.5
         version: 1.0.6
-      '@wasm-audio-decoders/common':
-        specifier: file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common
+      agent-codecs:
+        specifier: ^0.0.2
+        version: 0.0.2
       alea:
         specifier: ^1.0.1
         version: 1.0.1
@@ -666,9 +666,6 @@ importers:
       cli-table3:
         specifier: ^0.6.4
         version: 0.6.5
-      codecs:
-        specifier: file:./packages/upstreet-agent/packages/codecs
-        version: link:packages/upstreet-agent/packages/codecs
       commander:
         specifier: ^12.0.0
         version: 12.1.0
@@ -741,15 +738,9 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
-      lamejs:
-        specifier: file:./packages/upstreet-agent/packages/codecs/packages/lamejs
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs
       latest-version:
         specifier: ^9.0.0
         version: 9.0.0
-      libopusjs:
-        specifier: file:./packages/upstreet-agent/packages/codecs/packages/libopusjs
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs
       memoize-one:
         specifier: ^6.0.0
         version: 6.0.0
@@ -759,9 +750,6 @@ importers:
       mkdirp:
         specifier: ^3.0.1
         version: 3.0.1
-      mpg123-decoder:
-        specifier: file:./packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
       open:
         specifier: ^10.1.0
         version: 10.1.0
@@ -823,8 +811,8 @@ importers:
         specifier: ^1.0.4
         version: 1.0.4
       u8-encoder:
-        specifier: ^0.0.3
-        version: 0.0.3
+        specifier: ^0.0.5
+        version: 0.0.5
       unique-names-generator:
         specifier: ^4.7.1
         version: 4.7.1
@@ -954,12 +942,12 @@ importers:
       '@types/jest':
         specifier: ^29.5.13
         version: 29.5.14
+      agent-codecs:
+        specifier: ^0.0.2
+        version: 0.0.2
       browser-util-inspect:
         specifier: ^0.2.0
         version: 0.2.0
-      codecs:
-        specifier: file:./packages/codecs
-        version: link:packages/codecs
       debouncer:
         specifier: file:./packages/debouncer
         version: link:packages/debouncer
@@ -1030,8 +1018,8 @@ importers:
         specifier: ^5.6.2
         version: 5.7.2
       u8-encoder:
-        specifier: ^0.0.3
-        version: 0.0.3
+        specifier: ^0.0.5
+        version: 0.0.5
       uuid-by-string:
         specifier: ^4.0.0
         version: 4.0.0
@@ -1058,24 +1046,6 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.8.1)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@22.8.1)(typescript@5.7.2))
 
-  packages/usdk/packages/upstreet-agent/packages/codecs:
-    dependencies:
-      lamejs:
-        specifier: file:./packages/lamejs
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs
-      libopusjs:
-        specifier: file:./packages/libopusjs
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs
-      mpg123-decoder:
-        specifier: file:./packages/mpg123-decoder
-        version: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
-      queue-manager-async:
-        specifier: ^0.0.1
-        version: 0.0.1
-      u8-encoder:
-        specifier: ^0.0.3
-        version: 0.0.3
-
   packages/usdk/packages/upstreet-agent/packages/debouncer: {}
 
   packages/usdk/packages/upstreet-agent/packages/playwright-core-lite: {}
@@ -1086,9 +1056,9 @@ importers:
 
   packages/usdk/packages/upstreet-agent/packages/react-agents-browser:
     dependencies:
-      codecs:
-        specifier: file:../codecs
-        version: link:../codecs
+      agent-codecs:
+        specifier: ^0.0.2
+        version: 0.0.2
       react-agents:
         specifier: file:../react-agents
         version: link:../react-agents
@@ -1104,9 +1074,9 @@ importers:
 
   packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     dependencies:
-      '@upstreet/multiplayer':
-        specifier: file:./packages/multiplayer
-        version: multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
+      agent-multiplayer:
+        specifier: ^0.0.4
+        version: 0.0.4
       react-agents:
         specifier: file:../react-agents
         version: link:../react-agents
@@ -6163,9 +6133,6 @@ packages:
   '@vue/shared@3.5.13':
     resolution: {integrity: sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==}
 
-  '@wasm-audio-decoders/common@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common':
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common, type: directory}
-
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
 
@@ -6303,6 +6270,12 @@ packages:
   agent-base@7.1.3:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
+
+  agent-codecs@0.0.2:
+    resolution: {integrity: sha512-IdhYyL/DgTukr1nkGpZerBoqAosR66jheA1ETOCyfgO0SC2NP5sLy3zsKF+cMyBoYX4IK1Bk7JRreWkQGuPMSw==}
+
+  agent-multiplayer@0.0.4:
+    resolution: {integrity: sha512-hTQm8YudSiL197UUk8BmxyR30tKxHGoSi3SaUnW7vqtIjzqgwMo/eGBe6v8IlpJy5lY1U1DAOn0XP8QtevFKtQ==}
 
   agentkeepalive@4.5.0:
     resolution: {integrity: sha512-5GG/5IbQQpC9FpkRGsSvZI5QYeSCzlJHdpBQntCsuTOxhKD8lqKhrleg2Yi7yvMIf82Ycmmqln9U8V9qwEiJew==}
@@ -7137,9 +7110,6 @@ packages:
 
   code-red@1.0.4:
     resolution: {integrity: sha512-7qJWqItLA8/VPVlKJlFXU+NBlo/qyfs39aJcuMT/2ere32ZqvF5OSxgdM5xOfJJ7O429gg2HM47y8v9P+9wrNw==}
-
-  codecs@file:packages/usdk/packages/upstreet-agent/packages/codecs:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/codecs, type: directory}
 
   collapse-white-space@2.1.0:
     resolution: {integrity: sha512-loKTxY1zCOuG4j9f6EPnuyyYkf58RnhhWTvRoZEokgB+WbdXehfjFviyOVYkqzEWz1Q5kRiZdBYS5SwxbQYwzw==}
@@ -10204,9 +10174,6 @@ packages:
     resolution: {integrity: sha512-Sz49ZWR/BjNOq+2UK1k9ONZUVq8eyuCj30Zgc8VrRNtFlTBZduzuvehUd5kjQF6/Fms3Ir3EYqzJryw9tRvsSw==}
     engines: {node: '>=18'}
 
-  lamejs@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs, type: directory}
-
   language-subtag-registry@0.3.23:
     resolution: {integrity: sha512-0K65Lea881pHotoGEa5gDlMxt3pctLi2RplBb7Ezh4rRdLEOtgi7n4EwK9lamnUCkKBqaeKRVebTq6BAxSkpXQ==}
 
@@ -10244,9 +10211,6 @@ packages:
     resolution: {integrity: sha512-vwztYuUf1uf/1zQxfzRfO5yzfNKhTtgOByCruuiQQxWQXnPb8Itaube5ylofcV0oM0aKal9Mv+S1s1Ky0UYP1w==}
     engines: {node: '>=16'}
     hasBin: true
-
-  libopusjs@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs, type: directory}
 
   lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
@@ -10971,9 +10935,6 @@ packages:
   motion-utils@11.13.0:
     resolution: {integrity: sha512-lq6TzXkH5c/ysJQBxgLXgM01qwBH1b4goTPh57VvZWJbVJZF/0SB31UWEn4EIqbVPf3au88n2rvK17SpDTja1A==}
 
-  mpg123-decoder@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder, type: directory}
-
   mri@1.2.0:
     resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
     engines: {node: '>=4'}
@@ -10986,9 +10947,6 @@ packages:
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
-
-  multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer:
-    resolution: {directory: packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer, type: directory}
 
   mustache@4.2.0:
     resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
@@ -13726,8 +13684,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  u8-encoder@0.0.3:
-    resolution: {integrity: sha512-s/D0gcsrw2QhgK3vXbIOP10laR42GvhVnBGFBuApkN46IJ0uBCbK7sn6vUCHRukjLFHWgvcxy02wCUx5uTVJ1g==}
+  u8-encoder@0.0.4:
+    resolution: {integrity: sha512-dI0lrSax+ymc0LNKiFhLkmqoxWHJYNQ3ryi74jg8/SvDWHL+9nLVnyUwxW3b6PouXtwavIpFaDL199mhU1lODw==}
+
+  u8-encoder@0.0.5:
+    resolution: {integrity: sha512-AOwAoUlu8DiT0AwNeRSt5oT+Dsz6Iy172FUD+Jvvb7ZRHtGWO6+DShGd0if8u0y/QQWwUrW1Mixo/vA/Qa5IsQ==}
 
   ucom@file:packages/ucom/src:
     resolution: {directory: packages/ucom/src, type: directory}
@@ -13953,9 +13914,6 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
-
-  use-strict@1.0.1:
-    resolution: {integrity: sha512-IeiWvvEXfW5ltKVMkxq6FvNf2LojMKvB2OCeja6+ct24S1XOmQw2dGr2JyndwACWAGJva9B7yPHwAmeA9QCqAQ==}
 
   use-sync-external-store@1.2.2:
     resolution: {integrity: sha512-PElTlVMwpblvbNqQ82d2n6RjStvdSoNe9FG28kNfz3WiXilJm4DdNkEzRhCZuIDwY8U08WVihhGR5iRqAwfDiw==}
@@ -20942,11 +20900,6 @@ snapshots:
 
   '@vue/shared@3.5.13': {}
 
-  '@wasm-audio-decoders/common@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common':
-    dependencies:
-      '@eshaz/web-worker': 1.2.2
-      simple-yenc: 1.0.4
-
   '@webassemblyjs/ast@1.14.1':
     dependencies:
       '@webassemblyjs/helper-numbers': 1.13.2
@@ -21100,6 +21053,17 @@ snapshots:
       - supports-color
 
   agent-base@7.1.3: {}
+
+  agent-codecs@0.0.2:
+    dependencies:
+      queue-manager-async: 0.0.1
+      u8-encoder: 0.0.5
+
+  agent-multiplayer@0.0.4:
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.3.4
+      u8-encoder: 0.0.4
+      yjs: 13.6.20
 
   agentkeepalive@4.5.0:
     dependencies:
@@ -22032,14 +21996,6 @@ snapshots:
       acorn: 8.14.0
       estree-walker: 3.0.3
       periscopic: 3.1.0
-
-  codecs@file:packages/usdk/packages/upstreet-agent/packages/codecs:
-    dependencies:
-      lamejs: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs
-      libopusjs: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs
-      mpg123-decoder: file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder
-      queue-manager-async: 0.0.1
-      u8-encoder: 0.0.3
 
   collapse-white-space@2.1.0: {}
 
@@ -26100,10 +26056,6 @@ snapshots:
 
   ky@1.7.3: {}
 
-  lamejs@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/lamejs:
-    dependencies:
-      use-strict: 1.0.1
-
   language-subtag-registry@0.3.23: {}
 
   language-tags@1.0.9:
@@ -26172,8 +26124,6 @@ snapshots:
   lib0@0.2.99:
     dependencies:
       isomorphic.js: 0.2.5
-
-  libopusjs@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/libopusjs: {}
 
   lie@3.1.1:
     dependencies:
@@ -27321,10 +27271,6 @@ snapshots:
 
   motion-utils@11.13.0: {}
 
-  mpg123-decoder@file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder:
-    dependencies:
-      '@wasm-audio-decoders/common': file:packages/usdk/packages/upstreet-agent/packages/codecs/packages/mpg123-decoder/packages/wasm-audio-decoders-common
-
   mri@1.2.0: {}
 
   ms@2.0.0: {}
@@ -27332,11 +27278,6 @@ snapshots:
   ms@2.1.1: {}
 
   ms@2.1.3: {}
-
-  multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer:
-    dependencies:
-      '@cloudflare/kv-asset-handler': 0.3.4
-      yjs: 13.6.20
 
   mustache@4.2.0: {}
 
@@ -28478,7 +28419,7 @@ snapshots:
 
   react-agents-client@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client:
     dependencies:
-      '@upstreet/multiplayer': multiplayer@file:packages/usdk/packages/upstreet-agent/packages/react-agents-client/packages/multiplayer
+      agent-multiplayer: 0.0.4
       react-agents: file:packages/usdk/packages/upstreet-agent/packages/react-agents
 
   react-agents-node@file:packages/usdk/packages/upstreet-agent/packages/react-agents-node:
@@ -30518,7 +30459,9 @@ snapshots:
 
   typescript@5.7.2: {}
 
-  u8-encoder@0.0.3: {}
+  u8-encoder@0.0.4: {}
+
+  u8-encoder@0.0.5: {}
 
   ucom@file:packages/ucom/src: {}
 
@@ -30696,8 +30639,8 @@ snapshots:
       '@supabase/supabase-js': 2.47.5
       '@tsndr/cloudflare-worker-jwt': 2.5.3
       '@types/jest': 29.5.14
+      agent-codecs: 0.0.2
       browser-util-inspect: 0.2.0
-      codecs: file:packages/usdk/packages/upstreet-agent/packages/codecs
       debouncer: file:packages/usdk/packages/upstreet-agent/packages/debouncer
       dedent: 1.5.3(babel-plugin-macros@3.1.0)
       dotenv: 16.4.7
@@ -30721,7 +30664,7 @@ snapshots:
       ts-jest: 29.2.5(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.0))(esbuild@0.20.2)(jest@29.7.0(@types/node@18.19.68)(babel-plugin-macros@3.1.0)(ts-node@10.9.1(@swc/core@1.10.1(@swc/helpers@0.5.13))(@types/node@18.19.68)(typescript@4.9.5)))(typescript@5.7.2)
       twitter-api-sdk: 1.2.1
       typescript: 5.7.2
-      u8-encoder: 0.0.3
+      u8-encoder: 0.0.5
       uuid-by-string: 4.0.0
       yjs: 13.6.20
       zod: 3.24.1
@@ -30830,8 +30773,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 18.3.16
-
-  use-strict@1.0.1: {}
 
   use-sync-external-store@1.2.2(react@18.2.0):
     dependencies:
