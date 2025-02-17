@@ -13,7 +13,7 @@ import { rimraf } from 'rimraf';
 
 import Table from 'cli-table3';
 
-import { QueueManager } from './packages/upstreet-agent/packages/queue-manager/queue-manager.mjs';
+import { QueueManager } from 'queue-manager-async';
 import { parseAgentSpecs } from './lib/agent-spec-utils.mjs';
 import {
   getAgentPublicUrl,
