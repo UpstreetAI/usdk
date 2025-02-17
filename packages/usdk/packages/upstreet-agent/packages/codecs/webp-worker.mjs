@@ -1,5 +1,5 @@
 import webp from 'webp-wasm';
-import { zbdecode, zbencode } from 'zjs';
+import * as u8 from 'u8-encoder';
 import { QueueManager } from 'queue-manager';
 
 const encodeWebp = async (imageData, opts) => {
@@ -19,7 +19,7 @@ globalThis.onmessage = async (e) => {
     let error, result;
     try {
       const b = e.data;
-      const o = zbdecode(b);
+      const o = u8.decode(b);
       const {
         method,
         args,
@@ -51,9 +51,9 @@ globalThis.onmessage = async (e) => {
 
     let b;
     if (!error) {
-      b = zbencode({ error: null, result });
+      b = u8.encode({ error: null, result });
     } else {
-      b = zbencode({ error, result: null });
+      b = u8.encode({ error, result: null });
     }
     postMessage(b, [b.buffer]);
   });

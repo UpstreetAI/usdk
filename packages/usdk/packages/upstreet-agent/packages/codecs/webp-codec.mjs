@@ -1,4 +1,4 @@
-import { zbencode, zbdecode } from 'zjs';
+import * as u8 from 'u8-encoder';
 
 export class WebPEncoder {
   constructor() {
@@ -10,7 +10,7 @@ export class WebPEncoder {
       const promise = this.promises.shift();
       if (promise) {
         const b = e.data;
-        const o = zbdecode(b);
+        const o = u8.decode(b);
         const {
           error,
           result,
@@ -34,7 +34,7 @@ export class WebPEncoder {
     quality = 75,
     lossless = false,
   } = {}) {
-    const b = zbencode({
+    const b = u8.encode({
       method: 'encode',
       args: {
         imageData,
@@ -58,7 +58,7 @@ export class WebPEncoder {
     return await promise;
   }
   async decode(encodedData) {
-    const b = zbencode({
+    const b = u8.encode({
       method: 'decode',
       args: {
         encodedData,
