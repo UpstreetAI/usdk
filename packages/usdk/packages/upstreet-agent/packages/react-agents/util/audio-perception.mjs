@@ -4,7 +4,7 @@ import {
   // int16ToFloat32,
 } from 'codecs/convert.mjs';
 import { AudioEncodeStream } from 'codecs/audio-encode.mjs';
-import { QueueManager } from 'queue-manager';
+import { QueueManager } from 'queue-manager-async';
 import {
   aiHost,
 } from './endpoints.mjs';
