@@ -3,6 +3,6 @@
   "main": "browser-runtime.ts",
   "dependencies": {
     "react-agents": "file:../react-agents",
-    "agent-codecs": "^0.0.2"
+    "agent-codecs": "^0.0.3"
   }
 }
